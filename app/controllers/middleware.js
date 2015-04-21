@@ -1,6 +1,5 @@
 // Module dependencies.
-var
-    Users = require('../models/users'),
+var Users = require('../models/users'),
     ServantMetas = require('../models/servant_metas'),
     config = require('../../config/config');
 

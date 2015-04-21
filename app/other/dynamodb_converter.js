@@ -1,3 +1,10 @@
+/**
+ * DynamoDB Converter
+ * - DynamoDB does not take standard JSON (what the f*ck!)
+ * - Use these to convert DynamoDB results to standard JSON
+ */
+
+
 var arrayConverter = function(data_in) {
     var data_out = [];
     if (!data_in)

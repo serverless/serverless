@@ -65,6 +65,17 @@ app.use(robots(__dirname + '/robots.txt'))
 // Routes
 require('./app/routes')(app); // pass our application into our routes
 
+/**
+ * Lambda Set-Up
+ * - Upload all Lambda functions on server start so they are ready to be called
+ */
+// var lambdaws = require('./app/other/aws_services').lambdaws;
+
+// var lambda_functions_path = __dirname + '/app/lambda';
+// fs.readdirSync(lambda_functions_path).forEach(function(file) {
+//     var func = lambdaws.create(require(lambda_functions_path + '/' + file));
+// });
+
 // Start Application
 app.listen(port);
 console.log('****** Servant Boilerplate ' + env + ' is now running on port ' + port + '  ******'); // shoutout to the user

@@ -21,6 +21,7 @@
     "express": "^4.12.3",
     "forever": "^0.11.1",
     "jade": "^1.9.2",
+    "lambdaws": "^1.0.15",
     "lodash": "^2.4.1",
     "method-override": "^2.3.2",
     "moment": "^2.9.0",
