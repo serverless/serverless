@@ -1,0 +1,12 @@
+{
+  "name": "servant-boilerplate-laden",
+  "version": "1.0.0",
+  "dependencies": {
+    "servant-sdk-javascript": "~2.0.25",
+    "jquery": "2.1.3",
+    "angular": "1.3.15",
+    "angular-resource": "1.3.15",
+    "angular-ui-router": "0.2.13",
+    "moment": "~2.10.2"
+  }
+}

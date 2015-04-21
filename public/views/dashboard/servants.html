@@ -1,0 +1,62 @@
+<div id="servants-page">
+
+    <p id="menu-bar" class="st-font">
+        <a class="active">
+            Servants
+        </a>
+        <a href="/logout">
+            Logout
+        </a>
+    </p>
+
+    <div class="page-container st-animate-zoom-in">
+
+        <!-- Main View -->
+        <div data-ng-hide="help">
+            <h2 class="st-font st-centered" style="margin:0px 0px 10px 0px;">Welcome!</h2>
+            <p class="st-font st-centered">Hi {{s.user.nick_name }}, Which Servant Would You Like To Use?</p>
+
+            <hr style="margin: 30px auto 20px auto;width:75%">
+
+            <table id="servants-list">
+                <tbody>
+                    <tr data-ng-repeat="servant in s.servants" data-ui-sref="menu({ servantID: servant._id })">
+                        <td>
+                            <img class="servant-image" data-ng-src="{{ servant.servant_image }}">
+                        </td>
+                        <td>
+                            <span class="st-link st-font" data-ng-show="servant.master">{{ servant.master }}</span>
+                            <span class="st-link st-font" data-ng-hide="servant.master" style="opacity:0.6">No Master</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- Help View -->
+        <div class="help-area" data-ng-show="help">
+            <h5 class="st-font st-red st-centered">Help Area</h5>
+            <p class="st-font st-centered">"The Servant Screen"</p>
+            <hr style="margin: 20px auto 20px auto;width:95%">
+
+            <table class="table">
+                <tr>
+                    <td>
+                        <i class="fa fa-chevron-right"></i>
+                    </td>
+                    <td class="st-font">
+                        Enter help information here.
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!-- Help Screen -->
+
+
+    </div>
+</div>
+
+
+
+<!-- End -->

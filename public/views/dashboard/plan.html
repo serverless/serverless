@@ -1,0 +1,116 @@
+<div id="plan-page" data-ng-controller="PlansController" data-ng-init="initialize()">
+
+    <p id="menu-bar" class="st-font">
+        <a data-ui-sref="servants">
+            Servants
+        </a>
+        <a data-ui-sref="menu({ servantID: s.servants[servant_index]._id })">
+            Menu
+        </a>
+        <a class="active">
+            Plan
+        </a>
+        <a href="/logout">
+            Logout
+        </a>
+    </p>
+
+    <div class="page-container st-animate-zoom-in">
+        <i class="fa fa-question-circle help-icon st-red st-animate-blink" data-ng-click="help = !help"></i>
+
+        <div data-ng-show="subscribed && !help">
+            <h3 class="st-font st-centered" style="margin-top:40px;">
+                Congratulations!
+            </h3>
+            <p class="st-font st-centered" style="margin-top:20px;margin-bottom:100px;">
+                Your Subscription Was Successfully Created!
+            </p>
+        </div>
+        <div data-ng-show="!subscribed && !help">
+            <p class="st-centered">
+                <img class="servant-image st-animate-bounce-in" data-ng-src="https://d2d0226i04jal.cloudfront.net/images/servants/{{ s.servants[servant_index].personality.toLowerCase() }}.svg">
+            </p>
+            <p class="st-centered st-font st-red">{{s.servants[servant_index].master}} </p>
+
+            <p class="st-font st-centered" data-ng-show="s.servants[servant_index].servant_pay.subscription_status === 'none'">
+                This Servant does not have a subscription
+            </p>
+            <p class="st-font st-centered" data-ng-show="s.servants[servant_index].servant_pay.subscription_status === 'active'">
+                Below is this Servant's subscription
+            </p>
+
+            <hr style="margin: 20px auto 20px auto;width:75%">
+
+            <p class="st-font st-centered" data-ng-show="s.servants[servant_index].servant_pay.subscription_status === 'none'" style="margin-bottom:10px;">
+                Select A Plan
+            </p>
+
+            <div class="st-centered" style="margin-top:10px;">
+                <select class="st-input plan-select" data-ng-model="newPlan" data-ng-options="plan.plan_id as plan.label for plan in plans">
+                </select>
+            </div>
+
+            <!-- Plan Features -->
+            <ul class="list-unstyled plan-features st-font">
+                <li>
+                    <i class="fa fa-chevron-right"></i> These plans are amazing
+                </li>
+                <li>
+                    <i class="fa fa-chevron-right"></i> These plans are cheap
+                </li>
+                <li>
+                    <i class="fa fa-chevron-right"></i> You can't go wrong with these plans!
+                </li>
+            </ul>
+
+            <p class="st-red st-font st-centered" data-ng-show="error" style="margin-top:20px;">{{ error }}</p>
+
+            <p class="st-font st-centered" style="margin-top:20px;">
+                <button class="st-btn-red st-btn-lg" data-ng-hide="subscribing || s.servants[servant_index].servant_pay.subscription_status === 'active'" data-ng-click="subscribe()">Subscribe</button>
+
+                <span class="st-centered st-font st-red" data-ng-show="newPlan === s.servants[servant_index].servant_pay.subscription_plan_id">Select A New Plan To Change Your Subscription</span>
+
+                <button class="st-btn-red st-btn-lg st-animate-bounce-in" data-ng-hide="subscribing || s.servants[servant_index].servant_pay.subscription_status === 'none' || newPlan === s.servants[servant_index].servant_pay.subscription_plan_id" data-ng-click="subscribe()">Change Plan</button>
+
+                <button class="st-btn-red st-btn-lg st-btn-disabled" data-ng-show="subscribing">
+                    <i class="fa fa-refresh fa-spin"></i> Subscribing
+                </button>
+            </p>
+
+            <p class="st-font st-centered" data-ng-hide="newPlan === s.servants[servant_index].servant_pay.subscription_plan_id" style="opacity:0.7;font-size:10px;margin:20px auto 0px auto;width:75%;">
+                Clicking Subscribe will automatically charge the card you have on file with Servant
+            </p>
+
+            <hr style="margin: 25px auto 20px auto;width:75%">
+
+            <p class="st-centered st-font st-link" style="margin-top:20px;" data-ng-show="s.servants[servant_index].servant_pay.subscription_status === 'active' && !canceling" data-ng-click="cancelPlan()">
+                Cancel Your Plan
+            </p>
+
+            <p class="st-centered st-font st-link" style="margin-top:30px;" data-ng-show="canceling">
+                Canceling...
+            </p>
+        </div>
+
+
+        <!-- Help View -->
+        <div class="help-area" data-ng-show="help">
+            <h5 class="st-font st-red st-centered">Help Area</h5>
+            <p class="st-font st-centered">"Subscriptions"</p>
+            <hr style="margin: 20px auto 20px auto;width:95%">
+
+            <table class="table">
+                <tr>
+                    <td>
+                        <i class="fa fa-chevron-right"></i>
+                    </td>
+                    <td class="st-font">
+                        Enter help information here
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!-- Help Screen -->
+
+    </div>
+</div>
