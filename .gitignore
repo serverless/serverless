@@ -16,3 +16,5 @@ node_modules
 public/libs
 config/env/servant_development
 .env
+
+./app/lambda/lambda_sync
