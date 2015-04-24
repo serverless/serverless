@@ -9,7 +9,7 @@ New tools come and go, meanwhile Amazon's keep getting better and they keep cutt
 
 This boilerplate is current under development...
 
-Includes
+Starring
 =================================
 
 **Javascript:**
@@ -18,12 +18,8 @@ Includes
 
 **AWS Services:**
 - AuroraDB
+Working on AuroraDB support for Relational data storage...
 - DynamoDB
+Built-in DynamoDB support for NoSQL data storage because some data just don't fit.
 - Lambda
-
-Features
-=================================
-
-* Built-in AWS Lambda support.  Easily build worker tasks that you can spawn and scale infinitely.
-* Built-in DynamoDB support for NoSQL data storage because some things just don't fit.
-* Working on AuroraDB support for Relational data storage...
+Easily build worker tasks that you can spawn and scale infinitely.
