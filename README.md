@@ -17,9 +17,6 @@ Starring
 - Express.js
 
 **AWS Services:**
-- AuroraDB  
-Working on AuroraDB support for Relational data storage...
-- DynamoDB  
-Built-in DynamoDB support for NoSQL data storage because some data just don't fit.
-- Lambda  
-Easily build worker tasks that you can spawn and scale infinitely.
+- AuroraDB - Working on AuroraDB support for Relational data storage...
+- DynamoDB - Built-in DynamoDB support for NoSQL data storage because some data just don't fit.
+- Lambda - Easily build worker tasks that you can spawn and scale infinitely.
