@@ -3,9 +3,12 @@
 JAWS – The Javascript + AWS Stack
 =================================
 
+The scalable, reliable, cheap, javascript web application stack.
+
+This boilerplate is current under development...
 
 Includes
------------
+=================================
 
 **Javascript:**
 - Node.js
@@ -15,5 +18,10 @@ Includes
 - AuroraDB
 - DynamoDB
 - Lambda
- 		 
-This boilerplate is current under development...
+
+Features
+=================================
+
+* Built-in AWS Lambda support.  Easily build worker tasks that you can spawn and scale infinitely.
+* Built-in DynamoDB support for NoSQL data storage because some things just don't fit.
+* Working on AuroraDB support for Relational data storage...
