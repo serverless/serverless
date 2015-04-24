@@ -5,7 +5,7 @@ JAWS – The Javascript + AWS Stack
 
 The scalable, reliable, cheap, javascript web application stack, backed by AWS's best services.
 
-New tools come and go, meanwhile Amazon's keep getting better and they keep cutting costs.  Use this for any starter project that you would to grow immensely and cheaply.
+New tools come and go, meanwhile Amazon's keep getting better and they keep cutting costs.  This stack is for adults with starter projects that they would to grow immensely and cheaply.  It covers all aspects of a SaaS service and utilizes AWS services that scale automatically, leaving you free to focus on writing a great app, all in javascript!
 
 This boilerplate is current under development...
 
