@@ -1,0 +1,8 @@
+{
+    "FunctionName": "jaws_lambda_example_function",
+    "Description": "A description of this lambda function",
+    "MemorySize": 128,
+    "Timeout": 3,
+    "Handler": "lambda_function",
+    "Runtime": "nodejs"
+}
