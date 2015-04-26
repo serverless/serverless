@@ -2,7 +2,7 @@
  * Users Data Model
  */
 
-var dynamoDB = require('../other/aws_services').dynamoDB,
+var dynamoDB = require('../other/aws').dynamoDB,
     dynamoDBConverter = require('../other/dynamodb_converter'),
     crypto = require('crypto');
 

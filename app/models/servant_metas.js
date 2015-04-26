@@ -2,7 +2,7 @@
  * ServantMeta Data Model
  */
 
-var dynamoDB = require('../other/aws_services').dynamoDB,
+var dynamoDB = require('../other/aws').dynamoDB,
     moment = require('moment'),
     dynamoDBConverter = require('../other/dynamodb_converter'),
     crypto = require('crypto');

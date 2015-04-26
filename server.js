@@ -34,8 +34,8 @@ app.use(cookieParser());
 
 // Express Cookie-Based Session
 app.use(session({
-    name: 'iekoocLADENETALPRELIOBTNAVRES', // Change these for your own application
-    secret: 'LADENETALPRELIOBTNAVRES', // Change these for your own application
+    name: 'JAWSStack', // Change these for your own application
+    secret: 'THEJAWSSTCK', // Change these for your own application
     secureProxy: false, // Set to true if you have an SSL Certificate
     cookie: {
         secure: false, // Secure is Recommeneded, However it requires an HTTPS enabled website (SSL Certificate)
@@ -43,9 +43,10 @@ app.use(session({
     }
 }));
 
-// Set Jade as the template engine
+// Set EJS as HTML as the template engine
 app.set('views', './app/views');
-app.set('view engine', 'jade');
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'html');
 
 // Get req.body as JSON when receiving POST requests
 app.use(bodyParser.json()); // parse application/json 
@@ -65,20 +66,9 @@ app.use(robots(__dirname + '/robots.txt'))
 // Routes
 require('./app/routes')(app); // pass our application into our routes
 
-/**
- * Lambda Set-Up
- * - Upload all Lambda functions on server start so they are ready to be called
- */
-var Lambdaws = require('./app/other/aws_services').lambdaws.create;
-
-var lambda_functions_path = __dirname + '/app/lambda';
-fs.readdirSync(lambda_functions_path).forEach(function(file) {
-    Lambdaws(require(lambda_functions_path + '/' + file), [], {});
-});
-
 // Start Application
 app.listen(port);
-console.log('****** Servant Boilerplate ' + env + ' is now running on port ' + port + '  ******'); // shoutout to the user
+console.log('****** The JAWS Stack ' + env + ' is now running on port ' + port + '  ******'); // shoutout to the user
 exports = module.exports = app; // expose app
 
 

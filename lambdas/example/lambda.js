@@ -5,12 +5,6 @@
 
 var async = require('async');
 var moment = require('moment');
-var etsyjs = require('etsy-js');
-var etsyClient = etsyjs.client({
-    key: 'key',
-    secret: 'secret',
-    callbackURL: 'http://localhost:3000/authorise'
-});
 var doc = require('dynamodb-doc');
 var dynamo = new doc.DynamoDB();
 
