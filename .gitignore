@@ -11,10 +11,8 @@ logs
 results
 .DS_Store
 npm-debug.log
-node_modules
-
-public/libs
-config/env/servant_development
 .env
 
-./app/lambda/lambda_sync
+server/public/libs
+server/node_modules
+
