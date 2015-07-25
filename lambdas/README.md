@@ -1,0 +1,1 @@
+All API routes go in here as separate AWS Lambda functions
