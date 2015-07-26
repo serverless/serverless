@@ -1,3 +1,0 @@
-body {
-  foo: '<%= value %>';
-}
