@@ -13,7 +13,8 @@ results
 npm-debug.log
 .env
 
-server/public/libs
-server/node_modules
+site/public/libs
+site/node_modules
+lib/node_modules
 cli/node_modules
 
