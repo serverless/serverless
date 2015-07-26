@@ -1,0 +1,76 @@
+{
+  "name": "range-parser",
+  "author": {
+    "name": "TJ Holowaychuk",
+    "email": "tj@vision-media.ca",
+    "url": "http://tjholowaychuk.com"
+  },
+  "description": "Range header field string parser",
+  "version": "1.0.2",
+  "license": "MIT",
+  "keywords": [
+    "range",
+    "parser",
+    "http"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jshttp/range-parser"
+  },
+  "devDependencies": {
+    "istanbul": "0",
+    "mocha": "1",
+    "should": "2"
+  },
+  "files": [
+    "HISTORY.md",
+    "LICENSE",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec --require should",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --require should",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter dot --require should"
+  },
+  "gitHead": "ae23b02ce705b56e7f7c48e832d41fa710227ecc",
+  "bugs": {
+    "url": "https://github.com/jshttp/range-parser/issues"
+  },
+  "homepage": "https://github.com/jshttp/range-parser",
+  "_id": "range-parser@1.0.2",
+  "_shasum": "06a12a42e5131ba8e457cd892044867f2344e549",
+  "_from": "range-parser@>=1.0.2 <1.1.0",
+  "_npmVersion": "1.4.21",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "tjholowaychuk",
+      "email": "tj@vision-media.ca"
+    },
+    {
+      "name": "jonathanong",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    },
+    {
+      "name": "jongleberry",
+      "email": "jonathanrichardong@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "06a12a42e5131ba8e457cd892044867f2344e549",
+    "tarball": "http://registry.npmjs.org/range-parser/-/range-parser-1.0.2.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/range-parser/-/range-parser-1.0.2.tgz",
+  "readme": "ERROR: No README data found!"
+}

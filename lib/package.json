@@ -1,0 +1,27 @@
+{
+    "name": "app",
+    "version": "0.0.1",
+    "description": "JAWS App Library: Re-usable, modular code that you can require in both your server and lambda functions",
+    "author": "You",
+    "private": true,
+    "main": "index.js",
+    "scripts": {
+        "test": "test"
+    },
+    "engines": {
+        "node": "0.12.x",
+        "npm": "2.1.x"
+    },
+    "dependencies": {
+        "async": "^1.2.1",
+        "aws-sdk": "^2.1.32",
+        "bcryptjs": "^2.2.0",
+        "dotenv": "^1.2.0",
+        "dynamodb-doc": "^1.0.0",
+        "lodash": "^3.9.3",
+        "moment": "^2.10.3",
+        "node-uuid": "^1.4.3",
+        "shortid": "^2.2.2"
+    },
+    "devDependencies": {}
+}

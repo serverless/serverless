@@ -1,0 +1,73 @@
+{
+  "author": {
+    "name": "Robert Kieffer",
+    "email": "robert@broofa.com",
+    "url": "http://github.com/broofa"
+  },
+  "scripts": {
+    "prepublish": "node build/build.js > types.json",
+    "test": "node build/test.js"
+  },
+  "bin": {
+    "mime": "cli.js"
+  },
+  "contributors": [
+    {
+      "name": "Benjamin Thomas",
+      "email": "benjamin@benjaminthomas.org",
+      "url": "http://github.com/bentomas"
+    }
+  ],
+  "description": "A comprehensive library for mime-type mapping",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://raw.github.com/broofa/node-mime/master/LICENSE"
+    }
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "mime-db": "^1.2.0"
+  },
+  "keywords": [
+    "util",
+    "mime"
+  ],
+  "main": "mime.js",
+  "name": "mime",
+  "repository": {
+    "url": "https://github.com/broofa/node-mime",
+    "type": "git"
+  },
+  "version": "1.3.4",
+  "gitHead": "1628f6e0187095009dcef4805c3a49706f137974",
+  "bugs": {
+    "url": "https://github.com/broofa/node-mime/issues"
+  },
+  "homepage": "https://github.com/broofa/node-mime",
+  "_id": "mime@1.3.4",
+  "_shasum": "115f9e3b6b3daf2959983cb38f149a2d40eb5d53",
+  "_from": "mime@1.3.4",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "broofa",
+    "email": "robert@broofa.com"
+  },
+  "maintainers": [
+    {
+      "name": "broofa",
+      "email": "robert@broofa.com"
+    },
+    {
+      "name": "bentomas",
+      "email": "benjamin@benjaminthomas.org"
+    }
+  ],
+  "dist": {
+    "shasum": "115f9e3b6b3daf2959983cb38f149a2d40eb5d53",
+    "tarball": "http://registry.npmjs.org/mime/-/mime-1.3.4.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/mime/-/mime-1.3.4.tgz",
+  "readme": "ERROR: No README data found!"
+}

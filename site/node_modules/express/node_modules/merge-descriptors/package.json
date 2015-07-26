@@ -1,0 +1,125 @@
+{
+  "name": "merge-descriptors",
+  "description": "Merge objects using descriptors",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jonathan Ong",
+    "email": "me@jongleberry.com",
+    "url": "http://jongleberry.com"
+  },
+  "contributors": [
+    {
+      "name": "Douglas Christopher Wilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/component/merge-descriptors.git"
+  },
+  "bugs": {
+    "url": "https://github.com/component/merge-descriptors/issues"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "index.js"
+  ],
+  "gitHead": "81d7a3c14099884c391bd237d7d8edf23c6d6f18",
+  "homepage": "https://github.com/component/merge-descriptors",
+  "_id": "merge-descriptors@1.0.0",
+  "scripts": {},
+  "_shasum": "2169cf7538e1b0cc87fb88e1502d8474bbf79864",
+  "_from": "merge-descriptors@1.0.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "jongleberry",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "tootallnate",
+      "email": "nathan@tootallnate.net"
+    },
+    {
+      "name": "juliangruber",
+      "email": "julian@juliangruber.com"
+    },
+    {
+      "name": "yields",
+      "email": "yields@icloud.com"
+    },
+    {
+      "name": "ianstormtaylor",
+      "email": "ian@ianstormtaylor.com"
+    },
+    {
+      "name": "tjholowaychuk",
+      "email": "tj@vision-media.ca"
+    },
+    {
+      "name": "timoxley",
+      "email": "secoif@gmail.com"
+    },
+    {
+      "name": "mattmueller",
+      "email": "mattmuelle@gmail.com"
+    },
+    {
+      "name": "jonathanong",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "queckezz",
+      "email": "fabian.eichenberger@gmail.com"
+    },
+    {
+      "name": "anthonyshort",
+      "email": "antshort@gmail.com"
+    },
+    {
+      "name": "dominicbarnes",
+      "email": "dominic@dbarnes.info"
+    },
+    {
+      "name": "clintwood",
+      "email": "clint@anotherway.co.za"
+    },
+    {
+      "name": "thehydroimpulse",
+      "email": "dnfagnan@gmail.com"
+    },
+    {
+      "name": "stephenmathieson",
+      "email": "me@stephenmathieson.com"
+    },
+    {
+      "name": "trevorgerhardt",
+      "email": "trevorgerhardt@gmail.com"
+    },
+    {
+      "name": "timaschew",
+      "email": "timaschew@gmail.com"
+    },
+    {
+      "name": "hughsk",
+      "email": "hughskennedy@gmail.com"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "2169cf7538e1b0cc87fb88e1502d8474bbf79864",
+    "tarball": "http://registry.npmjs.org/merge-descriptors/-/merge-descriptors-1.0.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/merge-descriptors/-/merge-descriptors-1.0.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

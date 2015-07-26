@@ -1,0 +1,35 @@
+* {
+  margin: 0;
+  padding: 0;
+  outline: 0;
+}
+
+body {
+  padding: 80px 100px;
+  font: 13px "Helvetica Neue", "Lucida Grande", "Arial";
+  background: #ECE9E9 -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#ECE9E9));
+  background: #ECE9E9 -moz-linear-gradient(top, #fff, #ECE9E9);
+  background-repeat: no-repeat;
+  color: #555;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2 {
+  font-size: 22px;
+  color: #343434;
+}
+h1 em, h2 em {
+  padding: 0 5px;
+  font-weight: normal;
+}
+h1 {
+  font-size: 60px;
+}
+h2 {
+  margin-top: 10px;
+}
+ul li {
+  list-style: none;
+}
+#stacktrace {
+  margin-left: 60px;
+}

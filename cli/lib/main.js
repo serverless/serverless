@@ -7,6 +7,7 @@
 
 
 var aws = require('aws-sdk');
+var dotenv = require('dotenv');
 var exec = require('child_process').exec;
 var fs = require('fs');
 var os = require('os');
@@ -88,7 +89,12 @@ JAWS.prototype._runHandler = function(handler, event) {
 
 JAWS.prototype.deploy = function(program) {
 
+
     console.log('****** JAWS: Deploying your Lambda function to AWS Lambda.  This could take a few minutes...');
+
+    // Load ENV Variables
+    dotenv.load();
+
 
     // Defaults
     var _this = this;
@@ -222,9 +228,9 @@ JAWS.prototype._codeDirectory = function(program) {
 JAWS.prototype.server = function(program) {
 
     // Check if in server root folder
-    if (!fs.existsSync(process.cwd() + '/server.js')) return console.log('****** JAWS:  Error - You must be in the "server" directory of your JAWS application to start it.');
+    if (!fs.existsSync(process.cwd() + '/server.js')) return console.log('****** JAWS:  Error - You must be in the "site" directory of your JAWS application to run this command and start the server.');
 
-    var child = exec('nodemon server', function(err, stdout, stderr) {
+    var child = exec('node server', function(error, stdout, stderr) {
         if (error !== null) console.log('exec error: ' + error);
     });
 

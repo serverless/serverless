@@ -1,0 +1,86 @@
+{
+  "name": "negotiator",
+  "description": "HTTP content negotiation",
+  "version": "0.5.3",
+  "contributors": [
+    {
+      "name": "Douglas Christopher Wilson",
+      "email": "doug@somethingdoug.com"
+    },
+    {
+      "name": "Federico Romero",
+      "email": "federico.romero@outboxlabs.com"
+    },
+    {
+      "name": "Isaac Z. Schlueter",
+      "email": "i@izs.me",
+      "url": "http://blog.izs.me/"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "http",
+    "content negotiation",
+    "accept",
+    "accept-language",
+    "accept-encoding",
+    "accept-charset"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jshttp/negotiator"
+  },
+  "devDependencies": {
+    "istanbul": "0.3.9",
+    "mocha": "~1.21.5"
+  },
+  "files": [
+    "lib/",
+    "HISTORY.md",
+    "LICENSE",
+    "index.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec --check-leaks --bail test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/"
+  },
+  "gitHead": "cbb717b3f164f25820f90b160cda6d0166b9d922",
+  "bugs": {
+    "url": "https://github.com/jshttp/negotiator/issues"
+  },
+  "homepage": "https://github.com/jshttp/negotiator",
+  "_id": "negotiator@0.5.3",
+  "_shasum": "269d5c476810ec92edbe7b6c2f28316384f9a7e8",
+  "_from": "negotiator@0.5.3",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "federomero",
+      "email": "federomero@gmail.com"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    },
+    {
+      "name": "jongleberry",
+      "email": "jonathanrichardong@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "269d5c476810ec92edbe7b6c2f28316384f9a7e8",
+    "tarball": "http://registry.npmjs.org/negotiator/-/negotiator-0.5.3.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/negotiator/-/negotiator-0.5.3.tgz",
+  "readme": "ERROR: No README data found!"
+}

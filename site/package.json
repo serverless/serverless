@@ -1,0 +1,21 @@
+{
+  "name": "jaws-site-server",
+  "version": "0.0.1",
+  "description": "JAWS static site server",
+  "main": "server.js",
+  "scripts": {
+    "test": "n/a"
+  },
+  "keywords": [],
+  "readmeFilename": "README.md",
+  "author": "ac360",
+  "license": "BSD",
+  "devDependencies": {
+    "body-parser": "^1.7.0",
+    "ejs": "^2.3.1",
+    "errorhandler": "^1.4.1",
+    "express": "^4.13.1",
+    "method-override": "^2.1.3"
+  },
+  "dependencies": {}
+}

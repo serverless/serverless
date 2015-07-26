@@ -1,0 +1,58 @@
+{
+  "name": "media-typer",
+  "description": "Simple RFC 6838 media type parser and formatter",
+  "version": "0.3.0",
+  "author": {
+    "name": "Douglas Christopher Wilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jshttp/media-typer"
+  },
+  "devDependencies": {
+    "istanbul": "0.3.2",
+    "mocha": "~1.21.4",
+    "should": "~4.0.4"
+  },
+  "files": [
+    "LICENSE",
+    "HISTORY.md",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec --check-leaks --bail test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/"
+  },
+  "gitHead": "d49d41ffd0bb5a0655fa44a59df2ec0bfc835b16",
+  "bugs": {
+    "url": "https://github.com/jshttp/media-typer/issues"
+  },
+  "homepage": "https://github.com/jshttp/media-typer",
+  "_id": "media-typer@0.3.0",
+  "_shasum": "8710d7af0aa626f8fffa1ce00168545263255748",
+  "_from": "media-typer@0.3.0",
+  "_npmVersion": "1.4.21",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "8710d7af0aa626f8fffa1ce00168545263255748",
+    "tarball": "http://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

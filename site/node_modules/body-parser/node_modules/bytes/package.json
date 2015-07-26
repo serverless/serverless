@@ -1,0 +1,77 @@
+{
+  "name": "bytes",
+  "description": "Utility to parse a string bytes to bytes and vice-versa",
+  "version": "2.1.0",
+  "author": {
+    "name": "TJ Holowaychuk",
+    "email": "tj@vision-media.ca",
+    "url": "http://tjholowaychuk.com"
+  },
+  "contributors": [
+    {
+      "name": "Jed Watson",
+      "email": "jed.watson@me.com"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "byte",
+    "bytes",
+    "utility",
+    "parse",
+    "parser",
+    "convert",
+    "converter"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/visionmedia/bytes.js"
+  },
+  "component": {
+    "scripts": {
+      "bytes/index.js": "index.js"
+    }
+  },
+  "devDependencies": {
+    "mocha": "*"
+  },
+  "files": [
+    "History.md",
+    "LICENSE",
+    "Readme.md",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "mocha --check-leaks --reporter spec"
+  },
+  "gitHead": "86e4520cc369b34866154a53344ca50b2bb5ddcd",
+  "bugs": {
+    "url": "https://github.com/visionmedia/bytes.js/issues"
+  },
+  "homepage": "https://github.com/visionmedia/bytes.js",
+  "_id": "bytes@2.1.0",
+  "_shasum": "ac93c410e2ffc9cc7cf4b464b38289067f5e47b4",
+  "_from": "bytes@2.1.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "tjholowaychuk",
+      "email": "tj@vision-media.ca"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "ac93c410e2ffc9cc7cf4b464b38289067f5e47b4",
+    "tarball": "http://registry.npmjs.org/bytes/-/bytes-2.1.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/bytes/-/bytes-2.1.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

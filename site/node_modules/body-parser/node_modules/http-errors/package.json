@@ -1,0 +1,85 @@
+{
+  "name": "http-errors",
+  "description": "Create HTTP error objects",
+  "version": "1.3.1",
+  "author": {
+    "name": "Jonathan Ong",
+    "email": "me@jongleberry.com",
+    "url": "http://jongleberry.com"
+  },
+  "contributors": [
+    {
+      "name": "Alan Plum",
+      "email": "me@pluma.io"
+    },
+    {
+      "name": "Douglas Christopher Wilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jshttp/http-errors"
+  },
+  "dependencies": {
+    "inherits": "~2.0.1",
+    "statuses": "1"
+  },
+  "devDependencies": {
+    "istanbul": "0",
+    "mocha": "1"
+  },
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec --bail",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter dot"
+  },
+  "keywords": [
+    "http",
+    "error"
+  ],
+  "files": [
+    "index.js",
+    "HISTORY.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "gitHead": "89a8502b40d5dd42da2908f265275e2eeb8d0699",
+  "bugs": {
+    "url": "https://github.com/jshttp/http-errors/issues"
+  },
+  "homepage": "https://github.com/jshttp/http-errors",
+  "_id": "http-errors@1.3.1",
+  "_shasum": "197e22cdebd4198585e8694ef6786197b91ed942",
+  "_from": "http-errors@>=1.3.1 <1.4.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "egeste",
+      "email": "npm@egeste.net"
+    },
+    {
+      "name": "jongleberry",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "197e22cdebd4198585e8694ef6786197b91ed942",
+    "tarball": "http://registry.npmjs.org/http-errors/-/http-errors-1.3.1.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/http-errors/-/http-errors-1.3.1.tgz",
+  "readme": "ERROR: No README data found!"
+}

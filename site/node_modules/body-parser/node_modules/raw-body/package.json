@@ -1,0 +1,80 @@
+{
+  "name": "raw-body",
+  "description": "Get and validate the raw body of a readable stream.",
+  "version": "2.1.2",
+  "author": {
+    "name": "Jonathan Ong",
+    "email": "me@jongleberry.com",
+    "url": "http://jongleberry.com"
+  },
+  "contributors": [
+    {
+      "name": "Douglas Christopher Wilson",
+      "email": "doug@somethingdoug.com"
+    },
+    {
+      "name": "Raynos",
+      "email": "raynos2@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stream-utils/raw-body"
+  },
+  "dependencies": {
+    "bytes": "2.1.0",
+    "iconv-lite": "0.4.11",
+    "unpipe": "1.0.0"
+  },
+  "devDependencies": {
+    "bluebird": "2.9.32",
+    "istanbul": "0.3.17",
+    "mocha": "2.2.5",
+    "readable-stream": "2.0.1",
+    "through2": "2.0.0"
+  },
+  "engines": {
+    "node": ">= 0.8"
+  },
+  "files": [
+    "HISTORY.md",
+    "LICENSE",
+    "README.md",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "mocha --trace-deprecation --reporter spec --bail --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --trace-deprecation --reporter dot --check-leaks test/",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --trace-deprecation --reporter spec --check-leaks test/"
+  },
+  "gitHead": "a0490f86b259038c85e99097cade70ee78aa5e1e",
+  "bugs": {
+    "url": "https://github.com/stream-utils/raw-body/issues"
+  },
+  "homepage": "https://github.com/stream-utils/raw-body",
+  "_id": "raw-body@2.1.2",
+  "_shasum": "63481a805ba30ed7d59ad4433b20eb850f95e887",
+  "_from": "raw-body@>=2.1.2 <2.2.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "jongleberry",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "63481a805ba30ed7d59ad4433b20eb850f95e887",
+    "tarball": "http://registry.npmjs.org/raw-body/-/raw-body-2.1.2.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/raw-body/-/raw-body-2.1.2.tgz"
+}

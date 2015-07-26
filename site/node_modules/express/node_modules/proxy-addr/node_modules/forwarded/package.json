@@ -1,0 +1,65 @@
+{
+  "name": "forwarded",
+  "description": "Parse HTTP X-Forwarded-For header",
+  "version": "0.1.0",
+  "contributors": [
+    {
+      "name": "Douglas Christopher Wilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "x-forwarded-for",
+    "http",
+    "req"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jshttp/forwarded"
+  },
+  "devDependencies": {
+    "istanbul": "0.3.2",
+    "mocha": "~1.21.4"
+  },
+  "files": [
+    "LICENSE",
+    "HISTORY.md",
+    "README.md",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/"
+  },
+  "gitHead": "e9a9faeb3cfaadf40eb57d144fff26bca9b818e8",
+  "bugs": {
+    "url": "https://github.com/jshttp/forwarded/issues"
+  },
+  "homepage": "https://github.com/jshttp/forwarded",
+  "_id": "forwarded@0.1.0",
+  "_shasum": "19ef9874c4ae1c297bcf078fde63a09b66a84363",
+  "_from": "forwarded@>=0.1.0 <0.2.0",
+  "_npmVersion": "1.4.21",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "19ef9874c4ae1c297bcf078fde63a09b66a84363",
+    "tarball": "http://registry.npmjs.org/forwarded/-/forwarded-0.1.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.1.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

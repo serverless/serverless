@@ -1,0 +1,66 @@
+{
+  "name": "depd",
+  "description": "Deprecate all the things",
+  "version": "1.0.1",
+  "author": {
+    "name": "Douglas Christopher Wilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "deprecate",
+    "deprecated"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dougwilson/nodejs-depd"
+  },
+  "devDependencies": {
+    "benchmark": "1.0.0",
+    "beautify-benchmark": "0.2.4",
+    "istanbul": "0.3.5",
+    "mocha": "~1.21.5"
+  },
+  "files": [
+    "lib/",
+    "History.md",
+    "LICENSE",
+    "index.js",
+    "Readme.md"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "bench": "node benchmark/index.js",
+    "test": "mocha --reporter spec --bail test/",
+    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --no-exit test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot test/"
+  },
+  "gitHead": "769e0f8108463c35a6937a9d634ab19fee45100a",
+  "bugs": {
+    "url": "https://github.com/dougwilson/nodejs-depd/issues"
+  },
+  "homepage": "https://github.com/dougwilson/nodejs-depd",
+  "_id": "depd@1.0.1",
+  "_shasum": "80aec64c9d6d97e65cc2a9caa93c0aa6abf73aaa",
+  "_from": "depd@>=1.0.1 <1.1.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "80aec64c9d6d97e65cc2a9caa93c0aa6abf73aaa",
+    "tarball": "http://registry.npmjs.org/depd/-/depd-1.0.1.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/depd/-/depd-1.0.1.tgz",
+  "readme": "ERROR: No README data found!"
+}

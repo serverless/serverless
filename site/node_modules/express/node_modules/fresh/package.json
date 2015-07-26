@@ -1,0 +1,87 @@
+{
+  "name": "fresh",
+  "description": "HTTP response freshness testing",
+  "version": "0.3.0",
+  "author": {
+    "name": "TJ Holowaychuk",
+    "email": "tj@vision-media.ca",
+    "url": "http://tjholowaychuk.com"
+  },
+  "contributors": [
+    {
+      "name": "Douglas Christopher Wilson",
+      "email": "doug@somethingdoug.com"
+    },
+    {
+      "name": "Jonathan Ong",
+      "email": "me@jongleberry.com",
+      "url": "http://jongleberry.com"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "fresh",
+    "http",
+    "conditional",
+    "cache"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jshttp/fresh"
+  },
+  "devDependencies": {
+    "istanbul": "0.3.9",
+    "mocha": "1.21.5"
+  },
+  "files": [
+    "HISTORY.md",
+    "LICENSE",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/"
+  },
+  "gitHead": "14616c9748368ca08cd6a955dd88ab659b778634",
+  "bugs": {
+    "url": "https://github.com/jshttp/fresh/issues"
+  },
+  "homepage": "https://github.com/jshttp/fresh",
+  "_id": "fresh@0.3.0",
+  "_shasum": "651f838e22424e7566de161d8358caa199f83d4f",
+  "_from": "fresh@0.3.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "tjholowaychuk",
+      "email": "tj@vision-media.ca"
+    },
+    {
+      "name": "jonathanong",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    },
+    {
+      "name": "jongleberry",
+      "email": "jonathanrichardong@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "651f838e22424e7566de161d8358caa199f83d4f",
+    "tarball": "http://registry.npmjs.org/fresh/-/fresh-0.3.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/fresh/-/fresh-0.3.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

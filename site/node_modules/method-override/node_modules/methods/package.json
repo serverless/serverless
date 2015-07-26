@@ -1,0 +1,88 @@
+{
+  "name": "methods",
+  "description": "HTTP methods that node supports",
+  "version": "1.1.1",
+  "contributors": [
+    {
+      "name": "Douglas Christopher Wilson",
+      "email": "doug@somethingdoug.com"
+    },
+    {
+      "name": "Jonathan Ong",
+      "email": "me@jongleberry.com",
+      "url": "http://jongleberry.com"
+    },
+    {
+      "name": "TJ Holowaychuk",
+      "email": "tj@vision-media.ca",
+      "url": "http://tjholowaychuk.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jshttp/methods"
+  },
+  "devDependencies": {
+    "istanbul": "0.3",
+    "mocha": "1"
+  },
+  "files": [
+    "index.js",
+    "HISTORY.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter dot"
+  },
+  "browser": {
+    "http": false
+  },
+  "keywords": [
+    "http",
+    "methods"
+  ],
+  "gitHead": "6293c6b27c5fb963acf67a347af80ad2ebd7247f",
+  "bugs": {
+    "url": "https://github.com/jshttp/methods/issues"
+  },
+  "homepage": "https://github.com/jshttp/methods",
+  "_id": "methods@1.1.1",
+  "_shasum": "17ea6366066d00c58e375b8ec7dfd0453c89822a",
+  "_from": "methods@>=1.1.1 <1.2.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "dougwilson",
+    "email": "doug@somethingdoug.com"
+  },
+  "maintainers": [
+    {
+      "name": "tjholowaychuk",
+      "email": "tj@vision-media.ca"
+    },
+    {
+      "name": "jonathanong",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "jongleberry",
+      "email": "jonathanrichardong@gmail.com"
+    },
+    {
+      "name": "dougwilson",
+      "email": "doug@somethingdoug.com"
+    }
+  ],
+  "dist": {
+    "shasum": "17ea6366066d00c58e375b8ec7dfd0453c89822a",
+    "tarball": "http://registry.npmjs.org/methods/-/methods-1.1.1.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/methods/-/methods-1.1.1.tgz",
+  "readme": "ERROR: No README data found!"
+}
