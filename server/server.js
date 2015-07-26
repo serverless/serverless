@@ -1,32 +1,19 @@
-// New Relic – must be the first line of code
-if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') require('newrelic');
-
 // Module Dependencies
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var session = require('cookie-session');
-var fs = require('fs');
 var cookieParser = require('cookie-parser');
 var methodOverride = require('method-override');
 var robots = require('robots.txt');
 
 // Set Environment from ENV variable or default to development
-var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-
-// Load Local Environment Variables
-if (env === 'development') {
-    var dotenv = require('dotenv');
-    dotenv.load();
-}
-
-// Load Config
-var config = require('./config/config');
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Set Port
-var port = process.env.PORT || config.app.port;
+var port = 8080;
 
-// set the static files location /public/img will be /img for users
+// Set static files location
 app.use(express.static(__dirname + '/public'));
 
 // CookieParser should be above session
@@ -64,13 +51,11 @@ app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(robots(__dirname + '/robots.txt'))
 
 // Routes
-require('./app/routes')(app); // pass our application into our routes
+require('./routes')(app);
 
 // Start Application
 app.listen(port);
-console.log('****** The JAWS Stack ' + env + ' is now running on port ' + port + '  ******'); // shoutout to the user
-exports = module.exports = app; // expose app
-
+console.log('****** The JAWS Stack ' + process.env.NODE_ENV + ' is now running on port ' + port + '  ******'); // shoutout to the user
 
 
 // End

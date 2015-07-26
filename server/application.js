@@ -4,27 +4,21 @@
  * - SignIn, SignOut, Check Session Functions
  */
 
-// Dependencies
-var Config = require('../../config/config');
-
 
 /**
- * Render Home Page
+ * Render 
+ * - Show Home Page OR Dashboard (Depending On Session)
  */
 
-var renderHomePage = function(req, res, next) {
+var render = function(req, res, next) {
+
+    if (res.session.user) {
+
+    } else {
+
+    }
 
 };
-
-
-/**
- * Render Home Page
- */
-
-var renderDashboard = function(req, res, next) {
-
-};
-
 
 /**
  * Middleware
@@ -41,9 +35,17 @@ var middleware = function(req, res, next) {
 };
 
 
+/**
+ * SignUp
+ */
+
+var signUp = function(req, res, next) {
+
+};
+
 
 /**
- * Signin
+ * SigniIn
  */
 
 var signIn = function(req, res, next) {
@@ -52,7 +54,7 @@ var signIn = function(req, res, next) {
 
 
 /**
- * Signout
+ * SignOut
  */
 
 var signOut = function(req, res, next) {
@@ -62,6 +64,8 @@ var signOut = function(req, res, next) {
 
 // Export
 module.exports = {
-    renderHomePage: renderHomePage,
-    renderDashboard: renderDashboard
+    render: render,
+    signUp: signUp,
+    signIn: signIn,
+    signOut: signOut
 };

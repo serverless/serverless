@@ -1,0 +1,27 @@
+{
+  "waiters": {
+    "__default__": {
+      "interval": 20,
+      "max_attempts": 25
+    },
+    "__TableState": {
+      "operation": "DescribeTable"
+    },
+    "TableExists": {
+      "extends": "__TableState",
+      "description": "Wait until a table exists and can be accessed",
+      "ignore_errors": [
+        "ResourceNotFoundException"
+      ],
+      "success_type": "output",
+      "success_path": "Table.TableStatus",
+      "success_value": "ACTIVE"
+    },
+    "TableNotExists": {
+      "extends": "__TableState",
+      "description": "Wait until a table is deleted",
+      "success_type": "error",
+      "success_value": "ResourceNotFoundException"
+    }
+  }
+}

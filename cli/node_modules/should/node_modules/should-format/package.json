@@ -1,0 +1,58 @@
+{
+  "name": "should-format",
+  "version": "0.3.0",
+  "description": "Formatting of objects for should.js",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/shouldjs/format.git"
+  },
+  "scripts": {
+    "test": "mocha -R mocha-better-spec-reporter tests/test.js",
+    "browserify": "rm tests/browser/tests.js && browserify tests/test.js >> tests/browser/tests.js"
+  },
+  "keywords": [
+    "should",
+    "format"
+  ],
+  "author": {
+    "name": "Denis Bardadym",
+    "email": "bardadymchik@gmail.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "latest",
+    "mocha": "latest",
+    "mocha-better-spec-reporter": "latest"
+  },
+  "dependencies": {
+    "should-type": "0.2.0"
+  },
+  "gitHead": "7c6a097907b9e39eb6fc6dd300f7da18e89e4d38",
+  "bugs": {
+    "url": "https://github.com/shouldjs/format/issues"
+  },
+  "homepage": "https://github.com/shouldjs/format#readme",
+  "_id": "should-format@0.3.0",
+  "_shasum": "42007ec0aa1c86ea44914cc9111f1b9f27d3ceac",
+  "_from": "should-format@0.3.0",
+  "_npmVersion": "2.11.1",
+  "_nodeVersion": "2.3.0",
+  "_npmUser": {
+    "name": "btd",
+    "email": "bardadymchik@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "btd",
+      "email": "bardadymchik@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "42007ec0aa1c86ea44914cc9111f1b9f27d3ceac",
+    "tarball": "http://registry.npmjs.org/should-format/-/should-format-0.3.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/should-format/-/should-format-0.3.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

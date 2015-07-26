@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+/**
+ * This tiny wrapper file checks for known node flags and appends them
+ * when found, before invoking the "real" _mocha(1) executable.
+ */
+
+var spawn = require('child_process').spawn,
+  path = require('path'),
+  fs = require('fs'),
+  args = [path.join(__dirname, '_mocha')],
+  getOptions = require('./options');
+
+// load mocha.opts into process.argv
+
+getOptions();
+
+process.argv.slice(2).forEach(function(arg){
+  var flag = arg.split('=')[0];
+
+  switch (flag) {
+    case '-d':
+      args.unshift('--debug');
+      args.push('--no-timeouts');
+      break;
+    case 'debug':
+    case '--debug':
+    case '--debug-brk':
+      args.unshift(arg);
+      args.push('--no-timeouts');
+      break;
+    case '-gc':
+    case '--expose-gc':
+      args.unshift('--expose-gc');
+      break;
+    case '--gc-global':
+    case '--harmony':
+    case '--es_staging':
+    case '--harmony-proxies':
+    case '--harmony-collections':
+    case '--harmony-generators':
+    case '--harmony_shipping':
+    case '--harmony_arrow_functions':
+    case '--harmony_proxies':
+    case '--harmony_classes':
+    case '--no-deprecation':
+    case '--prof':
+    case '--throw-deprecation':
+    case '--trace-deprecation':
+    case '--allow-natives-syntax':
+      args.unshift(arg);
+      break;
+    default:
+      if (0 == arg.indexOf('--trace')) args.unshift(arg);
+      else args.push(arg);
+      break;
+  }
+});
+
+var proc = spawn(process.execPath, args, { stdio: 'inherit' });
+proc.on('exit', function (code, signal) {
+  process.on('exit', function(){
+    if (signal) {
+      process.kill(process.pid, signal);
+    } else {
+      process.exit(code);
+    }
+  });
+});
+
+// terminate children.
+process.on('SIGINT', function () {
+  proc.kill('SIGINT'); // calls runner.abort()
+  proc.kill('SIGTERM'); // if that didn't work, we're probably in an infinite loop, so make it die.
+  process.kill(process.pid, 'SIGINT');
+});

@@ -1,0 +1,57 @@
+{
+  "name": "should-equal",
+  "version": "0.5.0",
+  "description": "Deep comparison of 2 instances for should.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --ui bdd -R mocha-better-spec-reporter test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shouldjs/equal.git"
+  },
+  "keywords": [
+    "should.js",
+    "deep",
+    "equal"
+  ],
+  "author": {
+    "name": "Denis Bardadym",
+    "email": "bardadymchik@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shouldjs/equal/issues"
+  },
+  "homepage": "https://github.com/shouldjs/equal",
+  "devDependencies": {
+    "mocha": "latest",
+    "mocha-better-spec-reporter": "latest"
+  },
+  "dependencies": {
+    "should-type": "0.2.0"
+  },
+  "gitHead": "d0b73b18fd4a799765de477165caf60fee1f9397",
+  "_id": "should-equal@0.5.0",
+  "_shasum": "c797f135f3067feb69ebecdb306b1c3fe21b3e6f",
+  "_from": "should-equal@0.5.0",
+  "_npmVersion": "2.11.1",
+  "_nodeVersion": "2.3.0",
+  "_npmUser": {
+    "name": "btd",
+    "email": "bardadymchik@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "btd",
+      "email": "bardadymchik@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "c797f135f3067feb69ebecdb306b1c3fe21b3e6f",
+    "tarball": "http://registry.npmjs.org/should-equal/-/should-equal-0.5.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/should-equal/-/should-equal-0.5.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

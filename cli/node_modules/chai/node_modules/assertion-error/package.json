@@ -1,0 +1,56 @@
+{
+  "name": "assertion-error",
+  "version": "1.0.0",
+  "description": "Error constructor for test and validation frameworks that implements standardized AssertionError specification.",
+  "author": {
+    "name": "Jake Luer",
+    "email": "jake@qualiancy.com",
+    "url": "http://qualiancy.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "test",
+    "assertion",
+    "assertion-error"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:chaijs/assertion-error.git"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "main": "./index",
+  "scripts": {
+    "test": "make test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "component": "*"
+  },
+  "bugs": {
+    "url": "https://github.com/chaijs/assertion-error/issues"
+  },
+  "_id": "assertion-error@1.0.0",
+  "dist": {
+    "shasum": "c7f85438fdd466bc7ca16ab90c81513797a5d23b",
+    "tarball": "http://registry.npmjs.org/assertion-error/-/assertion-error-1.0.0.tgz"
+  },
+  "_from": "assertion-error@1.0.0",
+  "_npmVersion": "1.2.23",
+  "_npmUser": {
+    "name": "jakeluer",
+    "email": "jake@alogicalparadox.com"
+  },
+  "maintainers": [
+    {
+      "name": "jakeluer",
+      "email": "jake@alogicalparadox.com"
+    }
+  ],
+  "directories": {},
+  "_shasum": "c7f85438fdd466bc7ca16ab90c81513797a5d23b",
+  "_resolved": "https://registry.npmjs.org/assertion-error/-/assertion-error-1.0.0.tgz",
+  "readme": "ERROR: No README data found!",
+  "homepage": "https://github.com/chaijs/assertion-error"
+}

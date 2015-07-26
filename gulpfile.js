@@ -48,7 +48,6 @@ var serverJSlocations = ['./server.js'];
 // Client-Side Javascript – Don't forget to add dependencies in here for minification.  Order of loading is also important.
 var clientJSlocations = [
     './public/libs/jquery/dist/jquery.min.js',
-    './public/libs/servant-sdk-javascript/src/servant_sdk_javascript.js',
     './public/js/*.js'
 ];
 
@@ -80,6 +79,7 @@ gulp.task('build', function() {
         .pipe(rename('application.min.js'))
         .pipe(gulp.dest('./public/dist'));
 });
+
 
 
 /**
@@ -171,6 +171,8 @@ gulp.task('feature', ['build'], function() {
 gulp.task('release', ['build'], function() {
     return publish('major');
 })
+
+
 
 /**
  * Default ----------------------------------------

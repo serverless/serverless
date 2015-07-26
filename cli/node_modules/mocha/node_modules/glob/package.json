@@ -1,0 +1,57 @@
+{
+  "author": {
+    "name": "Isaac Z. Schlueter",
+    "email": "i@izs.me",
+    "url": "http://blog.izs.me/"
+  },
+  "name": "glob",
+  "description": "a little globber",
+  "version": "3.2.3",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/isaacs/node-glob.git"
+  },
+  "main": "glob.js",
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "minimatch": "~0.2.11",
+    "graceful-fs": "~2.0.0",
+    "inherits": "2"
+  },
+  "devDependencies": {
+    "tap": "~0.4.0",
+    "mkdirp": "0",
+    "rimraf": "1"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/isaacs/node-glob/issues"
+  },
+  "_id": "glob@3.2.3",
+  "dist": {
+    "shasum": "e313eeb249c7affaa5c475286b0e115b59839467",
+    "tarball": "http://registry.npmjs.org/glob/-/glob-3.2.3.tgz"
+  },
+  "_from": "glob@3.2.3",
+  "_npmVersion": "1.3.2",
+  "_npmUser": {
+    "name": "isaacs",
+    "email": "i@izs.me"
+  },
+  "maintainers": [
+    {
+      "name": "isaacs",
+      "email": "i@izs.me"
+    }
+  ],
+  "directories": {},
+  "_shasum": "e313eeb249c7affaa5c475286b0e115b59839467",
+  "_resolved": "https://registry.npmjs.org/glob/-/glob-3.2.3.tgz",
+  "readme": "ERROR: No README data found!",
+  "homepage": "https://github.com/isaacs/node-glob"
+}

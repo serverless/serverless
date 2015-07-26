@@ -1,0 +1,176 @@
+{
+  "autoscaling": {
+    "name": "AutoScaling"
+  },
+  "cloudformation": {
+    "name": "CloudFormation"
+  },
+  "cloudfront": {
+    "name": "CloudFront",
+    "versions": ["2013-05-12*", "2013-11-11*", "2014-05-31*", "2014-10-21*", "2014-11-06*"]
+  },
+  "cloudhsm": {
+    "name": "CloudHSM"
+  },
+  "cloudsearch": {
+    "name": "CloudSearch"
+  },
+  "cloudsearchdomain": {
+    "name": "CloudSearchDomain"
+  },
+  "cloudtrail": {
+    "name": "CloudTrail"
+  },
+  "cloudwatch": {
+    "prefix": "monitoring",
+    "name": "CloudWatch"
+  },
+  "cloudwatchlogs": {
+    "prefix": "logs",
+    "name": "CloudWatchLogs"
+  },
+  "codecommit": {
+    "name": "CodeCommit"
+  },
+  "codedeploy": {
+    "name": "CodeDeploy"
+  },
+  "codepipeline": {
+    "name": "CodePipeline"
+  },
+  "cognitoidentity": {
+    "prefix": "cognito-identity",
+    "name": "CognitoIdentity"
+  },
+  "cognitosync": {
+    "prefix": "cognito-sync",
+    "name": "CognitoSync"
+  },
+  "configservice": {
+    "prefix": "config",
+    "name": "ConfigService"
+  },
+  "datapipeline": {
+    "name": "DataPipeline"
+  },
+  "devicefarm": {
+    "name": "DeviceFarm"
+  },
+  "directconnect": {
+    "name": "DirectConnect"
+  },
+  "directoryservice": {
+    "prefix": "ds",
+    "name": "DirectoryService"
+  },
+  "dynamodb": {
+    "name": "DynamoDB"
+  },
+  "dynamodbstreams": {
+    "prefix": "streams.dynamodb",
+    "name": "DynamoDBStreams"
+  },
+  "ec2": {
+    "name": "EC2",
+    "versions": ["2013-06-15*", "2013-10-15*", "2014-02-01*", "2014-05-01*", "2014-06-15*", "2014-09-01*", "2014-10-01*", "2015-03-01*"]
+  },
+  "ecs": {
+    "name": "ECS"
+  },
+  "efs": {
+    "name": "EFS"
+  },
+  "elasticache": {
+    "name": "ElastiCache",
+    "versions": ["2012-11-15*", "2014-03-24*", "2014-07-15*", "2014-09-30*"]
+  },
+  "elasticbeanstalk": {
+    "name": "ElasticBeanstalk"
+  },
+  "elb": {
+    "prefix": "elasticloadbalancing",
+    "name": "ELB"
+  },
+  "emr": {
+    "prefix": "elasticmapreduce",
+    "name": "EMR"
+  },
+  "elastictranscoder": {
+    "name": "ElasticTranscoder"
+  },
+  "glacier": {
+    "name": "Glacier"
+  },
+  "iam": {
+    "name": "IAM"
+  },
+  "importexport": {
+    "name": "ImportExport"
+  },
+  "kinesis": {
+    "name": "Kinesis"
+  },
+  "kms": {
+    "name": "KMS"
+  },
+  "lambda": {
+    "name": "Lambda"
+  },
+  "machinelearning": {
+    "name": "MachineLearning"
+  },
+  "mobileanalytics": {
+    "name": "MobileAnalytics"
+  },
+  "opsworks": {
+    "name": "OpsWorks"
+  },
+  "rds": {
+    "name": "RDS",
+    "versions": ["2014-09-01*"]
+  },
+  "redshift": {
+    "name": "Redshift"
+  },
+  "route53": {
+    "name": "Route53"
+  },
+  "route53domains": {
+    "name": "Route53Domains"
+  },
+  "s3": {
+    "name": "S3"
+  },
+  "ses": {
+    "prefix": "email",
+    "name": "SES"
+  },
+  "simpledb": {
+    "prefix": "sdb",
+    "name": "SimpleDB"
+  },
+  "sns": {
+    "name": "SNS"
+  },
+  "sqs": {
+    "name": "SQS"
+  },
+  "ssm": {
+    "name": "SSM"
+  },
+  "storagegateway": {
+    "name": "StorageGateway"
+  },
+  "sts": {
+    "name": "STS"
+  },
+  "support": {
+    "name": "Support"
+  },
+  "swf": {
+    "name": "SWF"
+  },
+  "workspaces": {
+    "name": "WorkSpaces"
+  }
+}

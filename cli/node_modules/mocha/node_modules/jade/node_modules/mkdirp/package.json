@@ -1,0 +1,58 @@
+{
+  "name": "mkdirp",
+  "description": "Recursively mkdir, like `mkdir -p`",
+  "version": "0.3.0",
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "main": "./index",
+  "keywords": [
+    "mkdir",
+    "directory"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/substack/node-mkdirp.git"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "devDependencies": {
+    "tap": "0.0.x"
+  },
+  "license": "MIT/X11",
+  "engines": {
+    "node": "*"
+  },
+  "_npmUser": {
+    "name": "substack",
+    "email": "mail@substack.net"
+  },
+  "_id": "mkdirp@0.3.0",
+  "dependencies": {},
+  "_engineSupported": true,
+  "_npmVersion": "1.0.106",
+  "_nodeVersion": "v0.4.12",
+  "_defaultsLoaded": true,
+  "dist": {
+    "shasum": "1bbf5ab1ba827af23575143490426455f481fe1e",
+    "tarball": "http://registry.npmjs.org/mkdirp/-/mkdirp-0.3.0.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "substack",
+      "email": "mail@substack.net"
+    }
+  ],
+  "directories": {},
+  "_shasum": "1bbf5ab1ba827af23575143490426455f481fe1e",
+  "_resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.3.0.tgz",
+  "_from": "mkdirp@0.3.0",
+  "bugs": {
+    "url": "https://github.com/substack/node-mkdirp/issues"
+  },
+  "readme": "ERROR: No README data found!",
+  "homepage": "https://github.com/substack/node-mkdirp"
+}

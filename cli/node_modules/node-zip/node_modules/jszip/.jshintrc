@@ -1,0 +1,12 @@
+{
+    "undef": true,
+    "strict": true,
+    "sub": true,
+
+    "globals": {
+        "TextEncoder": false,
+        "TextDecoder": false
+    },
+    "browser": true,
+    "node": true
+}

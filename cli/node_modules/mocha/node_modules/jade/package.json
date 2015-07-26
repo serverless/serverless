@@ -1,0 +1,56 @@
+{
+  "name": "jade",
+  "description": "Jade template engine",
+  "version": "0.26.3",
+  "author": {
+    "name": "TJ Holowaychuk",
+    "email": "tj@vision-media.ca"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/visionmedia/jade"
+  },
+  "main": "./index.js",
+  "bin": {
+    "jade": "./bin/jade"
+  },
+  "man": [
+    "./jade.1"
+  ],
+  "dependencies": {
+    "commander": "0.6.1",
+    "mkdirp": "0.3.0"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "markdown": "*",
+    "stylus": "*",
+    "uubench": "*",
+    "should": "*",
+    "less": "*",
+    "uglify-js": "*"
+  },
+  "component": {
+    "scripts": {
+      "jade": "runtime.js"
+    }
+  },
+  "scripts": {
+    "prepublish": "npm prune"
+  },
+  "_id": "jade@0.26.3",
+  "dist": {
+    "shasum": "8f10d7977d8d79f2f6ff862a81b0513ccb25686c",
+    "tarball": "http://registry.npmjs.org/jade/-/jade-0.26.3.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "tjholowaychuk",
+      "email": "tj@vision-media.ca"
+    }
+  ],
+  "directories": {},
+  "_shasum": "8f10d7977d8d79f2f6ff862a81b0513ccb25686c",
+  "_resolved": "https://registry.npmjs.org/jade/-/jade-0.26.3.tgz",
+  "_from": "jade@0.26.3"
+}

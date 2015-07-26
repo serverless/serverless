@@ -1,0 +1,80 @@
+#!/usr/bin/env node
+
+var dotenv = require('dotenv');
+var JAWS = require('../lib/main.js');
+var program = require('commander');
+var shortid = require('shortid');
+
+// Load ENV Variables
+dotenv.load();
+
+var AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || 'missing';
+var AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || 'missing';
+var AWS_REGION = process.env.AWS_REGION || 'us-east-1,us-west-2,eu-west-1';
+var AWS_FUNCTION_NAME = process.env.AWS_FUNCTION_NAME || 'new_function';
+var AWS_HANDLER = process.env.AWS_HANDLER || 'index.handler';
+var AWS_MODE = 'event';
+var AWS_ROLE = process.env.AWS_ROLE_ARN || process.env.AWS_ROLE || 'missing';
+var AWS_MEMORY_SIZE = process.env.AWS_MEMORY_SIZE || 128;
+var AWS_TIMEOUT = process.env.AWS_TIMEOUT || 60;
+var AWS_DESCRIPTION = process.env.AWS_DESCRIPTION || '';
+var AWS_RUNTIME = process.env.AWS_RUNTIME || 'nodejs';
+var AWS_FUNCTION_VERSION = process.env.AWS_FUNCTION_VERSION
+
+
+
+/**
+ * Deploy
+ * - Deploys the Lambda Function to AWS Lambda
+ */
+
+program
+  .version(JAWS.version)
+  .command( 'deploy' )
+  .description( 'Deploy your application to Amazon Lambda' )
+  .option( '-a, --accessKey [' + AWS_ACCESS_KEY_ID + ']', 'AWS Access Key', AWS_ACCESS_KEY_ID )
+  .option( '-s, --secretKey [' + AWS_SECRET_ACCESS_KEY + ']', 'AWS Secret Key', AWS_SECRET_ACCESS_KEY )
+  .option( '-r, --region [' + AWS_REGION + ']', 'AWS Region', AWS_REGION )
+  .option( '-n, --functionName [' + AWS_FUNCTION_NAME + ']', 'Lambda FunctionName', AWS_FUNCTION_NAME )
+  .option( '-h, --handler [' + AWS_HANDLER + ']', 'Lambda Handler {index.handler}', AWS_HANDLER )
+  .option( '-c, --mode [' + AWS_MODE + ']', 'Lambda Mode', AWS_MODE )
+  .option( '-o, --role [' + AWS_ROLE + ']', 'Amazon Role ARN', AWS_ROLE )
+  .option( '-m, --memorySize [' + AWS_MEMORY_SIZE + ']', 'Lambda Memory Size', AWS_MEMORY_SIZE )
+  .option( '-t, --timeout [' + AWS_TIMEOUT + ']', 'Lambda Timeout', AWS_TIMEOUT )
+  .option( '-d, --description [' + AWS_DESCRIPTION + ']', 'Lambda Description', AWS_DESCRIPTION )
+  .option( '-u, --runtime [' + AWS_RUNTIME + ']', 'Lambda Runtime', AWS_RUNTIME )
+  .option( '-v, --version [' + AWS_FUNCTION_VERSION + ']', 'Lambda Function Version', AWS_FUNCTION_VERSION )
+  .action( function( prg ) {
+    JAWS.deploy( prg );
+  });
+
+
+/**
+ * Run
+ * - Runs the Lambda Function locally
+ */
+
+program
+  .version( JAWS.version )
+  .command( 'run' )
+  .description( 'Run your Amazon Lambda application locally' )
+  .action( function( prg ) {
+    JAWS.run( prg );
+  });
+
+
+/**
+ * Server
+ * - Starts the webserver for the application
+ */
+
+program
+  .version( JAWS.version )
+  .command( 'server' )
+  .description( 'Start your server' )
+  .action( function( prg ) {
+    JAWS.server( prg );
+  });
+
+
+program.parse( process.argv );

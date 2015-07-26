@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+- '0.10'
+script:
+- test $SAUCE_USERNAME && npm run zuul || echo 'not running on saucelabs'
+- npm test
+env:
+  global:
+  - secure: aB4+vAj+mJHqQfnq9x10eZ5//erfxecs3l9u/oSJX1Ok+WLrpUW0x3qpaC1bEEPq4bkAuIifxohnPv0XTE3m8GyTfRHzqmeNnNQNsnex3IzunbU4aG7QyS3jFa6gjT5OrgPA+eHobNXBvwASZczighlWtoYKD5RW7Uak4E8EpPs=
+  - secure: kJaOWFzFnSGEZ4keShHST18OC6z+rmvnnht0SwqmhPlBX4nBQ2bdBR09n0O/GVQ0uAzohn1oObouQH0yuXpbgmk4whMVZgt8RPztusLskt88fE9EOPFNA+YOWNpmcelDiXsMXv7vN2bBlZJSrILUgUppuHIqsdqTGWut08l3Zhg=

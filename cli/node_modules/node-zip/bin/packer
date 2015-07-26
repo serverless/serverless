@@ -1,0 +1,8 @@
+#!/bin/bash
+type -P uglifyjs &>/dev/null || { npm install uglify-js -g; }
+echo "#!/usr/bin/env node" > bin/nodezip
+cat lib/nodezip-cli.js >> bin/nodezip.tmp
+uglifyjs bin/nodezip.tmp >> bin/nodezip
+rm bin/nodezip.tmp
+chmod +x bin/nodezip
+echo "done: bin/nodezip"

@@ -15,12 +15,13 @@ Starring
 **Javascript:**
 - Node.js
 - Express.js
-- HTML5 Boilerplate – *Insert the javascript front-end framework of the day here.*
+- HTML5 Boilerplate – *Insert the javascript front-end framework du-jour here.*
 
 **AWS Services:**
 - DynamoDB - *NOSQL data storage for data that changes shape.*
 - Lambda - *Build worker tasks that you can spawn and scale infinitely.*
-- AuroraDB (Coming Soon) - *Traditional Relational data storage at Aurora's incredible speed.*
+- API Gateway - *Traditional Relational data storage at Aurora's incredible speed.*
+- API Gateway - *Traditional Relational data storage at Aurora's incredible speed.*
 
 Installation
 =================================

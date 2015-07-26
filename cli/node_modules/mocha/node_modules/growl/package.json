@@ -1,0 +1,45 @@
+{
+  "name": "growl",
+  "version": "1.8.1",
+  "description": "Growl unobtrusive notifications",
+  "author": {
+    "name": "TJ Holowaychuk",
+    "email": "tj@vision-media.ca"
+  },
+  "maintainers": [
+    {
+      "name": "tjholowaychuk",
+      "email": "tj@vision-media.ca"
+    },
+    {
+      "name": "jbnicolai",
+      "email": "jappelman@xebia.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/visionmedia/node-growl.git"
+  },
+  "main": "./lib/growl.js",
+  "gitHead": "882ced3155a57f566887c884d5c6dccb7df435c1",
+  "bugs": {
+    "url": "https://github.com/visionmedia/node-growl/issues"
+  },
+  "homepage": "https://github.com/visionmedia/node-growl",
+  "_id": "growl@1.8.1",
+  "scripts": {},
+  "_shasum": "4b2dec8d907e93db336624dcec0183502f8c9428",
+  "_from": "growl@1.8.1",
+  "_npmVersion": "1.4.20",
+  "_npmUser": {
+    "name": "jbnicolai",
+    "email": "jappelman@xebia.com"
+  },
+  "dist": {
+    "shasum": "4b2dec8d907e93db336624dcec0183502f8c9428",
+    "tarball": "http://registry.npmjs.org/growl/-/growl-1.8.1.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/growl/-/growl-1.8.1.tgz",
+  "readme": "ERROR: No README data found!"
+}

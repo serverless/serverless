@@ -1,0 +1,47 @@
+{
+  "name": "should-type",
+  "version": "0.2.0",
+  "description": "Simple module to get instance type. Like a bit more advanced version of typeof",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shouldjs/type.git"
+  },
+  "keywords": [
+    "should",
+    "type"
+  ],
+  "author": {
+    "name": "Denis Bardadym",
+    "email": "bardadymchik@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shouldjs/type/issues"
+  },
+  "homepage": "https://github.com/shouldjs/type",
+  "gitHead": "3ae89bfac659a5c5afbb176622f9773bcabd0a66",
+  "_id": "should-type@0.2.0",
+  "scripts": {},
+  "_shasum": "6707ef95529d989dcc098fe0753ab1f9136bb7f6",
+  "_from": "should-type@0.2.0",
+  "_npmVersion": "2.11.1",
+  "_nodeVersion": "2.3.0",
+  "_npmUser": {
+    "name": "btd",
+    "email": "bardadymchik@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "btd",
+      "email": "bardadymchik@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "6707ef95529d989dcc098fe0753ab1f9136bb7f6",
+    "tarball": "http://registry.npmjs.org/should-type/-/should-type-0.2.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/should-type/-/should-type-0.2.0.tgz",
+  "readme": "ERROR: No README data found!"
+}
