@@ -1,4 +1,4 @@
-![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/server/public/img/jaws_logo_javascript_aws.png)
+![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_logo_javascript_aws.png)
 
 JAWS: The Javascript + AWS Stack
 =================================
@@ -7,7 +7,7 @@ JAWS: The Javascript + AWS Stack
 
 
 
-![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/server/public/img/jaws_diagram_javascript_aws.png)
+![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
 
 Starring
 =================================
