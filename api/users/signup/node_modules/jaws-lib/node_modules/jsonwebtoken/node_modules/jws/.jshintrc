@@ -1,0 +1,11 @@
+{
+    "freeze": true,
+    "latedef": "nofunc",
+    "undef": true,
+    "unused": true,
+    "trailing": true,
+    "immed": true,
+    "predef": ["console", "require", "__dirname"],
+    "esnext": true,
+    "lastsemic": true
+}

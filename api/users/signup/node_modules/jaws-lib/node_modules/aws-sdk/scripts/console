@@ -1,0 +1,75 @@
+#!/usr/bin/env node
+
+var repl = require('repl').start('aws-sdk> '),
+    replEval = repl.eval,
+    defaultOptions = {
+      logger: process.stdout,
+      region: process.env.AWS_REGION || 'us-east-1'
+    };
+
+
+function customEval(cmd, context, filename, callback) {
+  replEval(cmd, context, filename, function(err, value) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    
+    if (value && value.constructor === AWS.Request) {
+      if (!value.__hasBeenSent__) {
+        value.__hasBeenSent__ = true;
+        try {
+          value.on('complete', function consoleDataExtraction(resp) {
+            context.data = resp.data;
+            context.error = resp.error;
+            callback(resp.error, resp.data);
+          });
+          context.request = value;
+          context.data = null;
+          context.error = null;
+          context.response = value.send();
+        } catch (err2) {
+          callback(err2, null);
+          return;
+        }
+      } else {
+        callback(null, value);
+      }
+    } else {
+      callback(null, value);
+    }
+  });
+}
+
+var AWS = repl.context.AWS = require('../lib/aws');
+repl.eval = customEval;
+
+// context variables
+repl.context.data = null;
+repl.context.error = null;
+repl.context.request = null;
+repl.context.response = null;
+
+// setup REPL history
+try {
+  var replHistory = require('repl.history');
+  replHistory(repl, process.env.HOME + '/.node_history');
+} catch (e) {
+  console.log("Missing repl.history package, history will not be supported.");
+  console.log("  Type `npm install repl.history` to enable history.");
+}
+
+// load services as defined instances
+for (var key in AWS) {
+  var id = AWS[key].serviceIdentifier;
+  if (id) {
+    if (id === 'cloudsearchdomain') continue; // this required an explicit endpoint
+
+    var svcClass = AWS[key];
+    var svc = new svcClass(defaultOptions);
+    svc.with = function(config) {
+      return new this.constructor.__super__(AWS.util.merge(this.config, config));
+    };
+    repl.context[svcClass.serviceIdentifier] = svc;
+  }
+}

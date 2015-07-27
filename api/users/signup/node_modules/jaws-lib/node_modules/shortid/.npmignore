@@ -1,0 +1,7 @@
+/templates/
+/examples/
+/test/
+/.idea/
+/browser/
+.jshintrc
+.travis.yml

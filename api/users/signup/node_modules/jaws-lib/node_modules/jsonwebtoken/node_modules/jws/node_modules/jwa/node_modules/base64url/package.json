@@ -1,0 +1,50 @@
+{
+  "name": "base64url",
+  "version": "0.0.6",
+  "description": "For encoding to/from base64urls",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianloveswords/base64url.git"
+  },
+  "keywords": [
+    "base64",
+    "base64url"
+  ],
+  "author": {
+    "name": "Brian J Brennan"
+  },
+  "license": "MIT",
+  "gitHead": "a219306e93712cb4380286b44360fea4406d49d3",
+  "devDependencies": {
+    "tap": "~0.3.3"
+  },
+  "bugs": {
+    "url": "https://github.com/brianloveswords/base64url/issues"
+  },
+  "_id": "base64url@0.0.6",
+  "dist": {
+    "shasum": "9597b36b330db1c42477322ea87ea8027499b82b",
+    "tarball": "http://registry.npmjs.org/base64url/-/base64url-0.0.6.tgz"
+  },
+  "_from": "base64url@>=0.0.4 <0.1.0",
+  "_npmVersion": "1.3.11",
+  "_npmUser": {
+    "name": "brianloveswords",
+    "email": "brianloveswords@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "brianloveswords",
+      "email": "brian@nyhacker.org"
+    }
+  ],
+  "directories": {},
+  "_shasum": "9597b36b330db1c42477322ea87ea8027499b82b",
+  "_resolved": "https://registry.npmjs.org/base64url/-/base64url-0.0.6.tgz",
+  "readme": "ERROR: No README data found!",
+  "homepage": "https://github.com/brianloveswords/base64url"
+}

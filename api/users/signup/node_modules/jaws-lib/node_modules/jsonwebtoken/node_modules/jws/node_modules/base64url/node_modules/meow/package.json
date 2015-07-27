@@ -1,0 +1,68 @@
+{
+  "name": "meow",
+  "version": "2.0.0",
+  "description": "CLI app helper",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sindresorhus/meow"
+  },
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "http://sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "cli",
+    "bin",
+    "util",
+    "utility",
+    "helper",
+    "argv"
+  ],
+  "dependencies": {
+    "camelcase-keys": "^1.0.0",
+    "indent-string": "^1.1.0",
+    "minimist": "^1.1.0",
+    "object-assign": "^1.0.0"
+  },
+  "devDependencies": {
+    "ava": "0.0.4"
+  },
+  "gitHead": "fe0271306137c613527d38b920667d7aa4380197",
+  "bugs": {
+    "url": "https://github.com/sindresorhus/meow/issues"
+  },
+  "homepage": "https://github.com/sindresorhus/meow",
+  "_id": "meow@2.0.0",
+  "_shasum": "8f530a8ecf5d40d3f4b4df93c3472900fba2a8f1",
+  "_from": "meow@>=2.0.0 <2.1.0",
+  "_npmVersion": "2.1.2",
+  "_nodeVersion": "0.10.32",
+  "_npmUser": {
+    "name": "sindresorhus",
+    "email": "sindresorhus@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "sindresorhus",
+      "email": "sindresorhus@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "8f530a8ecf5d40d3f4b4df93c3472900fba2a8f1",
+    "tarball": "http://registry.npmjs.org/meow/-/meow-2.0.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/meow/-/meow-2.0.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

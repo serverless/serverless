@@ -1,0 +1,71 @@
+{
+  "name": "jwa",
+  "version": "1.1.0",
+  "description": "JWA implementation (supports all JWS algorithms)",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "base64url": "~0.0.4",
+    "buffer-equal-constant-time": "^1.0.1",
+    "ecdsa-sig-formatter": "^1.0.0"
+  },
+  "devDependencies": {
+    "semver": "^4.3.6",
+    "tap": "~0.3.3"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianloveswords/node-jwa.git"
+  },
+  "keywords": [
+    "jwa",
+    "jws",
+    "jwt",
+    "rsa",
+    "ecdsa",
+    "hmac"
+  ],
+  "author": {
+    "name": "Brian J. Brennan"
+  },
+  "license": "MIT",
+  "gitHead": "5ca1d5182bb64ff15f6f52000fb30a6582a4c8b0",
+  "bugs": {
+    "url": "https://github.com/brianloveswords/node-jwa/issues"
+  },
+  "homepage": "https://github.com/brianloveswords/node-jwa#readme",
+  "_id": "jwa@1.1.0",
+  "_shasum": "c432e7649352d7e17f12587441c18be52fbca52a",
+  "_from": "jwa@>=1.1.0 <2.0.0",
+  "_npmVersion": "2.11.3",
+  "_nodeVersion": "2.3.3",
+  "_npmUser": {
+    "name": "omsmith",
+    "email": "owen@omsmith.ca"
+  },
+  "maintainers": [
+    {
+      "name": "brianloveswords",
+      "email": "brianloveswords@gmail.com"
+    },
+    {
+      "name": "stenington",
+      "email": "mikelarssonftw@gmail.com"
+    },
+    {
+      "name": "omsmith",
+      "email": "owen@omsmith.ca"
+    }
+  ],
+  "dist": {
+    "shasum": "c432e7649352d7e17f12587441c18be52fbca52a",
+    "tarball": "http://registry.npmjs.org/jwa/-/jwa-1.1.0.tgz"
+  },
+  "_resolved": "https://registry.npmjs.org/jwa/-/jwa-1.1.0.tgz",
+  "readme": "ERROR: No README data found!"
+}

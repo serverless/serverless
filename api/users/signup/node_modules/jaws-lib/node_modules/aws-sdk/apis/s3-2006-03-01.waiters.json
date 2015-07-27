@@ -1,0 +1,32 @@
+{
+  "waiters": {
+    "__default__": {
+      "interval": 5,
+      "max_attempts": 20
+    },
+    "BucketExists": {
+      "operation": "HeadBucket",
+      "ignore_errors": [
+        404
+      ],
+      "success_type": "output"
+    },
+    "BucketNotExists": {
+      "operation": "HeadBucket",
+      "success_type": "error",
+      "success_value": 404
+    },
+    "ObjectExists": {
+      "operation": "HeadObject",
+      "ignore_errors": [
+        404
+      ],
+      "success_type": "output"
+    },
+    "ObjectNotExists": {
+      "operation": "HeadObject",
+      "success_type": "error",
+      "success_value": 404
+    }
+  }
+}

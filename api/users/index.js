@@ -1,3 +1,0 @@
-/**
- * Lambda Function
- */

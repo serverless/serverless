@@ -1,0 +1,12 @@
+# Coverage directory used by tools like istanbul
+coverage
+
+# Dependency directory
+# Commenting this out is preferred by some people, see
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
+node_modules
+
+# Users Environment Variables
+.lock-wscript
+
+.DS_Store

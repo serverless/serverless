@@ -1,0 +1,65 @@
+{
+  "name": "ecdsa-sig-formatter",
+  "version": "1.0.2",
+  "description": "Translate ECDSA signatures between ASN.1/DER and JOSE-style concatenation",
+  "main": "src/ecdsa-sig-formatter.js",
+  "scripts": {
+    "test": "istanbul cover --root src _mocha -- spec",
+    "report-cov": "cat ./coverage/lcov.info | coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Brightspace/node-ecdsa-sig-formatter.git"
+  },
+  "keywords": [
+    "ecdsa",
+    "der",
+    "asn.1",
+    "jwt",
+    "jwa",
+    "jsonwebtoken",
+    "jose"
+  ],
+  "author": {
+    "name": "D2L Corporation"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Brightspace/node-ecdsa-sig-formatter/issues"
+  },
+  "homepage": "https://github.com/Brightspace/node-ecdsa-sig-formatter#readme",
+  "dependencies": {
+    "asn1.js": "^2.0.3",
+    "base64-url": "^1.2.1"
+  },
+  "devDependencies": {
+    "bench": "^0.3.5",
+    "chai": "^3.0.0",
+    "coveralls": "^2.11.2",
+    "istanbul": "^0.3.15",
+    "mocha": "^2.2.5"
+  },
+  "gitHead": "426ae016eadb72400f96a0b82a29b6500b4289e5",
+  "_id": "ecdsa-sig-formatter@1.0.2",
+  "_shasum": "2074b4bd06be5e7479c9f71e73358bc3deea4a9b",
+  "_from": "ecdsa-sig-formatter@>=1.0.0 <2.0.0",
+  "_npmVersion": "2.10.1",
+  "_nodeVersion": "0.12.4",
+  "_npmUser": {
+    "name": "d2l-travis-deploy",
+    "email": "d2ltravisdeploy@d2l.com"
+  },
+  "maintainers": [
+    {
+      "name": "d2l-travis-deploy",
+      "email": "d2ltravisdeploy@d2l.com"
+    }
+  ],
+  "dist": {
+    "shasum": "2074b4bd06be5e7479c9f71e73358bc3deea4a9b",
+    "tarball": "http://registry.npmjs.org/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.2.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.2.tgz",
+  "readme": "ERROR: No README data found!"
+}

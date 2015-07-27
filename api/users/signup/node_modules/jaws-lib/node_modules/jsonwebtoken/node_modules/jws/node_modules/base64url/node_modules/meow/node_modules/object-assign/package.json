@@ -1,0 +1,67 @@
+{
+  "name": "object-assign",
+  "version": "1.0.0",
+  "description": "ES6 Object.assign() ponyfill",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sindresorhus/object-assign"
+  },
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "http://sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "object",
+    "assign",
+    "extend",
+    "properties",
+    "es6",
+    "ecmascript",
+    "harmony",
+    "ponyfill",
+    "prollyfill",
+    "polyfill",
+    "shim",
+    "browser"
+  ],
+  "devDependencies": {
+    "mocha": "*"
+  },
+  "gitHead": "a17eef6882cf3ffcee46f7d9d5a5ba0abc6b029c",
+  "bugs": {
+    "url": "https://github.com/sindresorhus/object-assign/issues"
+  },
+  "homepage": "https://github.com/sindresorhus/object-assign",
+  "_id": "object-assign@1.0.0",
+  "_shasum": "e65dc8766d3b47b4b8307465c8311da030b070a6",
+  "_from": "object-assign@>=1.0.0 <2.0.0",
+  "_npmVersion": "1.4.21",
+  "_npmUser": {
+    "name": "sindresorhus",
+    "email": "sindresorhus@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "sindresorhus",
+      "email": "sindresorhus@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "e65dc8766d3b47b4b8307465c8311da030b070a6",
+    "tarball": "http://registry.npmjs.org/object-assign/-/object-assign-1.0.0.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/object-assign/-/object-assign-1.0.0.tgz",
+  "readme": "ERROR: No README data found!"
+}
