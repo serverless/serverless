@@ -1,5 +1,0 @@
-AWS Document SDK for JavaScript
-Copyright 2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-
-This product includes software developed at
-Amazon Web Services, Inc. (http://aws.amazon.com/).
