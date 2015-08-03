@@ -5,24 +5,25 @@ JAWS: The Javascript + AWS Stack
 
 **Under-Construction!  Go for a swim while we finish this.  The water is nice...**
 
-=================================
-
-
-![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
-
 Starring
 =================================
 
 **Javascript:**
 - Node.js
-- Express.js
-- HTML5 Boilerplate – *Insert the javascript front-end framework du-jour here.*
+- jQuery
 
 **AWS Services:**
-- DynamoDB - *NOSQL data storage for data that changes shape.*
+- DynamoDB - *Managed, NOSQL data storage*
 - Lambda - *Build worker tasks that you can spawn and scale infinitely.*
-- API Gateway - *Traditional Relational data storage at Aurora's incredible speed.*
-- API Gateway - *Traditional Relational data storage at Aurora's incredible speed.*
+- API Gateway - *Launch an API with urls pointing to your Lambda functions*
+- S3 - *Host static assets for your site here*
+
+Architecture
+=================================
+
+![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
+
+
 
 Set-Up
 =================================
