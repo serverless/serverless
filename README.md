@@ -3,7 +3,7 @@
 JAWS: The Javascript + AWS Stack
 =================================
 
-**Under-Construction!  Go for a swim while we finish this (the water is nice...), or contribute.**
+**Under-Construction!  Go for a swim while we finish this (the water is nice...), or contribute :)**
 
 ##Architecture
 
@@ -44,7 +44,6 @@ Your website/client-side application.  These assets are uploaded and served from
 
 
 ##Starring
-=================================
 
 **Javascript:**
 - Node.js (in AWS Lambda functions)
