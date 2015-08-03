@@ -3,24 +3,18 @@
  */
 
 // Dependencies
-var ControllerIncoming = require('jaws-lib').controllers.Incoming;
+var MiddlewareIncoming = require('jaws-lib').middleware.Incoming;
 
 // Function
 exports.handler = function(event, context) {
 
-
-    console.time("Lambda Duration");
-    console.log("Event: ", event);
-
-
     // Process Incoming Request
-    ControllerIncoming.process(event, context, function(event, context) {
+    MiddlewareIncoming.process(event, context, function(event, context) {
 
         /**
          * Return
          */
 
-        console.timeEnd("Lambda Duration");
         return context.succeed(event.req.user);
 
     });
