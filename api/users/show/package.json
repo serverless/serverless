@@ -1,0 +1,13 @@
+{
+    "name": "servantapi",
+    "version": "0.0.1",
+    "description": "",
+    "main": "index.js",
+    "private": true,
+    "scripts": {
+        "test": "test"
+    },
+    "author": "Austen Collins <austen@servant.co>",
+    "license": "ISC",
+    "dependencies": {}
+}
