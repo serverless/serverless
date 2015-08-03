@@ -32,6 +32,11 @@ Set-Up
 * [Create an AWS account](http://aws.amazon.com/,), if you don't have one already
 * Create an IAM user
 
+#### Creating New API Routes/Lambda Functions
+
+* Copy and paste the `api/template` folder somewhere in the `api` folder and rename it.
+* To require the `lib` into your Lambda functions, we recommend creating an [npm link](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress).  Cd into your lib folder, run `npm link`, then cd into your lambda function's folder and run `npm link jaws-lib`.
+
 Resources
 =================================
 *  [List Of AWS Tips](https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/)

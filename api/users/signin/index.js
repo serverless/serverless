@@ -13,7 +13,7 @@ exports.handler = function(event, context) {
     console.log("Event: ", event);
 
 
-    AppModelsUser.signUp(event.body, function(error, json_web_token) {
+    AppModelsUser.signIn(event.body, function(error, json_web_token) {
 
         if (error) return context.fail(error);
 

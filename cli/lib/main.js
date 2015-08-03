@@ -7,7 +7,6 @@
 
 
 var aws = require('aws-sdk');
-var dotenv = require('dotenv');
 var exec = require('child_process').exec;
 var fs = require('fs');
 var os = require('os');
@@ -91,10 +90,6 @@ JAWS.prototype.deploy = function(program) {
 
 
     console.log('****** JAWS: Deploying your Lambda function to AWS Lambda.  This could take a few minutes...');
-
-    // Load ENV Variables
-    dotenv.load();
-
 
     // Defaults
     var _this = this;
