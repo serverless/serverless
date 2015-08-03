@@ -6,7 +6,6 @@ JAWS: The Javascript + AWS Stack
 **Under-Construction!  Go for a swim while we finish this.  The water is nice...**
 
 ##Architecture
-=================================
 
 ![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
 
