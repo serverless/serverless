@@ -5,7 +5,7 @@ JAWS: The Javascript + AWS Stack
 
 **Under-Construction!  Please contribute, or go for a swim while we finish this.  The water is nice...**
 
-This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable and cheap web applications.  
+This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.  
 
 The Goals of JAWS:
 
@@ -42,16 +42,19 @@ While developing, make sure you create an [npm sym-link](https://egghead.io/less
 This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are:
 	
 **Run A Lambda Function Locally**
+
 Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
 
     $ jaws run
 
 **Deploy A Lambda Function**
+
 Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
 
     $ jaws deploy
 
 **Start A Local Server**
+
 Make sure you in the`site` folder of the JAWS app and enter this:
 
     $ jaws server
