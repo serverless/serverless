@@ -7,7 +7,8 @@ This stack uses new tools from Amazon Web Services to completely redefine how to
 
 ####[Follow the "Installation Guide" in the Wiki to get started! ](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
 
-***
+  
+  
 
 ##### The Goals Of JAWS Are:
 
