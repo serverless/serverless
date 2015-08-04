@@ -2,13 +2,29 @@
     "name": "JAWS",
     "version": "0.0.1",
     "description": "The Javascript + AWS Web Application Boilerplate",
+    "author": "Austen Collins",
     "repository": {
         "type": "git",
         "url": "https://github.com/servant-app/JAWS.git"
     },
+    "keywords": [
+        "jaws",
+        "api gateway",
+        "lambda",
+        "aws",
+        "boilerplate",
+        "command",
+        "dynamodb",
+        "s3",
+        "template",
+        "framework"
+    ],
     "engines": {
         "node": "0.12.x",
         "npm": "2.1.x"
+    },
+    "bugs": {
+        "url": "https://github.com/servant-app/JAWS/issues"
     },
     "dependencies": {}
 }
