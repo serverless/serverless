@@ -25,7 +25,7 @@ Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivi
 While developing, make sure you create an [npm sym-link](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress) between this module and all of your Lambda functions.  This way, all of the changes in the `lib` folder will be instantly available in every one of your Lambda functions when you run/test them locally.  Check out the wiki for instructions.
 
 
-####CLI (Command Line Interface)
+####CLI
 This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are as follows:
 	
 **Run A Lambda Function Locally**

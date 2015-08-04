@@ -1,0 +1,9 @@
+{
+    "FunctionName": "api_users_show",
+    "Handler": "index.handler",
+    "Role": "arn:aws:iam::149631484542:role/jaws_lambda_role",
+    "Runtime": "nodejs",
+    "Description": "None",
+    "MemorySize": 513,
+    "Timeout": 5
+}

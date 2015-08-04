@@ -1,6 +1,3 @@
-'use strict';
-
-
 /**
  * JAWS Command Line Interface
  */
@@ -18,7 +15,7 @@ var zip = new require('node-zip')();
 var wrench = require('wrench');
 var jsonfile = require('jsonfile');
 var del = require('del');
-
+var moment = require('moment');
 
 
 var JAWS = function() {
@@ -33,6 +30,7 @@ var JAWS = function() {
 
 JAWS.prototype.run = function(program) {
 
+    console.log('****** JAWS: Running Lambda Function Locally...');
 
     // Check if in extension's root directory
     if (!fs.existsSync(process.cwd() + '/index.js')) return console.log('****** JAWS:  Error - You must be in the root directory of your Lambda function to run it locally.');
@@ -84,81 +82,141 @@ JAWS.prototype._runHandler = function(handler, event) {
  * JAWS: Deploy Lambda Function
  */
 
-
-
 JAWS.prototype.deploy = function(program) {
-
 
     console.log('****** JAWS: Deploying your Lambda function to AWS Lambda.  This could take a few minutes...');
 
+    // Require ENV Variables
+    require('dotenv').config({
+        path: process.cwd() + '/node_modules/app-lib/.env'
+    });
+
     // Defaults
     var _this = this;
-    var regions = program.region.split(',');
-    var codeDirectory = _this._codeDirectory(program);
     var fs = require('fs');
-    var dir = './stmp';
+    var previous = '/';
+    var regions = process.env.AWS_LAMBDA_REGIONS.split(',');
+    var codeDirectory = os.tmpDir() + process.env.LAMBDA_FUNCTION_NAME + '-' + moment().unix();
 
-    // Create Temp Folder
-    if (fs.existsSync(dir)) del.sync(['./stmp']);
-    fs.mkdirSync(dir);
+    // Get Lambda Config
+    if (!fs.existsSync(process.cwd() + '/lambda.json')) return console.log('****** JAWS Error: lambda.json is missing in this folder');
+    var lambda_config = require(process.cwd() + '/lambda.json');
 
-    // Move all files to tmp folder (except .git, .log, event.json and node_modules)
-    _this._rsync(program, codeDirectory, function(err, result) {
-        _this._zip(program, codeDirectory, function(err, buffer) {
+    // Get path to "lib" folder
+    var lib_path = false;
+    for (i = 0; i < 20; i++) {
+        previous = previous + '../';
+        if (fs.existsSync(process.cwd() + previous + 'lib/index.js')) {
+            lib_path = previous + 'lib';
+            break;
+        }
+    }
+    if (!lib_path) return console.log('***** JAWS Error: Can\'t find your lib folder.  Did you rename it or create folders over 20 levels deep in your api folder?');
 
-            console.log('****** JAWS: Zipping up your Lambda Function\'s files...');
+    // Copy Lambda Folder To System Temp Directory
+    wrench.copyDirSyncRecursive(process.cwd(), codeDirectory, {
+        forceDelete: true,
+        include: function(name, more) {
+            if (name === '.git') return false;
+            else return true;
+        }
+    });
 
-            //var buffer = fs.readFileSync(zipfile);
-            var params = _this._params(program, buffer);
+    // If node_modules folder doesn't exist, create it
+    if (!fs.existsSync(codeDirectory + '/node_modules')) fs.mkdirSync(codeDirectory + '/node_modules');
 
-            async.map(regions, function(region, cb) {
+    // Copy app-lib
+    wrench.copyDirSyncRecursive(process.cwd() + lib_path, codeDirectory + '/node_modules/app-lib');
 
-                console.log('****** JAWS: Uploading your Lambda Function to AWS Lambda with these parameters: ');
-                console.log(params);
+    // Zip function
+    _this._zip(program, codeDirectory, function(err, buffer) {
 
-                aws.config.update({
-                    accessKeyId: program.accessKey,
-                    secretAccessKey: program.secretKey,
-                    region: region
-                });
+        console.log('****** JAWS: Zipping up your Lambda Function\'s files...');
 
-                var lambda = new aws.Lambda({
-                    apiVersion: '2014-11-11'
-                });
+        async.map(regions, function(region, cb) {
 
-                lambda.uploadFunction(params, function(err, data) {
-                    cb(err, data);
-                });
-
-            }, function(err, results) {
-
-                if (err) return console.log(err);
-
-                // Remove Temp Directory
-                del(['./stmp'], function(err, paths) {
-                    if (err) return console.log(err);
-                    return console.log('****** JAWS:  Success! - Your Lambda Function has been successfully deployed to AWS Lambda.  AWS Lambda ARN: ' + results[0].FunctionARN);
-                });
+            aws.config.update({
+                accessKeyId: process.env.AWS_ADMIN_ACCESS_KEY,
+                secretAccessKey: process.env.AWS_ADMIN_SECRET_ACCESS_KEY,
+                region: region
             });
+
+            var lambda = new aws.Lambda({
+                apiVersion: '2015-03-31'
+            });
+
+            // Define Params for New Lambda Function
+            var params = {
+                Code: {
+                    ZipFile: buffer
+                },
+                FunctionName: lambda_config.FunctionName,
+                Handler: lambda_config.Handler,
+                Role: lambda_config.Role,
+                Runtime: lambda_config.Runtime,
+                Description: lambda_config.Description,
+                MemorySize: lambda_config.MemorySize,
+                Timeout: lambda_config.Timeout
+            };
+
+            // Check If Lambda Function Exists Already
+            lambda.getFunction({
+                FunctionName: lambda_config.FunctionName
+            }, function(err, data) {
+
+                if (err && err.code !== 'ResourceNotFoundException') return console.log(err, err.stack);
+
+                if (!data || !data.Code) {
+
+
+                    /**
+                     * Create New Lambda Function
+                     */
+
+                    console.log('****** JAWS: Uploading your Lambda Function to AWS Lambda with these parameters: ');
+                    console.log(params);
+
+                    lambda.createFunction(params, function(err, data) {
+                        lambda_arn = data;
+                        return cb(err, data);
+                    });
+
+                } else {
+
+
+                    /**
+                     * Delete Existing & Create New Lambda Function
+                     */
+
+                    console.log('****** JAWS: Deleting existing Lambda function...');
+
+                    lambda.deleteFunction({
+                        FunctionName: lambda_config.FunctionName
+                    }, function(err, data) {
+
+                        if (err) return console.log(err, err.stack); // an error occurred
+
+                        console.log('****** JAWS: Re-uploading your Lambda Function to AWS Lambda with these parameters: ');
+                        console.log(params);
+
+                        lambda.createFunction(params, function(err, data) {
+                            return cb(err, data);
+                        });
+                    });
+                }
+            });
+
+        }, function(err, results) {
+
+            if (err) return console.log(err);
+
+            // Return
+            console.log('****** JAWS:  Success! - Your Lambda Function has been successfully deployed to AWS Lambda.  This Lambda Function\'s ARNs are: ');
+            for (i = 0; i < results.length; i++) console.log(results[i].FunctionArn);
+            return;
+
         });
     });
-};
-
-JAWS.prototype._params = function(program, buffer) {
-
-    var params = {
-        FunctionName: program.functionName,
-        FunctionZip: buffer,
-        Handler: program.handler,
-        Mode: program.mode,
-        Role: program.role,
-        Runtime: program.runtime,
-        Description: program.description,
-        MemorySize: program.memorySize,
-        Timeout: program.timeout
-    };
-
-    return params;
 };
 
 
@@ -168,19 +226,6 @@ JAWS.prototype._zipfileTmpPath = function(program) {
     var zipfile = path.join(os.tmpDir(), filename);
 
     return zipfile;
-};
-
-
-JAWS.prototype._rsync = function(program, codeDirectory, callback) {
-
-    exec('rsync -r --exclude=.git --exclude=*.log . ' + codeDirectory, function(err, stdout, stderr) {
-        if (err) {
-            throw err;
-        }
-
-        return callback(null, true);
-    });
-
 };
 
 
@@ -208,16 +253,9 @@ JAWS.prototype._zip = function(program, codeDirectory, callback) {
 };
 
 
-JAWS.prototype._codeDirectory = function(program) {
-    var epoch_time = +new Date;
-    return os.tmpDir() + '/' + program.functionName + '-' + epoch_time;
-};
-
-
-
 
 /**
- * JAWS: Start Application Server
+ * JAWS: Start "site" Server
  */
 
 JAWS.prototype.server = function(program) {

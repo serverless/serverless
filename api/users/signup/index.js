@@ -3,7 +3,7 @@
  */
 
 // Dependencies
-var ModelUser = require('jaws-lib').models.User;
+var ModelUser = require('app-lib').models.User;
 
 // Function
 exports.handler = function(event, context) {

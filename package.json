@@ -10,32 +10,5 @@
         "node": "0.12.x",
         "npm": "2.1.x"
     },
-    "main": "server.js",
-    "dependencies": {
-        "async": "^0.9.0",
-        "aws-sdk": "^2.1.24"
-    },
-    "devDependencies": {
-        "gulp": "^3.8.10",
-        "gulp-bump": "^0.3.0",
-        "gulp-clean": "^0.3.1",
-        "gulp-concat": "^2.2.0",
-        "gulp-csslint": "^0.1.4",
-        "gulp-develop-server": "^0.4.2",
-        "gulp-filter": "^2.0.2",
-        "gulp-git": "^1.2.1",
-        "gulp-gzip": "0.0.8",
-        "gulp-jshint": "^1.6.2",
-        "gulp-livereload": "^2.1.0",
-        "gulp-ngmin": "^0.3.0",
-        "gulp-nodemon": "^1.0.4",
-        "gulp-rename": "^1.2.0",
-        "gulp-shell": "^0.4.1",
-        "gulp-tag-version": "^1.2.1",
-        "gulp-uglify": "^0.3.0",
-        "gulp-zip": "^3.0.2",
-        "jshint-stylish": "^0.2.0",
-        "node-zip": "^1.1.0",
-        "tiny-lr": "0.0.9"
-    }
+    "dependencies": {}
 }
