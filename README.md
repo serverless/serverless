@@ -7,12 +7,12 @@ This stack uses new tools from Amazon Web Services to completely redefine how to
 
 #### [Follow the "Installation Guide" in the Wiki to get started! ](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
 
-  
-  
+
+
 
 ##### The Goals Of JAWS Are:
 
- - **Use No Servers:** Never deal with scaling/deploying/maintaing/monitoring servers again.
+ - **Use No Servers:** Never deal with scaling/deploying/maintaining/monitoring servers again.
  -  **Isolated Components:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down...  only individual API routes can go down.
  - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
@@ -34,13 +34,13 @@ Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivi
 
     // This only loads code needed for the User Model
     var ModelUser = require('jaws-lib').models.User;
-    
+
 While developing, make sure you create an [npm sym-link](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress) between this module and all of your Lambda functions.  This way, all of the changes in the `lib` folder will be instantly available in every one of your Lambda functions when you run/test them locally.  Check out the wiki for instructions.
 
 
 #### CLI
 This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are:
-	
+
 **Run A Lambda Function Locally**
 
 Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
@@ -60,7 +60,7 @@ Make sure you in the`site` folder of the JAWS app and enter this:
     $ jaws server
 
 
-#### Site 
+#### Site
 Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
 
 
