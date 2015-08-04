@@ -151,10 +151,10 @@ JAWS.prototype.deploy = function(program) {
                     ZipFile: buffer
                 },
                 FunctionName: lambda_config.FunctionName,
-                Handler: lambda_config.Handler,
-                Role: lambda_config.Role,
+                Handler: lambda_config.Handler ? lambda_config.Handler : 'index.handler',
+                Role: lambda_config.Role ? lambda_config.Role : process.env.AWS_LAMBDA_ROLE_ARN,
                 Runtime: lambda_config.Runtime,
-                Description: lambda_config.Description,
+                Description: lambda_config.Description ? lambda_config.Description : 'A Lambda function that was created with the JAWS framework',
                 MemorySize: lambda_config.MemorySize,
                 Timeout: lambda_config.Timeout
             };

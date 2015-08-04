@@ -23,12 +23,12 @@ The Goals of JAWS:
 ![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
 
 ####API
-There are no servers are included in this stack(!!!).  The entire back-end is comprised of Lambda functions which are organized in the `api` folder.  Your API urls point to individual Lambda functions.  This way, the code for each API Route is completely isolated, enabling you to develop/update/configure/deploy/maintain that specific code at any time without affecting any other part of your application(!!!).  Think of each Lambda function as a "Controller", in traditional MVC structure.
+There are no servers are included in this stack.  The entire back-end is comprised of Lambda functions which are organized in the `api` folder.  Each of your API URLs points to one of these Lambda functions.  This way, the code for each API Route is completely isolated, enabling you to develop/update/configure/deploy/maintain code for specific API urls at any time without affecting any other part of your application(!!!).  Think of each Lambda function as a "Controller", in traditional MVC structure.
 
 You can either use the AWS Management Console's API Gateway User Interface to create your API, or define your API in the `api_swagger.json` file and deploy instantly via AWS's Swagger Import Tool (Recommended).
 
 ####Lib
-In JAWS, the Lambda functions are the "Controllers", but the `lib` folder/module contains re-useable code you would like to use across all of your Lambda functions, which can be thought of as your "Models".
+The `lib` folder/module contains re-useable code you can use across all of your Lambda functions, which can be thought of as your "Models".  It's an npm module that can be required into your Lambda functions, like any other.
 
 Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivity), this module is designed so that you do not have to `require` all of its code, but instead you can require in only the code that your Lambda function needs.  For example:
 
@@ -64,9 +64,10 @@ Make sure you in the`site` folder of the JAWS app and enter this:
 Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
 
 
-##To Do
-* Incorporate the AWS API Gateway Swagger Import Tool (somehow...)
+##Roadmap
+* Incorporate the AWS API Gateway Swagger Import Tool
 * Write the swagger.json for the current API functions
+* Add Swagger import commands to the CLI
 * Add on to the `site` to use the API Routes, after they are deployed
 * Write a JAWS CLI command to build and deploy site assets
 * Write more API examples
