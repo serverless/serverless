@@ -3,7 +3,14 @@
 JAWS: The Javascript + AWS Stack
 =================================
 
-**Under-Construction!  Go for a swim while we finish this (the water is nice...), or contribute :)**
+**Under-Construction!  Please contribute, or go for a swim while we finish this.  The water is nice...**
+
+This stack uses new tools from Amazon Web Services to completely redefine how to build scalable and cheap web apps.  
+
+JAWS features no servers, no containers, just a back-end comprised of Lambda functions and some tools to help you maintain them.  
+[enter link description here](https://github.com/servant-app/JAWS/wiki/Set-Up-Guide)
+Follow the set-up guide in the wiki to get started!  
+
 
 ##Architecture
 
@@ -26,7 +33,7 @@ While developing, make sure you create an [npm sym-link](https://egghead.io/less
 
 
 ####CLI
-This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are as follows:
+This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are:
 	
 **Run A Lambda Function Locally**
 Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
@@ -38,10 +45,22 @@ Make sure you in the root folder of your Lambda function (api/users/signup) and 
 
     $ jaws deploy
 
+**Start A Local Server**
+Make sure you in the`site` folder of the JAWS app and enter this:
+
+    $ jaws server
+
 
 ####Site 
-Your website/client-side application.  These assets are uploaded and served from S3 for super fast response times.
+Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
 
+
+##To Do
+* Incorporate the AWS API Gateway Swagger Import Tool (somehow...)
+* Write the swagger.json for the current API functions
+* Add on to the `site` to use the API Routes, after they are deployed
+* Write a JAWS CLI command to build and deploy site assets
+* Write more API examples
 
 ##Starring
 
@@ -60,7 +79,7 @@ Your website/client-side application.  These assets are uploaded and served from
 
 
 
-##Resources
+##Other
 =================================
 *  [List Of AWS Tips](https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/)
 * [Amazon Monthly Cost Estimate Calculator](http://calculator.s3.amazonaws.com/index.html)

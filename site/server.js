@@ -28,5 +28,5 @@ app.get('/dashboard', function(req, res) {
 });
 
 // Start Server
-console.log('****** JAWS server running: http://%s:%s', hostname, port);
+console.log('****** JAWS Server Running: http://%s:%s', hostname, port);
 app.listen(port, hostname);
