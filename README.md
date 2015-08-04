@@ -14,7 +14,7 @@ The Goals of JAWS:
  - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
 
-[Follow the set-up guide in the wiki to get started!  ](https://github.com/servant-app/JAWS/wiki/Set-Up-Guide)
+####[Follow the set-up guide in the wiki to get started!  ](https://github.com/servant-app/JAWS/wiki/Set-Up-Guide)
 
 
 
