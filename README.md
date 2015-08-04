@@ -5,7 +5,7 @@ JAWS: The Javascript + AWS Stack
 
 This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.  
 
-####[Follow the "Installation Guide" in the Wiki to get started! ](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
+#### [Follow the "Installation Guide" in the Wiki to get started! ](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
 
   
   
@@ -18,16 +18,16 @@ This stack uses new tools from Amazon Web Services to completely redefine how to
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
 
 
-##Architecture
+## Architecture
 
 ![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
 
-####API
+#### API
 There are no servers are included in this stack.  The entire back-end is comprised of Lambda functions which are organized in the `api` folder.  Each of your API URLs points to one of these Lambda functions.  This way, the code for each API Route is completely isolated, enabling you to develop/update/configure/deploy/maintain code for specific API urls at any time without affecting any other part of your application(!!!).  Think of each Lambda function as a "Controller", in traditional MVC structure.
 
 You can either use the AWS Management Console's API Gateway User Interface to create your API, or define your API in the `api_swagger.json` file and deploy instantly via AWS's Swagger Import Tool (Recommended).
 
-####Lib
+#### Lib
 The `lib` folder/module contains re-useable code you can use across all of your Lambda functions, which can be thought of as your "Models".  It's an npm module that can be required into your Lambda functions, like any other.
 
 Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivity), this module is designed so that you do not have to `require` all of its code, but instead you can require in only the code that your Lambda function needs.  For example:
@@ -38,7 +38,7 @@ Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivi
 While developing, make sure you create an [npm sym-link](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress) between this module and all of your Lambda functions.  This way, all of the changes in the `lib` folder will be instantly available in every one of your Lambda functions when you run/test them locally.  Check out the wiki for instructions.
 
 
-####CLI
+#### CLI
 This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are:
 	
 **Run A Lambda Function Locally**
@@ -60,11 +60,11 @@ Make sure you in the`site` folder of the JAWS app and enter this:
     $ jaws server
 
 
-####Site 
+#### Site 
 Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
 
 
-##Roadmap
+## Roadmap
 * Incorporate the AWS API Gateway Swagger Import Tool
 * Write the swagger.json for the current API functions
 * Add Swagger import commands to the CLI
@@ -72,7 +72,7 @@ Your website/client-side application.  These assets can be uploaded and served f
 * Write a JAWS CLI command to build and deploy site assets
 * Write more API examples
 
-##Starring
+## Starring
 
 **Javascript:**
 - Node.js (in AWS Lambda functions)
@@ -89,7 +89,7 @@ Your website/client-side application.  These assets can be uploaded and served f
 
 
 
-##Other
+## Other
 *  [List Of AWS Tips](https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/)
 * [Amazon Monthly Cost Estimate Calculator](http://calculator.s3.amazonaws.com/index.html)
 * [Set-Up AWS Billing Alerts](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/monitor-charges.html)
