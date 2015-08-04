@@ -14,7 +14,7 @@ The Goals of JAWS:
  - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
 
-####[Follow the set-up guide in the wiki to get started!  ](https://github.com/servant-app/JAWS/wiki/Set-Up-Guide)
+####[Follow the "Set-Up Guide" here in the wiki to get started!  ](https://github.com/servant-app/JAWS/wiki/Set-Up-Guide)
 
 
 
@@ -86,7 +86,6 @@ Your website/client-side application.  These assets can be uploaded and served f
 
 
 ##Other
-=================================
 *  [List Of AWS Tips](https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/)
 * [Amazon Monthly Cost Estimate Calculator](http://calculator.s3.amazonaws.com/index.html)
 * [Set-Up AWS Billing Alerts](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/monitor-charges.html)
