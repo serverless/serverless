@@ -3,8 +3,6 @@
 JAWS: The Javascript + AWS Stack
 =================================
 
-**Under-Construction!  Please contribute, or go for a swim while we finish this.  The water is nice...**
-
 This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.  
 
 The Goals of JAWS:
@@ -14,7 +12,7 @@ The Goals of JAWS:
  - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
 
-####[Follow the "Set-Up Guide" here in the wiki to get started!  ](https://github.com/servant-app/JAWS/wiki/Set-Up-Guide)
+####[Follow the "Installation Guide" in the Wiki to get started! ](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
 
 
 
