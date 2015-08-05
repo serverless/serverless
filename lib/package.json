@@ -9,8 +9,8 @@
         "test": "test"
     },
     "engines": {
-        "node": "0.12.x",
-        "npm": "2.1.x"
+        "node": "0.10.33",
+        "npm": "1.4.28"
     },
     "dependencies": {
         "async": "^1.2.1",

@@ -1,55 +1,57 @@
 {
-    "name": "jaws-cli",
-    "version": "0.0.1",
-    "description": "Command line interface for the JAWS stack",
-    "main": "lib/main.js",
-    "directories": {
-        "test": "test"
-    },
-    "scripts": {
-        "test": "mocha test/*.js"
-    },
-    "bin": {
-        "jaws": "./bin/jaws"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/servant-app/JAWS.git"
-    },
-    "keywords": [
-        "jaws",
-        "jaws stack",
-        "api gateway",
-        "lambda",
-        "aws",
-        "amazon",
-        "amazon-lambda",
-        "aws-lambda"
-    ],
-    "readmeFilename": "README.md",
-    "author": "ac360",
-    "license": "BSD",
-    "devDependencies": {
-        "adm-zip": "^0.4.7",
-        "chai": "^2.0.0",
-        "hoek": "^2.11.1",
-        "lodash": "^3.2.0",
-        "mocha": "",
-        "should": ""
-    },
-    "dependencies": {
-        "async": "^0.9.0",
-        "aws-sdk": "^2.1.24",
-        "commander": "^2.5.0",
-        "del": "^1.2.0",
-        "dotenv": "^1.2.0",
-        "jsonfile": "^2.2.1",
-        "moment": "^2.10.6",
-        "node-uuid": "^1.4.2",
-        "node-zip": "^1.1.0",
-        "nodemon": "^1.3.8",
-        "rimraf": "^2.2.8",
-        "shortid": "^2.2.2",
-        "wrench": "^1.5.8"
-    }
+  "name": "jaws-cli",
+  "version": "0.0.1",
+  "description": "Command line interface for the JAWS stack",
+  "main": "lib/main.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test/*.js"
+  },
+  "bin": {
+    "jaws": "./bin/jaws"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/servant-app/JAWS.git"
+  },
+  "keywords": [
+    "jaws",
+    "jaws stack",
+    "api gateway",
+    "lambda",
+    "aws",
+    "amazon",
+    "amazon-lambda",
+    "aws-lambda"
+  ],
+  "readmeFilename": "README.md",
+  "author": "ac360",
+  "license": "BSD",
+  "devDependencies": {
+    "adm-zip": "^0.4.7",
+    "chai": "^2.0.0",
+    "hoek": "^2.11.1",
+    "lodash": "^3.2.0",
+    "mocha": "",
+    "should": ""
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "aws-sdk": "^2.1.24",
+    "commander": "^2.5.0",
+    "del": "^1.2.0",
+    "dotenv": "^1.2.0",
+    "js-yaml": "^3.3.1",
+    "jsonfile": "^2.2.1",
+    "moment": "^2.10.6",
+    "node-uuid": "^1.4.2",
+    "node-zip": "^1.1.0",
+    "nodemon": "^1.3.8",
+    "q": "^1.4.1",
+    "rimraf": "^2.2.8",
+    "shortid": "^2.2.2",
+    "wrench": "^1.5.8"
+  }
 }
