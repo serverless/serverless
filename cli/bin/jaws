@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-var JAWS = require('../lib/main.js');
+var JAWS    = require('../lib/main.js');
 var program = require('commander');
 var shortid = require('shortid');
-
+var Q       = require('q');
 
 
 /**
@@ -12,12 +12,32 @@ var shortid = require('shortid');
  */
 
 program
-  .version(JAWS.version)
-  .command( 'deploy' )
-  .description( 'Deploy your application to Amazon Lambda' )
-  .action( function( prg ) {
-    JAWS.deploy( prg );
-  });
+    .version(JAWS.version)
+    .command('deploy <stage>')
+    .description('Deploy your application to Amazon Lambda')
+    .action(function (stage, prg) {
+        try {
+            JAWS.deploy(stage)
+                .then(function (functionArns) {
+                    console.log('****** JAWS:  Success! - Your Lambda Function has been successfully deployed to AWS Lambda.  This Lambda Function\'s ARNs are: ');
+                    console.log("\t", functionArns.join(', '));
+                    process.exit(0);
+                })
+                .fail(function (err) {
+                    console.error(err, err.stack);
+                    process.exit(-1);
+                });
+        } catch (err) {
+            console.error(err, err.stack);
+            process.exit(-1);
+        }
+    })
+    .on('--help', function () {
+        console.log('  Examples:');
+        console.log("\n\tdeploy prod");
+        console.log("\n\tdeploy test");
+        console.log();
+    });
 
 
 /**
@@ -26,12 +46,12 @@ program
  */
 
 program
-  .version( JAWS.version )
-  .command( 'run' )
-  .description( 'Run your Amazon Lambda application locally' )
-  .action( function( prg ) {
-    JAWS.run( prg );
-  });
+    .version(JAWS.version)
+    .command('run')
+    .description('Run your Amazon Lambda application locally')
+    .action(function (prg) {
+        JAWS.run();
+    });
 
 
 /**
@@ -40,12 +60,12 @@ program
  */
 
 program
-  .version( JAWS.version )
-  .command( 'server' )
-  .description( 'Start your server' )
-  .action( function( prg ) {
-    JAWS.server( prg );
-  });
+    .version(JAWS.version)
+    .command('server')
+    .description('Start your server')
+    .action(function (prg) {
+        JAWS.server();
+    });
 
 
-program.parse( process.argv );
+program.parse(process.argv);

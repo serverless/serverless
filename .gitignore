@@ -6,12 +6,17 @@
 *.pid
 *.gz
 
+**/.idea
+.DS_Store
+.tmp
+
+# Runtime data
 pids
 logs
 results
-.DS_Store
 npm-debug.log
 .env
+.adminenv
 
 site/public/libs
 site/node_modules

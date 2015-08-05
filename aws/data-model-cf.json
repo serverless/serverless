@@ -1,0 +1,147 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "aaaPrefix": {
+      "Type": "String",
+      "Default": "test",
+      "AllowedValues": [
+        "me",
+        "test",
+        "prod"
+      ]
+    },
+    "aaaDefaultDynamoRWThroughput": {
+      "Type": "String",
+      "Default": "1"
+    },
+    "aaaProjectName": {
+      "Type": "String",
+      "Default": "jaws",
+      "AllowedValues": [
+        "jaws"
+      ]
+    },
+    "HostedZoneName": {
+      "Type": "String",
+      "Default": "doapps.co"
+    },
+    "imagesReadThroughput": {
+      "Type": "String",
+      "Default": "1"
+    },
+    "imagesWriteThroughput": {
+      "Type": "String",
+      "Default": "1"
+    }
+  },
+  "Resources": {
+    "images": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "aaaPrefix"
+              },
+              {
+                "Ref": "aaaProjectName"
+              },
+              "images"
+            ]
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "bucketKey",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "bucketKey",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": {
+            "Ref": "imagesReadThroughput"
+          },
+          "WriteCapacityUnits": {
+            "Ref": "imagesWriteThroughput"
+          }
+        }
+      }
+    },
+    "users": {
+      "Type": "AWS::DynamoDB::Table",
+      "DependsOn": "images",
+      "Properties": {
+        "TableName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "aaaPrefix"
+              },
+              {
+                "Ref": "aaaProjectName"
+              },
+              "users"
+            ]
+          ]
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "created",
+            "AttributeType": "N"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "_id",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "created",
+            "KeyType": "RANGE"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": {
+            "Ref": "aaaDefaultDynamoRWThroughput"
+          },
+          "WriteCapacityUnits": {
+            "Ref": "aaaDefaultDynamoRWThroughput"
+          }
+        }
+      }
+    },
+    "imagesBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "aaaProjectName"
+              },
+              "-images.",
+              {
+                "Ref": "HostedZoneName"
+              }
+            ]
+          ]
+        },
+        "AccessControl": "PublicRead"
+      }
+    }
+  }
+}

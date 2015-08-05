@@ -1,30 +1,30 @@
 {
-    "name": "jaws-stack",
-    "version": "0.0.3",
-    "description": "JAWS – The Javascript + AWS Stack",
-    "author": "Austen Collins <austen@servant.co>",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/servant-app/JAWS.git"
-    },
-    "license": "MIT",
-    "keywords": [
-        "jaws",
-        "jaws stack",
-        "jaws framework",
-        "jaws boilerplate",
-        "api gateway",
-        "lambda",
-        "aws",
-        "amazon",
-        "amazon web services",
-        "dynamodb"
-    ],
-    "engines": {
-        "node": "0.10.33"
-    },
-    "bugs": {
-        "url": "https://github.com/servant-app/JAWS/issues"
-    },
-    "dependencies": {}
+  "name": "jaws-stack",
+  "version": "0.0.3",
+  "description": "JAWS – The Javascript + AWS Stack",
+  "author": "Austen Collins <austen@servant.co>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/servant-app/JAWS.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "jaws",
+    "jaws stack",
+    "jaws framework",
+    "jaws boilerplate",
+    "api gateway",
+    "lambda",
+    "aws",
+    "amazon",
+    "amazon web services",
+    "dynamodb"
+  ],
+  "engines": {
+    "node": "0.10.33"
+  },
+  "bugs": {
+    "url": "https://github.com/servant-app/JAWS/issues"
+  },
+  "dependencies": {}
 }
