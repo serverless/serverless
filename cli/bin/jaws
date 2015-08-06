@@ -50,7 +50,18 @@ program
     .command('run')
     .description('Run your Amazon Lambda application locally')
     .action(function (prg) {
-        JAWS.run();
+        JAWS.run(process.cwd(), function (err, result) {
+            if (err) {
+                console.error('****** JAWS: Lambda Returned An Error: ');
+                console.error(err);
+                return process.exit(-1);
+            }
+            else {
+                console.log('****** JAWS: Lambda Finished Successfully: ');
+                console.log(result);
+                return process.exit(0);
+            }
+        });
     });
 
 

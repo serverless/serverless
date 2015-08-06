@@ -23,7 +23,7 @@
     },
     "HostedZoneName": {
       "Type": "String",
-      "Default": "doapps.co"
+      "Default": "myapp.com"
     },
     "imagesReadThroughput": {
       "Type": "String",
@@ -98,18 +98,14 @@
             "AttributeType": "S"
           },
           {
-            "AttributeName": "created",
-            "AttributeType": "N"
+            "AttributeName": "email",
+            "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
             "AttributeName": "_id",
             "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "created",
-            "KeyType": "RANGE"
           }
         ],
         "ProvisionedThroughput": {
@@ -119,7 +115,29 @@
           "WriteCapacityUnits": {
             "Ref": "aaaDefaultDynamoRWThroughput"
           }
-        }
+        },
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "email-index",
+            "KeySchema": [
+              {
+                "AttributeName": "email",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            },
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": {
+                "Ref": "aaaDefaultDynamoRWThroughput"
+              },
+              "WriteCapacityUnits": {
+                "Ref": "aaaDefaultDynamoRWThroughput"
+              }
+            }
+          }
+        ]
       }
     },
     "imagesBucket": {

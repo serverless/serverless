@@ -63,6 +63,49 @@ Make sure you in the`site` folder of the JAWS app and enter this:
 #### Site 
 Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
 
+## Install
+
+This process will create all the resources (S3,DynamoDb tables etc), IAM roles, groups and perms via cloud formation.  It will allow you to create multiple stages (featuredev,test,staging,prod etc) very quickly and automatically inherit perms to a local development user.
+
+### Setup AWS resources
+
+1.  Create an IAM user with privileges to create/update lambda - or give user all priv with `AdministratorAccess` policy. Make an API key. Copy `cli/temp.adminenv` to `cli/.adminenv` and replace API key values.
+1.  Create another IAM user for development called `dev-jaws`.  Make an API key. Copy `lib/temp.env` to `cli/.env` and replace API key values.
+1.  Create an enviornment using Cloud Formation. Lets use the stage `test` for this example.
+    1.  Create CF Stack called `test-jaws-data-model` and use the `aws/data-model-cf.json`.  Specify your domain name (used to create s3 bucket) and finish the wizard.
+    1.  Create CF Stack called `test-jaws-api` and use the `aws/api-cf.json`.  Specify same domain and finish wizard
+1.  Go to IAM, click on groups and search for `jaws`. Add this group to your `dev-jaws` user.  Now anytime perms for the test env are changed, your dev user gets those perms.
+1.  Create an S3 bucket and folders to hold `ENV` files for you lambda stages.  Ex: `lambdadeploy.mydomain.com/jaws/env/`
+
+### Setup local project
+
+1.  run `npm install` from both `lib` and `cli` dirs
+1.  Install the JAWS CLI: from `cli` dir run `npm install . -g` (may need sudo)
+1.  Modify `cli/jaws.yml` to specify deploy s3 bucket and path you created.  Also setup IAM roles for each stage (right now you just have a test role)
+
+### NPM link `lib` with your lambda functions
+
+The `lib` folder is intended for code you want to share across all of your Lambda functions.  The `lib` folder is an npm module, which you can `require` into your Lambda functions.  While developing locally, you can `sym-link` the `lib` folder into your Lambda functions, so that all changes you make in the `lib` folder are instantly accessible in all of your lambda functions.
+
+* [Watch this short and awesome tutorial on 'npm link'](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress)
+
+* Run `npm link` in `lib` folder's root directory.  Make sure you know what the `lib` module is named in the `package.json`.  It's `jaws-lib` by default.
+
+* In all of your Lambda functions root directories, run `npm link <lib module name>`.  
+
+        npm link jaws-lib
+
+* Now all changes in `lib` will work in across your lambda functions.
+
+* Don't forget to do this for new lambda functions you create!
+
+
+### Setup stage ENV vars
+
+When you run `jaws deploy <stage>` it will go out and fetch `jaws.yml:jaws.deploy.envS3Location/<stage>` and put it into your deployment zip file under `lib/.env`.  This way your creds are not checked into SVN and they have tight ACLs managed by AWS.
+
+1.  For each stage, make a copy of `lib/temp.env` and name it after the stage. So for this example copy `temp.env` to `test`. Replace ENV vars and add your own.
+1.  Upload each stage env file to your `jaws.yml:jaws.deploy.envS3Location/<stage>` location. Make sure NOT to make the permissions public.  Only people you want running `jaws deploy` should have their IAM user setup to access this s3 dir.
 
 ## Roadmap
 * Incorporate the AWS API Gateway Swagger Import Tool
@@ -71,6 +114,8 @@ Your website/client-side application.  These assets can be uploaded and served f
 * Add on to the `site` to use the API Routes, after they are deployed
 * Write a JAWS CLI command to build and deploy site assets
 * Write more API examples
+* NPM Shrinkwrap
+* Models that work more efficiently with DyanmoDB
 
 ## Starring
 
@@ -90,6 +135,6 @@ Your website/client-side application.  These assets can be uploaded and served f
 
 
 ## Other
-*  [List Of AWS Tips](https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/)
+* [List Of AWS Tips](https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/)
 * [Amazon Monthly Cost Estimate Calculator](http://calculator.s3.amazonaws.com/index.html)
 * [Set-Up AWS Billing Alerts](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/monitor-charges.html)

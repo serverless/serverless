@@ -15,8 +15,8 @@ jaws:
       - node_modules
       - config.js
       - index.js
-      - .env           # created by aws-deployment
+      - .env           # created by jaws deploy
   iamRoles:
-    test: arn:aws:iam::28933237018:role/test-jaws_lambda_role
+    test: arn:aws:iam::254269105181:role/test-jaws-api-LambdaRole-5J06Y5M6DTY9
     prod: arn:aws:iam::28933237018:role/prod-jaws_lambda_role
-    me:   arn:aws:iam::28933237018:role/me-jaws_lambda_role
+    featuredev:   arn:aws:iam::28933237018:role/me-jaws_lambda_role
