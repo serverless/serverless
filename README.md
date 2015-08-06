@@ -116,6 +116,7 @@ When you run `jaws deploy <stage>` it will go out and fetch `jaws.yml:jaws.deplo
 * Write more API examples
 * NPM Shrinkwrap
 * Models that work more efficiently with DyanmoDB
+* Use [dynamodb-local](https://github.com/doapp-ryanp/dynamodb-local)
 
 ## Starring
 
