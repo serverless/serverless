@@ -1,6 +1,6 @@
 {
     "name": "jaws-lib",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "The JAWS Stack's App Library.  This is for re-usable, modular code that you can require in both your server and lambda functions",
     "author": "Austen Collins <austen@servant.co>",
     "repository": {

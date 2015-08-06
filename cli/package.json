@@ -1,6 +1,6 @@
 {
     "name": "jaws-cli",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "The JAWS Command line interface for easy testing and deploying of Lambda functions and more!",
     "author": "Austen Collins <austen@servant.co>",
     "license": "MIT",
