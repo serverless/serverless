@@ -88,7 +88,7 @@ JAWS.prototype.deploy = function(program) {
 
     // Require ENV Variables
     require('dotenv').config({
-        path: process.cwd() + '/node_modules/app-lib/.env'
+        path: process.cwd() + '/node_modules/jaws-lib/.env'
     });
 
     // Defaults
@@ -125,8 +125,8 @@ JAWS.prototype.deploy = function(program) {
     // If node_modules folder doesn't exist, create it
     if (!fs.existsSync(codeDirectory + '/node_modules')) fs.mkdirSync(codeDirectory + '/node_modules');
 
-    // Copy app-lib
-    wrench.copyDirSyncRecursive(process.cwd() + lib_path, codeDirectory + '/node_modules/app-lib');
+    // Copy jaws-lib
+    wrench.copyDirSyncRecursive(process.cwd() + lib_path, codeDirectory + '/node_modules/jaws-lib');
 
     // Zip function
     _this._zip(program, codeDirectory, function(err, buffer) {

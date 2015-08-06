@@ -1,6 +1,6 @@
 {
     "name": "jaws-stack",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "JAWS – The Javascript + AWS Stack",
     "author": "Austen Collins <austen@servant.co>",
     "repository": {

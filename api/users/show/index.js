@@ -3,7 +3,7 @@
  */
 
 // Dependencies
-var MiddlewareIncoming = require('app-lib').middleware.Incoming;
+var MiddlewareIncoming = require('jaws-lib').middleware.Incoming;
 
 // Function
 exports.handler = function(event, context) {

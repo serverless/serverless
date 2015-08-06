@@ -1,6 +1,6 @@
 {
     "name": "jaws-dev-server",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "The JAWS Stack's local development server for you to use while building your website and static assets.",
     "author": "Austen Collins <austen@servant.co>",
     "license": "MIT",
