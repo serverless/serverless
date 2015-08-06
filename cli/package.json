@@ -1,17 +1,9 @@
 {
     "name": "jaws-cli",
     "version": "0.0.1",
-    "description": "Command line interface for the JAWS stack",
-    "main": "lib/main.js",
-    "directories": {
-        "test": "test"
-    },
-    "scripts": {
-        "test": "mocha test/*.js"
-    },
-    "bin": {
-        "jaws": "./bin/jaws"
-    },
+    "description": "The JAWS Command line interface for easy testing and deploying of Lambda functions and more!",
+    "author": "Austen Collins <austen@servant.co>",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "git://github.com/servant-app/JAWS.git"
@@ -19,16 +11,18 @@
     "keywords": [
         "jaws",
         "jaws stack",
+        "jaws cli",
         "api gateway",
         "lambda",
         "aws",
         "amazon",
-        "amazon-lambda",
-        "aws-lambda"
+        "amazon web services",
+        "dynamodb"
     ],
-    "readmeFilename": "README.md",
-    "author": "ac360",
-    "license": "BSD",
+    "main": "lib/main.js",
+    "bin": {
+        "jaws": "./bin/jaws"
+    },
     "devDependencies": {
         "adm-zip": "^0.4.7",
         "chai": "^2.0.0",

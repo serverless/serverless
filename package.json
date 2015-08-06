@@ -1,28 +1,27 @@
 {
     "name": "jaws-stack",
     "version": "0.0.1",
-    "description": "The Javascript + AWS Web Application Boilerplate",
-    "author": "Austen Collins",
-    "license": "MIT",
+    "description": "JAWS – The Javascript + AWS Stack",
+    "author": "Austen Collins <austen@servant.co>",
     "repository": {
         "type": "git",
         "url": "https://github.com/servant-app/JAWS.git"
     },
+    "license": "MIT",
     "keywords": [
         "jaws",
+        "jaws stack",
+        "jaws framework",
+        "jaws boilerplate",
         "api gateway",
         "lambda",
         "aws",
-        "boilerplate",
-        "command",
-        "dynamodb",
-        "s3",
-        "template",
-        "framework"
+        "amazon",
+        "amazon web services",
+        "dynamodb"
     ],
     "engines": {
-        "node": "0.12.x",
-        "npm": "2.1.x"
+        "node": "0.10.33"
     },
     "bugs": {
         "url": "https://github.com/servant-app/JAWS/issues"

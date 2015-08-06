@@ -1,5 +1,5 @@
 /**
- * API: Users: Show
+ * API: Users: Sign-Up
  */
 
 // Dependencies

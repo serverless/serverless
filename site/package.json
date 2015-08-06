@@ -1,15 +1,25 @@
 {
-    "name": "app-site-server",
+    "name": "jaws-dev-server",
     "version": "0.0.1",
-    "description": "JAWS static site server",
+    "description": "The JAWS Stack's local development server for you to use while building your website and static assets.",
+    "author": "Austen Collins <austen@servant.co>",
+    "license": "MIT",
     "main": "server.js",
-    "scripts": {
-        "test": "n/a"
+    "keywords": [
+        "jaws",
+        "jaws stack",
+        "jaws server",
+        "jaws development server",
+        "api gateway",
+        "lambda",
+        "aws",
+        "amazon",
+        "amazon web services",
+        "dynamodb"
+    ],
+    "engines": {
+        "node": "0.10.33"
     },
-    "keywords": [],
-    "readmeFilename": "README.md",
-    "author": "ac360",
-    "license": "BSD",
     "devDependencies": {
         "body-parser": "^1.7.0",
         "ejs": "^2.3.1",

@@ -1,13 +1,10 @@
 {
-    "name": "app - api",
+    "name": "jaws-api-lambda",
     "version": "0.0.1",
-    "description": "",
     "main": "index.js",
     "private": true,
-    "scripts": {
-        "test": "test"
-    },
+    "scripts": {},
     "author": "Austen Collins <austen@servant.co>",
-    "license": "ISC",
+    "license": "MIT",
     "dependencies": {}
 }
