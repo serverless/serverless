@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "description": "The Javascript + AWS Web Application Boilerplate",
     "author": "Austen Collins",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "https://github.com/servant-app/JAWS.git"
