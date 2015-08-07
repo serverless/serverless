@@ -17,8 +17,14 @@ var yaml        = require('js-yaml');
 var Q           = require('q');
 
 var JAWS = function () {
+    // Require Admin ENV Variables
+    require('dotenv').config({
+        path: __dirname + '/../.adminenv'
+    });
+
     this.version   = packageJson.version;
     this.configYml = yaml.safeLoad(fs.readFileSync(__dirname + '/../jaws.yml', 'utf8')).jaws;
+
     return this;
 };
 
@@ -69,11 +75,6 @@ JAWS.prototype._runHandler = function (handler, event, callback) {
 JAWS.prototype.deploy = function (stage) {
     var deferred = Q.defer();
 
-    // Require ENV Variables
-    require('dotenv').config({
-        path: __dirname + '/../.adminenv'
-    });
-
     // Defaults
     var _this    = this;
     var previous = '/';
@@ -90,38 +91,45 @@ JAWS.prototype.deploy = function (stage) {
 
     console.log('****** JAWS: Deploying ' + lambda_config.FunctionName);
 
-    var codeDirectory = os.tmpDir() + lambda_config.FunctionName + '-' + moment().unix();
+    var tmpCodeDir = os.tmpdir() + lambda_config.FunctionName + '-' + moment().unix();
+
+    console.log("Temp dir", tmpCodeDir);
 
     // Get path to "lib" folder
-    var lib_path = false;
-    for (var i = 0; i < 20; i++) {
-        previous = previous + '../';
-        if (fs.existsSync(process.cwd() + previous + 'lib/index.js')) {
-            lib_path = previous + 'lib';
-            break;
-        }
-    }
+    var lib_path = __dirname + '/../../lib';
+
     if (!lib_path) {
         return Q.fcall(function () {
-            throw new Error('***** JAWS Error: Can\'t find your lib folder.  Did you rename it or create folders over 20 levels deep in your api folder?')
+            throw new Error('***** JAWS Error: Can\'t find your lib folder')
         });
     }
 
     // Copy Lambda Folder To System Temp Directory
-    //TODO: start here
-    wrench.copyDirSyncRecursive(process.cwd(), codeDirectory, {
+    var lambdaFileExcludes = _this.configYml.deploy.packageApiExcludes || [];
+
+    wrench.copyDirSyncRecursive(process.cwd(), tmpCodeDir, {
         forceDelete: true,
-        include: function (name, prefix) {
-            if (name === '.git') return false;
-            else return true;
+        exclude: function (name, prefix) {
+            return false;
+
+            if (!lambdaFileExcludes.length) return false;
+
+            return lambdaFileExcludes.some(function (sRegex) {
+                var re      = new RegExp(sRegex),
+                    matches = re.exec(prefix + "/" + name);
+
+                return matches.length > 0;
+            });
         }
     });
 
     // If node_modules folder doesn't exist, create it
-    if (!fs.existsSync(codeDirectory + '/node_modules')) fs.mkdirSync(codeDirectory + '/node_modules');
+    if (!fs.existsSync(tmpCodeDir + '/node_modules')) {
+        fs.mkdirSync(tmpCodeDir + '/node_modules');
+    }
 
     // Copy jaws-lib
-    wrench.copyDirSyncRecursive(process.cwd() + lib_path, codeDirectory + '/node_modules/jaws-lib', {
+    wrench.copyDirSyncRecursive(lib_path, tmpCodeDir + '/node_modules/jaws-lib', {
         forceDelete: true,
         include: function (name, prefix) {
             if (name === '.git') return false;
@@ -130,12 +138,18 @@ JAWS.prototype.deploy = function (stage) {
     });
 
     // Copy down ENV file
-    var s3            = new aws.S3({apiVersion: '2006-03-01'}),
-        targetEnvFile = fs.createWriteStream(codeDirectory + '/node_modules/jaws-lib/.env'),
+    var s3            = new aws.S3({
+            apiVersion: '2006-03-01',
+            accessKeyId: global.process.env.ADMIN_AWS_ACCESS_KEY_ID,
+            secretAccessKey: global.process.env.ADMIN_AWS_SECRET_ACCESS_KEY
+        }),
+        targetEnvFile = fs.createWriteStream('/tmp/.env'),
         s3EnvPath     = _this.configYml.deploy.envS3Location,
         firstSlash    = s3EnvPath.indexOf('/'),
         bucket        = s3EnvPath.substring(0, firstSlash),
         key           = s3EnvPath.substring(firstSlash + 1) + stage;
+
+    //return process.exit(-1);
 
     console.log("\tDownolading ENV file s3://" + bucket + key);
     s3.getObject({Bucket: bucket, Key: key})
@@ -147,9 +161,9 @@ JAWS.prototype.deploy = function (stage) {
 
     targetEnvFile
         .on('finish', function () {
-            console.log("\tZipping files (" + codeDirectory + ")...");
+            console.log("\tZipping files (" + tmpCodeDir + ")...");
 
-            _this._zip(lambda_config.FunctionName, codeDirectory, function (err, buffer) {
+            _this._zip(lambda_config.FunctionName, tmpCodeDir, function (err, buffer) {
                 if (err) {
                     return deferred.reject(err);
                 }

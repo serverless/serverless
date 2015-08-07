@@ -5,7 +5,7 @@ jaws:
     regions:
       - us-east-1
     packageApiExcludes:  #regexes. Exclude these when adding things in api dir to zip. See lambda.json for specific function excludes
-      - "*.git/*"
+      - "*.git*"
       - "node_modules/chai/*"
       - "node_modules/mocha/*"
       - "tests/*"

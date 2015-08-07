@@ -1,3 +1,3 @@
 ### IAM Admin with perms to create/update lambdas and deploy
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
+ADMIN_AWS_ACCESS_KEY_ID=
+ADMIN_AWS_SECRET_ACCESS_KEY=

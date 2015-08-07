@@ -7,19 +7,20 @@ describe('AllTests', function () {
     before(function (done) {
         this.timeout(0);  //dont timeout anything, creating tables, deleting tables etc
 
-        if (dynamoLocalPort) {
-            DynamoDbLocal.launch(dynamoLocalPort, null, ['-sharedDb'])
-                .then(function () {
-                    done();
-                })
-                .catch(function (err) {
-                    console.log("Error starting local dynamo", err);
-                    done(err);
-                });
-        }
-        else {
-            done();
-        }
+        //if (dynamoLocalPort) {
+        //    DynamoDbLocal.launch(dynamoLocalPort, null, ['-sharedDb'])
+        //        .then(function () {
+        //            done();
+        //        })
+        //        .catch(function (err) {
+        //            console.log("Error starting local dynamo", err);
+        //            done(err);
+        //        });
+        //}
+        //else {
+        //    done();
+        //}
+        done();
     });
 
     after(function () {
@@ -27,6 +28,6 @@ describe('AllTests', function () {
     });
 
     //require tests vs inline so we can run sequentially which gives us chance to prepare dbs before each test
-    require('./run');
-    //require('./deploy');
+    //require('./run');
+    require('./deploy');
 });
