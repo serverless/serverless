@@ -29,11 +29,18 @@
     "bcryptjs": "^2.2.0",
     "dotenv": "^1.2.0",
     "dynamodb-doc": "^1.0.0",
+    "joi": "^6.6.1",
+    "joy": "^0.1.1",
     "jsonwebtoken": "^5.0.4",
     "lodash": "^3.9.3",
     "moment": "^2.10.3",
     "node-uuid": "^1.4.3",
+    "q": "^1.4.1",
     "shortid": "^2.2.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "chai": "^3.2.0",
+    "dynamodb-local": "^0.0.10",
+    "mocha": "^2.2.5"
+  }
 }

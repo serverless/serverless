@@ -83,23 +83,6 @@ This process will create all the resources (S3,DynamoDb tables etc), IAM roles, 
 1.  Install the JAWS CLI: from `cli` dir run `npm install . -g` (may need sudo)
 1.  Modify `cli/jaws.yml` to specify deploy s3 bucket and path you created.  Also setup IAM roles for each stage (right now you just have a test role)
 
-### NPM link `lib` with your lambda functions
-
-The `lib` folder is intended for code you want to share across all of your Lambda functions.  The `lib` folder is an npm module, which you can `require` into your Lambda functions.  While developing locally, you can `sym-link` the `lib` folder into your Lambda functions, so that all changes you make in the `lib` folder are instantly accessible in all of your lambda functions.
-
-* [Watch this short and awesome tutorial on 'npm link'](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress)
-
-* Run `npm link` in `lib` folder's root directory.  Make sure you know what the `lib` module is named in the `package.json`.  It's `jaws-lib` by default.
-
-* In all of your Lambda functions root directories, run `npm link <lib module name>`.  
-
-        npm link jaws-lib
-
-* Now all changes in `lib` will work in across your lambda functions.
-
-* Don't forget to do this for new lambda functions you create!
-
-
 ### Setup stage ENV vars
 
 When you run `jaws deploy <stage>` it will go out and fetch `jaws.yml:jaws.deploy.envS3Location/<stage>` and put it into your deployment zip file under `lib/.env`.  This way your creds are not checked into SVN and they have tight ACLs managed by AWS.

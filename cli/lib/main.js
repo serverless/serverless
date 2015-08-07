@@ -50,7 +50,8 @@ JAWS.prototype._runHandler = function (handler, event, callback) {
             callback(null, result);
         },
         fail: function (error) {
-            callback(error);
+            console.error(error);
+            callback(new Error(error.message));
         },
         done: function (error, result) {
             callback(error, result);
@@ -107,9 +108,10 @@ JAWS.prototype.deploy = function (stage) {
     }
 
     // Copy Lambda Folder To System Temp Directory
+    //TODO: start here
     wrench.copyDirSyncRecursive(process.cwd(), codeDirectory, {
         forceDelete: true,
-        include: function (name, more) {
+        include: function (name, prefix) {
             if (name === '.git') return false;
             else return true;
         }
@@ -119,7 +121,13 @@ JAWS.prototype.deploy = function (stage) {
     if (!fs.existsSync(codeDirectory + '/node_modules')) fs.mkdirSync(codeDirectory + '/node_modules');
 
     // Copy jaws-lib
-    wrench.copyDirSyncRecursive(process.cwd() + lib_path, codeDirectory + '/node_modules/jaws-lib');
+    wrench.copyDirSyncRecursive(process.cwd() + lib_path, codeDirectory + '/node_modules/jaws-lib', {
+        forceDelete: true,
+        include: function (name, prefix) {
+            if (name === '.git') return false;
+            else return true;
+        }
+    });
 
     // Copy down ENV file
     var s3            = new aws.S3({apiVersion: '2006-03-01'}),
@@ -139,9 +147,12 @@ JAWS.prototype.deploy = function (stage) {
 
     targetEnvFile
         .on('finish', function () {
-            _this._zip(lambda_config.FunctionName, codeDirectory, function (err, buffer) {
+            console.log("\tZipping files (" + codeDirectory + ")...");
 
-                console.log("\tZipping files (" + codeDirectory + ")...");
+            _this._zip(lambda_config.FunctionName, codeDirectory, function (err, buffer) {
+                if (err) {
+                    return deferred.reject(err);
+                }
 
                 async.map(regions, function (region, cb) {
 
@@ -236,19 +247,7 @@ JAWS.prototype.deploy = function (stage) {
     return deferred.promise;
 };
 
-
-JAWS.prototype._zipfileTmpPath = function (functionName) {
-    var ms_since_epoch = +new Date;
-    var filename       = functionName + '-' + ms_since_epoch + '.zip';
-    var zipfile        = path.join(os.tmpDir(), filename);
-
-    return zipfile;
-};
-
-
 JAWS.prototype._zip = function (functionName, codeDirectory, callback) {
-    var zipfile = this._zipfileTmpPath(functionName);
-
     var options = {
         type: 'nodebuffer',
         compression: 'DEFLATE'
@@ -265,6 +264,10 @@ JAWS.prototype._zip = function (functionName, codeDirectory, callback) {
     });
 
     var data = zip.generate(options);
+
+    if (data.length > 52428800) {
+        return callback(new Error("Zip file is > the 50MB Lambda deploy limit (" + data.length + " bytes)"), null);
+    }
 
     return callback(null, data);
 };

@@ -1,10 +1,31 @@
-var assert  = require("chai").assert,
-    JAWSCli = require('../../lib/main');
+var Config           = require('../../../lib/config'),
+    assert           = require("chai").assert,
+    Q                = require('q'),
+    dynamoDbUtils    = require('../../../lib/utilities/dynamodb'),
+    JAWSCli          = require('../../lib/main'),
+    usingLocalDynamo = (Config.aws.dynamoDbEndpoint.split(':').length > 1);
 
-describe('run', function () {
+var User = require('../../../lib/models/model_user');
+
+describe
+('run', function () {
     before(function (done) {
         this.timeout(0);  //dont timeout anything, creating tables, deleting tables etc
-        done();
+
+        if (!usingLocalDynamo) {
+            done();
+        }
+        else {
+            Q.all([
+                dynamoDbUtils.createTableFromModelSchema(User.dynamoMetadata)
+            ])
+                .then(function () {
+                    done();
+                })
+                .fail(function (err) {
+                    done(err);
+                });
+        }
     });
 
     describe('users', function (ddone) {

@@ -4,18 +4,13 @@ jaws:
     envS3Location: lambdadeploy.doapps.com/jaws/env/  #will read stage (prod,test,developername etc) containing contents of temp.env
     regions:
       - us-east-1
-    packageExcludes:  #see man page on zip -x. Ex: -x *.DS_Store *.svn*
+    packageApiExcludes:  #regexes. Exclude these when adding things in api dir to zip. See lambda.json for specific function excludes
       - "*.git/*"
       - "node_modules/chai/*"
       - "node_modules/mocha/*"
       - "tests/*"
-    packageFiles:     #list of files/dirs passed to zip, relative to lib dir
-      - controllers
-      - lib
-      - node_modules
-      - config.js
-      - index.js
-      - .env           # created by jaws deploy
+    packageJawsLibExcludes:   #regexes. Exclude these when adding things in node_modules/jaws-lib to zip
+      - "*.git.*"
   iamRoles:
     test: arn:aws:iam::254269105181:role/test-jaws-api-LambdaRole-5J06Y5M6DTY9
     prod: arn:aws:iam::28933237018:role/prod-jaws_lambda_role
