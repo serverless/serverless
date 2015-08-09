@@ -42,7 +42,7 @@ This stack comes with its own command line interface to help you test your API L
 
 **Run A Lambda Function Locally**
 
-Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
+Make sure you are in the root folder of your Lambda function (api/users/signup) and enter this:
 
     $ jaws run
 
@@ -54,7 +54,7 @@ Make sure you are in the root folder of your Lambda function (api/users/signup) 
 
 **Start A Local Server**
 
-Make sure you in the`site` folder of the JAWS app and enter this:
+Make sure you are in the`site` folder of the JAWS app and enter this:
 
     $ jaws server
 
