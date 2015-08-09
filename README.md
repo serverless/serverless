@@ -6,8 +6,8 @@ JAWS: The Javascript + AWS Stack
 This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.  
 
 ##### To get started: [follow the "Installation Guide" in the Wiki](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
-#####  To help contribute: [check out the "JAWS Roadmap"](https://trello.com/b/tYOrT6nA/jaws-roadmap) and the ["Contributors Guide"](https://github.com/jaws-stack/JAWS/blob/master/CONTRIBUTING.md)
-
+##### To help contribute: [check out the "JAWS Roadmap"](https://trello.com/b/tYOrT6nA/jaws-roadmap) and the ["Contributors Guide"](https://github.com/jaws-stack/JAWS/blob/master/CONTRIBUTING.md)
+##### To receive summaries of JAWS changes, join the ["JAWS Email List"](http://eepurl.com/bvz5Nj)
 
 ## Goals:
 
