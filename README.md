@@ -5,12 +5,10 @@ JAWS: The Javascript + AWS Stack
 
 This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.  
 
-#### [Follow the "Installation Guide" in the Wiki to get started! ](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
+#### To get started, [follow the "Installation Guide" in the Wiki.](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
+####  To help contribute, [check out the JAWS Roadmap.](https://trello.com/b/tYOrT6nA/jaws-roadmap)
 
-  
-  
-
-##### The Goals Of JAWS Are:
+##### The goals of JAWS are:
 
  - **Use No Servers:** Never deal with scaling/deploying/maintaing/monitoring servers again.
  -  **Isolated Components:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down...  only individual API routes can go down.
@@ -63,14 +61,6 @@ Make sure you in the`site` folder of the JAWS app and enter this:
 #### Site 
 Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
 
-
-## Roadmap
-* Incorporate the AWS API Gateway Swagger Import Tool
-* Write the swagger.json for the current API functions
-* Add Swagger import commands to the CLI
-* Add on to the `site` to use the API Routes, after they are deployed
-* Write a JAWS CLI command to build and deploy site assets
-* Write more API examples
 
 ## Starring
 
