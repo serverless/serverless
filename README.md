@@ -48,7 +48,7 @@ Make sure you in the root folder of your Lambda function (api/users/signup) and 
 
 **Deploy A Lambda Function**
 
-Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
+Make sure you are in the root folder of your Lambda function (api/users/signup) and enter this:
 
     $ jaws deploy
 
