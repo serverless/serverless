@@ -8,11 +8,6 @@ This stack uses new tools from Amazon Web Services to completely redefine how to
 ##### To get started: [follow the "Installation Guide" in the Wiki](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
 #####  To help contribute: [check out the "JAWS Roadmap"](https://trello.com/b/tYOrT6nA/jaws-roadmap) and the ["Contributors Guide"](https://github.com/jaws-stack/JAWS/blob/master/CONTRIBUTING.md)
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 6f1d87d52c143fb340593c51ee9616cda2310cad
 
 ## Goals:
 
