@@ -254,7 +254,8 @@ JAWS.prototype.deploy = function (stage) {
 JAWS.prototype._zip = function (functionName, codeDirectory, callback) {
     var options = {
         type: 'nodebuffer',
-        compression: 'DEFLATE'
+        compression: 'DEFLATE',
+        compressionOptions: {level: 9}
     };
 
     var files = wrench.readdirSyncRecursive(codeDirectory);
