@@ -47,24 +47,24 @@ JAWS.prototype._runHandler = function(handler, event) {
     var context = {
         succeed: function(result) {
             console.log('****** JAWS: Lambda Finished Successfully: ');
-            console.log(result);
+            console.log(JSON.stringify(result));
             return process.exit(0);
         },
         fail: function(error) {
             console.log('****** JAWS: Lambda Returned An Error: ');
-            console.log(error);
+            console.log(JSON.stringify(error));
             return process.exit(0);
         },
         done: function(error, result) {
 
             if (error) {
                 console.log('****** JAWS: Lambda Returned An Error: ');
-                console.log(error);
+                console.log(JSON.stringify(error));
             }
 
             if (result) {
                 console.log('****** JAWS: Lambda Finished Successfully: ');
-                console.log(result);
+                console.log(JSON.stringify(result));
             }
 
             return process.exit(0);
