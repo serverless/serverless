@@ -6,13 +6,15 @@ var shortid = require('shortid');
 var Q       = require('q');
 
 
+program
+    .version(JAWS.version);
+
 /**
  * Deploy
  * - Deploys the Lambda Function to AWS Lambda
  */
 
 program
-    .version(JAWS.version)
     .command('deploy <stage>')
     .description('Deploy your application to Amazon Lambda')
     .action(function (stage, prg) {
@@ -46,7 +48,6 @@ program
  */
 
 program
-    .version(JAWS.version)
     .command('run')
     .description('Run your Amazon Lambda application locally')
     .action(function (prg) {
@@ -71,7 +72,6 @@ program
  */
 
 program
-    .version(JAWS.version)
     .command('server')
     .description('Start your server')
     .action(function (prg) {
