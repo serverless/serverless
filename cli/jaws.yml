@@ -5,13 +5,18 @@ jaws:
     regions:
       - us-east-1
     packageApiExcludes:  #regexes. Exclude these when adding things in api dir to zip. See lambda.json for specific function excludes
-      - "*.git*"
+      - ".*\\.git.*"
+      - "^event.json"
+      - "^lambda.json"
+      - "^package.json"
+    packageLibExcludes:   #regexes. Exclude these when adding things in node_modules/jaws-lib to zip
+      - ".*\\.git.*"
+      - "^\\.env"
       - "node_modules/chai/*"
       - "node_modules/mocha/*"
-      - "tests/*"
-    packageJawsLibExcludes:   #regexes. Exclude these when adding things in node_modules/jaws-lib to zip
-      - "*.git.*"
+      - "node_modules/dynamodb-local/*"
+      - "^temp.env"
   iamRoles:
     test: arn:aws:iam::254269105181:role/test-jaws-api-LambdaRole-5J06Y5M6DTY9
     prod: arn:aws:iam::28933237018:role/prod-jaws_lambda_role
-    featuredev:   arn:aws:iam::28933237018:role/me-jaws_lambda_role
+    featuredev: arn:aws:iam::28933237018:role/me-jaws_lambda_role

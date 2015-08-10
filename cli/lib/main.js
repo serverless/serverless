@@ -76,9 +76,8 @@ JAWS.prototype.deploy = function (stage) {
     var deferred = Q.defer();
 
     // Defaults
-    var _this    = this;
-    var previous = '/';
-    var regions  = this.configYml.deploy.regions;
+    var _this   = this;
+    var regions = this.configYml.deploy.regions;
 
     // Get Lambda Config
     if (!fs.existsSync(process.cwd() + '/lambda.json')) {
@@ -91,49 +90,33 @@ JAWS.prototype.deploy = function (stage) {
 
     console.log('****** JAWS: Deploying ' + lambda_config.FunctionName);
 
-    var tmpCodeDir = os.tmpdir() + lambda_config.FunctionName + '-' + moment().unix();
+    var tmpCodeDir               = os.tmpdir() + lambda_config.FunctionName + '-' + moment().unix(),
+        libPath                  = __dirname + '/../../lib',
+        packageApiExcludesGlobal = _this.configYml.deploy.packageApiExcludes || [],
+        packageApiExcludesLambda = lambda_config.packageApiExcludes || [],
+        packageLibExcludesGlobal = _this.configYml.deploy.packageLibExcludes || [],
+        packageLibExcludesLambda = lambda_config.packageLibExcludes || [],
+        packageApiExcludes       = packageApiExcludesGlobal.concat(packageApiExcludesLambda),
+        packageLibExclues        = packageLibExcludesGlobal.concat(packageLibExcludesLambda),
+        functionDir              = process.cwd();
 
-    console.log("Temp dir", tmpCodeDir);
+    console.log("\tCopying files to tmp dir " + tmpCodeDir);
 
-    // Get path to "lib" folder
-    var lib_path = __dirname + '/../../lib';
-
-    if (!lib_path) {
-        return Q.fcall(function () {
-            throw new Error('***** JAWS Error: Can\'t find your lib folder')
-        });
-    }
-
-    // Copy Lambda Folder To System Temp Directory
-    var lambdaFileExcludes = _this.configYml.deploy.packageApiExcludes || [];
-
-    wrench.copyDirSyncRecursive(process.cwd(), tmpCodeDir, {
+    // Copy code from api/model/action dir to temp location
+    wrench.copyDirSyncRecursive(functionDir, tmpCodeDir, {
         forceDelete: true,
         exclude: function (name, prefix) {
-            return false;
-
-            if (!lambdaFileExcludes.length) return false;
-
-            return lambdaFileExcludes.some(function (sRegex) {
-                var re      = new RegExp(sRegex),
-                    matches = re.exec(prefix + "/" + name);
-
-                return matches.length > 0;
-            });
+            var relPath = prefix.replace(functionDir, '');
+            return _this._copyExclude(name, relPath, packageApiExcludes);
         }
     });
 
-    // If node_modules folder doesn't exist, create it
-    if (!fs.existsSync(tmpCodeDir + '/node_modules')) {
-        fs.mkdirSync(tmpCodeDir + '/node_modules');
-    }
-
-    // Copy jaws-lib
-    wrench.copyDirSyncRecursive(lib_path, tmpCodeDir + '/node_modules/jaws-lib', {
+    // Copy lib dir
+    wrench.copyDirSyncRecursive(libPath, tmpCodeDir + '/lib', {
         forceDelete: true,
-        include: function (name, prefix) {
-            if (name === '.git') return false;
-            else return true;
+        exclude: function (name, prefix) {
+            var relPath = prefix.replace(libPath, '');
+            return _this._copyExclude(name, relPath, packageLibExclues);
         }
     });
 
@@ -143,13 +126,11 @@ JAWS.prototype.deploy = function (stage) {
             accessKeyId: global.process.env.ADMIN_AWS_ACCESS_KEY_ID,
             secretAccessKey: global.process.env.ADMIN_AWS_SECRET_ACCESS_KEY
         }),
-        targetEnvFile = fs.createWriteStream('/tmp/.env'),
+        targetEnvFile = fs.createWriteStream(tmpCodeDir + '/lib/.env'),
         s3EnvPath     = _this.configYml.deploy.envS3Location,
         firstSlash    = s3EnvPath.indexOf('/'),
         bucket        = s3EnvPath.substring(0, firstSlash),
         key           = s3EnvPath.substring(firstSlash + 1) + stage;
-
-    //return process.exit(-1);
 
     console.log("\tDownolading ENV file s3://" + bucket + key);
     s3.getObject({Bucket: bucket, Key: key})
@@ -161,21 +142,21 @@ JAWS.prototype.deploy = function (stage) {
 
     targetEnvFile
         .on('finish', function () {
-            console.log("\tZipping files (" + tmpCodeDir + ")...");
+            console.log("\tZipping files...");
 
             _this._zip(lambda_config.FunctionName, tmpCodeDir, function (err, buffer) {
                 if (err) {
                     return deferred.reject(err);
                 }
 
+                return process.exit(-1);
+
                 async.map(regions, function (region, cb) {
-
-                    aws.config.update({ //SDK auto-loads creds from process.env.AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-                        region: region
-                    });
-
                     var lambda = new aws.Lambda({
-                        apiVersion: '2015-03-31'
+                        apiVersion: '2015-03-31',
+                        region: region,
+                        accessKeyId: global.process.env.ADMIN_AWS_ACCESS_KEY_ID,
+                        secretAccessKey: global.process.env.ADMIN_AWS_SECRET_ACCESS_KEY
                     });
 
                     // Define Params for New Lambda Function
@@ -286,6 +267,20 @@ JAWS.prototype._zip = function (functionName, codeDirectory, callback) {
     return callback(null, data);
 };
 
+JAWS.prototype._copyExclude = function (fileName, relPath, tests) {
+    if (!tests.length) {
+        return false;
+    }
+
+    return tests.some(function (sRegex) {
+        var re       = new RegExp(sRegex),
+            testFile = relPath + "/" + fileName,
+            testFile = ('/' == testFile.charAt(0)) ? testFile.substr(1) : testFile,
+            matches  = re.exec(testFile);
+
+        return (matches && matches.length > 0);
+    });
+};
 
 /**
  * JAWS: Start "site" Server
