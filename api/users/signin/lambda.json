@@ -1,9 +1,15 @@
 {
-    "FunctionName": "api_users_signin",
-    "Handler": "index.handler",
-    "Role": null,
-    "Runtime": "nodejs",
-    "Description": "None",
-    "MemorySize": 513,
-    "Timeout": 5
+  "FunctionName": "api_users_signin",
+  "Handler": "index.handler",
+  "Role": null,
+  "Runtime": "nodejs",
+  "Description": "None",
+  "MemorySize": 513,
+  "Timeout": 5,
+  "__packageLibExcludes": "files relative to main lib dir",
+  "packageApiExcludes": [],
+  "__packageApiExcludes": "files relative to this dir",
+  "packageLibExcludes": [
+    "node_modules/someBigFile.json"
+  ]
 }
