@@ -3,16 +3,17 @@
 JAWS: The Javascript + AWS Stack
 =================================
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.  
 
-#### [Follow the "Installation Guide" in the Wiki to get started! ](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
+##### To get started: [follow the "Installation Guide" in the Wiki](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
+##### To help contribute: [check out the "JAWS Roadmap"](https://trello.com/b/tYOrT6nA/jaws-roadmap) and the ["Contributors Guide"](https://github.com/jaws-stack/JAWS/blob/master/CONTRIBUTING.md)
+##### To receive summaries of JAWS changes, join the ["JAWS Email List"](http://eepurl.com/bvz5Nj)
 
-  
-  
+## Goals:
 
-##### The Goals Of JAWS Are:
-
- - **Use No Servers:** Never deal with scaling/deploying/maintaing/monitoring servers again.
+ - **Use No Servers:** Never deal with scaling/deploying/maintaining/monitoring servers again.
  -  **Isolated Components:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down...  only individual API routes can go down.
  - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
@@ -23,7 +24,7 @@ This stack uses new tools from Amazon Web Services to completely redefine how to
 ![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
 
 #### API
-There are no servers are included in this stack.  The entire back-end is comprised of Lambda functions which are organized in the `api` folder.  Each of your API URLs points to one of these Lambda functions.  This way, the code for each API Route is completely isolated, enabling you to develop/update/configure/deploy/maintain code for specific API urls at any time without affecting any other part of your application(!!!).  Think of each Lambda function as a "Controller", in traditional MVC structure.
+There are no servers included in this stack.  The entire back-end is comprised of Lambda functions which are organized in the `api` folder.  Each of your API URLs points to one of these Lambda functions.  This way, the code for each API Route is completely isolated, enabling you to develop/update/configure/deploy/maintain code for specific API urls at any time without affecting any other part of your application(!!!).  Think of each Lambda function as a "Controller", in traditional MVC structure.
 
 You can either use the AWS Management Console's API Gateway User Interface to create your API, or define your API in the `api_swagger.json` file and deploy instantly via AWS's Swagger Import Tool (Recommended).
 
@@ -37,27 +38,27 @@ Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivi
 
 #### CLI
 This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are:
-	
+
 **Run A Lambda Function Locally**
 
-Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
+Make sure you are in the root folder of your Lambda function (api/users/signup) and enter this:
 
     $ jaws run
 
 **Deploy A Lambda Function**
 
-Make sure you in the root folder of your Lambda function (api/users/signup) and enter this:
+Make sure you are in the root folder of your Lambda function (api/users/signup) and enter this:
 
     $ jaws deploy
 
 **Start A Local Server**
 
-Make sure you in the`site` folder of the JAWS app and enter this:
+Make sure you are in the`site` folder of the JAWS app and enter this:
 
     $ jaws server
 
 
-#### Site 
+#### Site
 Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
 
 ## Install
@@ -82,19 +83,10 @@ This process will create all the resources (S3,DynamoDb tables etc), IAM roles, 
 
 ### Setup stage ENV vars
 
-When you run `jaws deploy <stage>` it will go out and fetch `jaws.yml:jaws.deploy.envS3Location/<stage>` and put it into your deployment zip file under `lib/.env`.  This way your creds are not checked into SVN and they have tight ACLs managed by AWS.
+When you run `jaws deploy <stage>` JAWS cli will go out and fetch `jaws.yml:jaws.deploy.envS3Location/<stage>` and put it into your deployment zip file under `lib/.env`.  This way your creds are not checked into SVN and they have tight ACLs managed by AWS.
 
 1.  For each stage, make a copy of `lib/temp.env` and name it after the stage. So for this example copy `temp.env` to `test`. Replace ENV vars and add your own.
 1.  Upload each stage env file to your `jaws.yml:jaws.deploy.envS3Location/<stage>` location. Make sure NOT to make the permissions public.  Only people you want running `jaws deploy` should have their IAM user setup to access this s3 dir.
-
-## Roadmap
-* Incorporate the AWS API Gateway Swagger Import Tool
-* Write the swagger.json for the current API functions
-* Add Swagger import commands to the CLI
-* Add on to the `site` to use the API Routes, after they are deployed
-* Write a JAWS CLI command to build and deploy site assets
-* Write more API examples
-* NPM Shrinkwrap
 
 ## Starring
 
