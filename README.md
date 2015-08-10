@@ -3,6 +3,8 @@
 JAWS: The Javascript + AWS Stack
 =================================
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.  
 
 ##### To get started: [follow the "Installation Guide" in the Wiki](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
