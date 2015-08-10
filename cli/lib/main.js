@@ -15,6 +15,7 @@ var wrench      = require('wrench');
 var moment      = require('moment');
 var yaml        = require('js-yaml');
 var Q           = require('q');
+var prettysize  = require('prettysize');
 
 var JAWS = function () {
     // Require Admin ENV Variables
@@ -142,14 +143,12 @@ JAWS.prototype.deploy = function (stage) {
 
     targetEnvFile
         .on('finish', function () {
-            console.log("\tZipping files...");
+            console.log("\tCompressing files...");
 
             _this._zip(lambda_config.FunctionName, tmpCodeDir, function (err, buffer) {
                 if (err) {
                     return deferred.reject(err);
                 }
-
-                return process.exit(-1);
 
                 async.map(regions, function (region, cb) {
                     var lambda = new aws.Lambda({
@@ -186,7 +185,7 @@ JAWS.prototype.deploy = function (stage) {
                              * Create New Lambda Function
                              */
 
-                            console.log("\tUploading to " + stage + " with params:");
+                            console.log("\tCreating in " + stage + " with params:");
                             console.log(params);
 
                             params.Code = {ZipFile: buffer};
@@ -202,7 +201,7 @@ JAWS.prototype.deploy = function (stage) {
                              * Delete Existing & Create New Lambda Function
                              */
 
-                            console.log("\tDeleting existing Lambda function...");
+                            console.log("\tDeleting existing Lambda function in " + stage + "...");
 
                             lambda.deleteFunction({
                                 FunctionName: lambda_config.FunctionName
@@ -263,6 +262,8 @@ JAWS.prototype._zip = function (functionName, codeDirectory, callback) {
     if (data.length > 52428800) {
         return callback(new Error("Zip file is > the 50MB Lambda deploy limit (" + data.length + " bytes)"), null);
     }
+
+    console.log("\tPackage is " + prettysize(data.length, false) + " (Max 50MB)");
 
     return callback(null, data);
 };
