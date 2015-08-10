@@ -9,7 +9,7 @@ jaws:
       - "^event.json"
       - "^lambda.json"
       - "^package.json"
-    packageLibExcludes:   #regexes. Exclude these when adding things in node_modules/jaws-lib to zip
+    packageLibExcludes:   #regexes. Exclude these when adding things in common lib to zip
       - ".*\\.git.*"
       - "^\\.env"
       - "node_modules/chai/*"

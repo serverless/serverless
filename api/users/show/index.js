@@ -3,13 +3,13 @@
  */
 
 // Dependencies
-var MiddlewareIncoming = require('jaws-lib').middleware.Incoming;
+var MiddlewareIncoming = require('../../../lib').middleware.Incoming;
 
 // Function
-exports.handler = function(event, context) {
+exports.handler = function (event, context) {
 
     // Process Incoming Request
-    MiddlewareIncoming.process(event, context, function(event, context) {
+    MiddlewareIncoming.process(event, context, function (event, context) {
 
         /**
          * Return

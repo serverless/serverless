@@ -3,19 +3,20 @@
  */
 
 
-var aws         = require('aws-sdk');
-var exec        = require('child_process').exec;
-var fs          = require('fs');
-var os          = require('os');
-var packageJson = require('./../package.json');
-var path        = require('path');
-var async       = require('async');
-var zip         = new require('node-zip')();
-var wrench      = require('wrench');
-var moment      = require('moment');
-var yaml        = require('js-yaml');
-var Q           = require('q');
-var prettysize  = require('prettysize');
+var aws         = require('aws-sdk'),
+    exec        = require('child_process').exec,
+    fs          = require('fs'),
+    os          = require('os'),
+    packageJson = require('./../package.json'),
+    path        = require('path'),
+    async       = require('async'),
+    zip         = new require('node-zip')(),
+    wrench      = require('wrench'),
+    moment      = require('moment'),
+    yaml        = require('js-yaml'),
+    Q           = require('q'),
+    prettysize  = require('prettysize'),
+    replace     = require("replace");
 
 var JAWS = function () {
     // Require Admin ENV Variables
@@ -110,6 +111,15 @@ JAWS.prototype.deploy = function (stage) {
             var relPath = prefix.replace(functionDir, '');
             return _this._copyExclude(name, relPath, packageApiExcludes);
         }
+    });
+
+    //Fixup rel links to shared lib dir
+    replace({
+        regex: new RegExp("require\\('../../../lib'\\)", "g"),
+        replacement: "require('./lib')",
+        paths: [tmpCodeDir + '/index.js'],
+        recursive: true,
+        silent: true
     });
 
     // Copy lib dir

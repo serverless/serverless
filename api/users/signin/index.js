@@ -3,13 +3,13 @@
  */
 
 // Dependencies
-var ModelUser = require('jaws-lib').models.User;
+var ModelUser = require('../../../lib').models.User;
 
 // Function
-exports.handler = function(event, context) {
+exports.handler = function (event, context) {
 
     // Sign-In User
-    ModelUser.signIn(event.body, function(error, json_web_token) {
+    ModelUser.signIn(event.body, function (error, json_web_token) {
 
         if (error) return context.fail(error);
 

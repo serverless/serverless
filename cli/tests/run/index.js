@@ -5,7 +5,7 @@ var Config           = require('../../../lib/config'),
     JAWSCli          = require('../../lib/main'),
     usingLocalDynamo = (Config.aws.dynamoDbEndpoint.split(':').length > 1);
 
-var User = require('../../../lib/models/model_user');
+var User = require('../../../lib/models/user');
 
 describe
 ('run', function () {

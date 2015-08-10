@@ -28,15 +28,12 @@ There are no servers are included in this stack.  The entire back-end is compris
 You can either use the AWS Management Console's API Gateway User Interface to create your API, or define your API in the `api_swagger.json` file and deploy instantly via AWS's Swagger Import Tool (Recommended).
 
 #### Lib
-The `lib` folder/module contains re-useable code you can use across all of your Lambda functions, which can be thought of as your "Models".  It's an npm module that can be required into your Lambda functions, like any other.
+The `lib` folder/module contains re-useable code you can use across all of your Lambda functions, which can be thought of as your "Models".
 
 Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivity), this module is designed so that you do not have to `require` all of its code, but instead you can require in only the code that your Lambda function needs.  For example:
 
     // This only loads code needed for the User Model
-    var ModelUser = require('jaws-lib').models.User;
-    
-While developing, make sure you create an [npm sym-link](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress) between this module and all of your Lambda functions.  This way, all of the changes in the `lib` folder will be instantly available in every one of your Lambda functions when you run/test them locally.  Check out the wiki for instructions.
-
+    var ModelUser = require('../../../lib').models.User;
 
 #### CLI
 This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are:
