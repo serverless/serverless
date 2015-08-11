@@ -20,6 +20,7 @@ var aws         = require('aws-sdk'),
 
 var JAWS = function () {
     this.jawsLibDir = this._findLibDir(process.cwd());
+    console.log('****** JAWS: found lib path at ', this.jawsLibDir);
 
     // Require Admin ENV Variables
     require('dotenv').config({
@@ -189,8 +190,6 @@ JAWS.prototype.deploy = function (stage, functionDir) {
                         }
 
                         if (!data || !data.Code) {
-
-
                             /**
                              * Create New Lambda Function
                              */
@@ -298,21 +297,23 @@ JAWS.prototype._copyExclude = function (fileName, relPath, tests) {
 };
 
 JAWS.prototype._findLibDir = function (startDir) {
-    var packageName = 'jaws-lib',
-        foundPath   = false,
-        previous    = "/";
+    var packageName    = 'jaws-lib',
+        libPackagePath = '/lib/package.json',
+        foundPath      = false,
+        previous       = "/";
 
     //Look ahead 1 folder cuz could be running from root for things like deploy all/multiple functions
-    if (fs.existsSync(startDir + '/lib/package.json')) {
-        var info = require(startDir + '/lib/package.json');
+    if (fs.existsSync(startDir + libPackagePath)) {
+        var info = require(startDir + libPackagePath);
         if (packageName == info.name) {
-            return path.dirname(startDir + '/lib/package.json');
+            return path.dirname(startDir + libPackagePath);
         }
     }
 
     for (var i = 0; i < 20; i++) {
         previous     = previous + '../';
-        var fullPath = startDir + previous + 'package.json';
+        var fullPath = startDir + previous + libPackagePath;
+
         if (fs.existsSync(fullPath)) {
             var info = require(fullPath);
             if (packageName == info.name) {
