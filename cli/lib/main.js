@@ -20,7 +20,7 @@ var aws         = require('aws-sdk'),
 
 var JAWS = function () {
     this.jawsLibDir = this._findLibDir(process.cwd());
-    console.log('****** JAWS: found lib path at ', this.jawsLibDir);
+    console.log('****** JAWS: found lib path at', this.jawsLibDir);
 
     // Require Admin ENV Variables
     require('dotenv').config({
@@ -317,7 +317,7 @@ JAWS.prototype._findLibDir = function (startDir) {
         if (fs.existsSync(fullPath)) {
             var info = require(fullPath);
             if (packageName == info.name) {
-                foundPath = path.dirname(fullPath);
+                foundPath = path.resolve(path.dirname(fullPath));
                 break;
             }
         }
