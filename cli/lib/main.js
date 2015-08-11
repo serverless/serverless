@@ -8,7 +8,6 @@ var aws         = require('aws-sdk'),
     fs          = require('fs'),
     os          = require('os'),
     packageJson = require('./../package.json'),
-    path        = require('path'),
     async       = require('async'),
     zip         = new require('node-zip')(),
     wrench      = require('wrench'),
@@ -204,29 +203,32 @@ JAWS.prototype.deploy = function (stage, functionDir) {
                                 lambda_arn = data;
                                 return cb(err, data);
                             });
-
                         } else {
-
+                            //Update instead of delete so there is no downtime
 
                             /**
-                             * Delete Existing & Create New Lambda Function
+                             * Update existing (code and config)
                              */
 
-                            console.log("\tDeleting existing Lambda function in " + stage + "...");
+                            console.log("\tUpdating existing Lambda function in " + stage + " with params:");
+                            console.log(params);
 
-                            lambda.deleteFunction({
-                                FunctionName: lambda_config.FunctionName
+                            lambda.updateFunctionCode({
+                                FunctionName: params.FunctionName,
+                                ZipFile: buffer
                             }, function (err, data) {
-
                                 if (err) {
                                     return deferred.reject(err);
                                 }
 
-                                console.log("\tRe-uploading your Lambda Function with params:");
-                                console.log(params);
-
-                                params.Code = {ZipFile: buffer};
-                                lambda.createFunction(params, function (err, data) {
+                                lambda.updateFunctionConfiguration({
+                                    FunctionName: params.FunctionName,
+                                    Description: params.Description,
+                                    Handler: params.Handler,
+                                    MemorySize: params.MemorySize,
+                                    Role: params.Role,
+                                    Timeout: params.Timeout
+                                }, function (err, data) {
                                     return cb(err, data);
                                 });
                             });
