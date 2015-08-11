@@ -16,16 +16,19 @@ var aws         = require('aws-sdk'),
     yaml        = require('js-yaml'),
     Q           = require('q'),
     prettysize  = require('prettysize'),
-    replace     = require("replace");
+    replace     = require("replace"),
+    path        = require('path');
 
 var JAWS = function () {
+    this.jawsLibDir = this._findLibDir(process.cwd());
+
     // Require Admin ENV Variables
     require('dotenv').config({
-        path: __dirname + '/../.adminenv'
+        path: this.jawsLibDir + '/../.adminenv'
     });
 
     this.version   = packageJson.version;
-    this.configYml = yaml.safeLoad(fs.readFileSync(__dirname + '/../jaws.yml', 'utf8')).jaws;
+    this.configYml = yaml.safeLoad(fs.readFileSync(this.jawsLibDir + '/../jaws.yml', 'utf8')).jaws;
 
     return this;
 };
@@ -74,7 +77,7 @@ JAWS.prototype._runHandler = function (handler, event, callback) {
  * JAWS: Deploy Lambda Function
  */
 
-JAWS.prototype.deploy = function (stage) {
+JAWS.prototype.deploy = function (stage, functionDir) {
     var deferred = Q.defer();
 
     // Defaults
@@ -82,25 +85,23 @@ JAWS.prototype.deploy = function (stage) {
     var regions = this.configYml.deploy.regions;
 
     // Get Lambda Config
-    if (!fs.existsSync(process.cwd() + '/lambda.json')) {
+    if (!fs.existsSync(functionDir + '/lambda.json')) {
         return Q.fcall(function () {
             throw new Error('****** JAWS Error: lambda.json is missing in this folder');
         });
     }
-    var lambda_config          = require(process.cwd() + '/lambda.json');
+    var lambda_config          = require(functionDir + '/lambda.json');
     lambda_config.FunctionName = stage + "_" + lambda_config.FunctionName;
 
     console.log('****** JAWS: Deploying ' + lambda_config.FunctionName);
 
     var tmpCodeDir               = os.tmpdir() + lambda_config.FunctionName + '-' + moment().unix(),
-        libPath                  = __dirname + '/../../lib',
         packageApiExcludesGlobal = _this.configYml.deploy.packageApiExcludes || [],
         packageApiExcludesLambda = lambda_config.packageApiExcludes || [],
         packageLibExcludesGlobal = _this.configYml.deploy.packageLibExcludes || [],
         packageLibExcludesLambda = lambda_config.packageLibExcludes || [],
         packageApiExcludes       = packageApiExcludesGlobal.concat(packageApiExcludesLambda),
-        packageLibExclues        = packageLibExcludesGlobal.concat(packageLibExcludesLambda),
-        functionDir              = process.cwd();
+        packageLibExclues        = packageLibExcludesGlobal.concat(packageLibExcludesLambda);
 
     console.log("\tCopying files to tmp dir " + tmpCodeDir);
 
@@ -115,7 +116,7 @@ JAWS.prototype.deploy = function (stage) {
 
     //Fixup rel links to shared lib dir
     replace({
-        regex: new RegExp("require\\('../../../lib'\\)", "g"),
+        regex: RegExp("require\\(['\"](../)*(../../../lib)['\"]\\)", "g"),
         replacement: "require('./lib')",
         paths: [tmpCodeDir + '/index.js'],
         recursive: true,
@@ -123,10 +124,10 @@ JAWS.prototype.deploy = function (stage) {
     });
 
     // Copy lib dir
-    wrench.copyDirSyncRecursive(libPath, tmpCodeDir + '/lib', {
+    wrench.copyDirSyncRecursive(_this.jawsLibDir, tmpCodeDir + '/lib', {
         forceDelete: true,
         exclude: function (name, prefix) {
-            var relPath = prefix.replace(libPath, '');
+            var relPath = prefix.replace(_this.jawsLibDir, '');
             return _this._copyExclude(name, relPath, packageLibExclues);
         }
     });
@@ -294,14 +295,46 @@ JAWS.prototype._copyExclude = function (fileName, relPath, tests) {
     });
 };
 
+JAWS.prototype._findLibDir = function (startDir) {
+    var packageName = 'jaws-lib',
+        foundPath   = false,
+        previous    = "/";
+
+    //Look ahead 1 folder cuz could be running from root for things like deploy all/multiple functions
+    if (fs.existsSync(startDir + '/lib/package.json')) {
+        var info = require(startDir + '/lib/package.json');
+        if (packageName == info.name) {
+            return path.dirname(startDir + '/lib/package.json');
+        }
+    }
+
+    for (var i = 0; i < 20; i++) {
+        previous     = previous + '../';
+        var fullPath = startDir + previous + 'package.json';
+        if (fs.existsSync(fullPath)) {
+            var info = require(fullPath);
+            if (packageName == info.name) {
+                foundPath = path.dirname(fullPath);
+                break;
+            }
+        }
+    }
+
+    if (!foundPath) {
+        throw new Error('***** JAWS Error: Can\'t find your jaws lib folder.  Did you rename it or create folders over 20 levels deep in your api folder?');
+    }
+
+    return foundPath;
+};
+
 /**
  * JAWS: Start "site" Server
  */
 
-JAWS.prototype.server = function () {
+JAWS.prototype.server = function (serverDir) {
 
     // Check if in server root folder
-    if (!fs.existsSync(process.cwd() + '/server.js')) return console.log('****** JAWS:  Error - You must be in the "site" directory of your JAWS application to run this command and start the server.');
+    if (!fs.existsSync(serverDir + '/server.js')) return console.log('****** JAWS:  Error - You must be in the "site" directory of your JAWS application to run this command and start the server.');
 
     var child = exec('node server', function (error, stdout, stderr) {
         if (error !== null) console.log('exec error: ' + error);
@@ -310,7 +343,6 @@ JAWS.prototype.server = function () {
     child.stdout.pipe(process.stdout);
     child.stderr.pipe(process.stderr);
 };
-
 
 // Export
 module.exports = new JAWS();

@@ -13,8 +13,7 @@ describe('deploy', function () {
         it('successful', function (done) {
             this.timeout(0);
 
-            process.chdir(__dirname + "/../../../api/users/signup");
-            JAWS.deploy('test')
+            JAWS.deploy('test', __dirname + "/../../../api/users/signup")
                 .then(function (functionArns) {
                     assert.isTrue(-1 != functionArns[0].indexOf('test_api_users_signup'));
                     done();

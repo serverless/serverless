@@ -14,12 +14,14 @@ program
  * - Deploys the Lambda Function to AWS Lambda
  */
 
+//TODO: allow deploy of multiple functions, entire models or all models
+
 program
     .command('deploy <stage>')
     .description('Deploy your application to Amazon Lambda')
     .action(function (stage, prg) {
         try {
-            JAWS.deploy(stage)
+            JAWS.deploy(stage, process.cwd())
                 .then(function (functionArns) {
                     console.log('****** JAWS:  Success! - Your Lambda Function has been successfully deployed to AWS Lambda.  This Lambda Function\'s ARNs are: ');
                     console.log("\t", functionArns.join(', '));
@@ -75,7 +77,7 @@ program
     .command('server')
     .description('Start your server')
     .action(function (prg) {
-        JAWS.server();
+        JAWS.server(process.cwd());
     });
 
 

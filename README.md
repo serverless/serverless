@@ -67,7 +67,7 @@ This process will create all the resources (S3,DynamoDb tables etc), IAM roles, 
 
 ### Setup AWS resources
 
-1.  Create an IAM user with privileges to create/update lambda - or give user all priv with `AdministratorAccess` policy. Make an API key. Copy `cli/temp.adminenv` to `cli/.adminenv` and replace API key values.
+1.  Create an IAM user with privileges to create/update lambda - or give user all priv with `AdministratorAccess` policy. Make an API key. Copy `temp.adminenv` to `.adminenv` in your project root and replace API key values.
 1.  Create another IAM user for development called `dev-jaws`.  Make an API key. Copy `lib/temp.env` to `cli/.env` and replace API key values.
 1.  Create an enviornment using Cloud Formation. Lets use the stage `test` for this example.
     1.  Create CF Stack called `test-jaws-data-model` and use the `aws/data-model-cf.json`.  Specify your domain name (used to create s3 bucket) and finish the wizard.
