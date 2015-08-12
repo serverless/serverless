@@ -145,24 +145,12 @@ JAWS.prototype.deploy = function(program) {
                 apiVersion: '2015-03-31'
             });
 
-            // Define Params for New Lambda Function
-            var params = {
-                Code: {
-                    ZipFile: buffer
-                },
-                FunctionName: lambda_config.FunctionName,
-                Handler: lambda_config.Handler ? lambda_config.Handler : 'index.handler',
-                Role: lambda_config.Role ? lambda_config.Role : process.env.AWS_LAMBDA_ROLE_ARN,
-                Runtime: lambda_config.Runtime,
-                Description: lambda_config.Description ? lambda_config.Description : 'A Lambda function that was created with the JAWS framework',
-                MemorySize: lambda_config.MemorySize,
-                Timeout: lambda_config.Timeout
-            };
-
             // Check If Lambda Function Exists Already
             lambda.getFunction({
                 FunctionName: lambda_config.FunctionName
             }, function(err, data) {
+
+                var params;
 
                 if (err && err.code !== 'ResourceNotFoundException') return console.log(err, err.stack);
 
@@ -173,35 +161,56 @@ JAWS.prototype.deploy = function(program) {
                      * Create New Lambda Function
                      */
 
+                    // Define Params for New Lambda Function
+                    params = {
+                        Code: {
+                            ZipFile: buffer
+                        },
+                        FunctionName: lambda_config.FunctionName,
+                        Handler: lambda_config.Handler ? lambda_config.Handler : 'index.handler',
+                        Role: lambda_config.Role ? lambda_config.Role : process.env.AWS_LAMBDA_ROLE_ARN,
+                        Runtime: lambda_config.Runtime,
+                        Description: lambda_config.Description ? lambda_config.Description : 'A Lambda function that was created with the JAWS framework',
+                        MemorySize: lambda_config.MemorySize,
+                        Timeout: lambda_config.Timeout
+                    };
+
                     console.log('****** JAWS: Uploading your Lambda Function to AWS Lambda with these parameters: ');
                     console.log(params);
 
-                    lambda.createFunction(params, function(err, data) {
-                        lambda_arn = data;
-                        return cb(err, data);
-                    });
+                    lambda.createFunction(params, cb);
 
                 } else {
 
 
                     /**
-                     * Delete Existing & Create New Lambda Function
+                     * Update Existing Lambda Function Code & Configuration
                      */
 
-                    console.log('****** JAWS: Deleting existing Lambda function...');
-
-                    lambda.deleteFunction({
+                    params = {
+                        ZipFile: buffer,
                         FunctionName: lambda_config.FunctionName
-                    }, function(err, data) {
+                    };
+                    console.log('****** JAWS: Updating existing Lambda function code with these parameters:');
+                    console.log(params);
+
+                    lambda.updateFunctionCode(params, function(err, data) {
 
                         if (err) return console.log(err, err.stack); // an error occurred
 
-                        console.log('****** JAWS: Re-uploading your Lambda Function to AWS Lambda with these parameters: ');
+                        var params = {
+                            FunctionName: lambda_config.FunctionName,
+                            Handler: lambda_config.Handler ? lambda_config.Handler : 'index.handler',
+                            Role: lambda_config.Role ? lambda_config.Role : process.env.AWS_LAMBDA_ROLE_ARN,
+                            Description: lambda_config.Description ? lambda_config.Description : 'A Lambda function that was created with the JAWS framework',
+                            MemorySize: lambda_config.MemorySize,
+                            Timeout: lambda_config.Timeout
+                        };
+
+                        console.log('****** JAWS: Updating existing Lambda function configuration with these parameters:');
                         console.log(params);
 
-                        lambda.createFunction(params, function(err, data) {
-                            return cb(err, data);
-                        });
+                        lambda.updateFunctionConfiguration(params, cb);
                     });
                 }
             });
