@@ -5,11 +5,13 @@
 
 var aws = require('aws-sdk');
 var exec = require('child_process').exec;
-var fs = require('fs');
+var fs = require('fs-extra');
 var os = require('os');
 var sys = require('sys');
 var packageJson = require('./../package.json');
 var path = require('path');
+var mkdirp = require('mkdirp');
+var npm = require('npm');
 var async = require('async');
 var zip = new require('node-zip')();
 var wrench = require('wrench');
@@ -145,24 +147,12 @@ JAWS.prototype.deploy = function(program) {
                 apiVersion: '2015-03-31'
             });
 
-            // Define Params for New Lambda Function
-            var params = {
-                Code: {
-                    ZipFile: buffer
-                },
-                FunctionName: lambda_config.FunctionName,
-                Handler: lambda_config.Handler ? lambda_config.Handler : 'index.handler',
-                Role: lambda_config.Role ? lambda_config.Role : process.env.AWS_LAMBDA_ROLE_ARN,
-                Runtime: lambda_config.Runtime,
-                Description: lambda_config.Description ? lambda_config.Description : 'A Lambda function that was created with the JAWS framework',
-                MemorySize: lambda_config.MemorySize,
-                Timeout: lambda_config.Timeout
-            };
-
             // Check If Lambda Function Exists Already
             lambda.getFunction({
                 FunctionName: lambda_config.FunctionName
             }, function(err, data) {
+
+                var params;
 
                 if (err && err.code !== 'ResourceNotFoundException') return console.log(err, err.stack);
 
@@ -173,35 +163,56 @@ JAWS.prototype.deploy = function(program) {
                      * Create New Lambda Function
                      */
 
+                    // Define Params for New Lambda Function
+                    params = {
+                        Code: {
+                            ZipFile: buffer
+                        },
+                        FunctionName: lambda_config.FunctionName,
+                        Handler: lambda_config.Handler ? lambda_config.Handler : 'index.handler',
+                        Role: lambda_config.Role ? lambda_config.Role : process.env.AWS_LAMBDA_ROLE_ARN,
+                        Runtime: lambda_config.Runtime,
+                        Description: lambda_config.Description ? lambda_config.Description : 'A Lambda function that was created with the JAWS framework',
+                        MemorySize: lambda_config.MemorySize,
+                        Timeout: lambda_config.Timeout
+                    };
+
                     console.log('****** JAWS: Uploading your Lambda Function to AWS Lambda with these parameters: ');
                     console.log(params);
 
-                    lambda.createFunction(params, function(err, data) {
-                        lambda_arn = data;
-                        return cb(err, data);
-                    });
+                    lambda.createFunction(params, cb);
 
                 } else {
 
 
                     /**
-                     * Delete Existing & Create New Lambda Function
+                     * Update Existing Lambda Function Code & Configuration
                      */
 
-                    console.log('****** JAWS: Deleting existing Lambda function...');
-
-                    lambda.deleteFunction({
+                    params = {
+                        ZipFile: buffer,
                         FunctionName: lambda_config.FunctionName
-                    }, function(err, data) {
+                    };
+                    console.log('****** JAWS: Updating existing Lambda function code with these parameters:');
+                    console.log(params);
+
+                    lambda.updateFunctionCode(params, function(err, data) {
 
                         if (err) return console.log(err, err.stack); // an error occurred
 
-                        console.log('****** JAWS: Re-uploading your Lambda Function to AWS Lambda with these parameters: ');
+                        var params = {
+                            FunctionName: lambda_config.FunctionName,
+                            Handler: lambda_config.Handler ? lambda_config.Handler : 'index.handler',
+                            Role: lambda_config.Role ? lambda_config.Role : process.env.AWS_LAMBDA_ROLE_ARN,
+                            Description: lambda_config.Description ? lambda_config.Description : 'A Lambda function that was created with the JAWS framework',
+                            MemorySize: lambda_config.MemorySize,
+                            Timeout: lambda_config.Timeout
+                        };
+
+                        console.log('****** JAWS: Updating existing Lambda function configuration with these parameters:');
                         console.log(params);
 
-                        lambda.createFunction(params, function(err, data) {
-                            return cb(err, data);
-                        });
+                        lambda.updateFunctionConfiguration(params, cb);
                     });
                 }
             });
@@ -271,6 +282,63 @@ JAWS.prototype.server = function(program) {
     child.stderr.pipe(process.stderr);
 };
 
+
+
+/**
+ * JAWS: Initialize a Lambda Function
+ */
+
+JAWS.prototype.initLambda = function(program) {
+
+    var cwd = process.cwd();
+
+    // Check for existing lambda
+    var sourcePath = path.join(__dirname, '../tpl/lambda');
+    var targetPath = path.join(cwd, program);
+
+    if (!fs.existsSync(sourcePath)) return console.log('****** JAWS:  Error - Missing lambda template (%s).', sourcePath);
+    if (fs.existsSync(targetPath)) return console.log('****** JAWS:  Error - %s already exists.', targetPath);
+
+    var targetDir = mkdirp.sync(targetPath);
+
+    var copied = fs.copySync(sourcePath, targetPath);
+
+    // Configure lambda.json
+    var lambdaJsonPath = path.join(targetPath, 'lambda.json');
+    var lambdaJson = fs.readJsonSync(lambdaJsonPath);
+    lambdaJson.FunctionName = program.split('/').join('_');
+    fs.writeJsonSync(lambdaJsonPath, lambdaJson, { spaces: 4 });
+
+    // Configure package.json
+    var packageJsonPath = path.join(targetPath, 'package.json');
+    var packageJson = fs.readJsonSync(packageJsonPath);
+    packageJson.name = program.split('/').join('-');
+
+    // Copy some package properties from the current directory
+    var localJsonPath = path.join(cwd, 'package.json');
+    var localJson = fs.readJsonSync(localJsonPath);
+    if (localJson) {
+        if (localJson.author) {
+            packageJson.author = localJson.author;
+        }
+        if (localJson.license) {
+            packageJson.license = localJson.license;
+        }
+    }
+    fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 4 });
+
+    // `npm link jaws-lib`
+    process.chdir(targetPath);
+
+    var npmConfig = {};
+    npm.load(npmConfig, function(error, npm) {
+        if (error) return console.log('****** JAWS:  Error - Could not load npm.');
+        npm.commands.link('jaws-lib', function(error, lib) {
+            if (error) return console.log('****** JAWS:  Error - Could not link jaws-lib.');
+            console.log('****** JAWS:  Success! - Your Lambda Function has been successfully initialized at %s.', targetPath);
+        });
+    });
+};
 
 
 

@@ -12,7 +12,7 @@ var shortid = require('shortid');
  */
 
 program
-  .version(JAWS.version)
+  .version( JAWS.version )
   .command( 'deploy' )
   .description( 'Deploy your application to Amazon Lambda' )
   .action( function( prg ) {
@@ -45,6 +45,20 @@ program
   .description( 'Start your server' )
   .action( function( prg ) {
     JAWS.server( prg );
+  });
+
+
+/**
+ * Init
+ * - Initialize a Lambda Function locally
+ */
+
+program
+  .version( JAWS.version )
+  .command( 'new' )
+  .description( 'Initialize an Amazon Lambda locally' )
+  .action( function( prg ) {
+    JAWS.initLambda( prg );
   });
 
 
