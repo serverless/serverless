@@ -5,11 +5,13 @@
 
 var aws = require('aws-sdk');
 var exec = require('child_process').exec;
-var fs = require('fs');
+var fs = require('fs-extra');
 var os = require('os');
 var sys = require('sys');
 var packageJson = require('./../package.json');
 var path = require('path');
+var mkdirp = require('mkdirp');
+var npm = require('npm');
 var async = require('async');
 var zip = new require('node-zip')();
 var wrench = require('wrench');
@@ -280,6 +282,63 @@ JAWS.prototype.server = function(program) {
     child.stderr.pipe(process.stderr);
 };
 
+
+
+/**
+ * JAWS: Initialize a Lambda Function
+ */
+
+JAWS.prototype.initLambda = function(program) {
+
+    var cwd = process.cwd();
+
+    // Check for existing lambda
+    var sourcePath = path.join(__dirname, '../tpl/lambda');
+    var targetPath = path.join(cwd, program);
+
+    if (!fs.existsSync(sourcePath)) return console.log('****** JAWS:  Error - Missing lambda template (%s).', sourcePath);
+    if (fs.existsSync(targetPath)) return console.log('****** JAWS:  Error - %s already exists.', targetPath);
+
+    var targetDir = mkdirp.sync(targetPath);
+
+    var copied = fs.copySync(sourcePath, targetPath);
+
+    // Configure lambda.json
+    var lambdaJsonPath = path.join(targetPath, 'lambda.json');
+    var lambdaJson = fs.readJsonSync(lambdaJsonPath);
+    lambdaJson.FunctionName = program.split('/').join('_');
+    fs.writeJsonSync(lambdaJsonPath, lambdaJson, { spaces: 4 });
+
+    // Configure package.json
+    var packageJsonPath = path.join(targetPath, 'package.json');
+    var packageJson = fs.readJsonSync(packageJsonPath);
+    packageJson.name = program.split('/').join('-');
+
+    // Copy some package properties from the current directory
+    var localJsonPath = path.join(cwd, 'package.json');
+    var localJson = fs.readJsonSync(localJsonPath);
+    if (localJson) {
+        if (localJson.author) {
+            packageJson.author = localJson.author;
+        }
+        if (localJson.license) {
+            packageJson.license = localJson.license;
+        }
+    }
+    fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 4 });
+
+    // `npm link jaws-lib`
+    process.chdir(targetPath);
+
+    var npmConfig = {};
+    npm.load(npmConfig, function(error, npm) {
+        if (error) return console.log('****** JAWS:  Error - Could not load npm.');
+        npm.commands.link('jaws-lib', function(error, lib) {
+            if (error) return console.log('****** JAWS:  Error - Could not link jaws-lib.');
+            console.log('****** JAWS:  Success! - Your Lambda Function has been successfully initialized at %s.', targetPath);
+        });
+    });
+};
 
 
 
