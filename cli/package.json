@@ -19,6 +19,7 @@
         "amazon web services",
         "dynamodb"
     ],
+    "preferGlobal": true,
     "main": "lib/main.js",
     "bin": {
         "jaws": "./bin/jaws"
