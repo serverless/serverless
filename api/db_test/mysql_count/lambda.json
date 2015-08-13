@@ -1,5 +1,5 @@
 {
-    "FunctionName": "api_db_test_mysql_create",
+    "FunctionName": "api_db_test_mysql_count",
     "Handler": "index.handler",
     "Role": null,
     "Runtime": "nodejs",
