@@ -1,5 +1,5 @@
 {
-    "FunctionName": "api_db_test_mysql_insert",
+    "FunctionName": "api_mysql_test_insert",
     "Handler": "index.handler",
     "Role": null,
     "Runtime": "nodejs",

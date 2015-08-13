@@ -1,13 +1,13 @@
 /**
- * API: Db_test: Insert
+ * API: Mysql_test: Insert
  */
 
 // Dependencies
-var Db_test = require('jaws-lib').models.Db_test;
+var Mysql_test = require('jaws-lib').models.Mysql_test;
 
 // Function
 exports.handler = function(event, context) {
-    Db_test.insertRow(event.body, function(error, result) {
+    Mysql_test.count(event.body, function(error, result) {
         if (error) return context.fail(error);
 
         /**
