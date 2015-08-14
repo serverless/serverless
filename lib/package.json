@@ -29,6 +29,7 @@
     "bcryptjs": "^2.2.0",
     "dotenv": "^1.2.0",
     "dynamodb-doc": "^1.0.0",
+    "elasticsearch": "^6.0.0",
     "jsonwebtoken": "^5.0.4",
     "lodash": "^3.9.3",
     "moment": "^2.10.3",
