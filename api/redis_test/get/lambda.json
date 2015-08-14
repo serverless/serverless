@@ -1,5 +1,5 @@
 {
-    "FunctionName": "api_mysql_test_count",
+    "FunctionName": "api_redis_test_get",
     "Handler": "index.handler",
     "Role": null,
     "Runtime": "nodejs",
