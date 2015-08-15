@@ -7,7 +7,7 @@
         "indent_handlebars": false, // e.g. {{#foo}}, {{/foo}}
         "indent_inner_html": false, // Indent <head> and <body> sections
         "indent_scripts": "keep", // [keep|separate|normal]
-        "indent_size": 4, // Indentation size
+        "indent_size": 2, // Indentation size
         "max_preserve_newlines": 4, // Maximum number of line breaks to be preserved in one chunk (0 disables)
         "preserve_newlines": true, // Whether existing line breaks before elements should be preserved (only works before elements, not inside tags or for text)
         "unformatted": ["a", "span", "img", "code", "pre", "sub", "sup", "em", "strong", "b", "i", "u", "strike", "big", "small", "pre", "h1", "h2", "h3", "h4", "h5", "h6"], // List of tags that should not be reformatted
@@ -17,21 +17,21 @@
         "allowed_file_extensions": ["css", "scss", "sass", "less"],
         "end_with_newline": true, // End output with newline
         "indent_char": " ", // Indentation character
-        "indent_size": 4, // Indentation size
-        "max_preserve_newlines": 4, // Maximum number of line breaks to be preserved in one 
+        "indent_size": 2, // Indentation size
+        "max_preserve_newlines": 4, // Maximum number of line breaks to be preserved in one
         "newline_between_rules": true, // Add a new line after every css rule
         "selector_separator": " ",
         "selector_separator_newline": true // Separate selectors with newline or not (e.g. "a,\nbr" or "a, br")
     },
     "js": {
-        "allowed_file_extensions": ["js", "json", "jshintrc", "jsbeautifyrc"],
+        "allowed_file_extensions": ["jshintrc", "jsbeautifyrc"],
         "brace_style": "collapse", // [collapse|expand|end-expand|none] Put braces on the same line as control statements (default), or put braces on own line (Allman / ANSI style), or just put end braces on own line, or attempt to keep them where they are
         "break_chained_methods": false, // Break chained method calls across subsequent lines
         "e4x": false, // Pass E4X xml literals through untouched
         "end_with_newline": false, // End output with newline
         "indent_char": " ", // Indentation character
         "indent_level": 0, // Initial indentation level
-        "indent_size": 4, // Indentation size
+        "indent_size": 2, // Indentation size
         "indent_with_tabs": false, // Indent with tabs, overrides `indent_size` and `indent_char`
         "jslint_happy": false, // If true, then jslint-stricter mode is enforced
         "keep_array_indentation": false, // Preserve array indentation
