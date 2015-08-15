@@ -2,6 +2,8 @@
 
 ## Code Contributions
 
+**If you want to work on JAWS V1, the `v1.0` branch should be pulled and built upon.**
+
 The JAWS project welcomes new contributors and JAWS will make best efforts to publicly acknowledge contributors wherever JAWS has a presence.
 
 Individuals making significant and valuable contributions are made
@@ -21,7 +23,9 @@ $ git remote add upstream git://github.com/jaws-stack/JAWS.git
 
 #### Which branch?
 
-For developing new features and bug fixes, the `master` branch should be pulled and built upon.
+We are currently exclusively focused on JAWS V1, which represents many breaking changes from JAWS V0.
+
+**If you want to work on JAWS V1, when developing new features and bug fixes, the `v1.0` branch should be pulled and built upon.**
 
 
 ### Step 2: Branch
