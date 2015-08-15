@@ -1,4 +1,4 @@
-![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/img/jaws_v1_logo.png)
+![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/jaws-stack/JAWS/blob/v1.0/jaws_v1_logo.png)
 
 JAWS: The Javascript + AWS Stack
 =================================
