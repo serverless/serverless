@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * API: Users: Show
  */
