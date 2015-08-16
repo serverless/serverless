@@ -38,6 +38,7 @@
     "commander": "^2.5.0",
     "del": "^1.2.0",
     "dotenv": "^1.2.0",
+    "inquirer": "^0.9.0",
     "js-yaml": "^3.3.1",
     "jsonfile": "^2.2.1",
     "moment": "^2.10.6",

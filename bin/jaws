@@ -1,84 +1,16 @@
 #!/usr/bin/env node
 
-var JAWS    = require('../lib/main.js');
-var program = require('commander');
-var shortid = require('shortid');
-var Q       = require('q');
-
+var JAWS        = require('../lib/main.js');
+var program     = require('commander');
 
 program
     .version(JAWS.version);
 
-/**
- * Deploy
- * - Deploys the Lambda Function to AWS Lambda
- */
-
-//TODO: allow deploy of multiple functions, entire models or all models
-
 program
-    .command('deploy <stage>')
-    .description('Deploy your application to Amazon Lambda')
-    .action(function (stage, prg) {
-        try {
-            JAWS.deploy(stage, process.cwd())
-                .then(function (functionArns) {
-                    console.log('****** JAWS:  Success! - Your Lambda Function has been successfully deployed to AWS Lambda.  This Lambda Function\'s ARNs are: ');
-                    console.log("\t", functionArns.join(', '));
-                    process.exit(0);
-                })
-                .fail(function (err) {
-                    console.error(err, err.stack);
-                    process.exit(-1);
-                });
-        } catch (err) {
-            console.error(err, err.stack);
-            process.exit(-1);
-        }
-    })
-    .on('--help', function () {
-        console.log('  Examples:');
-        console.log("\n\tdeploy prod");
-        console.log("\n\tdeploy test");
-        console.log();
-    });
-
-
-/**
- * Run
- * - Runs the Lambda Function locally
- */
-
-program
-    .command('run')
-    .description('Run your Amazon Lambda application locally')
+    .command('new')
+    .description('Create a new JAWS project in the current working directory')
     .action(function (prg) {
-        JAWS.run(process.cwd(), function (err, result) {
-            if (err) {
-                console.error('****** JAWS: Lambda Returned An Error: ');
-                console.error(err);
-                return process.exit(-1);
-            }
-            else {
-                console.log('****** JAWS: Lambda Finished Successfully: ');
-                console.log(result);
-                return process.exit(0);
-            }
-        });
+        JAWS.new(process.cwd());
     });
-
-
-/**
- * Server
- * - Starts the webserver for the application
- */
-
-program
-    .command('server')
-    .description('Start your server')
-    .action(function (prg) {
-        JAWS.server(process.cwd());
-    });
-
 
 program.parse(process.argv);
