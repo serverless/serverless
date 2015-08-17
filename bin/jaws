@@ -16,8 +16,8 @@ program
 program
     .command('install <url>')
     .description('Installs an aws-module')
-    .action(function (dir, prg) {
-        JAWS.install(dir);
+    .action(function (url, prg) {
+        JAWS.install(url);
     });
 
 program.parse(process.argv);
