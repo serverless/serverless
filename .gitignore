@@ -18,4 +18,5 @@ site/node_modules
 lib/node_modules
 cli/node_modules
 api/**/node_modules
+node_modules
 
