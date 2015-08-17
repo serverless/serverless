@@ -15,9 +15,16 @@ program
 
 program
     .command('install <url>')
-    .description('Installs an aws-module')
+    .description('Installs an jaws-module')
     .action(function (url, prg) {
         JAWS.install(url);
+    });
+
+program
+    .command('tag')
+    .description('Tag a lambda function to be deployed')
+    .action(function (prg) {
+        JAWS.tag();
     });
 
 program.parse(process.argv);
