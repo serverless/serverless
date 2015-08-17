@@ -4,13 +4,20 @@ var JAWS        = require('../lib/main.js');
 var program     = require('commander');
 
 program
-    .version(JAWS.version);
+    .version(JAWS._meta.version);
 
 program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
     .action(function (prg) {
-        JAWS.new(process.cwd());
+        JAWS.new();
+    });
+
+program
+    .command('install <url>')
+    .description('Installs an aws-module')
+    .action(function (dir, prg) {
+        JAWS.install(dir);
     });
 
 program.parse(process.argv);
