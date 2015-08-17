@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var JAWS        = require('../lib/main.js');
+var JAWS        = require('../lib/jaws.js');
 var program     = require('commander');
 
 program
