@@ -1,6 +1,6 @@
 ![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_logo_v1.png)
 
-JAWS: The Javascript + AWS Stack
+JAWS: The Server-less Framework
 =================================
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
