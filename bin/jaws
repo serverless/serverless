@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-var JAWS        = require('../lib/jaws.js');
-var program     = require('commander');
+var JAWS = require('../lib/jaws.js');
+var program = require('commander');
 
 program
     .version(JAWS._meta.version);
@@ -9,21 +9,21 @@ program
 program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
-    .action(function (prg) {
+    .action(function(prg) {
         JAWS.new();
     });
 
 program
     .command('install <url>')
     .description('Installs an jaws-module')
-    .action(function (url, prg) {
+    .action(function(url, prg) {
         JAWS.install(url);
     });
 
 program
     .command('tag')
     .description('Tag a lambda function to be deployed')
-    .action(function (prg) {
+    .action(function(prg) {
         JAWS.tag();
     });
 
