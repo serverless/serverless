@@ -1,6 +1,6 @@
 ![JAWS stack server-less serverless aws nodejs express  dynamodb lambda](https://servant-assets.s3.amazonaws.com/img/jaws_logo_v1.png)
 
-JAWS: The Server-less Framework
+JAWS: The Server-less Stack
 =================================
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
