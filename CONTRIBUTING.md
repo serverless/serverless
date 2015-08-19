@@ -36,7 +36,12 @@ Create a feature branch and start hacking:
 $ git checkout -b my-feature-branch -t origin/master
 ```
 
-### Step 3: Commit
+### Step 3: Setup code editor to enforce coding sytles
+
+We use [Airbnb javascript](https://github.com/airbnb/javascript) guide as our base. `.jshintrc` and `.jsbeautifyrc` are included in repo.  [JSCS module](http://jscs.info/overview.html) is a handy way to easily configure airbnb.  Here is a [simple guide](http://geek.bluemangointeractive.com/how-to-get-airbnbs-javascript-code-style-working-in-webstorm/) for webstorm configuration.
+
+
+### Step 4: Commit
 
 Please follow the **one logical change per commit rule**.
 
@@ -70,7 +75,7 @@ The header line should be meaningful; it is what other people see when they run 
 Check the output of `git log --oneline files_that_you_changed` to find out what subsystem (or subsystems) your changes touch.
 
 
-### Step 4: Rebase
+### Step 5: Rebase
 
 Use `git rebase` (not `git merge`) to sync your work from time to time.
 
@@ -79,7 +84,7 @@ $ git fetch upstream
 $ git rebase upstream/master
 ```
 
-### Step 5: Push
+### Step 6: Push
 
 ```text
 $ git push origin my-feature-branch

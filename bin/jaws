@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict';
+
 var JAWS = require('../lib/jaws.js');
 var program = require('commander');
 
@@ -9,22 +11,22 @@ program
 program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
-    .action(function(prg) {
-        JAWS.new();
+    .action(function() {
+      JAWS.new();
     });
 
 program
     .command('install <url>')
     .description('Installs an jaws-module')
-    .action(function(url, prg) {
-        JAWS.install(url);
+    .action(function(url) {
+      JAWS.install(url);
     });
 
 program
     .command('tag')
     .description('Tag a lambda function to be deployed')
-    .action(function(prg) {
-        JAWS.tag();
+    .action(function() {
+      JAWS.tag();
     });
 
 program.parse(process.argv);
