@@ -41,8 +41,8 @@ $ git checkout -b my-feature-branch -t origin/master
 We use [Airbnb javascript](https://github.com/airbnb/javascript) guide as our base. `.jscsrc` and `.jsbeautifyrc` are included in repo.  [JSCS module](http://jscs.info/overview.html) is a handy way to easily configure airbnb and can be integrated with some IDEs:  
 
 
--[WebStorm Guide](http://geek.bluemangointeractive.com/how-to-get-airbnbs-javascript-code-style-working-in-webstorm/) 
--[Sublime Text Guide](https://yannick.cr/posts/enforcing-coding-rules-in-your-team-with-jscs/post)
+*[WebStorm Guide](http://geek.bluemangointeractive.com/how-to-get-airbnbs-javascript-code-style-working-in-webstorm/) 
+*[Sublime Text Guide](https://yannick.cr/posts/enforcing-coding-rules-in-your-team-with-jscs/post)
 
 
 ### Step 4: Commit
