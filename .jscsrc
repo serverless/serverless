@@ -1,0 +1,5 @@
+{
+  "preset": "airbnb",
+  "disallowMultipleVarDecl": null,
+  "maximumLineLength": 120
+}

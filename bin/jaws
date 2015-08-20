@@ -2,7 +2,7 @@
 
 'use strict';
 
-var JAWS = require('../lib/jaws.js');
+var JAWS = require('../lib/index.js');
 var program = require('commander');
 
 program
