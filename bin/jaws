@@ -5,6 +5,18 @@
 var JAWS = require('../lib/index.js');
 var program = require('commander');
 
+function handleExit(promise) {
+  promise
+      .catch(JawsError, function(e) {
+        console.error(e);
+        process.exit(e.code);
+      })
+      .error(function(e) {
+        console.error(e);
+        process.exit(1);
+      });
+}
+
 program
     .version(JAWS._meta.version);
 
@@ -12,27 +24,27 @@ program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
     .action(function() {
-      JAWS.new();
+      handleExit(JAWS.new());
     });
 
 program
     .command('install <url>')
     .description('Installs an jaws-module')
     .action(function(url) {
-      JAWS.install(url);
+      handleExit(JAWS.install(url));
     });
 
 program
     .command('tag')
     .description('Tag a lambda function to be deployed')
     .action(function() {
-      JAWS.tag();
+      handleExit(JAWS.tag());
     });
 
 program
     .command('*')
     .action(function() {
-        JAWS.custom(arguments);
+      handleExit(JAWS.custom(arguments));
     });
 
 program.parse(process.argv);
