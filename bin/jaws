@@ -29,4 +29,10 @@ program
       JAWS.tag();
     });
 
+program
+    .command('*')
+    .action(function() {
+        JAWS.custom(arguments);
+    });
+
 program.parse(process.argv);
