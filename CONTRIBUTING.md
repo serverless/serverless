@@ -38,7 +38,11 @@ $ git checkout -b my-feature-branch -t origin/master
 
 ### Step 3: Setup code editor to enforce coding sytles
 
-We use [Airbnb javascript](https://github.com/airbnb/javascript) guide as our base. `.jshintrc` and `.jsbeautifyrc` are included in repo.  [JSCS module](http://jscs.info/overview.html) is a handy way to easily configure airbnb.  Here is a [simple guide](http://geek.bluemangointeractive.com/how-to-get-airbnbs-javascript-code-style-working-in-webstorm/) for webstorm configuration.
+We use [Airbnb javascript](https://github.com/airbnb/javascript) guide as our base. `.jscsrc` and `.jsbeautifyrc` are included in repo.  [JSCS module](http://jscs.info/overview.html) is a handy way to easily configure airbnb and can be integrated with some IDEs:  
+
+
+-[WebStorm Guide](http://geek.bluemangointeractive.com/how-to-get-airbnbs-javascript-code-style-working-in-webstorm/) 
+-[Sublime Text Guide](https://yannick.cr/posts/enforcing-coding-rules-in-your-team-with-jscs/post)
 
 
 ### Step 4: Commit
@@ -48,8 +52,8 @@ Please follow the **one logical change per commit rule**.
 Make sure git knows your name and email address:
 
 ```text
-$ git config --global user.name "J. Random User"
-$ git config --global user.email "j.random.user@example.com"
+$ git config global user.name "J. Random User"
+$ git config global user.email "j.random.user@example.com"
 ```
 
 Writing good commit logs is important.  A commit log should describe what changed and why.  Follow these guidelines when writing one:
