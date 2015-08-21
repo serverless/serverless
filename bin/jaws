@@ -4,19 +4,8 @@
 
 var JawsError = require('../lib/jaws-error'),
     JAWS = require('../lib/index.js'),
-    program = require('commander');
-
-function handleExit(promise) {
-  promise
-      .catch(JawsError, function(e) {
-        console.error(e);
-        process.exit(e.messageId);
-      })
-      .error(function(e) {
-        console.error(e);
-        process.exit(1);
-      });
-}
+    program = require('commander'),
+    handleExit = require('../lib/utils').handleExit;
 
 program
     .version(JAWS._meta.version);
@@ -25,7 +14,9 @@ program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
     .action(function() {
-      handleExit(JAWS.new());
+      handleExit(JAWS.getAnswers().then(function(answers) {
+        JAWS.new(answers);
+      }));
     });
 
 program
