@@ -9,7 +9,7 @@ function handleExit(promise) {
   promise
       .catch(JawsError, function(e) {
         console.error(e);
-        process.exit(e.code);
+        process.exit(e.messageId);
       })
       .error(function(e) {
         console.error(e);

@@ -1,30 +1,36 @@
-
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "JAWS",
+  "Description": "The AWS CloudFormation template for this JAWS project",
   "Parameters": {
-    "aaaStage": {
-      "Type": "String",
-      "Default": "test"
-    },
-    "aaaDataModelPrefix": {
-      "Type": "String",
-      "Default": "test",
-      "AllowedValues": [
-        "test",
-        "prod"
-      ]
-    },
-    "aaaProjectName": {
+    "aaProjectName": {
       "Type": "String",
       "Default": "jaws",
       "AllowedValues": [
         "jaws"
       ]
     },
-    "HostedZoneName": {
+    "aaStage": {
+      "Type": "String",
+      "Default": "test"
+    },
+    "aaDataModelPrefix": {
+      "Type": "String",
+      "Default": "test",
+      "AllowedValues": [
+        "test"
+      ]
+    },
+    "aaHostedZoneName": {
       "Type": "String",
       "Default": "myapp.com"
+    },
+    "aaNotficationEmail": {
+      "Type": "String",
+      "Default": "you@you.com"
+    },
+    "aaDefaultDynamoRWThroughput": {
+      "Type": "String",
+      "Default": "1"
     }
   },
   "Resources": {
@@ -72,7 +78,7 @@
       "Properties": {
         "PolicyName": {
           "Fn::Join": [
-            "-",
+            "_-_",
             [
               {
                 "Ref": "aaaStage"
@@ -94,94 +100,6 @@
                 "logs:PutLogEvents"
               ],
               "Resource": "arn:aws:logs:*:*:*"
-            },
-            {
-              "Action": [
-                "s3:Get*",
-                "s3:List*",
-                "s3:Put*"
-              ],
-              "Resource": [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:s3:::",
-                      {
-                        "Ref": "aaaProjectName"
-                      },
-                      "-images.",
-                      {
-                        "Ref": "HostedZoneName"
-                      },
-                      "/",
-                      {
-                        "Ref": "aaaDataModelPrefix"
-                      },
-                      "*"
-                    ]
-                  ]
-                }
-              ],
-              "Effect": "Allow"
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "dynamodb:BatchGetItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-                "dynamodb:Get*",
-                "dynamodb:List*",
-                "dynamodb:PutItem",
-                "dynamodb:Query",
-                "dynamodb:Scan",
-                "dynamodb:UpdateItem",
-                "dynamodb:UpdateTable"
-              ],
-              "Resource": [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:dynamodb:us-east-1:",
-                      {
-                        "Ref": "AWS::AccountId"
-                      },
-                      ":table/",
-                      {
-                        "Ref": "aaaDataModelPrefix"
-                      },
-                      "-",
-                      {
-                        "Ref": "aaaProjectName"
-                      },
-                      "-users*"
-                    ]
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:dynamodb:us-east-1:",
-                      {
-                        "Ref": "AWS::AccountId"
-                      },
-                      ":table/",
-                      {
-                        "Ref": "aaaDataModelPrefix"
-                      },
-                      "-",
-                      {
-                        "Ref": "aaaProjectName"
-                      },
-                      "-images*"
-                    ]
-                  ]
-                }
-              ]
             }
           ]
         },
