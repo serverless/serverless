@@ -34,6 +34,13 @@ program
     });
 
 program
+    .command('logs <stage>')
+    .description('Get logs for a lambda function, or all lambda functions in a stage.')
+    .action(function(stage) {
+      handleExit(JAWS.logs(stage));
+    });
+
+program
     .command('*')
     .action(function() {
       handleExit(JAWS.custom(arguments));
