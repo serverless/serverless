@@ -2,8 +2,9 @@
 
 'use strict';
 
-var JAWS = require('../lib/index.js');
-var program = require('commander');
+var JawsError = require('../lib/jaws-error'),
+    JAWS = require('../lib/index.js'),
+    program = require('commander');
 
 function handleExit(promise) {
   promise
