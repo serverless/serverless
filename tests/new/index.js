@@ -13,6 +13,7 @@ var JAWS = require('../../lib/index.js');
 describe('new', function() {
   before(function(done) {
     this.timeout(0);  //dont timeout anything, creating tables, deleting tables etc
+    console.error('>tmp dir for proj:', projDir);
     done();
   });
 
