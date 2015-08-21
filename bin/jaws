@@ -2,8 +2,10 @@
 
 'use strict';
 
-var JAWS = require('../lib/index.js');
-var program = require('commander');
+var JawsError = require('../lib/jaws-error'),
+    JAWS = require('../lib/index.js'),
+    program = require('commander'),
+    handleExit = require('../lib/utils').handleExit;
 
 program
     .version(JAWS._meta.version);
@@ -12,27 +14,29 @@ program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
     .action(function() {
-      JAWS.new();
+      handleExit(JAWS.getAnswers().then(function(answers) {
+        JAWS.new(answers);
+      }));
     });
 
 program
     .command('install <url>')
     .description('Installs an jaws-module')
     .action(function(url) {
-      JAWS.install(url);
+      handleExit(JAWS.install(url));
     });
 
 program
     .command('tag')
     .description('Tag a lambda function to be deployed')
     .action(function() {
-      JAWS.tag();
+      handleExit(JAWS.tag());
     });
 
 program
     .command('*')
     .action(function() {
-        JAWS.custom(arguments);
+      handleExit(JAWS.custom(arguments));
     });
 
 program.parse(process.argv);
