@@ -15,7 +15,7 @@ pids
 logs
 results
 npm-debug.log
-.adminenv
+admin.env
 
 site/public/libs
 site/node_modules
