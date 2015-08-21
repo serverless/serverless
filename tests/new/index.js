@@ -1,17 +1,18 @@
 'use strict';
 
 var JawsError = require('../../lib/jaws-error'),
-    JAWS = require('../../lib/index.js'),
     shortid = require('shortid'),
-    fs = require('fs'),
-    JAWS = require('../../lib/index.js');
+    fs = require('fs');
+
+var projDir = '/tmp/jaws-new' + shortid.generate();
+fs.mkdirSync(projDir);
+process.chdir(projDir);
+
+var JAWS = require('../../lib/index.js');
 
 describe('new', function() {
-  var projDir = '/tmp/jaws-new' + shortid.generate();
   before(function(done) {
     this.timeout(0);  //dont timeout anything, creating tables, deleting tables etc
-    fs.mkdirSync(projDir);
-    process.chdir(projDir);
     done();
   });
 
@@ -23,7 +24,7 @@ describe('new', function() {
 
       var answers = {
         awsCliProfile: 'default',
-        name: 'jaws-new-Ny17rwe2',
+        name: 'jaws-new-test',
         stage: 'mystage',
         notificationEmail: 'afs@jaws.io',
       };
