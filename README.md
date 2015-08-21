@@ -7,9 +7,9 @@ JAWS: The Server-less Stack
 
 This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.
 
-##### To get started: [follow the "Installation Guide" in the Wiki](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
-##### To help contribute: [check out the "JAWS V1 Specs"](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit?usp=sharing) and the ["Contributors Guide"](https://github.com/jaws-stack/JAWS/blob/master/CONTRIBUTING.md)
-##### To receive summaries of JAWS changes, join the ["JAWS Email List"](http://eepurl.com/bvz5Nj)
+||||
+| ------------- | ----------- | ----------- |
+| [![jaws installation guide](https://servant-assets.s3.amazonaws.com/img/jaws_square_installation_guide_2.png)](https://github.com/servant-app/JAWS/wiki/JAWS-Installation) | [![jaws email list](https://servant-assets.s3.amazonaws.com/img/jaws_square_email_list_1.png)](http://eepurl.com/bvz5Nj) | [![jaws v1 version 1 specifications](https://servant-assets.s3.amazonaws.com/img/jaws_square_v1_coming_soon_2.png)](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit?usp=sharing)
 
 ## Goals:
 
