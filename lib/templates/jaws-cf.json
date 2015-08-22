@@ -81,10 +81,10 @@
             "_-_",
             [
               {
-                "Ref": "aaaStage"
+                "Ref": "aaStage"
               },
               {
-                "Ref": "aaaProjectName"
+                "Ref": "aaProjectName"
               }
             ]
           ]

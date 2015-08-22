@@ -10,6 +10,7 @@ var JawsError = require('../lib/jaws-error'),
 program
     .version(JAWS._meta.version);
 
+//TODO: need to provide cli options/env vars to bypass input
 program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
