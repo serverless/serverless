@@ -10,33 +10,39 @@ var JawsError = require('../lib/jaws-error'),
 program
     .version(JAWS._meta.version);
 
+//TODO: need to provide cli options/env vars to bypass input
 program
     .command('new')
     .description('Create a new JAWS project in the current working directory')
     .action(function() {
-      handleExit(JAWS.getAnswers().then(function(answers) {
-        JAWS.new(answers);
-      }));
+        handleExit(JAWS.new());
     });
 
 program
     .command('install <url>')
     .description('Installs an jaws-module')
     .action(function(url) {
-      handleExit(JAWS.install(url));
+        handleExit(JAWS.install(url));
     });
 
 program
     .command('tag')
     .description('Tag a lambda function to be deployed')
     .action(function() {
-      handleExit(JAWS.tag());
+        handleExit(JAWS.tag());
+    });
+
+program
+    .command('logs <stage>')
+    .description('Get logs for a lambda function, or all lambda functions in a stage.')
+    .action(function(stage) {
+        handleExit(JAWS.logs(stage));
     });
 
 program
     .command('*')
     .action(function() {
-      handleExit(JAWS.custom(arguments));
+        handleExit(JAWS.custom(arguments));
     });
 
 program.parse(process.argv);
