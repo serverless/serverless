@@ -20,7 +20,9 @@ describe('JAWS Tests', function() {
 
   after(function() {
     // Remove Test Project
-    del([process.env.TEST_PROJECT_DIR], function(err, paths) {
+    del([process.env.TEST_PROJECT_DIR], {
+      force: true
+    }, function(err, paths) {
       console.log('Tests Completed.  Test project destroyed.');
     });
   });
