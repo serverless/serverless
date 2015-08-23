@@ -23,6 +23,9 @@
   "bin": {
     "jaws": "./bin/jaws"
   },
+  "scripts": {
+    "test": "mocha tests/all"
+  },
   "devDependencies": {
     "adm-zip": "^0.4.7",
     "bdd-stdin": "^0.2.0",
