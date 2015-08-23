@@ -1,6 +1,7 @@
 {
   "name": "jaws-cli",
   "version": "1.0.0",
+  "preferGlobal": true,
   "description": "JAWS is the server-less application framework.  This command line tool helps you build server-less applications.",
   "author": "Austen Collins <austen@servant.co>",
   "license": "MIT",
