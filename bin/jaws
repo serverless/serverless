@@ -21,10 +21,9 @@ program
 program
     .command('install <url>')
     .description('Installs an jaws-module')
-    .option('-s, --save', 'Save jaws-module\'s CloudFormation Template to your project\'s')
-    .option('-p, --pro', 'Save and provision the resources in this jaws-module\'s CloudFormation Template')
+    .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
     .action(function(url, options) {
-        handleExit(JAWS.install(url, options.save, options.pro));
+        handleExit(JAWS.install(url, options.save));
     });
 
 program
