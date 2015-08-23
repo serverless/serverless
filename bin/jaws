@@ -34,6 +34,13 @@ program
     });
 
 program
+    .command('provision <stage>')
+    .description('Triggers a CloudFormation Stack Update for the specified stage')
+    .action(function() {
+        handleExit(JAWS.provision());
+    });
+
+program
     .command('logs <stage>')
     .description('Get logs for a lambda function, or all lambda functions in a stage.')
     .action(function(stage) {
