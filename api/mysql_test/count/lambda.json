@@ -1,0 +1,9 @@
+{
+    "FunctionName": "api_mysql_test_count",
+    "Handler": "index.handler",
+    "Role": null,
+    "Runtime": "nodejs",
+    "Description": "None",
+    "MemorySize": 513,
+    "Timeout": 5
+}

@@ -1,0 +1,28 @@
+{
+        "config": {
+                "canRetry": true,
+                "removeNodeErrorCount": 1,
+                "restoreNodeTimeout": 20000,
+                "defaultSelector": "RR"
+        },
+        "servers": [
+                {
+                        "name": "MASTER",
+                        "connectionLimit": 30,
+                        "host": "localhost",
+                        "port": 3306,
+                        "user": "jawsuser",
+                        "password": "jawspass",
+                        "database": "test"
+                },
+                {
+                        "name": "SLAVE1",
+                        "connectionLimit": 30,
+                        "host": "localhost",
+                        "port": 3306,
+                        "user": "jawsuser",
+                        "password": "jawspass",
+                        "database": "test"
+                }
+        ]
+}

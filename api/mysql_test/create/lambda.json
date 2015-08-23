@@ -1,0 +1,9 @@
+{
+    "FunctionName": "api_db_test_mysql_create",
+    "Handler": "index.handler",
+    "Role": null,
+    "Runtime": "nodejs",
+    "Description": "None",
+    "MemorySize": 513,
+    "Timeout": 5
+}
