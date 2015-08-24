@@ -42,7 +42,7 @@ program
     .command('deploy <type> <stage>')
     .description('Deploy a lambda function, a REST API, or provision AWS resources for the specified stage.')
     .action(function(type, stage) {
-      if (type === 'api') handleExit(JAWS.deployApi());
+      if (type === 'api') handleExit(JAWS.deployApi(stage));
     });
 
 program
