@@ -33,18 +33,18 @@ program
     });
 
 program
+    .command('deploy <type> <stage>')
+    .description('Deploy a lambda function, a REST API, or provision AWS resources for the specified stage.')
+    .action(function(type, stage) {
+      if (type === 'api') handleExit(JAWS.deployApi();
+    });
+
+program
     .command('tag')
     .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
     ' tagged lambdas.')
     .action(function() {
       handleExit(JAWS.tag());
-    });
-
-program
-    .command('provision <stage>')
-    .description('Triggers a CloudFormation Stack Update for the specified stage.')
-    .action(function() {
-      handleExit(JAWS.provision());
     });
 
 program
