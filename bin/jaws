@@ -41,10 +41,30 @@ program
 program
     .command('deploy <type> <stage>')
     .description('Deploy a lambda function, a REST API, or provision AWS resources for the specified stage.')
+    .option('-a, --all', 'Deploy all lambdas tagged as deployable in their jaws.json')
     .action(function(type, stage) {
-      if (type === 'api') handleExit(JAWS.deployApi(stage));
+      type = type.toLowerCase();
+      switch (type) {
+        case 'api':
+          handleExit(JAWS.deployApi(stage));
+          break;
+        case 'lambda':
+          handleExit(JAWS.deployLambdas(stage, options.all));
+          break;
+        case 'resources':
+
+          //TODO: implement
+          break;
+        default:
+          console.error('Unsupported type ' + type + '. Must be api|lambda|resources');
+          process.exit(1);
+          break;
+      }
     });
 
+//TODO: add untag feature
+//TODO: add tag all feature
+//TODO: add untag all feature
 program
     .command('tag')
     .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
