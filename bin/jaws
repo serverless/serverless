@@ -23,10 +23,10 @@ program
     .action(function(options) {
       console.log('options', options);
       handleExit(JAWS.new(
-          options['proj-name'],  //name is reserved in commander...
+          options.projName,  //name is reserved in commander...
           options.stage,
-          options['lambda-region'],
-          options['notification-email'],
+          options.lambdaRegion,
+          options.notificationEmail,
           options.profile
       ));
     });
