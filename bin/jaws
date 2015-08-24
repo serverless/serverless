@@ -15,14 +15,15 @@ program
     .command('new')
     .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation ' +
     'stack which provisions essential AWS resources for your JAWS project.')
-    .option('-n, --name', 'Project name')
-    .option('-s, --stage', 'Stage to create')
-    .option('-r, --lambda-region', 'Region lambda(s) will be created in')
-    .option('-e, --notification-email', 'Email to be notified with stack alerts')
-    .option('-p, --profile', 'AWS profile to use (as defined in ~/.aws/credentials)')
+    .option('-n, --proj-name <name>', 'Project name')
+    .option('-s, --stage <stage>', 'Stage to create')
+    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in')
+    .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
+    .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .action(function(options) {
+      console.log('options', options);
       handleExit(JAWS.new(
-          options.name,
+          options['proj-name'],  //name is reserved in commander...
           options.stage,
           options['lambda-region'],
           options['notification-email'],
