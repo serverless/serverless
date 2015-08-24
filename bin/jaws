@@ -21,7 +21,13 @@ program
     .option('-e, --notification-email', 'Email to be notified with stack alerts')
     .option('-p, --profile', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .action(function(options) {
-      handleExit(JAWS.new(options));
+      handleExit(JAWS.new(
+          options.name,
+          options.stage,
+          options['lambda-region'],
+          options['notification-email'],
+          options.profile
+      ));
     });
 
 program
