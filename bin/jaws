@@ -21,7 +21,6 @@ program
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .action(function(options) {
-      console.log('options', options);
       handleExit(JAWS.new(
           options.projName,  //name is reserved in commander...
           options.stage,
