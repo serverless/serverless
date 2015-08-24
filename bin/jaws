@@ -13,31 +13,49 @@ program
 //TODO: need to provide cli options/env vars to bypass input
 program
     .command('new')
-    .description('Create a new JAWS project in the current working directory')
+    .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation stack which provisions essential AWS resources for your JAWS project.')
     .action(function() {
-      handleExit(JAWS.getAnswers().then(function(answers) {
-        JAWS.new(answers);
-      }));
+        handleExit(JAWS.new());
     });
 
 program
     .command('install <url>')
-    .description('Installs an jaws-module')
-    .action(function(url) {
-      handleExit(JAWS.install(url));
+    .description('Installs a jaws-module from the specified url into the apprpriate area of your JAWS project.')
+    .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
+    .action(function(url, options) {
+        handleExit(JAWS.install(url, options.save));
     });
 
 program
     .command('tag')
-    .description('Tag a lambda function to be deployed')
+    .description('Tag a lambda function to be deployed the next time you run the deploy command for all tagged lambdas.')
     .action(function() {
-      handleExit(JAWS.tag());
+        handleExit(JAWS.tag());
+    });
+
+program
+    .command('provision <stage>')
+    .description('Triggers a CloudFormation Stack Update for the specified stage.')
+    .action(function() {
+        handleExit(JAWS.provision());
+    });
+
+program
+    .command('logs <stage>')
+    .description('Get logs for the lambda function in the specified stage in your current working directory.')
+    .action(function(stage) {
+        handleExit(JAWS.logs(stage));
     });
 
 program
     .command('*')
+    .description('Handles custom commands.')
     .action(function() {
-      handleExit(JAWS.custom(arguments));
+        handleExit(JAWS.custom(arguments));
     });
 
-program.parse(process.argv);
+if (process.argv.length == 2) {
+    program.outputHelp();
+} else {
+    program.parse(process.argv);
+}

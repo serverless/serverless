@@ -1,6 +1,7 @@
 {
   "name": "jaws-cli",
   "version": "1.0.0",
+  "preferGlobal": true,
   "description": "JAWS is the server-less application framework.  This command line tool helps you build server-less applications.",
   "author": "Austen Collins <austen@servant.co>",
   "license": "MIT",
@@ -23,6 +24,9 @@
   "bin": {
     "jaws": "./bin/jaws"
   },
+  "scripts": {
+    "test": "mocha tests/all"
+  },
   "devDependencies": {
     "adm-zip": "^0.4.7",
     "bdd-stdin": "^0.2.0",
@@ -38,6 +42,7 @@
     "bluebird": "^2.9.34",
     "bluebird-inquirer": "0.0.1",
     "chalk": "^1.1.0",
+    "cli-spinner": "^0.2.1",
     "commander": "^2.5.0",
     "del": "^1.2.1",
     "dotenv": "^1.2.0",
