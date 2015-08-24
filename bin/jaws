@@ -13,9 +13,15 @@ program
 //TODO: need to provide cli options/env vars to bypass input
 program
     .command('new')
-    .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation stack which provisions essential AWS resources for your JAWS project.')
-    .action(function() {
-        handleExit(JAWS.new());
+    .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation ' +
+    'stack which provisions essential AWS resources for your JAWS project.')
+    .option('-n, --name', 'Project name')
+    .option('-s, --stage', 'Stage to create')
+    .option('-r, --lambda-region', 'Region lambda(s) will be created in')
+    .option('-e, --notification-email', 'Email to be notified with stack alerts')
+    .option('-p, --profile', 'AWS profile to use (as defined in ~/.aws/credentials)')
+    .action(function(options) {
+      handleExit(JAWS.new(options));
     });
 
 program
@@ -23,39 +29,40 @@ program
     .description('Installs a jaws-module from the specified url into the apprpriate area of your JAWS project.')
     .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
     .action(function(url, options) {
-        handleExit(JAWS.install(url, options.save));
+      handleExit(JAWS.install(url, options.save));
     });
 
 program
     .command('tag')
-    .description('Tag a lambda function to be deployed the next time you run the deploy command for all tagged lambdas.')
+    .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
+    ' tagged lambdas.')
     .action(function() {
-        handleExit(JAWS.tag());
+      handleExit(JAWS.tag());
     });
 
 program
     .command('provision <stage>')
     .description('Triggers a CloudFormation Stack Update for the specified stage.')
     .action(function() {
-        handleExit(JAWS.provision());
+      handleExit(JAWS.provision());
     });
 
 program
     .command('logs <stage>')
     .description('Get logs for the lambda function in the specified stage in your current working directory.')
     .action(function(stage) {
-        handleExit(JAWS.logs(stage));
+      handleExit(JAWS.logs(stage));
     });
 
 program
     .command('*')
     .description('Handles custom commands.')
     .action(function() {
-        handleExit(JAWS.custom(arguments));
+      handleExit(JAWS.custom(arguments));
     });
 
 if (process.argv.length == 2) {
-    program.outputHelp();
+  program.outputHelp();
 } else {
-    program.parse(process.argv);
+  program.parse(process.argv);
 }

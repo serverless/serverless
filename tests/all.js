@@ -7,15 +7,16 @@ var shortid = require('shortid'),
     path = require('path');
 
 // Seed Test Data
-process.env.NODE_ENV = 'test';
-process.env.TEST_PROJECT = 'jaws-test-' + shortid.generate();
-process.env.TEST_PROJECT_DIR = path.join(os.tmpdir(), process.env.TEST_PROJECT);
+process.env.TEST_PROJECT_NAME = 'jaws-test-' + shortid.generate();
+process.env.TEST_PROJECT_DIR = path.join(os.tmpdir(), process.env.TEST_PROJECT_NAME);
 
 // Run all tests
 describe('JAWS Tests', function() {
 
   before(function(done) {
     this.timeout(0);
+    fs.mkdirSync(process.env.TEST_PROJECT_DIR);
+    process.chdir(process.env.TEST_PROJECT_DIR);
     done();
   });
 
