@@ -1,10 +1,12 @@
 'use strict';
 
 var JAWS = require('../../lib/index.js'),
-    JawsError = require('../../lib/jaws-error');
+    JawsError = require('../../lib/jaws-error'),
+    path = require('path'),
+    assert = require('chai').assert;
 
 var projName = process.env.TEST_PROJECT_NAME,
-    stage = 'dev',
+    stage = 'unittest',
     lambdaRegion = 'us-east-1',
     notificationEmail = 'tester@jawsstack.com',
     awsProfile = 'default';
@@ -17,6 +19,9 @@ describe('Test new command', function() {
 
     JAWS.new(projName, stage, lambdaRegion, notificationEmail, awsProfile)
         .then(function() {
+          var jawsJson = require(process.env.TEST_PROJECT_DIR + '/' + process.env.TEST_PROJECT_NAME + '/jaws.json');
+          assert.equal(jawsJson.stages[0].stage, stage);
+          assert.isTrue(!!jawsJson.stages[0].iamRoleArn);
           done();
         })
         .catch(JawsError, function(e) {
