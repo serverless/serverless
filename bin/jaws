@@ -17,7 +17,7 @@ program
     'stack which provisions essential AWS resources for your JAWS project.')
     .option('-n, --proj-name <name>', 'Project name')
     .option('-s, --stage <stage>', 'Stage to create')
-    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in')
+    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in. Only support 1 currently')
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .action(function(options) {
@@ -63,8 +63,7 @@ program
     });
 
 //TODO: add untag feature
-//TODO: add tag all feature
-//TODO: add untag all feature
+//TODO: add tag/untag all feature
 program
     .command('tag')
     .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
