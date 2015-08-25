@@ -20,8 +20,8 @@ describe('Test new command', function() {
     JAWS.new(projName, stage, lambdaRegion, notificationEmail, awsProfile)
         .then(function() {
           var jawsJson = require(process.env.TEST_PROJECT_DIR + '/' + process.env.TEST_PROJECT_NAME + '/jaws.json');
-          assert.equal(jawsJson.stages[0].stage, stage);
-          assert.isTrue(!!jawsJson.stages[0].iamRoleArn);
+          assert.equal(jawsJson['us-east-1'].stages[0].stage, stage);
+          assert.isTrue(!!jawsJson['us-east-1'].stages[0].iamRoleArn);
           done();
         })
         .catch(JawsError, function(e) {
