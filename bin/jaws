@@ -72,13 +72,13 @@ program
 program
     .command('tag')
     .option('-u, --untag', 'un-tag lambda')
-    .option('-a, --all', 'tag all lambda functions in project')
+    .option('-a, --tag-all', 'tag all lambda functions in project')
     .option('-n, --untag-all', 'un-tag all lambda functions in project')
     .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
     ' tagged lambdas.')
     .action(function() {
-      if (options.all || options.untagAll) {
-        var shouldTag = (options.all) ? true : false;
+      if (options.tagAll || options.untagAll) {
+        var shouldTag = (options.tagAll) ? true : false;
         handleExit(
             utils.findAllLambdas(utils.findProjectRootPath(process.cwd()))
                 .then(function(lJawsJsonPaths) {
