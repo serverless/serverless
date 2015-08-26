@@ -10,7 +10,8 @@ var JawsError = require('../lib/jaws-error'),
 program
     .version(JAWS._meta.version);
 
-//TODO: need to provide cli options/env vars to bypass input
+//TODO: need to provide cli options vars to bypass input
+
 program
     .command('new')
     .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation ' +

@@ -31,7 +31,9 @@ describe('JAWS Tests', function() {
   });
 
   // Run tests sequentially
-  require('./new');
-  require('./deploy/api');
+  //require('./new');
+  //require('./deploy/api');
+
+  require('./deploy/lambda');
 
 });
