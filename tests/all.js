@@ -9,6 +9,7 @@ var shortid = require('shortid'),
 // Seed Test Data
 process.env.TEST_PROJECT_NAME = 'jaws-test-' + shortid.generate();
 process.env.TEST_PROJECT_DIR = path.join(os.tmpdir(), process.env.TEST_PROJECT_NAME);
+process.env.TEST_JAWS_S3_BUCKET = process.env.JAWS_TESTCASE_BUCKET || 'jawstest.doapps.com';
 
 // Run all tests
 describe('JAWS Tests', function() {
@@ -31,9 +32,9 @@ describe('JAWS Tests', function() {
   });
 
   // Run tests sequentially
-  //require('./new');
+  require('./new');
   //require('./deploy/api');
 
-  require('./deploy/lambda');
+  //require('./deploy/lambda');
 
 });

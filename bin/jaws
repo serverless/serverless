@@ -18,13 +18,15 @@ program
     'stack which provisions essential AWS resources for your JAWS project.')
     .option('-n, --proj-name <name>', 'Project name')
     .option('-s, --stage <stage>', 'Stage to create')
-    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in. Only support 1 currently')
+    .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE')
+    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in (Can add more later)')
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .action(function(options) {
       handleExit(JAWS.new(
           options.projName,  //name is reserved in commander...
           options.stage,
+          options.s3Bucket,
           options.lambdaRegion,
           options.notificationEmail,
           options.profile
