@@ -32,9 +32,11 @@ describe('JAWS Tests', function() {
   });
 
   // Run tests sequentially
-  require('./new');
+  //require('./new');
+
   //require('./deploy/api');
 
   //require('./deploy/lambda');
 
+  require('./tag');
 });
