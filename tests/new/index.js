@@ -17,11 +17,10 @@ describe('Test new command', function() {
   it('Existing aws creds', function(done) {
     this.timeout(0);
 
-    JAWS.new(projName, stage, lambdaRegion, notificationEmail, awsProfile)
+    JAWS.new(projName, stage, process.env.TEST_JAWS_S3_BUCKET, lambdaRegion, notificationEmail, awsProfile)
         .then(function() {
           var jawsJson = require(process.env.TEST_PROJECT_DIR + '/' + process.env.TEST_PROJECT_NAME + '/jaws.json');
-          assert.equal(jawsJson.stages[0].stage, stage);
-          assert.isTrue(!!jawsJson.stages[0].iamRoleArn);
+          assert.isTrue(!!jawsJson.project.regions['us-east-1'].stages[stage].iamRoleArn);
           done();
         })
         .catch(JawsError, function(e) {

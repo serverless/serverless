@@ -5,25 +5,28 @@
 var JawsError = require('../lib/jaws-error'),
     JAWS = require('../lib/index.js'),
     program = require('commander'),
-    handleExit = require('../lib/utils').handleExit;
+    utils = require('../lib/utils'),
+    Promise = require('bluebird'),
+    handleExit = utils.handleExit;
 
 program
     .version(JAWS._meta.version);
 
-//TODO: need to provide cli options/env vars to bypass input
 program
     .command('new')
     .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation ' +
     'stack which provisions essential AWS resources for your JAWS project.')
     .option('-n, --proj-name <name>', 'Project name')
     .option('-s, --stage <stage>', 'Stage to create')
-    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in')
+    .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE')
+    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in (Can add more later)')
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .action(function(options) {
       handleExit(JAWS.new(
           options.projName,  //name is reserved in commander...
           options.stage,
+          options.s3Bucket,
           options.lambdaRegion,
           options.notificationEmail,
           options.profile
@@ -41,16 +44,45 @@ program
 program
     .command('deploy <type> <stage>')
     .description('Deploy a lambda function, a REST API, or provision AWS resources for the specified stage.')
+    .option('-a, --all-tagged', 'Deploy all lambdas tagged as deployable in their jaws.json')
+    .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
     .action(function(type, stage) {
-      if (type === 'api') handleExit(JAWS.deployApi(stage));
+      type = type.toLowerCase();
+      switch (type) {
+        case 'api':
+          handleExit(JAWS.deployApi(stage));
+          break;
+        case 'lambda':
+          var allTagged = (options.allTagged) ? true : false,
+              allAtOnce = (options.allAtOnce) ? true : false;
+
+          handleExit(JAWS.deployLambdas(stage, allTagged, allAtOnce));
+          break;
+        case 'resources':
+
+          //TODO: implement
+          break;
+        default:
+          console.error('Unsupported type ' + type + '. Must be api|lambda|resources');
+          process.exit(1);
+          break;
+      }
     });
 
 program
     .command('tag')
+    .option('-u, --untag', 'un-tag lambda')
+    .option('-a, --tag-all', 'tag all lambda functions in project')
+    .option('-n, --untag-all', 'un-tag all lambda functions in project')
     .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
     ' tagged lambdas.')
     .action(function() {
-      handleExit(JAWS.tag());
+      if (options.tagAll || options.untagAll) {
+        var untag = (options.untagAll) ? true : false;
+        handleExit(JAWS.tagAll(untag));
+      } else {
+        handleExit(JAWS.tag(null, options.untag));
+      }
     });
 
 program
