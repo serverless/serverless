@@ -18,10 +18,19 @@ describe('tag command', function() {
   before(function(done) {
     this.timeout(0);
 
-    fs.mkdirSync(backDir);
+    [backdir, 'functionOne', 'functionTwo'].forEach(function(dir) {
+      fs.mkdirSync(backDir);
+    });
+
+    [
+      {name: 'functionOne', content: ''},
+      {name: 'functionTwo', content: ''},
+    ].forEach(function(fd) {
+          fs.writeFileSync(path.join(backDir, fd.name, 'jaws.json'), fd.content);
+        });
 
     process.chdir(backDir);
-    
+
     done();
   });
 

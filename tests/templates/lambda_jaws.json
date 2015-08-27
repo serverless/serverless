@@ -1,0 +1,24 @@
+{
+  "name": "jaws-stack-",
+  "version": "1.0",
+  "location": "https://github.com/jaws-stack/jaws-stack-tester-js",
+  "author": "John Serverless <john@gmail.com> http://www.google.com",
+  "description": "A lambda function that does something",
+  "envVars": [
+    "MYAPP_SERVICE_KEY",
+    "MYAPP_SERVICE2_KEY"
+  ],
+  "lambda": {
+    "functionName": "twilioSendSMS",
+    "runtime": "nodejs",
+    "runtimeVer": "0.10.33",
+    "handler": "index.handler",
+    "memorySize": 1024,
+    "timeout: 6",
+    "deploy": false,
+    "optimize": true,
+    "includePaths": [],
+    "ignoreFiles": [],
+    "excludeFiles": []
+  }
+}
