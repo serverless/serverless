@@ -18,7 +18,7 @@ describe('JAWS Tests', function() {
     this.timeout(0);
     fs.mkdirSync(process.env.TEST_PROJECT_DIR);
     process.chdir(process.env.TEST_PROJECT_DIR);
-    console.error('Temp proj root dir', process.env.TEST_PROJECT_DIR);
+    console.error('Unit test proj root dir', process.env.TEST_PROJECT_DIR);
     done();
   });
 

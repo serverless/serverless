@@ -1,7 +1,7 @@
 {
-  "name": "jaws-stack-",
+  "name": "skinnyJeans-",
   "version": "1.0",
-  "location": "https://github.com/jaws-stack/jaws-stack-tester-js",
+  "location": "https://github.com/jaws-stack/skinny-jeans",
   "author": "John Serverless <john@gmail.com> http://www.google.com",
   "description": "A lambda function that does something",
   "envVars": [
@@ -14,7 +14,7 @@
     "runtimeVer": "0.10.33",
     "handler": "index.handler",
     "memorySize": 1024,
-    "timeout: 6",
+    "timeout": 6,
     "deploy": false,
     "optimize": true,
     "includePaths": [],

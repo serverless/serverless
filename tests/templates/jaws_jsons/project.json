@@ -1,0 +1,27 @@
+{
+  "name": "skinnyJeans",
+  "version": "1.0",
+  "location": "https://github.com/jaws-stack/skinny-jeans",
+  "author": "John Serverless <john@gmail.com> http://www.google.com",
+  "description": "A lambda function that does something",
+  "envVars": [
+    "MYAPP_SERVICE_KEY",
+    "MYAPP_SERVICE2_KEY"
+  ],
+  "project": {
+    "regions": {
+      "us-east-1": {
+        "stages": {
+          "dev": {
+            "iamRoleArn": "arn:aws:iam::12345:role/dev_-_jaws-test_-_jaws"
+          }
+        },
+        "restApiId": "12345"
+      }
+    },
+    "envVarBucket": {
+      "name": "jaws.mycompany.com",
+      "region": "us-east-1"
+    }
+  }
+}

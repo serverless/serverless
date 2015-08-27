@@ -3,6 +3,7 @@
 var JAWS = require('../../lib/index.js'),
     JawsError = require('../../lib/jaws-error'),
     path = require('path'),
+    fs = require('fs'),
     assert = require('chai').assert;
 
 var projName = process.env.TEST_PROJECT_NAME,
@@ -18,13 +19,19 @@ describe('tag command', function() {
   before(function(done) {
     this.timeout(0);
 
-    [backdir, 'functionOne', 'functionTwo'].forEach(function(dir) {
-      fs.mkdirSync(backDir);
+    [backDir, path.join(backDir, 'functionOne'), path.join(backDir, 'functionTwo')].forEach(function(dir) {
+      fs.mkdirSync(dir);
     });
 
+    var lambdaTemplate = require('../templates/jaws_jsons/lambda'),
+        lTemlpateContent = JSON.stringify(lambdaTemplate, null, 2),
+        projTemplateContent = JSON.stringify(require('../templates/jaws_jsons/project'), null, 2);
+
+    fs.writeFileSync(path.join(process.env.TEST_PROJECT_DIR, 'jaws.json'), projTemplateContent);
+
     [
-      {name: 'functionOne', content: ''},
-      {name: 'functionTwo', content: ''},
+      {name: 'functionOne', content: lTemlpateContent},
+      {name: 'functionTwo', content: lTemlpateContent},
     ].forEach(function(fd) {
           fs.writeFileSync(path.join(backDir, fd.name, 'jaws.json'), fd.content);
         });
@@ -37,14 +44,24 @@ describe('tag command', function() {
   it('tag one', function(done) {
     this.timeout(0);
 
-    JAWS.new(projName, stage, process.env.TEST_JAWS_S3_BUCKET, lambdaRegion, notificationEmail, awsProfile)
+    var funcOneJawsFilePath = path.join(backDir, 'functionOne', 'jaws.json'),
+        funcTwoJawsFilePath = path.join(backDir, 'functionTwo', 'jaws.json');
+    JAWS.tag(funcOneJawsFilePath)
         .then(function() {
-          var jawsJson = require(process.env.TEST_PROJECT_DIR + '/' + process.env.TEST_PROJECT_NAME + '/jaws.json');
-          assert.isTrue(!!jawsJson.project.regions['us-east-1'].stages[stage].iamRoleArn);
-          done();
+          assert.equal(true, require(funcOneJawsFilePath).lambda.deploy);
+          assert.equal(false, require(funcTwoJawsFilePath).lambda.deploy);
+
+          return JAWS.tagAll(false);
         })
-        .catch(JawsError, function(e) {
-          done(e);
+        .then(function() {
+          assert.equal(true, require(funcOneJawsFilePath).lambda.deploy);
+          assert.equal(true, require(funcTwoJawsFilePath).lambda.deploy);
+          return JAWS.tagAll(true);
+        })
+        .then(function() {
+          assert.equal(false, require(funcOneJawsFilePath).lambda.deploy);
+          assert.equal(false, require(funcTwoJawsFilePath).lambda.deploy);
+          done();
         })
         .error(function(e) {
           done(e);

@@ -78,22 +78,8 @@ program
     ' tagged lambdas.')
     .action(function() {
       if (options.tagAll || options.untagAll) {
-        var shouldTag = (options.tagAll) ? true : false;
-        handleExit(
-            utils.findAllLambdas(utils.findProjectRootPath(process.cwd()))
-                .then(function(lJawsJsonPaths) {
-                  var tagQueue = [];
-                  if (!lJawsJsonPaths) {
-                    throw new JawsError('Could not find any lambdas');
-                  }
-
-                  lJawsJsonPaths.forEach(function(ljp) {
-                    tagQueue.push(JAWS.tag(ljp, shouldTag));
-                  });
-
-                  return Promise.all(tagQueue);
-                })
-        );
+        var untag = (options.untagAll) ? true : false;
+        handleExit(JAWS.tagAll(untag));
       } else {
         handleExit(JAWS.tag(null, options.untag));
       }
