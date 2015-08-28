@@ -16,7 +16,8 @@
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
-    "optimize": true,
+    "build": "systemjs",
+    "minify": false,
     "includePaths": [],
     "ignoreFiles": [],
     "excludeFiles": []

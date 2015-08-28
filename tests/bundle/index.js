@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Bundle tests. Must cd into tests/bundle/testapp and run npm install first
+ * Bundle tests
  */
 
 var JAWS = require('../../lib/index.js'),
@@ -32,7 +32,7 @@ describe('bundle tests', function() {
           fs.writeFileSync(bundledAndUg, uglifiedBuffer);
 
           var code = require(bundledAndUg);
-          return code.run();
+          //return code.run();
         })
         .then(function() {
           done();
