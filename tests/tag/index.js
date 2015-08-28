@@ -46,17 +46,17 @@ describe('tag command', function() {
 
     var funcOneJawsFilePath = path.join(backDir, 'functionOne', 'jaws.json'),
         funcTwoJawsFilePath = path.join(backDir, 'functionTwo', 'jaws.json');
-    JAWS.tag(funcOneJawsFilePath)
+    JAWS.tag('lambda', funcOneJawsFilePath)
         .then(function() {
           assert.equal(true, require(funcOneJawsFilePath).lambda.deploy);
           assert.equal(false, require(funcTwoJawsFilePath).lambda.deploy);
 
-          return JAWS.tagAll(false);
+          return JAWS.tagAll('lambda', false);
         })
         .then(function() {
           assert.equal(true, require(funcOneJawsFilePath).lambda.deploy);
           assert.equal(true, require(funcTwoJawsFilePath).lambda.deploy);
-          return JAWS.tagAll(true);
+          return JAWS.tagAll('lambda', true);
         })
         .then(function() {
           assert.equal(false, require(funcOneJawsFilePath).lambda.deploy);

@@ -17,7 +17,7 @@ program
     .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation ' +
     'stack which provisions essential AWS resources for your JAWS project.')
     .option('-n, --proj-name <name>', 'Project name')
-    .option('-s, --stage <stage>', 'Stage to create')
+    .option('-s, --stage <stage>', 'Stage to create. all lowercase')
     .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE')
     .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in (Can add more later)')
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
@@ -25,7 +25,7 @@ program
     .action(function(options) {
       handleExit(JAWS.new(
           options.projName,  //name is reserved in commander...
-          options.stage,
+          options.stage.toLowerCase(),
           options.s3Bucket,
           options.lambdaRegion,
           options.notificationEmail,
@@ -42,11 +42,32 @@ program
     });
 
 program
+    .command('tag <type>')
+    .option('-u, --untag', 'un-tag lambda')
+    .option('-a, --tag-all', 'tag all lambda functions in project')
+    .option('-n, --untag-all', 'un-tag all lambda functions in project')
+    .description('Tag a lambda function (type: lambda) or api gateway resource (api) to be deployed the next time deploy command is run')
+    .action(function(type, options) {
+      type = type.toLowerCase();
+      if (-1 == ['api', 'lambda'].indexOf(type)) {
+        console.error('Unsupported type ' + type + '. Must be api|lambda');
+        process.exit(1);
+      }
+
+      if (options.tagAll || options.untagAll) {
+        var untag = (options.untagAll) ? true : false;
+        handleExit(JAWS.tagAll(type, untag));
+      } else {  //If not tagging all, you have to be tagging whats in your CWD (null 1st param)
+        handleExit(JAWS.tag(type, null, options.untag));
+      }
+    });
+
+program
     .command('deploy <type> <stage>')
-    .description('Deploy a lambda function, a REST API, or provision AWS resources for the specified stage.')
+    .description('Deploy a lambda function (type lambda), a REST API (api), or provision AWS resources (resources) for the specified stage.')
     .option('-a, --all-tagged', 'Deploy all lambdas tagged as deployable in their jaws.json')
     .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
-    .action(function(type, stage) {
+    .action(function(type, stage, options) {
       type = type.toLowerCase();
       switch (type) {
         case 'api':
@@ -66,22 +87,6 @@ program
           console.error('Unsupported type ' + type + '. Must be api|lambda|resources');
           process.exit(1);
           break;
-      }
-    });
-
-program
-    .command('tag')
-    .option('-u, --untag', 'un-tag lambda')
-    .option('-a, --tag-all', 'tag all lambda functions in project')
-    .option('-n, --untag-all', 'un-tag all lambda functions in project')
-    .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
-    ' tagged lambdas.')
-    .action(function() {
-      if (options.tagAll || options.untagAll) {
-        var untag = (options.untagAll) ? true : false;
-        handleExit(JAWS.tagAll(untag));
-      } else {
-        handleExit(JAWS.tag(null, options.untag));
       }
     });
 

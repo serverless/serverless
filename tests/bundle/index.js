@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Bundle tests
+ * Bundle tests - must run npm install inside tests/bundle/testapp first
  */
 
 var JAWS = require('../../lib/index.js'),
