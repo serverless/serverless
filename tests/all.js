@@ -32,9 +32,9 @@ describe('JAWS Tests', function() {
   });
 
   // Run tests sequentially
-  //require('./tag');
+  require('./tag');
 
-  require('./bundle');
+  //require('./bundle');
 
   /**
    * Tests below here actually require creating aws resources, so dont always run, just uncomment to spot check

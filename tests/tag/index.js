@@ -41,7 +41,7 @@ describe('tag command', function() {
     done();
   });
 
-  it('tag one', function(done) {
+  it('lambda tags', function(done) {
     this.timeout(0);
 
     var funcOneJawsFilePath = path.join(backDir, 'functionOne', 'jaws.json'),
@@ -57,6 +57,33 @@ describe('tag command', function() {
           assert.equal(true, require(funcOneJawsFilePath).lambda.deploy);
           assert.equal(true, require(funcTwoJawsFilePath).lambda.deploy);
           return JAWS.tagAll('lambda', true);
+        })
+        .then(function() {
+          assert.equal(false, require(funcOneJawsFilePath).lambda.deploy);
+          assert.equal(false, require(funcTwoJawsFilePath).lambda.deploy);
+          done();
+        })
+        .error(function(e) {
+          done(e);
+        });
+  });
+
+  it('api tags', function(done) {
+    this.timeout(0);
+
+    var funcOneJawsFilePath = path.join(backDir, 'functionOne', 'jaws.json'),
+        funcTwoJawsFilePath = path.join(backDir, 'functionTwo', 'jaws.json');
+    JAWS.tag('lambda', funcOneJawsFilePath)
+        .then(function() {
+          assert.equal(true, require(funcOneJawsFilePath).lambda.deploy);
+          assert.equal(false, require(funcTwoJawsFilePath).lambda.deploy);
+
+          return JAWS.tagAll('api', false);
+        })
+        .then(function() {
+          assert.equal(true, require(funcOneJawsFilePath).lambda.deploy);
+          assert.equal(true, require(funcTwoJawsFilePath).lambda.deploy);
+          return JAWS.tagAll('api', true);
         })
         .then(function() {
           assert.equal(false, require(funcOneJawsFilePath).lambda.deploy);

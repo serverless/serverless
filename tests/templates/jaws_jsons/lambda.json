@@ -20,5 +20,8 @@
     "includePaths": [],
     "ignoreFiles": [],
     "excludeFiles": []
+  },
+  "endpoint": {
+    "deploy": false
   }
 }
