@@ -1,29 +1,39 @@
 'use strict';
 
-var JAWS = require('../../lib/index.js'),
-    JawsError = require('../../lib/jaws-error');
+// Dependencies
+var testUtils = require('../test_utils');
 
-var projName = process.env.TEST_PROJECT_NAME,
-    stage = 'dev',
-    lambdaRegion = 'us-east-1',
-    notificationEmail = 'tester@jawsstack.com',
-    awsProfile = 'default';
+module.exports = function(testData, cb) {
 
-// Tests
-describe('Test deploy api command', function() {
-
-  it('deploy api', function(done) {
-    this.timeout(0);
-
-    JAWS.deployApi('dev')
-        .then(function() {
-          done();
-        })
-        .catch(JawsError, function(e) {
-          done(e);
-        })
-        .error(function(e) {
-          done(e);
-        });
+  before(function() {
+    testData.projectPath = testUtils.createTestProject();
   });
-});
+
+  after(function() {
+    testUtils.deleteTestProject(testData.projectPath);
+    return cb(testData);
+  });
+
+  describe('Test deploy api command', function() {
+    it('Doesn\'t error', function(done) {
+
+      this.timeout(0);
+
+      // Require
+      var JAWS = require('../../lib/index.js'),
+          JawsError = require('../../lib/jaws-error');
+
+      // Test
+      JAWS.deployApi('dev')
+          .then(function() {
+            done();
+          })
+          .catch(JawsError, function(e) {
+            done(e);
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
+  });
+};
