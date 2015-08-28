@@ -1,24 +1,37 @@
 'use strict';
 
-var JAWS = require('../../lib/index.js'),
-    JawsError = require('../../lib/jaws-error'),
+var JawsError = require('../../lib/jaws-error'),
     path = require('path'),
-    AWSUtils = require('../../lib/utils/aws'),
+    fs = require('fs'),
     assert = require('chai').assert;
 
 var projName = process.env.TEST_PROJECT_NAME,
-    stage = 'unittest',
+    stage = 'mystage',
     lambdaRegion = 'us-east-1',
     notificationEmail = 'tester@jawsstack.com',
-    awsProfile = 'default';
+    awsProfile = 'default',
+    JAWS = null;
 
+var backDir = path.join('/Users/ryan/jawstests/my-project', 'back');  //process.env.TEST_PROJECT_DIR
 // Tests
 describe('Test deployment', function() {
+  before(function(done) {
+    process.chdir(path.join(backDir, 's3-tests'));
+    JAWS = require('../../lib/index.js');
+    done();
+  });
 
-  it('Testing lambda', function(done) {
+  it('deploy lambda', function(done) {
     this.timeout(0);
 
-    AWSUtils.createBucket(awsProfile, lambdaRegion, 'awsbilling.reports');
+    JAWS.deployLambdas(stage, false, false)
+        .then(function(d) {
+          console.log(d);
+          done();
+        })
+        .error(function(e) {
+          done(e);
+        });
   });
 });
 

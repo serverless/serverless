@@ -32,7 +32,7 @@ describe('JAWS Tests', function() {
   });
 
   // Run tests sequentially
-  require('./tag');
+  //require('./tag');
 
   //require('./bundle');
 
@@ -40,10 +40,10 @@ describe('JAWS Tests', function() {
    * Tests below here actually require creating aws resources, so dont always run, just uncomment to spot check
    */
 
-  //require('./new');
+    //require('./new');
 
-  //require('./deploy/api');
+    //require('./deploy/api');
 
-  //require('./deploy/lambda');
+  require('./deploy/lambda');
 
 });
