@@ -1,0 +1,119 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this JAWS project",
+  "Parameters": {
+    "aaProjectName": {
+      "Type": "String",
+      "Default": "jaws-new-EJYMNmGh",
+      "AllowedValues": [
+        "jaws-new-EJYMNmGh"
+      ]
+    },
+    "aaStage": {
+      "Type": "String",
+      "Default": "dev"
+    },
+    "aaDataModelPrefix": {
+      "Type": "String",
+      "Default": "dev",
+      "AllowedValues": [
+        "dev"
+      ]
+    },
+    "aaHostedZoneName": {
+      "Type": "String",
+      "Default": "myapp.com"
+    },
+    "aaNotficationEmail": {
+      "Type": "String",
+      "Default": "austen@servant.co"
+    },
+    "aaDefaultDynamoRWThroughput": {
+      "Type": "String",
+      "Default": "1"
+    }
+  },
+  "Resources": {
+    "LambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "Profile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "LambdaRole"
+          }
+        ]
+      }
+    },
+    "Group": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+        "Path": "/dataModel/"
+      }
+    },
+    "DataModelPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Join": [
+            "_-_",
+            [
+              {
+                "Ref": "aaStage"
+              },
+              {
+                "Ref": "aaProjectName"
+              }
+            ]
+          ]
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "arn:aws:logs:*:*:*"
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "LambdaRole"
+          }
+        ],
+        "Groups": [
+          {
+            "Ref": "Group"
+          }
+        ]
+      }
+    }
+  }
+}

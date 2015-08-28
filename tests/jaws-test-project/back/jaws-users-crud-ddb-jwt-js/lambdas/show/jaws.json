@@ -1,0 +1,34 @@
+{
+  "name": "jaws-users-show",
+  "version": "0.0.1",
+  "location": "https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js",
+  "author": "JAWS",
+  "description": "A lambda function to fetch a user from the database and show them",
+  "lambda": {
+    "functionName": "users-show",
+    "handler": "index.handler",
+    "runtime": "nodejs",
+    "memorySize": 513,
+    "timeout": 5
+  },
+  "endpoint": {
+    "path": "sessions/{sessionId}",
+    "method": "GET",
+    "authorizationType" : "none",
+    "apiKeyRequired" : false,
+    "requestTemplates": {
+      "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+    },
+    "requestParameters": {
+      "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
+    },
+    "responses": {
+      "2//d{2}": {
+        "statusCode": "200"
+      },
+      "default": {
+        "statusCode": "400"
+      }
+    }
+  }
+}

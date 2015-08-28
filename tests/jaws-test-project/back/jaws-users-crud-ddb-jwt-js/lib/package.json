@@ -1,0 +1,39 @@
+{
+    "name": "jaws-lib",
+    "version": "0.0.3",
+    "description": "The JAWS Stack's App Library.  This is for re-usable, modular code that you can require in both your server and lambda functions",
+    "author": "Austen Collins <austen@servant.co>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/servant-app/JAWS.git"
+    },
+    "keywords": [
+        "jaws",
+        "jaws stack",
+        "jaws lib",
+        "jaws library",
+        "api gateway",
+        "lambda",
+        "aws",
+        "amazon",
+        "amazon web services",
+        "dynamodb"
+    ],
+    "engines": {
+        "node": "0.10.33"
+    },
+    "main": "index.js",
+    "dependencies": {
+        "async": "^1.2.1",
+        "aws-sdk": "^2.1.32",
+        "bcryptjs": "^2.2.0",
+        "dotenv": "^1.2.0",
+        "dynamodb-doc": "^1.0.0",
+        "jsonwebtoken": "^5.0.4",
+        "lodash": "^3.9.3",
+        "moment": "^2.10.3",
+        "node-uuid": "^1.4.3",
+        "shortid": "^2.2.2"
+    },
+    "devDependencies": {}
+}

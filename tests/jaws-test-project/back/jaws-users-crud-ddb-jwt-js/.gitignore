@@ -1,0 +1,21 @@
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+**/.idea
+.DS_Store
+.tmp
+
+# Runtime data
+pids
+logs
+results
+npm-debug.log
+.env
+*.env
+
+lib/node_modules

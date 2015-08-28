@@ -44,7 +44,7 @@ describe('JAWS Tests', function() {
 
   //require('./new');
 
-  //require('./deploy/api');
+  require('./deploy/api');
 
   //require('./deploy/lambda');
 
