@@ -49,7 +49,7 @@
     "gulp": "^3.9.0",
     "inquirer": "^0.9.0",
     "insert-module-globals": "^6.5.2",
-    "jaws-api-gateway-client": "^0.8.0",
+    "jaws-api-gateway-client": "^0.9.0",
     "moment": "^2.10.6",
     "node-uuid": "^1.4.2",
     "node-zip": "^1.1.0",
