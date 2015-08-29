@@ -1,20 +1,26 @@
 'use strict';
 
-// Dependencies
+/**
+ * JAWS Test: Deploy API Command
+ * - Copies the test-prj template to your system's temp directory
+ * - Deploys an API based on the endpoints in the project
+ */
 var testUtils = require('../test_utils');
 
 module.exports = function(testData, cb) {
 
-  before(function() {
-    testData.projectPath = testUtils.createTestProject();
-  });
-
-  after(function() {
-    testUtils.deleteTestProject(testData.projectPath);
-    return cb(testData);
-  });
-
   describe('Test deploy api command', function() {
+
+    before(function() {
+      testData.projectPath = testUtils.createTestProject(testData.name);
+      process.chdir(testData.projectPath);
+    });
+
+    after(function(done) {
+      cb(testData);
+      done();
+    });
+
     it('Doesn\'t error', function(done) {
 
       this.timeout(0);
