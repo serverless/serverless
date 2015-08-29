@@ -1,19 +1,29 @@
 {
-  "name": "jaws-users-signin",
+  "name": "jaws-users-signup",
   "version": "0.0.1",
   "location": "https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js",
   "author": "JAWS",
   "description": "A group of lambda functions for user crud operations using dynamodb, JSON web tokens and javascript",
+  "envVars": [
+    "MYAPP_SERVICE_KEY",
+    "MYAPP_SERVICE2_KEY"
+  ],
   "lambda": {
-    "functionName": "users-signin",
-    "handler": "index.handler",
+    "functionName": "usersSignUp",
     "runtime": "nodejs",
-    "memorySize": 513,
-    "timeout": 5
+    "runtimeVer": "0.10.33",
+    "handler": "index.handler",
+    "memorySize": 1024,
+    "timeout": 6,
+    "deploy": false,
+    "optimize": true,
+    "includePaths": [],
+    "ignoreFiles": [],
+    "excludeFiles": []
   },
   "endpoint": {
-    "path": "sessions/{sessionId}",
-    "method": "PUT",
+    "path": "users",
+    "method": "POST",
     "authorizationType" : "none",
     "apiKeyRequired" : false,
     "requestTemplates": {

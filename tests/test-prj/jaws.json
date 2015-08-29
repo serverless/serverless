@@ -1,5 +1,5 @@
 {
-  "name": "jaws-new-EJYMNmGh",
+  "name": "jaws-test-project",
   "version": "0.0.1",
   "profile": "project",
   "author": "Vera D. Servers <vera@gmail.com> http://vera.io",
@@ -11,8 +11,7 @@
           "dev": {
             "iamRoleArn": "arn:aws:iam::8902348097:role/dev_-_jaws-test_-_jaws"
           }
-        },
-        "restApiId": "gnwo1d58q0"
+        }
       }
     },
     "cfTemplate": {}

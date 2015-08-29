@@ -9,21 +9,18 @@ var fs = require('fs'),
 /**
  * Create Test Project
  */
-module.exports.createTestProject = function() {
-
+module.exports.createTestProject = function(projectName) {
   // Create Test Project
-  var projectPath = path.join(os.tmpdir(), 'jaws-test-project');
+  var projectPath = path.join(os.tmpdir(), './', projectName);
   if (fs.existsSync(projectPath)) {
     del.sync([projectPath], { force: true });
   }
 
   fs.mkdirSync(projectPath);
-  wrench.copyDirSyncRecursive('./jaws-test-project', projectPath, {
+  wrench.copyDirSyncRecursive(path.join(__dirname, './test-prj'), projectPath, {
     forceDelete: true,
   });
-
-  // Reset CWD to test project - Must be done before requiring in tests
-  process.chdir(projectPath);
+  console.log(projectPath);
   return projectPath;
 };
 
