@@ -5,8 +5,8 @@
   "author": "John Serverless <john@gmail.com> http://www.google.com",
   "description": "A lambda function that does something",
   "envVars": [
-    "MYAPP_SERVICE_KEY",
-    "MYAPP_SERVICE2_KEY"
+    "MYAPP_MYLAMBDA_SERVICE_KEY",
+    "MYAPP_MYLAMBDA_SERVICE2_KEY"
   ],
   "lambda": {
     "functionName": "twilioSendSMS",

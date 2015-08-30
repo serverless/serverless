@@ -2,6 +2,9 @@
 
 'use strict';
 
+//TODO: make sure commands with stage, the stage is in the projects jaws.json? or do we want to allow dev/test
+//stages that never make it into the projects jaws.json
+
 var JawsError = require('../lib/jaws-error'),
     JAWS = require('../lib/index.js'),
     program = require('commander'),
@@ -93,9 +96,9 @@ program
     });
 
 program
-    .command('env <cmd> [keyval] <stage>')
+    .command('env <cmd> <stage> [keyval] ')
     .description('Manage env vars for stage. Valid cmds: list,get,set,unset. Ex: get USERNAME test or set USERNAME=blah test')
-    .action(function(cmd, keyval, stage) {
+    .action(function(cmd, stage, keyval) {
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
