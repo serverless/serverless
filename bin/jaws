@@ -93,6 +93,50 @@ program
     });
 
 program
+    .command('env <cmd> [keyval] <stage>')
+    .description('Manage env vars for stage. Valid cmds: list,get,set,unset. Ex: get USERNAME test or set USERNAME=blah test')
+    .action(function(cmd, keyval, stage) {
+      cmd = cmd.toLowerCase();
+      switch (cmd) {
+        case 'list':
+          handleExit(JAWS.listEnv(stage));
+          break;
+        case 'get':
+          if (!keyval) {
+            console.error('Must specify key to set');
+            process.exit(1);
+          }
+          handleExit(JAWS.getEnvKey(stage, keyval));
+          break;
+        case 'set':
+          if (!keyval) {
+            console.error('Must specify key=value');
+            process.exit(1);
+          }
+
+          var parts = keyval.split('=');
+          if (parts.length != 2) {
+            console.error('Must specify key=value');
+            process.exit(1);
+          }
+
+          handleExit(JAWS.setEnvKey(stage, parts[0], parts[1]));
+          break;
+        case 'unset':
+          if (!keyval) {
+            console.error('Must specify key to unset');
+            process.exit(1);
+          }
+          handleExit(JAWS.setEnvKey(stage, keyval));
+          break;
+        default:
+          console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
+          process.exit(1);
+          break;
+      }
+    });
+
+program
     .command('logs <stage>')
     .description('Get logs for the lambda function in the specified stage in your current working directory.')
     .action(function(stage) {
