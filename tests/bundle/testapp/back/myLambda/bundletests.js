@@ -6,11 +6,6 @@
 ////Promise = require('bluebird'),
 ////s3 = Promise.promisifyAll(new AWS.S3());
 //
-//AWS.config.update({
-//  accessKeyId: 'AKIAJ4S3CWK42Q2OVOLQ',
-//  secretAccessKey: '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'
-//});
-//
 //var bucketName = 'jawstest.doapps.com';
 //
 ////module.exports.run = function() {

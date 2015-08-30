@@ -13,6 +13,7 @@ var JawsError = require('../lib/jaws-error'),
     handleExit = utils.handleExit;
 
 program
+    .option('-v, --verbose')
     .version(JAWS._meta.version);
 
 program
@@ -157,4 +158,7 @@ if (process.argv.length == 2) {
   program.outputHelp();
 } else {
   program.parse(process.argv);
+  if (program.verbose) {
+    process.env.JAWS_VERBOSE = true;
+  }
 }
