@@ -4,7 +4,6 @@
  * JAWS: Spot Tests
  * @type {async|exports|module.exports}
  */
-
 var async = require('async'),
     os = require('os'),
     path = require('path'),
