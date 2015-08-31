@@ -97,41 +97,39 @@ program
     });
 
 program
-    .command('env <cmd> <stage> [keyval] ')
+    .command('env <cmd> <stage> [key] [val]')
     .description('Manage env vars for stage. Valid cmds: list,get,set,unset. Ex: get USERNAME test or set USERNAME=blah test')
-    .action(function(cmd, stage, keyval) {
+    .action(function(cmd, stage, key, val) {
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
           handleExit(JAWS.listEnv(stage));
           break;
         case 'get':
-          if (!keyval) {
+          if (!key) {
             console.error('Must specify key to set');
             process.exit(1);
           }
-          handleExit(JAWS.getEnvKey(stage, keyval));
+          handleExit(JAWS.getEnvKey(stage, key));
           break;
         case 'set':
-          if (!keyval) {
-            console.error('Must specify key=value');
+          if (!key || typeof val == 'undefined') {
+            console.error('Must specify key and value');
             process.exit(1);
           }
 
-          var parts = keyval.split('=');
-          if (parts.length != 2) {
-            console.error('Must specify key=value');
-            process.exit(1);
-          }
-
-          handleExit(JAWS.setEnvKey(stage, parts[0], parts[1]));
+          handleExit(JAWS.setEnvKey(stage, key, val));
           break;
         case 'unset':
-          if (!keyval) {
+          if (!key) {
             console.error('Must specify key to unset');
             process.exit(1);
           }
-          handleExit(JAWS.setEnvKey(stage, keyval));
+          if (val) {
+            console.error('Do not specify val for unset');
+            process.exit(1);
+          }
+          handleExit(JAWS.setEnvKey(stage, key));
           break;
         default:
           console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
