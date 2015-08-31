@@ -47,9 +47,10 @@ program
 
 program
     .command('tag [type]')
-    .option('-u, --untag', 'un-tag lambda')
-    .option('-a, --tag-all', 'tag all lambda functions in project')
-    .option('-n, --untag-all', 'un-tag all lambda functions in project')
+    .option('-u, --untag', 'un-tag lambda|api')
+    .option('-a, --tag-all', 'tag all lambda|api functions in project')
+    .option('-l, --list-all', 'list all tagged lambda|api functions in project')
+    .option('-n, --untag-all', 'un-tag all lambda|api functions in project')
     .description('Tag a lambda function (type: lambda, the default) or api gateway resource (api) to be deployed the next time deploy command is run')
     .action(function(type, options) {
       type = type || 'lambda';
@@ -60,7 +61,11 @@ program
         process.exit(1);
       }
 
-      if (options.tagAll || options.untagAll) {
+      if (options.listAll) {
+        handleExit(JAWS.listAll(type).then(function(relPaths) {
+          console.log(relPaths)
+        }));
+      } else if (options.tagAll || options.untagAll) {
         var untag = (options.untagAll) ? true : false;
         handleExit(JAWS.tagAll(type, untag));
       } else {  //If not tagging all, you have to be tagging whats in your CWD (null 1st param)
