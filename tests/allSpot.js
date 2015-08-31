@@ -11,14 +11,18 @@ var async = require('async'),
     AWS = require('aws-sdk'),
     shortid = require('shortid');
 
+// Require ENV vars
+require('dotenv').load();
+
 // Define Test Data
 var testData = {};
 testData.name = 'test-prj';
 testData.notifyEmail = 'tester@jawsstack.com';
-testData.s3Bucket = process.env.TEST_JAWS_S3_BUCKET || 'jawstest6';
 testData.stage = 'unittest';
 testData.region = 'us-east-1';
-testData.profile = 'default';
+testData.envBucket = process.env.TEST_JAWS_ENV_BUCKET;
+testData.profile = process.env.TEST_JAWS_PROFILE || 'default';
+testData.iamRoleARN = process.env.TEST_JAWS_IAM_ROLE;
 
 // Add aws-sdk to Test Data Object (helps clean up test resources, etc.)
 testData.AWS = require('aws-sdk');
@@ -31,11 +35,13 @@ testData.AWS.config.update({
 
 // Require Tests
 var tests = [
-  require('./new'),
-  require('./deploy/api'),
+  require('./tests/tag'),
+  require('./tests/deploy_lambda'),
+  //require('./tests/deploy_api'),
+  //require('./tests/new'), // Must be last
 ];
 
 // Run Tests
 async.eachSeries(tests, function(test, cb) {
-    test(testData, function(testData) { return cb(); });
+  test(testData, function(testData) { return cb(); });
 }, function(error) { console.log('Tests completed'); });

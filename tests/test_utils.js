@@ -9,24 +9,32 @@ var fs = require('fs'),
 /**
  * Create Test Project
  */
-module.exports.createTestProject = function(projectName) {
+
+module.exports.createTestProject = function(projectName, projectRegion, projectStage, projectIAMRole, projectEnvBucket) {
   // Create Test Project
   var projectPath = path.join(os.tmpdir(), './', projectName);
   if (fs.existsSync(projectPath)) {
     del.sync([projectPath], { force: true });
   }
 
+  // Copy test project ot temp directory
   fs.mkdirSync(projectPath);
   wrench.copyDirSyncRecursive(path.join(__dirname, './test-prj'), projectPath, {
     forceDelete: true,
   });
-  console.log(projectPath);
-  return projectPath;
-};
 
-/**
- * Delete Test Project
- */
-module.exports.deleteTestProject = function(path) {
-  del.sync([path], {force: true});
+  // Add jaws.json project data
+  var projectJSON = require(path.join(projectPath, 'jaws.json'));
+  projectJSON.project.regions = {};
+  projectJSON.project.regions[projectRegion] = {};
+  projectJSON.project.regions[projectRegion].stages = {};
+  projectJSON.project.regions[projectRegion].stages[projectStage] = {};
+  projectJSON.project.regions[projectRegion].stages[projectStage].iamRoleArn = projectIAMRole;
+  projectJSON.project.envVarBucket = {
+    name: projectEnvBucket,
+    region: projectRegion,
+  };
+  fs.writeFileSync(path.join(projectPath, 'jaws.json'), projectJSON);
+
+  return projectPath;
 };
