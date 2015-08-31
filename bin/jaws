@@ -28,8 +28,8 @@ program
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .action(function(options) {
       handleExit(JAWS.new(
-          options.projName,  //name is reserved in commander...
-          options.stage.toLowerCase(),
+          options.projName,  // name is reserved in commander...
+          options.stage ? options.stage.toLowerCase() : null,
           options.s3Bucket,
           options.lambdaRegion,
           options.notificationEmail,

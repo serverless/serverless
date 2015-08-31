@@ -16,7 +16,7 @@
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
-    "optimize": true,
+    "build": true,
     "includePaths": [],
     "ignoreFiles": [],
     "excludeFiles": []
