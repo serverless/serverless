@@ -20,7 +20,7 @@ testData.notifyEmail = 'tester@jawsstack.com';
 testData.stage = 'unittest';
 testData.region = 'us-east-1';
 testData.envBucket = process.env.TEST_JAWS_ENV_BUCKET;
-testData.profile = process.env.TEST_JAWS_PROFILE || 'default';
+testData.profile = process.env.TEST_JAWS_PROFILE;
 testData.iamRoleARN = process.env.TEST_JAWS_IAM_ROLE;
 
 // Add aws-sdk to Test Data Object (helps clean up test resources, etc.)
@@ -37,6 +37,7 @@ var tests = [
   require('./tests/tag'),
   require('./tests/deploy_lambda'),
   require('./tests/deploy_api'),
+  //require('./tests/install'),
   //require('./tests/new'), // Must be last
 ];
 

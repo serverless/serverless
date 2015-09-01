@@ -1,15 +1,15 @@
 'use strict';
 
 /**
- * JAWS Test: Deploy API Command
- * - Copies the test-prj template to your system's temp directory
- * - Deploys an API based on the endpoints in the project
+ * JAWS Test: Install Command
  */
-var testUtils = require('../test_utils');
+
+var testUtils = require('../test_utils'),
+    path = require('path');
 
 module.exports = function(testData, cb) {
 
-  describe('Test deploy api command', function() {
+  describe('Test "install" command', function() {
 
     before(function() {
       testData.projectPath = testUtils.createTestProject(
@@ -18,7 +18,7 @@ module.exports = function(testData, cb) {
           testData.stage,
           testData.iamRoleARN,
           testData.envBucket);
-      process.chdir(testData.projectPath);
+      process.chdir(path.join(testData.projectPath, 'back/users/lambdas/show'));
     });
 
     after(function(done) {
@@ -26,16 +26,13 @@ module.exports = function(testData, cb) {
       done();
     });
 
-    it('Deploy REST API', function(done) {
-
+    it('Without options', function(done) {
       this.timeout(0);
 
-      // Require
       var JAWS = require('../../lib/index.js'),
           JawsError = require('../../lib/jaws-error');
 
-      // Test
-      JAWS.deployApi(testData.stage)
+      JAWS.install()
           .then(function() {
             done();
           })

@@ -36,7 +36,6 @@ module.exports = function(testData, cb) {
       // Test
       JAWS.deployLambdas(testData.stage, false, false)
           .then(function(d) {
-            console.log(d);
             done();
           })
           .error(function(e) {
