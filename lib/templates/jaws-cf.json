@@ -44,11 +44,14 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "lambda.amazonaws.com"
+                  "lambda.amazonaws.com",
+                  "apigateway.amazonaws.com"
                 ]
               },
               "Action": [
-                "sts:AssumeRole"
+                "sts:AssumeRole",
+                "lambda:InvokeFunction",
+                "iam:PassRole"
               ]
             }
           ]
