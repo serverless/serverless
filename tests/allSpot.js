@@ -34,10 +34,10 @@ testData.AWS.config.update({
 
 // Require Tests
 var tests = [
-  require('./tests/tag'),
-  require('./tests/deploy_lambda'),
-  require('./tests/deploy_api'),
-  //require('./tests/install'),
+  //require('./tests/tag'),
+  //require('./tests/deploy_lambda'),
+  //require('./tests/deploy_api'),
+  require('./tests/install'),
   //require('./tests/new'), // Must be last
 ];
 

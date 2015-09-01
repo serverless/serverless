@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * JAWS Test: Install Command
+ * JAWS Test: ENV Command
  */
 
 var testUtils = require('../test_utils'),
