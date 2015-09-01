@@ -17,7 +17,7 @@ module.exports.createTestProject = function(projectName, projectRegion, projectS
     del.sync([projectPath], { force: true });
   }
 
-  // Copy test project ot temp directory
+  // Copy test project to temp directory
   fs.mkdirSync(projectPath);
   wrench.copyDirSyncRecursive(path.join(__dirname, './test-prj'), projectPath, {
     forceDelete: true,
@@ -35,6 +35,9 @@ module.exports.createTestProject = function(projectName, projectRegion, projectS
     region: projectRegion,
   };
   fs.writeFileSync(path.join(projectPath, 'jaws.json'), projectJSON);
+
+  // Create admin.env file
+  fs.writeFileSync(path.join(projectPath, 'admin.env'), 'ADMIN_AWS_PROFILE=jawstest');
 
   return projectPath;
 };
