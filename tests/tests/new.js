@@ -9,6 +9,7 @@ var path = require('path'),
     os = require('os'),
     assert = require('chai').assert,
     testUtils = require('../test_utils'),
+    shortid = require('shortid'),
     AWS = require('aws-sdk');
 
 module.exports = function(testData, cb) {
@@ -16,6 +17,7 @@ module.exports = function(testData, cb) {
   describe('Test new command', function() {
 
     before(function(done) {
+      testData.newName = 'jaws-test-' + shortid.generate();
       process.chdir(os.tmpdir());
       done();
     });
@@ -35,15 +37,15 @@ module.exports = function(testData, cb) {
 
       // Test
       JAWS.new(
-          testData.name,
+          testData.newName,
           testData.stage,
-          testData.s3Bucket,
+          testData.envBucket,
           testData.region,
           testData.notifyEmail,
           testData.profile
       )
           .then(function() {
-            var jawsJson = require(path.join(os.tmpdir(), testData.name, 'jaws.json'));
+            var jawsJson = require(path.join(os.tmpdir(), testData.newName, 'jaws.json'));
             assert.isTrue(!!jawsJson.project.regions['us-east-1'].stages[testData.stage].iamRoleArn);
             done();
           })
@@ -55,13 +57,13 @@ module.exports = function(testData, cb) {
           });
     });
 
-    it('Delete Cloudformation stack from new project', function(done) {
-      this.timeout(0);
-      var CF = new testData.AWS.CloudFormation();
-      CF.deleteStack({ StackName: testData.stage + '-' + testData.name }, function(err, data) {
-        if (err) console.log(err, err.stack);
-        done();
-      });
-    });
+    //it('Delete Cloudformation stack from new project', function(done) {
+    //  this.timeout(0);
+    //  var CF = new testData.AWS.CloudFormation();
+    //  CF.deleteStack({ StackName: testData.stage + '-' + testData.name }, function(err, data) {
+    //    if (err) console.log(err, err.stack);
+    //    done();
+    //  });
+    //});
   });
 };

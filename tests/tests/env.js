@@ -9,7 +9,7 @@ var testUtils = require('../test_utils'),
 
 module.exports = function(testData, cb) {
 
-  describe('Test "install" command', function() {
+  describe('Test "env" command', function() {
 
     before(function() {
       testData.projectPath = testUtils.createTestProject(
@@ -26,18 +26,14 @@ module.exports = function(testData, cb) {
       done();
     });
 
-    it('Install module', function(done) {
+    it('Test env command', function(done) {
       this.timeout(0);
 
-      var JAWS = require('../../lib/index.js'),
-          JawsError = require('../../lib/jaws-error');
+      var JAWS = require('../../lib/index.js');
 
-      JAWS.install('https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js')
-          .then(function() {
+      JAWS.listEnv(testData.stage)
+          .then(function(d) {
             done();
-          })
-          .catch(JawsError, function(e) {
-            done(e);
           })
           .error(function(e) {
             done(e);

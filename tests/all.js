@@ -1,51 +1,48 @@
 'use strict';
 
-var shortid = require('shortid'),
-    fs = require('fs'),
+/**
+ * JAWS: Spot Tests
+ * @type {async|exports|module.exports}
+ */
+var async = require('async'),
     os = require('os'),
-    del = require('del'),
-    path = require('path');
+    path = require('path'),
+    AWS = require('aws-sdk'),
+    shortid = require('shortid');
 
-// Seed Test Data
-process.env.TEST_PROJECT_NAME = 'jaws-test-' + shortid.generate();
-process.env.TEST_PROJECT_DIR = path.join(os.tmpdir(), process.env.TEST_PROJECT_NAME);
-process.env.TEST_JAWS_S3_BUCKET = process.env.JAWS_TESTCASE_BUCKET || 'jawstest.doapps.com';
+// Require ENV vars
+require('dotenv').config({ path: __dirname + '/.env' });
 
-// Run all tests
-describe('JAWS Tests', function() {
+// Define Test Data
+var testData = {};
+testData.name = 'test-prj';
+testData.notifyEmail = 'tester@jawsstack.com';
+testData.stage = 'unittest';
+testData.region = 'us-east-1';
+testData.envBucket = process.env.TEST_JAWS_ENV_BUCKET;
+testData.profile = process.env.TEST_JAWS_PROFILE;
+testData.iamRoleARN = process.env.TEST_JAWS_IAM_ROLE;
 
-  before(function(done) {
-    this.timeout(0);
-    fs.mkdirSync(process.env.TEST_PROJECT_DIR);
-    process.chdir(process.env.TEST_PROJECT_DIR);
-    console.error('Unit test proj root dir', process.env.TEST_PROJECT_DIR);
-    done();
-  });
-
-  after(function() {
-    // Remove Test Project
-    del([process.env.TEST_PROJECT_DIR], {
-      force: true,
-    }, function(err, paths) {
-      console.log('Tests Completed.  Test project destroyed.');
-    });
-  });
-
-  // Run tests sequentially
-  //require('./tag');
-
-  //require('./bundle');
-
-  //require('./env');
-
-  /**
-   * Tests below here actually require creating aws resources, so dont always run, just uncomment to spot check
-   */
-
-  //require('./new');
-
-  require('./deploy/api');
-
-  //require('./deploy/lambda');
-
+// Add aws-sdk to Test Data Object (helps clean up test resources, etc.)
+testData.AWS = require('aws-sdk');
+testData.AWS.config.credentials = new testData.AWS.SharedIniFileCredentials({
+  profile: testData.profile,
 });
+testData.AWS.config.update({
+  region: testData.region,
+});
+
+// Require Tests ("new" must be last)
+var tests = [
+  require('./tests/tag'),
+  require('./tests/deploy_lambda'),
+  require('./tests/deploy_api'),
+  require('./tests/install'),
+  require('./tests/env'),
+  require('./tests/new'),
+];
+
+// Run Tests
+async.eachSeries(tests, function(test, cb) {
+  test(testData, function(testData) { return cb(); });
+}, function(error) { console.log('Tests completed'); });

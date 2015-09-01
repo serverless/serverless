@@ -49,9 +49,7 @@
                 ]
               },
               "Action": [
-                "sts:AssumeRole",
-                "lambda:InvokeFunction",
-                "iam:PassRole"
+                "sts:AssumeRole"
               ]
             }
           ]
@@ -76,7 +74,7 @@
         "Path": "/dataModel/"
       }
     },
-    "DataModelPolicy": {
+    "Policy": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyName": {
@@ -98,6 +96,8 @@
             {
               "Effect": "Allow",
               "Action": [
+                "lambda:InvokeFunction",
+                "iam:PassRole",
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
