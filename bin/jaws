@@ -2,6 +2,9 @@
 
 'use strict';
 
+//TODO: make sure commands with stage, the stage is in the projects jaws.json? or do we want to allow dev/test
+//stages that never make it into the projects jaws.json
+
 var JawsError = require('../lib/jaws-error'),
     JAWS = require('../lib/index.js'),
     program = require('commander'),
@@ -10,6 +13,7 @@ var JawsError = require('../lib/jaws-error'),
     handleExit = utils.handleExit;
 
 program
+    .option('-v, --verbose')
     .version(JAWS._meta.version);
 
 program
@@ -17,7 +21,7 @@ program
     .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation ' +
     'stack which provisions essential AWS resources for your JAWS project.')
     .option('-n, --proj-name <name>', 'Project name')
-    .option('-s, --stage <stage>', 'Stage to create')
+    .option('-s, --stage <stage>', 'Stage to create. all lowercase')
     .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE')
     .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in (Can add more later)')
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
@@ -25,7 +29,7 @@ program
     .action(function(options) {
       handleExit(JAWS.new(
           options.projName,  //name is reserved in commander...
-          options.stage,
+          options.stage.toLowerCase(),
           options.s3Bucket,
           options.lambdaRegion,
           options.notificationEmail,
@@ -42,18 +46,47 @@ program
     });
 
 program
+    .command('tag [type]')
+    .option('-u, --untag', 'un-tag lambda|api')
+    .option('-a, --tag-all', 'tag all lambda|api functions in project')
+    .option('-l, --list-all', 'list all tagged lambda|api functions in project')
+    .option('-n, --untag-all', 'un-tag all lambda|api functions in project')
+    .description('Tag a lambda function (type: lambda, the default) or api gateway resource (api) to be deployed the next time deploy command is run')
+    .action(function(type, options) {
+      type = type || 'lambda';
+      type = type.toLowerCase();
+
+      if (-1 == ['api', 'lambda'].indexOf(type)) {
+        console.error('Unsupported type ' + type + '. Must be api|lambda');
+        process.exit(1);
+      }
+
+      if (options.listAll) {
+        handleExit(JAWS.listAll(type).then(function(relPaths) {
+          console.log(relPaths)
+        }));
+      } else if (options.tagAll || options.untagAll) {
+        var untag = (options.untagAll) ? true : false;
+        handleExit(JAWS.tagAll(type, untag));
+      } else {  //If not tagging all, you have to be tagging whats in your CWD (null 1st param)
+        handleExit(JAWS.tag(type, null, options.untag));
+      }
+    });
+
+program
     .command('deploy <type> <stage>')
-    .description('Deploy a lambda function, a REST API, or provision AWS resources for the specified stage.')
-    .option('-a, --all-tagged', 'Deploy all lambdas tagged as deployable in their jaws.json')
+    .description('Deploy a lambda function (type lambda), a REST API (api), or provision AWS resources (resources) for the specified stage.' +
+    ' By default will tag and deploy type at cwd')
+    .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
     .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
-    .action(function(type, stage) {
+    .action(function(type, stage, options) {
       type = type.toLowerCase();
       switch (type) {
         case 'api':
           handleExit(JAWS.deployApi(stage));
           break;
         case 'lambda':
-          var allTagged = (options.allTagged) ? true : false,
+          var allTagged = (options.tags) ? true : false,
               allAtOnce = (options.allAtOnce) ? true : false;
 
           handleExit(JAWS.deployLambdas(stage, allTagged, allAtOnce));
@@ -70,18 +103,44 @@ program
     });
 
 program
-    .command('tag')
-    .option('-u, --untag', 'un-tag lambda')
-    .option('-a, --tag-all', 'tag all lambda functions in project')
-    .option('-n, --untag-all', 'un-tag all lambda functions in project')
-    .description('Tag a lambda function to be deployed the next time you run the deploy command for all' +
-    ' tagged lambdas.')
-    .action(function() {
-      if (options.tagAll || options.untagAll) {
-        var untag = (options.untagAll) ? true : false;
-        handleExit(JAWS.tagAll(untag));
-      } else {
-        handleExit(JAWS.tag(null, options.untag));
+    .command('env <cmd> <stage> [key] [val]')
+    .description('Manage env vars for stage. Valid cmds: list,get,set,unset. Ex: get USERNAME test or set USERNAME=blah test')
+    .action(function(cmd, stage, key, val) {
+      cmd = cmd.toLowerCase();
+      switch (cmd) {
+        case 'list':
+          handleExit(JAWS.listEnv(stage));
+          break;
+        case 'get':
+          if (!key) {
+            console.error('Must specify key to set');
+            process.exit(1);
+          }
+          handleExit(JAWS.getEnvKey(stage, key));
+          break;
+        case 'set':
+          if (!key || typeof val == 'undefined') {
+            console.error('Must specify key and value');
+            process.exit(1);
+          }
+
+          handleExit(JAWS.setEnvKey(stage, key, val));
+          break;
+        case 'unset':
+          if (!key) {
+            console.error('Must specify key to unset');
+            process.exit(1);
+          }
+          if (val) {
+            console.error('Do not specify val for unset');
+            process.exit(1);
+          }
+          handleExit(JAWS.setEnvKey(stage, key));
+          break;
+        default:
+          console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
+          process.exit(1);
+          break;
       }
     });
 
@@ -103,4 +162,7 @@ if (process.argv.length == 2) {
   program.outputHelp();
 } else {
   program.parse(process.argv);
+  if (program.verbose) {
+    process.env.JAWS_VERBOSE = true;
+  }
 }

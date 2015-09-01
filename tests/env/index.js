@@ -3,30 +3,31 @@
 var JawsError = require('../../lib/jaws-error'),
     path = require('path'),
     fs = require('fs'),
-    assert = require('chai').assert;
+    assert = require('chai').assert,
+    JAWS = null;
 
 var projName = process.env.TEST_PROJECT_NAME,
     stage = 'mystage',
     lambdaRegion = 'us-east-1',
     notificationEmail = 'tester@jawsstack.com',
-    awsProfile = 'default',
-    JAWS = null;
+    awsProfile = 'default';
 
-var backDir = path.join('/Users/ryan/jawstests/my-project', 'back');  //process.env.TEST_PROJECT_DIR
-// Tests
-describe('Test deployment', function() {
+describe('env command', function() {
   before(function(done) {
-    process.chdir(path.join(backDir, 's3-tests'));
+    this.timeout(0);
+
+    process.chdir('/Users/ryanpendergast/projects/JAWS/tests/bundle/testapp');
+
     JAWS = require('../../lib/index.js');
+
     done();
   });
 
-  it('deploy lambda', function(done) {
+  it('list', function(done) {
     this.timeout(0);
 
-    JAWS.deployLambdas(stage, false, false)
+    JAWS.listEnv(stage)
         .then(function(d) {
-          console.log(d);
           done();
         })
         .error(function(e) {
@@ -34,4 +35,3 @@ describe('Test deployment', function() {
         });
   });
 });
-

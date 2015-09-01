@@ -1,0 +1,29 @@
+{
+  "name": "bundle-test",
+  "version": "1.0.0",
+  "preferGlobal": true,
+  "description": "JAWS is the server-less application framework.  This command line tool helps you build server-less applications.",
+  "author": "Austen Collins <austen@servant.co>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/servant-app/JAWS.git"
+  },
+  "keywords": [
+    "jaws",
+    "jaws stack",
+    "jaws cli",
+    "api gateway",
+    "lambda",
+    "aws",
+    "amazon",
+    "amazon web services",
+    "dynamodb"
+  ],
+  "dependencies": {
+    "aws-sdk": "^2.1.24",
+    "bluebird": "^2.9.34",
+    "node-uuid": "^1.4.2",
+    "shortid": "^2.2.2"
+  }
+}

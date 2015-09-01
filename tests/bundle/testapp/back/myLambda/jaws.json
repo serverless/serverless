@@ -1,27 +1,25 @@
 {
-  "name": "skinnyJeans-",
+  "name": "skinnyJeans-bundle-test",
   "version": "1.0",
   "location": "https://github.com/jaws-stack/skinny-jeans",
   "author": "John Serverless <john@gmail.com> http://www.google.com",
   "description": "A lambda function that does something",
   "envVars": [
-    "MYAPP_SERVICE_KEY",
-    "MYAPP_SERVICE2_KEY"
+    "MYAPP_MYLAMBDA_SERVICE_KEY",
+    "MYAPP_MYLAMBDA_SERVICE2_KEY"
   ],
   "lambda": {
     "functionName": "twilioSendSMS",
     "runtime": "nodejs",
     "runtimeVer": "0.10.33",
-    "handler": "index.handler",
+    "handler": "bundletests.handler",
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
-    "optimize": true,
+    "build": "browserify",
+    "minify": false,
     "includePaths": [],
     "ignoreFiles": [],
     "excludeFiles": []
-  },
-  "endpoint": {
-    "deploy": false
   }
 }

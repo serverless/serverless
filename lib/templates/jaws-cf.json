@@ -115,5 +115,16 @@
         ]
       }
     }
+  },
+  "Outputs": {
+    "LambdaRoleARN": {
+      "Description": "ARN of the lambda IAM role",
+      "Value": {
+        "Fn::GetAtt": [
+          "LambdaRole",
+          "Arn"
+        ]
+      }
+    }
   }
 }
