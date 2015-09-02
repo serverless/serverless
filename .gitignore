@@ -5,6 +5,7 @@
 *.out
 *.pid
 *.gz
+*.env
 
 **/.idea
 .DS_Store
