@@ -1,48 +1,24 @@
 'use strict';
 
-/**
- * JAWS: Spot Tests
- * @type {async|exports|module.exports}
- */
-var async = require('async'),
-    os = require('os'),
-    path = require('path'),
-    AWS = require('aws-sdk'),
-    shortid = require('shortid');
+//TODO: doc on needing to set env vars
+//TODO: must setup an env var file for unittest
+require('./config');  //init config
 
-// Require ENV vars
-require('dotenv').config({ path: __dirname + '/.env' });
+describe('AllTests', function() {
+  before(function(done) {
+    this.timeout(0);  //dont timeout anything
+    done();
+  });
 
-// Define Test Data
-var testData = {};
-testData.name = 'test-prj';
-testData.notifyEmail = 'tester@jawsstack.com';
-testData.stage = 'unittest';
-testData.region = 'us-east-1';
-testData.envBucket = process.env.TEST_JAWS_ENV_BUCKET;
-testData.profile = process.env.TEST_JAWS_PROFILE;
-testData.iamRoleARN = process.env.TEST_JAWS_IAM_ROLE;
+  after(function() {
+  });
 
-// Add aws-sdk to Test Data Object (helps clean up test resources, etc.)
-testData.AWS = require('aws-sdk');
-testData.AWS.config.credentials = new testData.AWS.SharedIniFileCredentials({
-  profile: testData.profile,
+  //require tests vs inline so we can run sequentially
+  // Require Tests ("new" must be last)
+  require('./cli/tag');             //does not create AWS resources
+  require('./cli/deploy_lambda');
+  //require('./cli/deploy_api');    //TODO: figure out what specific permissions are needed
+  require('./cli/install');
+  require('./cli/env');
+  //require('./cli/new');
 });
-testData.AWS.config.update({
-  region: testData.region,
-});
-
-// Require Tests ("new" must be last)
-var tests = [
-  require('./tests/tag'),
-  require('./tests/deploy_lambda'),
-  require('./tests/deploy_api'),
-  require('./tests/install'),
-  require('./tests/env'),
-  require('./tests/new'),
-];
-
-// Run Tests
-async.eachSeries(tests, function(test, cb) {
-  test(testData, function(testData) { return cb(); });
-}, function(error) { console.log('Tests completed'); });
