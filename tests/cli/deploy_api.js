@@ -5,27 +5,29 @@
  * - Copies the test-prj template to your system's temp directory
  * - Deploys an API based on the endpoints in the project
  */
-var testUtils = require('../test_utils');
+var testUtils = require('../test_utils'),
+    path = require('path'),
+    assert = require('chai').assert;
 
-module.exports = function(testData, cb) {
+var config = require('../config');
 
-  describe('Test deploy api command', function() {
+describe('Test deploy api command', function() {
 
-    before(function() {
-      testData.projectPath = testUtils.createTestProject(
-          testData.name,
-          testData.region,
-          testData.stage,
-          testData.iamRoleARN,
-          testData.envBucket);
-      process.chdir(testData.projectPath);
-    });
+  before(function() {
+    config.projectPath = testUtils.createTestProject(
+        config.name,
+        config.region,
+        config.stage,
+        config.iamRoleARN,
+        config.envBucket);
+    process.chdir(config.projectPath);
+  });
 
-    after(function(done) {
-      cb(testData);
-      done();
-    });
+  after(function(done) {
+    done();
+  });
 
+  describe('Positive tests', function() {
     it('Deploy REST API', function(done) {
 
       this.timeout(0);
@@ -35,7 +37,7 @@ module.exports = function(testData, cb) {
           JawsError = require('../../lib/jaws-error');
 
       // Test
-      JAWS.deployApi(testData.stage)
+      JAWS.deployApi(config.stage)
           .then(function() {
             done();
           })
@@ -47,4 +49,4 @@ module.exports = function(testData, cb) {
           });
     });
   });
-};
+});
