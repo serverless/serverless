@@ -12,7 +12,7 @@
     "functionName": "browserifytest",
     "runtime": "nodejs",
     "runtimeVer": "0.10.33",
-    "handler": "lambdas/browserify/tests/main.handler",
+    "handler": "lambdas/browserify/tests/main.run",
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
