@@ -1,0 +1,25 @@
+{
+  "name": "test-prj",
+  "version": "1.0.0",
+  "preferGlobal": true,
+  "description": "unittest project",
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jaws-stack/JAWS.git"
+  },
+  "keywords": [],
+  "dependencies": {
+    "async": "^1.4.2",
+    "aws-sdk": "^2.1.24",
+    "bluebird": "^2.9.34",
+    "lodash": "^3.10.1",
+    "moment": "^2.10.6",
+    "node-uuid": "^1.4.2",
+    "request": "^2.61.0",
+    "shortid": "^2.2.2",
+    "through2": "^2.0.0",
+    "underscore": "^1.8.3"
+  }
+}

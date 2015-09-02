@@ -9,7 +9,6 @@ var testUtils = require('../test_utils'),
 
 var config = require('../config');
 
-
 describe('Test "deploy lambda" command', function() {
 
   before(function() {
@@ -17,9 +16,9 @@ describe('Test "deploy lambda" command', function() {
         config.name,
         config.region,
         config.stage,
-        config.iamRoleARN,
-        config.envBucket);
-    process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
+        config.lambdaDeployIamRoleArn,
+        config.envBucket,
+        ['back']);
   });
 
   after(function(done) {
@@ -27,9 +26,10 @@ describe('Test "deploy lambda" command', function() {
   });
 
   describe('Positive tests', function() {
-    it('Deploy Lambda', function(done) {
 
+    it('Multi level module deploy', function(done) {
       this.timeout(0);
+      process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
 
       // Require
       var JAWS = require('../../lib/index.js');
@@ -43,5 +43,23 @@ describe('Test "deploy lambda" command', function() {
             done(e);
           });
     });
+
+    //it('browserify deploy', function(done) {
+    //  this.timeout(0);
+    //  process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
+    //
+    //  // Require
+    //  var JAWS = require('../../lib/index.js');
+    //
+    //  // Test
+    //  JAWS.deployLambdas(config.stage, false, false)
+    //      .then(function(d) {
+    //        done();
+    //      })
+    //      .error(function(e) {
+    //        done(e);
+    //      });
+    //});
+
   });
 });

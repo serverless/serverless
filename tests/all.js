@@ -17,8 +17,8 @@ describe('AllTests', function() {
   // Require Tests ("new" must be last)
   require('./cli/tag');             //does not create AWS resources
   require('./cli/deploy_lambda');
-  //require('./cli/deploy_api');
+  //require('./cli/deploy_api');    //TODO: figure out what specific permissions are needed
   require('./cli/install');
   require('./cli/env');
-  require('./cli/new');
+  //require('./cli/new');
 });
