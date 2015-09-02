@@ -4,20 +4,20 @@
   "Parameters": {
     "aaProjectName": {
       "Type": "String",
-      "Default": "jaws",
+      "Default": "jaws-new-EJYMNmGh",
       "AllowedValues": [
-        "jaws"
+        "jaws-new-EJYMNmGh"
       ]
     },
     "aaStage": {
       "Type": "String",
-      "Default": "test"
+      "Default": "dev"
     },
     "aaDataModelPrefix": {
       "Type": "String",
-      "Default": "test",
+      "Default": "dev",
       "AllowedValues": [
-        "test"
+        "dev"
       ]
     },
     "aaHostedZoneName": {
@@ -26,7 +26,7 @@
     },
     "aaNotficationEmail": {
       "Type": "String",
-      "Default": "you@you.com"
+      "Default": "austen@servant.co"
     },
     "aaDefaultDynamoRWThroughput": {
       "Type": "String",
@@ -44,8 +44,7 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "lambda.amazonaws.com",
-                  "apigateway.amazonaws.com"
+                  "lambda.amazonaws.com"
                 ]
               },
               "Action": [
@@ -74,7 +73,7 @@
         "Path": "/dataModel/"
       }
     },
-    "Policy": {
+    "DataModelPolicy": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyName": {
@@ -96,8 +95,6 @@
             {
               "Effect": "Allow",
               "Action": [
-                "lambda:InvokeFunction",
-                "iam:PassRole",
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
@@ -115,17 +112,6 @@
           {
             "Ref": "Group"
           }
-        ]
-      }
-    }
-  },
-  "Outputs": {
-    "LambdaRoleARN": {
-      "Description": "ARN of the lambda IAM role",
-      "Value": {
-        "Fn::GetAtt": [
-          "LambdaRole",
-          "Arn"
         ]
       }
     }

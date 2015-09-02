@@ -5,8 +5,6 @@
 *.out
 *.pid
 *.gz
-*.idea
-*.env
 
 **/.idea
 .DS_Store
@@ -17,12 +15,7 @@ pids
 logs
 results
 npm-debug.log
-admin.env
+.env
+*.env
 
-site/public/libs
-site/node_modules
 lib/node_modules
-cli/node_modules
-api/**/node_modules
-node_modules
-dist
