@@ -46,6 +46,7 @@ module.exports = function(testData, cb) {
       )
           .then(function() {
             var jawsJson = require(path.join(os.tmpdir(), testData.newName, 'jaws.json'));
+            console.log(jawsJson, jawsJson.project, jawsJson.project.stages);
             assert.isTrue(!!jawsJson.project.stages[0].region[testData.region].iamRoleArn);
             done();
           })
