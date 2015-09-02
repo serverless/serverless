@@ -5,27 +5,28 @@
  */
 
 var testUtils = require('../test_utils'),
-    path = require('path');
+    path = require('path'),
+    assert = require('chai').assert;
 
-module.exports = function(testData, cb) {
+var config = require('../config');
 
-  describe('Test "install" command', function() {
+describe('Test "install" command', function() {
 
-    before(function() {
-      testData.projectPath = testUtils.createTestProject(
-          testData.name,
-          testData.region,
-          testData.stage,
-          testData.iamRoleARN,
-          testData.envBucket);
-      process.chdir(path.join(testData.projectPath, 'back/users/lambdas/show'));
-    });
+  before(function() {
+    config.projectPath = testUtils.createTestProject(
+        config.name,
+        config.region,
+        config.stage,
+        config.iamRoleARN,
+        config.envBucket);
+    process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
+  });
 
-    after(function(done) {
-      cb(testData);
-      done();
-    });
+  after(function(done) {
+    done();
+  });
 
+  describe('Positive tests', function() {
     it('Install module', function(done) {
       this.timeout(0);
 
@@ -44,4 +45,4 @@ module.exports = function(testData, cb) {
           });
     });
   });
-};
+});

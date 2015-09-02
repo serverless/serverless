@@ -8,10 +8,9 @@
 var path = require('path'),
     os = require('os'),
     assert = require('chai').assert,
-    shortid = require('shortid'),
-    AWS = require('aws-sdk');
+    shortid = require('shortid');
 
-var config = require('./config');
+var config = require('../config');
 
 describe('Test new command', function() {
 

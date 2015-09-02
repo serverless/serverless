@@ -3,29 +3,30 @@
 /**
  * JAWS Test: Deploy Lambda Command
  */
-
 var testUtils = require('../test_utils'),
-    path = require('path');
+    path = require('path'),
+    assert = require('chai').assert;
 
-module.exports = function(testData, cb) {
+var config = require('../config');
 
-  describe('Test "deploy lambda" command', function() {
 
-    before(function() {
-      testData.projectPath = testUtils.createTestProject(
-          testData.name,
-          testData.region,
-          testData.stage,
-          testData.iamRoleARN,
-          testData.envBucket);
-      process.chdir(path.join(testData.projectPath, 'back/users/lambdas/show'));
-    });
+describe('Test "deploy lambda" command', function() {
 
-    after(function(done) {
-      cb(testData);
-      done();
-    });
+  before(function() {
+    config.projectPath = testUtils.createTestProject(
+        config.name,
+        config.region,
+        config.stage,
+        config.iamRoleARN,
+        config.envBucket);
+    process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
+  });
 
+  after(function(done) {
+    done();
+  });
+
+  describe('Positive tests', function() {
     it('Deploy Lambda', function(done) {
 
       this.timeout(0);
@@ -34,7 +35,7 @@ module.exports = function(testData, cb) {
       var JAWS = require('../../lib/index.js');
 
       // Test
-      JAWS.deployLambdas(testData.stage, false, false)
+      JAWS.deployLambdas(config.stage, false, false)
           .then(function(d) {
             done();
           })
@@ -43,4 +44,4 @@ module.exports = function(testData, cb) {
           });
     });
   });
-};
+});

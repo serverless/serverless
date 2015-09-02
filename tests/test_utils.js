@@ -12,9 +12,9 @@ var fs = require('fs'),
 
 module.exports.createTestProject = function(projectName, projectRegion, projectStage, projectIAMRole, projectEnvBucket) {
   // Create Test Project
-  var projectPath = path.join(os.tmpdir(), './', projectName);
+  var projectPath = path.join(os.tmpdir(), projectName);
   if (fs.existsSync(projectPath)) {
-    del.sync([projectPath], { force: true });
+    del.sync([projectPath], {force: true});
   }
 
   // Copy test project to temp directory
@@ -37,7 +37,7 @@ module.exports.createTestProject = function(projectName, projectRegion, projectS
   fs.writeFileSync(path.join(projectPath, 'jaws.json'), projectJSON);
 
   // Create admin.env file
-  fs.writeFileSync(path.join(projectPath, 'admin.env'), 'ADMIN_AWS_PROFILE=jawstest');
+  fs.writeFileSync(path.join(projectPath, 'admin.env'), 'ADMIN_AWS_PROFILE=' + process.env.TEST_JAWS_PROFILE);
 
   return projectPath;
 };
