@@ -62,7 +62,7 @@ module.exports.createTestProject = function(projectName,
     name: projectEnvBucket,
     region: projectRegion,
   };
-  fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), projectJSON);
+  fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
 
   // Create admin.env file
   fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), 'ADMIN_AWS_PROFILE=' + process.env.TEST_JAWS_PROFILE);

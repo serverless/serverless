@@ -11,21 +11,27 @@
   "lambda": {
     "functionName": "usersSignUp",
     "runtime": "nodejs",
-    "runtimeVer": "0.10.33",
-    "handler": "index.handler",
+    "runtimeVer": "0.10.36",
+    "handler": "lambdas/users/signup/index.handler",
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
-    "optimize": true,
-    "includePaths": [],
-    "ignoreFiles": [],
-    "excludeFiles": []
+    "package": {
+      "optimize": {
+        "builder": "browserify",
+        "minify": true,
+        "ignore": [],
+        "exclude": []
+      },
+      "includePaths": [],
+      "excludePatterns": []
+    }
   },
   "endpoint": {
     "path": "users",
     "method": "POST",
-    "authorizationType" : "none",
-    "apiKeyRequired" : false,
+    "authorizationType": "none",
+    "apiKeyRequired": false,
     "requestTemplates": {
       "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
     },
@@ -35,9 +41,9 @@
     "responses": {
       "default": {
         "statusCode": "200",
-        "responseParameters" : {},
-        "responseTemplates" : {
-          "application/json" : ""
+        "responseParameters": {},
+        "responseTemplates": {
+          "application/json": ""
         }
       },
       "400": {

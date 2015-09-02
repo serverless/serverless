@@ -9,18 +9,24 @@
     "MYAPP_SERVICE2_KEY"
   ],
   "lambda": {
-    "functionName": "browserifyTests",
+    "functionName": "browserifytest",
     "runtime": "nodejs",
-    "runtimeVer": "0.10.36",
-    "handler": "main.run",
+    "runtimeVer": "0.10.33",
+    "handler": "lambdas/browserify/tests/main.handler",
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
-    "build": true,
-    "includePaths": [],
-    "ignoreFiles": [],
-    "excludeFiles": [
-      "aws-sdk"
-    ]
+    "package": {
+      "optimize": {
+        "builder": "browserify",
+        "minify": true,
+        "ignore": [],
+        "exclude": [
+          "aws-sdk"
+        ]
+      },
+      "includePaths": [],
+      "excludePatterns": []
+    }
   }
 }
