@@ -121,6 +121,7 @@ program
       }
     });
 
+//TODO: support local env
 program
     .command('env <cmd> <stage> [key] [val]')
     .description('Manage env vars for stage. Valid cmds: list,get,set,unset. Ex: get USERNAME test or set USERNAME=blah test')
@@ -135,6 +136,7 @@ program
             console.error('Must specify key to set');
             process.exit(1);
           }
+
           handleExit(JAWS.getEnvKey(stage, key));
           break;
         case 'set':
@@ -150,10 +152,12 @@ program
             console.error('Must specify key to unset');
             process.exit(1);
           }
+
           if (val) {
             console.error('Do not specify val for unset');
             process.exit(1);
           }
+
           handleExit(JAWS.setEnvKey(stage, key));
           break;
         default:
