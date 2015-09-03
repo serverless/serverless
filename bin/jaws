@@ -38,6 +38,24 @@ program
     });
 
 program
+    .command('generate')
+    .description('Create boilerplate structure for a new lambda or api gateway (or both)')
+    .option('-l, --lambda', 'will create the files needed for a lambda')
+    .option('-a, --api', 'will create the files needed for an api gateway configuration')
+    .option('-b, --both', 'shorthand for -l -a')
+    .option('-f, --function-name', 'lambda functionName. Will ensure this is unique across your project.')
+    .option('-m, --resource-name', 'parent directory the functionName dir will be created in')
+
+    .action(function(options) {
+      var isLambda = (options.lambda || options.both) ? true : false,
+          isApi = (options.api || options.both) ? true : false;
+
+      handleExit(JAWS.generate(
+          isLambda, isApi, options.functionName, options.resourceName
+      ));
+    });
+
+program
     .command('install <url>')
     .description('Installs a jaws-module from the specified url into the apprpriate area of your JAWS project.')
     .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
