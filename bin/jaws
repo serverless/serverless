@@ -107,7 +107,7 @@ program
     });
 
 program
-    .command('deploy <type> <stage>')
+    .command('deploy <type> <stage> <region>')
     .description('Deploy a lambda function (type lambda), a REST API (api), or provision AWS resources (resources) for the specified stage.' +
     ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
@@ -116,7 +116,8 @@ program
       type = type.toLowerCase();
       switch (type) {
         case 'api':
-          handleExit(JAWS.deployApi(stage));
+          var allTagged = (options.tags) ? true : false;
+          handleExit(JAWS.deployApi(stage, region, allTagged));
           break;
         case 'lambda':
           var allTagged = (options.tags) ? true : false,
