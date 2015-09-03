@@ -25,9 +25,9 @@ describe('Test "tag" command', function() {
     process.chdir(config.projectPath);
 
     // Get Lambda Paths
-    config.lambda1 = path.join(config.projectPath, 'back', 'users', 'lambdas', 'show', 'jaws.json');
-    config.lambda2 = path.join(config.projectPath, 'back', 'users', 'lambdas', 'signin', 'jaws.json');
-    config.lambda3 = path.join(config.projectPath, 'back', 'users', 'lambdas', 'signup', 'jaws.json');
+    config.lambda1 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
+    config.lambda2 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
+    config.lambda3 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
     done();
   });
 

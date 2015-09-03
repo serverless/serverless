@@ -19,7 +19,7 @@ describe('Test "env" command', function() {
         config.stage,
         config.iamRoleARN,
         config.envBucket);
-    process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
+    process.chdir(path.join(config.projectPath, 'back', 'lambdas', 'users', 'show'));
   });
 
   after(function(done) {

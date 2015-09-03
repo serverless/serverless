@@ -5,7 +5,8 @@
  */
 var testUtils = require('../test_utils'),
     path = require('path'),
-    assert = require('chai').assert;
+    assert = require('chai').assert,
+    JAWS = null;
 
 var config = require('../config');
 
@@ -19,6 +20,10 @@ describe('Test "deploy lambda" command', function() {
         config.lambdaDeployIamRoleArn,
         config.envBucket,
         ['back']);
+
+    process.chdir(config.projectPath);
+
+    JAWS = require('../../lib/index.js');
   });
 
   after(function(done) {
@@ -29,12 +34,8 @@ describe('Test "deploy lambda" command', function() {
 
     it('Multi level module deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
+      process.chdir(path.join(config.projectPath, 'back/lambdas/users/show'));
 
-      // Require
-      var JAWS = require('../../lib/index.js');
-
-      // Test
       JAWS.deployLambdas(config.stage, false, false)
           .then(function(d) {
             done();
@@ -44,22 +45,31 @@ describe('Test "deploy lambda" command', function() {
           });
     });
 
-    //it('browserify deploy', function(done) {
-    //  this.timeout(0);
-    //  process.chdir(path.join(config.projectPath, 'back/users/lambdas/show'));
-    //
-    //  // Require
-    //  var JAWS = require('../../lib/index.js');
-    //
-    //  // Test
-    //  JAWS.deployLambdas(config.stage, false, false)
-    //      .then(function(d) {
-    //        done();
-    //      })
-    //      .error(function(e) {
-    //        done(e);
-    //      });
-    //});
+    it('browserify deploy', function(done) {
+      this.timeout(0);
+      process.chdir(path.join(config.projectPath, 'back/lambdas/bundle/browserify'));
+
+      JAWS.deployLambdas(config.stage, false, false)
+          .then(function(d) {
+            done();
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
+
+    it('non optimized deploy', function(done) {
+      this.timeout(0);
+      process.chdir(path.join(config.projectPath, 'back/lambdas/bundle/nonoptimized'));
+
+      JAWS.deployLambdas(config.stage, false, false)
+          .then(function(d) {
+            done();
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
 
   });
 });
