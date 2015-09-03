@@ -21,9 +21,9 @@
         "builder": "browserify",
         "minify": true,
         "ignore": [],
-        "exclude": []
+        "exclude": [],
+        "includePaths": []
       },
-      "includePaths": [],
       "excludePatterns": []
     }
   },

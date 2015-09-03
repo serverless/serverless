@@ -14,15 +14,15 @@ describe('AllTests', function() {
   });
 
   //require tests vs inline so we can run sequentially
-  //require('./cli/tag');
-  //require('./cli/install');
-  //require('./cli/env');
+  require('./cli/tag');
+  require('./cli/install');
+  require('./cli/env');
 
   /**
    * Tests below create AWS Resources
    */
 
-  require('./cli/deploy_lambda');
+  //require('./cli/deploy_lambda');
   //require('./cli/deploy_api');    //TODO: figure out what specific permissions are needed
   //require('./cli/new');           //Must be run last
 });
