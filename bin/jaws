@@ -41,6 +41,7 @@ program
     .command('generate')
     .description('Create boilerplate structure for a new lambda or api gateway (or both)')
     .option('-l, --lambda', 'will create the files needed for a lambda')
+    .option('-r, --lambda-runtime', 'only nodejs supported')
     .option('-a, --api', 'will create the files needed for an api gateway configuration')
     .option('-b, --both', 'shorthand for -l -a')
     .option('-f, --function-name', 'lambda functionName. Will ensure this is unique across your project.')
@@ -51,7 +52,7 @@ program
           isApi = (options.api || options.both) ? true : false;
 
       handleExit(JAWS.generate(
-          isLambda, isApi, options.functionName, options.resourceName
+          isLambda, isApi, options.functionName, options.resourceName, options.lambdaRuntime
       ));
     });
 
@@ -81,7 +82,7 @@ program
 
       if (options.listAll) {
         handleExit(JAWS.listAll(type).then(function(relPaths) {
-          console.log(relPaths)
+          console.log(relPaths);
         }));
       } else if (options.tagAll || options.untagAll) {
         var untag = (options.untagAll) ? true : false;
