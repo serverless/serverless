@@ -1,0 +1,49 @@
+{
+  "name": "",
+  "version": "0.0.1",
+  "location": "https://github.com/...",
+  "author": "",
+  "description": "",
+  "envVars": [],
+  "lambda": {
+    "functionName": "",
+    "runtime": "nodejs",
+    "runtimeVer": "0.10.36",
+    "handler": "lambdas/",
+    "memorySize": 1024,
+    "timeout": 6,
+    "deploy": false,
+    "package": {
+      "optimize": {
+        "builder": "browserify",
+        "minify": true,
+        "ignore": [],
+        "exclude": [
+          "aws-sdk"
+        ],
+        "includePaths": []
+      },
+      "excludePatterns": []
+    }
+  },
+  "endpoint": {
+    "path": "",
+    "method": "GET",
+    "authorizationType": "none",
+    "apiKeyRequired": false,
+    "requestTemplates": {},
+    "requestParameters": {},
+    "responses": {
+      "default": {
+        "statusCode": "200",
+        "responseParameters": {},
+        "responseTemplates": {
+          "application/json": ""
+        }
+      },
+      "400": {
+        "statusCode": "400"
+      }
+    }
+  }
+}
