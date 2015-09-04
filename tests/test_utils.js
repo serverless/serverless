@@ -54,11 +54,12 @@ module.exports.createTestProject = function(projectName,
   // Add jaws.json project data
   var projectJSON = require(path.join(tmpProjectPath, 'jaws.json'));
   projectJSON.name = projectName;
-  projectJSON.project.regions = {};
-  projectJSON.project.regions[projectRegion] = {};
-  projectJSON.project.regions[projectRegion].stages = {};
-  projectJSON.project.regions[projectRegion].stages[projectStage] = {};
-  projectJSON.project.regions[projectRegion].stages[projectStage].iamRoleArn = projectIAMRole;
+  projectJSON.project.stages = {};
+  projectJSON.project.stages[projectStage] = [];
+  projectJSON.project.stages[projectStage] = [{
+    region: projectRegion,
+    iamRoleArn: projectIAMRole
+  }];
   projectJSON.project.envVarBucket = {
     name: projectEnvBucket,
     region: projectRegion,
