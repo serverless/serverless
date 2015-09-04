@@ -1,17 +1,17 @@
 {
-  "name": "jaws-cli",
-  "version": "1.0.0",
+  "name": "jaws-framework",
+  "version": "0.0.1",
   "preferGlobal": true,
-  "description": "JAWS is the server-less application framework.  This command line tool helps you build server-less applications.",
-  "author": "Austen Collins <austen@servant.co>",
+  "description": "JAWS is the server-less application framework.",
+  "author": "Austen Collins <austen@servant.co> Ryan Pendergast <ryan.pendergast@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/servant-app/JAWS.git"
+    "url": "git://github.com/jaws-stack/JAWS.git"
   },
   "keywords": [
     "jaws",
-    "jaws stack",
+    "jaws framework",
     "jaws cli",
     "api gateway",
     "lambda",
@@ -28,9 +28,11 @@
     "test": "mocha tests/all"
   },
   "devDependencies": {
+    "adm-zip": "^0.4.7",
     "chai": "^3.2.0",
-    "mocha": "^2.2.5",
-    "shelljs": "^0.5.3"
+    "hoek": "^2.11.1",
+    "lodash": "^3.2.0",
+    "mocha": "^2.2.5"
   },
   "dependencies": {
     "async": "^0.9.0",
@@ -46,9 +48,8 @@
     "download": "^4.2.0",
     "gulp": "^3.9.0",
     "inquirer": "^0.9.0",
-    "jaws-api-gateway-client": "0.11.0",
-    "mkdirp": "^0.5.1",
-    "mkdirp-then": "^1.1.0",
+    "insert-module-globals": "^6.5.2",
+    "jaws-api-gateway-client": "^0.9.0",
     "moment": "^2.10.6",
     "node-uuid": "^1.4.2",
     "node-zip": "^1.1.0",
@@ -58,6 +59,7 @@
     "replace": "^0.3.0",
     "rimraf": "^2.2.8",
     "shortid": "^2.2.2",
+    "systemjs-builder": "^0.13.5",
     "uglify-js": "^2.4.24",
     "wrench": "^1.5.8"
   }
