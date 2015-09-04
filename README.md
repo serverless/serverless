@@ -31,7 +31,7 @@ This guide provides the path of least resistence to get up and going quick.  It 
 
 ### Hit the ground running
 
-TODO: new command, generate, tag, deploy
+TODO: new command, generate, npm install from back dir, deploy. Smile
 
 ## FAQ
 
