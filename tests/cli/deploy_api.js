@@ -20,7 +20,7 @@ describe('Test deploy api command', function() {
         config.stage,
         config.iamRoleARN,
         config.envBucket);
-    process.chdir(config.projectPath);
+    process.chdir(path.join(config.projectPath,'back/lambdas/users/show'));
   });
 
   after(function(done) {
@@ -37,7 +37,8 @@ describe('Test deploy api command', function() {
           JawsError = require('../../lib/jaws-error');
 
       // Test
-      JAWS.deployApi(config.stage)
+      JAWS.deployApi(config.stage, null, true)
+
           .then(function() {
             done();
           })

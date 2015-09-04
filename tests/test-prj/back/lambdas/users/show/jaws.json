@@ -28,6 +28,7 @@
     }
   },
   "endpoint": {
+    "type": "lambda",
     "path": "sessions/{sessionId}",
     "method": "GET",
     "authorizationType": "none",
@@ -49,6 +50,7 @@
       "400": {
         "statusCode": "400"
       }
-    }
+    },
+    "deploy": true
   }
 }
