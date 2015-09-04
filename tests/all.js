@@ -20,10 +20,11 @@ describe('AllTests', function() {
   require('./cli/env');
   require('./cli/generate');
 
+
   /**
    * Tests below create AWS Resources
    */
   //require('./cli/deploy_lambda');
-  //require('./cli/deploy_api');    //TODO: figure out what specific permissions are needed
+  require('./cli/deploy_api');
   //require('./cli/new');           //Must be run last
 });
