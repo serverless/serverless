@@ -37,15 +37,8 @@ describe('Test deploy api command', function() {
           JawsError = require('../../lib/jaws-error');
 
       // Test
-<<<<<<< HEAD
-<<<<<<< HEAD
       JAWS.deployApi(config.stage, null, true)
-=======
-      JAWS.deployApi(config.stage, null, false)
->>>>>>> deploy api: add tagged endpoint funciton, fix jaws.tag
-=======
-      JAWS.deployApi(config.stage, null, true)
->>>>>>> deploy api: big refactor
+
           .then(function() {
             done();
           })
