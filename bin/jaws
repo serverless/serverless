@@ -30,6 +30,7 @@ program
     .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in (Can add more later)')
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
+    .option('-d, --dont-exe-cf', 'Dont execute CloudFormation file')
     .action(function(options) {
       handleExit(JAWS.new(
           options.projName,  // name is reserved in commander...
@@ -37,7 +38,8 @@ program
           options.s3Bucket,
           options.lambdaRegion,
           options.notificationEmail,
-          options.profile
+          options.profile,
+          options.dontExeCf
       ));
     });
 
@@ -107,12 +109,12 @@ program
     });
 
 program
-    .command('deploy <type> <stage> <region>')
+    .command('deploy <type> <stage> [region]')
     .description('Deploy a lambda function (type lambda), a REST API (api), or provision AWS resources (resources) for the specified stage.' +
     ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
     .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
-    .action(function(type, stage, options) {
+    .action(function(type, stage, region, options) {
       type = type.toLowerCase();
       switch (type) {
         case 'api':
@@ -123,11 +125,7 @@ program
           var allTagged = (options.tags) ? true : false,
               allAtOnce = (options.allAtOnce) ? true : false;
 
-          handleExit(JAWS.deployLambdas(stage, allTagged, allAtOnce));
-          break;
-        case 'resources':
-
-          //TODO: implement
+          handleExit(JAWS.deployLambdas(stage, allTagged, allAtOnce, region));
           break;
         default:
           console.error('Unsupported type ' + type + '. Must be api|lambda|resources');
