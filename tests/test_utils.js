@@ -58,7 +58,8 @@ module.exports.createTestProject = function(projectName,
   projectJSON.project.stages[projectStage] = [];
   projectJSON.project.stages[projectStage] = [{
     region: projectRegion,
-    iamRoleArn: projectIAMRole
+    iamRoleArn: projectIAMRole,
+    restApiId: '9pv3oifush' //TODO: Remove before merging
   }];
   projectJSON.project.envVarBucket = {
     name: projectEnvBucket,
