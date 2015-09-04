@@ -59,11 +59,11 @@ module.exports.createTestProject = function(projectName,
   projectJSON.project.stages[projectStage] = [];
   projectJSON.project.stages[projectStage] = [{
     region: projectRegion,
-    iamRoleArn: projectIAMRole
-  }];
+    iamRoleArn: projectIAMRole,
+  },];
   projectJSON.project.envVarBucket = {
     name: projectEnvBucket,
-    region: projectRegion
+    region: projectRegion,
   };
   fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
 
