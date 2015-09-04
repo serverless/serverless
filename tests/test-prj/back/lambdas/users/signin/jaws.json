@@ -49,6 +49,7 @@
       "400": {
         "statusCode": "400"
       }
-    }
+    },
+    "deploy": true
   }
 }

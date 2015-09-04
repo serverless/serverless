@@ -37,7 +37,7 @@ describe('Test deploy api command', function() {
           JawsError = require('../../lib/jaws-error');
 
       // Test
-      JAWS.deployApi(config.stage, null, false)
+      JAWS.deployApi(config.stage, null, true)
           .then(function() {
             done();
           })
