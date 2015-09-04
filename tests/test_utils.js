@@ -28,6 +28,7 @@ function npmInstall(dir) {
  * @param projectIAMRole
  * @param projectEnvBucket
  * @param npmInstallDirs list of dirs relative to project root to execute npm install on
+ * @returns {string} full path to proj temp dir
  */
 module.exports.createTestProject = function(projectName,
                                             projectRegion,

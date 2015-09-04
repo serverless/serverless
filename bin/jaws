@@ -12,6 +12,10 @@ var JawsError = require('../lib/jaws-error'),
     Promise = require('bluebird'),
     handleExit = utils.handleExit;
 
+Promise.onPossiblyUnhandledRejection(function(error) {
+  throw error;
+});
+
 program
     .option('-v, --verbose')
     .version(JAWS._meta.version);
@@ -48,11 +52,16 @@ program
     .option('-m, --resource-name', 'parent directory the functionName dir will be created in')
 
     .action(function(options) {
-      var isLambda = (options.lambda || options.both) ? true : false,
-          isApi = (options.api || options.both) ? true : false;
+      if (options.lambda || options.both) {
+        options.lambda = true;
+      }
+
+      if (options.api || options.both) {
+        options.api = true;
+      }
 
       handleExit(JAWS.generate(
-          isLambda, isApi, options.functionName, options.resourceName, options.lambdaRuntime
+          options.lambda, options.api, options.functionName, options.resourceName, options.lambdaRuntime
       ));
     });
 
