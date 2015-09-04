@@ -1,8 +1,42 @@
 ![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/jaws-stack/JAWS/blob/v1.0/jaws_v1_logo.png)
 
-JAWS: The Server-less Framework
+JAWS: The Server-less Stack
+=================================
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-**Currently Under Construction**
+## Goals:
+
+ - **Use No Servers:** Never deal with scaling/deploying/maintaining/monitoring servers again.
+ - **Isolated Components:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down...  only individual API routes can go down.
+ - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
+ - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
+ - **Enable all supported Lambda runtimes** While first release is `nodejs` only, we plan on adding supoport for all languages. This means each lambda in your JAWS project can be coded in the lang that best suites the problem.
+ - **Integrate with AWS API Gateway** No more clicking around the API Gateway UI.  Keep your config next to your code.
+ 
+## Architecture
+
+TODO: Austen do urmagic here...
+
+## Quick Start
+
+This guide provides the path of least resistence to get up and going quick.  It is **not** the most secure way to do things.  Check out our [wiki](https://github.com/jaws-stack/JAWS/wiki) for our best practices guide.
+
+### Install
+
+*  [Setup an AWS account and create an administrative user](https://github.com/jaws-stack/JAWS/wiki/v1:-AWS-Account-setup)
+*  Install JAWS
+  
+```npm install jaws-stack -g```
+
+### Hit the ground running
+
+TODO: new command, generate, tag, deploy
+
+## FAQ
+
+Check out he [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) page on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
+
+
+
 
