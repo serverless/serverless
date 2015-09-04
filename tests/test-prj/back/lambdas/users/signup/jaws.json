@@ -28,6 +28,7 @@
     }
   },
   "endpoint": {
+    "type": "lambda",
     "path": "users",
     "method": "POST",
     "authorizationType": "none",

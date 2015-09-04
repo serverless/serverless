@@ -28,6 +28,7 @@
     }
   },
   "endpoint": {
+    "type": "lambda",
     "path": "sessions/{sessionId}",
     "method": "PUT",
     "authorizationType": "none",
