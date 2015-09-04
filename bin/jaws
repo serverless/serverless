@@ -41,6 +41,7 @@ program
       ));
     });
 
+//TODO: generate stage
 program
     .command('generate')
     .description('Create boilerplate structure for a new lambda or api gateway (or both)')
@@ -134,10 +135,10 @@ program
       }
     });
 
-//TODO: support local env
 program
     .command('env <cmd> <stage> [key] [val]')
-    .description('Manage env vars for stage. Valid cmds: list,get,set,unset. Ex: get USERNAME test or set USERNAME=blah test')
+    .description('Manage env vars for stage. Valid cmds: list,get,set,unset.' +
+    '\nEx: get test USERNAME or set test USERNAME blah.')
     .action(function(cmd, stage, key, val) {
       cmd = cmd.toLowerCase();
       switch (cmd) {
