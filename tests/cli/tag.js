@@ -10,7 +10,9 @@ var testUtils = require('../test_utils'),
     assert = require('chai').assert,
     Promise = require('bluebird');
 
-var config = require('../config');
+var config = require('../config'),
+    lambdaPaths = {},
+    JAWS;
 
 describe('Test "tag" command', function() {
 
@@ -23,11 +25,12 @@ describe('Test "tag" command', function() {
         config.envBucket);
 
     process.chdir(config.projectPath);
+    JAWS = require('../../lib/index.js');
 
     // Get Lambda Paths
-    config.lambda1 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
-    config.lambda2 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
-    config.lambda3 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
+    lambdaPaths.lambda1 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
+    lambdaPaths.lambda2 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
+    lambdaPaths.lambda3 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
     done();
   });
 
@@ -40,25 +43,23 @@ describe('Test "tag" command', function() {
 
       this.timeout(0);
 
-      var JAWS = require('../../lib/index.js');
-
-      JAWS.tag('lambda', config.lambda1, false)
+      JAWS.tag('lambda', lambdaPaths.lambda1, false)
           .then(function() {
-            assert.equal(true, require(config.lambda1).lambda.deploy);
-            assert.equal(false, require(config.lambda2).lambda.deploy);
-            assert.equal(false, require(config.lambda3).lambda.deploy);
+            assert.equal(true, require(lambdaPaths.lambda1).lambda.deploy);
+            assert.equal(false, require(lambdaPaths.lambda2).lambda.deploy);
+            assert.equal(false, require(lambdaPaths.lambda3).lambda.deploy);
             return JAWS.tagAll('lambda', false);
           })
           .then(function() {
-            assert.equal(true, require(config.lambda1).lambda.deploy);
-            assert.equal(true, require(config.lambda2).lambda.deploy);
-            assert.equal(true, require(config.lambda3).lambda.deploy);
+            assert.equal(true, require(lambdaPaths.lambda1).lambda.deploy);
+            assert.equal(true, require(lambdaPaths.lambda2).lambda.deploy);
+            assert.equal(true, require(lambdaPaths.lambda3).lambda.deploy);
             return JAWS.tagAll('lambda', true);
           })
           .then(function() {
-            assert.equal(false, require(config.lambda1).lambda.deploy);
-            assert.equal(false, require(config.lambda2).lambda.deploy);
-            assert.equal(false, require(config.lambda3).lambda.deploy);
+            assert.equal(false, require(lambdaPaths.lambda1).lambda.deploy);
+            assert.equal(false, require(lambdaPaths.lambda2).lambda.deploy);
+            assert.equal(false, require(lambdaPaths.lambda3).lambda.deploy);
             done();
           })
           .error(function(e) {
@@ -69,25 +70,23 @@ describe('Test "tag" command', function() {
     it('api tags', function(done) {
       this.timeout(0);
 
-      var JAWS = require('../../lib/index.js');
-
-      JAWS.tag('api', config.lambda1)
+      JAWS.tag('api', lambdaPaths.lambda1, true)
           .then(function() {
-            assert.equal(true, require(config.lambda1).lambda.deploy);
-            assert.equal(false, require(config.lambda2).lambda.deploy);
-            assert.equal(false, require(config.lambda3).lambda.deploy);
+            assert.equal(false, require(lambdaPaths.lambda1).endpoint.deploy);
+            assert.equal(true, require(lambdaPaths.lambda2).endpoint.deploy);
+            assert.equal(true, require(lambdaPaths.lambda3).endpoint.deploy);
             return JAWS.tagAll('api', false);
           })
           .then(function() {
-            assert.equal(true, require(config.lambda1).lambda.deploy);
-            assert.equal(true, require(config.lambda2).lambda.deploy);
-            assert.equal(true, require(config.lambda3).lambda.deploy);
+            assert.equal(true, require(lambdaPaths.lambda1).endpoint.deploy);
+            assert.equal(true, require(lambdaPaths.lambda2).endpoint.deploy);
+            assert.equal(true, require(lambdaPaths.lambda3).endpoint.deploy);
             return JAWS.tagAll('api', true);
           })
           .then(function() {
-            assert.equal(false, require(config.lambda1).lambda.deploy);
-            assert.equal(false, require(config.lambda2).lambda.deploy);
-            assert.equal(false, require(config.lambda3).lambda.deploy);
+            assert.equal(false, require(lambdaPaths.lambda1).endpoint.deploy);
+            assert.equal(false, require(lambdaPaths.lambda2).endpoint.deploy);
+            assert.equal(false, require(lambdaPaths.lambda3).endpoint.deploy);
             done();
           })
           .error(function(e) {
