@@ -20,7 +20,7 @@ describe('Test deploy api command', function() {
         config.stage,
         config.iamRoleARN,
         config.envBucket);
-    process.chdir(path.join(config.projectPath,'back/lambdas/users/show'));
+    process.chdir(path.join(config.projectPath, 'back/lambdas/users/show'));
 
     // Get Lambda Paths
     lambdaPaths.lambda1 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
@@ -58,6 +58,23 @@ describe('Test deploy api command', function() {
       assert.equal(false, require(lambdaPaths.lambda1).endpoint.deploy);
       assert.equal(false, require(lambdaPaths.lambda2).endpoint.deploy);
       assert.equal(false, require(lambdaPaths.lambda3).endpoint.deploy);
+      done();
+    });
+
+    it('Check API ID was added to project\'s jaws.json file', function(done) {
+
+      // Get Region JSON
+      var regions =  require(path.join(config.projectPath, 'jaws.json'))
+          .project.stages[config.stage.toLowerCase().trim()];
+      var region = null;
+      for (var i = 0; i < regions.length; i++) {
+        if (regions[i].region.toLowerCase().trim() === config.region.toLowerCase().trim()) {
+          region = regions[i];
+        }
+      }
+
+      assert.equal(true, typeof region !== 'undefined');
+      assert.equal(true, typeof region.restApiId !== 'undefined');
       done();
     });
   });
