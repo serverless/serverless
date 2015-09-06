@@ -7,9 +7,9 @@
  */
 var testUtils = require('../test_utils'),
     path = require('path'),
-    assert = require('chai').assert;
-
-var config = require('../config');
+    assert = require('chai').assert,
+    config = require('../config'),
+    lambdaPaths = {};
 
 describe('Test deploy api command', function() {
 
@@ -21,6 +21,11 @@ describe('Test deploy api command', function() {
         config.iamRoleARN,
         config.envBucket);
     process.chdir(path.join(config.projectPath,'back/lambdas/users/show'));
+
+    // Get Lambda Paths
+    lambdaPaths.lambda1 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
+    lambdaPaths.lambda2 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
+    lambdaPaths.lambda3 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
   });
 
   after(function(done) {
@@ -38,7 +43,6 @@ describe('Test deploy api command', function() {
 
       // Test
       JAWS.deployApi(config.stage, config.region, true)
-
           .then(function() {
             done();
           })
@@ -48,6 +52,13 @@ describe('Test deploy api command', function() {
           .error(function(e) {
             done(e);
           });
+    });
+
+    it('Check jaws.json files were untagged', function(done) {
+      assert.equal(false, require(lambdaPaths.lambda1).endpoint.deploy);
+      assert.equal(false, require(lambdaPaths.lambda2).endpoint.deploy);
+      assert.equal(false, require(lambdaPaths.lambda3).endpoint.deploy);
+      done();
     });
   });
 });

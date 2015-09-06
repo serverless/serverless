@@ -67,7 +67,7 @@ describe('Test "tag" command', function() {
           });
     });
 
-    it('api tags', function(done) {
+    it('tag endpoints', function(done) {
       this.timeout(0);
 
       JAWS.tag('api', lambdaPaths.lambda1, true)
