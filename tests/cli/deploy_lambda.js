@@ -15,18 +15,19 @@ var config = require('../config'),
 
 describe('Test "deploy lambda" command', function() {
 
-  before(function() {
+  before(function(done) {
     projPath = testUtils.createTestProject(
         config.name,
         config.region,
         config.stage,
         config.iamRoleArnLambda,
-        config.iamRoleArnApiG,
+        config.iamRoleArnApiGateway,
         config.envBucket,
         ['back']);
 
     process.chdir(projPath);
     JAWS = new Jaws();
+    done();
   });
 
   after(function(done) {
@@ -74,6 +75,5 @@ describe('Test "deploy lambda" command', function() {
             done(e);
           });
     });
-
   });
 });

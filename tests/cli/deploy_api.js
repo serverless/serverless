@@ -18,13 +18,13 @@ var Jaws = require('../../lib/index.js'),
 
 describe('Test deploy api command', function() {
 
-  before(function() {
+  before(function(done) {
     projPath = testUtils.createTestProject(
         config.name,
         config.region,
         config.stage,
         config.iamRoleArnLambda,
-        config.iamRoleArnApiG,
+        config.iamRoleArnApiGateway,
         config.envBucket);
     process.chdir(path.join(projPath, 'back/lambdas/users/show'));
     JAWS = new Jaws();
@@ -33,6 +33,8 @@ describe('Test deploy api command', function() {
     lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
     lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
     lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
+
+    done();
   });
 
   after(function(done) {
@@ -44,7 +46,7 @@ describe('Test deploy api command', function() {
 
       this.timeout(0);
 
-      theCmd.deployApi(config.stage, config.region, true)
+      theCmd.deployApi(JAWS, config.stage, config.region, true)
           .then(function() {
             done();
           })

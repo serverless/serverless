@@ -61,7 +61,7 @@ module.exports.createTestProject = function(projectName,
   projectJSON.project.stages[projectStage] = [{
     region: projectRegion,
     iamRoleArnLambda: projectLambdaIAMRole,
-    iamRoleArnApiG: projectApiGIAMRole
+    iamRoleArnApiGateway: projectApiGIAMRole
   },];
   projectJSON.project.envVarBucket = {
     name: projectEnvBucket,

@@ -15,8 +15,8 @@ var config = {
   region: 'us-east-1',
   envBucket: process.env.TEST_JAWS_ENV_BUCKET,
   profile: process.env.TEST_JAWS_PROFILE,
-  iamRoleArnApiG: process.env.TEST_JAWS_IAM_ROLE,
-  iamRoleArnLambda: process.env.TEST_JAWS_LAMBDA_DEPLOY_IAM_ROLE,
+  iamRoleArnApiGateway: process.env.TEST_JAWS_APIGATEWAY_ROLE,
+  iamRoleArnLambda: process.env.TEST_JAWS_LAMBDA_ROLE,
 };
 
 AWS.config.credentials = new AWS.SharedIniFileCredentials({
