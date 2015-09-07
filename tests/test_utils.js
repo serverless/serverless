@@ -15,7 +15,7 @@ function npmInstall(dir) {
 
   process.chdir(dir);
   if (exec('npm install ', {silent: false}).code !== 0) {
-    throw new Error('Error removing ' + config.tmpDir);
+    throw new JawsError('Error executing NPM install on ' + dir, JawsError.errorCodes.UNKNOWN);
   }
 
   process.chdir(cwd);
