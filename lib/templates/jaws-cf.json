@@ -130,7 +130,16 @@
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
               ],
-              "Resource": "arn:aws:logs:*:*:*"
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:lambda",
+                    { "Ref" : "AWS::Region" },
+                    "*:*"
+                  ]
+                ]
+              }
             }
           ]
         },
@@ -171,7 +180,16 @@
               "Action": [
                 "lambda:InvokeFunction"
               ],
-              "Resource": "arn:aws:lambda:*:*:*"
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:lambda",
+                    { "Ref" : "AWS::Region" },
+                    "*:*"
+                  ]
+                ]
+              }
             }
           ]
         },
