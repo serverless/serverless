@@ -3,7 +3,6 @@
 require('shelljs/global');
 var fs = require('fs'),
     os = require('os'),
-    del = require('del'),
     wrench = require('wrench'),
     path = require('path'),
     Promise = require('bluebird'),
