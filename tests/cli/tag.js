@@ -11,26 +11,27 @@ var testUtils = require('../test_utils'),
     Promise = require('bluebird');
 
 var config = require('../config'),
+    projPath,
     lambdaPaths = {},
     JAWS;
 
 describe('Test "tag" command', function() {
 
   before(function(done) {
-    config.projectPath = testUtils.createTestProject(
+    projPath = testUtils.createTestProject(
         config.name,
         config.region,
         config.stage,
         config.iamRoleARN,
         config.envBucket);
 
-    process.chdir(config.projectPath);
+    process.chdir(projPath);
     JAWS = require('../../lib/index.js');
 
     // Get Lambda Paths
-    lambdaPaths.lambda1 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
-    lambdaPaths.lambda2 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
-    lambdaPaths.lambda3 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
+    lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
+    lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
+    lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
     done();
   });
 

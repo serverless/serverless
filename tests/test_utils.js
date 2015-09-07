@@ -7,7 +7,8 @@ var fs = require('fs'),
     wrench = require('wrench'),
     path = require('path'),
     Promise = require('bluebird'),
-    shortid = require('shortid'),
+    uuid = require('node-uuid'),
+    JawsError = require('../lib/jaws-error'),
     utils = require('../lib/utils');
 
 function npmInstall(dir) {
@@ -38,12 +39,12 @@ module.exports.createTestProject = function(projectName,
                                             projectEnvBucket,
                                             npmInstallDirs) {
   // Create Test Project
-  var tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + shortid.generate());
+  var tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
 
   utils.logIfVerbose('Creating test proj in ' + tmpProjectPath + '\n');
 
   if (fs.existsSync(tmpProjectPath)) {
-    del.sync([tmpProjectPath], {force: true});
+    throw new JawsError('Temp dir ' + tmpProjectPath + ' already exists');
   }
 
   // Copy test project to temp directory
@@ -56,7 +57,6 @@ module.exports.createTestProject = function(projectName,
   var projectJSON = require(path.join(tmpProjectPath, 'jaws.json'));
   projectJSON.name = projectName;
   projectJSON.project.stages = {};
-  projectJSON.project.stages[projectStage] = [];
   projectJSON.project.stages[projectStage] = [{
     region: projectRegion,
     iamRoleArn: projectIAMRole,

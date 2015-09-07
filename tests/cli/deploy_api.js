@@ -9,23 +9,24 @@ var testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert,
     config = require('../config'),
-    lambdaPaths = {};
+    lambdaPaths = {},
+    projPath;
 
 describe('Test deploy api command', function() {
 
   before(function() {
-    config.projectPath = testUtils.createTestProject(
+    projPath = testUtils.createTestProject(
         config.name,
         config.region,
         config.stage,
         config.iamRoleARN,
         config.envBucket);
-    process.chdir(path.join(config.projectPath, 'back/lambdas/users/show'));
+    process.chdir(path.join(projPath, 'back/lambdas/users/show'));
 
     // Get Lambda Paths
-    lambdaPaths.lambda1 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
-    lambdaPaths.lambda2 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
-    lambdaPaths.lambda3 = path.join(config.projectPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
+    lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
+    lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
+    lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
   });
 
   after(function(done) {
@@ -64,7 +65,7 @@ describe('Test deploy api command', function() {
     it('Check API ID was added to project\'s jaws.json file', function(done) {
 
       // Get Region JSON
-      var regions =  require(path.join(config.projectPath, 'jaws.json'))
+      var regions = require(path.join(projPath, 'jaws.json'))
           .project.stages[config.stage.toLowerCase().trim()];
       var region = null;
       for (var i = 0; i < regions.length; i++) {

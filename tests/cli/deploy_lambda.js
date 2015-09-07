@@ -8,12 +8,13 @@ var testUtils = require('../test_utils'),
     assert = require('chai').assert,
     JAWS = null;
 
-var config = require('../config');
+var config = require('../config'),
+    projPath;
 
 describe('Test "deploy lambda" command', function() {
 
   before(function() {
-    config.projectPath = testUtils.createTestProject(
+    projPath = testUtils.createTestProject(
         config.name,
         config.region,
         config.stage,
@@ -21,9 +22,7 @@ describe('Test "deploy lambda" command', function() {
         config.envBucket,
         ['back']);
 
-    process.chdir(config.projectPath);
-
-    JAWS = require('../../lib/index.js');
+    process.chdir(projPath);
   });
 
   after(function(done) {
@@ -34,7 +33,10 @@ describe('Test "deploy lambda" command', function() {
 
     it('Multi level module deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(config.projectPath, 'back/lambdas/users/show'));
+
+      JAWS = require('../../lib/index.js');
+
+      process.chdir(path.join(projPath, 'back/lambdas/users/show'));
 
       JAWS.deployLambdas(config.stage, false, false)
           .then(function(d) {
@@ -47,7 +49,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('browserify deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(config.projectPath, 'back/lambdas/bundle/browserify'));
+      process.chdir(path.join(projPath, 'back/lambdas/bundle/browserify'));
 
       JAWS.deployLambdas(config.stage, false, false)
           .then(function(d) {
@@ -60,7 +62,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('non optimized deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(config.projectPath, 'back/lambdas/bundle/nonoptimized'));
+      process.chdir(path.join(projPath, 'back/lambdas/bundle/nonoptimized'));
 
       JAWS.deployLambdas(config.stage, false, false)
           .then(function(d) {

@@ -12,21 +12,22 @@ var testUtils = require('../test_utils'),
 
 var config = require('../config');
 
-var resourceDir;
+var resourceDir,
+    projPath;
 
 describe('Test generate command', function() {
 
   before(function(done) {
-    config.projectPath = testUtils.createTestProject(
+    projPath = testUtils.createTestProject(
         config.name,
         config.region,
         config.stage,
         config.iamRoleARN,
         config.envBucket);
 
-    process.chdir(config.projectPath);
+    process.chdir(projPath);
 
-    resourceDir = path.join(config.projectPath, 'back', 'lambdas', 'unittests');
+    resourceDir = path.join(projPath, 'back', 'lambdas', 'unittests');
 
     done();
   });

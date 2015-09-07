@@ -8,18 +8,19 @@ var testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert;
 
-var config = require('../config');
+var config = require('../config'),
+    projPath;
 
 describe('Test "env" command', function() {
 
   before(function() {
-    config.projectPath = testUtils.createTestProject(
+    projPath = testUtils.createTestProject(
         config.name,
         config.region,
         config.stage,
         config.iamRoleARN,
         config.envBucket);
-    process.chdir(path.join(config.projectPath, 'back', 'lambdas', 'users', 'show'));
+    process.chdir(path.join(projPath, 'back', 'lambdas', 'users', 'show'));
   });
 
   after(function(done) {
