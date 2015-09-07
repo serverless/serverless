@@ -14,7 +14,8 @@ var config = require('../config'),
     projPath;
 
 describe('Test "deploy lambda" command', function() {
-
+  this.timeout(0);  //dont timeout anything
+  
   before(function(done) {
     this.timeout(0);  //dont timeout anything
 
