@@ -4,12 +4,15 @@
  * JAWS Test: ENV Command
  */
 
-var testUtils = require('../test_utils'),
+var Jaws = require('../../lib/index.js'),
+    theCmd = require('../../lib/commands/env'),
+    testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert;
 
 var config = require('../config'),
-    projPath;
+    projPath,
+    JAWS;
 
 describe('Test "env" command', function() {
 
@@ -18,9 +21,11 @@ describe('Test "env" command', function() {
         config.name,
         config.region,
         config.stage,
-        config.iamRoleARN,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiG,
         config.envBucket);
     process.chdir(path.join(projPath, 'back', 'lambdas', 'users', 'show'));
+    JAWS = new Jaws();
   });
 
   after(function(done) {
@@ -31,9 +36,7 @@ describe('Test "env" command', function() {
     it('Test env command', function(done) {
       this.timeout(0);
 
-      var JAWS = require('../../lib/index.js');
-
-      JAWS.listEnv(config.stage)
+      theCmd.listEnv(JAWS, config.stage)
           .then(function(d) {
             done();
           })

@@ -4,12 +4,16 @@
  * JAWS Test: Install Command
  */
 
-var testUtils = require('../test_utils'),
+var Jaws = require('../../lib/index.js'),
+    theCmd = require('../../lib/commands/install'),
+    JawsError = require('../../lib/jaws-error'),
+    testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert;
 
 var config = require('../config'),
-    projPath;
+    projPath,
+    JAWS;
 
 describe('Test "install" command', function() {
 
@@ -18,9 +22,11 @@ describe('Test "install" command', function() {
         config.name,
         config.region,
         config.stage,
-        config.iamRoleARN,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiG,
         config.envBucket);
     process.chdir(path.join(projPath, 'back', 'lambdas', 'users', 'show'));
+    JAWS = new Jaws();
   });
 
   after(function(done) {
@@ -31,10 +37,7 @@ describe('Test "install" command', function() {
     it('Install module', function(done) {
       this.timeout(0);
 
-      var JAWS = require('../../lib/index.js'),
-          JawsError = require('../../lib/jaws-error');
-
-      JAWS.install('https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js')
+      theCmd.install(JAWS, 'https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js')
           .then(function() {
             done();
           })

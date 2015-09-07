@@ -15,8 +15,8 @@ var config = {
   region: 'us-east-1',
   envBucket: process.env.TEST_JAWS_ENV_BUCKET,
   profile: process.env.TEST_JAWS_PROFILE,
-  iamRoleARN: process.env.TEST_JAWS_IAM_ROLE, //must manually create in IAM UI, TODO: create CF that creates this user
-  lambdaDeployIamRoleArn: process.env.TEST_JAWS_LAMBDA_DEPLOY_IAM_ROLE,
+  iamRoleArnApiG: process.env.TEST_JAWS_IAM_ROLE,
+  iamRoleArnLambda: process.env.TEST_JAWS_LAMBDA_DEPLOY_IAM_ROLE,
 };
 
 AWS.config.credentials = new AWS.SharedIniFileCredentials({

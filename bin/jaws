@@ -75,7 +75,7 @@ program
     .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
     .action(function(url, options) {
       var theCmd = require('../lib/commands/install');
-      handleExit(theCmd.install(url, options.save));
+      handleExit(theCmd.install(JAWS, url, options.save));
     });
 
 program

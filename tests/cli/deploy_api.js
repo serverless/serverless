@@ -5,12 +5,16 @@
  * - Copies the test-prj template to your system's temp directory
  * - Deploys an API based on the endpoints in the project
  */
-var testUtils = require('../test_utils'),
+var Jaws = require('../../lib/index.js'),
+    theCmd = require('../../lib/commands/deploy_api'),
+    JawsError = require('../../lib/jaws-error'),
+    testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert,
     config = require('../config'),
     lambdaPaths = {},
-    projPath;
+    projPath,
+    JAWS;
 
 describe('Test deploy api command', function() {
 
@@ -19,9 +23,11 @@ describe('Test deploy api command', function() {
         config.name,
         config.region,
         config.stage,
-        config.iamRoleARN,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiG,
         config.envBucket);
     process.chdir(path.join(projPath, 'back/lambdas/users/show'));
+    JAWS = new Jaws();
 
     // Get Lambda Paths
     lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
@@ -38,12 +44,7 @@ describe('Test deploy api command', function() {
 
       this.timeout(0);
 
-      // Require
-      var JAWS = require('../../lib/index.js'),
-          JawsError = require('../../lib/jaws-error');
-
-      // Test
-      JAWS.deployApi(config.stage, config.region, true)
+      theCmd.deployApi(config.stage, config.region, true)
           .then(function() {
             done();
           })
