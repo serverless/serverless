@@ -3,26 +3,17 @@
   "Description": "The AWS CloudFormation template for this JAWS project",
   "Parameters": {
     "aaProjectName": {
-      "Type": "String",
-      "Default": "jaws",
-      "AllowedValues": [
-        "jaws"
-      ]
+      "Type": "String"
     },
     "aaStage": {
-      "Type": "String",
-      "Default": "test"
+      "Type": "String"
     },
     "aaDataModelPrefix": {
-      "Type": "String",
-      "Default": "test",
-      "AllowedValues": [
-        "test"
-      ]
+      "Type": "String"
     },
     "aaHostedZoneName": {
       "Type": "String",
-      "Default": "myapp.com"
+      "Default": "myjawsproject.com"
     },
     "aaNotficationEmail": {
       "Type": "String",
@@ -103,13 +94,13 @@
     "IamGroupLambda": {
       "Type": "AWS::IAM::Group",
       "Properties": {
-        "Path": "/dataModel/"
+        "Path": "/"
       }
     },
     "IamGroupApiGateway": {
       "Type": "AWS::IAM::Group",
       "Properties": {
-        "Path": "/dataModel/"
+        "Path": "/"
       }
     },
     "IamPolicyLambda": {
