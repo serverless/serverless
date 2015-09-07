@@ -76,8 +76,9 @@ module.exports.createTestProject = function(projectName,
   //https://github.com/npm/npm#using-npm-programmatically
   if (npmInstallDirs) {
     npmInstallDirs.forEach(function(dir) {
-      utils.logIfVerbose('Running NPM install on ' + dir);
-      npmInstall(path.join(tmpProjectPath, dir));
+      var fullPath = path.join(tmpProjectPath, dir);
+      utils.logIfVerbose('Running NPM install on ' + fullPath);
+      npmInstall(fullPath);
     });
   }
 
