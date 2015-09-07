@@ -2,15 +2,14 @@
 
 'use strict';
 
-//TODO: make sure commands with stage, the stage is in the projects jaws.json? or do we want to allow dev/test
-//stages that never make it into the projects jaws.json
-
 var JawsError = require('../lib/jaws-error'),
-    JAWS = require('../lib/index.js'),
+    Jaws = require('../lib/index.js'),
     program = require('commander'),
     utils = require('../lib/utils'),
     Promise = require('bluebird'),
     handleExit = utils.handleExit;
+
+var JAWS = new Jaws();
 
 Promise.onPossiblyUnhandledRejection(function(error) {
   throw error;
@@ -32,7 +31,8 @@ program
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
     .option('-d, --dont-exe-cf', 'Dont execute CloudFormation file')
     .action(function(options) {
-      handleExit(JAWS.new(
+      var theCMd = require('../lib/commands/new');
+      handleExit(theCMd.new(
           options.projName,  // name is reserved in commander...
           options.stage ? options.stage.toLowerCase() : null,
           options.s3Bucket,
@@ -63,7 +63,8 @@ program
         options.api = true;
       }
 
-      handleExit(JAWS.generate(
+      var theCmd = require('../lib/commands/generate');
+      handleExit(theCmd.generate(
           options.lambda, options.api, options.functionName, options.resourceName, options.lambdaRuntime
       ));
     });
@@ -73,7 +74,8 @@ program
     .description('Installs a jaws-module from the specified url into the apprpriate area of your JAWS project.')
     .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
     .action(function(url, options) {
-      handleExit(JAWS.install(url, options.save));
+      var theCmd = require('../lib/commands/install');
+      handleExit(theCmd.install(JAWS, url, options.save));
     });
 
 program
@@ -94,17 +96,18 @@ program
         process.exit(1);
       }
 
+      var theCmd = require('../lib/commands/tag');
       if (options.listAll) {
-        handleExit(JAWS.listAll(type).then(function(relPaths) {
+        handleExit(theCmd.listAll(JAWS, type).then(function(relPaths) {
           console.log(relPaths);
         }));
       } else if (options.tagAll || options.untagAll) {
         var untag = (options.untagAll) ? true : false;
-        handleExit(JAWS.tagAll(type, untag));
+        handleExit(theCmd.tagAll(JAWS, type, untag));
       } else if (options.multi) {
-        handleExit(JAWS.tagMulti(type, options.untag));
+        handleExit(theCmd.tagMulti(JAWS, type, options.untag));
       } else {  //If not tagging all, you have to be tagging whats in your CWD (null 1st param)
-        handleExit(JAWS.tag(type, null, options.untag));
+        handleExit(theCmd.tag(type, null, options.untag));
       }
     });
 
@@ -115,17 +118,19 @@ program
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
     .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
     .action(function(type, stage, region, options) {
+      var theCmd = require('../lib/commands/deploy');
+
       type = type.toLowerCase();
       switch (type) {
         case 'api':
           var allTagged = (options.tags) ? true : false;
-          handleExit(JAWS.deployApi(stage, region, allTagged));
+          handleExit(theCmd.deployApi(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
           var allTagged = (options.tags) ? true : false,
               allAtOnce = (options.allAtOnce) ? true : false;
 
-          handleExit(JAWS.deployLambdas(stage, allTagged, allAtOnce, region));
+          handleExit(theCmd.deployLambdas(JAWS, stage, allTagged, allAtOnce, region));
           break;
         default:
           console.error('Unsupported type ' + type + '. Must be api|lambda|resources');
@@ -139,10 +144,12 @@ program
     .description('Manage env vars for stage. Valid cmds: list,get,set,unset.' +
     '\nEx: get test USERNAME or set test USERNAME blah.')
     .action(function(cmd, stage, key, val) {
+      var theCmd = require('../lib/commands/env');
+
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
-          handleExit(JAWS.listEnv(stage));
+          handleExit(theCmd.listEnv(JAWS, stage));
           break;
         case 'get':
           if (!key) {
@@ -150,7 +157,7 @@ program
             process.exit(1);
           }
 
-          handleExit(JAWS.getEnvKey(stage, key));
+          handleExit(theCmd.getEnvKey(JAWS, stage, key));
           break;
         case 'set':
           if (!key || typeof val == 'undefined') {
@@ -158,7 +165,7 @@ program
             process.exit(1);
           }
 
-          handleExit(JAWS.setEnvKey(stage, key, val));
+          handleExit(theCmd.setEnvKey(JAWS, stage, key, val));
           break;
         case 'unset':
           if (!key) {
@@ -171,7 +178,7 @@ program
             process.exit(1);
           }
 
-          handleExit(JAWS.setEnvKey(stage, key));
+          handleExit(theCmd.setEnvKey(JAWS, stage, key));
           break;
         default:
           console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
@@ -184,14 +191,8 @@ program
     .command('logs <stage>')
     .description('Get logs for the lambda function in the specified stage in your current working directory.')
     .action(function(stage) {
-      handleExit(JAWS.logs(stage));
-    });
-
-program
-    .command('*')
-    .description('Handles custom commands.')
-    .action(function() {
-      handleExit(JAWS.custom(arguments));
+      var theCmd = require('../lib/commands/logs');
+      handleExit(theCmd.logs(JAWS, stage));
     });
 
 if (process.argv.length == 2) {

@@ -5,7 +5,9 @@
  * - Creates a new project in your system's temp directory
  * - Deletes the CF stack created by the project
  */
-var path = require('path'),
+var Jaws = require('../../lib/index.js'),
+    theCmd = require('../../lib/commands/new'),
+    path = require('path'),
     os = require('os'),
     assert = require('chai').assert,
     shortid = require('shortid');
@@ -34,7 +36,7 @@ describe('Test new command', function() {
           JawsError = require('../../lib/jaws-error');
 
       // Test
-      JAWS.new(
+      theCmd.new(
           config.newName,
           config.stage,
           config.envBucket,

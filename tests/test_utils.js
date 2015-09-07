@@ -3,7 +3,6 @@
 require('shelljs/global');
 var fs = require('fs'),
     os = require('os'),
-    del = require('del'),
     wrench = require('wrench'),
     path = require('path'),
     Promise = require('bluebird'),
@@ -27,7 +26,8 @@ function npmInstall(dir) {
  * @param projectName
  * @param projectRegion
  * @param projectStage
- * @param projectIAMRole
+ * @param projectLambdaIAMRole
+ * @param projectApiGIAMRole
  * @param projectEnvBucket
  * @param npmInstallDirs list of dirs relative to project root to execute npm install on
  * @returns {string} full path to proj temp dir
@@ -35,7 +35,8 @@ function npmInstall(dir) {
 module.exports.createTestProject = function(projectName,
                                             projectRegion,
                                             projectStage,
-                                            projectIAMRole,
+                                            projectLambdaIAMRole,
+                                            projectApiGIAMRole,
                                             projectEnvBucket,
                                             npmInstallDirs) {
   // Create Test Project
@@ -59,7 +60,8 @@ module.exports.createTestProject = function(projectName,
   projectJSON.project.stages = {};
   projectJSON.project.stages[projectStage] = [{
     region: projectRegion,
-    iamRoleArn: projectIAMRole,
+    iamRoleArnLambda: projectLambdaIAMRole,
+    iamRoleArnApiG: projectApiGIAMRole
   },];
   projectJSON.project.envVarBucket = {
     name: projectEnvBucket,

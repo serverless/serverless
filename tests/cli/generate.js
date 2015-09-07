@@ -5,7 +5,9 @@
  * - Copies the test-prj template to your system's temp directory
  * - Deploys an API based on the endpoints in the project
  */
-var testUtils = require('../test_utils'),
+var Jaws = require('../../lib/index.js'),
+    theCmd = require('../../lib/commands/generate'),
+    testUtils = require('../test_utils'),
     path = require('path'),
     fs = require('fs'),
     assert = require('chai').assert;
@@ -13,7 +15,8 @@ var testUtils = require('../test_utils'),
 var config = require('../config');
 
 var resourceDir,
-    projPath;
+    projPath,
+    JAWS;
 
 describe('Test generate command', function() {
 
@@ -22,10 +25,12 @@ describe('Test generate command', function() {
         config.name,
         config.region,
         config.stage,
-        config.iamRoleARN,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiG,
         config.envBucket);
 
     process.chdir(projPath);
+    JAWS = new Jaws();
 
     resourceDir = path.join(projPath, 'back', 'lambdas', 'unittests');
 
@@ -41,10 +46,9 @@ describe('Test generate command', function() {
 
       this.timeout(0);
 
-      var JAWS = require('../../lib/index.js'),
-          testAction = 'lambdaOnly';
+      var testAction = 'lambdaOnly';
 
-      return JAWS.generate(true, false, testAction, 'unittests')
+      return theCmd.generate(true, false, testAction, 'unittests')
           .then(function() {
             var jawsJson = require(resourceDir + '/' + testAction + '/jaws.json');
 
@@ -55,7 +59,7 @@ describe('Test generate command', function() {
             assert.equal(true, fs.existsSync(path.join(resourceDir, testAction, 'event.json')));
 
             testAction = 'apiOnly';
-            return JAWS.generate(false, true, testAction, 'unittests');
+            return theCmd.generate(false, true, testAction, 'unittests');
           })
           .then(function() {
             var jawsJson = require(resourceDir + '/' + testAction + '/jaws.json');
@@ -67,7 +71,7 @@ describe('Test generate command', function() {
             assert.equal(true, !fs.existsSync(path.join(resourceDir, testAction, 'event.json')));
 
             testAction = 'both';
-            return JAWS.generate(true, true, testAction, 'unittests')
+            return theCmd.generate(true, true, testAction, 'unittests')
           })
           .then(function() {
             var jawsJson = require(resourceDir + '/' + testAction + '/jaws.json');
