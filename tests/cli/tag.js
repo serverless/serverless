@@ -25,7 +25,7 @@ describe('Test "tag" command', function() {
         config.region,
         config.stage,
         config.iamRoleArnLambda,
-        config.iamRoleArnApiG,
+        config.iamRoleArnApiGateway,
         config.envBucket);
 
     process.chdir(projPath);

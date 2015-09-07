@@ -3,26 +3,17 @@
   "Description": "The AWS CloudFormation template for this JAWS project",
   "Parameters": {
     "aaProjectName": {
-      "Type": "String",
-      "Default": "jaws",
-      "AllowedValues": [
-        "jaws"
-      ]
+      "Type": "String"
     },
     "aaStage": {
-      "Type": "String",
-      "Default": "test"
+      "Type": "String"
     },
     "aaDataModelPrefix": {
-      "Type": "String",
-      "Default": "test",
-      "AllowedValues": [
-        "test"
-      ]
+      "Type": "String"
     },
     "aaHostedZoneName": {
       "Type": "String",
-      "Default": "myapp.com"
+      "Default": "myjawsproject.com"
     },
     "aaNotficationEmail": {
       "Type": "String",
@@ -34,7 +25,7 @@
     }
   },
   "Resources": {
-    "LambdaRole": {
+    "IamRoleLambda": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -44,7 +35,28 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "lambda.amazonaws.com",
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "IamRoleApiGateway": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
                   "apigateway.amazonaws.com"
                 ]
               },
@@ -57,24 +69,41 @@
         "Path": "/"
       }
     },
-    "Profile": {
+    "IamInstanceProfileLambda": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
         "Path": "/",
         "Roles": [
           {
-            "Ref": "LambdaRole"
+            "Ref": "IamRoleLambda"
           }
         ]
       }
     },
-    "Group": {
-      "Type": "AWS::IAM::Group",
+    "IamInstanceProfileApiGateway": {
+      "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
-        "Path": "/dataModel/"
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "IamRoleApiGateway"
+          }
+        ]
       }
     },
-    "Policy": {
+    "IamGroupLambda": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+        "Path": "/"
+      }
+    },
+    "IamGroupApiGateway": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+        "Path": "/"
+      }
+    },
+    "IamPolicyLambda": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyName": {
@@ -86,7 +115,8 @@
               },
               {
                 "Ref": "aaProjectName"
-              }
+              },
+              "lambda"
             ]
           ]
         },
@@ -96,35 +126,101 @@
             {
               "Effect": "Allow",
               "Action": [
-                "lambda:InvokeFunction",
-                "iam:PassRole",
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
               ],
-              "Resource": "arn:aws:logs:*:*:*"
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:logs",
+                    { "Ref" : "AWS::Region" },
+                    "*:*"
+                  ]
+                ]
+              }
             }
           ]
         },
         "Roles": [
           {
-            "Ref": "LambdaRole"
+            "Ref": "IamRoleLambda"
           }
         ],
         "Groups": [
           {
-            "Ref": "Group"
+            "Ref": "IamGroupLambda"
+          }
+        ]
+      }
+    },
+    "IamPolicyApiGateway": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Join": [
+            "_-_",
+            [
+              {
+                "Ref": "aaStage"
+              },
+              {
+                "Ref": "aaProjectName"
+              },
+              "api-gateway"
+            ]
+          ]
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "lambda:InvokeFunction"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:lambda",
+                    { "Ref" : "AWS::Region" },
+                    "*:*"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "IamRoleApiGateway"
+          }
+        ],
+        "Groups": [
+          {
+            "Ref": "IamGroupApiGateway"
           }
         ]
       }
     }
   },
   "Outputs": {
-    "LambdaRoleARN": {
+    "IamRoleArnLambda": {
       "Description": "ARN of the lambda IAM role",
       "Value": {
         "Fn::GetAtt": [
-          "LambdaRole",
+          "IamRoleLambda",
+          "Arn"
+        ]
+      }
+    },
+    "IamRoleArnApiGateway": {
+      "Description": "ARN of the api gateway IAM role",
+      "Value": {
+        "Fn::GetAtt": [
+          "IamRoleApiGateway",
           "Arn"
         ]
       }

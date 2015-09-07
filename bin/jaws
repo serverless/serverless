@@ -118,18 +118,18 @@ program
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
     .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
     .action(function(type, stage, region, options) {
-      var theCmd = require('../lib/commands/deploy');
 
       type = type.toLowerCase();
       switch (type) {
         case 'api':
           var allTagged = (options.tags) ? true : false;
+          var theCmd = require('../lib/commands/deploy_api');
           handleExit(theCmd.deployApi(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
           var allTagged = (options.tags) ? true : false,
               allAtOnce = (options.allAtOnce) ? true : false;
-
+          var theCmd = require('../lib/commands/deploy_lambda');
           handleExit(theCmd.deployLambdas(JAWS, stage, allTagged, allAtOnce, region));
           break;
         default:

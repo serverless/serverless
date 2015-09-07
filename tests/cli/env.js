@@ -22,7 +22,7 @@ describe('Test "env" command', function() {
         config.region,
         config.stage,
         config.iamRoleArnLambda,
-        config.iamRoleArnApiG,
+        config.iamRoleArnApiGateway,
         config.envBucket);
     process.chdir(path.join(projPath, 'back', 'lambdas', 'users', 'show'));
     JAWS = new Jaws();
