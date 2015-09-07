@@ -189,7 +189,7 @@
     }
   },
   "Outputs": {
-    "LambdaRoleARN": {
+    "IamRoleLambdaArn": {
       "Description": "ARN of the lambda IAM role",
       "Value": {
         "Fn::GetAtt": [
@@ -198,7 +198,7 @@
         ]
       }
     },
-    "ApiGatwayRoleARN": {
+    "IamRoleApiGatewayArn": {
       "Description": "ARN of the api gateway IAM role",
       "Value": {
         "Fn::GetAtt": [
