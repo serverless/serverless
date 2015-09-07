@@ -14,7 +14,7 @@ function npmInstall(dir) {
   var cwd = process.cwd();
 
   process.chdir(dir);
-  if (exec('npm install ', {silent: true}).code !== 0) {
+  if (exec('npm install ', {silent: false}).code !== 0) {
     throw new Error('Error removing ' + config.tmpDir);
   }
 
@@ -76,6 +76,7 @@ module.exports.createTestProject = function(projectName,
   //https://github.com/npm/npm#using-npm-programmatically
   if (npmInstallDirs) {
     npmInstallDirs.forEach(function(dir) {
+      utils.logIfVerbose('Running NPM install on ' + dir);
       npmInstall(path.join(tmpProjectPath, dir));
     });
   }
