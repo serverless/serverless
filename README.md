@@ -33,7 +33,8 @@ These are steps that will only have to be done once across all your JAWS project
 ### Hit the ground running
 
 *  Create a new project in your current working directory:
-```jaws new project```
+
+  ```jaws new project```
 *  Generate a lambda function skeletion and corresponding API gateway endpoint config:
   
   ```jaws generate```
