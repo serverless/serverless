@@ -13,10 +13,11 @@ JAWS: The Server-less Stack
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
  - **Enable all supported Lambda runtimes** While first release is `nodejs` only, we plan on adding supoport for all languages. This means each lambda in your JAWS project can be coded in the lang that best suites the problem.
  - **Integrate with AWS API Gateway** No more clicking around the API Gateway UI.  Keep your config next to your code.
- 
+ - **Multi-region and multi-stage:** supported out of the box
+
 ## Architecture
 
-TODO: Austen do urmagic here...
+TODO: Austen do ur magic here...
 
 ## Quick Start
 
@@ -24,10 +25,10 @@ This guide provides the path of least resistence to get up and going quick.  It 
 
 ### Install
 
+These are steps that will only have to be done once across all your JAWS projects in an AWS account:
 *  [Setup an AWS account and create an administrative user](https://github.com/jaws-stack/JAWS/wiki/v1:-AWS-Account-setup)
-*  Install JAWS
-  
-```npm install jaws-stack -g```
+*  Create S3 bucket that will hold your enviornment variable files. [Why?](https://github.com/jaws-stack/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
+*  ```npm install jaws-stack -g```
 
 ### Hit the ground running
 
