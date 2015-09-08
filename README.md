@@ -53,7 +53,7 @@ These are steps that will only have to be done once across all your JAWS project
 
 ## Best practices & FAQ
 
-Check out he [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) page on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
+Check out he [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
 
 
 
