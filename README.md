@@ -53,7 +53,7 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 
 ## Where do I go from here?
 
-Check out our [docs](./docs/) and our ↴
+Check out our [docs](./docs/) and ↴
 
 ## Best practices & FAQ
 
