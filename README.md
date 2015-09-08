@@ -51,6 +51,10 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 
 * Smile ;)
 
+## Where do I go from here?
+
+Check out our [docs](./docs/) and our ↴
+
 ## Best practices & FAQ
 
 Check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
