@@ -21,7 +21,7 @@ TODO: Austen do ur magic here...
 
 ## Quick Start
 
-This guide provides the path of least resistence to get up and going quick.  It is **not** the most secure way to do things.  Check out our [wiki](https://github.com/jaws-stack/JAWS/wiki) for our best practices guide.
+This guide provides the path of least resistence to get up and going quick.  It is **not** the most secure way to do things.  Check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) guide in our  [wiki](https://github.com/jaws-stack/JAWS/wiki).
 
 ### Install
 
@@ -53,7 +53,7 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 
 ## Best practices & FAQ
 
-Check out he [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
+Check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
 
 
 
