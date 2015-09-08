@@ -25,6 +25,8 @@ See project `jaws.json` [example here](../examples/project-jaws.json)
 
 See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
 
+### Lambda attributes
+
 **Note**: All of the attrs below assume the `lambda` attribute key prefix.
 
 * `Handler,MemorySize,Runtime,Timeout`: can all be found in the [aws docs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)
@@ -42,3 +44,7 @@ See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
 For optimize example for the most popular node modules see [browserify tests](../tests/test-prj/back/lambdas/bundle/browserify)
 
 For non optimize example see [non optimized tests](../tests/test-prj/back/lambdas/bundle/nonoptimized)
+
+### API Gateway (`endpoint`) attributes:
+
+AUSTEN TODO...
