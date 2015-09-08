@@ -25,6 +25,20 @@ See project `jaws.json` [example here](../examples/project-jaws.json)
 
 See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
 
-* **envVars**: An array of environment variable names this project/module or lambda requires
-* `project.stages`: map of all your stages, and regions those stages are in
-* `project.envVarBucket`: name and region your s3 bucket that holds env var files
+**Note**: All of the attrs below assume the `lambda` attribute key prefix.
+
+* `Handler,MemorySize,Runtime,Timeout`: can all be found in the [aws docs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)
+* `envVars`: An array of environment variable names this project/module or lambda requires
+* `deploy`: if true, this app will be deployed the next time the `jaws deploy --tags` is run. See `deploy` command docs for more info.
+* `package`: How the code is packaged up into a zip file 
+  * `optimize`: How code is optimized for node runtimes, to improve lambda cold start time
+    * `builder`: only `"browserify"` or `false` supported now.  If `false` will just zip up entire `back` dir
+    * `minify`: js minify or not
+    * `ignore`: array of node modules to ignore. See [ignoring](https://github.com/substack/browserify-handbook#ignoring-and-excluding)
+    * `exclude`: array of node modules to exclude.  These modules will be loaded externally (from within zip or inside lambda).  Note `aws-sdk` for node [can not be browserified](https://github.com/aws/aws-sdk-js/issues/696). See [ignoring](https://github.com/substack/browserify-handbook#ignoring-and-excluding)
+    * `includePaths`: Paths rel to back (dirs or files) to be included in zip. Paths included after optimization step.
+  * `excludePatterns`: Array of regular expressions rel to back. Removed before optimization step. If not optimizing, everything in back dir will be included in zip. Use this to exclude stuff you don't want in your zip.  Strings will be passed to `new RegExp()`
+
+For optimize example for the most popular node modules see [browserify tests](../tests/test-prj/back/lambdas/bundle/browserify)
+
+For non optimize example see [non optimized tests](../tests/test-prj/back/lambdas/bundle/nonoptimized)
