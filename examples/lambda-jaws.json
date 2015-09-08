@@ -4,12 +4,12 @@
   "location": "",
   "author": "Joe Smith <vera@gmail.com> http://joe.io",
   "description": "",
-  "envVars": [],
   "lambda": {
     "functionName": "create",
     "runtime": "nodejs",
     "runtimeVer": "0.10.36",
     "handler": "lambdas/users/create/index.handler",
+    "envVars": [],
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
