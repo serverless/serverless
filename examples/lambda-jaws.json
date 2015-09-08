@@ -9,7 +9,10 @@
     "runtime": "nodejs",
     "runtimeVer": "0.10.36",
     "handler": "lambdas/users/create/index.handler",
-    "envVars": [],
+    "envVars": [
+      "MYAPP_SERVICE_KEY",
+      "MYAPP_SERVICE2_KEY"
+    ],
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
