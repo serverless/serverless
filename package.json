@@ -28,10 +28,7 @@
     "test": "mocha tests/all"
   },
   "devDependencies": {
-    "adm-zip": "^0.4.7",
     "chai": "^3.2.0",
-    "hoek": "^2.11.1",
-    "lodash": "^3.2.0",
     "mocha": "^2.2.5"
   },
   "dependencies": {
