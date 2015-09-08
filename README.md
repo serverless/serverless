@@ -46,7 +46,7 @@ These are steps that will only have to be done once across all your JAWS project
   ```cd back/lambdas/<funcName>; jaws deploy lambda```
 
 * Optionally deploy your API gateway:
-  * Configure [`endpoint`](./docs/jaws-json.md) attribute in `jaws.json`
+  * Configure `jaws.json` [`endpoint`](./docs/jaws-json.md) attribute in `<funcName>` dir
   * ```cd back/lambdas/<funcName>; jaws deploy api```
 
 * Smile ;)
