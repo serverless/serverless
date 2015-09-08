@@ -31,7 +31,7 @@ program
     .option('-s, --stage <stage>', 'Stage to create. all lowercase Only valid for new project.')
     .option('-r, --region <region>', 'Region lambda(s)&API(s) will be created in (Can add more later). Only valid for new project.')
     .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE. Only valid for new project.')
-    .option('-e, --notification-email <email>', 'Email to be notified with stack alerts. Only valid for new project. Only valid for new project.')
+    .option('-e, --notification-email <email>', 'Email to be notified with stack alerts. Only valid for new project.')
     .action(function(type, regionName, stageName, options) {
       type = type.toLowerCase();
 
