@@ -205,6 +205,14 @@ program
     });
 
 program
+    .command('dash [stage] [region]')
+    .description('Check deployment status and deploy resources for a stage and region')
+    .action(function(stage, region) {
+      var theCmd = require('../lib/commands/dash');
+      handleExit(theCmd.run(JAWS, stage, region));
+    });
+
+program
     .command('logs <stage>')
     .description('Get logs for the lambda function in the specified stage in your current working directory.')
     .action(function(stage) {
