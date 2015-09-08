@@ -13,7 +13,7 @@ JAWS: The Server-less Stack
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
  - **Enable all supported Lambda runtimes** While first release is `nodejs` only, we plan on adding supoport for all languages. This means each lambda in your JAWS project can be coded in the lang that best suites the problem.
  - **Integrate with AWS API Gateway** No more clicking around the API Gateway UI.  Keep your config next to your code.
- - **Multi-region and multi-stage:** supported out of the box
+ - **Multi-region and multi-stage:** supported out of the box. Driven by [CloudFormation](https://aws.amazon.com/cloudformation/).
 
 ## Architecture
 
