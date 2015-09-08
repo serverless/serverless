@@ -40,9 +40,15 @@ describe('Test new command', function() {
           config.profile
       )
           .then(function() {
-            console.log(os.tmpdir());
             var jawsJson = require(path.join(os.tmpdir(), config.newName, 'jaws.json'));
-            assert.isTrue(!!jawsJson.project.regions['us-east-1'].stages[config.stage].iamRoleArn);
+            var region = false;
+            for (var i = 0; i < jawsJson.project.stages[config.stage].length; i++) {
+              var stage = jawsJson.project.stages[config.stage][i];
+              if (stage.region === config.region) {
+                region = stage.region;
+              }
+            }
+            assert.isTrue(region !== false);
             done();
           })
           .catch(JawsError, function(e) {
