@@ -1,0 +1,49 @@
+{
+  "name": "create-user",
+  "version": "0.0.1",
+  "location": "",
+  "author": "Joe Smith <vera@gmail.com> http://joe.io",
+  "description": "",
+  "envVars": [],
+  "lambda": {
+    "functionName": "create",
+    "runtime": "nodejs",
+    "runtimeVer": "0.10.36",
+    "handler": "lambdas/users/create/index.handler",
+    "memorySize": 1024,
+    "timeout": 6,
+    "deploy": false,
+    "package": {
+      "optimize": {
+        "builder": "browserify",
+        "minify": true,
+        "ignore": [],
+        "exclude": [
+          "aws-sdk"
+        ],
+        "includePaths": []
+      },
+      "excludePatterns": []
+    }
+  },
+  "endpoint": {
+    "path": "",
+    "method": "GET",
+    "authorizationType": "none",
+    "apiKeyRequired": false,
+    "requestTemplates": {},
+    "requestParameters": {},
+    "responses": {
+      "400": {
+        "statusCode": "400"
+      },
+      "default": {
+        "statusCode": "200",
+        "responseParameters": {},
+        "responseTemplates": {
+          "application/json": ""
+        }
+      }
+    }
+  }
+}
