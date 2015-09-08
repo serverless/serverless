@@ -4,12 +4,12 @@
   "location": "https://github.com/...",
   "author": "",
   "description": "",
-  "envVars": [],
   "lambda": {
     "functionName": "",
     "runtime": "nodejs",
     "runtimeVer": "0.10.36",
     "handler": "lambdas/",
+    "envVars": [],
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,

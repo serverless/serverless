@@ -4,15 +4,15 @@
   "location": "https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js",
   "author": "JAWS",
   "description": "A lambda function to fetch a user from the database and show them",
-  "envVars": [
-    "MYAPP_SERVICE_KEY",
-    "MYAPP_SERVICE2_KEY"
-  ],
   "lambda": {
     "functionName": "usersShow",
     "runtime": "nodejs",
     "runtimeVer": "0.10.33",
     "handler": "lambdas/users/show/index.handler",
+    "envVars": [
+      "MYAPP_SERVICE_KEY",
+      "MYAPP_SERVICE2_KEY"
+    ],
     "memorySize": 1024,
     "timeout": 6,
     "deploy": false,
