@@ -25,7 +25,7 @@ This guide provides the path of least resistence to get up and going quick.  It 
 
 ### Install
 
-These are steps that will only have to be done once across all your JAWS projects in an AWS account:
+These 3 steps will only have to be done once across all your JAWS projects in an AWS account:
 *  [Setup an AWS account and create an administrative user](https://github.com/jaws-stack/JAWS/wiki/v1:-AWS-Account-setup)
 *  Create S3 bucket that will hold your enviornment variable files. [Why?](https://github.com/jaws-stack/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
 *  ```npm install jaws-stack -g```
