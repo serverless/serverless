@@ -1,6 +1,6 @@
 {
   "name": "jaws-framework",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "preferGlobal": true,
   "description": "JAWS is the server-less application framework.",
   "author": "Austen Collins <austen@servant.co> Ryan Pendergast <ryan.pendergast@gmail.com>",
