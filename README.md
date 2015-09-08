@@ -32,11 +32,31 @@ These are steps that will only have to be done once across all your JAWS project
 
 ### Hit the ground running
 
-TODO: new command, generate, npm install from back dir, deploy. Smile
+*  Create a new project in your current working directory:
 
-## FAQ
+```jaws new project```
 
-Check out he [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) page on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
+*  Generate a lambda function skeletion and corresponding API gateway endpoint config:
+
+```jaws generate```
+
+* Write your code in `back/lambdas/<funcName>/index.js` then install node modules:
+
+```cd <your-proj-name>/back; npm install```
+
+* Deploy your lambda:
+
+```cd back/lambdas/<funcName>; jaws deploy lambda```
+
+* Optionally deploy your API gateway:
+  * Configure [`endpoint`](./docs/jaws-json.md) attribute in `jaws.json`
+  * ```cd back/lambdas/<funcName>; jaws deploy api```
+
+* Smile ;)
+
+## Best practices & FAQ
+
+Check out he [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) page on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
 
 
 
