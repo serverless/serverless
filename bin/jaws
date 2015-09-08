@@ -129,7 +129,7 @@ program
     });
 
 program
-    .command('deploy <type> <stage> [region]')
+    .command('deploy <type> [stage] [region]')
     .description('Deploy a lambda function (type lambda), a REST API (api), or provision AWS resources (resources) for the specified stage.' +
     ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')

@@ -35,11 +35,12 @@ describe('Test new command', function() {
           config.newName,
           config.stage,
           config.envBucket,
-          config.region,
           config.notifyEmail,
+          config.region,
           config.profile
       )
           .then(function() {
+            console.log(os.tmpdir());
             var jawsJson = require(path.join(os.tmpdir(), config.newName, 'jaws.json'));
             assert.isTrue(!!jawsJson.project.regions['us-east-1'].stages[config.stage].iamRoleArn);
             done();
