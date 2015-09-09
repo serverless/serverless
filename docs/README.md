@@ -6,7 +6,7 @@ This is the scaffolding jaws-cli produces on the new command.  It’s bare becau
 
 * `back`
   *  `lambdas`
-  *  [`.env`](./docs/commands.md#env)
+  *  [`.env`](./commands.md#env)
 * `front`
 * `tests`
 * [`admin.env`](./admin-env.md)
