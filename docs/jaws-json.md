@@ -26,7 +26,7 @@ See project `jaws.json` [example here](../examples/project-jaws.json)
 
 See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
 
-### Lambda attributes
+##### Lambda attributes
 
 **Note**: All of the attrs below assume the `lambda` attribute key prefix.
 
@@ -46,7 +46,7 @@ For an optimize example using the most popular node modules see [browserify test
 
 For non optimize example see [non optimized tests](../tests/test-prj/back/lambdas/bundle/nonoptimized)
 
-### API Gateway (`endpoint`) attributes:
+##### API Gateway (`endpoint`) attributes:
 
 AUSTEN TODO...
 
@@ -56,7 +56,7 @@ See plug-in module `jaws.json` [example here](../examples/plugin-module-jaws.jso
 
 A JAWS plug-in modlue is installed into a project via the [`jaws install`](./commands.md#install) command.  A plugin module should have a `jaws.json` in the root of its reop, that opitonally contains a `cfExtensions` attribute that defines an AWS CloudFormation extension point, for the AWS resources required by this module.  These will be merged into the root [`jaws-cf.json`](./jaws-cf-json.md) if the user specifies the `--save` flag.
 
-### cfExtensions attributes
+##### cfExtensions attributes
 
 **Note**: All of the attrs below assume the `cfExtensions` attribute key prefix.
 
