@@ -38,13 +38,10 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 *  Generate a lambda function skeletion and corresponding API gateway endpoint config:
   
   ```cd <proj-name>; jaws generate```
-* Write your code in `back/lambdas/<funcName>/index.js` then install node modules:
 
-  ```cd <your-proj-name>/back; npm install```
-* Deploy your lambda:
+* Deploy generated lambda:
 
-TODO: do we put dash command here?
-  ```cd back/lambdas/<funcName>; jaws deploy lambda```
+  ```TODO: do we put dash command here?```
 
 * Optionally deploy your API gateway:
   * Configure `jaws.json` [`endpoint`](./docs/jaws-json.md) attribute in `<funcName>` dir
