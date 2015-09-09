@@ -6,7 +6,7 @@
  * - Deletes the CF stack created by the project
  */
 var Jaws = require('../../lib/index.js'),
-    theCmd = require('../../lib/commands/new'),
+    theCmd = require('../../lib/commands/new_project'),
     path = require('path'),
     os = require('os'),
     assert = require('chai').assert,
@@ -31,12 +31,7 @@ describe('Test new command', function() {
 
       this.timeout(0);
 
-      // Require
-      var JAWS = require('../../lib/index.js'),
-          JawsError = require('../../lib/jaws-error');
-
-      // Test
-      theCmd.new(
+      theCmd.create(
           config.newName,
           config.stage,
           config.envBucket,

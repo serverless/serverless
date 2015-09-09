@@ -20,30 +20,47 @@ program
     .version(JAWS._meta.version);
 
 program
-    .command('new')
-    .description('Creates a new JAWS project in the current working directory and creates an AWS CloudFormation ' +
-    'stack which provisions essential AWS resources for your JAWS project.')
-    .option('-n, --proj-name <name>', 'Project name')
-    .option('-s, --stage <stage>', 'Stage to create. all lowercase')
-    .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE')
-    .option('-r, --lambda-region <region>', 'Region lambda(s) will be created in (Can add more later)')
-    .option('-e, --notification-email <email>', 'Email to be notified with stack alerts')
-    .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials)')
+    .command('new <type> [regionName] [stageName]')
+    .description('Creates JAWS "project" or "region"/"stage" in existing project. Does so in cwd. ' +
+    'If type is region|stage, regionName and stageName are required. If region, the stageName is the stage that will' +
+    'be primed in the new region.')
     .option('-d, --dont-exe-cf', 'Dont execute CloudFormation file')
-    .action(function(options) {
-      var theCMd = require('../lib/commands/new');
-      handleExit(theCMd.new(
-          options.projName,  // name is reserved in commander...
-          options.stage ? options.stage.toLowerCase() : null,
-          options.s3Bucket,
-          options.lambdaRegion,
-          options.notificationEmail,
-          options.profile,
-          options.dontExeCf
-      ));
+  //Things only valid for new project below:
+    .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials). Only valid for new project.')
+    .option('-n, --proj-name <name>', 'Project name. Only valid for new project.')
+    .option('-s, --stage <stage>', 'Stage to create. all lowercase Only valid for new project.')
+    .option('-r, --region <region>', 'Region lambda(s)&API(s) will be created in (Can add more later). Only valid for new project.')
+    .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE. Only valid for new project.')
+    .option('-e, --notification-email <email>', 'Email to be notified with stack alerts. Only valid for new project.')
+    .action(function(type, regionName, stageName, options) {
+      type = type.toLowerCase();
+
+      if (type == 'project') {
+        var theCmd = require('../lib/commands/new_project');
+        handleExit(theCmd.create(
+            options.projName,  // name is reserved in commander...
+            options.stage ? options.stage.toLowerCase() : null,
+            options.s3Bucket,
+            options.region,
+            options.notificationEmail,
+            options.profile,
+            options.dontExeCf
+        ));
+      } else if (type == 'region' || type == 'stage') {
+        var theCmd = require('../lib/commands/new_region_stage'),
+            isCreateRegion = (type == 'region');
+
+        if (!regionName || !stageName) {
+          console.error("Region and stage name required. Stage name will be the 1st stage primed in new region");
+          process.exit(1);
+        }
+        handleExit(theCmd.create(isCreateRegion, JAWS, regionName, stageName, options.dontExeCf));
+      } else {
+        console.error('Unsupported type ' + type + '. Must be project|region|stage');
+        process.exit(1);
+      }
     });
 
-//TODO: generate stage
 program
     .command('generate')
     .description('Create boilerplate structure for a new lambda or api gateway (or both)')
@@ -141,8 +158,8 @@ program
 
 program
     .command('env <cmd> <stage> [key] [val]')
-    .description('Manage env vars for stage. Valid cmds: list,get,set,unset.' +
-    '\nEx: get test USERNAME or set test USERNAME blah.')
+    .description('Manage env vars for stage. Valid cmds: list,get,set,unset.')
+    .usage('get test USERNAME or set test USERNAME blah.')
     .action(function(cmd, stage, key, val) {
       var theCmd = require('../lib/commands/env');
 
