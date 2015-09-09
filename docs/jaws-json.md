@@ -3,6 +3,7 @@
 The `jaws.json` file contains configuration details for the included code and authorship details for easy publishing.  This is similar to `package.json` but for jaws-modules. `jaws.json` files exist at a few different levels in a JAWS proejct:  
 *  **Project**: lives at the root of your project.  Defines things like stages.  [example here](../examples/project-jaws.json)
 *  **`lambdas` directory**: `jaws.json` exists for every lambda function. It defines things like memory size and api gateway endpoint configuration. [example here](../examples/lambda-jaws.json)
+*  **JAWS plug-in module**: lives at the root of the hosted project
 
 ## Common jaws.json attributes
 
@@ -48,3 +49,16 @@ For non optimize example see [non optimized tests](../tests/test-prj/back/lambda
 ### API Gateway (`endpoint`) attributes:
 
 AUSTEN TODO...
+
+## JAWS plug-in module
+
+See plug-in module `jaws.json` [example here](../examples/plugin-module-jaws.json)
+
+A JAWS plug-in modlue is installed into a project via the [`jaws install`](./commands.md#install) command.  A plugin module should have a `jaws.json` in the root of its reop, that opitonally contains a `cfExtensions` attribute that defines an AWS CloudFormation extension point, for the AWS resources required by this module.  These will be merged into the root [`jaws-cf.json`](./jaws-cf-json.md) if the user specifies the `--save` flag.
+
+### cfExtensions attributes
+
+**Note**: All of the attrs below assume the `cfExtensions` attribute key prefix.
+
+*  `PolicyDocumentStatements` is a list of valid CloudFormation PolicyDocument objects.  JAWS will create an IAM Group and Role who inherits these permissions.  Other IAM Roles can then easily be added to this group.  For example, an IAM Role can be made and added to this group for development/unit testing.  This Role will have the exact permissions of the IAM lambda Role for the stage.
+*  `ResourceStatements` is a map of valid CloudFormation Resource statements.
