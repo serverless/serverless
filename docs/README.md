@@ -22,4 +22,4 @@ See the [CLI Docs here](./commands.md)
 
 ## JAWS plug-in modules
 
-TODO - link to docs/jaws-plugins.md
+See the [JAWS plug-in module guide](./plugin-module-guide.md)
