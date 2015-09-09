@@ -51,12 +51,11 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 
 ## Where do I go from here?
 
-Check out our [docs](./docs/) and ↴
+Check out our [docs](./docs/) and [wiki](https://github.com/jaws-stack/JAWS/wiki), especially the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages
 
-## Best practices & FAQ
+## How can I help?
 
-Check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages on our [wiki](https://github.com/jaws-stack/JAWS/wiki)
+Check out our [v1.1 roadmap doc](https://docs.google.com/document/d/1xbpEps-s4iMkjmAkYiyJYwY1BIzTY9LaLMy23AfMYoI/edit#heading=h.o8y2lvp71fab) for what we need help with.
 
-
-
+Please check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for coding and PR guidelines.
 
