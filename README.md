@@ -43,6 +43,7 @@ These 3 steps will only have to be done once across all your JAWS projects in an
   ```cd <your-proj-name>/back; npm install```
 * Deploy your lambda:
 
+TODO: do we put dash command here?
   ```cd back/lambdas/<funcName>; jaws deploy lambda```
 
 * Optionally deploy your API gateway:
