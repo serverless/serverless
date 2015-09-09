@@ -78,6 +78,11 @@ When deploying a Lambda function to AWS, JAWS will:
 *  Create or update lambda using this naming convention: STAGE_-_PROJECTNAME_-_FUNCTIONNAME.  For example: prod_-_MyApp_-_usersSignup
 * Upload the file as a buffer directly to AWS.
 
+### jaws log
+
+This command fetches logs from AWS Cloudformation for the lambda function in a given region & stage.
+
+This command is not implemented yet. Looking for help from community. Need a way to stream the logs "real time" like heroku logs.
 
 ## JAWS plug-in modules
 
