@@ -1,0 +1,64 @@
+{
+  "name": "example-jaws-module",
+  "version": "0.0.1",
+  "location": "https://github.com/jaws-stack/example-module",
+  "author": "Me <me@gmail.com> http://me.com",
+  "description": "example-project: An ambitious, server-less application built with the JAWS framework.",
+  "cfExtensions": {
+    "PolicyDocumentStatements": [
+      {
+        "Action": [
+          "s3:Get*",
+          "s3:List*",
+          "s3:Put*"
+        ],
+        "Resource": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:s3:::",
+                {
+                  "Ref": "aaProjectName"
+                },
+                "-images.",
+                {
+                  "Ref": "aaHostedZoneName"
+                },
+                "/",
+                {
+                  "Ref": "aaDataModelPrefix"
+                },
+                "*"
+              ]
+            ]
+          }
+        ],
+        "Effect": "Allow"
+      }
+    ],
+    "ResourceStatements": {
+      "imagesBucket": {
+        "Type": "AWS::S3::Bucket",
+        "DeletionPolicy": "Delete",
+        "Properties": {
+          "BucketName": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "aaProjectName"
+                },
+                "-images.",
+                {
+                  "Ref": "aaHostedZoneName"
+                }
+              ]
+            ]
+          },
+          "AccessControl": "PublicRead"
+        }
+      }
+    }
+  }
+}
