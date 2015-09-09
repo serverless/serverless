@@ -1,5 +1,9 @@
 # JAWS CLI Commands
 
+## env
+
+Make sure to talk about `back/.env` and the packaging process
+
 ## install
 
 The `jaws install` command downloads the JAWS-module from the location specified (a github repo) and installs it.  The install includes:
