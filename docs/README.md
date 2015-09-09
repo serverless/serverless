@@ -20,13 +20,13 @@ JAWS is mostly a CLI.  The purpose of the jaws-cli is to make the server-less wo
 
 ##### new
 
-This makes a new JAWS project by creating the file structure in the [project layout]() section to the current working directory.
+This makes a new JAWS project by creating the file structure in the [project layout](./README.md#project-layout) section to the current working directory.
 
-First walks the user through the following prompts asking for their AWS credentials/profile and their project specifications
-Creates a CloudFormation Stack for the user’s first stage, which creates an IAM Group and a staged IAM Role for that IAM Group
-Creates all project scaffolding in current working directory
-Creates an AWS API Gateway REST API for the project
-Creates env var file in the s3 bucket (created if not exist) for the initial stage
+1.  Walks the user through the following prompts asking for their AWS credentials/profile and their project specifications
+1.  Creates a CloudFormation Stack for the user’s first stage, which creates an IAM Group and a staged IAM Role for that IAM Group
+1.  Creates all project scaffolding in current working directory
+1.  Creates an AWS API Gateway REST API for the project
+1.  Creates environment var file in the s3 bucket (created if DNE) for the initial stage. [Why s3?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
 
 
 ## JAWS plug-in modules
