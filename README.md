@@ -53,6 +53,8 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 
 Check out our [docs](./docs/) and [wiki](https://github.com/jaws-stack/JAWS/wiki), especially the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages
 
+Once you become familar with JAWS, you can read the JAWS [plug-in module guide](./docs/plugin-module-guide.md) to start contributing JAWS modules to the community.
+
 ## How can I help?
 
 Check out our [v1.1 roadmap doc](https://docs.google.com/document/d/1xbpEps-s4iMkjmAkYiyJYwY1BIzTY9LaLMy23AfMYoI/edit#heading=h.o8y2lvp71fab) for what we need help with.
