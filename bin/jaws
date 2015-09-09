@@ -81,8 +81,8 @@ program
       }
 
       var theCmd = require('../lib/commands/generate');
-      handleExit(theCmd.generate(
-          options.lambda, options.api, options.functionName, options.resourceName, options.lambdaRuntime
+      handleExit(theCmd.run(
+          JAWS, options.lambda, options.api, options.functionName, options.resourceName, options.lambdaRuntime
       ));
     });
 
