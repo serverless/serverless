@@ -48,7 +48,7 @@ describe('Test generate command', function() {
 
       var testAction = 'lambdaOnly';
 
-      return theCmd.generate(true, false, testAction, 'unittests')
+      return theCmd.run(JAWS, true, false, testAction, 'unittests')
           .then(function() {
             var jawsJson = require(resourceDir + '/' + testAction + '/jaws.json');
 
@@ -59,7 +59,7 @@ describe('Test generate command', function() {
             assert.equal(true, fs.existsSync(path.join(resourceDir, testAction, 'event.json')));
 
             testAction = 'apiOnly';
-            return theCmd.generate(false, true, testAction, 'unittests');
+            return theCmd.run(JAWS, false, true, testAction, 'unittests');
           })
           .then(function() {
             var jawsJson = require(resourceDir + '/' + testAction + '/jaws.json');
@@ -71,7 +71,7 @@ describe('Test generate command', function() {
             assert.equal(true, !fs.existsSync(path.join(resourceDir, testAction, 'event.json')));
 
             testAction = 'both';
-            return theCmd.generate(true, true, testAction, 'unittests')
+            return theCmd.run(JAWS, true, true, testAction, 'unittests')
           })
           .then(function() {
             var jawsJson = require(resourceDir + '/' + testAction + '/jaws.json');
