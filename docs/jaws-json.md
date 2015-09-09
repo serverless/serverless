@@ -62,3 +62,5 @@ A JAWS plug-in modlue is installed into a project via the [`jaws install`](./com
 
 *  `PolicyDocumentStatements` is a list of valid CloudFormation PolicyDocument objects.  JAWS will create an IAM Group and Role who inherits these permissions.  Other IAM Roles can then easily be added to this group.  For example, an IAM Role can be made and added to this group for development/unit testing.  This Role will have the exact permissions of the IAM lambda Role for the stage.
 *  `ResourceStatements` is a map of valid CloudFormation Resource statements.
+
+Be sure to check out the [`jaws install`](./commands.md#install) command and [`jaws-cf.json`](./jaws-cf-json.md) docs for more info.
