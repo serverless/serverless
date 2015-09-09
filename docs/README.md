@@ -5,6 +5,7 @@
 This is the scaffolding jaws-cli produces on the new command (nodejs example).  It’s bare because all logic has been modularized.
 
 * `back`
+  *  [`.env`](./commands.md#env)
   *  `lambdas`
      *  `users`
        *  `create`
@@ -12,7 +13,6 @@ This is the scaffolding jaws-cli produces on the new command (nodejs example).  
          *  `index.js`
        *  `delete`
        *  `get`
-  *  [`.env`](./commands.md#env)
 * `front`
 * `tests`
 * [`admin.env`](./admin-env.md)
