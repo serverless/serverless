@@ -2,7 +2,7 @@
 
 ## Project layout
 
-This is the scaffolding jaws-cli produces on the new command (nodejs example).  It’s bare because all logic has been modularized.
+This is the scaffolding jaws-cli produces on the new command.  It’s bare because all logic has been modularized.
 
 * `back`
   *  [`.env`](./commands.md#env)
@@ -10,7 +10,6 @@ This is the scaffolding jaws-cli produces on the new command (nodejs example).  
      *  `users`
        *  `create`
          *  `jaws.json`
-         *  `index.js`
        *  `delete`
        *  `get`
 * `front`
