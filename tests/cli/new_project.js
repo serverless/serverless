@@ -38,8 +38,7 @@ describe('Test new command', function() {
           config.envBucket,
           config.notifyEmail,
           config.region,
-          config.profile
-      )
+          config.profile)
           .then(function() {
             var jawsJson = require(path.join(os.tmpdir(), config.newName, 'jaws.json'));
             var region = false;
@@ -59,12 +58,6 @@ describe('Test new command', function() {
             done(e);
           });
     });
-  });
-
-  describe('Error tests', function() {
-    it('Create new project', function(done) {
-      done();
-    })
   });
 
   //it('Delete Cloudformation stack from new project', function(done) {

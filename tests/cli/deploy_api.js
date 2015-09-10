@@ -46,7 +46,7 @@ describe('Test deploy api command', function() {
 
       this.timeout(0);
 
-      theCmd.deployApi(JAWS, config.stage, config.region, true)
+      theCmd.run(JAWS, config.stage, config.region, true)
           .then(function() {
             done();
           })
