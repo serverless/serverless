@@ -1,13 +1,5 @@
 # JAWS CLI Commands
 
-## env
-
-Make sure to talk about `back/.env` and the packaging process
-
-Below are a list of available commands.  Commands will interactively prmopt for input if needed. Command line options are available for every input.  All commands will return non 0 code if error. [View list of errors](../lib/jaws-error/index.js#L24).
-
-All commands usage can be found by running `jaws -h` or `jaws <sub-command> -h`
-
 ### jaws new
 
 Creates a new project, new region in existing project, or new stage in existing region.  The new command by default creates resources in AWS (via CloudFormation)
@@ -43,12 +35,16 @@ Interactive dashboard used to get an overview of your project and deploy resourc
 
 ### jaws env
 
-Manages enviornment variable files - both in s3 and local (`back/.env`).  Supported operations:
+Manages enviornment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<proj jaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
+
+Supported operations:
 
 * `list`: List all env vars for given stage. Will display env vars that each jaws-module uses AND indicates env vars that are not yet set.
 * `get`: get the value for a specific key
 * `set`: set value for key
 * `unset`: remove a specific key
+
+When code is deployed via `jaws deploy` or `jaws dash` the env var file is downloaded from s3 and put in the root of the zip file named `.env`.  This exactly replicates the code layout of local development, as the root of the zip starts at the `back` dir.
 
 ### jaws tag
 
