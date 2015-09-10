@@ -57,7 +57,7 @@ Non-interactive way (dash alternative) to deploy lambda|api resources that have 
 When deploying a Lambda function to AWS, JAWS will:
 
 *  Check the Runtime specified in the current lambda’s jaws.json (dir running JAWS cli from) and perform a corresponding build pipeline.  Optionally optimize the code for performance in Lambda (browserify & uglifyjs2).  See the [lambda attributes](./jaws-json.md#lambda-attributes) for optimization options. [Why optimize?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-optimize-code-before-deployment)
-*  Create or update lambda using this naming convention: STAGE_-_PROJECTNAME_-_FUNCTIONNAME.  For example: prod_-_MyApp_-_usersSignup
+*  Create or update lambda using this naming convention: `STAGE_-_PROJECTNAME_-_FUNCTIONNAME`.  For example: `prod_-_MyApp_-_usersSignup`
 * Upload the file as a buffer directly to AWS.
 
 ### jaws install
