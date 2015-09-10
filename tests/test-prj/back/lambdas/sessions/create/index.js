@@ -1,5 +1,5 @@
 /**
- * API: Users: Sign-In
+ * API: Sessions: Create
  */
 
 exports.handler = function(event, context) {};

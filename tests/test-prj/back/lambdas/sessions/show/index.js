@@ -1,5 +1,5 @@
 /**
- * API: Users: Show
+ * API: Sessions: Show
  */
 
 exports.handler = function(event, context) {

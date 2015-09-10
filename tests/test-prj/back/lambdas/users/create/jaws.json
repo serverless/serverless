@@ -1,14 +1,14 @@
 {
-  "name": "jaws-users-show",
+  "name": "jaws-users-signup",
   "version": "0.0.1",
   "location": "https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js",
   "author": "JAWS",
-  "description": "A lambda function to fetch a user from the database and show them",
+  "description": "A group of lambda functions for user crud operations using dynamodb, JSON web tokens and javascript",
   "lambda": {
-    "functionName": "usersShow",
+    "functionName": "usersCreate",
     "runtime": "nodejs",
-    "runtimeVer": "0.10.33",
-    "handler": "lambdas/users/show/index.handler",
+    "runtimeVer": "0.10.36",
+    "handler": "lambdas/users/signup/index.handler",
     "envVars": [
       "MYAPP_SERVICE_KEY",
       "MYAPP_SERVICE2_KEY"
@@ -29,8 +29,8 @@
   },
   "endpoint": {
     "type": "lambda",
-    "path": "sessions/{sessionId}",
-    "method": "GET",
+    "path": "users",
+    "method": "POST",
     "authorizationType": "none",
     "apiKeyRequired": false,
     "requestTemplates": {
