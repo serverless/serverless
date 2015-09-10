@@ -31,6 +31,7 @@ See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
 **Note**: All of the attrs below assume the `lambda` attribute key prefix.
 
 * `Handler,MemorySize,Runtime,Timeout`: can all be found in the [aws docs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)
+  * We recommend 1024 memory to improve cold/warm start times. `handler` is relative to back dir 
 * `envVars`: An array of environment variable names this project/module or lambda requires
 * `deploy`: if true, this app will be deployed the next time the `jaws deploy --tags` is run. See `deploy` command docs for more info.
 * `package`: How the code is packaged up into a zip file 
