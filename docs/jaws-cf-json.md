@@ -7,8 +7,8 @@ The following CloudFormation Parameters are standardized JAWS project variables 
 
 * `aaHostedZone`
 * `aaStage`
-* `aaProject Name`
-* `aaDataModelStage`
+* `aaProjectName`
+* `aaDataModelStage` [what?](https://github.com/jaws-framework/JAWS/wiki/v1:best-practices#cloud-formation-segmentation)
 * `aaNotficationEmail`
 * `aaDefaultDynamoRWThroughput`
 
