@@ -37,7 +37,7 @@ program
 
       if (type == 'project') {
         var theCmd = require('../lib/commands/new_project');
-        handleExit(theCmd.create(
+        handleExit(theCmd.run(
             options.projName,  // name is reserved in commander...
             options.stage ? options.stage.toLowerCase() : null,
             options.s3Bucket,

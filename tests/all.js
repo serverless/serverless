@@ -18,12 +18,12 @@ describe('AllTests', function() {
   //require('./cli/install');
   //require('./cli/env');
   //require('./cli/generate');
-  require('./cli/dash');
+  //require('./cli/dash');
 
   /**
    * Tests below create AWS Resources
    */
   //require('./cli/deploy_lambda');
   //require('./cli/deploy_api');
-  // require('./cli/new');           //Must be run last
+   require('./cli/new_project');
 });
