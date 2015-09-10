@@ -28,7 +28,7 @@
     }
   },
   "endpoint": {
-    "type": "lambda",
+    "type": "AWS",
     "path": "users",
     "method": "POST",
     "authorizationType": "none",

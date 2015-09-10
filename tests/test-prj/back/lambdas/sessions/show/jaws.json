@@ -28,7 +28,7 @@
     }
   },
   "endpoint": {
-    "type": "lambda",
+    "type": "AWS",
     "path": "sessions/{sessionId}",
     "method": "GET",
     "authorizationType": "none",
