@@ -6,6 +6,7 @@
  * - Deletes the CF stack created by the project
  */
 var Jaws = require('../../lib/index.js'),
+    JawsError = require('../../lib/jaws-error'),
     theCmd = require('../../lib/commands/new_project'),
     path = require('path'),
     os = require('os'),
@@ -31,17 +32,24 @@ describe('Test new command', function() {
 
       this.timeout(0);
 
-      theCmd.create(
+      theCmd.run(
           config.newName,
           config.stage,
           config.envBucket,
-          config.region,
           config.notifyEmail,
-          config.profile
-      )
+          config.region,
+          config.profile)
           .then(function() {
             var jawsJson = require(path.join(os.tmpdir(), config.newName, 'jaws.json'));
-            assert.isTrue(!!jawsJson.project.regions['us-east-1'].stages[config.stage].iamRoleArn);
+            var region = false;
+
+            for (var i = 0; i < jawsJson.project.stages[config.stage].length; i++) {
+              var stage = jawsJson.project.stages[config.stage][i];
+              if (stage.region === config.region) {
+                region = stage.region;
+              }
+            }
+            assert.isTrue(region !== false);
             done();
           })
           .catch(JawsError, function(e) {
@@ -51,12 +59,6 @@ describe('Test new command', function() {
             done(e);
           });
     });
-  });
-
-  describe('Error tests', function() {
-    it('Create new project', function(done) {
-      done();
-    })
   });
 
   //it('Delete Cloudformation stack from new project', function(done) {

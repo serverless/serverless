@@ -8,7 +8,7 @@
     "functionName": "notoptimizedtest",
     "runtime": "nodejs",
     "runtimeVer": "0.10.36",
-    "handler": "lambdas/bundle/nonoptimized/main.run",
+    "handler": "lambdas/bundle/nonoptimized/index.handler",
     "envVars": [
       "MYAPP_SERVICE_KEY",
       "MYAPP_SERVICE2_KEY"

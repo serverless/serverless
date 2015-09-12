@@ -12,7 +12,7 @@ var AWS = require('aws-sdk'),
     uuid = require('node-uuid'),
     Promise = require('bluebird');
 
-module.exports.run = function(event, context) {
+module.exports.handler = function(event, context) {
   console.log('about to run');
 
   var s3 = Promise.promisifyAll(new AWS.S3());

@@ -8,7 +8,7 @@
     "functionName": "browserifytest",
     "runtime": "nodejs",
     "runtimeVer": "0.10.36",
-    "handler": "lambdas/bundle/browserify/main.run",
+    "handler": "lambdas/bundle/browserify/index.handler",
     "envVars": [
       "MYAPP_SERVICE_KEY",
       "MYAPP_SERVICE2_KEY"
