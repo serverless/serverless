@@ -12,7 +12,7 @@ var config = {
   name: 'test-prj',
   notifyEmail: 'tester@jawsstack.com',
   stage: 'unittest',
-  regions: ['us-east-1'],
+  region: 'us-east-1',
   envBucket: process.env.TEST_JAWS_ENV_BUCKET,
   profile: process.env.TEST_JAWS_PROFILE,
   iamRoleArnApiGateway: process.env.TEST_JAWS_APIGATEWAY_ROLE,

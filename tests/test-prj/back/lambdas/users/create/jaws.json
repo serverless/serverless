@@ -8,7 +8,7 @@
     "functionName": "usersCreate",
     "runtime": "nodejs",
     "runtimeVer": "0.10.36",
-    "handler": "lambdas/users/signup/index.handler",
+    "handler": "lambdas/users/create/index.handler",
     "envVars": [
       "MYAPP_SERVICE_KEY",
       "MYAPP_SERVICE2_KEY"

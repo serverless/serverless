@@ -13,7 +13,7 @@ var AWS = require('aws-sdk'),
     Promise = require('bluebird'),
     awsMetadata = require('aws-sdk/package.json');
 
-module.exports.run = function(event, context) {
+module.exports.handler = function(event, context) {
   console.log('AWS sdk version', awsMetadata.version);
 
   var s3 = Promise.promisifyAll(new AWS.S3());

@@ -55,10 +55,10 @@ describe('Test "dash" command', function() {
   });
 
   describe('Positive tests', function() {
-    it('Show Dash', function(done) {
+    it('Dash deployment via tagged resources', function(done) {
       this.timeout(0);
 
-      CMDdash.run(JAWS, config.stage, config.regions, true)
+      CMDdash.run(JAWS, config.stage, [config.region], true)
           .then(function() {
             done();
           })
