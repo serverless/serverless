@@ -141,13 +141,13 @@ program
         case 'api':
           var allTagged = (options.tags) ? true : false;
           var theCmd = require('../lib/commands/deploy_api');
-          handleExit(theCmd.deployApi(JAWS, stage, region, allTagged));
+          handleExit(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
           var allTagged = (options.tags) ? true : false,
               allAtOnce = (options.allAtOnce) ? true : false;
           var theCmd = require('../lib/commands/deploy_lambda');
-          handleExit(theCmd.deployLambdas(JAWS, stage, allTagged, allAtOnce, region));
+          handleExit(theCmd.run(JAWS, stage, region, allTagged, allAtOnce));
           break;
         default:
           console.error('Unsupported type ' + type + '. Must be api|lambda|resources');
@@ -205,11 +205,11 @@ program
     });
 
 program
-    .command('dash [stage] [region]')
+    .command('dash')
     .description('Check deployment status and deploy resources for a stage and region')
-    .action(function(stage, region) {
+    .action(function() {
       var theCmd = require('../lib/commands/dash');
-      handleExit(theCmd.run(JAWS, stage, region));
+      handleExit(theCmd.run(JAWS));
     });
 
 program

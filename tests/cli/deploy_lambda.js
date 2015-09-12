@@ -42,9 +42,9 @@ describe('Test "deploy lambda" command', function() {
     it('Multi level module deploy', function(done) {
       this.timeout(0);
 
-      process.chdir(path.join(projPath, 'back/lambdas/users/show'));
+      process.chdir(path.join(projPath, 'back/lambdas/sessions/show'));
 
-      theCmd.deployLambdas(JAWS, config.stage, false, false)
+      theCmd.run(JAWS, config.stage, false, false)
           .then(function(d) {
             done();
           })
@@ -57,7 +57,7 @@ describe('Test "deploy lambda" command', function() {
       this.timeout(0);
       process.chdir(path.join(projPath, 'back/lambdas/bundle/browserify'));
 
-      theCmd.deployLambdas(JAWS, config.stage, false, false)
+      theCmd.run(JAWS, config.stage, false, false)
           .then(function(d) {
             done();
           })
@@ -70,7 +70,7 @@ describe('Test "deploy lambda" command', function() {
       this.timeout(0);
       process.chdir(path.join(projPath, 'back/lambdas/bundle/nonoptimized'));
 
-      theCmd.deployLambdas(JAWS, config.stage, false, false)
+      theCmd.run(JAWS, config.stage, false, false)
           .then(function(d) {
             done();
           })
