@@ -29,7 +29,7 @@ program
     .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials). Only valid for new project.')
     .option('-n, --proj-name <name>', 'Project name. Only valid for new project.')
     .option('-s, --stage <stage>', 'Stage to create. all lowercase Only valid for new project.')
-    .option('-r, --region <region>', 'Region lambda(s)&API(s) will be created in (Can add more later). Only valid for new project.')
+    .option('-r, --region <region>', 'Region lambda(s)&endpoints(s) will be created in (Can add more later). Only valid for new project.')
     .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE. Only valid for new project.')
     .option('-e, --notification-email <email>', 'Email to be notified with stack alerts. Only valid for new project.')
     .action(function(type, regionName, stageName, options) {
@@ -66,7 +66,7 @@ program
     .description('Create boilerplate structure for a new lambda or api gateway (or both)')
     .option('-l, --lambda', 'will create the files needed for a lambda')
     .option('-r, --lambda-runtime', 'only nodejs supported')
-    .option('-a, --api', 'will create the files needed for an api gateway configuration')
+    .option('-a, --endpoint', 'will create the files needed for an api gateway configuration')
     .option('-b, --both', 'shorthand for -l -a')
     .option('-f, --function-name', 'lambda functionName. Will ensure this is unique across your project.')
     .option('-m, --resource-name', 'parent directory the functionName dir will be created in')
@@ -76,13 +76,13 @@ program
         options.lambda = true;
       }
 
-      if (options.api || options.both) {
-        options.api = true;
+      if (options.endpoint || options.both) {
+        options.endpoint = true;
       }
 
       var theCmd = require('../lib/commands/generate');
       handleExit(theCmd.run(
-          JAWS, options.lambda, options.api, options.functionName, options.resourceName, options.lambdaRuntime
+          JAWS, options.lambda, options.endpoint, options.functionName, options.resourceName, options.lambdaRuntime
       ));
     });
 
@@ -97,19 +97,19 @@ program
 
 program
     .command('tag [type]')
-    .description('Tag lambda function or api gateway resource (api) for deployment ' +
+    .description('Tag lambda function or api gateway resource (endpoint) for deployment ' +
     'the next time deploy command is run. Type "lambda" is the default.')
-    .option('-u, --untag', 'un-tag lambda|api')
+    .option('-u, --untag', 'un-tag lambda|endpoint')
     .option('-m, --multi', 'interactively select multiple')
-    .option('-a, --tag-all', 'tag all lambda|api functions in project')
-    .option('-l, --list-all', 'list all tagged lambda|api functions in project')
-    .option('-n, --untag-all', 'un-tag all lambda|api functions in project')
+    .option('-a, --tag-all', 'tag all lambda|endpoint functions in project')
+    .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
+    .option('-n, --untag-all', 'un-tag all lambda|endpoint functions in project')
     .action(function(type, options) {
       type = type || 'lambda';
       type = type.toLowerCase();
 
-      if (-1 == ['api', 'lambda'].indexOf(type)) {
-        console.error('Unsupported type ' + type + '. Must be api|lambda');
+      if (-1 == ['endpoint', 'lambda'].indexOf(type)) {
+        console.error('Unsupported type ' + type + '. Must be endpoint|lambda');
         process.exit(1);
       }
 
@@ -130,7 +130,7 @@ program
 
 program
     .command('deploy <type> [stage] [region]')
-    .description('Deploy a lambda function (type lambda), a REST API (api), or provision AWS resources (resources) for the specified stage.' +
+    .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
     ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
     .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
@@ -138,9 +138,9 @@ program
 
       type = type.toLowerCase();
       switch (type) {
-        case 'api':
+        case 'endpoint':
           var allTagged = (options.tags) ? true : false;
-          var theCmd = require('../lib/commands/deploy_api');
+          var theCmd = require('../lib/commands/deploy_endpoint');
           handleExit(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
@@ -150,7 +150,7 @@ program
           handleExit(theCmd.run(JAWS, stage, region, allTagged, allAtOnce));
           break;
         default:
-          console.error('Unsupported type ' + type + '. Must be api|lambda|resources');
+          console.error('Unsupported type ' + type + '. Must be endpoint|lambda|resources');
           process.exit(1);
           break;
       }
