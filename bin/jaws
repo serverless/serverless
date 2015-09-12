@@ -7,6 +7,7 @@ var JawsError = require('../lib/jaws-error'),
     program = require('commander'),
     utils = require('../lib/utils'),
     Promise = require('bluebird'),
+    minimist = require('minimist'),
     handleExit = utils.handleExit;
 
 var JAWS = new Jaws();
@@ -20,31 +21,26 @@ program
     .version(JAWS._meta.version);
 
 program
-    .command('new <type> [regionName] [stageName]')
-    .description('Creates JAWS "project" or "region"/"stage" in existing project. Does so in cwd. ' +
-    'If type is region|stage, regionName and stageName are required. If region, the stageName is the stage that will' +
-    'be primed in the new region.')
-    .option('-d, --dont-exe-cf', 'Dont execute CloudFormation file')
-  //Things only valid for new project below:
-    .option('-p, --profile <profile name>', 'AWS profile to use (as defined in ~/.aws/credentials). Only valid for new project.')
-    .option('-n, --proj-name <name>', 'Project name. Only valid for new project.')
-    .option('-s, --stage <stage>', 'Stage to create. all lowercase Only valid for new project.')
-    .option('-r, --region <region>', 'Region lambda(s)&endpoints(s) will be created in (Can add more later). Only valid for new project.')
-    .option('-3, --s3-bucket <bucketName>', 'S3 bucket to store stage env files. Key is JAWS/envVars/<projName>/<stage>. Bucket will be created if it DNE. Only valid for new project.')
-    .option('-e, --notification-email <email>', 'Email to be notified with stack alerts. Only valid for new project.')
-    .action(function(type, regionName, stageName, options) {
-      type = type.toLowerCase();
+    .command('new <type>')
+    .allowUnknownOption()
+    .description('Make a new "project", "stage", "region", "lambda" or "endpoint"')
+    .action(function() {
+
+      // Parse Args
+      var args = minimist(process.argv.slice(3));
+      var type = args._[0] ? args._[0].toLowerCase() : null;
 
       if (type == 'project') {
-        var theCmd = require('../lib/commands/new_project');
-        handleExit(theCmd.run(
-            options.projName,  // name is reserved in commander...
-            options.stage ? options.stage.toLowerCase() : null,
-            options.s3Bucket,
-            options.region,
-            options.notificationEmail,
-            options.profile,
-            options.dontExeCf
+
+        var CmdNewProject = require('../lib/commands/new_project');
+        handleExit(CmdNewProject.run(
+            args.name,
+            args.stage ? args.stage.toLowerCase() : null,
+            args.s3Bucket,
+            args.region,
+            args.email,
+            args.profile,
+            args.noCf
         ));
       } else if (type == 'region' || type == 'stage') {
         var theCmd = require('../lib/commands/new_region_stage'),

@@ -5,13 +5,13 @@
 require('./config');  //init config
 
 describe('AllTests', function() {
+
   before(function(done) {
     this.timeout(0);  //dont timeout anything
     done();
   });
 
-  after(function() {
-  });
+  after(function() {});
 
   //require tests vs inline so we can run sequentially
   //require('./cli/tag');
@@ -22,8 +22,8 @@ describe('AllTests', function() {
   /**
    * Tests below create AWS Resources
    */
-  require('./cli/dash');
+  //require('./cli/dash');
   //require('./cli/deploy_lambda');
-  //require('./cli/deploy_api');
-  //require('./cli/new_project');
+  //require('./cli/deploy_endpoint');
+  require('./cli/new_project');
 });
