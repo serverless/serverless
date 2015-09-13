@@ -32,6 +32,7 @@ program
 
       if (type == 'project') {
 
+        // New Project
         var CmdNewProject = require('../lib/commands/new_project');
         handleExit(CmdNewProject.run(
             args.name,
@@ -42,15 +43,19 @@ program
             args.profile,
             args.noCf
         ));
-      } else if (type == 'region' || type == 'stage') {
-        var theCmd = require('../lib/commands/new_region_stage'),
-            isCreateRegion = (type == 'region');
 
-        if (!regionName || !stageName) {
-          console.error("Region and stage name required. Stage name will be the 1st stage primed in new region");
-          process.exit(1);
-        }
-        handleExit(theCmd.create(isCreateRegion, JAWS, regionName, stageName, options.dontExeCf));
+      } else if (type == 'region' || type == 'stage') {
+
+        // New Region/Stage
+        var CmdNewStageRegion = require('../lib/commands/new_stage_region');
+        handleExit(CmdNewStageRegion.run(
+            JAWS,
+            type,
+            args.stage,
+            args.region,
+            args.noCf
+        ));
+
       } else {
         console.error('Unsupported type ' + type + '. Must be project|region|stage');
         process.exit(1);
@@ -206,14 +211,6 @@ program
     .action(function() {
       var theCmd = require('../lib/commands/dash');
       handleExit(theCmd.run(JAWS));
-    });
-
-program
-    .command('logs <stage>')
-    .description('Get logs for the lambda function in the specified stage in your current working directory.')
-    .action(function(stage) {
-      var theCmd = require('../lib/commands/logs');
-      handleExit(theCmd.logs(JAWS, stage));
     });
 
 if (process.argv.length == 2) {
