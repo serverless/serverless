@@ -27,6 +27,7 @@
     }
   },
   "endpoint": {
+    "type": "AWS",
     "path": "",
     "method": "GET",
     "authorizationType": "none",
