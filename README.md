@@ -5,9 +5,9 @@ JAWS: The Server-less Framework V1 (BETA)
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Welcome to JAWS V1 BETA.  Many things are broken.  Please provide fixes and feedback :)
+Welcome to **JAWS V1 BETA**.  We're still fixing many quirks.  Please provide fixes and feedback.  If you want to help, please view the **[JAWS V1 Google Document](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit#)**.
 
-* **[Join the Email List](http://eepurl.com/bvz5Nj)**
+* **[Join the JAWS Email List](http://eepurl.com/bvz5Nj)**
 
 ## Goals:
 
@@ -24,41 +24,26 @@ Graphics coming soon...
 
 ## Quick Start
 
-This guide gets you started quickly.  Later, check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) guide in our  [wiki](https://github.com/jaws-stack/JAWS/wiki) for tips on security and more.
+The guide below gets you started quickly.  Later, check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) guide in our  [wiki](https://github.com/jaws-stack/JAWS/wiki) for tips on security and more.
 
-### Install
+*  **[Setup an AWS account and create an administrative user](https://github.com/jaws-framework/JAWS/wiki/v1:-AWS-Account-setup)**
 
-These 3 steps will only have to be done once across all your JAWS projects in an AWS account:
-*  [Setup an AWS account and create an administrative user](https://github.com/jaws-framework/JAWS/wiki/v1:-AWS-Account-setup)
-*  Create S3 bucket that will hold your enviornment variable files. [Why?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
-*  ```npm install jaws-framework -g```
+*  ```$ npm install jaws-framework -g```
 
-### Hit the ground running
+*  ```$ jaws new project```
 
-*  Create a new project in your current working directory:
+*  ```$ cd <new-project-name>```
 
-  ```jaws new project```
-*  Generate a lambda function skeletion and corresponding API gateway endpoint config:
+*  ```$ jaws new action users create -b```
 
-  ```cd <proj-name>; jaws new action```
-
-* Deploy generated lambda:
-
-  ```TODO: do we put dash command here?```
-
-* Optionally deploy your API gateway:
-  * Configure `jaws.json` [`endpoint`](./docs/jaws-json.md) attribute in `<funcName>` dir
-  * ```cd back/lambdas/<funcName>; jaws deploy api```
+* ```$ jaws dash```
 
 ## Where do I go from here?
 
-Check out our [docs](./docs/) and [wiki](https://github.com/jaws-stack/JAWS/wiki), especially the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages
+We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-stack/JAWS/wiki), [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages.
 
 Once you become familar with JAWS, you can read the JAWS [plug-in module guide](./docs/plugin-module-guide.md) to start contributing JAWS modules to the community.
 
 ## How can I help?
 
-Check out our [v1.1 roadmap doc](https://docs.google.com/document/d/1xbpEps-s4iMkjmAkYiyJYwY1BIzTY9LaLMy23AfMYoI/edit#heading=h.o8y2lvp71fab) for what we need help with.
-
-Please check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for coding and PR guidelines.
-
+Please check out the **[JAWS V1 Google Document](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit#)** and our [CONTRIBUTING.md](./CONTRIBUTING.md) for coding and PR guidelines.

@@ -75,8 +75,8 @@ program
               + '"jaws new users create".');
         }
 
-        action.resource = args._[2];
-        action.action = args._[3];
+        action.resource = args._[1];
+        action.action = args._[2];
         action.runtime = (args.r || args.runtime);
 
         // New Action
