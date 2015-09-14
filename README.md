@@ -1,34 +1,38 @@
 ![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/jaws-stack/JAWS/blob/v1.0/jaws_v1_logo.png)
 
-JAWS: The Server-less Stack
+JAWS: The Server-less Framework V1 (BETA)
 =================================
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
+Welcome to JAWS V1 BETA.  Many things will be broken.  Please provide fixes and feedback :)
+
+| [![jaws installation guide](https://servant-assets.s3.amazonaws.com/img/jaws_square_installation_guide_2.png)](https://github.com/servant-app/JAWS/wiki/JAWS-Installation) | [![jaws email list](https://servant-assets.s3.amazonaws.com/img/jaws_square_email_list_1.png)](http://eepurl.com/bvz5Nj) | [![jaws v1 version 1 specifications](https://servant-assets.s3.amazonaws.com/img/jaws_square_v1_coming_soon_2.png)](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit?usp=sharing)
+| ------------- | ----------- | ----------- |
+
 ## Goals:
 
- - **Use No Servers:** Never deal with scaling/deploying/maintaining/monitoring servers again.
- - **Isolated Components:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down...  only individual API routes can go down.
- - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
- - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
- - **Enable all supported Lambda runtimes** While first release is `nodejs` only, we plan on adding supoport for all languages. This means each lambda in your JAWS project can be coded in the lang that best suites the problem.
- - **Integrate with AWS API Gateway** No more clicking around the API Gateway UI.  Keep your config next to your code.
- - **Multi-region and multi-stage:** supported out of the box. Driven by [CloudFormation](https://aws.amazon.com/cloudformation/).
+ - **No Servers:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down.  There is no app.  Only individual lambda functions can go down.
+ - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency.
+ - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you pay only when they are run.
+ - **All Lambda Runtimes** While first release is `nodejs` only, we plan on adding supoport for all languages. This means each lambda in your JAWS project can be coded in the lang that best suites the problem.
+ - **API Gateway Auto-Deploy** Creates your API endpoints for you on API Gateway.
+ - **Multi-stage & Multi-Region:** Define stages for your project, and multiple regions with a stage. Driven by [CloudFormation](https://aws.amazon.com/cloudformation/).
 
 ## Architecture
 
-TODO: Austen do ur magic here...
+Graphics coming soon...
 
 ## Quick Start
 
-This guide provides the path of least resistence to get up and going quick.  It is **not** the most secure way to do things.  Check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) guide in our  [wiki](https://github.com/jaws-stack/JAWS/wiki).
+This guide gets you started quickly.  Later, check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) guide in our  [wiki](https://github.com/jaws-stack/JAWS/wiki) for tips on security and more.
 
 ### Install
 
 These 3 steps will only have to be done once across all your JAWS projects in an AWS account:
-*  [Setup an AWS account and create an administrative user](https://github.com/jaws-stack/JAWS/wiki/v1:-AWS-Account-setup)
-*  Create S3 bucket that will hold your enviornment variable files. [Why?](https://github.com/jaws-stack/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
-*  ```npm install jaws-stack -g```
+*  [Setup an AWS account and create an administrative user](https://github.com/jaws-framework/JAWS/wiki/v1:-AWS-Account-setup)
+*  Create S3 bucket that will hold your enviornment variable files. [Why?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
+*  ```npm install jaws-framework -g```
 
 ### Hit the ground running
 
@@ -36,8 +40,8 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 
   ```jaws new project```
 *  Generate a lambda function skeletion and corresponding API gateway endpoint config:
-  
-  ```cd <proj-name>; jaws generate```
+
+  ```cd <proj-name>; jaws new action```
 
 * Deploy generated lambda:
 

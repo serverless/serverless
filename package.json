@@ -1,21 +1,23 @@
 {
   "name": "jaws-framework",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "preferGlobal": true,
   "description": "JAWS is the server-less application framework.",
-  "author": "Austen Collins <austen@servant.co> Ryan Pendergast <ryan.pendergast@gmail.com>",
+  "author": "Austen Collins <austen@servant.co>, Ryan Pendergast <ryan.pendergast@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/jaws-stack/JAWS.git"
+    "url": "git://github.com/jaws-framework/JAWS.git"
   },
   "keywords": [
     "jaws",
     "jaws framework",
     "jaws cli",
+    "serverless",
     "api gateway",
     "lambda",
     "aws",
+    "aws lambda",
     "amazon",
     "amazon web services",
     "dynamodb"
