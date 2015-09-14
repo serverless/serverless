@@ -28,7 +28,7 @@ program
 program
     .command('new <type>')
     .allowUnknownOption()
-    .description('Make a new "project", "stage", "region", "lambda" or "endpoint"')
+    .description('Make a new "project", "stage", "region", or "action" [ --lambda | --endpoint | --both ] ')
     .action(function() {
 
       // Parse Args
@@ -86,7 +86,7 @@ program
       } else {
 
         // Unknown Type
-        console.error('Unsupported type ' + type + '. Must be project|region|stage');
+        console.error('Unsupported type ' + type + '. Must be project|region|stage|action');
         process.exit(1);
 
       }
