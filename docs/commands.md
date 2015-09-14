@@ -22,9 +22,9 @@ Creates new region in existing project.  By default executes CloudFormation to m
 
 Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
-### jaws generate
+##### type `action`
 
-This command generates code/configuration on your local machine. It does not make AWS resources.  By default will prompt to generate the following:
+Creates one or both of the following:
 
 * A lambda function in the `lambdas/back` folder with basic scaffolding.
 * An API gateway configuration 
