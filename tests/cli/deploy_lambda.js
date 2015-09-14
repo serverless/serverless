@@ -4,7 +4,7 @@
  * JAWS Test: Deploy Lambda Command
  */
 var Jaws = require('../../lib/index.js'),
-    theCmd = require('../../lib/commands/deploy_lambda'),
+    CmdDeployLambda = require('../../lib/commands/deploy_lambda'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert,
@@ -33,10 +33,6 @@ describe('Test "deploy lambda" command', function() {
     done();
   });
 
-  after(function(done) {
-    done();
-  });
-
   describe('Positive tests', function() {
 
     it('Multi level module deploy', function(done) {
@@ -44,7 +40,7 @@ describe('Test "deploy lambda" command', function() {
 
       process.chdir(path.join(projPath, 'back/lambdas/sessions/show'));
 
-      theCmd.run(JAWS, config.stage, false, false)
+      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
             done();
           })
@@ -57,7 +53,7 @@ describe('Test "deploy lambda" command', function() {
       this.timeout(0);
       process.chdir(path.join(projPath, 'back/lambdas/bundle/browserify'));
 
-      theCmd.run(JAWS, config.stage, false, false)
+      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
             done();
           })
@@ -70,7 +66,7 @@ describe('Test "deploy lambda" command', function() {
       this.timeout(0);
       process.chdir(path.join(projPath, 'back/lambdas/bundle/nonoptimized'));
 
-      theCmd.run(JAWS, config.stage, false, false)
+      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
             done();
           })

@@ -1,12 +1,11 @@
 'use strict';
 
 /**
- * JAWS Test: Deploy API Command
- * - Copies the test-prj template to your system's temp directory
- * - Deploys an API based on the endpoints in the project
+ * JAWS Test: Deploy Endpoint
  */
+
 var Jaws = require('../../lib/index.js'),
-    theCmd = require('../../lib/commands/deploy_api'),
+    theCmd = require('../../lib/commands/deploy_endpoint'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     path = require('path'),
@@ -16,32 +15,29 @@ var Jaws = require('../../lib/index.js'),
     projPath,
     JAWS;
 
-describe('Test deploy api command', function() {
+describe('Test deploy endpoint command', function() {
 
   before(function(done) {
-    projPath = testUtils.createTestProject(
-        config.name,
-        config.region,
-        config.stage,
-        config.iamRoleArnLambda,
-        config.iamRoleArnApiGateway,
-        config.envBucket);
-    process.chdir(path.join(projPath, 'back/lambdas/users/show'));
-    JAWS = new Jaws();
+    return Promise.try(function() {
+      projPath = testUtils.createTestProject(
+          config.name,
+          config.region,
+          config.stage,
+          config.iamRoleArnLambda,
+          config.iamRoleArnApiGateway,
+          config.envBucket);
+      process.chdir(path.join(projPath, 'back/lambdas/sessions/show'));
+      JAWS = new Jaws();
 
-    // Get Lambda Paths
-    lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
-    lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
-    lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
-
-    done();
-  });
-
-  after(function(done) {
-    done();
+      // Get Lambda Paths
+      lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
+      lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
+      lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
+    }).then(done);
   });
 
   describe('Positive tests', function() {
+
     it('Deploy REST API', function(done) {
 
       this.timeout(0);

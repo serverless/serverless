@@ -5,7 +5,7 @@
  */
 
 var Jaws = require('../../lib/index.js'),
-    theCmd = require('../../lib/commands/env'),
+    CmdEnv = require('../../lib/commands/env'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert;
@@ -24,7 +24,7 @@ describe('Test "env" command', function() {
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
         config.envBucket);
-    process.chdir(path.join(projPath, 'back', 'lambdas', 'users', 'show'));
+    process.chdir(path.join(projPath, 'back', 'lambdas', 'sessions', 'show'));
     JAWS = new Jaws();
   });
 
@@ -36,7 +36,7 @@ describe('Test "env" command', function() {
     it('Test env command', function(done) {
       this.timeout(0);
 
-      theCmd.listEnv(JAWS, config.stage)
+      CmdEnv.listEnv(JAWS, config.stage)
           .then(function(d) {
             done();
           })

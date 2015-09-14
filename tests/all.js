@@ -14,18 +14,18 @@ describe('AllTests', function() {
   after(function() {});
 
   //require tests vs inline so we can run sequentially
-  //require('./cli/tag');
-  //require('./cli/install');
-  //require('./cli/env');
-  //require('./cli/generate');
+  require('./cli/tag');
+  require('./cli/install');
+  require('./cli/env');
+  require('./cli/new_action');
 
   /**
    * Tests below create AWS Resources
    */
 
-  require('./cli/new_stage_region');
   //require('./cli/dash');
   //require('./cli/deploy_lambda');
   //require('./cli/deploy_endpoint');
+  //require('./cli/new_stage_region');
   //require('./cli/new_project');
 });

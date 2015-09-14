@@ -8,7 +8,7 @@ var JawsError = require('../lib/jaws-error'),
     utils = require('../lib/utils'),
     Promise = require('bluebird'),
     minimist = require('minimist'),
-    handleExit = utils.handleExit;
+    execute = utils.execute;
 
 var JAWS = new Jaws();
 
@@ -34,7 +34,7 @@ program
 
         // New Project
         var CmdNewProject = require('../lib/commands/new_project');
-        handleExit(CmdNewProject.run(
+        execute(CmdNewProject.run(
             args.name,
             args.stage ? args.stage.toLowerCase() : null,
             args.s3Bucket,
@@ -48,7 +48,7 @@ program
 
         // New Region/Stage
         var CmdNewStageRegion = require('../lib/commands/new_stage_region');
-        handleExit(CmdNewStageRegion.run(
+        execute(CmdNewStageRegion.run(
             JAWS,
             type,
             args.stage,
@@ -56,35 +56,35 @@ program
             args.noCf
         ));
 
+      } else if (type === 'action') {
+
+        var action = {};
+
+        if (args.b || args.both) action.type = 'both';
+        else if (args.l || args.lambda) action.type = 'lambda';
+        else if (args.e || args.endpoint) action.type = 'endpoint';
+        else action.type = 'both';
+
+        if (args._.length !== 3) {
+          throw new JawsError('Please specify the resource and action in this command, like:  '
+              + '"jaws new users create".');
+        }
+
+        action.resource = args._[2];
+        action.action = args._[3];
+        action.runtime = (args.r || args.runtime);
+
+        // New Action
+        var CmdNewAction = require('../lib/commands/new_action');
+        execute(CmdNewAction.run(JAWS, action));
+
       } else {
+
+        // Unknown Type
         console.error('Unsupported type ' + type + '. Must be project|region|stage');
         process.exit(1);
+
       }
-    });
-
-program
-    .command('generate')
-    .description('Create boilerplate structure for a new lambda or api gateway (or both)')
-    .option('-l, --lambda', 'will create the files needed for a lambda')
-    .option('-r, --lambda-runtime', 'only nodejs supported')
-    .option('-a, --endpoint', 'will create the files needed for an api gateway configuration')
-    .option('-b, --both', 'shorthand for -l -a')
-    .option('-f, --function-name', 'lambda functionName. Will ensure this is unique across your project.')
-    .option('-m, --resource-name', 'parent directory the functionName dir will be created in')
-
-    .action(function(options) {
-      if (options.lambda || options.both) {
-        options.lambda = true;
-      }
-
-      if (options.endpoint || options.both) {
-        options.endpoint = true;
-      }
-
-      var theCmd = require('../lib/commands/generate');
-      handleExit(theCmd.run(
-          JAWS, options.lambda, options.endpoint, options.functionName, options.resourceName, options.lambdaRuntime
-      ));
     });
 
 program
@@ -93,7 +93,7 @@ program
     .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
     .action(function(url, options) {
       var theCmd = require('../lib/commands/install');
-      handleExit(theCmd.install(JAWS, url, options.save));
+      execute(theCmd.install(JAWS, url, options.save));
     });
 
 program
@@ -116,16 +116,16 @@ program
 
       var theCmd = require('../lib/commands/tag');
       if (options.listAll) {
-        handleExit(theCmd.listAll(JAWS, type).then(function(relPaths) {
+        execute(theCmd.listAll(JAWS, type).then(function(relPaths) {
           console.log(relPaths);
         }));
       } else if (options.tagAll || options.untagAll) {
         var untag = (options.untagAll) ? true : false;
-        handleExit(theCmd.tagAll(JAWS, type, untag));
+        execute(theCmd.tagAll(JAWS, type, untag));
       } else if (options.multi) {
-        handleExit(theCmd.tagMulti(JAWS, type, options.untag));
+        execute(theCmd.tagMulti(JAWS, type, options.untag));
       } else {  //If not tagging all, you have to be tagging whats in your CWD (null 1st param)
-        handleExit(theCmd.tag(type, null, options.untag));
+        execute(theCmd.tag(type, null, options.untag));
       }
     });
 
@@ -142,13 +142,13 @@ program
         case 'endpoint':
           var allTagged = (options.tags) ? true : false;
           var theCmd = require('../lib/commands/deploy_endpoint');
-          handleExit(theCmd.run(JAWS, stage, region, allTagged));
+          execute(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
           var allTagged = (options.tags) ? true : false,
               allAtOnce = (options.allAtOnce) ? true : false;
           var theCmd = require('../lib/commands/deploy_lambda');
-          handleExit(theCmd.run(JAWS, stage, region, allTagged, allAtOnce));
+          execute(theCmd.run(JAWS, stage, region, allTagged, allAtOnce));
           break;
         default:
           console.error('Unsupported type ' + type + '. Must be endpoint|lambda|resources');
@@ -167,7 +167,7 @@ program
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
-          handleExit(theCmd.listEnv(JAWS, stage));
+          execute(theCmd.listEnv(JAWS, stage));
           break;
         case 'get':
           if (!key) {
@@ -175,7 +175,7 @@ program
             process.exit(1);
           }
 
-          handleExit(theCmd.getEnvKey(JAWS, stage, key));
+          execute(theCmd.getEnvKey(JAWS, stage, key));
           break;
         case 'set':
           if (!key || typeof val == 'undefined') {
@@ -183,7 +183,7 @@ program
             process.exit(1);
           }
 
-          handleExit(theCmd.setEnvKey(JAWS, stage, key, val));
+          execute(theCmd.setEnvKey(JAWS, stage, key, val));
           break;
         case 'unset':
           if (!key) {
@@ -196,7 +196,7 @@ program
             process.exit(1);
           }
 
-          handleExit(theCmd.setEnvKey(JAWS, stage, key));
+          execute(theCmd.setEnvKey(JAWS, stage, key));
           break;
         default:
           console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
@@ -210,7 +210,7 @@ program
     .description('Check deployment status and deploy resources for a stage and region')
     .action(function() {
       var theCmd = require('../lib/commands/dash');
-      handleExit(theCmd.run(JAWS));
+      execute(theCmd.run(JAWS));
     });
 
 if (process.argv.length == 2) {

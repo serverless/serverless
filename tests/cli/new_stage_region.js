@@ -41,14 +41,7 @@ describe('Test "new stage/region" command', function() {
 
       // Instantiate JAWS
       JAWS = new Jaws();
-    })
-        .then(function() {
-          return done();
-        });
-  });
-
-  after(function(done) {
-    done();
+    }).then(done);
   });
 
   describe('Positive tests', function() {

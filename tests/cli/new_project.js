@@ -5,6 +5,7 @@
  * - Creates a new project in your system's temp directory
  * - Deletes the CF stack created by the project
  */
+
 var Jaws = require('../../lib/index.js'),
     JawsError = require('../../lib/jaws-error'),
     theCmd = require('../../lib/commands/new_project'),

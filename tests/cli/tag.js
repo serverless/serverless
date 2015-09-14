@@ -6,7 +6,7 @@
  * - Deploys an API based on the endpoints in the project
  */
 var Jaws = require('../../lib/index.js'),
-    theCmd = require('../../lib/commands/tag'),
+    CmdTag = require('../../lib/commands/tag'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert,
@@ -32,9 +32,9 @@ describe('Test "tag" command', function() {
     JAWS = new Jaws();
 
     // Get Lambda Paths
-    lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
-    lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
-    lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
+    lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'sessions', 'show', 'jaws.json');
+    lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'sessions', 'create', 'jaws.json');
+    lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'create', 'jaws.json');
     done();
   });
 
@@ -47,18 +47,18 @@ describe('Test "tag" command', function() {
 
       this.timeout(0);
 
-      theCmd.tag('lambda', lambdaPaths.lambda1, false)
+      CmdTag.tag('lambda', lambdaPaths.lambda1, false)
           .then(function() {
             assert.equal(true, require(lambdaPaths.lambda1).lambda.deploy);
             assert.equal(false, require(lambdaPaths.lambda2).lambda.deploy);
             assert.equal(false, require(lambdaPaths.lambda3).lambda.deploy);
-            return theCmd.tagAll(JAWS, 'lambda', false);
+            return CmdTag.tagAll(JAWS, 'lambda', false);
           })
           .then(function() {
             assert.equal(true, require(lambdaPaths.lambda1).lambda.deploy);
             assert.equal(true, require(lambdaPaths.lambda2).lambda.deploy);
             assert.equal(true, require(lambdaPaths.lambda3).lambda.deploy);
-            return theCmd.tagAll(JAWS, 'lambda', true);
+            return CmdTag.tagAll(JAWS, 'lambda', true);
           })
           .then(function() {
             assert.equal(false, require(lambdaPaths.lambda1).lambda.deploy);
@@ -74,18 +74,18 @@ describe('Test "tag" command', function() {
     it('tag endpoints', function(done) {
       this.timeout(0);
 
-      theCmd.tag('api', lambdaPaths.lambda1, true)
+      CmdTag.tag('endpoint', lambdaPaths.lambda1, true)
           .then(function() {
             assert.equal(false, require(lambdaPaths.lambda1).endpoint.deploy);
             assert.equal(true, require(lambdaPaths.lambda2).endpoint.deploy);
             assert.equal(true, require(lambdaPaths.lambda3).endpoint.deploy);
-            return theCmd.tagAll(JAWS, 'api', false);
+            return CmdTag.tagAll(JAWS, 'endpoint', false);
           })
           .then(function() {
             assert.equal(true, require(lambdaPaths.lambda1).endpoint.deploy);
             assert.equal(true, require(lambdaPaths.lambda2).endpoint.deploy);
             assert.equal(true, require(lambdaPaths.lambda3).endpoint.deploy);
-            return theCmd.tagAll(JAWS, 'api', true);
+            return CmdTag.tagAll(JAWS, 'endpoint', true);
           })
           .then(function() {
             assert.equal(false, require(lambdaPaths.lambda1).endpoint.deploy);
