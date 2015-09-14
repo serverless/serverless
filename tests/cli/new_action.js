@@ -10,7 +10,6 @@ var Jaws = require('../../lib/index.js'),
     testUtils = require('../test_utils'),
     Promise = require('bluebird'),
     path = require('path'),
-    shortid = require('shortid'),
     assert = require('chai').assert;
 
 var config = require('../config'),
@@ -48,15 +47,15 @@ describe('Test "new action" command', function() {
       var action = {
         type: 'both',
         resource: 'users',
-        action: 'create',
+        action: 'list',
       };
 
       CmdNewAction.run(JAWS, action)
           .then(function() {
-            var jawsJson = require(path.join(process.cwd(), 'lambdas/users/create/jaws.json'));
+            var jawsJson = require(path.join(process.cwd(), 'lambdas/users/list/jaws.json'));
             assert.isTrue(typeof jawsJson.lambda !== 'undefined');
             assert.isTrue(typeof jawsJson.endpoint !== 'undefined');
-            assert.isTrue(jawsJson.lambda.functionName === 'users-create');
+            assert.isTrue(jawsJson.lambda.functionName === 'users-list');
             done();
           })
           .catch(JawsError, function(e) {
