@@ -30,9 +30,9 @@ describe('Test deploy endpoint command', function() {
       JAWS = new Jaws();
 
       // Get Lambda Paths
-      lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'users', 'show', 'jaws.json');
-      lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'users', 'signin', 'jaws.json');
-      lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'signup', 'jaws.json');
+      lambdaPaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'sessions', 'show', 'jaws.json');
+      lambdaPaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'sessions', 'create', 'jaws.json');
+      lambdaPaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'create', 'jaws.json');
     }).then(done);
   });
 

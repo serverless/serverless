@@ -10,15 +10,20 @@ var JawsError = require('../lib/jaws-error'),
     minimist = require('minimist'),
     execute = utils.execute;
 
-var JAWS = new Jaws();
-
 Promise.onPossiblyUnhandledRejection(function(error) {
   throw error;
 });
 
+var JAWS = new Jaws();
+
 program
     .option('-v, --verbose')
     .version(JAWS._meta.version);
+
+/**
+ * New
+ * - Create a new project|stage|region|action
+ */
 
 program
     .command('new <type>')
@@ -87,25 +92,35 @@ program
       }
     });
 
+/**
+ * Install
+ * - Install a jaws-module from a Github url
+ */
+
 program
     .command('install <url>')
     .description('Installs a jaws-module from the specified url into the apprpriate area of your JAWS project.')
-    .option('-s, --save', 'Save jaws-module\'s CloudFormation and Swagger Template to your project\'s')
+    .option('-s, --save', 'Save jaws-module\'s CloudFormation to your project')
     .action(function(url, options) {
       var theCmd = require('../lib/commands/install');
       execute(theCmd.install(JAWS, url, options.save));
     });
+
+/**
+ * Tag
+ * - Tag a lambda or endpoint for deployment
+ */
 
 program
     .command('tag [type]')
     .description('Tag lambda function or api gateway resource (endpoint) for deployment ' +
     'the next time deploy command is run. Type "lambda" is the default.')
     .option('-u, --untag', 'un-tag lambda|endpoint')
-    .option('-m, --multi', 'interactively select multiple')
     .option('-a, --tag-all', 'tag all lambda|endpoint functions in project')
     .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
     .option('-n, --untag-all', 'un-tag all lambda|endpoint functions in project')
     .action(function(type, options) {
+
       type = type || 'lambda';
       type = type.toLowerCase();
 
@@ -114,20 +129,24 @@ program
         process.exit(1);
       }
 
-      var theCmd = require('../lib/commands/tag');
+      var CmdTag = require('../lib/commands/tag');
       if (options.listAll) {
-        execute(theCmd.listAll(JAWS, type).then(function(relPaths) {
+        execute(CmdTag.listAll(JAWS, type).then(function(relPaths) {
           console.log(relPaths);
         }));
       } else if (options.tagAll || options.untagAll) {
         var untag = (options.untagAll) ? true : false;
-        execute(theCmd.tagAll(JAWS, type, untag));
-      } else if (options.multi) {
-        execute(theCmd.tagMulti(JAWS, type, options.untag));
-      } else {  //If not tagging all, you have to be tagging whats in your CWD (null 1st param)
-        execute(theCmd.tag(type, null, options.untag));
+        execute(CmdTag.tagAll(JAWS, type, untag));
+      } else {
+      // If not tagging all, you have to be tagging whats in your CWD (null 1st param)
+        execute(CmdTag.tag(type, null, options.untag));
       }
     });
+
+/**
+ * Deploy
+ * - Deploy Lambda or Endpoint
+ */
 
 program
     .command('deploy <type> [stage] [region]')
@@ -157,17 +176,22 @@ program
       }
     });
 
+/**
+ * Env
+ * - Manage ENV variables for a stage
+ */
+
 program
     .command('env <cmd> <stage> [key] [val]')
     .description('Manage env vars for stage. Valid cmds: list,get,set,unset.')
     .usage('get test USERNAME or set test USERNAME blah.')
     .action(function(cmd, stage, key, val) {
-      var theCmd = require('../lib/commands/env');
+      var CmdEnv = require('../lib/commands/env');
 
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
-          execute(theCmd.listEnv(JAWS, stage));
+          execute(CmdEnv.listEnv(JAWS, stage));
           break;
         case 'get':
           if (!key) {
@@ -175,7 +199,7 @@ program
             process.exit(1);
           }
 
-          execute(theCmd.getEnvKey(JAWS, stage, key));
+          execute(CmdEnv.getEnvKey(JAWS, stage, key));
           break;
         case 'set':
           if (!key || typeof val == 'undefined') {
@@ -183,7 +207,7 @@ program
             process.exit(1);
           }
 
-          execute(theCmd.setEnvKey(JAWS, stage, key, val));
+          execute(CmdEnv.setEnvKey(JAWS, stage, key, val));
           break;
         case 'unset':
           if (!key) {
@@ -196,7 +220,7 @@ program
             process.exit(1);
           }
 
-          execute(theCmd.setEnvKey(JAWS, stage, key));
+          execute(CmdEnv.setEnvKey(JAWS, stage, key));
           break;
         default:
           console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
@@ -205,12 +229,16 @@ program
       }
     });
 
+/**
+ * Dash
+ */
+
 program
     .command('dash')
-    .description('Check deployment status and deploy resources for a stage and region')
+    .description('View a project summary and select resources to deploy.')
     .action(function() {
-      var theCmd = require('../lib/commands/dash');
-      execute(theCmd.run(JAWS));
+      var CmdDash = require('../lib/commands/dash');
+      execute(CmdDash.run(JAWS));
     });
 
 if (process.argv.length == 2) {
