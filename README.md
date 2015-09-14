@@ -5,7 +5,7 @@ JAWS: The Server-less Framework V1 (BETA)
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Welcome to JAWS V1 BETA.  Many things will be broken.  Please provide fixes and feedback :)
+Welcome to JAWS V1 BETA.  Many things are broken.  Please provide fixes and feedback :)
 
 | [![jaws installation guide](https://servant-assets.s3.amazonaws.com/img/jaws_square_installation_guide_2.png)](https://github.com/servant-app/JAWS/wiki/JAWS-Installation) | [![jaws email list](https://servant-assets.s3.amazonaws.com/img/jaws_square_email_list_1.png)](http://eepurl.com/bvz5Nj) | [![jaws v1 version 1 specifications](https://servant-assets.s3.amazonaws.com/img/jaws_square_v1_coming_soon_2.png)](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit?usp=sharing)
 | ------------- | ----------- | ----------- |
@@ -50,8 +50,6 @@ These 3 steps will only have to be done once across all your JAWS projects in an
 * Optionally deploy your API gateway:
   * Configure `jaws.json` [`endpoint`](./docs/jaws-json.md) attribute in `<funcName>` dir
   * ```cd back/lambdas/<funcName>; jaws deploy api```
-
-* Smile ;)
 
 ## Where do I go from here?
 
