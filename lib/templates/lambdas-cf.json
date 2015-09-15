@@ -1,0 +1,28 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this JAWS projects lambdas",
+  "Parameters": {
+    "aaLambdaRoleArn": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "lTemplate": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "",
+          "S3Key": ""
+        },
+        "Description": "",
+        "Handler": "",
+        "MemorySize": 1024,
+        "Role": {
+          "Ref": "aaLambdaRoleArn"
+        },
+        "Runtime": "",
+        "Timeout": 6
+      }
+    }
+  }
+}

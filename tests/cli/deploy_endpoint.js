@@ -65,7 +65,7 @@ describe('Test deploy endpoint command', function() {
 
       // Get Region JSON
       var regions = require(path.join(projPath, 'jaws.json'))
-          .project.stages[config.stage.toLowerCase().trim()];
+          .stages[config.stage.toLowerCase().trim()];
       var region = null;
       for (var i = 0; i < regions.length; i++) {
         if (regions[i].region.toLowerCase().trim() === config.region.toLowerCase().trim()) {

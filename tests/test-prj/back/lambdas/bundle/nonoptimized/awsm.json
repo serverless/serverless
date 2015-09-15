@@ -5,28 +5,31 @@
   "author": "John Serverless <john@gmail.com> http://www.google.com",
   "description": "A lambda function that does something",
   "lambda": {
-    "functionName": "browserifytest",
-    "runtime": "nodejs",
-    "runtimeVer": "0.10.36",
-    "handler": "lambdas/bundle/browserify/index.handler",
     "envVars": [
       "MYAPP_SERVICE_KEY",
       "MYAPP_SERVICE2_KEY"
     ],
-    "memorySize": 1024,
-    "timeout": 6,
     "deploy": false,
     "package": {
       "optimize": {
-        "builder": "browserify",
-        "minify": true,
+        "builder": false,
+        "minify": false,
         "ignore": [],
         "exclude": [
-          "aws-sdk"
         ],
         "includePaths": []
       },
-      "excludePatterns": []
+      "excludePatterns": [
+        "lambdas/[u].*",
+        "lambdas/bundle/b.*"
+      ]
+    },
+    "cloudFormation": {
+      "Description": "",
+      "Handler": "lambdas/bundle/nonoptimized/index.handler",
+      "MemorySize": 1024,
+      "Runtime": "nodejs",
+      "Timeout": 6
     }
   }
 }

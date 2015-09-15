@@ -44,8 +44,8 @@ describe('Test new command', function() {
             var jawsJson = require(path.join(os.tmpdir(), config.newName, 'jaws.json'));
             var region = false;
 
-            for (var i = 0; i < jawsJson.project.stages[config.stage].length; i++) {
-              var stage = jawsJson.project.stages[config.stage][i];
+            for (var i = 0; i < jawsJson.stages[config.stage].length; i++) {
+              var stage = jawsJson.stages[config.stage][i];
               if (stage.region === config.region) {
                 region = stage.region;
               }

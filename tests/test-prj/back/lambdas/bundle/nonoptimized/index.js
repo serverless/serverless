@@ -13,6 +13,8 @@ var AWS = require('aws-sdk'),
     Promise = require('bluebird'),
     awsMetadata = require('aws-sdk/package.json');
 
+require('dotenv').config({path: path.join(eval('__dirname'), '..', '..', '..', '.env'), silent: true});
+
 module.exports.handler = function(event, context) {
   console.log('AWS sdk version', awsMetadata.version);
 

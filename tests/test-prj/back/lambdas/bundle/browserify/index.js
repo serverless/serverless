@@ -12,6 +12,8 @@ var AWS = require('aws-sdk'),
     uuid = require('node-uuid'),
     Promise = require('bluebird');
 
+require('dotenv').config({path: path.join(eval('__dirname'), '..', '..', '..', '.env'), silent: true});
+
 module.exports.handler = function(event, context) {
   console.log('about to run');
 
