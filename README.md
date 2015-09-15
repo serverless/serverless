@@ -14,7 +14,7 @@ Welcome to **JAWS V1 BETA**.  We're still fixing many quirks.  Please provide fi
  - **No Servers:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down.  There is no app.  Only individual lambda functions can go down.
  - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency.
  - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you pay only when they are run.
- - **All Lambda Runtimes** While first release is `nodejs` only, we plan on adding supoport for all languages. This means each lambda in your JAWS project can be coded in the lang that best suites the problem.
+ - **All Lambda Runtimes** While first release is `nodejs` only, we plan on adding support for all languages. This means each lambda in your JAWS project can be coded in the lang that best suites the problem.
  - **API Gateway Auto-Deploy** Creates your API endpoints for you on API Gateway.
  - **Multi-stage & Multi-Region:** Define stages for your project, and multiple regions with a stage. Driven by [CloudFormation](https://aws.amazon.com/cloudformation/).
 
