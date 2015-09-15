@@ -1,4 +1,4 @@
-![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/jaws-stack/JAWS/blob/v1.0/jaws_v1_logo.png)
+![JAWS stack javascript aws node.js express auroradb dynamodb lambda](jaws_v1_logo.png)
 
 JAWS: The Server-less Framework V1 (BETA)
 =================================
