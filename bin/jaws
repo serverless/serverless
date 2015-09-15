@@ -87,6 +87,13 @@ program
       }
     });
 
+program
+    .command('run <stage>')
+    .description('Run the lambda in Stage <stage>')
+    .action(function(stage, options) {
+      var runner = require('../lib/commands/run');
+      execute(runner.run(JAWS, stage));
+    });
 /**
  * module
  * - install awsm
