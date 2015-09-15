@@ -33,17 +33,18 @@
   "apiGateway": {
     "deploy": false,
     "cloudFormation": {
-      "path": "sessions/{sessionId}",
-      "method": "GET",
-      "authorizationType": "none",
-      "apiKeyRequired": false,
-      "requestTemplates": {
+      "Type": "AWS",
+      "Path": "sessions/{sessionId}",
+      "Method": "GET",
+      "AuthorizationType": "none",
+      "ApiKeyRequired": false,
+      "RequestTemplates": {
         "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
       },
-      "requestParameters": {
+      "RequestParameters": {
         "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
       },
-      "responses": {
+      "Responses": {
         "default": {
           "statusCode": "200",
           "responseParameters": {},
