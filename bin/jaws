@@ -195,6 +195,9 @@ program
 
       cmd = cmd.toLowerCase();
       switch (cmd) {
+        case 'test':
+          execute(CmdEnv.testEnv(JAWS, stage));
+          break;
         case 'list':
           execute(CmdEnv.listEnv(JAWS, stage));
           break;
