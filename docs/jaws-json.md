@@ -55,7 +55,7 @@ AUSTEN TODO...
 
 See plug-in module `jaws.json` [example here](../examples/plugin-module-jaws.json)
 
-A JAWS plug-in modlue is installed into a project via the [`jaws install`](./commands.md#install) command.  A plugin module should have a `jaws.json` in the root of its reop, that opitonally contains a `cfExtensions` attribute that defines an AWS CloudFormation extension point, for the AWS resources required by this module.  These will be merged into the root [`jaws-cf.json`](./jaws-cf-json.md) if the user specifies the `--save` flag.
+A JAWS plug-in module is installed into a project via the [`jaws install`](./commands.md#install) command.  A plugin module should have a `jaws.json` in the root of its reop, that opitonally contains a `cfExtensions` attribute that defines an AWS CloudFormation extension point, for the AWS resources required by this module.  These will be merged into the root [`jaws-cf.json`](./jaws-cf-json.md) if the user specifies the `--save` flag.
 
 ##### cfExtensions attributes
 
