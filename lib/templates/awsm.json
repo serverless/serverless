@@ -30,13 +30,14 @@
   "apiGateway": {
     "deploy": false,
     "cloudFormation": {
-      "path": "",
-      "method": "GET",
-      "authorizationType": "none",
-      "apiKeyRequired": false,
-      "requestTemplates": {},
-      "requestParameters": {},
-      "responses": {
+      "Type": "",
+      "Path": "",
+      "Method": "GET",
+      "AuthorizationType": "none",
+      "ApiKeyRequired": false,
+      "RequestTemplates": {},
+      "RequestParameters": {},
+      "Responses": {
         "default": {
           "statusCode": "200",
           "responseParameters": {},
