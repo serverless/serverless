@@ -13,7 +13,7 @@ increase CloudFormation support and have ALL project resources, completely repli
 If you want to help, please view the **[JAWS V1 Google Document](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit#)**.
 But you might want to hold of Pull Requests until after 9/16.
 
-* **[Join the JAWS Email List](http://eepurl.com/bvz5Nj)**
+**[Don't forget to join the JAWS Email List for updates!](http://eepurl.com/bvz5Nj)**
 
 ## Goals:
 
