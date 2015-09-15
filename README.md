@@ -24,7 +24,7 @@ Graphics coming soon...
 
 ## Quick Start
 
-The guide below gets you started quickly.  Later, check out the [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) guide in our  [wiki](https://github.com/jaws-stack/JAWS/wiki) for tips on security and more.
+The guide below gets you started quickly.  Later, check out the [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) guide in our  [wiki](https://github.com/jaws-framework/JAWS/wiki) for tips on security and more.
 
 *  **[Setup an AWS account and create an administrative user](https://github.com/jaws-framework/JAWS/wiki/v1:-AWS-Account-setup)**
 
@@ -44,9 +44,9 @@ deployed lambda at `your_url/users/create`.
 
 ## Where do I go from here?
 
-We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-stack/JAWS/wiki), [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) and [FAQ](https://github.com/jaws-stack/JAWS/wiki/FAQ) pages.
+We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
 
-Once you become familar with JAWS, you can read the JAWS [plug-in module guide](./docs/plugin-module-guide.md) to start contributing JAWS modules to the community.
+Once you become familiar with JAWS, you can read the JAWS [plug-in module guide](./docs/plugin-module-guide.md) to start contributing JAWS modules to the community.
 
 ## How can I help?
 
