@@ -158,7 +158,7 @@ program
     .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
         ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
-    .option('-n, --no-cf', 'Don\'t execute the lambda cloudformation, just generate it')
+    .option('-d, --no-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
     .action(function(type, stage, region, options) {
 
       type = type.toLowerCase();
