@@ -2,7 +2,7 @@
 
 ### jaws new
 
-Creates a new project, new region in existing project, or new stage in existing region.  The new command by default creates resources in AWS (via CloudFormation)
+Creates a new project, new stage in existing project, or a new region in an existing stage.  The new command by default creates resources in AWS (via CloudFormation)
 
 ##### type `project`
 
@@ -26,8 +26,9 @@ Creates a new stage in existing region.  By default executes CloudFormation to m
 
 Creates one or both of the following in the `back/aws_modules` folder:
 
-* A lambda function with basic skeleton
-* An API gateway configuration 
+
+* A lambda function in the `back/aws_modules` folder with basic scaffolding.
+* An API gateway configuration
 
 ### jaws dash
 
@@ -35,7 +36,7 @@ Interactive dashboard used to get an overview of your project and deploy resourc
 
 ### jaws env
 
-Manages enviornment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<proj jaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
+Manages environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<proj jaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
 
 Supported operations:
 

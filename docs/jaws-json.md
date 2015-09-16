@@ -1,9 +1,8 @@
 # jaws.json
 
-The `jaws.json` file contains configuration details for the included code and authorship details for easy publishing.  This is similar to `package.json` but for jaws-modules. `jaws.json` files exist at a few different levels in a JAWS proejct:  
-*  **Project**: lives at the root of your project.  Defines things like stages.  [example here](../examples/project-jaws.json)
-*  **`aws_modules` directory**: `jaws.json` exists for every lambda function. It defines things like memory size and api gateway endpoint configuration. [example here](../examples/lambda-jaws.json)
-*  **JAWS plug-in module**: lives at the root of the hosted project
+The `jaws.json` file contains project configuration and authorship details.
+It defines things like the project's stages and regions within each stage,
+ [like in this example.](../examples/project-jaws.json)
 
 ## Common jaws.json attributes
 
@@ -31,10 +30,10 @@ See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
 **Note**: All of the attrs below assume the `lambda` attribute key prefix.
 
 * `Handler,MemorySize,Runtime,Timeout`: can all be found in the [aws docs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)
-  * We recommend 1024 memory to improve cold/warm start times. `handler` is relative to back dir 
+  * We recommend 1024 memory to improve cold/warm start times. `handler` is relative to back dir
 * `envVars`: An array of environment variable names this project/module or lambda requires
 * `deploy`: if true, this app will be deployed the next time the `jaws deploy --tags` is run. See `deploy` command docs for more info.
-* `package`: How the code is packaged up into a zip file 
+* `package`: How the code is packaged up into a zip file
   * `optimize`: How code is optimized for node runtimes, to improve lambda cold start time
     * `builder`: only `"browserify"` or `false` supported now.  If `false` will just zip up entire `back` dir
     * `minify`: js minify or not

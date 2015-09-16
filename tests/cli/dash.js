@@ -46,19 +46,15 @@ describe('Test "dash" command', function() {
           return CMDtag.tagAll(JAWS, 'endpoint');
         })
         .then(function() {
-          return done();
+          done();
         });
-  });
-
-  after(function(done) {
-    done();
   });
 
   describe('Positive tests', function() {
     it('Dash deployment via tagged resources', function(done) {
       this.timeout(0);
 
-      CMDdash.run(JAWS, config.stage, [config.region], true)
+      CMDdash.run(JAWS, config.stage, config.region, true)
           .then(function() {
             done();
           })
