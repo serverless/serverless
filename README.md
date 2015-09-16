@@ -38,7 +38,7 @@ The guide below gets you started quickly.  Later, check out the [best practices]
 
 *  ```$ jaws new project```
   
- **Note:** we recommend camelCase for project names
+ **Note:** we recommend camelCase for project names. [Why?](https://github.com/jaws-framework/JAWS/wiki/Best-practices#project-names)
 
 *  ```$ cd <new-project-name>```
 
