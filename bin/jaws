@@ -192,7 +192,7 @@ program
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
-          execute(CmdEnv.listEnv(JAWS, stage, region));
+          execute(CmdEnv.listEnv(JAWS, stage, region, true));
           break;
         case 'get':
           if (!key) {
