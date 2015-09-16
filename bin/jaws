@@ -28,7 +28,7 @@ program
 program
     .command('new <type>')
     .allowUnknownOption()
-    .description('Make a new "project", "stage", "region", or "action <resource> <action>"')
+    .description('Make a new "project", "stage", "region", or "module <module_name> <action>"')
     .action(function() {
 
       // Parse Args
@@ -60,35 +60,33 @@ program
             args.noExeCf
         ));
 
-      } else if (type === 'action') {
-        var action = {};
+      } else if (type === 'module') {
+        var module = {};
 
         if (args.l || args.lambda) {
-          action.type = 'lambda';
-        }
-        else if (args.e || args.endpoint) {
-          action.type = 'endpoint';
-        }
-        else {
-          action.type = 'both';
+          module.type = 'lambda';
+        } else if (args.e || args.endpoint) {
+          module.type = 'endpoint';
+        } else {
+          module.type = 'both';
         }
 
         if (args._.length !== 3) {
-          throw new JawsError('Please specify the resource and action. Ex: "jaws new action users create"');
+          throw new JawsError('Please specify the resource and action. Ex: "jaws new module users create"');
         }
 
-        action.resource = args._[1];
-        action.action = args._[2];
-        action.runtime = (args.r || args.runtime);
+        module.name = args._[1];
+        module.action = args._[2];
+        module.runtime = (args.r || args.runtime);
 
         // New Action
-        var CmdNewAction = require('../lib/commands/new_action');
-        execute(CmdNewAction.run(JAWS, action));
+        var CmdNewAction = require('../lib/commands/new_module');
+        execute(CmdNewAction.run(JAWS, module));
 
       } else {
 
         // Unknown Type
-        console.error('Unsupported type ' + type + '. Must be project|region|stage|action');
+        console.error('Unsupported type ' + type + '. Must be project|region|stage|module');
         process.exit(1);
 
       }
