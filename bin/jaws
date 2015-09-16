@@ -36,7 +36,6 @@ program
       var type = args._[0] ? args._[0].toLowerCase() : null;
 
       if (type == 'project') {
-
         // New Project
         var CmdNewProject = require('../lib/commands/new_project');
         execute(CmdNewProject.run(
@@ -46,7 +45,7 @@ program
             args.region,
             args.email,
             args.profile,
-            args.noCf
+            args.noExeCf
         ));
 
       } else if (type == 'region' || type == 'stage') {
@@ -58,7 +57,7 @@ program
             type,
             args.stage,
             args.region,
-            args.noCf
+            args.noExeCf
         ));
 
       } else if (type === 'action') {
@@ -119,7 +118,7 @@ program
 program
     .command('tag [type]')
     .description('Tag lambda function or api gateway resource (endpoint) for deployment ' +
-        'the next time deploy command is run. Type "lambda" is the default.')
+    'the next time deploy command is run. Type "lambda" is the default.')
     .option('-u, --untag', 'un-tag lambda|endpoint')
     .option('-a, --tag-all', 'tag all lambda|endpoint functions in project')
     .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
@@ -156,7 +155,7 @@ program
 program
     .command('deploy <type> [stage] [region]')
     .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
-        ' By default will tag and deploy type at cwd')
+    ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
     .option('-d, --no-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
     .action(function(type, stage, region, options) {
