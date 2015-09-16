@@ -24,7 +24,7 @@
     },
     "cloudFormation": {
       "Description": "",
-      "Handler": "lambdas/users/create/index.handler",
+      "Handler": "aws_modules/users/create/index.handler",
       "MemorySize": 1024,
       "Runtime": "nodejs",
       "Timeout": 6

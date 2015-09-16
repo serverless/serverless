@@ -28,7 +28,7 @@ describe('Test deploy endpoint command', function() {
           config.iamRoleArnLambda,
           config.iamRoleArnApiGateway,
           config.envBucket);
-      process.chdir(path.join(projPath, 'back/lambdas/sessions/show'));
+      process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
       JAWS = new Jaws();
 
       // Get Lambda Paths

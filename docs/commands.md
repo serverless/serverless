@@ -24,9 +24,9 @@ Creates a new stage in existing region.  By default executes CloudFormation to m
 
 ##### type `action`
 
-Creates one or both of the following:
+Creates one or both of the following in the `back/aws_modules` folder:
 
-* A lambda function in the `lambdas/back` folder with basic scaffolding.
+* A lambda function with basic skeleton
 * An API gateway configuration 
 
 ### jaws dash
@@ -65,7 +65,7 @@ When deploying a Lambda function to AWS, JAWS will:
 The `jaws install` command downloads the JAWS-module from the location specified (a github repo) and installs it.  The install includes:
 
 *  If the `--save` flag was used and if `cfExtensions` CloudFormation template was included in the module’s [`jaws.json`](./jaws-json.md), it merges the contents into the project’s [`jaws-cf.json`](./jaws-cf-json.md).  You will have to manually divide this up into multiple CF templates afterwards, if that’s your preference.
-*  Copies the jaws-module into the `back/lambdas` dir of the project you are currently in
+*  Copies the jaws-module into the `back/aws_modules` dir of the project you are currently in
 
 ### jaws log
 

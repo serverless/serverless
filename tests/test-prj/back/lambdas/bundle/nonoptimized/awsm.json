@@ -20,13 +20,13 @@
         "includePaths": []
       },
       "excludePatterns": [
-        "lambdas/[u].*",
-        "lambdas/bundle/b.*"
+        "aws_modules/[u].*",
+        "aws_modules/bundle/b.*"
       ]
     },
     "cloudFormation": {
       "Description": "",
-      "Handler": "lambdas/bundle/nonoptimized/index.handler",
+      "Handler": "aws_modules/bundle/nonoptimized/index.handler",
       "MemorySize": 1024,
       "Runtime": "nodejs",
       "Timeout": 6

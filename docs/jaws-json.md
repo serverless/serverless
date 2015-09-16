@@ -2,7 +2,7 @@
 
 The `jaws.json` file contains configuration details for the included code and authorship details for easy publishing.  This is similar to `package.json` but for jaws-modules. `jaws.json` files exist at a few different levels in a JAWS proejct:  
 *  **Project**: lives at the root of your project.  Defines things like stages.  [example here](../examples/project-jaws.json)
-*  **`lambdas` directory**: `jaws.json` exists for every lambda function. It defines things like memory size and api gateway endpoint configuration. [example here](../examples/lambda-jaws.json)
+*  **`aws_modules` directory**: `jaws.json` exists for every lambda function. It defines things like memory size and api gateway endpoint configuration. [example here](../examples/lambda-jaws.json)
 *  **JAWS plug-in module**: lives at the root of the hosted project
 
 ## Common jaws.json attributes
@@ -43,9 +43,9 @@ See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
     * `includePaths`: Paths rel to back (dirs or files) to be included in zip. Paths included after optimization step.
   * `excludePatterns`: Array of regular expressions rel to back. Removed before optimization step. If not optimizing, everything in back dir will be included in zip. Use this to exclude stuff you don't want in your zip.  Strings will be passed to `new RegExp()`
 
-For an optimize example using the most popular node modules see [browserify tests](../tests/test-prj/back/lambdas/bundle/browserify)
+For an optimize example using the most popular node modules see [browserify tests](../tests/test-prj/back/aws_modules/bundle/browserify)
 
-For non optimize example see [non optimized tests](../tests/test-prj/back/lambdas/bundle/nonoptimized)
+For non optimize example see [non optimized tests](../tests/test-prj/back/aws_modules/bundle/nonoptimized)
 
 ##### API Gateway (`endpoint`) attributes:
 

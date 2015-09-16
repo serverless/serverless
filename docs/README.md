@@ -6,7 +6,7 @@ This is the scaffolding jaws-cli produces on the new command.  It’s bare becau
 
 * back
   *  [.env](./commands.md#env)
-  *  **lambdas**
+  *  **aws_modules**
      *  **users**
        *  **create**
          *  jaws.json

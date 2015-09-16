@@ -52,7 +52,7 @@ describe('Test "new action" command', function() {
 
       CmdNewAction.run(JAWS, action)
           .then(function() {
-            var jawsJson = require(path.join(process.cwd(), 'lambdas/users/list/awsm.json'));
+            var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/list/awsm.json'));
             assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
             assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
             assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/list');

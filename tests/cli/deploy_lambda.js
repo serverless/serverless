@@ -38,7 +38,7 @@ describe('Test "deploy lambda" command', function() {
     it('Multi level module deploy', function(done) {
       this.timeout(0);
 
-      process.chdir(path.join(projPath, 'back/lambdas/sessions/show'));
+      process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
@@ -51,7 +51,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('browserify deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'back/lambdas/bundle/browserify'));
+      process.chdir(path.join(projPath, 'back/aws_modules/bundle/browserify'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
@@ -64,7 +64,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('non optimized deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'back/lambdas/bundle/nonoptimized'));
+      process.chdir(path.join(projPath, 'back/aws_modules/bundle/nonoptimized'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
