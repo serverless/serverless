@@ -42,7 +42,7 @@ The guide below gets you started quickly.  Later, check out the [best practices]
 
 *  ```$ cd <new-project-name>```
 
-*  ```$ jaws new action users create -b```
+*  ```$ jaws new action users create```
 
 * ```$ jaws dash```
 
