@@ -9,7 +9,7 @@ This is the scaffolding jaws-cli produces on the new command.  It’s bare becau
   *  **lambdas**
      *  **users**
        *  **create**
-         *  jaws.json
+         * [jaws.json](./jaws-json.md)
        *  **delete**
        *  **get**
 * **front**
@@ -17,7 +17,6 @@ This is the scaffolding jaws-cli produces on the new command.  It’s bare becau
 * [admin.env](./admin-env.md)
 * [jaws.json](./jaws-json.md)
 * [jaws-cf.json](./jaws-cf-json.md)
-* [jaws.json](./jaws-json.md)
 
 ## JAWS CLI
 
