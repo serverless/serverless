@@ -5,9 +5,10 @@
  */
 
 var Jaws = require('../../lib/index.js'),
-    theCmd = require('../../lib/commands/deploy_endpoint'),
+    CmdDeployEndpoints = require('../../lib/commands/deploy_endpoint'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
+    Promise = require('bluebird'),
     path = require('path'),
     assert = require('chai').assert,
     config = require('../config'),
@@ -42,7 +43,7 @@ describe('Test deploy endpoint command', function() {
 
       this.timeout(0);
 
-      theCmd.run(JAWS, config.stage, config.region, true)
+      CmdDeployEndpoints.run(JAWS, config.stage, config.region, true)
           .then(function() {
             done();
           })
