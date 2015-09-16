@@ -6,6 +6,7 @@
 
 var Jaws = require('../../lib/index.js'),
     CmdDeployEndpoints = require('../../lib/commands/deploy_endpoint'),
+    CmdTag = require('../../lib/commands/tag'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     Promise = require('bluebird'),
@@ -34,7 +35,10 @@ describe('Test deploy endpoint command', function() {
       lambdaPaths.lambda1 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'show', 'jaws.json');
       lambdaPaths.lambda2 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'create', 'jaws.json');
       lambdaPaths.lambda3 = path.join(projPath, 'back', 'aws_modules', 'users', 'create', 'jaws.json');
-    }).then(done);
+    })
+        .then(function() {
+          CmdTag.tagAll(JAWS, 'endpoint', false);
+        }).then(done);
   });
 
   describe('Positive tests', function() {
@@ -56,9 +60,9 @@ describe('Test deploy endpoint command', function() {
     });
 
     it('Check jaws.json files were untagged', function(done) {
-      assert.equal(false, require(lambdaPaths.lambda1).endpoint.deploy);
-      assert.equal(false, require(lambdaPaths.lambda2).endpoint.deploy);
-      assert.equal(false, require(lambdaPaths.lambda3).endpoint.deploy);
+      assert.equal(false, require(lambdaPaths.lambda1).apiGateway.deploy);
+      assert.equal(false, require(lambdaPaths.lambda2).apiGateway.deploy);
+      assert.equal(false, require(lambdaPaths.lambda3).apiGateway.deploy);
       done();
     });
 
