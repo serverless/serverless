@@ -155,7 +155,7 @@ program
     .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
         ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
-    .option('-d, --no-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
+    .option('-d, --dont-exe-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
     .action(function(type, stage, region, options) {
 
       type = type.toLowerCase();
@@ -168,7 +168,7 @@ program
         case 'lambda':
           var allTagged = (options.tags) ? true : false;
           var theCmd = require('../lib/commands/deploy_lambda');
-          execute(theCmd.run(JAWS, stage, region, allTagged, options.noCf));
+          execute(theCmd.run(JAWS, stage, region, allTagged, options.dontExeCf));
           break;
         default:
           console.error('Unsupported type ' + type + '. Must be endpoint|lambda|resources');
