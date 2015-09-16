@@ -32,9 +32,9 @@ describe('Test "tag" command', function() {
     JAWS = new Jaws();
 
     // Get Lambda Paths
-    modulePaths.lambda1 = path.join(projPath, 'back', 'lambdas', 'sessions', 'show', 'awsm.json');
-    modulePaths.lambda2 = path.join(projPath, 'back', 'lambdas', 'sessions', 'create', 'awsm.json');
-    modulePaths.lambda3 = path.join(projPath, 'back', 'lambdas', 'users', 'create', 'awsm.json');
+    modulePaths.lambda1 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'show', 'awsm.json');
+    modulePaths.lambda2 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'create', 'awsm.json');
+    modulePaths.lambda3 = path.join(projPath, 'back', 'aws_modules', 'users', 'create', 'awsm.json');
     done();
   });
 
