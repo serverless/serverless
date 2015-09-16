@@ -183,16 +183,16 @@ program
  */
 
 program
-    .command('env <cmd> <stage> [key] [val]')
-    .description('Manage env vars for stage. Valid cmds: list,get,set,unset.')
-    .usage('get test USERNAME or set test USERNAME blah.')
-    .action(function(cmd, stage, key, val) {
+    .command('env <cmd> <stage> <region> [key] [val]')
+    .description('Manage env vars for stage & region. <region> can be "all". Valid cmds: list,get,set,unset.')
+    .usage('get test us-east-1 USERNAME or set test all USERNAME blah.')
+    .action(function(cmd, stage, region, key, val) {
       var CmdEnv = require('../lib/commands/env');
 
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
-          execute(CmdEnv.listEnv(JAWS, stage));
+          execute(CmdEnv.listEnv(JAWS, stage, region));
           break;
         case 'get':
           if (!key) {
@@ -200,7 +200,7 @@ program
             process.exit(1);
           }
 
-          execute(CmdEnv.getEnvKey(JAWS, stage, key));
+          execute(CmdEnv.getEnvKey(JAWS, stage, region, key));
           break;
         case 'set':
           if (!key || typeof val == 'undefined') {
@@ -208,7 +208,7 @@ program
             process.exit(1);
           }
 
-          execute(CmdEnv.setEnvKey(JAWS, stage, key, val));
+          execute(CmdEnv.setEnvKey(JAWS, stage, region, key, val));
           break;
         case 'unset':
           if (!key) {
@@ -221,7 +221,7 @@ program
             process.exit(1);
           }
 
-          execute(CmdEnv.setEnvKey(JAWS, stage, key));
+          execute(CmdEnv.setEnvKey(JAWS, stage, region, key));
           break;
         default:
           console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
