@@ -37,6 +37,8 @@ The guide below gets you started quickly.  Later, check out the [best practices]
 *  ```$ npm install jaws-framework -g```
 
 *  ```$ jaws new project```
+  
+ **Note:** we recommend camelCase for project names
 
 *  ```$ cd <new-project-name>```
 
