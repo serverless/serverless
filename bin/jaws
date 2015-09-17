@@ -80,7 +80,7 @@ program
     .description('aws-module commands\n\nValid <cmd>' +
         '\'s:\n\ninstall: install aws-module.' +
         '\n\t Ex: jaws module install <url>' +
-        '\n\ncreate: create aws-module. create <module resource> <action>' +
+        '\n\ncreate: create aws-module action. Module will be created if DNE. create <module resource> <action>' +
         '\n\t Ex: jaws module create users list'
     )
     .option('-s, --save', 'Install Only: Save awsm\'s CloudFormation to your project')
@@ -88,19 +88,20 @@ program
     .option('-e, --endpoint', 'Create Only: create API Gateway endpoint. Default is create lambda and endpoint.')
     .option('-r, --runtime', 'Create Only: lambda runtime. Default nodejs')
     .action(function(cmd, params, options) {
-      if (!parms) {
+      var theParams = process.argv.slice(3);
+
+      if (!theParams) {
         throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
       }
-      var parms = params.split(/ +/);
 
       if (cmd == 'install') {
-        if (parms.length !== 1) {
+        if (theParams.length !== 1) {
           throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
         }
         var url = theCmd = require('../lib/commands/module_install');
         execute(theCmd.install(JAWS, url, options.save));
       } else if (cmd == 'create') {
-        if (parms.length !== 2) {
+        if (theParams.length !== 2) {
           throw new JawsError('Please specify awsm resource and action name');
         }
         var theCmd = require('../lib/commands/module_create');
