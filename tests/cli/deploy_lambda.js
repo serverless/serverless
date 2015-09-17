@@ -5,8 +5,10 @@
  */
 var Jaws = require('../../lib/index.js'),
     CmdDeployLambda = require('../../lib/commands/deploy_lambda'),
+    CmdTag = require('../../lib/commands/tag'),
     testUtils = require('../test_utils'),
     path = require('path'),
+    Promise = require('bluebird'),
     assert = require('chai').assert,
     JAWS;
 
@@ -35,38 +37,59 @@ describe('Test "deploy lambda" command', function() {
 
   describe('Positive tests', function() {
 
-    it('Multi level module deploy', function(done) {
+    //it('Multi level module deploy', function(done) {
+    //  this.timeout(0);
+    //
+    //  process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
+    //
+    //  CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
+    //      .then(function(d) {
+    //        done();
+    //      })
+    //      .error(function(e) {
+    //        done(e);
+    //      });
+    //});
+    //
+    //it('browserify deploy', function(done) {
+    //  this.timeout(0);
+    //  process.chdir(path.join(projPath, 'back/aws_modules/bundle/browserify'));
+    //
+    //  CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
+    //      .then(function(d) {
+    //        done();
+    //      })
+    //      .error(function(e) {
+    //        done(e);
+    //      });
+    //});
+    //
+    //it('non optimized deploy', function(done) {
+    //  this.timeout(0);
+    //  process.chdir(path.join(projPath, 'back/aws_modules/bundle/nonoptimized'));
+    //
+    //  CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
+    //      .then(function(d) {
+    //        done();
+    //      })
+    //      .error(function(e) {
+    //        done(e);
+    //      });
+    //});
+
+    it('deploy multiple', function(done) {
       this.timeout(0);
+      var bundleDirPath = path.join(projPath, 'back/aws_modules/bundle');
 
-      process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
+      process.chdir(bundleDirPath);
 
-      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
-          .then(function(d) {
-            done();
+      Promise.all([
+            CmdTag.tag('lambda', bundleDirPath + '/browserify/awsm.json'),
+            CmdTag.tag('lambda', bundleDirPath + '/nonoptimized/awsm.json'),
+          ])
+          .then(function() {
+            return CmdDeployLambda.run(JAWS, config.stage, [config.region], true)
           })
-          .error(function(e) {
-            done(e);
-          });
-    });
-
-    it('browserify deploy', function(done) {
-      this.timeout(0);
-      process.chdir(path.join(projPath, 'back/aws_modules/bundle/browserify'));
-
-      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
-          .then(function(d) {
-            done();
-          })
-          .error(function(e) {
-            done(e);
-          });
-    });
-
-    it('non optimized deploy', function(done) {
-      this.timeout(0);
-      process.chdir(path.join(projPath, 'back/aws_modules/bundle/nonoptimized'));
-
-      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
             done();
           })

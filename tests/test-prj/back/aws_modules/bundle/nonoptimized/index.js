@@ -10,9 +10,10 @@ var AWS = require('aws-sdk'),
     us = require('underscore'),
     moment = require('moment'),
     uuid = require('node-uuid'),
+    path = require('path'),
     Promise = require('bluebird');
 
-require('dotenv').config({ path: path.join(eval('__dirname'), '.env'), silent: true });
+require('dotenv').config({path: path.join(eval('__dirname'), '..', '..', '..', '.env'), silent: true});
 
 module.exports.run = function(event, context, cb) {
   console.log('about to run');
@@ -57,6 +58,8 @@ module.exports.run = function(event, context, cb) {
         console.log('moment', moment().format());
         console.log('v1', uuid.v1());
         console.log('v4', uuid.v4());
+
+        console.log('env vars', process.env);
         return 'done';
       })
       .then(function(d) {
