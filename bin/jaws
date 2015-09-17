@@ -60,29 +60,6 @@ program
             args.noExeCf
         ));
 
-      } else if (type === 'module') {
-        var module = {};
-
-        if (args.l || args.lambda) {
-          module.type = 'lambda';
-        } else if (args.e || args.endpoint) {
-          module.type = 'endpoint';
-        } else {
-          module.type = 'both';
-        }
-
-        if (args._.length !== 3) {
-          throw new JawsError('Please specify the resource and action. Ex: "jaws new module users create"');
-        }
-
-        module.name = args._[1];
-        module.action = args._[2];
-        module.runtime = (args.r || args.runtime);
-
-        // New Action
-        var CmdNewAction = require('../lib/commands/new_module');
-        execute(CmdNewAction.run(JAWS, module));
-
       } else {
 
         // Unknown Type
@@ -93,17 +70,47 @@ program
     });
 
 /**
- * Install
- * - Install a jaws-module from a Github url
+ * module
+ * - install awsm
+ * - create awsm
  */
 
 program
-    .command('install <url>')
-    .description('Installs a jaws-module from the specified url into the apprpriate area of your JAWS project.')
-    .option('-s, --save', 'Save jaws-module\'s CloudFormation to your project')
-    .action(function(url, options) {
-      var theCmd = require('../lib/commands/install');
-      execute(theCmd.install(JAWS, url, options.save));
+    .command('module <cmd> [params]')
+    .description('aws-module commands\n\nValid <cmd>' +
+        '\'s:\n\ninstall: install aws-module.' +
+        '\n\t Ex: jaws module install <url>' +
+        '\n\ncreate: create aws-module. create <module resource> <action>' +
+        '\n\t Ex: jaws module create users list'
+    )
+    .option('-s, --save', 'Install Only: Save awsm\'s CloudFormation to your project')
+    .option('-l, --lambda', 'Create Only: create lambda. Default is create lambda and endpoint.')
+    .option('-e, --endpoint', 'Create Only: create API Gateway endpoint. Default is create lambda and endpoint.')
+    .option('-r, --runtime', 'Create Only: lambda runtime. Default nodejs')
+    .action(function(cmd, params, options) {
+      var parms = params.split(/ +/);
+
+      if (cmd == 'install') {
+        if (parms.length !== 1) {
+          throw new JawsError('Please specify awsm url');
+        }
+        var url = theCmd = require('../lib/commands/module_install');
+        execute(theCmd.install(JAWS, url, options.save));
+      } else if (cmd == 'create') {
+        if (parms.length !== 2) {
+          throw new JawsError('Please specify awsm resource and action name');
+        }
+        var theCmd = require('../lib/commands/module_create');
+        var module = {
+          name: params[0],
+          action: params[1],
+          runtime: options.runtime || 'nodejs'
+        };
+        execute(theCmd.run(JAWS, module));
+      } else {
+        console.error('Unsupported cmd ' + cmd + '. Must be install|create');
+        process.exit(1);
+      }
     });
 
 /**
