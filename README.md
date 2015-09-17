@@ -3,6 +3,7 @@
 JAWS: The Server-less Framework V1 (BETA)
 =================================
 
+[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/jaws-stack%2FJAWS?utm_campaign=gh-badge&utm_medium=badge&utm_source=github) 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Status 9/15: The **JAWS V1 BETA** is available HOWEVER we will be making breaking changes on 9/15 and 9/16.
