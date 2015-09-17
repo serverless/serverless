@@ -89,27 +89,30 @@ program
     .option('-r, --runtime', 'Create Only: lambda runtime. Default nodejs')
     .action(function(cmd, params, options) {
       var theParams = process.argv.slice(3);
-
       if (!theParams) {
         throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
       }
 
       if (cmd == 'install') {
-        if (theParams.length !== 1) {
+        if (theParams.length !== 2) {
           throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
         }
-        var url = theCmd = require('../lib/commands/module_install');
+        var url = params[1],
+            theCmd = require('../lib/commands/module_install');
+
         execute(theCmd.install(JAWS, url, options.save));
       } else if (cmd == 'create') {
         if (theParams.length !== 3) {
           throw new JawsError('Please specify awsm resource and action name');
         }
+
         var theCmd = require('../lib/commands/module_create');
         var module = {
           name: params[1],
           action: params[2],
           runtime: options.runtime || 'nodejs'
         };
+
         execute(theCmd.run(JAWS, module));
       } else {
         console.error('Unsupported cmd ' + cmd + '. Must be install|create');
