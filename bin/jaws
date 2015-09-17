@@ -101,13 +101,13 @@ program
         var url = theCmd = require('../lib/commands/module_install');
         execute(theCmd.install(JAWS, url, options.save));
       } else if (cmd == 'create') {
-        if (theParams.length !== 2) {
+        if (theParams.length !== 3) {
           throw new JawsError('Please specify awsm resource and action name');
         }
         var theCmd = require('../lib/commands/module_create');
         var module = {
-          name: params[0],
-          action: params[1],
+          name: params[1],
+          action: params[2],
           runtime: options.runtime || 'nodejs'
         };
         execute(theCmd.run(JAWS, module));
