@@ -37,45 +37,45 @@ describe('Test "deploy lambda" command', function() {
 
   describe('Positive tests', function() {
 
-    //it('Multi level module deploy', function(done) {
-    //  this.timeout(0);
-    //
-    //  process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
-    //
-    //  CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
-    //      .then(function(d) {
-    //        done();
-    //      })
-    //      .error(function(e) {
-    //        done(e);
-    //      });
-    //});
-    //
-    //it('browserify deploy', function(done) {
-    //  this.timeout(0);
-    //  process.chdir(path.join(projPath, 'back/aws_modules/bundle/browserify'));
-    //
-    //  CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
-    //      .then(function(d) {
-    //        done();
-    //      })
-    //      .error(function(e) {
-    //        done(e);
-    //      });
-    //});
-    //
-    //it('non optimized deploy', function(done) {
-    //  this.timeout(0);
-    //  process.chdir(path.join(projPath, 'back/aws_modules/bundle/nonoptimized'));
-    //
-    //  CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
-    //      .then(function(d) {
-    //        done();
-    //      })
-    //      .error(function(e) {
-    //        done(e);
-    //      });
-    //});
+    it('Multi level module deploy', function(done) {
+      this.timeout(0);
+
+      process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
+
+      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
+          .then(function(d) {
+            done();
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
+
+    it('browserify deploy', function(done) {
+      this.timeout(0);
+      process.chdir(path.join(projPath, 'back/aws_modules/bundle/browserify'));
+
+      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
+          .then(function(d) {
+            done();
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
+
+    it('non optimized deploy', function(done) {
+      this.timeout(0);
+      process.chdir(path.join(projPath, 'back/aws_modules/bundle/nonoptimized'));
+
+      CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
+          .then(function(d) {
+            done();
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
 
     it('deploy multiple', function(done) {
       this.timeout(0);

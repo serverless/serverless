@@ -60,7 +60,7 @@ module.exports.run = function(event, context, cb) {
         console.log('v4', uuid.v4());
 
         console.log('env vars', process.env);
-        return 'done';
+        return 'done browserify';
       })
       .then(function(d) {
         return cb(null, d);
