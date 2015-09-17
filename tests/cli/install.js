@@ -5,7 +5,7 @@
  */
 
 var Jaws = require('../../lib/index.js'),
-    CmdInstall = require('../../lib/commands/install'),
+    CmdInstall = require('../../lib/commands/module_install'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     path = require('path'),

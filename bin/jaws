@@ -88,11 +88,14 @@ program
     .option('-e, --endpoint', 'Create Only: create API Gateway endpoint. Default is create lambda and endpoint.')
     .option('-r, --runtime', 'Create Only: lambda runtime. Default nodejs')
     .action(function(cmd, params, options) {
+      if (!parms) {
+        throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
+      }
       var parms = params.split(/ +/);
 
       if (cmd == 'install') {
         if (parms.length !== 1) {
-          throw new JawsError('Please specify awsm url');
+          throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
         }
         var url = theCmd = require('../lib/commands/module_install');
         execute(theCmd.install(JAWS, url, options.save));
@@ -127,7 +130,6 @@ program
     .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
     .option('-n, --untag-all', 'un-tag all lambda|endpoint functions in project')
     .action(function(type, options) {
-
       type = type || 'lambda';
       type = type.toLowerCase();
 
