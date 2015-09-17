@@ -3,7 +3,8 @@
   "Description": "The AWS CloudFormation template for this JAWS projects lambdas",
   "Parameters": {
     "aaLambdaRoleArn": {
-      "Type": "String"
+      "Type": "String",
+      "Default": ""
     }
   },
   "Resources": {
