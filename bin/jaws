@@ -97,10 +97,10 @@ program
         if (theParams.length !== 2) {
           throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
         }
-        var url = params[1],
+        var url = theParams[1],
             theCmd = require('../lib/commands/module_install');
 
-        execute(theCmd.install(JAWS, url, options.save));
+        execute(theCmd.run(JAWS, url, options.save));
       } else if (cmd == 'create') {
         if (theParams.length !== 3) {
           throw new JawsError('Please specify awsm resource and action name');
@@ -108,10 +108,18 @@ program
 
         var theCmd = require('../lib/commands/module_create');
         var module = {
-          name: params[1],
-          action: params[2],
+          name: theParams[1],
+          action: theParams[2],
           runtime: options.runtime || 'nodejs'
         };
+
+        if (options.lambda) {
+          module.type = 'lambda';
+        } else if (options.endpoint) {
+          module.type = 'endpoint';
+        } else {
+          module.type = 'both';
+        }
 
         execute(theCmd.run(JAWS, module));
       } else {
