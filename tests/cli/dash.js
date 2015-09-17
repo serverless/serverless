@@ -32,8 +32,9 @@ describe('Test "dash" command', function() {
           config.stage,
           config.iamRoleArnLambda,
           config.iamRoleArnApiGateway,
-          config.envBucket,
-          ['back']);
+          config.regionBucket,
+          ['back/aws_modules/bundle/browserify',
+            'back/aws_modules/bundle/nonoptimized']);
       process.chdir(path.join(projPath, 'back'));
 
       // Instantiate JAWS

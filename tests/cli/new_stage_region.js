@@ -32,7 +32,7 @@ describe('Test "new stage/region" command', function() {
       // Create Test Project
       projPath = testUtils.createTestProject(
           config.name,
-          config.region,
+          config.regionBucket,
           config.stage,
           config.iamRoleArnLambda,
           config.iamRoleArnApiGateway,

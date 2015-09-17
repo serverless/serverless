@@ -17,13 +17,13 @@ describe('AllTests', function() {
   //require('./cli/tag');
   //require('./cli/install');
   //require('./cli/env');
-  //require('./cli/new_action');
+  //require('./cli/new_module');
 
   /**
    * Tests below create AWS Resources
    */
     //
-  //require('./cli/dash');
+  require('./cli/dash');
   //require('./cli/deploy_lambda');
   //require('./cli/deploy_endpoint');
   //require('./cli/new_stage_region');

@@ -36,7 +36,7 @@ describe('Test new command', function() {
       theCmd.run(
           config.newName,
           config.stage,
-          config.envBucket,
+          config.regionBucket,
           config.notifyEmail,
           config.region,
           config.profile)

@@ -32,12 +32,13 @@ function npmInstall(dir) {
  * @param npmInstallDirs list of dirs relative to project root to execute npm install on
  * @returns {string} full path to proj temp dir
  */
+
 module.exports.createTestProject = function(projectName,
                                             projectRegion,
                                             projectStage,
                                             projectLambdaIAMRole,
                                             projectApiGIAMRole,
-                                            projectEnvBucket,
+                                            projectRegionBucket,
                                             npmInstallDirs) {
   // Create Test Project
   var tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
@@ -63,10 +64,8 @@ module.exports.createTestProject = function(projectName,
     iamRoleArnLambda: projectLambdaIAMRole,
     iamRoleArnApiGateway: projectApiGIAMRole,
   },];
-  projectJSON.envVarBucket = {
-    name: projectEnvBucket,
-    region: projectRegion,
-  };
+  projectJSON.jawsBuckets = {};
+  projectJSON.jawsBuckets[projectRegion] = projectRegionBucket;
   fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
 
   // Create admin.env file

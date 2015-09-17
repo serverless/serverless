@@ -24,7 +24,7 @@
     },
     "cloudFormation": {
       "Description": "",
-      "Handler": "aws_modules/bundle/browserify/index.handler",
+      "Handler": "aws_modules/bundle/browserify/handler.handler",
       "MemorySize": 1024,
       "Runtime": "nodejs",
       "Timeout": 6

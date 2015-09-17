@@ -1,5 +1,5 @@
 {
-  "name": "my-project-browserify-tests",
+  "name": "my-project-nonoptimized-tests",
   "version": "1.0",
   "location": "https://github.com/jaws-stack/skinny-jeans",
   "author": "John Serverless <john@gmail.com> http://www.google.com",
@@ -26,7 +26,7 @@
     },
     "cloudFormation": {
       "Description": "",
-      "Handler": "aws_modules/bundle/nonoptimized/index.handler",
+      "Handler": "aws_modules/bundle/nonoptimized/handler.handler",
       "MemorySize": 1024,
       "Runtime": "nodejs",
       "Timeout": 6

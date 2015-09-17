@@ -13,7 +13,7 @@ var config = {
   notifyEmail: 'tester@jawsstack.com',
   stage: 'unittest',
   region: 'us-east-1',
-  envBucket: process.env.TEST_JAWS_ENV_BUCKET,
+  regionBucket: process.env.TEST_JAWS_REGION_BUCKET,
   profile: process.env.TEST_JAWS_PROFILE,
   iamRoleArnApiGateway: process.env.TEST_JAWS_APIGATEWAY_ROLE,
   iamRoleArnLambda: process.env.TEST_JAWS_LAMBDA_ROLE,

@@ -16,7 +16,7 @@ var config = require('../config'),
     projPath,
     JAWS;
 
-describe('Test "new action" command', function() {
+describe('Test "new module" command', function() {
 
   before(function(done) {
     this.timeout(0);
@@ -31,7 +31,7 @@ describe('Test "new action" command', function() {
           config.stage,
           config.iamRoleArnLambda,
           config.iamRoleArnApiGateway,
-          config.envBucket);
+          config.regionBucket);
       process.chdir(path.join(projPath, 'back'));
 
       // Instantiate JAWS
@@ -41,16 +41,16 @@ describe('Test "new action" command', function() {
 
   describe('Positive tests', function() {
 
-    it('Test "new action" command', function(done) {
+    it('Test "new module" command', function(done) {
       this.timeout(0);
 
-      var action = {
+      var module = {
         type: 'both',
-        resource: 'users',
+        name: 'users',
         action: 'list',
       };
 
-      CmdNewAction.run(JAWS, action)
+      CmdNewAction.run(JAWS, module)
           .then(function() {
             var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/list/awsm.json'));
             assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');

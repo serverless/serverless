@@ -22,7 +22,7 @@ describe('Test "tag" command', function() {
   before(function(done) {
     projPath = testUtils.createTestProject(
         config.name,
-        config.region,
+        config.regionBucket,
         config.stage,
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,

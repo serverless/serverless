@@ -25,7 +25,7 @@ describe('Test "deploy lambda" command', function() {
         config.stage,
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
-        config.envBucket,
+        config.regionBucket,
         ['back']);
 
     process.chdir(projPath);

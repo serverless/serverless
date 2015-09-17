@@ -24,7 +24,7 @@ describe('Test "install" command', function() {
         config.stage,
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
-        config.envBucket);
+        config.regionBucket);
     process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
     JAWS = new Jaws();
   });
