@@ -48,6 +48,7 @@ describe('Test "new module" command', function() {
         type: 'both',
         name: 'users',
         action: 'list',
+        runtime: 'nodejs'
       };
 
       CmdNewAction.run(JAWS, module)

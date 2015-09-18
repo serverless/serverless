@@ -37,7 +37,7 @@ describe('Test "install" command', function() {
     it('Install module', function(done) {
       this.timeout(0);
 
-      CmdInstall.install(JAWS, 'https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js')
+      CmdInstall.run(JAWS, 'https://github.com/jaws-framework/jaws-core-js', true)
           .then(function() {
             done();
           })
