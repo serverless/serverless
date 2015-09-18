@@ -12,7 +12,7 @@ This is the scaffolding jaws-cli produces on the new command.  It’s bare becau
        * package.json
        * **env**
          *  index.js 
-     *  **users**
+     *  **user**
        *  **lib**  
        *  **create**
          *  awsm.json
