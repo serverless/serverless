@@ -28,7 +28,7 @@ This command manages [JAWS AWS Modules](https://github.com/awsm-org/awsm).
 
 ##### sub-command `install`
 
-Download and installs an awsm in the `back/aws_modules` dir.  By default installs module dependencies (if any)
+Download and installs an awsm from github to the `back/aws_modules` dir.  By default installs module dependencies (if any)
 
 ##### sub-command `update`
 
@@ -71,13 +71,6 @@ When deploying a Lambda function to AWS, JAWS will:
 *  Check the Runtime specified in the current lambda’s jaws.json (dir running JAWS cli from) and perform a corresponding build pipeline.  Optionally optimize the code for performance in Lambda (browserify & uglifyjs2).  See the [lambda attributes](./jaws-json.md#lambda-attributes) for optimization options. [Why optimize?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-optimize-code-before-deployment)
 *  Create or update lambda using this naming convention: `STAGE_-_PROJECTNAME_-_FUNCTIONNAME`.  For example: `prod_-_MyApp_-_usersSignup`
 * Upload the file as a buffer directly to AWS.
-
-### jaws install
-
-The `jaws install` command downloads the JAWS-module from the location specified (a github repo) and installs it.  The install includes:
-
-*  If the `--save` flag was used and if `cfExtensions` CloudFormation template was included in the module’s [`jaws.json`](./jaws-json.md), it merges the contents into the project’s [`jaws-cf.json`](./jaws-cf-json.md).  You will have to manually divide this up into multiple CF templates afterwards, if that’s your preference.
-*  Copies the jaws-module into the `back/aws_modules` dir of the project you are currently in
 
 ### jaws log
 
