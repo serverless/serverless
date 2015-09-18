@@ -2,7 +2,7 @@
 
 ### jaws new
 
-Creates a new project, new stage in existing project, or a new region in an existing stage.  The new command by default creates resources in AWS (via CloudFormation)
+Creates a new project, new stage in existing project, or a new region in an existing stage as well as ENV var file in the JAWS S3 bucket for the region.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
 
 ##### type `project`
 
@@ -22,10 +22,21 @@ Creates new region in existing project.  By default executes CloudFormation to m
 
 Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
-##### type `action`
+### jaws module
+
+This command manages [JAWS AWS Modules](https://github.com/awsm-org/awsm).
+
+##### sub-command `install`
+
+Download and installs an awsm in the `back/aws_modules` dir.  By default installs module dependencies (if any)
+
+##### sub-command `update`
+
+Updates an existing awsm in the `back/aws_modules` dir. By default installs module dependencies (if any)
+
+##### sub-command `create`
 
 Creates one or both of the following in the `back/aws_modules` folder:
-
 
 * A lambda function in the `back/aws_modules` folder with basic scaffolding.
 * An API gateway configuration
