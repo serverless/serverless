@@ -5,7 +5,7 @@
  */
 
 var Jaws = require('../../lib/index.js'),
-    CmdInstall = require('../../lib/commands/module_install'),
+    CmdModule = require('../../lib/commands/module_install'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     path = require('path'),
@@ -37,7 +37,7 @@ describe('Test "install" command', function() {
     it('Install module', function(done) {
       this.timeout(0);
 
-      CmdInstall.run(JAWS, 'https://github.com/jaws-framework/jaws-core-js', true)
+      CmdModule.install(JAWS, 'https://github.com/jaws-framework/jaws-core-js', true)
           .then(function() {
             done();
           })
