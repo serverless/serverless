@@ -44,7 +44,7 @@ The guide below gets you started quickly.  Later, check out the [best practices]
 
 This will create a new jaws project, create a lambda function  and endpoint (and install [jaws-core-js awsm](https://github.com/jaws-framework/jaws-core-js)), which you can immediately deploy via
 `jaws dash`.  After deployment is complete, you will be given a url.  In the above example, you can access your
-deployed lambda at `your_url/users/create`.
+deployed lambda at `your_url/users/list`.
 
 ## Where do I go from here?
 
