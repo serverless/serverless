@@ -7,7 +7,7 @@ JAWS: The Server-less Framework V1 (BETA)
 
 Check us out at <img src="http://www.vormetric.com/sites/default/files/aws-re-invent-logo_0.png" align="absbottom">.  Our presentation is ["DVO209 - JAWS: The Monstrously Scalable Serverless Framework – AWS Lambda, Amazon API Gateway, and More!"](https://www.portal.reinvent.awsevents.com/connect/sessionDetail.ww?SESSION_ID=5494)
 
-**Status 9/18**: The **JAWS V1 RC1** in now available. Significant re-write.  Few of the many new features: deploy lambdas via CloudFormation. [AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm).  Much improved multi-region support.  Totally re-done `env` command.
+**Status 9/18**: The **JAWS V1 RC1 (v1.0.0)** in now available. Significant re-write.  Few of the many new features: deploy lambdas via CloudFormation. [AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm).  Much improved multi-region support.  Totally re-done `env` command.
 
 **[Don't forget to join the JAWS Email List for updates!](http://eepurl.com/bvz5Nj)**
 
@@ -38,7 +38,7 @@ The guide below gets you started quickly.  Later, check out the [best practices]
 
 *  ```$ cd <new-project-name>```
 
-*  ```$ jaws new action users create```
+*  ```$ jaws module create users get```
 
 * ```$ jaws dash```
 
