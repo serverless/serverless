@@ -1,7 +1,7 @@
 This is the JAWS [CloudFormation](https://aws.amazon.com/cloudformation/) file.
 
-AWS-Modules [aws-modules](./jaws-json.md#jaws-plug-in-module) can merge data into this file by implementing the
-[`resources`](docs/jaws-json.md#cfextensions-attributes) attribute in the `awsm.json`.
+[AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm) can merge data into this file by implementing the
+[`resources`](https://github.com/awsm-org/awsm/blob/master/README.md#configuration) attribute in the `awsm.json`.
 
 The following CloudFormation Parameters are standardized JAWS project variables that all aws-module CloudFormation
 templates should utilize via `Ref`.  Note: `aa` is used so they show up at top of CloudFormation web UI:
