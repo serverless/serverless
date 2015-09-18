@@ -36,7 +36,7 @@ Updates an existing awsm in the `back/aws_modules` dir. By default installs modu
 
 ##### sub-command `create`
 
-Creates one or both of the following in the `back/aws_modules` folder:
+Creates one or both of the following in the `back/aws_modules` folder. Default is to create both:
 
 * A lambda function in the `back/aws_modules` folder with basic scaffolding.
 * An API gateway configuration
