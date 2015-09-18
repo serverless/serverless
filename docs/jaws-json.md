@@ -3,8 +3,6 @@
 See project `jaws.json` [example here](../examples/project-jaws.json)
 
 The `jaws.json` file contains project configuration and authorship details.
-It defines things like the project's stages and regions within each stage,
- [like in this example.](../examples/project-jaws.json)
 
 ## Common jaws.json attributes
 
