@@ -126,7 +126,7 @@ program
 
         execute(theCmd.run(JAWS, module));
       } else {
-        console.error('Unsupported cmd ' + cmd + '. Must be install|create');
+        console.error('Unsupported cmd ' + cmd + '. Must be install|update|create');
         process.exit(1);
       }
     });
