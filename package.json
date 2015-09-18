@@ -1,8 +1,8 @@
 {
   "name": "jaws-framework",
-  "version": "0.9.3",
+  "version": "1.0.0",
   "preferGlobal": true,
-  "description": "JAWS is the server-less application framework.",
+  "description": "JAWS is the serverless framework powered by Amazon Web Services.",
   "author": "Austen Collins <austen@servant.co>, Ryan Pendergast <ryan.pendergast@gmail.com>",
   "license": "MIT",
   "repository": {
