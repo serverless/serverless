@@ -1,6 +1,5 @@
 'use strict';
 
-require('shelljs/global');
 var fs = require('fs'),
     os = require('os'),
     wrench = require('wrench'),
@@ -9,17 +8,6 @@ var fs = require('fs'),
     uuid = require('node-uuid'),
     JawsError = require('../lib/jaws-error'),
     utils = require('../lib/utils');
-
-function npmInstall(dir) {
-  var cwd = process.cwd();
-
-  process.chdir(dir);
-  if (exec('npm install ', {silent: false}).code !== 0) {
-    throw new JawsError('Error executing NPM install on ' + dir, JawsError.errorCodes.UNKNOWN);
-  }
-
-  process.chdir(cwd);
-}
 
 /**
  * Create test project
@@ -32,12 +20,13 @@ function npmInstall(dir) {
  * @param npmInstallDirs list of dirs relative to project root to execute npm install on
  * @returns {string} full path to proj temp dir
  */
+
 module.exports.createTestProject = function(projectName,
                                             projectRegion,
                                             projectStage,
                                             projectLambdaIAMRole,
                                             projectApiGIAMRole,
-                                            projectEnvBucket,
+                                            projectRegionBucket,
                                             npmInstallDirs) {
   // Create Test Project
   var tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
@@ -57,16 +46,14 @@ module.exports.createTestProject = function(projectName,
   // Add jaws.json project data
   var projectJSON = require(path.join(tmpProjectPath, 'jaws.json'));
   projectJSON.name = projectName;
-  projectJSON.project.stages = {};
-  projectJSON.project.stages[projectStage] = [{
+  projectJSON.stages = {};
+  projectJSON.stages[projectStage] = [{
     region: projectRegion,
     iamRoleArnLambda: projectLambdaIAMRole,
     iamRoleArnApiGateway: projectApiGIAMRole,
   },];
-  projectJSON.project.envVarBucket = {
-    name: projectEnvBucket,
-    region: projectRegion,
-  };
+  projectJSON.jawsBuckets = {};
+  projectJSON.jawsBuckets[projectRegion] = projectRegionBucket;
   fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
 
   // Create admin.env file
@@ -78,7 +65,7 @@ module.exports.createTestProject = function(projectName,
     npmInstallDirs.forEach(function(dir) {
       var fullPath = path.join(tmpProjectPath, dir);
       utils.logIfVerbose('Running NPM install on ' + fullPath);
-      npmInstall(fullPath);
+      utils.npmInstall(fullPath);
     });
   }
 

@@ -28,7 +28,7 @@ program
 program
     .command('new <type>')
     .allowUnknownOption()
-    .description('Make a new "project", "stage", "region", or "action <resource> <action>"')
+    .description('Make a new "project", "stage", "region", or "module <module_name> <action>"')
     .action(function() {
 
       // Parse Args
@@ -36,7 +36,6 @@ program
       var type = args._[0] ? args._[0].toLowerCase() : null;
 
       if (type == 'project') {
-
         // New Project
         var CmdNewProject = require('../lib/commands/new_project');
         execute(CmdNewProject.run(
@@ -46,7 +45,7 @@ program
             args.region,
             args.email,
             args.profile,
-            args.noCf
+            args.noExeCf
         ));
 
       } else if (type == 'region' || type == 'stage') {
@@ -58,57 +57,78 @@ program
             type,
             args.stage,
             args.region,
-            args.noCf
+            args.noExeCf
         ));
-
-      } else if (type === 'action') {
-
-        var action = {};
-
-        if (args.l || args.lambda) {
-          action.type = 'lambda';
-        }
-        else if (args.e || args.endpoint) {
-          action.type = 'endpoint';
-        }
-        else {
-          action.type = 'both';
-        }
-
-        if (args._.length !== 3) {
-          throw new JawsError('Please specify the resource and action in this command, like:  '
-              + '"jaws new action users create".');
-        }
-
-        action.resource = args._[1];
-        action.action = args._[2];
-        action.runtime = (args.r || args.runtime);
-
-        // New Action
-        var CmdNewAction = require('../lib/commands/new_action');
-        execute(CmdNewAction.run(JAWS, action));
 
       } else {
 
         // Unknown Type
-        console.error('Unsupported type ' + type + '. Must be project|region|stage|action');
+        console.error('Unsupported type ' + type + '. Must be project|region|stage|module');
         process.exit(1);
 
       }
     });
 
 /**
- * Install
- * - Install a jaws-module from a Github url
+ * module
+ * - install awsm
+ * - create awsm
  */
 
 program
-    .command('install <url>')
-    .description('Installs a jaws-module from the specified url into the apprpriate area of your JAWS project.')
-    .option('-s, --save', 'Save jaws-module\'s CloudFormation to your project')
-    .action(function(url, options) {
-      var theCmd = require('../lib/commands/install');
-      execute(theCmd.install(JAWS, url, options.save));
+    .command('module <cmd> [params]')
+    .description('aws-module commands\n\nValid <cmd>' +
+        '\'s:\n\ninstall: install aws-module.' +
+        '\n\t Ex: jaws module install <url>' +
+        '\n\tupdate: update aws-module' +
+        '\n\t Ex: jaws module update <url>' +
+        '\n\ncreate: create aws-module action. Module will be created if DNE. create <module resource> <action>' +
+        '\n\t Ex: jaws module create users list'
+    )
+    .option('-s, --save', 'Install&Update Only: Save awsm\'s CloudFormation to your project')
+    .option('-d, --dont-install-dependencies', 'Install&Update Only: DONT install awsm\'s depdencies automatically')
+    .option('-l, --lambda', 'Create Only: create lambda. Default is create lambda and endpoint.')
+    .option('-e, --endpoint', 'Create Only: create API Gateway endpoint. Default is create lambda and endpoint.')
+    .option('-r, --runtime', 'Create Only: lambda runtime. Default nodejs')
+    .action(function(cmd, params, options) {
+      var theParams = process.argv.slice(3);
+      if (!theParams) {
+        throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
+      }
+
+      if (cmd == 'install' || cmd == 'update') {
+        if (theParams.length !== 2) {
+          throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
+        }
+        var url = theParams[1],
+            theCmd = require('../lib/commands/module_install');
+
+        execute(theCmd[cmd](JAWS, url, options.save, options.dontInstallDependencies));
+      } else if (cmd == 'create') {
+        if (theParams.length !== 3) {
+          throw new JawsError('Please specify awsm resource and action name');
+        }
+
+        var theCmd = require('../lib/commands/module_create');
+        var module = {
+          name: theParams[1],
+          action: theParams[2],
+          runtime: options.runtime || 'nodejs'
+        };
+
+        if (options.lambda) {
+          module.type = 'lambda';
+        } else if (options.endpoint) {
+          module.type = 'endpoint';
+        } else {
+          module.type = 'both';
+        }
+
+        execute(theCmd.run(JAWS, module));
+      } else {
+        console.error('Unsupported cmd ' + cmd + '. Must be install|update|create');
+        process.exit(1);
+      }
     });
 
 /**
@@ -125,7 +145,6 @@ program
     .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
     .option('-n, --untag-all', 'un-tag all lambda|endpoint functions in project')
     .action(function(type, options) {
-
       type = type || 'lambda';
       type = type.toLowerCase();
 
@@ -158,7 +177,7 @@ program
     .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
         ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
-    .option('-e, --all-at-once', 'By default, lambdas are deployed once at a time. This deploys all concurrently')
+    .option('-d, --dont-exe-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
     .action(function(type, stage, region, options) {
 
       type = type.toLowerCase();
@@ -169,10 +188,9 @@ program
           execute(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
-          var allTagged = (options.tags) ? true : false,
-              allAtOnce = (options.allAtOnce) ? true : false;
+          var allTagged = (options.tags) ? true : false;
           var theCmd = require('../lib/commands/deploy_lambda');
-          execute(theCmd.run(JAWS, stage, region, allTagged, allAtOnce));
+          execute(theCmd.run(JAWS, stage, region, allTagged, options.dontExeCf));
           break;
         default:
           console.error('Unsupported type ' + type + '. Must be endpoint|lambda|resources');
@@ -187,16 +205,16 @@ program
  */
 
 program
-    .command('env <cmd> <stage> [key] [val]')
-    .description('Manage env vars for stage. Valid cmds: list,get,set,unset.')
-    .usage('get test USERNAME or set test USERNAME blah.')
-    .action(function(cmd, stage, key, val) {
+    .command('env <cmd> <stage> <region> [key] [val]')
+    .description('Manage env vars for stage & region. Valid cmds: list,get,set,unset. <region> can be "all". <stage> can be "local"')
+    .usage('get test us-east-1 USERNAME or set test all USERNAME blah.')
+    .action(function(cmd, stage, region, key, val) {
       var CmdEnv = require('../lib/commands/env');
 
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
-          execute(CmdEnv.listEnv(JAWS, stage));
+          execute(CmdEnv.listEnv(JAWS, stage, region, true));
           break;
         case 'get':
           if (!key) {
@@ -204,7 +222,7 @@ program
             process.exit(1);
           }
 
-          execute(CmdEnv.getEnvKey(JAWS, stage, key));
+          execute(CmdEnv.getEnvKey(JAWS, stage, region, key));
           break;
         case 'set':
           if (!key || typeof val == 'undefined') {
@@ -212,7 +230,7 @@ program
             process.exit(1);
           }
 
-          execute(CmdEnv.setEnvKey(JAWS, stage, key, val));
+          execute(CmdEnv.setEnvKey(JAWS, stage, region, key, val));
           break;
         case 'unset':
           if (!key) {
@@ -225,7 +243,7 @@ program
             process.exit(1);
           }
 
-          execute(CmdEnv.setEnvKey(JAWS, stage, key));
+          execute(CmdEnv.setEnvKey(JAWS, stage, region, key));
           break;
         default:
           console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');

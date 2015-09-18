@@ -10,9 +10,12 @@ var AWS = require('aws-sdk'),
     us = require('underscore'),
     moment = require('moment'),
     uuid = require('node-uuid'),
+    path = require('path'),
     Promise = require('bluebird');
 
-module.exports.handler = function(event, context) {
+require('dotenv').config({path: path.join(eval('__dirname'), '..', '..', '..', '.env'), silent: true});
+
+module.exports.run = function(event, context, cb) {
   console.log('about to run');
 
   var s3 = Promise.promisifyAll(new AWS.S3());
@@ -55,13 +58,15 @@ module.exports.handler = function(event, context) {
         console.log('moment', moment().format());
         console.log('v1', uuid.v1());
         console.log('v4', uuid.v4());
-        return 'done';
+
+        console.log('env vars', process.env);
+        return 'done browserify';
       })
       .then(function(d) {
-        context.succeed(d);
+        return cb(null, d);
       })
       .catch(function(e) {
         console.log(e);
-        context.fail(e);
+        return cb(e, null);
       });
 };

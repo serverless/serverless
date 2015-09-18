@@ -32,7 +32,7 @@ describe('Test "new stage/region" command', function() {
       // Create Test Project
       projPath = testUtils.createTestProject(
           config.name,
-          config.region,
+          config.regionBucket,
           config.stage,
           config.iamRoleArnLambda,
           config.iamRoleArnApiGateway,
@@ -53,8 +53,8 @@ describe('Test "new stage/region" command', function() {
           .then(function() {
             var jawsJson = require(path.join(process.cwd(), '../jaws.json'));
             var region = false;
-            for (var i = 0; i < jawsJson.project.stages[tempStage].length; i++) {
-              var stage = jawsJson.project.stages[tempStage][i];
+            for (var i = 0; i < jawsJson.stages[tempStage].length; i++) {
+              var stage = jawsJson.stages[tempStage][i];
               if (stage.region === tempRegion1) {
                 region = stage.region;
               }
@@ -77,8 +77,8 @@ describe('Test "new stage/region" command', function() {
           .then(function() {
             var jawsJson = require(path.join(process.cwd(), '../jaws.json'));
             var region = false;
-            for (var i = 0; i < jawsJson.project.stages[tempStage].length; i++) {
-              var stage = jawsJson.project.stages[tempStage][i];
+            for (var i = 0; i < jawsJson.stages[tempStage].length; i++) {
+              var stage = jawsJson.stages[tempStage][i];
               if (stage.region === tempRegion2) {
                 region = stage.region;
               }

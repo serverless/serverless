@@ -1,6 +1,6 @@
 'use strict';
 
-//Testing how the top npm modules work with browserify
+//Testing how the top npm modules work with no optimization
 //https://www.npmjs.com/browse/depended
 
 var AWS = require('aws-sdk'),
@@ -10,11 +10,13 @@ var AWS = require('aws-sdk'),
     us = require('underscore'),
     moment = require('moment'),
     uuid = require('node-uuid'),
-    Promise = require('bluebird'),
-    awsMetadata = require('aws-sdk/package.json');
+    path = require('path'),
+    Promise = require('bluebird');
 
-module.exports.handler = function(event, context) {
-  console.log('AWS sdk version', awsMetadata.version);
+require('dotenv').config({path: path.join(eval('__dirname'), '..', '..', '..', '.env'), silent: true});
+
+module.exports.run = function(event, context, cb) {
+  console.log('about to run');
 
   var s3 = Promise.promisifyAll(new AWS.S3());
   s3.listBucketsAsync()
@@ -56,13 +58,15 @@ module.exports.handler = function(event, context) {
         console.log('moment', moment().format());
         console.log('v1', uuid.v1());
         console.log('v4', uuid.v4());
-        return 'done';
+
+        console.log('env vars', process.env);
+        return 'done not optimized';
       })
       .then(function(d) {
-        context.succeed(d);
+        return cb(null, d);
       })
       .catch(function(e) {
         console.log(e);
-        context.fail(e);
+        return cb(e, null);
       });
 };

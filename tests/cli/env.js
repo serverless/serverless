@@ -23,8 +23,8 @@ describe('Test "env" command', function() {
         config.stage,
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
-        config.envBucket);
-    process.chdir(path.join(projPath, 'back', 'lambdas', 'sessions', 'show'));
+        config.regionBucket);
+    process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
     JAWS = new Jaws();
   });
 

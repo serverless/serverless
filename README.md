@@ -5,13 +5,9 @@ JAWS: The Server-less Framework V1 (BETA)
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Status 9/15: The **JAWS V1 BETA** is available HOWEVER we will be making breaking changes on 9/15 and 9/16.
-We’ve decided to specify each project’s lambda functions within the CloudFormation templates generated for each stage
-and region.  The lambda functions will now be uploaded to S3 and deployed via Cloudformation.  Also, we will be
-creating an S3 bucket for each stage and region which will store ENV vars and lambda functions.  The goal is to
-increase CloudFormation support and have ALL project resources, completely replicated across stage and region.
-If you want to help, please view the **[JAWS V1 Google Document](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit#)**.
-But you might want to hold of Pull Requests until after 9/16.
+Check us out at <img src="http://www.vormetric.com/sites/default/files/aws-re-invent-logo_0.png" align="absbottom">.  Our presentation is ["DVO209 - JAWS: The Monstrously Scalable Serverless Framework – AWS Lambda, Amazon API Gateway, and More!"](https://www.portal.reinvent.awsevents.com/connect/sessionDetail.ww?SESSION_ID=5494)
+
+**Status 9/18**: The **JAWS V1 RC1** in now available. Significant re-write.  Few of the many new features: deploy lambdas via CloudFormation. [AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm).  Much improved multi-region support.  Totally re-done `env` command.
 
 **[Don't forget to join the JAWS Email List for updates!](http://eepurl.com/bvz5Nj)**
 
@@ -37,14 +33,16 @@ The guide below gets you started quickly.  Later, check out the [best practices]
 *  ```$ npm install jaws-framework -g```
 
 *  ```$ jaws new project```
+  
+ **Note:** we recommend camelCase for project names. [Why?](https://github.com/jaws-framework/JAWS/wiki/Best-practices#project-names)
 
 *  ```$ cd <new-project-name>```
 
-*  ```$ jaws new action users create -b```
+*  ```$ jaws new action users create```
 
 * ```$ jaws dash```
 
-This will create a new jaws project, create a lambda function and endpoint, which you can immediately deploy via
+This will create a new jaws project, create a lambda function  and endpoint (and install [jaws-core-js awsm](https://github.com/jaws-framework/jaws-core-js)), which you can immediately deploy via
 `jaws dash`.  After deployment is complete, you will be given a url.  In the above example, you can access your
 deployed lambda at `your_url/users/create`.
 
@@ -52,7 +50,7 @@ deployed lambda at `your_url/users/create`.
 
 We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
 
-Once you become familiar with JAWS, you can read the JAWS [plug-in module guide](./docs/plugin-module-guide.md) to start contributing JAWS modules to the community.
+Once you become familiar with JAWS, you can read about [JAWS AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm) to start contributing awsm's to the community.
 
 ## How can I help?
 

@@ -14,9 +14,8 @@
         }
       ]
     },
-    "envVarBucket": {
-      "name": "jaws.myco.com",
-      "region": "us-east-1"
+    "jawsBuckets": {
+      "us-east-1": "jaws-east-1.myco.com"
     }
   }
 }

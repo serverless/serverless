@@ -2,21 +2,33 @@
 
 ## Project layout
 
-This is the scaffolding jaws-cli produces on the new command.  It’s bare because all logic has been modularized.
+This is the scaffolding jaws-cli produces on the new command.  It’s bare because all logic has been modularized.  Here is a nodejs example:
 
 * back
   *  [.env](./commands.md#env)
-  *  **lambdas**
-     *  **users**
+  *  **aws_modules**
+     *  **jaws-core-js** 
+       * awsm.json
+       * package.json
+       * **env**
+         *  index.js 
+     *  **user**
+       *  **lib**  
        *  **create**
-         * [jaws.json](./jaws-json.md)
+         *  awsm.json
+          *  handler.js
+          *  index.js
        *  **delete**
        *  **get**
+* **cloudformation**
+  * **mystage**
+    *  **us-east-1**
+      *  [resources-cf.json](./resources-cf-json.md)
+      *  [lambdas-cf.json](./lambdas-cf-json.md)
 * **front**
 * **tests**
 * [admin.env](./admin-env.md)
 * [jaws.json](./jaws-json.md)
-* [jaws-cf.json](./jaws-cf-json.md)
 
 ## JAWS CLI
 
@@ -26,4 +38,4 @@ See the [CLI Docs here](./commands.md)
 
 ## JAWS plug-in modules
 
-See the [JAWS plug-in module guide](./plugin-module-guide.md)
+See the [AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm)

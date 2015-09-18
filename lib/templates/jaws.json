@@ -4,47 +4,6 @@
   "location": "https://github.com/...",
   "author": "",
   "description": "",
-  "lambda": {
-    "functionName": "",
-    "runtime": "nodejs",
-    "runtimeVer": "0.10.36",
-    "handler": "lambdas/",
-    "envVars": [],
-    "memorySize": 1024,
-    "timeout": 6,
-    "deploy": false,
-    "package": {
-      "optimize": {
-        "builder": "browserify",
-        "minify": true,
-        "ignore": [],
-        "exclude": [
-          "aws-sdk"
-        ],
-        "includePaths": []
-      },
-      "excludePatterns": []
-    }
-  },
-  "endpoint": {
-    "type": "AWS",
-    "path": "",
-    "method": "GET",
-    "authorizationType": "none",
-    "apiKeyRequired": false,
-    "requestTemplates": {},
-    "requestParameters": {},
-    "responses": {
-      "default": {
-        "statusCode": "200",
-        "responseParameters": {},
-        "responseTemplates": {
-          "application/json": ""
-        }
-      },
-      "400": {
-        "statusCode": "400"
-      }
-    }
-  }
+  "stages": {},
+  "jawsBuckets": {}
 }

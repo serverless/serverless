@@ -5,29 +5,29 @@
   "author": "John Serverless <john@gmail.com> http://www.google.com",
   "description": "A lambda function that does something",
   "lambda": {
-    "functionName": "notoptimizedtest",
-    "runtime": "nodejs",
-    "runtimeVer": "0.10.36",
-    "handler": "lambdas/bundle/nonoptimized/index.handler",
     "envVars": [
       "MYAPP_SERVICE_KEY",
       "MYAPP_SERVICE2_KEY"
     ],
-    "memorySize": 1024,
-    "timeout": 6,
     "deploy": false,
     "package": {
       "optimize": {
-        "builder": false,
-        "minify": false,
+        "builder": "browserify",
+        "minify": true,
         "ignore": [],
-        "exclude": [],
+        "exclude": [
+          "aws-sdk"
+        ],
         "includePaths": []
       },
-      "excludePatterns": [
-        "lambdas/[u].*",
-        "lambdas/bundle/b.*"
-      ]
+      "excludePatterns": []
+    },
+    "cloudFormation": {
+      "Description": "",
+      "Handler": "aws_modules/bundle/browserify/handler.handler",
+      "MemorySize": 1024,
+      "Runtime": "nodejs",
+      "Timeout": 6
     }
   }
 }

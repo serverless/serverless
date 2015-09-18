@@ -2,7 +2,7 @@
 
 ### jaws new
 
-Creates a new project, new region in existing project, or new stage in existing region.  The new command by default creates resources in AWS (via CloudFormation)
+Creates a new project, new stage in existing project, or a new region in an existing stage as well as ENV var file in the JAWS S3 bucket for the region.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
 
 ##### type `project`
 
@@ -22,12 +22,24 @@ Creates new region in existing project.  By default executes CloudFormation to m
 
 Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
-##### type `action`
+### jaws module
 
-Creates one or both of the following:
+This command manages [JAWS AWS Modules](https://github.com/awsm-org/awsm).
 
-* A lambda function in the `lambdas/back` folder with basic scaffolding.
-* An API gateway configuration 
+##### sub-command `install`
+
+Download and installs an awsm from github to the `back/aws_modules` dir.  By default installs module dependencies (if any)
+
+##### sub-command `update`
+
+Updates an existing awsm in the `back/aws_modules` dir. By default installs module dependencies (if any)
+
+##### sub-command `create`
+
+Creates one or both of the following in the `back/aws_modules` folder. Default is to create both:
+
+* A lambda function in the `back/aws_modules` folder with basic scaffolding.
+* An API gateway configuration
 
 ### jaws dash
 
@@ -35,7 +47,7 @@ Interactive dashboard used to get an overview of your project and deploy resourc
 
 ### jaws env
 
-Manages enviornment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<proj jaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
+Manages environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<proj jaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
 
 Supported operations:
 
@@ -59,13 +71,6 @@ When deploying a Lambda function to AWS, JAWS will:
 *  Check the Runtime specified in the current lambda’s jaws.json (dir running JAWS cli from) and perform a corresponding build pipeline.  Optionally optimize the code for performance in Lambda (browserify & uglifyjs2).  See the [lambda attributes](./jaws-json.md#lambda-attributes) for optimization options. [Why optimize?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-optimize-code-before-deployment)
 *  Create or update lambda using this naming convention: `STAGE_-_PROJECTNAME_-_FUNCTIONNAME`.  For example: `prod_-_MyApp_-_usersSignup`
 * Upload the file as a buffer directly to AWS.
-
-### jaws install
-
-The `jaws install` command downloads the JAWS-module from the location specified (a github repo) and installs it.  The install includes:
-
-*  If the `--save` flag was used and if `cfExtensions` CloudFormation template was included in the module’s [`jaws.json`](./jaws-json.md), it merges the contents into the project’s [`jaws-cf.json`](./jaws-cf-json.md).  You will have to manually divide this up into multiple CF templates afterwards, if that’s your preference.
-*  Copies the jaws-module into the `back/lambdas` dir of the project you are currently in
 
 ### jaws log
 

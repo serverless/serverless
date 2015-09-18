@@ -5,7 +5,7 @@
  */
 
 var Jaws = require('../../lib/index.js'),
-    CmdInstall = require('../../lib/commands/install'),
+    CmdModule = require('../../lib/commands/module_install'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     path = require('path'),
@@ -24,8 +24,8 @@ describe('Test "install" command', function() {
         config.stage,
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
-        config.envBucket);
-    process.chdir(path.join(projPath, 'back', 'lambdas', 'sessions', 'show'));
+        config.regionBucket);
+    process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
     JAWS = new Jaws();
   });
 
@@ -37,7 +37,7 @@ describe('Test "install" command', function() {
     it('Install module', function(done) {
       this.timeout(0);
 
-      CmdInstall.install(JAWS, 'https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js')
+      CmdModule.install(JAWS, 'https://github.com/jaws-framework/jaws-core-js', true)
           .then(function() {
             done();
           })

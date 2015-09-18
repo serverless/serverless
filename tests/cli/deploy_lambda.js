@@ -5,8 +5,10 @@
  */
 var Jaws = require('../../lib/index.js'),
     CmdDeployLambda = require('../../lib/commands/deploy_lambda'),
+    CmdTag = require('../../lib/commands/tag'),
     testUtils = require('../test_utils'),
     path = require('path'),
+    Promise = require('bluebird'),
     assert = require('chai').assert,
     JAWS;
 
@@ -25,8 +27,8 @@ describe('Test "deploy lambda" command', function() {
         config.stage,
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
-        config.envBucket,
-        ['back']);
+        config.regionBucket,
+        ['back/aws_modules/bundle']);
 
     process.chdir(projPath);
     JAWS = new Jaws();
@@ -38,7 +40,7 @@ describe('Test "deploy lambda" command', function() {
     it('Multi level module deploy', function(done) {
       this.timeout(0);
 
-      process.chdir(path.join(projPath, 'back/lambdas/sessions/show'));
+      process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
@@ -51,7 +53,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('browserify deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'back/lambdas/bundle/browserify'));
+      process.chdir(path.join(projPath, 'back/aws_modules/bundle/browserify'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
           .then(function(d) {
@@ -64,9 +66,30 @@ describe('Test "deploy lambda" command', function() {
 
     it('non optimized deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'back/lambdas/bundle/nonoptimized'));
+      process.chdir(path.join(projPath, 'back/aws_modules/bundle/nonoptimized'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false)
+          .then(function(d) {
+            done();
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
+
+    it('deploy multiple', function(done) {
+      this.timeout(0);
+      var bundleDirPath = path.join(projPath, 'back/aws_modules/bundle');
+
+      process.chdir(bundleDirPath);
+
+      Promise.all([
+            CmdTag.tag('lambda', bundleDirPath + '/browserify/awsm.json'),
+            CmdTag.tag('lambda', bundleDirPath + '/nonoptimized/awsm.json'),
+          ])
+          .then(function() {
+            return CmdDeployLambda.run(JAWS, config.stage, [config.region], true)
+          })
           .then(function(d) {
             done();
           })
