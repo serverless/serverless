@@ -1,6 +1,5 @@
 'use strict';
 
-require('shelljs/global');
 var fs = require('fs'),
     os = require('os'),
     wrench = require('wrench'),
@@ -9,17 +8,6 @@ var fs = require('fs'),
     uuid = require('node-uuid'),
     JawsError = require('../lib/jaws-error'),
     utils = require('../lib/utils');
-
-function npmInstall(dir) {
-  var cwd = process.cwd();
-
-  process.chdir(dir);
-  if (exec('npm install ', {silent: false}).code !== 0) {
-    throw new JawsError('Error executing NPM install on ' + dir, JawsError.errorCodes.UNKNOWN);
-  }
-
-  process.chdir(cwd);
-}
 
 /**
  * Create test project
@@ -77,7 +65,7 @@ module.exports.createTestProject = function(projectName,
     npmInstallDirs.forEach(function(dir) {
       var fullPath = path.join(tmpProjectPath, dir);
       utils.logIfVerbose('Running NPM install on ' + fullPath);
-      npmInstall(fullPath);
+      utils.npmInstall(fullPath);
     });
   }
 

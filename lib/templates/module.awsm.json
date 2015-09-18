@@ -6,8 +6,8 @@
   "description": "",
   "resources": {
     "cloudFormation": {
-      "LambdaIamPolicyDocuments": [],
-      "ApiGatewayIamPolicyDocuments": [],
+      "LambdaIamPolicyDocumentStatements": [],
+      "ApiGatewayIamPolicyDocumentStatements": [],
       "Resources": {}
     }
   }
