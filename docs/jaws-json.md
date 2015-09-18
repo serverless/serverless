@@ -1,5 +1,6 @@
 # jaws.json
 
+v
 The `jaws.json` file contains project configuration and authorship details.
 It defines things like the project's stages and regions within each stage,
  [like in this example.](../examples/project-jaws.json)
@@ -8,15 +9,11 @@ It defines things like the project's stages and regions within each stage,
 
 The following attributes should exist in either a project or lambda `jaws.json` at the top level
 
-* **name**: project/module or lambda action name
-* **version**: project/module or lambda [Semantic Versioning](http://semver.org/) number.
-* **location**: project/module or lambda scm url (if exists)
+* **name**: project name
+* **version**: project [Semantic Versioning](http://semver.org/) number.
+* **location**: project scm url
 * **author**: `John Serverless <john@gmail.com> http://www.john.com`
-* **description**: project/module or lambda desc.
-
-## Project level
-
-See project `jaws.json` [example here](../examples/project-jaws.json)
+* **description**: project desc.
 
 * `project.stages`: map of all your stages, and regions those stages are in
 * `project.envVarBucket`: name and region your s3 bucket that holds env var files
@@ -25,30 +22,6 @@ See project `jaws.json` [example here](../examples/project-jaws.json)
 
 See lambda `jaws.json` [example here](../examples/lambda-jaws.json)
 
-##### Lambda attributes
-
-**Note**: All of the attrs below assume the `lambda` attribute key prefix.
-
-* `Handler,MemorySize,Runtime,Timeout`: can all be found in the [aws docs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)
-  * We recommend 1024 memory to improve cold/warm start times. `handler` is relative to back dir
-* `envVars`: An array of environment variable names this project/module or lambda requires
-* `deploy`: if true, this app will be deployed the next time the `jaws deploy --tags` is run. See `deploy` command docs for more info.
-* `package`: How the code is packaged up into a zip file
-  * `optimize`: How code is optimized for node runtimes, to improve lambda cold start time
-    * `builder`: only `"browserify"` or `false` supported now.  If `false` will just zip up entire `back` dir
-    * `minify`: js minify or not
-    * `ignore`: array of node modules to ignore. See [ignoring](https://github.com/substack/browserify-handbook#ignoring-and-excluding)
-    * `exclude`: array of node modules to exclude.  These modules will be loaded externally (from within zip or inside lambda).  Note `aws-sdk` for node [can not be browserified](https://github.com/aws/aws-sdk-js/issues/696). See [ignoring](https://github.com/substack/browserify-handbook#ignoring-and-excluding)
-    * `includePaths`: Paths rel to back (dirs or files) to be included in zip. Paths included after optimization step.
-  * `excludePatterns`: Array of regular expressions rel to back. Removed before optimization step. If not optimizing, everything in back dir will be included in zip. Use this to exclude stuff you don't want in your zip.  Strings will be passed to `new RegExp()`
-
-For an optimize example using the most popular node modules see [browserify tests](../tests/test-prj/back/aws_modules/bundle/browserify)
-
-For non optimize example see [non optimized tests](../tests/test-prj/back/aws_modules/bundle/nonoptimized)
-
-##### API Gateway (`endpoint`) attributes:
-
-AUSTEN TODO...
 
 ## JAWS plug-in module
 
