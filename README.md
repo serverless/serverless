@@ -7,10 +7,7 @@ JAWS: The Server-less Framework V1 (BETA)
 
 Check us out at <img src="http://www.vormetric.com/sites/default/files/aws-re-invent-logo_0.png" align="middle">.  Our presentation is ["DVO209 - JAWS: The Monstrously Scalable Serverless Framework – AWS Lambda, Amazon API Gateway, and More!"](https://www.portal.reinvent.awsevents.com/connect/sessionDetail.ww?SESSION_ID=5494)
 
-Status 9/18: The **JAWS V1 RC1** in now available. Significant re-write.  Few of the many new features: deploy lambdas via CloudFormation. [AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm).  Much improved multi-region support.
-
-If you want to help, please view the **[JAWS V1 Google Document](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit#)**.
-But you might want to hold of Pull Requests until after 9/16.
+**Status 9/18**: The **JAWS V1 RC1** in now available. Significant re-write.  Few of the many new features: deploy lambdas via CloudFormation. [AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm).  Much improved multi-region support.
 
 **[Don't forget to join the JAWS Email List for updates!](http://eepurl.com/bvz5Nj)**
 
