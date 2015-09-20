@@ -17,7 +17,7 @@ JAWS is an open-source framework for building serverless applications (web, mobi
 
 <br/><br/>
 
-<a href="https://www.livecoding.tv/jaws/" target="_blank"><img src="img/jaws_roadmap.png" align="left" width="300"></a>
+<a href="https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit?usp=sharing" target="_blank"><img src="img/jaws_roadmap.png" align="left" width="300"></a>
 
 <br/><br/>
 
