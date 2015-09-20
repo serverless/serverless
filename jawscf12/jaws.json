@@ -1,0 +1,19 @@
+{
+  "name": "jawscf12",
+  "version": "0.0.1",
+  "location": "https://github.com/...",
+  "author": "",
+  "description": "",
+  "stages": {
+    "dev": [
+      {
+        "region": "us-east-1",
+        "iamRoleArnLambda": "arn:aws:iam::149631484542:role/dev-jawscf12-r-IamRoleLambda-IFJ4KIF64ELI",
+        "iamRoleArnApiGateway": "arn:aws:iam::149631484542:role/dev-jawscf12-r-IamRoleApiGateway-19AGUG3ID8TRV"
+      }
+    ]
+  },
+  "jawsBuckets": {
+    "us-east-1": "jawscf12"
+  }
+}
