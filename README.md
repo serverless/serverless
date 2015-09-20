@@ -1,12 +1,11 @@
-![JAWS stack javascript aws node.js express auroradb dynamodb lambda](jaws_framework_logo_animated_xl.gif)
+![JAWS stack javascript aws node.js express auroradb dynamodb lambda](img/jaws_framework_logo_animated_xl.gif)
 
 JAWS V1 (BETA)
 =================================
 
-JAWS is an open-source framework for building serverless applications (web, mobile, IoT) using Amazon Web Services Lambda, API Gateway, and more.
+JAWS is an open-source framework for building serverless applications (web, mobile, IoT) using Amazon Web Services' Lambda, API Gateway, and more.
 Lambda's event-driven model offers tremendous cost savings and colossal horizontal scaling ability.  Now, JAWS helps you
-develop and maintain applications built entirely on Lambda.  JAWS is mostly a command line tool that provides scaffolding, automation,
-and other utilities to help you isolate and replicate your application across multiple stages and regions.
+build and maintain entire applications built on Lambda.
 
 [![JAWS Gitter Chat Room](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-framework/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
