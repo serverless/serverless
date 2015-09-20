@@ -3,7 +3,7 @@
 JAWS: The Server-less Framework V1 (BETA)
 =================================
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-framework/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Check us out at <img src="http://www.vormetric.com/sites/default/files/aws-re-invent-logo_0.png" align="absbottom">.  Our presentation is ["DVO209 - JAWS: The Monstrously Scalable Serverless Framework – AWS Lambda, Amazon API Gateway, and More!"](https://www.portal.reinvent.awsevents.com/connect/sessionDetail.ww?SESSION_ID=5494)
 
