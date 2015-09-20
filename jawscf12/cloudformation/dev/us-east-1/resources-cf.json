@@ -1,0 +1,239 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "jawscf12 resources",
+  "Parameters": {
+    "aaProjectName": {
+      "Type": "String",
+      "Default": "jawscf12",
+      "AllowedValues": [
+        "jawscf12"
+      ]
+    },
+    "aaStage": {
+      "Type": "String",
+      "Default": "dev"
+    },
+    "aaDataModelPrefix": {
+      "Type": "String",
+      "Default": "dev"
+    },
+    "aaHostedZoneName": {
+      "Type": "String",
+      "Default": "myjawsproject.com"
+    },
+    "aaNotficationEmail": {
+      "Type": "String",
+      "Default": "ac@gmail.com"
+    },
+    "aaDefaultDynamoRWThroughput": {
+      "Type": "String",
+      "Default": "1"
+    }
+  },
+  "Resources": {
+    "IamRoleLambda": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "IamRoleApiGateway": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "apigateway.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "IamInstanceProfileLambda": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "IamRoleLambda"
+          }
+        ]
+      }
+    },
+    "IamInstanceProfileApiGateway": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "IamRoleApiGateway"
+          }
+        ]
+      }
+    },
+    "IamGroupLambda": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+        "Path": "/"
+      }
+    },
+    "IamGroupApiGateway": {
+      "Type": "AWS::IAM::Group",
+      "Properties": {
+        "Path": "/"
+      }
+    },
+    "IamPolicyLambda": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Join": [
+            "_-_",
+            [
+              {
+                "Ref": "aaStage"
+              },
+              {
+                "Ref": "aaProjectName"
+              },
+              "lambda"
+            ]
+          ]
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:logs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "*:*"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "IamRoleLambda"
+          }
+        ],
+        "Groups": [
+          {
+            "Ref": "IamGroupLambda"
+          }
+        ]
+      }
+    },
+    "IamPolicyApiGateway": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Join": [
+            "_-_",
+            [
+              {
+                "Ref": "aaStage"
+              },
+              {
+                "Ref": "aaProjectName"
+              },
+              "api-gateway"
+            ]
+          ]
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "lambda:InvokeFunction"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:lambda",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "*:*"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "IamRoleApiGateway"
+          }
+        ],
+        "Groups": [
+          {
+            "Ref": "IamGroupApiGateway"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "IamRoleArnLambda": {
+      "Description": "ARN of the lambda IAM role",
+      "Value": {
+        "Fn::GetAtt": [
+          "IamRoleLambda",
+          "Arn"
+        ]
+      }
+    },
+    "IamRoleArnApiGateway": {
+      "Description": "ARN of the api gateway IAM role",
+      "Value": {
+        "Fn::GetAtt": [
+          "IamRoleApiGateway",
+          "Arn"
+        ]
+      }
+    }
+  }
+}
