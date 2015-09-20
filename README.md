@@ -17,6 +17,10 @@ JAWS is an open-source framework for building serverless applications (web, mobi
 
 <br/><br/><br/>
 
+<a href="https://www.livecoding.tv/jaws/" target="_blank"><img src="img/jaws_roadmap.png" align="left" width="300"></a>
+
+<br/><br/>
+
 Check us out at <img src="http://www.vormetric.com/sites/default/files/aws-re-invent-logo_0.png" align="absbottom">.  Our presentation is ["DVO209 - JAWS: The Monstrously Scalable Serverless Framework – AWS Lambda, Amazon API Gateway, and More!"](https://www.portal.reinvent.awsevents.com/connect/sessionDetail.ww?SESSION_ID=5494)
 
 **Status 9/18**: The **JAWS V1 RC1 (v1.0.0)** in now available. Significant re-write.  Few of the many new features: deploy lambdas via CloudFormation. [AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm).  Much improved multi-region support.  Totally re-done `env` command.
@@ -45,7 +49,7 @@ The guide below gets you started quickly.  Later, check out the [best practices]
 *  ```$ npm install jaws-framework -g```
 
 *  ```$ jaws new project```
-  
+
  **Note:** we recommend camelCase for project names. [Why?](https://github.com/jaws-framework/JAWS/wiki/Best-practices#project-names)
 
 *  ```$ cd <new-project-name>```
