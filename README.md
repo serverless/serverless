@@ -67,6 +67,8 @@ We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-f
 
 Once you become familiar with JAWS, you can read about [JAWS AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm) to start contributing awsm's to the community.
 
+![jaws framework deployment diagram](img/jaws_deployment_diagram.png)
+
 ## How can I help?
 
 Please check out the **[JAWS V1 Google Document](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit#)** and our [CONTRIBUTING.md](./CONTRIBUTING.md) for coding and PR guidelines.
