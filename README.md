@@ -53,16 +53,11 @@ In JAWS V1, we made a strong effort to make not just a groundbreaking serverless
 
 ## Documentation
 
+During the week of 9/21 we will be finishing up our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
+
 * **[Commands List](docs/commands.md)**
 * **[Project Structure](docs/project_structure.md)**
 * **[Deployment](docs/deployment.md)**
-* **[AWS-Modules (AWSM)](docs/aws_modules.md)**
-
-
-We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
+* **[AWSM: AWS-Modules](docs/aws_modules.md)**
 
 Once you become familiar with JAWS, you can read about [JAWS AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm) to start contributing awsm's to the community.
-
-## How can I help?
-
-Please check out the **[JAWS V1 Google Document](https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit#)** and our [CONTRIBUTING.md](./CONTRIBUTING.md) for coding and PR guidelines.
