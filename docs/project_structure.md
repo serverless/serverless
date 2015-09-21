@@ -4,7 +4,7 @@ All JAWS apps use the directory structure described in the diagram below.  This 
 
 Web, mobile and IoT applications can be built on JAWS, since JAWS is mostly a back-end focused framework.  JAWS comes with a `front` folder, but doesn't do much with it (yet).
 
-![jaws framework structural diagram](img/jaws_files_diagram.png)
+![jaws framework structural diagram](../img/jaws_files_diagram.png)
 
 ## jaws.json
 
