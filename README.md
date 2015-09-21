@@ -53,17 +53,15 @@ A JAWS app can be simply a group of lambda functions to accomplish some tasks, o
 
 Web, mobile and IoT applications can be built on JAWS, since JAWS is mostly a back-end focused framework.  JAWS comes with a `front` folder, but doesn't do much with it (yet).  In the future, JAWS will provide more automation for front-end development.
 
-JAWS relies heavily on AWS Cloudformation to keep track of all of the AWS resources your application requires in each stage/region.  This way, you can easily provision/replicate your AWS resources at once, and roll back to previous deployments, for every stage/region your application uses.
+JAWS applications' back-end runs on AWS Lambda functions which can be seen in the `back` folder.  To encourage the development of re-usable, standardized and optimized lambda functions, JAWS keeps all of your app's lambda functions in the **[AWS-Module](https://github.com/awsm-org/awsm) (awsm)** format.  This format was created for JAWS, and the JAWS CLI features commands to help you generate scaffolding for your aws_modules.
 
-JAWS applications' back-end runs on AWS Lambda functions which can be seen in the `back` folder.  To encourage the development of re-usable, standardized and optimized lambda functions, JAWS keeps all of your app's lambda functions in the **[AWS-Module](https://github.com/awsm-org/awsm)** format.  This format was created for JAWS, and the JAWS CLI features commands to help you generate scaffolding for your aws_modules.
-
-Possibly the best feature of aws_modules is they make it easy for developers to publish and share their lambda functions and encourage a module ecosystem.  Hopefully, in the near future, when you are building your serverless app, you will be able to select from a large variety of pre-written lambda functions, designed by the JAWS community for re-use, optimization, easy installation and deployment!
+Possibly the best feature of aws_modules is they make it easy for developers to publish and share their lambda functions and encourage a module ecosystem.  In the near future, when you are building your serverless app, you will be able to select from a large variety of pre-written lambda functions, designed by the JAWS community for re-use, optimization, easy installation and deployment!
 
 <p align="center">
 <a href="https://github.com/awsm-org/awsm" target="_blank"><img src="img/jaws_and_awsm.png" align="center" width="400" alt="awsm aws-module jaws"></a>
 </p>
 
-Every JAWS application can have multiple stages and multiple regions within each stage.  JAWS replicates your application across each stage/region using CloudFormation as in the diagram below:
+Every JAWS application can have multiple stages and multiple regions within each stage.  JAWS relies heavily on AWS Cloudformation to keep track of all of the AWS resources your application requires in each stage/region.  This way, you can easily provision/replicate your AWS resources at once, and roll back to previous deployments, for every stage/region your application uses.
 
 ![jaws framework deployment diagram](img/jaws_deployment_diagram.png)
 
