@@ -33,11 +33,11 @@ JAWS is an open-source framework for building serverless applications (web, mobi
 
 *  ```$ cd <new-project-name>```
 
-*  ```$ jaws module create users get```
+*  ```$ jaws module create users list```
 
 * ```$ jaws dash```
 
-This will create a new jaws project, create a lambda function  and endpoint (and install [jaws-core-js awsm](https://github.com/jaws-framework/jaws-core-js)), which you can immediately deploy via
+This will create a new jaws project, create a lambda function with an API Gateway endpoint, which you can immediately deploy via
 `jaws dash`.  After deployment is complete, you will be given a url.  In the above example, you can access your
 deployed lambda at `your_url/users/list`.
 
