@@ -12,7 +12,7 @@ See project `jaws.json` [example here](../examples/project-jaws.json)
 
 The `jaws.json` file contains project configuration and authorship details.
 
-## Common jaws.json attributes
+### Common jaws.json attributes
 
 The following attributes should exist in either a project or lambda `jaws.json` at the top level
 
