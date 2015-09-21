@@ -1,6 +1,6 @@
 # JAWS CLI Commands
 
-### JAWS New Commands
+### New Commands
 
 Create a project, a project region or a project stage using the `new` commands.
 
@@ -20,7 +20,7 @@ Create a project, a project region or a project stage using the `new` commands.
 
   * Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
-### JAWS Module Commands
+### Module Commands
 
 * ##### `$ jaws module create`
 
@@ -36,12 +36,14 @@ Create a project, a project region or a project stage using the `new` commands.
 
  * Updates an existing awsm in the `back/aws_modules` dir. By default installs module dependencies (if any)
 
-### JAWS Dash
+### Dash Commands
+
+Deploy your lambdas and endpoints using the JAWS dashboard.
 
 * ##### `$ jaws dash`
  * Interactive dashboard used to get an overview of your project and deploy resources
 
-### JAWS ENV Commands
+### ENV Commands
 
 Modeled after Heroku's environment variable commands, these commands manage environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<projjaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
 
@@ -61,27 +63,16 @@ Modeled after Heroku's environment variable commands, these commands manage envi
 
  * Unset the value for a specific key.
 
-When code is deployed via `jaws deploy` or `jaws dash` the env var file is downloaded from s3 and put in the root of the zip file named `.env`.  This exactly replicates the code layout of local development, as the root of the zip starts at the `back` dir.
+### Tag Commands
 
-### jaws tag
+Non-interactive way (dash alternative) to indicate which (or all) labmda|endpoint changes to deploy when the `jaws deploy` command is run.
 
-Non-interactive way (dash alternative) to indicate which (or all) labmda|api changes to deploy when the `jaws deploy` command is run.
+* #### `$ jaws tag <type>`
+ * Takes `lambda | endpoint` as type
+ * Tags current workign directory for deployment.
 
 ### jaws deploy
 
-Non-interactive way (dash alternative) to deploy lambda|api resources that have been `jaws tag`.  If `jaws deploy` is run from a lambda dir (has `lambda` attr defined in its `jaws.json`) it will automatically tag and then deploy.
-
-When deploying a Lambda function to AWS, JAWS will:
-
-*  Check the Runtime specified in the current lambda’s jaws.json (dir running JAWS cli from) and perform a corresponding build pipeline.  Optionally optimize the code for performance in Lambda (browserify & uglifyjs2).  See the [lambda attributes](./jaws-json.md#lambda-attributes) for optimization options. [Why optimize?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-optimize-code-before-deployment)
-*  Create or update lambda using this naming convention: `STAGE_-_PROJECTNAME_-_FUNCTIONNAME`.  For example: `prod_-_MyApp_-_usersSignup`
-* Upload the file as a buffer directly to AWS.
-
-### jaws log
-
-This command fetches logs from AWS Cloudformation for the lambda function in a given region & stage.
-
-This command is not implemented yet. Looking for help from community. Need a way to stream the logs "real time" like heroku logs.
-
+Non-interactive way (dash alternative) to deploy lambda|endpoint resources that have been `jaws tag`.  If `jaws deploy` is run from a lambda dir (has `lambda` attr defined in its `jaws.json`) it will automatically tag and then deploy.
 
 
