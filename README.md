@@ -63,6 +63,7 @@ Possibly the best feature of aws_modules is they make it easy for developers to 
 <a href="https://github.com/awsm-org/awsm" target="_blank"><img src="img/jaws_and_awsm.png" align="center" width="400" alt="awsm aws-module jaws"></a>
 </p>
 
+Every JAWS application can have multiple stages and multiple regions within each stage.  JAWS replicates your application across each stage/region using CloudFormation as in the diagram below:
 
 ![jaws framework deployment diagram](img/jaws_deployment_diagram.png)
 
