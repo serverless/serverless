@@ -22,46 +22,44 @@ Create a project, a project region or a project stage using the `new` commands.
 
 ### JAWS Module Commands
 
-##### `$ jaws module create`
+* ##### `$ jaws module create`
 
-Creates one or both of the following in the `back/aws_modules` folder. Default is to create both:
+ * Creates one or both of the following in the `back/aws_modules` folder. Default is to create both:
+  * A lambda function in the `back/aws_modules` folder with basic scaffolding.
+  * An API gateway configuration
 
-* A lambda function in the `back/aws_modules` folder with basic scaffolding.
-* An API gateway configuration
+* ##### `$ jaws module install`
 
-##### `$ jaws module install`
+ * Download and installs an awsm from github to the `back/aws_modules` dir.  By default installs module dependencies (if any)
 
-Download and installs an awsm from github to the `back/aws_modules` dir.  By default installs module dependencies (if any)
+* ##### `$ jaws module update`
 
-##### `$ jaws module update`
-
-Updates an existing awsm in the `back/aws_modules` dir. By default installs module dependencies (if any)
+ * Updates an existing awsm in the `back/aws_modules` dir. By default installs module dependencies (if any)
 
 ### JAWS Dash
 
-##### `$ jaws dash`
-
-Interactive dashboard used to get an overview of your project and deploy resources
+* ##### `$ jaws dash`
+ * Interactive dashboard used to get an overview of your project and deploy resources
 
 ### JAWS ENV Commands
 
 Modeled after Heroku's environment variable commands, these commands manage environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<projjaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
 
-##### `$ jaws env list`
+* ##### `$ jaws env list`
 
-List all env vars for given stage. Will display env vars that each jaws-module uses and indicate env vars that are not yet set.
+ * List all env vars for given stage. Will display env vars that each jaws-module uses and indicate env vars that are not yet set.
 
-##### `$ jaws env get`
+* ##### `$ jaws env get`
 
-Get the value for a specific key.
+ * Get the value for a specific key.
 
-##### `$ jaws env set`
+* ##### `$ jaws env set`
 
-Set the value for a specific key.
+ * Set the value for a specific key.
 
-##### `$ jaws env unset`
+* ##### `$ jaws env unset`
 
-Unset the value for a specific key.
+ * Unset the value for a specific key.
 
 When code is deployed via `jaws deploy` or `jaws dash` the env var file is downloaded from s3 and put in the root of the zip file named `.env`.  This exactly replicates the code layout of local development, as the root of the zip starts at the `back` dir.
 
