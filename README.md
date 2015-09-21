@@ -51,7 +51,7 @@ A JAWS app can be simply a group of lambda functions to accomplish some tasks, o
 
 ![jaws framework structural diagram](img/jaws_files_diagram.png)
 
-Web, mobile and IoT applications can be built on JAWS, since JAWS is mostly a back-end focused framework.  JAWS comes with a `front` folder, but doesn't do much with it (yet). 
+Web, mobile and IoT applications can be built on JAWS, since JAWS is mostly a back-end focused framework.  JAWS comes with a `front` folder, but doesn't do much with it (yet).
 
 JAWS applications' back-end runs on AWS Lambda functions which can be seen in the `back` folder.  To encourage the development of re-usable, standardized and optimized lambda functions, JAWS keeps all of your app's lambda functions in the **[AWS-Module](https://github.com/awsm-org/awsm) (awsm)** format.  This format was created for JAWS, and the JAWS CLI features commands to help you generate scaffolding for your aws_modules.
 
@@ -65,7 +65,10 @@ Every JAWS application can have multiple stages and multiple regions within each
 
 ![jaws framework deployment diagram](img/jaws_deployment_diagram.png)
 
-## Where do I go from here?
+## Documentation
+
+* **[Commands](docs/commands.md)**
+
 
 We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
 
