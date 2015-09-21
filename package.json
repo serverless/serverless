@@ -1,6 +1,6 @@
 {
   "name": "jaws-framework",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "preferGlobal": true,
   "description": "JAWS is the serverless framework powered by Amazon Web Services.",
   "author": "Austen Collins <austen@servant.co>, Ryan Pendergast <ryan.pendergast@gmail.com>",
@@ -56,6 +56,7 @@
     "readdirp": "^1.4.0",
     "shelljs": "^0.5.3",
     "shortid": "^2.2.2",
+    "shelljs": "^0.5.3",
     "temp": "^0.8.3",
     "uglify-js": "^2.4.24",
     "wrench": "^1.5.8"
