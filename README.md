@@ -76,7 +76,8 @@ Every JAWS application can have multiple stages and multiple regions within each
 
 ## Documentation
 
-* **[Commands](docs/commands.md)**
+* **[All Commands](docs/commands.md)**
+* **[Project Structure](docs/project_structure.md)**
 
 
 We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
