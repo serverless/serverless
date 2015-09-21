@@ -17,7 +17,7 @@ Every JAWS application can have multiple stages and multiple regions within each
 *  Save copies of your updated `lambdas-cf.json` to your local project and your project's S3 bucket in the correct stage/region.
 *  Perform a Cloudformation stack update to create/update/delete your modified lambdas.
 
-## Endpoint/API Gateway Deployment Process:
+## Api Gateway/Endpoint Deployment Process:
 
 Needs documentation...
 
