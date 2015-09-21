@@ -7,7 +7,6 @@ var JawsError = require('../lib/jaws-error'),
     program = require('commander'),
     utils = require('../lib/utils'),
     Promise = require('bluebird'),
-    minimist = require('minimist'),
     execute = utils.execute;
 
 Promise.onPossiblyUnhandledRejection(function(error) {
@@ -22,50 +21,69 @@ program
 
 /**
  * New
- * - Create a new project|stage|region|action
+ * - Create a new project|stage|region
  */
-
 program
-    .command('new <type>')
-    .allowUnknownOption()
-    .description('Make a new "project", "stage", "region", or "module <module_name> <action>"')
-    .action(function() {
+    .command('new <cmd> [params]')
+    .description('new project, stage and region commands\n\nValid <cmd>\'s:' +
+        '\n\nproject: create new JAWS project in CWD.' +
+        '\n\t Ex: jaws new project' +
+        '\n\nstage: create new stage in existing region' +
+        '\n\t Ex: jaws new stage dev' +
+        '\n\nregion: create new region for given stage' +
+        '\n\t Ex: jaws new region dev'
+    )
+    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it.')
+    .option('-r, --region <name>', 'name of aws region to use')
+    .option('-b, --s3-bucket <name>', 'project & region only: JAWS S3 bucket name.  Will be created if DNE in "project" cmd. Must exist for "region" cmd.')
+    .option('-n, --proj-name <name>', 'project only: name for new project')
+    .option('-s, --stage <name>', 'project only: same of stage for new project')
+    .option('-e, --email <email>', 'project only: notification email to use in CloudFormation')
+    .option('-p, --aws-profile <profileName>', 'project only: Admin AWS profile as defined in ~/.aws/credentials to use')
+    .action(function(cmd, params, options) {
 
-      // Parse Args
-      var args = minimist(process.argv.slice(3));
-      var type = args._[0] ? args._[0].toLowerCase() : null;
-
-      if (type == 'project') {
-        // New Project
+      if (cmd == 'project') {
         var CmdNewProject = require('../lib/commands/new_project');
         execute(CmdNewProject.run(
-            args.name,
-            args.stage ? args.stage.toLowerCase() : null,
-            args.s3Bucket,
-            args.region,
-            args.email,
-            args.profile,
-            args.noExeCf
+            options.projName,
+            options.stage ? options.stage.toLowerCase() : null,
+            options.s3Bucket,
+            options.region,
+            options.email,
+            options.awsProfile,
+            options.dontExeCf
         ));
 
-      } else if (type == 'region' || type == 'stage') {
+      } else if (cmd == 'region' || cmd == 'stage') {
+        var theParams = process.argv.slice(3);
 
-        // New Region/Stage
-        var CmdNewStageRegion = require('../lib/commands/new_stage_region');
+        if (!theParams) {
+          throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
+        }
+
+        if (theParams[0][0] == '-') { //TODO: how do we get around this commander shortcoming?
+          throw new JawsError('Specify options after cmd', JawsError.errorCodes.UNKNOWN);
+        }
+
+        //TODO: iterate thru cmds to see how many are before -
+        if (theParams.length < 2) {
+          throw new JawsError('must specify stage name', JawsError.errorCodes.UNKNOWN);
+        }
+
+        var CmdNewStageRegion = require('../lib/commands/new_stage_region'),
+            stageName = theParams[1];
+
         execute(CmdNewStageRegion.run(
             JAWS,
-            type,
-            args.stage,
-            args.region,
-            args.noExeCf
+            cmd,
+            stageName,
+            options.region,
+            options.s3Bucket,
+            options.dontExeCf
         ));
-
       } else {
-
-        // Unknown Type
-        console.error('Unsupported type ' + type + '. Must be project|region|stage|module');
+        console.error('Unsupported cmd ' + cmd + '. Must be project|stage|region');
         process.exit(1);
-
       }
     });
 
@@ -77,10 +95,10 @@ program
 
 program
     .command('module <cmd> [params]')
-    .description('aws-module commands\n\nValid <cmd>' +
-        '\'s:\n\ninstall: install aws-module.' +
+    .description('aws-module commands\n\nValid <cmd>\'s:' +
+        '\n\ninstall: install aws-module.' +
         '\n\t Ex: jaws module install <url>' +
-        '\n\tupdate: update aws-module' +
+        '\n\nupdate: update aws-module' +
         '\n\t Ex: jaws module update <url>' +
         '\n\ncreate: create aws-module action. Module will be created if DNE. create <module resource> <action>' +
         '\n\t Ex: jaws module create users list'
@@ -89,15 +107,19 @@ program
     .option('-d, --dont-install-dependencies', 'Install&Update Only: DONT install awsm\'s depdencies automatically')
     .option('-l, --lambda', 'Create Only: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', 'Create Only: create API Gateway endpoint. Default is create lambda and endpoint.')
-    .option('-r, --runtime', 'Create Only: lambda runtime. Default nodejs')
+    .option('-r, --runtime <name>', 'Create Only: lambda runtime. Default nodejs')
     .action(function(cmd, params, options) {
       var theParams = process.argv.slice(3);
       if (!theParams) {
         throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
       }
+      if (theParams[0][0] == '-') { //TODO: how do we get around this commander shortcoming?
+        throw new JawsError('Specify options after cmd', JawsError.errorCodes.UNKNOWN);
+      }
 
       if (cmd == 'install' || cmd == 'update') {
-        if (theParams.length !== 2) {
+        //TODO: iterate thru cmds to see how many are before -
+        if (theParams.length < 2) {
           throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
         }
         var url = theParams[1],
@@ -105,7 +127,7 @@ program
 
         execute(theCmd[cmd](JAWS, url, options.save, options.dontInstallDependencies));
       } else if (cmd == 'create') {
-        if (theParams.length !== 3) {
+        if (theParams.length < 3) {
           throw new JawsError('Please specify awsm resource and action name');
         }
 
