@@ -1,4 +1,4 @@
-# JAWS CLI Commands
+# JAWS: CLI Commands
 
 ### New Commands
 

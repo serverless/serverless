@@ -23,3 +23,15 @@ The following attributes should exist in either a project or lambda `jaws.json` 
 * **description**: project/module or lambda desc.
 * **stages**: map of all your stages, and regions those stages are in as well as IAM roles
 * **jawsBuckets**: map of region to bucket name for JAWS S3 bucket in the region
+
+## admin.env
+
+This file tells the JAWS tooling what profile from the
+[shared credentials](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html#Credentials_from_the_Shared_Credentials_File_____aws_credentials_)
+file (`~/.aws/credentials`) is loaded when doing administrative tasks that interact with AWS.
+
+Here is an example
+
+```
+ADMIN_AWS_PROFILE=default
+```
