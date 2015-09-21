@@ -65,3 +65,8 @@ During the week of 9/21 we will be finishing up our [docs](./docs/), [wiki](http
 * **[AWSM: AWS-Modules](docs/aws_modules.md)**
 
 Once you become familiar with JAWS, you can read about [JAWS AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm) to start contributing awsm's to the community.
+
+## Events
+
+* **9/24 - San Francisco, CA** @ the [Advanced AWS Meetup](http://www.meetup.com/AdvancedAWS/)
+* **10/7 - Las Vegas, NV** A Breakout Session @ the [AWS Re:invent Conference](https://www.portal.reinvent.awsevents.com/connect/search.ww#loadSearch-searchPhrase=jaws&searchType=session&tc=0&sortBy=abbreviationSort&p=)
