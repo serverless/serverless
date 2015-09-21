@@ -23,15 +23,13 @@ JAWS is an open-source framework for building serverless applications (web, mobi
 
 ## Quick Start
 
-The guide below gets you started quickly.  Later, check out the [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) guide in our  [wiki](https://github.com/jaws-framework/JAWS/wiki) for tips on security and more.
-
 *  **[Setup an AWS account and create an administrative user](https://github.com/jaws-framework/JAWS/wiki/v1:-AWS-Account-setup)**
 
 *  ```$ npm install jaws-framework -g```
 
 *  ```$ jaws new project```
 
- **Note:** we recommend camelCase for project names. [Why?](https://github.com/jaws-framework/JAWS/wiki/Best-practices#project-names)
+ **Note:** We recommend camelCase for project names. [Why?](https://github.com/jaws-framework/JAWS/wiki/Best-practices#project-names)
 
 *  ```$ cd <new-project-name>```
 
