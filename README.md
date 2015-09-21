@@ -5,7 +5,7 @@ JAWS V1 (BETA)
 
 **Status 9/21:** We've just released JAWS V1 BETA.  Please test, submit bug fixes and let us know what you think!  We'll be working through the week to improve our documentation and fix bugs.  Check out our Road Map below to see what's next.
 
-JAWS is an open-source framework for building serverless applications (web, mobile, IoT) using Amazon Web Services' Lambda, API Gateway, and more.  Lambda's event-driven model offers tremendous cost savings and colossal horizontal scaling ability.  Now, JAWS helps you build and maintain entire applications built on Lambda.
+JAWS is a free, open-source framework for building serverless applications (web, mobile, IoT) using Amazon Web Services' Lambda, API Gateway, and more.  Lambda's event-driven model offers tremendous cost savings and colossal horizontal scaling ability.  Now, JAWS helps you build and maintain entire event-driven/serverless applications using only lambda.
 
 <a class="frame" href="https://gitter.im/jaws-framework/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge" target="_blank"><img src="img/jaws_gitter_chatroom.png" align="left" width="300"></a>
 
