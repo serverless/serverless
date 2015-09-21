@@ -4,23 +4,21 @@
 
 Create a project, a project region or a project stage using the `new` commands.
 
-##### `$ jaws new project`
+* ##### `$ jaws new project`
+  * Makes a new JAWS project by generating scaffolding in the current working directory.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
+    * Walks the user through the following prompts asking for their AWS credentials/profile and their project specifications
+    * Creates a CloudFormation Stack for the user’s first stage, which creates an IAM Group and a staged IAM Role for that IAM Group
+    * Creates all project scaffolding in current working directory
+    * Creates an AWS API Gateway REST API for the project
+    * Creates environment var file in the s3 bucket (created if DNE) for the initial stage. [Why S3?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
 
-Makes a new JAWS project by generating scaffolding in the current working directory.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
+* ##### `$ jaws new region`
 
-1.  Walks the user through the following prompts asking for their AWS credentials/profile and their project specifications
-1.  Creates a CloudFormation Stack for the user’s first stage, which creates an IAM Group and a staged IAM Role for that IAM Group
-1.  Creates all project scaffolding in current working directory
-1.  Creates an AWS API Gateway REST API for the project
-1.  Creates environment var file in the s3 bucket (created if DNE) for the initial stage. [Why s3?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
+  * Creates new region in existing project.  By default executes CloudFormation to make one stage in new region.
 
-##### `$ jaws new region`
+* ##### `$ jaws new stage`
 
-Creates new region in existing project.  By default executes CloudFormation to make one stage in new region.
-
-##### `$ jaws new stage`
-
-Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
+  * Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
 ### JAWS Module Commands
 
