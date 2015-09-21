@@ -41,6 +41,7 @@ Create a project, a project region or a project stage using the `new` commands.
 Deploy your lambdas and endpoints using the JAWS dashboard.
 
 * ##### `$ jaws dash`
+
  * Interactive dashboard used to get an overview of your project and deploy resources
 
 ### ENV Commands
