@@ -39,7 +39,7 @@ As you may see in the diagram, JAWS relies heavily on AWS Cloudformation to keep
 
 JAWS applications' back-end runs on AWS Lambda functions which can be seen in the `back` folder.  To encourage the development of re-usable, standardized and optimized lambda functions, JAWS keeps all of your app's lambda functions in the **AWS-Module** format.  This format was created exclusively for JAWS, and the JAWS CLI features a lot of commands to help you generate scaffolding for your aws_modules.
 
-Possibly the best feature of aws_modules is that they help developers publish and share their lambda functions and encourage a module ecosystem.  Hopefully, in the future, you will be able to select from a large variety of pre-written lambda functions, designed by the JAWS community for re-use, optimization, easy installation and deployment!
+Possibly the best feature of aws_modules is they make iet easy for developers to publish and share their lambda functions and encourage a module ecosystem.  Hopefully, in the near future, when you are building your serverless app, you will be able to select from a large variety of pre-written lambda functions, that were designed by the JAWS community for re-use, optimization, easy installation and deployment!
 
 
 
