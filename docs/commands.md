@@ -68,13 +68,15 @@ Modeled after Heroku's environment variable commands, these commands manage envi
 
 Non-interactive way (dash alternative) to indicate which (or all) labmda|endpoint changes to deploy when the `jaws deploy` command is run.
 
-* #### `$ jaws tag <type>`
+* ##### `$ jaws tag <type>`
 
  * Takes `lambda | endpoint` as type
  * Tags current workign directory for deployment.
 
-### jaws deploy
+### Deploy Commands
 
 Non-interactive way (dash alternative) to deploy lambda|endpoint resources that have been `jaws tag`.  If `jaws deploy` is run from a lambda dir (has `lambda` attr defined in its `jaws.json`) it will automatically tag and then deploy.
+
+* ##### `$ jaws deploy`
 
 
