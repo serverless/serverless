@@ -79,4 +79,8 @@ Non-interactive way (dash alternative) to deploy lambda|endpoint resources that 
 
 * ##### `$ jaws deploy`
 
+ * Deploys tagged resources 
+
+
+
 
