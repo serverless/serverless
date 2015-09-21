@@ -59,8 +59,7 @@ JAWS applications' back-end runs on AWS Lambda functions which can be seen in th
 
 Possibly the best feature of aws_modules is they make it easy for developers to publish and share their lambda functions and encourage a module ecosystem.  Hopefully, in the near future, when you are building your serverless app, you will be able to select from a large variety of pre-written lambda functions, designed by the JAWS community for re-use, optimization, easy installation and deployment!
 
-<a href="https://github.com/awsm-org/awsm" target="_blank"><img src="img/jaws_and_awsm.png" align="left" width="300" alt="awsm aws-module jaws"></a>
-
+<a href="https://github.com/awsm-org/awsm" target="_blank"><img src="img/jaws_and_awsm.png" align="center" width="400" alt="awsm aws-module jaws"></a>
 
 
 
