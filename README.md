@@ -56,6 +56,7 @@ In JAWS V1, we made a strong effort to make not just a groundbreaking serverless
 * **[Commands List](docs/commands.md)**
 * **[Project Structure](docs/project_structure.md)**
 * **[Deployment](docs/deployment.md)**
+* **[AWS-Modules (AWSM)](docs/aws_modules.md)**
 
 
 We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
