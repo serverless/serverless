@@ -5,6 +5,8 @@ JAWS V1 (BETA)
 
 JAWS is an open-source framework for building serverless applications (web, mobile, IoT) using Amazon Web Services' Lambda, API Gateway, and more.  Lambda's event-driven model offers tremendous cost savings and colossal horizontal scaling ability.  Now, JAWS helps you build and maintain entire applications built on Lambda.
 
+**Status 9/21:** We've just release JAWS V1 BETA.  Please test, submit bug fixes and let us know what you think.  We'll be working through the week to improve our documentation and fix bugs.  Check out our Road Map below to see what we're working on next.
+
 <a class="frame" href="https://gitter.im/jaws-framework/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge" target="_blank"><img src="img/jaws_gitter_chatroom.png" align="left" width="300"></a>
 
 <br/><br/>
@@ -51,7 +53,7 @@ A JAWS app can be simply a group of lambda functions to accomplish some tasks, o
 
 ![jaws framework structural diagram](img/jaws_files_diagram.png)
 
-Web, mobile and IoT applications can be built on JAWS, since JAWS is mostly a back-end focused framework.  JAWS comes with a `front` folder, but doesn't do much with it (yet). 
+Web, mobile and IoT applications can be built on JAWS, since JAWS is mostly a back-end focused framework.  JAWS comes with a `front` folder, but doesn't do much with it (yet).
 
 JAWS applications' back-end runs on AWS Lambda functions which can be seen in the `back` folder.  To encourage the development of re-usable, standardized and optimized lambda functions, JAWS keeps all of your app's lambda functions in the **[AWS-Module](https://github.com/awsm-org/awsm) (awsm)** format.  This format was created for JAWS, and the JAWS CLI features commands to help you generate scaffolding for your aws_modules.
 
@@ -65,7 +67,10 @@ Every JAWS application can have multiple stages and multiple regions within each
 
 ![jaws framework deployment diagram](img/jaws_deployment_diagram.png)
 
-## Where do I go from here?
+## Documentation
+
+* **[Commands](docs/commands.md)**
+
 
 We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
 
