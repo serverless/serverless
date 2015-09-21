@@ -4,7 +4,7 @@
 
 Create a project, a project region or a project stage using the `new` commands.
 
-#### `jaws new project`
+##### `$ jaws new project`
 
 Makes a new JAWS project by generating scaffolding in the current working directory.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
 
@@ -14,34 +14,34 @@ Makes a new JAWS project by generating scaffolding in the current working direct
 1.  Creates an AWS API Gateway REST API for the project
 1.  Creates environment var file in the s3 bucket (created if DNE) for the initial stage. [Why s3?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
 
-#### `jaws new region`
+##### `$ jaws new region`
 
 Creates new region in existing project.  By default executes CloudFormation to make one stage in new region.
 
-#### `jaws new stage`
+##### `$ jaws new stage`
 
 Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
 ### JAWS Module Commands
 
-#### `jaws module create`
+##### `$ jaws module create`
 
 Creates one or both of the following in the `back/aws_modules` folder. Default is to create both:
 
 * A lambda function in the `back/aws_modules` folder with basic scaffolding.
 * An API gateway configuration
 
-#### `jaws module install`
+##### `$ jaws module install`
 
 Download and installs an awsm from github to the `back/aws_modules` dir.  By default installs module dependencies (if any)
 
-#### `jaws module update`
+##### `$ jaws module update`
 
 Updates an existing awsm in the `back/aws_modules` dir. By default installs module dependencies (if any)
 
 ### JAWS Dash
 
-#### `jaws dash`
+##### `$ jaws dash`
 
 Interactive dashboard used to get an overview of your project and deploy resources
 
@@ -49,19 +49,19 @@ Interactive dashboard used to get an overview of your project and deploy resourc
 
 Modeled after Heroku's environment variable commands, these commands manage environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<projjaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
 
-#### `jaws env list`
+##### `$ jaws env list`
 
 List all env vars for given stage. Will display env vars that each jaws-module uses and indicate env vars that are not yet set.
 
-#### `jaws env get`
+##### `$ jaws env get`
 
 Get the value for a specific key.
 
-#### `jaws env set`
+##### `$ jaws env set`
 
 Set the value for a specific key.
 
-#### `jaws env unset`
+##### `$ jaws env unset`
 
 Unset the value for a specific key.
 
