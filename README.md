@@ -70,14 +70,11 @@ Possibly the best feature of aws_modules is they make it easy for developers to 
 <a href="https://github.com/awsm-org/awsm" target="_blank"><img src="img/jaws_and_awsm.png" align="center" width="400" alt="awsm aws-module jaws"></a>
 </p>
 
-Every JAWS application can have multiple stages and multiple regions within each stage.  JAWS relies heavily on AWS Cloudformation to keep track of all of the AWS resources your application requires in each stage/region.  This way, you can easily provision/replicate your AWS resources at once, and roll back to previous deployments, for every stage/region your application uses.
-
-![jaws framework deployment diagram](img/jaws_deployment_diagram.png)
-
 ## Documentation
 
-* **[All Commands](docs/commands.md)**
+* **[Commands List](docs/commands.md)**
 * **[Project Structure](docs/project_structure.md)**
+* **[Deployment](docs/deployment.md)**
 
 
 We're currently working on our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
