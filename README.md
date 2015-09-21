@@ -25,6 +25,8 @@ JAWS is an open-source framework for building serverless applications (web, mobi
 
 ![anatomy of a jaws deployment on aws](img/jaws_deployment_diagram.png)
 
+![anatomy of a jaws deployment on aws](img/jaws_files_diagram.png)
+
 
 ## Quick Start
 
