@@ -56,6 +56,7 @@ describe('Test deploy endpoint command', function() {
             done(e);
           })
           .error(function(e) {
+            console.log(e);
             done(e);
           });
     });

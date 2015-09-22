@@ -26,7 +26,7 @@ describe('AllTests', function() {
    */
    //require('./cli/dash');
    //require('./cli/deploy_lambda');
-   //require('./cli/deploy_endpoint');
-   require('./cli/new_stage_region');
+   require('./cli/deploy_endpoint');
+   //require('./cli/new_stage_region');
    //require('./cli/new_project');
 });
