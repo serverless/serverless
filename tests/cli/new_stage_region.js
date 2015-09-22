@@ -73,7 +73,7 @@ describe('Test "new stage/region" command', function() {
     it('Create New region', function(done) {
       this.timeout(0);
 
-      CmdNewStageRegion.run(JAWS, 'region', tempStage, tempRegion2, false)
+      CmdNewStageRegion.run(JAWS, 'region', tempStage, tempRegion2, config.regionBucket, false)
           .then(function() {
             var jawsJson = require(path.join(process.cwd(), '../jaws.json'));
             var region = false;
