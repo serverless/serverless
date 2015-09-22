@@ -19,6 +19,7 @@ describe('AllTests', function() {
   //require('./cli/module_install');
   //require('./cli/env');
   //require('./cli/module_create');
+  require('./cli/run');
 
   /**
    * Tests below create AWS Resources
@@ -26,6 +27,6 @@ describe('AllTests', function() {
   //require('./cli/dash');
   //require('./cli/deploy_lambda');
   //require('./cli/deploy_endpoint');
-  require('./cli/new_stage_region');
+  //require('./cli/new_stage_region');
   //require('./cli/new_project');
 });

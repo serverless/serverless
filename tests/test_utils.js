@@ -44,7 +44,6 @@ module.exports.createTestProject = function(projectName,
   });
 
   // Create Cloudformation folders for stage/region and copy CF templates
-  fs.mkdirSync(path.join(tmpProjectPath, 'cloudformation'));
   fs.mkdirSync(path.join(tmpProjectPath, 'cloudformation', projectStage));
   fs.mkdirSync(path.join(tmpProjectPath, 'cloudformation', projectStage, projectRegion));
   var lambdasCF = require('../lib/templates/lambdas-cf.json');
