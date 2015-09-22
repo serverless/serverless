@@ -35,11 +35,11 @@ program
     )
     .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it.')
     .option('-r, --region <name>', 'name of aws region to use')
-    .option('-b, --s3-bucket <name>', 'project & region only: JAWS S3 bucket name.  Will be created if DNE in "project" cmd. Must exist for "region" cmd.')
-    .option('-n, --proj-name <name>', 'project only: name for new project')
-    .option('-s, --stage <name>', 'project only: same of stage for new project')
-    .option('-e, --email <email>', 'project only: notification email to use in CloudFormation')
-    .option('-p, --aws-profile <profileName>', 'project only: Admin AWS profile as defined in ~/.aws/credentials to use')
+    .option('-b, --s3-bucket <name>', '[project,region] only: JAWS S3 bucket name.  Will be created if DNE in "project" cmd. Must exist for "region" cmd.')
+    .option('-n, --proj-name <name>', '[project] only: name for new project')
+    .option('-s, --stage <name>', '[project] only: same of stage for new project')
+    .option('-e, --email <email>', '[project] only: notification email to use in CloudFormation')
+    .option('-p, --aws-profile <profileName>', '[project] only: Admin AWS profile as defined in ~/.aws/credentials to use')
     .action(function(cmd, params, options) {
 
       if (cmd == 'project') {
@@ -103,11 +103,11 @@ program
         '\n\ncreate: create aws-module action. Module will be created if DNE. create <module resource> <action>' +
         '\n\t Ex: jaws module create users list'
     )
-    .option('-s, --save', 'Install&Update Only: Save awsm\'s CloudFormation to your project')
-    .option('-d, --dont-install-dependencies', 'Install&Update Only: DONT install awsm\'s depdencies automatically')
-    .option('-l, --lambda', 'Create Only: create lambda. Default is create lambda and endpoint.')
-    .option('-e, --endpoint', 'Create Only: create API Gateway endpoint. Default is create lambda and endpoint.')
-    .option('-r, --runtime <name>', 'Create Only: lambda runtime. Default nodejs')
+    .option('-s, --save', '[install,update]: Save awsm\'s CloudFormation to your project')
+    .option('-d, --dont-install-dependencies', '[install,update]: DONT install awsm\'s depdencies automatically')
+    .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
+    .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
+    .option('-r, --runtime <name>', '[create]: lambda runtime. Default nodejs')
     .action(function(cmd, params, options) {
       var theParams = process.argv.slice(3);
       if (!theParams) {
