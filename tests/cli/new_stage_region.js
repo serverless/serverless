@@ -18,7 +18,7 @@ var config = require('../config'),
     JAWS;
 
 var tempStage = 'temp-' + shortid.generate();
-var tempRegion1 = 'us-west-1';
+var tempRegion1 = 'us-east-1';
 var tempRegion2 = 'eu-west-1';
 
 describe('Test "new stage/region" command', function() {
@@ -32,11 +32,11 @@ describe('Test "new stage/region" command', function() {
       // Create Test Project
       projPath = testUtils.createTestProject(
           config.name,
-          config.regionBucket,
+          config.region,
           config.stage,
           config.iamRoleArnLambda,
           config.iamRoleArnApiGateway,
-          config.envBucket);
+          config.regionBucket);
       process.chdir(path.join(projPath, 'back'));
 
       // Instantiate JAWS
@@ -55,6 +55,7 @@ describe('Test "new stage/region" command', function() {
             var region = false;
             for (var i = 0; i < jawsJson.stages[tempStage].length; i++) {
               var stage = jawsJson.stages[tempStage][i];
+              console.log(jawsJson.stages[tempStage][i]);
               if (stage.region === tempRegion1) {
                 region = stage.region;
               }
