@@ -25,6 +25,10 @@ JAWS is a 100% free and open-source framework for building serverless applicatio
 
 <a href="http://teespring.com/jaws_og" target="_blank"><img src="img/jaws_shirts.png" align="left" width="300"></a>
 
+<br/><br/>
+
+<a href="http://stackoverflow.com/questions/tagged/jaws" target="_blank"><img src="img/jaws_stackoverflow_tag.png" align="left" width="300"></a>
+
 <br/><br/><br/>
 
 ## Quick Start
