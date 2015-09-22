@@ -11,6 +11,7 @@ var Jaws = require('../../lib/index.js'),
     theCmd = require('../../lib/commands/new_project'),
     path = require('path'),
     os = require('os'),
+    utils = require('../../lib/utils'),
     assert = require('chai').assert,
     shortid = require('shortid');
 
@@ -34,14 +35,15 @@ describe('Test new command', function() {
       this.timeout(0);
 
       theCmd.run(
-          config.newName,
-          config.stage,
-          config.regionBucket,
-          config.notifyEmail,
-          config.region,
-          config.profile)
+              config.newName,
+              config.stage,
+              config.usEast1Bucket,
+              config.region,
+              config.notifyEmail,
+              config.profile,
+              config.noExecuteCf)
           .then(function() {
-            var jawsJson = require(path.join(os.tmpdir(), config.newName, 'jaws.json'));
+            var jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), config.newName, 'jaws.json'));
             var region = false;
 
             for (var i = 0; i < jawsJson.stages[config.stage].length; i++) {

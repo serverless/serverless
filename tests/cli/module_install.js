@@ -17,16 +17,20 @@ var config = require('../config'),
 
 describe('Test "install" command', function() {
 
-  before(function() {
-    projPath = testUtils.createTestProject(
-        config.name,
-        config.region,
-        config.stage,
-        config.iamRoleArnLambda,
-        config.iamRoleArnApiGateway,
-        config.regionBucket);
-    process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
-    JAWS = new Jaws();
+  before(function(done) {
+    testUtils.createTestProject(
+            config.name,
+            config.region,
+            config.stage,
+            config.iamRoleArnLambda,
+            config.iamRoleArnApiGateway,
+            config.usEast1Bucket)
+        .then(function(pp) {
+          projPath = pp;
+          process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
+          JAWS = new Jaws();
+          done();
+        });
   });
 
   after(function(done) {

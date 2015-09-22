@@ -20,22 +20,24 @@ var config = require('../config'),
 describe('Test "tag" command', function() {
 
   before(function(done) {
-    projPath = testUtils.createTestProject(
-        config.name,
-        config.regionBucket,
-        config.stage,
-        config.iamRoleArnLambda,
-        config.iamRoleArnApiGateway,
-        config.envBucket);
+    testUtils.createTestProject(
+            config.name,
+            config.usEast1Bucket,
+            config.stage,
+            config.iamRoleArnLambda,
+            config.iamRoleArnApiGateway,
+            config.envBucket)
+        .then(function(pp) {
+          projPath = pp;
+          process.chdir(projPath);
+          JAWS = new Jaws();
 
-    process.chdir(projPath);
-    JAWS = new Jaws();
-
-    // Get Lambda Paths
-    modulePaths.lambda1 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'show', 'awsm.json');
-    modulePaths.lambda2 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'create', 'awsm.json');
-    modulePaths.lambda3 = path.join(projPath, 'back', 'aws_modules', 'users', 'create', 'awsm.json');
-    done();
+          // Get Lambda Paths
+          modulePaths.lambda1 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'show', 'awsm.json');
+          modulePaths.lambda2 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'create', 'awsm.json');
+          modulePaths.lambda3 = path.join(projPath, 'back', 'aws_modules', 'users', 'create', 'awsm.json');
+          done();
+        });
   });
 
   after(function(done) {

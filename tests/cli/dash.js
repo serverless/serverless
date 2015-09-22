@@ -23,24 +23,21 @@ describe('Test "dash" command', function() {
     this.timeout(0);
 
     // Tag All Lambdas & Endpoints
-    return Promise.try(function() {
-
-      // Create Test Project
-      projPath = testUtils.createTestProject(
-          config.name,
-          config.region,
-          config.stage,
-          config.iamRoleArnLambda,
-          config.iamRoleArnApiGateway,
-          config.regionBucket,
-          ['back/aws_modules/jaws-core-js',
-            'back/aws_modules/bundle/browserify',
-            'back/aws_modules/bundle/nonoptimized']);
-      process.chdir(path.join(projPath, 'back'));
-
-      // Instantiate JAWS
-      JAWS = new Jaws();
-    })
+    testUtils.createTestProject(
+            config.name,
+            config.region,
+            config.stage,
+            config.iamRoleArnLambda,
+            config.iamRoleArnApiGateway,
+            config.usEast1Bucket,
+            ['back/aws_modules/jaws-core-js',
+              'back/aws_modules/bundle/browserify',
+              'back/aws_modules/bundle/nonoptimized'])
+        .then(function(pp) {
+          projPath = pp;
+          process.chdir(path.join(projPath, 'back'));
+          JAWS = new Jaws();
+        })
         .then(function() {
           return CMDtag.tagAll(JAWS, 'lambda');
         })

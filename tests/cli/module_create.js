@@ -20,23 +20,19 @@ describe('Test "new module" command', function() {
 
   before(function(done) {
     this.timeout(0);
-
-    // Tag All Lambdas & Endpoints
-    return Promise.try(function() {
-
-      // Create Test Project
-      projPath = testUtils.createTestProject(
-          config.name,
-          config.region,
-          config.stage,
-          config.iamRoleArnLambda,
-          config.iamRoleArnApiGateway,
-          config.regionBucket);
-      process.chdir(path.join(projPath, 'back'));
-
-      // Instantiate JAWS
-      JAWS = new Jaws();
-    }).then(done);
+    testUtils.createTestProject(
+            config.name,
+            config.region,
+            config.stage,
+            config.iamRoleArnLambda,
+            config.iamRoleArnApiGateway,
+            config.usEast1Bucket)
+        .then(function(pp) {
+          projPath = pp;
+          process.chdir(path.join(projPath, 'back'));
+          JAWS = new Jaws();
+          done();
+        });
   });
 
   describe('Positive tests', function() {
