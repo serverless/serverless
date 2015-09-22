@@ -43,6 +43,15 @@ module.exports.createTestProject = function(projectName,
     forceDelete: true,
   });
 
+  // Create Cloudformation folders for stage/region and copy CF templates
+  fs.mkdirSync(path.join(tmpProjectPath, 'cloudformation', projectStage));
+  fs.mkdirSync(path.join(tmpProjectPath, 'cloudformation', projectStage, projectRegion));
+  var lambdasCF = require('../lib/templates/lambdas-cf.json');
+  if (lambdasCF.Resources.lTemplate) delete lambdasCF.Resources.lTemplate;
+  var resourcesCF = require('../lib/templates/resources-cf.json');
+  fs.writeFileSync(path.join(tmpProjectPath, 'cloudformation', projectStage, projectRegion, 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2));
+  fs.writeFileSync(path.join(tmpProjectPath, 'cloudformation', projectStage, projectRegion, 'resources-cf.json'), JSON.stringify(resourcesCF, null, 2));
+
   // Add jaws.json project data
   var projectJSON = require(path.join(tmpProjectPath, 'jaws.json'));
   projectJSON.name = projectName;

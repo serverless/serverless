@@ -36,7 +36,7 @@ describe('Test "env" command', function() {
     it('Test env command', function(done) {
       this.timeout(0);
 
-      CmdEnv.listEnv(JAWS, config.stage)
+      CmdEnv.listEnv(JAWS, config.stage, config.region)
           .then(function(d) {
             done();
           })

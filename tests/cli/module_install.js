@@ -39,6 +39,15 @@ describe('Test "install" command', function() {
 
       CmdModule.install(JAWS, 'https://github.com/jaws-framework/jaws-core-js', true)
           .then(function() {
+
+            // Run asserts on this when we have more aws-modules to test against
+            var resourcesCF = require(path.join(
+                projPath,
+                'cloudformation',
+                config.stage,
+                config.region,
+                'resources-cf.json'));
+
             done();
           })
           .catch(JawsError, function(e) {

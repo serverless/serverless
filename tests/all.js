@@ -15,9 +15,9 @@ describe('AllTests', function() {
   });
 
   //require tests vs inline so we can run sequentially
-  //require('./cli/tag');
+  require('./cli/tag');
   require('./cli/module_install');
-  //require('./cli/env');
+  require('./cli/env');
   //require('./cli/module_create');
 
   /**
