@@ -32,9 +32,9 @@ describe('Test deploy endpoint command', function() {
       JAWS = new Jaws();
 
       // Get Lambda Paths
-      lambdaPaths.lambda1 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'show', 'jaws.json');
-      lambdaPaths.lambda2 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'create', 'jaws.json');
-      lambdaPaths.lambda3 = path.join(projPath, 'back', 'aws_modules', 'users', 'create', 'jaws.json');
+      lambdaPaths.lambda1 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'show', 'awsm.json');
+      lambdaPaths.lambda2 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'create', 'awsm.json');
+      lambdaPaths.lambda3 = path.join(projPath, 'back', 'aws_modules', 'users', 'create', 'awsm.json');
     })
         .then(function() {
           CmdTag.tagAll(JAWS, 'endpoint', false);
@@ -59,7 +59,7 @@ describe('Test deploy endpoint command', function() {
           });
     });
 
-    it('Check jaws.json files were untagged', function(done) {
+    it('Check awsm.json files were untagged', function(done) {
       assert.equal(false, require(lambdaPaths.lambda1).apiGateway.deploy);
       assert.equal(false, require(lambdaPaths.lambda2).apiGateway.deploy);
       assert.equal(false, require(lambdaPaths.lambda3).apiGateway.deploy);

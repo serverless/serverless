@@ -28,7 +28,9 @@ describe('Test "deploy lambda" command', function() {
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
         config.regionBucket,
-        ['back/aws_modules/bundle']);
+        ['back/aws_modules/jaws-core-js',
+          'back/aws_modules/bundle',
+        ]);
 
     process.chdir(projPath);
     JAWS = new Jaws();
