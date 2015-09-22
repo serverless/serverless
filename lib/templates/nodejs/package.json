@@ -12,7 +12,5 @@
   ],
   "devDependencies": {
   },
-  "dependencies": {
-    "dotenv": "^1.2.0"
-  }
+  "dependencies": {}
 }
