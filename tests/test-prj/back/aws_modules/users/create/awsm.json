@@ -47,7 +47,9 @@
       "Responses": {
         "default": {
           "statusCode": "200",
-          "responseParameters": {},
+          "responseParameters": {
+            "method.response.header.Access-Control-Allow-Origin": "'*'"
+          },
           "responseTemplates": {
             "application/json": ""
           }
