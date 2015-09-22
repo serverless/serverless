@@ -3,7 +3,7 @@
 //Testing how the top npm modules work with browserify
 //https://www.npmjs.com/browse/depended
 
-require('../../jaws-core/env');
+require('../../jaws-core-js/env');
 
 var action = require('./index.js');
 

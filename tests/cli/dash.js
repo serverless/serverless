@@ -33,7 +33,8 @@ describe('Test "dash" command', function() {
           config.iamRoleArnLambda,
           config.iamRoleArnApiGateway,
           config.regionBucket,
-          ['back/aws_modules/bundle/browserify',
+          ['back/aws_modules/jaws-core-js',
+            'back/aws_modules/bundle/browserify',
             'back/aws_modules/bundle/nonoptimized']);
       process.chdir(path.join(projPath, 'back'));
 
