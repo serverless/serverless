@@ -37,6 +37,7 @@
   "dependencies": {
     "async": "^0.9.0",
     "aws-sdk": "^2.1.24",
+    "babelify": "^6.3.0",
     "bluebird": "^2.9.34",
     "browserify": "^11.0.1",
     "chalk": "^1.1.0",
