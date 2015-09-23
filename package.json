@@ -54,9 +54,9 @@
     "node-zip": "^1.1.0",
     "prompt": "^0.2.14",
     "readdirp": "^1.4.0",
+    "rimraf": "^2.4.3",
     "shelljs": "^0.5.3",
     "shortid": "^2.2.2",
-    "shelljs": "^0.5.3",
     "temp": "^0.8.3",
     "uglify-js": "^2.4.24",
     "wrench": "^1.5.8"

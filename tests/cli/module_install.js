@@ -9,6 +9,8 @@ var Jaws = require('../../lib/index.js'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     path = require('path'),
+    fs = require('fs'),
+    rimraf = require('rimraf'),
     assert = require('chai').assert;
 
 var config = require('../config'),
@@ -28,6 +30,10 @@ describe('Test "install" command', function() {
         .then(function(pp) {
           projPath = pp;
           process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
+
+          // Delete jaws-core-js temporarily
+          rimraf.sync(path.join(projPath, 'back', 'aws_modules', 'jaws-core-js'));
+
           JAWS = new Jaws();
           done();
         });

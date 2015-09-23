@@ -15,11 +15,11 @@ describe('AllTests', function() {
   });
 
   //require tests vs inline so we can run sequentially
-  require('./cli/tag');
+  //require('./cli/tag');
   require('./cli/module_install');
-  require('./cli/env');
-  require('./cli/module_create');
-  require('./cli/run');
+  //require('./cli/env');
+  //require('./cli/module_create');
+  //require('./cli/run');
 
   /**
    * Tests below create AWS Resources
