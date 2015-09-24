@@ -20,7 +20,7 @@ var config = require('../config');
 describe('Test new command', function() {
 
   before(function(done) {
-    config.newName = 'jaws-test-' + shortid.generate();
+    config.newName = 'jaws-test-' + shortid.generate().replace('_','');
     process.chdir(os.tmpdir());
     done();
   });
