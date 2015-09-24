@@ -240,7 +240,7 @@ program
 program
     .command('env <cmd> <stage> <region> [key] [val]')
     .description('Manage env vars for stage & region. Valid cmds: list,get,set,unset. <region> can be "all". <stage> can be "local"')
-    .usage('get test us-east-1 USERNAME or set test all USERNAME blah.')
+    .usage('get test us-east-1 USERNAME -or- set test all USERNAME blah')
     .action(function(cmd, stage, region, key, val) {
       var CmdEnv = require('../lib/commands/env');
 
