@@ -10,6 +10,7 @@ process.env.JAWS_VERBOSE = true;
 
 var config = {
   name: 'test-prj',
+  domain: 'test.jawsapp.com',
   notifyEmail: 'tester@jawsstack.com',
   stage: 'unittest',
   region: process.env.TEST_JAWS_REGION || 'us-east-1',

@@ -5,15 +5,15 @@
     "aaProjectName": {
       "Type": "String"
     },
+    "aaProjectDomain": {
+      "Type": "String",
+      "Default": "myapp.com"
+    },
     "aaStage": {
       "Type": "String"
     },
     "aaDataModelPrefix": {
       "Type": "String"
-    },
-    "aaHostedZoneName": {
-      "Type": "String",
-      "Default": "myjawsproject.com"
     },
     "aaNotficationEmail": {
       "Type": "String",

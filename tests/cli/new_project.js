@@ -38,6 +38,7 @@ describe('Test new command', function() {
               config.newName,
               config.stage,
               config.usEast1Bucket,
+              config.domain,
               config.region,
               config.notifyEmail,
               config.profile,
