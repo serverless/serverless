@@ -225,6 +225,10 @@ program
           var theCmd = require('../lib/commands/deploy_lambda');
           execute(theCmd.run(JAWS, stage, region, allTagged, options.dontExeCf));
           break;
+        case 'resources':
+          var theCmd = require('../lib/commands/deploy_resources');
+          execute(theCmd.run(JAWS, stage, region));
+          break;
         default:
           console.error('Unsupported type ' + type + '. Must be endpoint|lambda|resources');
           process.exit(1);
