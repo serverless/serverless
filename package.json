@@ -43,6 +43,7 @@
     "chalk": "^1.1.0",
     "cli-spinner": "^0.2.1",
     "commander": "^2.5.0",
+    "debug": "^2.2.0",
     "dotenv": "^1.2.0",
     "download": "^4.2.0",
     "insert-module-globals": "^6.5.2",

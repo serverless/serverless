@@ -31,7 +31,7 @@ module.exports.createTestProject = function(projectName,
   // Create Test Project
   var tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
 
-  utils.logIfVerbose('Creating test proj in ' + tmpProjectPath + '\n');
+  utils.jawsDebug('test_utils', 'Creating test proj in ' + tmpProjectPath + '\n');
 
   if (fs.existsSync(tmpProjectPath)) {
     return Promise.reject(new JawsError('Temp dir ' + tmpProjectPath + ' already exists'));
@@ -72,7 +72,7 @@ module.exports.createTestProject = function(projectName,
         if (npmInstallDirs) {
           npmInstallDirs.forEach(function(dir) {
             var fullPath = path.join(tmpProjectPath, dir);
-            utils.logIfVerbose('Running NPM install on ' + fullPath);
+            utils.jawsDebug('test_utils', 'Running NPM install on ' + fullPath);
             utils.npmInstall(fullPath);
           });
         }
