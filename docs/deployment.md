@@ -8,6 +8,8 @@ Every JAWS application can have multiple stages and multiple regions within each
 
 ### Node.js
 
+![jaws framework deployment process diagram](../img/jaws_deployment_process.png)
+
 *  Check the Runtime specified in the current lambda’s jaws.json (dir running JAWS cli from).
 *  Perform a build pipeline corresponding to the lambda's runtime.  Optionally optimize the code for performance in Lambda (browserify & uglifyjs2).  See the [lambda attributes](https://github.com/awsm-org/awsm#lambda-configuration-options) for optimization options. [Why optimize?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-optimize-code-before-deployment)
 *  Create a temp/dist directory for your lambda and move your lambda files to it.
