@@ -7,6 +7,7 @@ var JawsError = require('../lib/jaws-error'),
     program = require('commander'),
     utils = require('../lib/utils'),
     Promise = require('bluebird'),
+    rawDebug = require('debug'),
     execute = utils.execute;
 
 Promise.onPossiblyUnhandledRejection(function(error) {
@@ -318,6 +319,6 @@ if (process.argv.length == 2) {
 } else {
   program.parse(process.argv);
   if (program.verbose) {
-    process.env.JAWS_VERBOSE = true;
+    rawDebug.enable('jaws:*');
   }
 }
