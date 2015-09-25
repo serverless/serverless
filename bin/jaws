@@ -243,8 +243,20 @@ program
 
 program
     .command('env <cmd> <stage> <region> [key] [val]')
-    .description('Manage env vars for stage & region. Valid cmds: list,get,set,unset. <region> can be "all". <stage> can be "local"')
-    .usage('get test us-east-1 USERNAME -or- set test all USERNAME blah')
+    .description('Manage env vars for stage & region. <region> can be "all" <stage> can be "local"' +
+        '\n\nValid <cmd>\'s:' +
+        '\n\nlist: vars for stage and region. jaws env list <stage> <region>' +
+        '\n\t Ex: jaws env list prod all' +
+
+        '\n\nget: var value for stage and region. jaws env get <stage> <region> <key>' +
+        '\n\t Ex: jaws env get prod all JAWS_STAGE' +
+
+        '\n\nset: var value for stage and region. jaws set env <stage> <region> <key> <val>' +
+        '\n\t Ex: jaws env set prod us-east-1 TABLE_NAME users' +
+
+        '\n\nunset: var value for stage and region. jaws env unset <stage> <region> <key>' +
+        '\n\t Ex: jaws unset prod us-east-1 TABLE_NAME'
+    )
     .action(function(cmd, stage, region, key, val) {
       var CmdEnv = require('../lib/commands/env');
 
