@@ -88,22 +88,13 @@ program
       }
     });
 
-/**
- * Run
- * - Run a lambda locally
- */
 program
-    .command('run <stage>')
-    .description('Run the lambda in Stage <stage>')
-    .action(function(stage, options) {
+    .command('run')
+    .description('Run the lambda in CWD locally')
+    .action(function() {
       var runner = require('../lib/commands/run');
-      execute(runner.run(JAWS, stage));
+      execute(runner.run(JAWS));
     });
-/**
- * module
- * - install awsm
- * - create awsm
- */
 
 program
     .command('module <cmd> [params]')
