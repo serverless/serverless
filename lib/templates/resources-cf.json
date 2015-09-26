@@ -9,7 +9,7 @@
       "Type": "String",
       "Default": "myapp.com"
     },
-    "aaProjectBucket": {
+    "aaJawsBucket": {
       "Type": "String",
       "Default": "myapp.com"
     },
@@ -213,12 +213,12 @@
         ]
       }
     },
-    "ProjectS3Bucket" : {
+    "JawsBucket" : {
       "Type" : "AWS::S3::Bucket",
       "Properties" : {
         "AccessControl" : "Private",
         "BucketName" : {
-          "Ref": "aaProjectBucket"
+          "Ref": "aaJawsBucket"
         }
       },
       "DeletionPolicy" : "Retain"
