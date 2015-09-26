@@ -9,6 +9,10 @@
       "Type": "String",
       "Default": "myapp.com"
     },
+    "aaProjectBucket": {
+      "Type": "String",
+      "Default": "myapp.com"
+    },
     "aaStage": {
       "Type": "String"
     },
@@ -208,6 +212,16 @@
           }
         ]
       }
+    },
+    "ProjectS3Bucket" : {
+      "Type" : "AWS::S3::Bucket",
+      "Properties" : {
+        "AccessControl" : "Private",
+        "BucketName" : {
+          "Ref": "aaProjectBucket"
+        }
+      },
+      "DeletionPolicy" : "Retain"
     }
   },
   "Outputs": {
