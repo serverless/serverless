@@ -1,0 +1,15 @@
+{
+  "name": "jaws-core-js",
+  "version": "0.0.1",
+  "description": "JAWS core awsm code",
+  "author": "Austen Collins <austen@servant.co>, Ryan Pendergast <ryan.pendergast@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "jaws",
+    "awsm"
+  ],
+  "devDependencies": {},
+  "dependencies": {
+    "dotenv": "^1.2.0"
+  }
+}

@@ -1,88 +1,76 @@
-![JAWS stack javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_logo_v1.png)
+![JAWS stack javascript aws node.js express auroradb dynamodb lambda](img/jaws_framework_logo_animated_xl.gif)
 
-JAWS: The Server-less Framework
+JAWS V1 (BETA)
 =================================
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jaws-stack/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+**Daily Status Reports are available in the Road Map at the link below.  [Also, we're doing a Breakout Session @ RE:INVENT 2015](https://www.portal.reinvent.awsevents.com/connect/sessionDetail.ww?SESSION_ID=5494)**
 
-This stack uses new tools from Amazon Web Services to completely redefine how to build massively scalable (and cheap) web applications.
+JAWS is a 100% free and open-source framework for building serverless applications (web, mobile, IoT) using Amazon Web Services' Lambda, API Gateway, and more.  Lambda's event-driven model offers tremendous cost savings and colossal horizontal scaling ability.  Now, JAWS helps you build and maintain entire event-driven/serverless applications using Lambda.
 
-##### To get started: [follow the "Installation Guide" in the Wiki](https://github.com/servant-app/JAWS/wiki/JAWS-Installation)
-##### To help contribute: [check out the "JAWS Roadmap"](https://trello.com/b/tYOrT6nA/jaws-roadmap) and the ["Contributors Guide"](https://github.com/jaws-stack/JAWS/blob/master/CONTRIBUTING.md)
-##### To receive summaries of JAWS changes, join the ["JAWS Email List"](http://eepurl.com/bvz5Nj)
+<a class="frame" href="https://gitter.im/jaws-framework/JAWS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge" target="_blank"><img src="img/jaws_gitter_chatroom.png" align="left" width="300"></a>
 
-## Goals:
+<br/><br/>
 
- - **Use No Servers:** Never deal with scaling/deploying/maintaining/monitoring servers again.
- -  **Isolated Components:** The JAWS back-end is comprised entirely of AWS Lambda Functions.  You can develop/update/configure each separately without affecting any other part of your application.  Your app never goes down...  only individual API routes can go down.
- - **Scale Infinitely:**  A back-end comprised of Lambda functions comes with a ton of concurrency and you can easily enable multi-region redundancy.
- - **Be Cheap As Possible:**  Lambda functions run only when they are called, and you only pay for when they are run.
+<a href="http://github.us11.list-manage1.com/subscribe?u=b4fad36768cab222f88338995&id=5f8407dded" target="_blank"><img src="img/jaws_email_list.png" align="left" width="300"></a>
 
+<br/><br/>
 
-## Architecture
+<a href="https://docs.google.com/document/d/1SeTgtsQc620vcwgGMZ4F2yuWVf-A3JmpTn1VT8pKYsA/edit?usp=sharing" target="_blank"><img src="img/jaws_roadmap.png" align="left" width="300"></a>
 
-![JAWS stack diagram javascript aws node.js express auroradb dynamodb lambda](https://github.com/servant-app/JAWS/blob/master/site/public/img/jaws_diagram_javascript_aws.png)
+<br/><br/>
 
-#### API
-There are no servers included in this stack.  The entire back-end is comprised of Lambda functions which are organized in the `api` folder.  Each of your API URLs points to one of these Lambda functions.  This way, the code for each API Route is completely isolated, enabling you to develop/update/configure/deploy/maintain code for specific API urls at any time without affecting any other part of your application(!!!).  Think of each Lambda function as a "Controller", in traditional MVC structure.
+<a href="http://teespring.com/jaws_og" target="_blank"><img src="img/jaws_shirts.png" align="left" width="300"></a>
 
-You can either use the AWS Management Console's API Gateway User Interface to create your API, or define your API in the `api_swagger.json` file and deploy instantly via AWS's Swagger Import Tool (Recommended).
+<br/><br/>
 
-#### Lib
-The `lib` folder/module contains re-useable code you can use across all of your Lambda functions, which can be thought of as your "Models".  It's an npm module that can be required into your Lambda functions, like any other.
+<a href="https://www.livecoding.tv/jaws/" target="_blank"><img src="img/jaws_livecoding_channel.png" align="left" width="300"></a>
 
-Since Lambda can be slow to initialize on cold-starts (after ~5 mins of inactivity), this module is designed so that you do not have to `require` all of its code, but instead you can require in only the code that your Lambda function needs.  For example:
+<br/><br/>
 
-    // This only loads code needed for the User Model
-    var ModelUser = require('jaws-lib').models.User;
+<a href="http://stackoverflow.com/questions/tagged/jaws" target="_blank"><img src="img/jaws_stackoverflow_tag.png" align="left" width="300"></a>
 
-While developing, make sure you create an [npm sym-link](https://egghead.io/lessons/node-js-using-npm-link-to-use-node-modules-that-are-in-progress) between this module and all of your Lambda functions.  This way, all of the changes in the `lib` folder will be instantly available in every one of your Lambda functions when you run/test them locally.  Check out the wiki for instructions.
+<br/><br/><br/>
 
+## Quick Start
 
-#### CLI
-This stack comes with its own command line interface to help you test your API Lambda Functions locally and deploy them.  The commands are:
+*  **[Setup an AWS account and create an administrative user](https://github.com/jaws-framework/JAWS/wiki/v1:-AWS-Account-setup)**
 
-**Run A Lambda Function Locally**
+*  ```$ npm install jaws-framework -g```
 
-Make sure you are in the root folder of your Lambda function (api/users/signup) and enter this:
+*  ```$ jaws new project```
 
-    $ jaws run
+ **Note:** We recommend camelCase for project names. [Why?](https://github.com/jaws-framework/JAWS/wiki/Best-practices#project-names)
 
-**Deploy A Lambda Function**
+*  ```$ cd <new-project-name>```
 
-Make sure you are in the root folder of your Lambda function (api/users/signup) and enter this:
+*  ```$ jaws module create users list```
 
-    $ jaws deploy
+* ```$ jaws dash```
 
-**Start A Local Server**
+This will create a new jaws project, create a lambda function with an API Gateway endpoint, which you can immediately deploy via
+`jaws dash`.  After deployment is complete, you will be given a url.  In the above example, you can access your
+deployed lambda at `your_url/users/list`.
 
-Make sure you are in the`site` folder of the JAWS app and enter this:
+## Overview:
 
-    $ jaws server
+JAWS is an application framework for building serverless web, mobile and IoT applications.  JAWS comes in the form of a command line interface that provides structure, automation and optimization to help you build and maintain your serverless app.
 
+JAWS uses AWS services exclusively, since it relies on AWS's Lambda service to provide event-driven compute resources and many AWS services integrate nicely with Lambda.  A JAWS app can be simply a group of lambda functions to accomplish some tasks, or an entire back-end comprised of hundreds of lambda functions.
 
-#### Site
-Your website/client-side application.  These assets can be uploaded and served from S3 for super fast response times.
+In JAWS V1, we made a strong effort to make not just a groundbreaking serverless framework, but the best framework for building applications with AWS in general (that is also serverless!).  As a result, JAWS V1 incorporates years of AWS expertise into its tooling, giving you best practices out-of-the-box.
 
+## Documentation
 
-## Starring
+During the week of 9/21 we will be finishing up our [docs](./docs/), [wiki](https://github.com/jaws-framework/JAWS/wiki), [best practices](https://github.com/jaws-framework/JAWS/wiki/Best-practices) and [FAQ](https://github.com/jaws-framework/JAWS/wiki/FAQ) pages.
 
-**Javascript:**
-- Node.js (in AWS Lambda functions)
-- jQuery (in your front-end site)
+* **[Commands List](docs/commands.md)**
+* **[Project Structure](docs/project_structure.md)**
+* **[Deployment](docs/deployment.md)**
+* **[AWSM: AWS-Modules](docs/aws_modules.md)**
 
-**AWS Services:**
-- DynamoDB - *Managed, NOSQL data storage*
-- Lambda - *Build worker tasks that you can spawn and scale infinitely.*
-- API Gateway - *Launch an API with urls pointing to your Lambda functions*
-- S3 - *Host static assets for your site here*
+Once you become familiar with JAWS, you can read about [JAWS AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm) to start contributing awsm's to the community.
 
-**Other:**
-- JSON Web Tokens
+## Events
 
-
-
-## Other
-*  [List Of AWS Tips](https://wblinks.com/notes/aws-tips-i-wish-id-known-before-i-started/)
-* [Amazon Monthly Cost Estimate Calculator](http://calculator.s3.amazonaws.com/index.html)
-* [Set-Up AWS Billing Alerts](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/monitor-charges.html)
+* **9/24 - San Francisco, CA** @ the [Advanced AWS Meetup](http://www.meetup.com/AdvancedAWS/)
+* **10/7 - Las Vegas, NV** A Breakout Session @ the [AWS Re:invent Conference](https://www.portal.reinvent.awsevents.com/connect/search.ww#loadSearch-searchPhrase=jaws&searchType=session&tc=0&sortBy=abbreviationSort&p=)

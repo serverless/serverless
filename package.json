@@ -1,30 +1,65 @@
 {
-    "name": "jaws-stack",
-    "version": "0.0.3",
-    "description": "JAWS – The Javascript + AWS Stack",
-    "author": "Austen Collins <austen@servant.co>",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/servant-app/JAWS.git"
-    },
-    "license": "MIT",
-    "keywords": [
-        "jaws",
-        "jaws stack",
-        "jaws framework",
-        "jaws boilerplate",
-        "api gateway",
-        "lambda",
-        "aws",
-        "amazon",
-        "amazon web services",
-        "dynamodb"
-    ],
-    "engines": {
-        "node": "0.10.33"
-    },
-    "bugs": {
-        "url": "https://github.com/servant-app/JAWS/issues"
-    },
-    "dependencies": {}
+  "name": "jaws-framework",
+  "version": "1.1.0",
+  "preferGlobal": true,
+  "description": "JAWS is the serverless framework powered by Amazon Web Services.",
+  "author": "Austen Collins <austen@servant.co>, Ryan Pendergast <ryan.pendergast@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jaws-framework/JAWS.git"
+  },
+  "keywords": [
+    "jaws",
+    "jaws framework",
+    "jaws cli",
+    "serverless",
+    "api gateway",
+    "lambda",
+    "aws",
+    "aws lambda",
+    "amazon",
+    "amazon web services",
+    "dynamodb",
+    "awsm"
+  ],
+  "main": "lib/main.js",
+  "bin": {
+    "jaws": "./bin/jaws"
+  },
+  "scripts": {
+    "test": "mocha tests/all"
+  },
+  "devDependencies": {
+    "chai": "^3.2.0",
+    "mocha": "^2.2.5"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "aws-sdk": "^2.2.4",
+    "babelify": "^6.3.0",
+    "bluebird": "^2.9.34",
+    "browserify": "^11.0.1",
+    "chalk": "^1.1.0",
+    "cli-spinner": "^0.2.1",
+    "commander": "^2.5.0",
+    "debug": "^2.2.0",
+    "dotenv": "^1.2.0",
+    "download": "^4.2.0",
+    "insert-module-globals": "^6.5.2",
+    "jaws-api-gateway-client": "0.11.0",
+    "keypress": "^0.2.1",
+    "mkdirp-then": "^1.1.0",
+    "moment": "^2.10.6",
+    "node-uuid": "^1.4.2",
+    "node-zip": "^1.1.0",
+    "prompt": "^0.2.14",
+    "readdirp": "^1.4.0",
+    "rimraf": "^2.4.3",
+    "shelljs": "^0.5.3",
+    "shortid": "^2.2.2",
+    "temp": "^0.8.3",
+    "uglify-js": "^2.4.24",
+    "wrench": "^1.5.8"
+  }
 }

@@ -1,0 +1,56 @@
+{
+  "name": "create-user",
+  "version": "0.0.1",
+  "location": "",
+  "author": "Joe Smith <vera@gmail.com> http://joe.io",
+  "description": "",
+  "lambda": {
+    "envVars": [
+      "MYAPP_SERVICE_KEY",
+      "MYAPP_SERVICE2_KEY"
+    ],
+    "deploy": false,
+    "package": {
+      "optimize": {
+        "builder": "browserify",
+        "minify": true,
+        "ignore": [],
+        "exclude": [
+          "aws-sdk"
+        ],
+        "includePaths": []
+      },
+      "excludePatterns": []
+    },
+    "cloudFormation": {
+      "Description": "",
+      "Handler": "aws_modules/users/create/index.handler",
+      "MemorySize": 1024,
+      "Runtime": "nodejs",
+      "Timeout": 6
+    }
+  },
+  "apiGateway": {
+    "deploy": false,
+    "cloudFormation": {
+      "path": "",
+      "method": "GET",
+      "authorizationType": "none",
+      "apiKeyRequired": false,
+      "requestTemplates": {},
+      "requestParameters": {},
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    }
+  }
+}
