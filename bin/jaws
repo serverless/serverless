@@ -126,10 +126,9 @@ program
           throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
         }
         var url = theParams[1],
-            theCmd = require('../lib/commands/module_install'),
-            save = (!options.noSave);
+            theCmd = require('../lib/commands/module_install');
 
-        execute(theCmd[cmd](JAWS, url, save, options.dontInstallDependencies));
+        execute(theCmd[cmd](JAWS, url, options.save, options.dontInstallDependencies));
       } else if (cmd == 'create') {
         if (theParams.length < 3) {
           throw new JawsError('Please specify awsm resource and action name');
