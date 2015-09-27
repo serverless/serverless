@@ -163,18 +163,18 @@ program
 
 program
     .command('tag [type]')
-    .description('Tag lambda function or api gateway resource (endpoint) for deployment ' +
-        'the next time deploy command is run. Type "lambda" is the default.')
-    .option('-u, --untag', 'un-tag lambda|endpoint')
-    .option('-a, --tag-all', 'tag all lambda|endpoint functions in project')
-    .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
-    .option('-n, --untag-all', 'un-tag all lambda|endpoint functions in project')
+    .description('Tag lambda function, api gateway resource (endpoint), or all of both for deployment ' +
+        'the next time deploy command is run. Type "all" is the default.')
+    .option('-u, --untag', 'un-tag lambda|endpoint|all')
+    .option('-a, --tag-all', 'tag all lambda|endpoint|all functions in project')
+    .option('-l, --list-all', 'list all tagged lambda|endpoint|all functions in project')
+    .option('-n, --untag-all', 'un-tag all lambda|endpoint|all functions in project')
     .action(function(type, options) {
-      type = type || 'lambda';
+      type = type || 'all';
       type = type.toLowerCase();
 
-      if (-1 == ['endpoint', 'lambda'].indexOf(type)) {
-        console.error('Unsupported type ' + type + '. Must be endpoint|lambda');
+      if (-1 == ['endpoint', 'lambda', 'all'].indexOf(type)) {
+        console.error('Unsupported type ' + type + '. Must be endpoint|lambda|all');
         process.exit(1);
       }
 
