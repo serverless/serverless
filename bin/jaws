@@ -58,26 +58,19 @@ program
       } else if (cmd == 'region' || cmd == 'stage') {
         var theParams = process.argv.slice(3);
 
-        if (!theParams) {
-          throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
-        }
-
-        if (theParams[0][0] == '-') { //TODO: how do we get around this commander shortcoming?
+        if (theParams[0]
+            && theParams[0][0]
+            && theParams[0][0] == '-') { //TODO: how do we get around this commander shortcoming?
           throw new JawsError('Specify options after cmd', JawsError.errorCodes.UNKNOWN);
         }
 
-        //TODO: iterate thru cmds to see how many are before -
-        if (theParams.length < 2) {
-          throw new JawsError('must specify stage name', JawsError.errorCodes.UNKNOWN);
-        }
-
-        var CmdNewStageRegion = require('../lib/commands/new_stage_region'),
-            stageName = theParams[1];
+        var CmdNewStageRegion = require('../lib/commands/new_stage_region');
+        var stage = theParams[1] ? theParams[1] : null;
 
         execute(CmdNewStageRegion.run(
             JAWS,
             cmd,
-            stageName,
+            stage,
             options.region,
             options.s3Bucket,
             options.dontExeCf
