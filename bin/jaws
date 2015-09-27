@@ -24,8 +24,9 @@ program
  * New
  * - Create a new project|stage|region
  */
+
 program
-    .command('new <cmd> [params]')
+    .command('new <cmd>')
     .description('new project, stage and region commands\n\nValid <cmd>\'s:' +
         '\n\nproject: create new JAWS project in CWD.' +
         '\n\t Ex: jaws new project' +
@@ -36,43 +37,33 @@ program
     )
     .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it.')
     .option('-r, --region <name>', 'name of aws region to use')
-    .option('-b, --s3-bucket <name>', '[project,region] only: JAWS S3 bucket name.  Will be created if DNE in "project" cmd. Must exist for "region" cmd.')
+    .option('-u, --domain <name>', '[project] only: domain')
     .option('-n, --proj-name <name>', '[project] only: name for new project')
     .option('-s, --stage <name>', '[project] only: same of stage for new project')
     .option('-e, --email <email>', '[project] only: notification email to use in CloudFormation')
     .option('-p, --aws-profile <profileName>', '[project] only: Admin AWS profile as defined in ~/.aws/credentials to use')
-    .action(function(cmd, params, options) {
+    .action(function(cmd, options) {
 
       if (cmd == 'project') {
         var CmdNewProject = require('../lib/commands/new_project');
         execute(CmdNewProject.run(
             options.projName,
             options.stage ? options.stage.toLowerCase() : null,
-            options.s3Bucket,
             options.region,
+            options.domain,
             options.email,
             options.awsProfile,
             options.dontExeCf
         ));
 
       } else if (cmd == 'region' || cmd == 'stage') {
-        var theParams = process.argv.slice(3);
-
-        if (theParams[0]
-            && theParams[0][0]
-            && theParams[0][0] == '-') { //TODO: how do we get around this commander shortcoming?
-          throw new JawsError('Specify options after cmd', JawsError.errorCodes.UNKNOWN);
-        }
 
         var CmdNewStageRegion = require('../lib/commands/new_stage_region');
-        var stage = theParams[1] ? theParams[1] : null;
-
         execute(CmdNewStageRegion.run(
             JAWS,
             cmd,
-            stage,
+            options.stage,
             options.region,
-            options.s3Bucket,
             options.dontExeCf
         ));
       } else {
