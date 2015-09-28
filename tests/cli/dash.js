@@ -35,7 +35,7 @@ describe('Test "dash" command', function() {
               'back/aws_modules/bundle/nonoptimized'])
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'back'));
+          process.chdir(projPath);
           JAWS = new Jaws();
         })
         .then(function() {

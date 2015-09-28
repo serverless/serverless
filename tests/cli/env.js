@@ -26,7 +26,7 @@ describe('Test "env" command', function() {
             config.usEast1Bucket)
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
+          process.chdir(path.join(projPath, 'aws_modules', 'sessions', 'show'));
           JAWS = new Jaws();
           done();
         });

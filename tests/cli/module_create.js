@@ -29,7 +29,7 @@ describe('Test "new module" command', function() {
             config.usEast1Bucket)
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'back'));
+          process.chdir(projPath);
           JAWS = new Jaws();
           done();
         });

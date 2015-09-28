@@ -29,10 +29,10 @@ describe('Test "install" command', function() {
             config.usEast1Bucket)
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
+          process.chdir(path.join(projPath, 'aws_modules', 'sessions', 'show'));
 
           // Delete jaws-core-js temporarily
-          rimraf.sync(path.join(projPath, 'back', 'aws_modules', 'jaws-core-js'));
+          rimraf.sync(path.join(projPath, 'aws_modules', 'jaws-core-js'));
 
           JAWS = new Jaws();
           done();
