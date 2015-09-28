@@ -20,7 +20,6 @@ The following attributes should exist in either a project or lambda `jaws.json` 
 * **author**: `John Serverless <john@gmail.com> http://www.john.com`
 * **description**: project/module or lambda desc.
 * **stages**: map of all your stages, and regions those stages are in as well as IAM roles
-* **jawsBuckets**: map of region to bucket name for JAWS S3 bucket in the region
 
 ## admin.env
 
