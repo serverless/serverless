@@ -28,8 +28,8 @@ describe('Test "deploy lambda" command', function() {
             config.iamRoleArnLambda,
             config.iamRoleArnApiGateway,
             config.usEast1Bucket,
-            ['back/aws_modules/jaws-core-js',
-              'back/aws_modules/bundle',
+            ['aws_modules/jaws-core-js',
+              'aws_modules/bundle',
             ])
         .then(function(pp) {
           projPath = pp;
@@ -44,7 +44,7 @@ describe('Test "deploy lambda" command', function() {
     it('Multi level module deploy', function(done) {
       this.timeout(0);
 
-      process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
+      process.chdir(path.join(projPath, 'aws_modules/sessions/show'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
           .then(function(d) {
@@ -57,7 +57,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('browserify deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'back/aws_modules/bundle/browserify'));
+      process.chdir(path.join(projPath, 'aws_modules/bundle/browserify'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
           .then(function(d) {
@@ -70,7 +70,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('non optimized deploy', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'back/aws_modules/bundle/nonoptimized'));
+      process.chdir(path.join(projPath, 'aws_modules/bundle/nonoptimized'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
           .then(function(d) {
@@ -83,7 +83,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('deploy multiple', function(done) {
       this.timeout(0);
-      var bundleDirPath = path.join(projPath, 'back/aws_modules/bundle');
+      var bundleDirPath = path.join(projPath, 'aws_modules/bundle');
 
       process.chdir(bundleDirPath);
 
