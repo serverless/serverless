@@ -99,42 +99,5 @@ describe('Test "tag" command', function() {
             done(e);
           });
     });
-
-    it('tag both', function(done) {
-      this.timeout(0);
-
-      CmdTag.tag('both', modulePaths.lambda1, false)
-          .then(function() {
-            assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
-            assert.equal(true, require(modulePaths.lambda1).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda2).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda2).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda3).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda3).apiGateway.deploy);
-            return CmdTag.tagAll(JAWS, 'both', false);
-          })
-          .then(function() {
-            assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
-            assert.equal(true, require(modulePaths.lambda1).apiGateway.deploy);
-            assert.equal(true, require(modulePaths.lambda2).lambda.deploy);
-            assert.equal(true, require(modulePaths.lambda2).apiGateway.deploy);
-            assert.equal(true, require(modulePaths.lambda3).lambda.deploy);
-            assert.equal(true, require(modulePaths.lambda3).apiGateway.deploy);
-            return CmdTag.tagAll(JAWS, 'both', true);
-          })
-          .then(function() {
-            assert.equal(false, require(modulePaths.lambda1).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda1).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda2).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda2).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda3).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda3).apiGateway.deploy);
-            done();
-          })
-          .error(function(e) {
-            done(e);
-          });
-    });
-
   });
 });

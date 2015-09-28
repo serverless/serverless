@@ -11,11 +11,9 @@
           "region": "us-east-1",
           "iamRoleArnLambda": "arn:aws:iam::123456789012:role/mystage-example-project-IamRoleLambda-Y0MERBSAAAK",
           "iamRoleArnApiGateway": "arn:aws:iam::123456789012:role/mystage-example-project-IamRoleApiGateway-1CKUOL86MDKA"
+          "jawsBucket": "jaws-east-1.myco.com"
         }
       ]
-    },
-    "jawsBuckets": {
-      "us-east-1": "jaws-east-1.myco.com"
     }
   }
 }

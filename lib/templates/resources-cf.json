@@ -16,7 +16,7 @@
     "aaStage": {
       "Type": "String"
     },
-    "aaDataModelStage": {
+    "aaDataModelPrefix": {
       "Type": "String"
     },
     "aaNotficationEmail": {
@@ -139,9 +139,7 @@
                   ":",
                   [
                     "arn:aws:logs",
-                    {
-                      "Ref": "AWS::Region"
-                    },
+                    { "Ref" : "AWS::Region" },
                     "*:*"
                   ]
                 ]
@@ -191,9 +189,7 @@
                   ":",
                   [
                     "arn:aws:lambda",
-                    {
-                      "Ref": "AWS::Region"
-                    },
+                    { "Ref" : "AWS::Region" },
                     "*:*"
                   ]
                 ]

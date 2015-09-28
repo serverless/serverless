@@ -37,8 +37,9 @@ describe('Test new command', function() {
       theCmd.run(
               config.newName,
               config.stage,
-              config.region,
+              config.usEast1Bucket,
               config.domain,
+              config.region,
               config.notifyEmail,
               config.profile,
               config.noExecuteCf)

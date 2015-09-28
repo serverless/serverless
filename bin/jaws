@@ -110,9 +110,10 @@ program
           throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
         }
         var url = theParams[1],
-            theCmd = require('../lib/commands/module_install');
+            theCmd = require('../lib/commands/module_install'),
+            save = (!options.noSave);
 
-        execute(theCmd[cmd](JAWS, url, options.save, options.dontInstallDependencies));
+        execute(theCmd[cmd](JAWS, url, save, options.dontInstallDependencies));
       } else if (cmd == 'create') {
         if (theParams.length < 3) {
           throw new JawsError('Please specify awsm resource and action name');
@@ -146,18 +147,19 @@ program
  */
 
 program
-    .command('tag <type>')
-    .description('Tag lambda function, api gateway resource (endpoint), or both for deployment ' +
-        'the next time deploy command is run.')
-    .option('-u, --untag', 'un-tag lambda|endpoint|both')
-    .option('-a, --tag-all', 'tag all lambda|endpoint|both in project')
-    .option('-l, --list-all', 'list all tagged lambda|endpoint|both in project')
-    .option('-n, --untag-all', 'un-tag all lambda|endpoint|both in project')
+    .command('tag [type]')
+    .description('Tag lambda function or api gateway resource (endpoint) for deployment ' +
+        'the next time deploy command is run. Type "lambda" is the default.')
+    .option('-u, --untag', 'un-tag lambda|endpoint')
+    .option('-a, --tag-all', 'tag all lambda|endpoint functions in project')
+    .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
+    .option('-n, --untag-all', 'un-tag all lambda|endpoint functions in project')
     .action(function(type, options) {
+      type = type || 'lambda';
       type = type.toLowerCase();
 
-      if (-1 == ['endpoint', 'lambda', 'both'].indexOf(type)) {
-        console.error('Unsupported type ' + type + '. Must be endpoint|lambda|both');
+      if (-1 == ['endpoint', 'lambda'].indexOf(type)) {
+        console.error('Unsupported type ' + type + '. Must be endpoint|lambda');
         process.exit(1);
       }
 

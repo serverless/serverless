@@ -27,7 +27,7 @@
                 },
                 "/",
                 {
-                  "Ref": "aaDataModelStage"
+                  "Ref": "aaDataModelPrefix"
                 },
                 "*"
               ]
