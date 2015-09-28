@@ -47,7 +47,7 @@ describe('Test "new stage/region" command', function() {
     it('Create New Stage', function(done) {
       this.timeout(0);
 
-      CmdNewStageRegion.run(JAWS, 'stage', tempStage, usEast1Region, config.usEast1Bucket, config.noExecuteCf)
+      CmdNewStageRegion.run(JAWS, 'stage', tempStage, usEast1Region, config.noExecuteCf)
           .then(function() {
             var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), '../jaws.json'));
             var region = false;
@@ -72,7 +72,7 @@ describe('Test "new stage/region" command', function() {
     it('Create New region', function(done) {
       this.timeout(0);
 
-      CmdNewStageRegion.run(JAWS, 'region', tempStage, euWest1Region, config.euWest1Bucket, config.noExecuteCf)
+      CmdNewStageRegion.run(JAWS, 'region', tempStage, euWest1Region, config.noExecuteCf)
           .then(function() {
             var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), '../jaws.json'));
             var region = false;
