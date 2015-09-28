@@ -18,7 +18,7 @@ describe('AllTests', function() {
   require('./cli/tag');
   require('./cli/env');
   require('./cli/module_create');
-  //require('./cli/run');
+  require('./cli/run');
 
   /**
    * Tests below create AWS Resources
