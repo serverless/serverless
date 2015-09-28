@@ -55,7 +55,7 @@ module.exports.createTestProject = function(projectName,
       ])
       .then(function() {
         projectJSON.name = projectName;
-        projectJSON.name = projectDomain;
+        projectJSON.domain = projectDomain;
         projectJSON.stages = {};
         projectJSON.stages[projectStage] = [{
           region: projectRegion,
