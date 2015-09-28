@@ -100,10 +100,10 @@ describe('Test "tag" command', function() {
           });
     });
 
-    it('tag all', function(done) {
+    it('tag both', function(done) {
       this.timeout(0);
 
-      CmdTag.tag('all', modulePaths.lambda1, false)
+      CmdTag.tag('both', modulePaths.lambda1, false)
           .then(function() {
             assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
             assert.equal(true, require(modulePaths.lambda1).apiGateway.deploy);
@@ -111,7 +111,7 @@ describe('Test "tag" command', function() {
             assert.equal(false, require(modulePaths.lambda2).apiGateway.deploy);
             assert.equal(false, require(modulePaths.lambda3).lambda.deploy);
             assert.equal(false, require(modulePaths.lambda3).apiGateway.deploy);
-            return CmdTag.tagAll(JAWS, 'all', false);
+            return CmdTag.tagAll(JAWS, 'both', false);
           })
           .then(function() {
             assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
@@ -120,7 +120,7 @@ describe('Test "tag" command', function() {
             assert.equal(true, require(modulePaths.lambda2).apiGateway.deploy);
             assert.equal(true, require(modulePaths.lambda3).lambda.deploy);
             assert.equal(true, require(modulePaths.lambda3).apiGateway.deploy);
-            return CmdTag.tagAll(JAWS, 'all', true);
+            return CmdTag.tagAll(JAWS, 'both', true);
           })
           .then(function() {
             assert.equal(false, require(modulePaths.lambda1).lambda.deploy);
