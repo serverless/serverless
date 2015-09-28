@@ -30,12 +30,12 @@ describe('Test "dash" command', function() {
             config.iamRoleArnLambda,
             config.iamRoleArnApiGateway,
             config.usEast1Bucket,
-            ['back/aws_modules/jaws-core-js',
-              'back/aws_modules/bundle/browserify',
-              'back/aws_modules/bundle/nonoptimized'])
+            ['aws_modules/jaws-core-js',
+              'aws_modules/bundle/browserify',
+              'aws_modules/bundle/nonoptimized'])
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'back'));
+          process.chdir(projPath);
           JAWS = new Jaws();
         })
         .then(function() {

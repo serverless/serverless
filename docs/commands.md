@@ -24,17 +24,17 @@ Create a project, a project region or a project stage using the `new` commands.
 
 * ##### `$ jaws module create`
 
- * Creates one or both of the following in the `back/aws_modules` folder. Default is to create both:
-  * A lambda function in the `back/aws_modules` folder with basic scaffolding.
+ * Creates one or both of the following in the `aws_modules` folder. Default is to create both:
+  * A lambda function in the `aws_modules` folder with basic scaffolding.
   * An API gateway configuration
 
 * ##### `$ jaws module install`
 
- * Download and installs an awsm from github to the `back/aws_modules` dir.  By default installs module dependencies (if any)
+ * Download and installs an awsm from github to the `aws_modules` dir.  By default installs module dependencies (if any)
 
 * ##### `$ jaws module update`
 
- * Updates an existing awsm in the `back/aws_modules` dir. By default installs module dependencies (if any)
+ * Updates an existing awsm in the `aws_modules` dir. By default installs module dependencies (if any)
 
 ### Dash Commands
 
@@ -46,7 +46,7 @@ Deploy your lambdas and endpoints using the JAWS dashboard.
 
 ### ENV Commands
 
-Modeled after Heroku's environment variable commands, these commands manage environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `back/.env`.  Otherwise they are stored is s3 at `s3://<projjaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
+Modeled after Heroku's environment variable commands, these commands manage environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `.env`.  Otherwise they are stored is s3 at `s3://<projjaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
 
 * ##### `$ jaws env list`
 
