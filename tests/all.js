@@ -17,7 +17,7 @@ describe('AllTests', function() {
   //require tests vs inline so we can run sequentially
   require('./cli/tag');
   require('./cli/env');
-  //require('./cli/module_create');
+  require('./cli/module_create');
   //require('./cli/run');
 
   /**
