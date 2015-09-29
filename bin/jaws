@@ -110,6 +110,7 @@ program
           name: theParams[1],
           action: theParams[2],
           runtime: options.runtime || 'nodejs',
+          npm: options.npm || false,
         };
 
         if (options.lambda) {
