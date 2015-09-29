@@ -8,9 +8,9 @@
     "type": "git",
     "url": "git://github.com/"
   },
-  "keywords": [
-  ],
-  "devDependencies": {
-  },
-  "dependencies": {}
+  "keywords": [],
+  "devDependencies": {},
+  "dependencies": {
+    "jaws-core-js": "latest"
+  }
 }
