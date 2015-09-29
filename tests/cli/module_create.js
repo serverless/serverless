@@ -21,12 +21,12 @@ describe('Test "new module" command', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(
-            config.name,
-            config.region,
-            config.stage,
-            config.iamRoleArnLambda,
-            config.iamRoleArnApiGateway,
-            config.usEast1Bucket)
+        config.name,
+        config.stage,
+        config.region,
+        config.domain,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiGateway)
         .then(function(pp) {
           projPath = pp;
           process.chdir(projPath);

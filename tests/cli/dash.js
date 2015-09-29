@@ -24,15 +24,15 @@ describe('Test "dash" command', function() {
 
     // Tag All Lambdas & Endpoints
     testUtils.createTestProject(
-            config.name,
-            config.region,
-            config.stage,
-            config.iamRoleArnLambda,
-            config.iamRoleArnApiGateway,
-            config.usEast1Bucket,
-            ['aws_modules/jaws-core-js',
-              'aws_modules/bundle/browserify',
-              'aws_modules/bundle/nonoptimized'])
+        config.name,
+        config.stage,
+        config.region,
+        config.domain,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiGateway,
+        ['aws_modules/jaws-core-js',
+          'aws_modules/bundle/browserify',
+          'aws_modules/bundle/nonoptimized'])
         .then(function(pp) {
           projPath = pp;
           process.chdir(projPath);

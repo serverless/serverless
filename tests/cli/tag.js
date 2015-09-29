@@ -21,12 +21,12 @@ describe('Test "tag" command', function() {
 
   before(function(done) {
     testUtils.createTestProject(
-            config.name,
-            config.usEast1Bucket,
-            config.stage,
-            config.iamRoleArnLambda,
-            config.iamRoleArnApiGateway,
-            config.envBucket)
+        config.name,
+        config.stage,
+        config.region,
+        config.domain,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiGateway)
         .then(function(pp) {
           projPath = pp;
           process.chdir(projPath);

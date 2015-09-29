@@ -22,15 +22,15 @@ describe('Test "deploy lambda" command', function() {
     this.timeout(0);  //dont timeout anything
 
     testUtils.createTestProject(
-            config.name,
-            config.region,
-            config.stage,
-            config.iamRoleArnLambda,
-            config.iamRoleArnApiGateway,
-            config.usEast1Bucket,
-            ['aws_modules/jaws-core-js',
-              'aws_modules/bundle',
-            ])
+        config.name,
+        config.stage,
+        config.region,
+        config.domain,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiGateway,
+        ['aws_modules/jaws-core-js',
+          'aws_modules/bundle',
+        ])
         .then(function(pp) {
           projPath = pp;
           process.chdir(projPath);
@@ -88,9 +88,9 @@ describe('Test "deploy lambda" command', function() {
       process.chdir(bundleDirPath);
 
       Promise.all([
-            CmdTag.tag('lambda', bundleDirPath + '/browserify/awsm.json'),
-            CmdTag.tag('lambda', bundleDirPath + '/nonoptimized/awsm.json'),
-          ])
+        CmdTag.tag('lambda', bundleDirPath + '/browserify/awsm.json'),
+        CmdTag.tag('lambda', bundleDirPath + '/nonoptimized/awsm.json'),
+      ])
           .then(function() {
             return CmdDeployLambda.run(JAWS, config.stage, [config.region], true, config.noExecuteCf)
           })
