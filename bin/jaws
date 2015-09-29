@@ -278,6 +278,7 @@ program
 
 /**
  * Postinstall
+ * - Kept separate from "module" commands because the options for this may likely grow
  */
 
 program
@@ -285,7 +286,7 @@ program
     .description('Performs automation when an aws-module is installed via a package manager')
     .action(function(moduleName, packageManager) {
       var CmdPostInstall = require('../lib/commands/postinstall');
-      execute(CmdPostInstall.run(JAWS, moduleName));
+      execute(CmdPostInstall.run(JAWS, moduleName, packageManager));
     });
 
 if (process.argv.length == 2) {
