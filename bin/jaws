@@ -88,7 +88,7 @@ program
     )
     .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
-    .option('-n, --npm', '[create]: creates a node_module along with your aws_module')
+    .option('-p, --package-manager', '[create]: creates pkg manager scaffolding along with your aws_module. Valid: npm')
     .action(function(cmd, params, options) {
 
       var theParams = process.argv.slice(3);
@@ -110,7 +110,7 @@ program
           name: theParams[1],
           action: theParams[2],
           runtime: options.runtime || 'nodejs',
-          npm: options.npm || false,
+          packageManager: options.packageManager || false,
         };
 
         if (options.lambda) {
