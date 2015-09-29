@@ -83,20 +83,16 @@ program
 program
     .command('module <cmd> [params]')
     .description('aws-module commands\n\nValid <cmd>\'s:' +
-        '\n\ninstall: install aws-module.' +
-        '\n\t Ex: jaws module install <url>' +
-        '\n\nupdate: update aws-module' +
-        '\n\t Ex: jaws module update <url>' +
         '\n\ncreate: create aws-module action. Module will be created if DNE. create <module resource> <action>' +
         '\n\t Ex: jaws module create users list'
     )
-    .option('-n, --no-save', '[install,update]: DONT merge awsm\'s CloudFormation extensions to your project')
-    .option('-d, --dont-install-dependencies', '[install,update]: DONT install awsm\'s depdencies automatically')
     .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
-    .option('-r, --runtime <name>', '[create]: lambda runtime. Default nodejs')
+    .option('-n, --npm', '[create]: creates a node_module along with your aws_module')
     .action(function(cmd, params, options) {
+
       var theParams = process.argv.slice(3);
+
       if (!theParams) {
         throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
       }
@@ -104,17 +100,7 @@ program
         throw new JawsError('Specify options after cmd', JawsError.errorCodes.UNKNOWN);
       }
 
-      if (cmd == 'install' || cmd == 'update') {
-        //TODO: iterate thru cmds to see how many are before -
-        if (theParams.length < 2) {
-          throw new JawsError('Please specify awsm url', JawsError.errorCodes.UNKNOWN);
-        }
-        var url = theParams[1],
-            theCmd = require('../lib/commands/module_install'),
-            save = (!options.noSave);
-
-        execute(theCmd[cmd](JAWS, url, save, options.dontInstallDependencies));
-      } else if (cmd == 'create') {
+      if (cmd == 'create') {
         if (theParams.length < 3) {
           throw new JawsError('Please specify awsm resource and action name');
         }
@@ -123,7 +109,7 @@ program
         var module = {
           name: theParams[1],
           action: theParams[2],
-          runtime: options.runtime || 'nodejs'
+          runtime: options.runtime || 'nodejs',
         };
 
         if (options.lambda) {
@@ -288,6 +274,18 @@ program
     .action(function() {
       var CmdDash = require('../lib/commands/dash');
       execute(CmdDash.run(JAWS));
+    });
+
+/**
+ * Postinstall
+ */
+
+program
+    .command('postinstall <module_name> <package_manager>')
+    .description('Performs automation when an aws-module is installed via a package manager')
+    .action(function(moduleName, packageManager) {
+      var CmdPostInstall = require('../lib/commands/postinstall');
+      execute(CmdPostInstall.run(JAWS, moduleName));
     });
 
 if (process.argv.length == 2) {
