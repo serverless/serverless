@@ -22,11 +22,11 @@ describe('Test deploy resources command', function() {
   before(function(done) {
     testUtils.createTestProject(
         config.name,
-        config.region,
         config.stage,
+        config.region,
+        config.domain,
         config.iamRoleArnLambda,
-        config.iamRoleArnApiGateway,
-        config.usEast1Bucket)
+        config.iamRoleArnApiG)
         .then(function(pp) {
           projPath = pp;
           process.chdir(path.join(projPath));
@@ -40,6 +40,8 @@ describe('Test deploy resources command', function() {
     it('Deploy Resources', function(done) {
 
       this.timeout(0);
+
+      // TODO: Create a resources-cf.json file for test-prj template
 
       CmdDeployResources.run(JAWS, config.stage, config.region)
           .then(function() {
