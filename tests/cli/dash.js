@@ -30,9 +30,7 @@ describe('Test "dash" command', function() {
         config.domain,
         config.iamRoleArnLambda,
         config.iamRoleArnApiGateway,
-        ['aws_modules/jaws-core-js',
-          'aws_modules/bundle/browserify',
-          'aws_modules/bundle/nonoptimized'])
+        ['./'])
         .then(function(pp) {
           projPath = pp;
           process.chdir(projPath);
