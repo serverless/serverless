@@ -24,8 +24,8 @@ describe('AllTests', function() {
    * Tests below create AWS Resources
    */
    //require('./cli/dash');
-   require('./cli/deploy_lambda');
-   //require('./cli/deploy_resources');
+   //require('./cli/deploy_lambda');
+   require('./cli/deploy_resources');
    //require('./cli/deploy_endpoint');
    //require('./cli/new_stage_region');
    //require('./cli/new_project');
