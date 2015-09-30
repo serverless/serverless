@@ -18,10 +18,6 @@ var config = require('../config'),
     projPath,
     JAWS;
 
-var tempStage = 'temp-' + shortid.generate();
-var usEast1Region = 'us-east-1';
-var euWest1Region = 'eu-west-1';
-
 describe('Test "new stage/region" command', function() {
 
   before(function(done) {
@@ -47,14 +43,13 @@ describe('Test "new stage/region" command', function() {
     it('Create New Stage', function(done) {
       this.timeout(0);
 
-      CmdNewStageRegion.run(JAWS, 'stage', tempStage, usEast1Region, config.usEast1Bucket, config.noExecuteCf)
+      CmdNewStageRegion.run(JAWS, 'stage', config.stage2, config.region, config.noExecuteCf)
           .then(function() {
-            var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), '../jaws.json'));
+            var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
             var region = false;
-            for (var i = 0; i < jawsJson.stages[tempStage].length; i++) {
-              var stage = jawsJson.stages[tempStage][i];
-              console.log(jawsJson.stages[tempStage][i]);
-              if (stage.region === usEast1Region) {
+            for (var i = 0; i < jawsJson.stages[config.stage2].length; i++) {
+              var stage = jawsJson.stages[config.stage2][i];
+              if (stage.region === config.region) {
                 region = stage.region;
               }
             }
@@ -72,13 +67,13 @@ describe('Test "new stage/region" command', function() {
     it('Create New region', function(done) {
       this.timeout(0);
 
-      CmdNewStageRegion.run(JAWS, 'region', tempStage, euWest1Region, config.euWest1Bucket, config.noExecuteCf)
+      CmdNewStageRegion.run(JAWS, 'region', config.stage2, config.region2, config.noExecuteCf)
           .then(function() {
-            var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), '../jaws.json'));
+            var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
             var region = false;
-            for (var i = 0; i < jawsJson.stages[tempStage].length; i++) {
-              var stage = jawsJson.stages[tempStage][i];
-              if (stage.region === euWest1Region) {
+            for (var i = 0; i < jawsJson.stages[config.stage2].length; i++) {
+              var stage = jawsJson.stages[config.stage2][i];
+              if (stage.region === config.region2) {
                 region = stage.region;
               }
             }
