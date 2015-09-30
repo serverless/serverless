@@ -288,10 +288,11 @@ program
       execute(CmdPostInstall.run(JAWS, moduleName, packageManager));
     });
 
+program.parse(process.argv);
+
 if (process.argv.length == 2) {
   program.outputHelp();
 } else {
-  program.parse(process.argv);
   if (program.verbose) {
     rawDebug.enable('jaws:*');
   }
