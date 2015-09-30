@@ -105,23 +105,20 @@ program
           throw new JawsError('Please specify awsm resource and action name');
         }
 
-        var theCmd = require('../lib/commands/module_create');
-        var module = {
-          name: theParams[1],
-          action: theParams[2],
-          runtime: options.runtime || 'nodejs',
-          packageManager: options.packageManager || false,
-        };
+        var theCmd = require('../lib/commands/module_create'),
+            name = theParams[1],
+            action = theParams[2],
+            runtime = options.runtime || 'nodejs',
+            createPkgMgrScaffold = options.packageManager || false,
+            modType = 'both';
 
         if (options.lambda) {
-          module.type = 'lambda';
+          modType = 'lambda';
         } else if (options.endpoint) {
-          module.type = 'endpoint';
-        } else {
-          module.type = 'both';
+          modType = 'endpoint';
         }
 
-        execute(theCmd.run(JAWS, module));
+        execute(theCmd.run(JAWS, name, action, runtime, createPkgMgrScaffold, modType));
       } else {
         console.error('Unsupported cmd ' + cmd + '. Must be install|update|create');
         process.exit(1);
