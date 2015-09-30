@@ -27,10 +27,8 @@ describe('Test "deploy lambda" command', function() {
         config.region,
         config.domain,
         config.iamRoleArnLambda,
-        config.iamRoleArnApiGateway,
-        ['aws_modules/jaws-core-js',
-          'aws_modules/bundle',
-        ])
+        config.iamRoleArnApiG,
+        ['./'])
         .then(function(pp) {
           projPath = pp;
           process.chdir(projPath);
