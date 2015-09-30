@@ -16,7 +16,7 @@
     "aaStage": {
       "Type": "String"
     },
-    "aaDataModelPrefix": {
+    "aaDataModelStage": {
       "Type": "String"
     },
     "aaNotficationEmail": {
