@@ -4,7 +4,7 @@
 
 Create a project, a project region or a project stage using the `new` commands.
 
-* ##### `$ jaws new project`
+* ##### `$ jaws project create`
   * Makes a new JAWS project by generating scaffolding in the current working directory.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
     * Walks the user through the following prompts asking for their AWS credentials/profile and their project specifications
     * Creates a CloudFormation Stack for the user’s first stage, which creates an IAM Group and a staged IAM Role for that IAM Group
@@ -12,11 +12,11 @@ Create a project, a project region or a project stage using the `new` commands.
     * Creates an AWS API Gateway REST API for the project
     * Creates environment var file in the s3 bucket (created if DNE) for the initial stage. [Why S3?](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-do-you-use-an-s3-bucket-to-store-env-vars)
 
-* ##### `$ jaws new region`
+* ##### `$ jaws region create`
 
   * Creates new region in existing project.  By default executes CloudFormation to make one stage in new region.
 
-* ##### `$ jaws new stage`
+* ##### `$ jaws stage create`
 
   * Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 

@@ -8,7 +8,7 @@
 
 var Jaws = require('../../lib/index.js'),
     JawsError = require('../../lib/jaws-error'),
-    theCmd = require('../../lib/commands/new_project'),
+    theCmd = require('../../lib/commands/project_new'),
     path = require('path'),
     os = require('os'),
     utils = require('../../lib/utils'),
