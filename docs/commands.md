@@ -15,6 +15,11 @@ All commands support the -h/--help option to see full usage and examples
  * Creates one or both of the following in the `aws_modules` folder. Default is to create both:
   * A lambda function in the `aws_modules` folder with basic scaffolding.
   * An API gateway configuration
+  
+* ##### aws module installation and update
+  
+  * We leverage the most popualar package manager for the runtime and utilize a post-install hook to jaws stuff.  For example in nodejs: `npm install awsm-images --save`. See [awsm-org](https://github.com/awsm-org/awsm) for more info.
+ 
 * ##### `$ jaws region create`
 
   * Creates new region in existing project.  By default executes CloudFormation to make one stage in new region.
@@ -22,10 +27,6 @@ All commands support the -h/--help option to see full usage and examples
 * ##### `$ jaws stage create`
 
   * Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
-
-*  ##### aws module installation and update
-  
- * We leverage the most popualar package manager for the runtime and utilize a post-install hook to jaws stuff.  For example in nodejs: `npm install awsm-images --save`
 
 ### Dash Commands
 
