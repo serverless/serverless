@@ -36,7 +36,7 @@ Create a feature branch and start hacking:
 $ git checkout -b my-feature-branch -t origin/master
 ```
 
-### Step 3: Setup code editor to enforce coding sytles
+### Step 3: Setup code editor to enforce coding styles
 
 We use [Airbnb javascript](https://github.com/airbnb/javascript) guide as our base. `.jshintrc` and `.jsbeautifyrc` are included in repo.  [JSCS module](http://jscs.info/overview.html) is a handy way to easily configure airbnb.  Here is a [simple guide](http://geek.bluemangointeractive.com/how-to-get-airbnbs-javascript-code-style-working-in-webstorm/) for webstorm configuration.
 
