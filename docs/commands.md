@@ -4,7 +4,10 @@ All commands support the -h/--help option to see full usage and examples
 
 ### Project Commands
 
+Commands that deal with JAWS projects
+
 * ##### `$ jaws project create`
+
   * Makes a new JAWS project by generating scaffolding in the current working directory.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
     * Walks the user through the following prompts asking for their AWS credentials/profile and their project specifications
     * Creates a CloudFormation Stack for the user’s first stage, which creates an IAM Group and a staged IAM Role for that IAM Group
@@ -24,7 +27,7 @@ Commands that interact with [aws modules](https://github.com/awsm-org/awsm) (aws
   
 * ##### aws module installation and update
   
-  * We leverage the most popualar package manager for the runtime and utilize a post-install hook to jaws stuff.  For example in nodejs: `npm install awsm-images --save`. See [awsm-org](https://github.com/awsm-org/awsm) for more info.
+  * We leverage the most popualar package manager for the runtime and utilize a post-install hook to JAWS stuff.  For example in nodejs: `npm install awsm-images --save`. See [awsm-org](https://github.com/awsm-org/awsm) for more info.
  
 ### Region Commands
 
