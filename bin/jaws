@@ -342,6 +342,12 @@ program
       execute(CmdPostInstall.run(JAWS, moduleName, packageManager));
     });
 
+program
+    .command('*')
+    .action(function(cmd){
+      console.error('Unknown command:', cmd);
+    });
+
 program.parse(process.argv);
 
 if (process.argv.length == 2) {
