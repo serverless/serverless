@@ -10,6 +10,11 @@ All commands support the -h/--help option to see full usage and examples
     * Creates an AWS API Gateway REST API for the project
     * Creates environment var file in the s3 bucket for the initial stage and region. [Why S3?](./FAQ.md#why-do-you-use-an-s3-bucket-to-store-env-vars)
 
+* ##### `$ jaws module create`
+
+ * Creates one or both of the following in the `aws_modules` folder. Default is to create both:
+  * A lambda function in the `aws_modules` folder with basic scaffolding.
+  * An API gateway configuration
 * ##### `$ jaws region create`
 
   * Creates new region in existing project.  By default executes CloudFormation to make one stage in new region.
@@ -17,12 +22,6 @@ All commands support the -h/--help option to see full usage and examples
 * ##### `$ jaws stage create`
 
   * Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
-
-* ##### `$ jaws module create`
-
- * Creates one or both of the following in the `aws_modules` folder. Default is to create both:
-  * A lambda function in the `aws_modules` folder with basic scaffolding.
-  * An API gateway configuration
 
 *  ##### aws module installation and update
   
