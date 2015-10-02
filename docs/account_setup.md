@@ -1,3 +1,5 @@
+# Quick start account setup
+
 ###### AWS Free Tier
 
 AWS gives you a ton of free resources whenever you create a new AWS account.  This is called the free tier.  It includes a massive allowance of free Lambda Requests, DynamoDB tables, S3 storage, and more.
