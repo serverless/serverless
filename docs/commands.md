@@ -81,6 +81,12 @@ Non-interactive way (dash alternative) to deploy lambda|endpoint|resources from 
 
  * Deploys lambda|endpoint|resources 
 
+### Run Commands
 
+Way to test your lambda locally.  We highly recommend pushing your logic out of handler code, and utlize the runtimes testing framework (like mocha for nodejs).
+
+* ##### `$ jaws run`
+
+ * Must be run within a lambda dir.  Executes the `event.json` in CWD.
 
 
