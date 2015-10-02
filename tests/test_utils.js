@@ -22,16 +22,16 @@ var fs = require('fs'),
  */
 
 module.exports.createTestProject = function(projectName,
-                                            projectRegion,
                                             projectStage,
+                                            projectRegion,
+                                            projectDomain,
                                             projectLambdaIAMRole,
                                             projectApiGIAMRole,
-                                            projectRegionBucket,
                                             npmInstallDirs) {
   // Create Test Project
   var tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
 
-  utils.jawsDebug('test_utils', 'Creating test proj in ' + tmpProjectPath + '\n');
+  utils.jawsDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
   if (fs.existsSync(tmpProjectPath)) {
     return Promise.reject(new JawsError('Temp dir ' + tmpProjectPath + ' already exists'));
@@ -55,14 +55,14 @@ module.exports.createTestProject = function(projectName,
       ])
       .then(function() {
         projectJSON.name = projectName;
+        projectJSON.domain = projectDomain;
         projectJSON.stages = {};
         projectJSON.stages[projectStage] = [{
           region: projectRegion,
           iamRoleArnLambda: projectLambdaIAMRole,
           iamRoleArnApiGateway: projectApiGIAMRole,
+          jawsBucket: utils.generateJawsBucketName(projectStage, projectRegion, projectDomain),
         },];
-        projectJSON.jawsBuckets = {};
-        projectJSON.jawsBuckets[projectRegion] = projectRegionBucket;
 
         fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
         fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), 'ADMIN_AWS_PROFILE=' + process.env.TEST_JAWS_PROFILE);
@@ -72,6 +72,7 @@ module.exports.createTestProject = function(projectName,
         if (npmInstallDirs) {
           npmInstallDirs.forEach(function(dir) {
             var fullPath = path.join(tmpProjectPath, dir);
+            console.log(fullPath);
             utils.jawsDebug('test_utils', 'Running NPM install on ' + fullPath);
             utils.npmInstall(fullPath);
           });

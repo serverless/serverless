@@ -1,16 +1,17 @@
 {
   "name": "",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "A JAWS application",
+  "author": "me",
   "license": "",
+  "private": false,
   "repository": {
     "type": "git",
     "url": "git://github.com/"
   },
-  "keywords": [
-  ],
-  "devDependencies": {
-  },
-  "dependencies": {}
+  "keywords": [],
+  "devDependencies": {},
+  "dependencies": {
+    "jaws-core-js": "~0.0.2"
+  }
 }

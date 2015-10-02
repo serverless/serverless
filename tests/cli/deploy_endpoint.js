@@ -21,21 +21,21 @@ describe('Test deploy endpoint command', function() {
 
   before(function(done) {
     testUtils.createTestProject(
-            config.name,
-            config.region,
-            config.stage,
-            config.iamRoleArnLambda,
-            config.iamRoleArnApiGateway,
-            config.usEast1Bucket)
+        config.name,
+        config.stage,
+        config.region,
+        config.domain,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiGateway)
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'back/aws_modules/sessions/show'));
+          process.chdir(path.join(projPath, 'aws_modules/sessions/show'));
           JAWS = new Jaws();
 
           // Get Lambda Paths
-          lambdaPaths.lambda1 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'show', 'awsm.json');
-          lambdaPaths.lambda2 = path.join(projPath, 'back', 'aws_modules', 'sessions', 'create', 'awsm.json');
-          lambdaPaths.lambda3 = path.join(projPath, 'back', 'aws_modules', 'users', 'create', 'awsm.json');
+          lambdaPaths.lambda1 = path.join(projPath, 'aws_modules', 'sessions', 'show', 'awsm.json');
+          lambdaPaths.lambda2 = path.join(projPath, 'aws_modules', 'sessions', 'create', 'awsm.json');
+          lambdaPaths.lambda3 = path.join(projPath, 'aws_modules', 'users', 'create', 'awsm.json');
         })
         .then(function() {
           CmdTag.tagAll(JAWS, 'endpoint', false);

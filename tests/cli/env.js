@@ -18,15 +18,15 @@ describe('Test "env" command', function() {
 
   before(function(done) {
     testUtils.createTestProject(
-            config.name,
-            config.region,
-            config.stage,
-            config.iamRoleArnLambda,
-            config.iamRoleArnApiGateway,
-            config.usEast1Bucket)
+        config.name,
+        config.stage,
+        config.region,
+        config.domain,
+        config.iamRoleArnLambda,
+        config.iamRoleArnApiGateway)
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'back', 'aws_modules', 'sessions', 'show'));
+          process.chdir(path.join(projPath, 'aws_modules', 'sessions', 'show'));
           JAWS = new Jaws();
           done();
         });
