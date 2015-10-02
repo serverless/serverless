@@ -17,7 +17,7 @@ Commands that deal with JAWS projects
 
 ### Module Commands
 
-Commands that interact with [aws modules](https://github.com/awsm-org/awsm) (awsm)
+Commands that interact with [aws modules](./aws_modules.md) (awsm)
 
 * ##### `$ jaws module create`
 
@@ -27,7 +27,7 @@ Commands that interact with [aws modules](https://github.com/awsm-org/awsm) (aws
   
 * ##### aws module installation and update
   
-  * We leverage the most popualar package manager for the runtime and utilize a post-install hook to JAWS stuff.  For example in nodejs: `npm install awsm-images --save`. See [awsm-org](https://github.com/awsm-org/awsm) for more info.
+  * We leverage the most popualar package manager for the runtime and utilize a post-install hook to JAWS stuff.  For example in nodejs: `npm install awsm-images --save`. See [awsm-org](./aws_modules.md) for more info.
  
 ### Region Commands
 
