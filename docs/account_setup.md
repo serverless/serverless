@@ -8,7 +8,7 @@ Before building JAWS apps, we strongly recommend starting with a fresh AWS accou
 
 ###### Create An Administrative IAM User
 
-We're going to create an admin User which can access and configure all services in your AWS account.  Part of what JAWS does is automate AWS tasks for you (e.g., upload and create lambda functions), but JAWS needs *Admin* access to your AWS account to perform these automations.  **Note:** this is not a recommended in any sort of real environment, but will get you up and going quick.  For guidelines please refer to our [best practices](https://github.com/jaws-stack/JAWS/wiki/v1:best-practices) wiki page.
+We're going to create an admin User which can access and configure all services in your AWS account.  Part of what JAWS does is automate AWS tasks for you (e.g., upload and create lambda functions), but JAWS needs *Admin* access to your AWS account to perform these automations.  **Note:** this is not a recommended in any sort of real environment, but will get you up and going quick.  For guidelines please refer to our [best practices](./best_practices.md).
 
 * Create or login to your Amazon Web Services Account and go the the Identity & Access Management (IAM) Page.
 
@@ -29,5 +29,5 @@ And put the following in `~/.aws/config`:
 region = us-east-1
 ```
 
-* In the User record in the AWS IAM Dashboard, look for *Managed Policies* and click *Attach Policy*.  In the next screen, search for and select *AdministratorAccess* then click *Attach*. **NOTE**: this is not a good security policy - it is only intended to get you up and going.  Please read our [best practices](https://github.com/jaws-framework/JAWS/wiki/v1:best-practices#security) for how this should be done in production.
+* In the User record in the AWS IAM Dashboard, look for *Managed Policies* and click *Attach Policy*.  In the next screen, search for and select *AdministratorAccess* then click *Attach*. **NOTE**: this is not a good security policy - it is only intended to get you up and going.  Please read our [best practices](./best_practices.md#security) for how this should be done in production.
 

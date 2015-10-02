@@ -54,7 +54,7 @@ templates should utilize via `Ref`.  Note: `aa` is used so they show up at top o
 * `aaHostedZone`
 * `aaStage`
 * `aaProjectName`
-* `aaDataModelStage` [what's this?](https://github.com/jaws-framework/JAWS/wiki/v1:best-practices#cloud-formation-segmentation)
+* `aaDataModelStage` [what's this?](./best_practices.md#cloud-formation-segmentation)
 * `aaNotficationEmail`
 * `aaDefaultDynamoRWThroughput`
 

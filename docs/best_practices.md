@@ -2,7 +2,7 @@
 
 When using services (like DynamoDB) make sure to initialize outside of your lambda code. Ex: module initializer (for Node), or to a static constructor (for Java).  Here is an example for [nodejs](https://gist.github.com/paulspringett/ec6d3df65e977342d6ea).  If you initiate a connection to DDB inside the Lambda function, that code will run on every invoke,
 
-It is also very important to keep your codebase as small as possible and your code path lean as possible.  See [why optimize code before deployment](https://github.com/jaws-framework/JAWS/wiki/FAQ#why-optimize-code-before-deployment) for more info.
+It is also very important to keep your codebase as small as possible and your code path lean as possible.  See [why optimize code before deployment](./FAQ.md#why-optimize-code-before-deployment) for more info.
 
 # Security
 
