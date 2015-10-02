@@ -28,7 +28,7 @@ program
 
 program
     .command('project <cmd>')
-    .description('Create a new JAWS Project. Valid <cmd>\'s: create')
+    .description('Work with JAWS Project. Valid <cmd>\'s: create')
     .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it')
     .option('-s, --stage <name>', 'Name for the stage to create')
     .option('-r, --region <name>', 'Name of AWS region to use')
