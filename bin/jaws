@@ -81,7 +81,7 @@ program
           var theCmd = require('../lib/commands/new_stage_region');
           execute(theCmd.run(
               JAWS,
-              cmd,
+              'region',
               options.stage,
               options.region,
               options.dontExeCf
@@ -114,7 +114,7 @@ program
           var theCmd = require('../lib/commands/new_stage_region');
           execute(theCmd.run(
               JAWS,
-              cmd,
+              'stage',
               options.stage,
               options.region,
               options.dontExeCf
