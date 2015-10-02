@@ -1,8 +1,6 @@
 # JAWS: CLI Commands
 
-### New Commands
-
-Create a project, a project region or a project stage using the `new` commands.
+All commands support the -h/--help option to see full usage and examples
 
 * ##### `$ jaws project create`
   * Makes a new JAWS project by generating scaffolding in the current working directory.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
@@ -10,7 +8,7 @@ Create a project, a project region or a project stage using the `new` commands.
     * Creates a CloudFormation Stack for the user’s first stage, which creates an IAM Group and a staged IAM Role for that IAM Group
     * Creates all project scaffolding in current working directory
     * Creates an AWS API Gateway REST API for the project
-    * Creates environment var file in the s3 bucket (created during `jaws project create`) initial stage and region. [Why S3?](./FAQ.md#why-do-you-use-an-s3-bucket-to-store-env-vars)
+    * Creates environment var file in the s3 bucket for the initial stage and region. [Why S3?](./FAQ.md#why-do-you-use-an-s3-bucket-to-store-env-vars)
 
 * ##### `$ jaws region create`
 
@@ -20,21 +18,15 @@ Create a project, a project region or a project stage using the `new` commands.
 
   * Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
-### Module Commands
-
 * ##### `$ jaws module create`
 
  * Creates one or both of the following in the `aws_modules` folder. Default is to create both:
   * A lambda function in the `aws_modules` folder with basic scaffolding.
   * An API gateway configuration
 
-* ##### `$ jaws module install`
-
- * Download and installs an awsm from github to the `aws_modules` dir.  By default installs module dependencies (if any)
-
-* ##### `$ jaws module update`
-
- * Updates an existing awsm in the `aws_modules` dir. By default installs module dependencies (if any)
+*  ##### aws module installation and update
+  
+ * We leverage the most popualar package manager for the runtime and utilize a post-install hook to jaws stuff.  For example in nodejs: `npm install awsm-images --save`
 
 ### Dash Commands
 
@@ -46,40 +38,35 @@ Deploy your lambdas and endpoints using the JAWS dashboard.
 
 ### ENV Commands
 
-Modeled after Heroku's environment variable commands, these commands manage environment variable files for all stages.  There is a reserved stage `local` which stores the env var file in `.env`.  Otherwise they are stored is s3 at `s3://<projjaws.json:envVarBucket.name>/JAWS/envVars/<projectName>/<stage>`
+Modeled after Heroku's environment variable commands, these commands manage environment variable files for all stages and regions.  There is a reserved stage `local` which stores the env var file in `.env`.  Otherwise they are stored is s3 at `s3://<jaws.json:stages[stage][region].jawsBucket>/JAWS/<projectName>/<stage>/envVars/.env`
 
-* ##### `$ jaws env list`
+* ##### `$ jaws env list <stage> <region>`
 
- * List all env vars for given stage. Will display env vars that each jaws-module uses and indicate env vars that are not yet set.
+ * List all env vars for given stage and region (or all regions for stage). Will display env vars that each jaws-module uses and indicate env vars that are not yet set.
 
-* ##### `$ jaws env get`
+* ##### `$ jaws env get <stage> <region> <key>`
 
- * Get the value for a specific key.
+ * Get the value for a specific key in stage and region (or all regions for stage).
 
-* ##### `$ jaws env set`
+* ##### `$ jaws env set <stage> <region> <key> <val>`
 
- * Set the value for a specific key.
+ * Set the value for a specific key in stage and region (or all regions for stage)..
 
-* ##### `$ jaws env unset`
+* ##### `$ jaws env unset <stage> <region> <key>`
 
- * Unset the value for a specific key.
+ * Unset the value for a specific key in stage and region (or all regions for stage)..
 
 ### Tag Commands
 
-Non-interactive way (dash alternative) to indicate which (or all) labmda|endpoint changes to deploy when the `jaws deploy` command is run.
-
-* ##### `$ jaws tag <type>`
-
- * Takes `lambda | endpoint` as type
- * Tags current workign directory for deployment.
+depricated per https://github.com/jaws-framework/JAWS/issues/164
 
 ### Deploy Commands
 
-Non-interactive way (dash alternative) to deploy lambda|endpoint resources that have been `jaws tag`.  If `jaws deploy` is run from a lambda dir (has `lambda` attr defined in its `jaws.json`) it will automatically tag and then deploy.
+Non-interactive way (dash alternative) to deploy lambda|endpoint|resources from lambda CWD.
 
 * ##### `$ jaws deploy`
 
- * Deploys tagged resources 
+ * Deploys lambda|endpoint|resources 
 
 
 
