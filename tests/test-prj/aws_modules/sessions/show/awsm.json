@@ -48,6 +48,7 @@
         "default": {
           "statusCode": "200",
           "responseParameters": {},
+          "responseModels": {},
           "responseTemplates": {
             "application/json": ""
           }
