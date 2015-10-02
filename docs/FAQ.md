@@ -1,6 +1,6 @@
 ## Why do you use an S3 bucket to store env vars?
 
-You never want to store your service keys / credentials in version control.  IAM policies for S3 allow for fine grain access control.  You only give access to the bucket that contains env vars to people with authority to deploy code.  See the [`jaws env`](https://github.com/jaws-framework/JAWS/blob/v1.0-docs/docs/commands.md#jaws-env) command for more information
+You never want to store your service keys / credentials in version control.  IAM policies for S3 allow for fine grain access control.  You only give access to the bucket that contains env vars to people with authority to deploy code.  See the [`jaws env`](./commands.md#env-commands) command for more information
 
 ## Why optimize code before deployment?
 
