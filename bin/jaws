@@ -4,6 +4,7 @@
 
 var JawsError = require('../lib/jaws-error'),
     Jaws = require('../lib/index.js'),
+    JawsCLI = require('../lib/utils/cli.js'),
     program = require('commander'),
     utils = require('../lib/utils'),
     Promise = require('bluebird'),
@@ -21,54 +22,107 @@ program
     .version(JAWS._meta.version);
 
 /**
- * New
- * - Create a new project|stage|region
+ * Project
+ * - Create a new JAWS Project
  */
 
 program
-    .command('new <cmd>')
-    .description('new project, stage and region commands\n\nValid <cmd>\'s:' +
-        '\n\nproject: create new JAWS project in CWD.' +
-        '\n\t Ex: jaws new project' +
-        '\n\nstage: create new stage in existing region' +
-        '\n\t Ex: jaws new stage dev' +
-        '\n\nregion: create new region for given stage' +
-        '\n\t Ex: jaws new region dev'
-    )
-    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it.')
-    .option('-r, --region <name>', 'name of aws region to use')
-    .option('-u, --domain <name>', '[project] only: domain')
-    .option('-n, --proj-name <name>', '[project] only: name for new project')
-    .option('-s, --stage <name>', '[project] only: same of stage for new project')
-    .option('-e, --email <email>', '[project] only: notification email to use in CloudFormation')
-    .option('-p, --aws-profile <profileName>', '[project] only: Admin AWS profile as defined in ~/.aws/credentials to use')
+    .command('project <cmd>')
+    .description('Create a new JAWS Project. Valid <cmd>\'s: create')
+    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it')
+    .option('-s, --stage <name>', 'Name for the stage to create')
+    .option('-r, --region <name>', 'Name of AWS region to use')
+    .option('-u, --domain <name>', 'domain ex: myapp.com')
+    .option('-n, --proj-name <name>', 'Name for the new project')
+    .option('-e, --email <email>', 'Notification email to use in CloudFormation')
+    .option('-p, --aws-profile <profileName>', 'Admin AWS profile as defined in ~/.aws/credentials to use')
     .action(function(cmd, options) {
 
-      if (cmd == 'project') {
-        var CmdNewProject = require('../lib/commands/new_project');
-        execute(CmdNewProject.run(
-            options.projName,
-            options.stage ? options.stage.toLowerCase() : null,
-            options.region,
-            options.domain,
-            options.email,
-            options.awsProfile,
-            options.dontExeCf
-        ));
+      if (!JawsCLI.validateCmd(cmd, ['create'])) process.exit(1);
 
-      } else if (cmd == 'region' || cmd == 'stage') {
+      switch (cmd){
+        case 'create':
+          var theCmd = require('../lib/commands/project_new');
+          execute(theCmd.run(
+                options.projName,
+                options.stage ? options.stage.toLowerCase() : null,
+                options.region,
+                options.domain,
+                options.email,
+                options.awsProfile,
+                options.dontExeCf
+          ));
+          break;
+        default:
+          console.error('Something went very wrong. :O');
+          process.exit(1);
+      }
 
-        var CmdNewStageRegion = require('../lib/commands/new_stage_region');
-        execute(CmdNewStageRegion.run(
-            JAWS,
-            cmd,
-            options.stage,
-            options.region,
-            options.dontExeCf
-        ));
-      } else {
-        console.error('Unsupported cmd ' + cmd + '. Must be project|stage|region');
-        process.exit(1);
+    });
+
+/**
+ * Region
+ * - Create a new JAWS Region in the Current Project
+ */
+
+program
+    .command('region <cmd>')
+    .description('Work with AWS Regions. Valid <cmd>\'s: create')
+    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it')
+    .option('-s, --stage <name>', 'Name for the stage to be created in the region')
+    .option('-r, --region <name>', 'Name of AWS region to use')
+    .option('-p, --aws-profile <profileName>', 'Admin AWS profile as defined in ~/.aws/credentials to use')
+    .action(function(cmd, options) {
+
+      if (!JawsCLI.validateCmd(cmd, ['create'])) process.exit(1);
+
+      switch (cmd){
+        case 'create':
+          var theCmd = require('../lib/commands/new_stage_region');
+          execute(theCmd.run(
+              JAWS,
+              cmd,
+              options.stage,
+              options.region,
+              options.dontExeCf
+          ));
+          break;
+        default:
+          console.error('Something went very wrong. :O');
+          process.exit(1);
+      }
+    });
+
+/**
+ * Stage
+ * - Create a new JAWS Stage in the Current Project
+ */
+
+program
+    .command('stage <cmd>')
+    .description('Work with JAWS stages in a region. Valid <cmd>\'s: create')
+    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it')
+    .option('-s, --stage <name>', 'Name for the stage create')
+    .option('-r, --region <name>', 'Name of aws region to use')
+    .option('-p, --aws-profile <profileName>', 'Admin AWS profile as defined in ~/.aws/credentials to use')
+    .action(function(cmd, options) {
+
+      if (!JawsCLI.validateCmd(cmd, ['create'])) process.exit(1);
+
+      switch (cmd){
+        case 'create':
+          var theCmd = require('../lib/commands/new_stage_region');
+          execute(theCmd.run(
+              JAWS,
+              cmd,
+              options.stage,
+              options.region,
+              options.dontExeCf
+          ));
+          break;
+        default:
+          console.error('Something went very wrong. :O');
+          process.exit(1);
       }
     });
 
@@ -82,7 +136,7 @@ program
 
 program
     .command('module <cmd> [params]')
-    .description('aws-module commands\n\nValid <cmd>\'s:' +
+    .description('aws-module commands\n\nValid <cmd>\'s: create' +
         '\n\ncreate: create aws-module action. Module will be created if DNE. create <module resource> <action>' +
         '\n\t Ex: jaws module create users list'
     )

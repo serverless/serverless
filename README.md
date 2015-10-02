@@ -37,7 +37,7 @@ JAWS is a 100% free and open-source framework for building serverless applicatio
 
 *  ```$ npm install jaws-framework -g```
 
-*  ```$ jaws new project```
+*  ```$ jaws project create```
 
  **Note:** We recommend camelCase for project names. [Why?](https://github.com/jaws-framework/JAWS/wiki/Best-practices#project-names)
 
