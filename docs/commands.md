@@ -2,6 +2,8 @@
 
 All commands support the -h/--help option to see full usage and examples
 
+### Project Commands
+
 * ##### `$ jaws project create`
   * Makes a new JAWS project by generating scaffolding in the current working directory.  The new command by default creates resources (like IAM roles) in AWS via CloudFormation.
     * Walks the user through the following prompts asking for their AWS credentials/profile and their project specifications
@@ -9,6 +11,10 @@ All commands support the -h/--help option to see full usage and examples
     * Creates all project scaffolding in current working directory
     * Creates an AWS API Gateway REST API for the project
     * Creates environment var file in the s3 bucket for the initial stage and region. [Why S3?](./FAQ.md#why-do-you-use-an-s3-bucket-to-store-env-vars)
+
+### Module Commands
+
+Commands that interact with [aws modules](https://github.com/awsm-org/awsm) (awsm)
 
 * ##### `$ jaws module create`
 
@@ -20,9 +26,13 @@ All commands support the -h/--help option to see full usage and examples
   
   * We leverage the most popualar package manager for the runtime and utilize a post-install hook to jaws stuff.  For example in nodejs: `npm install awsm-images --save`. See [awsm-org](https://github.com/awsm-org/awsm) for more info.
  
+### Region Commands
+
 * ##### `$ jaws region create`
 
   * Creates new region in existing project.  By default executes CloudFormation to make one stage in new region.
+
+### Stage Commands
 
 * ##### `$ jaws stage create`
 
@@ -64,7 +74,7 @@ depricated per https://github.com/jaws-framework/JAWS/issues/164
 
 Non-interactive way (dash alternative) to deploy lambda|endpoint|resources from lambda CWD.
 
-* ##### `$ jaws deploy`
+* ##### `$ jaws deploy <type> [stage] [region]`
 
  * Deploys lambda|endpoint|resources 
 
