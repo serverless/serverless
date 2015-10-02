@@ -143,7 +143,7 @@ program
     .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
     .option('-r, --runtime', '[create]: lambda runtime. Valid: nodejs')
-    .option('-p, --package-manager <pm>', '[create]: override default pkg manager used when auto-creating scaffolding. Valid: TODO. Defaults: nodejs->npm, ')
+    .option('-p, --package-manager <pm>', '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
     .action(function(cmd, params, options) {
 
       var theParams = process.argv.slice(3);
@@ -164,7 +164,7 @@ program
             name = theParams[1],
             action = theParams[2],
             runtime = options.runtime || 'nodejs',
-            pkgMgrOverride = options.packageManager || false,
+            pkgMgr = options.packageManager || false,
             modType = 'both';
 
         if (options.lambda) {
@@ -173,7 +173,7 @@ program
           modType = 'endpoint';
         }
 
-        execute(theCmd.run(JAWS, name, action, runtime, pkgMgrOverride, modType));
+        execute(theCmd.run(JAWS, name, action, runtime, pkgMgr, modType));
       } else {
         console.error('Unsupported cmd ' + cmd + '. Must be install|update|create');
         process.exit(1);

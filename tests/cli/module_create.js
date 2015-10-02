@@ -44,10 +44,11 @@ describe('Test "new module" command', function() {
         type: 'both',
         name: 'users',
         action: 'list',
-        runtime: 'nodejs'
+        runtime: 'nodejs',
+        pkgMgr: false,
       };
 
-      CmdNewAction.run(JAWS, module)
+      CmdNewAction.run(JAWS, module.name, module.action, module.runtime, module.pkgMgr, module.type)
           .then(function() {
             var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/list/awsm.json'));
             assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
