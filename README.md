@@ -43,13 +43,13 @@ JAWS is a 100% free and open-source framework for building serverless applicatio
 
 *  ```$ cd <new-project-name>```
 
-*  ```$ jaws module create users list```
+*  ```$ jaws module create greetings hello```
 
 * ```$ jaws dash```
 
 This will create a new jaws project, create a lambda function with an API Gateway endpoint, which you can immediately deploy via
 `jaws dash`.  After deployment is complete, you will be given a url.  In the above example, you can access your
-deployed lambda at `your_url/users/list`.
+deployed lambda at `your_url/greetings/hello`.
 
 ## Overview:
 
