@@ -94,7 +94,7 @@ With the following steps, you can install the module in your project after which
 
 * Run `npm link <module-name>` to create a link in your project's `/node_modules` directory to the globally-installed link.
 
-* Run `jaws postinstall <module-name> npm` to execute the `postinstall` command (since `npm link` does not trigger the `postinstall` script).
+* Run `jaws postinstall <module-name> npm` to execute the `postinstall` command (since `npm link` skips the `postinstall` script).
 
 Now your module is installed!
 
