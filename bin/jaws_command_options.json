@@ -97,6 +97,11 @@
             "type": "boolean",
             "alias": "t",
             "description": "Deploy all tagged lambdas|endpoints in the project. The default is to deploy the current working directory only."
+        },
+        "template": {
+            "type": "string",
+            "alias": "T",
+            "description": "The template to use for your new AWSM Lambda function"
         }
     },
     "commands": {
@@ -109,7 +114,7 @@
             "sub": {
                 "lambda": {
                     "description": "Create a new AWSM Lambda. Optionally create an API Gateway endpoint for it at the same time.",
-                    "options": ["name", "endpoint", "runtime", "package-manager"], 
+                    "options": ["name", "endpoint", "runtime", "package-manager", "template"], 
                     "run":  "createLambda"
                 },
                 "endpoint": {

@@ -72,8 +72,17 @@ exports.createLambda = function(cmd){
   if (cmd.options.endpoint) {
     modType = 'both'
   }
+   var name = cmd.options.name || cmd.positional[0];
+  if (!name) {
+    console.log('What would you like me to call it?');
+    process.exit(1);
+  }
+  var action = cmd.options.action || cmd.positional[1];
+  if (!action) {
+    console.log('I need a surname too. It could be something like get, list, post, create - something active!');
+    process.exit(1);
+  }
   createAPILambda(modType, cmd);
-
 }
 
 exports.createEndpoint = function(cmd) {
@@ -81,19 +90,22 @@ exports.createEndpoint = function(cmd) {
 }
 
 function createAPILambda (modType, cmd) {
-    var theCmd = require('../lib/commands/module_create');
+  var theCmd = require('../lib/commands/module_create');
   var name = cmd.options.name || cmd.positional[0];
+  var action = cmd.options.action || cmd.positional[1];
   var pkgMgr = cmd.options['package-manager'];
   var runtime = cmd.options.runtime || 'nodejs';
+  var template = cmd.options.template;
 
     execute(
       theCmd.run(
         JAWS, 
         name, 
-        'create', 
+        action, 
         runtime, 
         pkgMgr, 
-        modType));
+        modType,
+        template));
 }
 
 exports.tagLambdas = function (cmd) {
