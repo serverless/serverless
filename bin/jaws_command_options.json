@@ -1,0 +1,200 @@
+{
+    "description": "The JAWS Command line client. Run: jaws help <command> for help with a specific command.",
+    "options": {
+        "verbose":  {
+            "type": "boolean",
+            "alias": "v",
+            "description": "be verbose",
+            "default": false,
+            "env": "VERBOSE"
+        },
+        "dont-exe-cf": {
+            "type": "boolean",
+            "description": "Write the CloudFormation configuration only - do not execute it.",
+            "alias": "d",
+            "default": false,
+            "env": "JAWS_DONT_EXE_CF"
+        },
+        "name": {
+            "type": "string",
+            "description": "Name for the newly created resource"
+        },
+        "endpoint": {
+            "type": "string",
+            "alias": "e",
+            "description": "Create an API Gateway endpoint for this AWSM Lambda"
+        },
+        "runtime": {
+            "type": "string",
+            "alias": "R",
+            "description": "Runtime for this AWSM Lambda. Defaults to nodejs",
+            "default" : "nodejs"
+            },
+        "package-manager": {
+            "type": "string",
+            "alias": "p",
+            "default": "npm",
+            "description": "Specify a package manager to scaffold for publishing this AWSM Lambda"
+        },
+        "domain": {
+            "type": "string",
+            "alias": "u",
+            "description": "Application Namespace, for example: myapp.com"
+        }, 
+        "email": {
+            "type": "string",
+            "alias": "e",
+            "description": "Email address to receive CloudFormation notifications"
+        },
+        "aws-profile": {
+            "type": "string",
+            "alias": "p",
+            "description": "Named AWS admin profile to use from ~/.aws/credentials"
+        },
+        "stage": {
+            "type": "string",
+            "alias": "s",
+            "description": "Name of the stage"
+            },
+        "region": {
+            "type": "string",
+            "alias": "r",
+            "description": "Name of the AWS Region"
+        },
+        "untag" : {
+            "description":"Untag this lambda|endpoint for deployment",
+            "type":"boolean",
+            "alias":"u"
+        },
+        "tag-all": {
+            "description":"Tag all lambdas|endpoints in this project for deployment",
+            "type":"boolean",
+            "alias":"a"
+        },
+        "list-all": {
+            "description":"List all lambdas|endpoints tagged for deployment in this project",
+            "type":"boolean",
+            "alias":"l"
+        },
+        "untag-all" : {
+            "description":"Untag all lambdas|endpoints in this project for deployment",
+            "type":"boolean",
+            "alias":"n"
+        },
+        "endpoints" :{
+            "type": "boolean",
+            "default": false,
+            "alias": "E",
+            "description": "API Gateway Endpoints only"
+        },
+        "lambdas": {
+            "type": "boolean",
+            "alias": "L",
+            "default": true,
+            "description": "Lambdas only"
+        },
+        "tagged": {
+            "type": "boolean",
+            "alias": "t",
+            "description": "Deploy all tagged lambdas|endpoints in the project. The default is to deploy the current working directory only."
+        }
+    },
+    "commands": {
+        "run":{
+            "description" : "Run an AWSM Lambda locally",
+            "run": "run"
+        },
+        "create":{
+            "description" : "Create a new JAWS resource.",
+            "sub": {
+                "lambda": {
+                    "description": "Create a new AWSM Lambda. Optionally create an API Gateway endpoint for it at the same time.",
+                    "options": ["name", "endpoint", "runtime", "package-manager"], 
+                    "run":  "createLambda"
+                },
+                "endpoint": {
+                    "description": "Create a new API Gateway endpoint.",
+                    "options": ["name", "endpoint", "runtime", "package-manager"], 
+                    "run":  "createEndpoint"
+                },  
+                "project" : {
+                    "description": "Create a new JAWS Project",
+                    "options" : ["name", "stage", "region", "domain", "email", "aws-profile"],
+                    "run": "createProject"
+                },
+                "region" : {
+                    "description": "Create a new AWS Region configuration in this JAWS Project.",
+                    "options" : ["dont-exe-cf", "stage", "region", "aws-profile"],
+                    "run": "createRegion" 
+                },
+                "stage" : {
+                    "description": "Create a new stage in this JAWS Project.",
+                    "options" : ["dont-exe-cf", "name", "region", "aws-profile"],
+                    "run": "createStage"
+                }
+            }
+        },
+        "tag": {
+            "description" : "Tag/untag Lambda functions and API Gateway endpoints for deployment.",
+            "options": ["untag", "tag-all", "list-all", "untag-all"],
+            "sub" : {
+                "lambda" : {
+                    "run": "tagLambdas"
+                },
+                "endpoint": {
+                    "run": "tagEndpoints"
+                }
+            }
+        },
+        "deploy": {
+            "description": "Deploy resources to AWS.",
+            "options":["stage", "region", "dont-exe-cf"],
+            "sub": {
+                "lambda": {
+                    "run": "deployLambda"
+                    },
+                "endpoint": {
+                    "run": "deployEndpoint"
+                    },
+                "resources": {
+                    "run": "deployResources"
+                }
+            }
+        },
+        "env": {
+            "description": "Manage environment variables.",
+            "sub": {
+                "list":{
+                    "run": "listEnv",
+                    "description": "List environment variables for a stage and region. Example: jaws env list --stage prod --region all",
+                    "options": ["stage", "region"]
+                }, 
+                "get":{
+                    "run": "getEnv",
+                    "description": "Get the environment variable value for a given stage and region. Example: jaws env get JAWS_STAGE --stage prod --region all",
+                    "options": ["stage", "region"]
+
+                },
+                "set":{
+                    "run": "setEnv",
+                    "options": ["stage", "region"],
+                    "description": "Set an environment varirable for a given stage and region. Example: jaws env set TABLE_NAME users --region us-east-1 --stage prod"
+                },
+                "unset":{
+                    "run": "unsetEnv",
+                    "options": ["stage", "region"],                    
+                    "description": "Unset an environment variable for a given stage and region. Example: jaws unset TABLE_NAME --stage prod --region us-east-1"
+                }
+            }
+        },
+        "dash": {
+            "description": "Experience the thrill of interactively deploying resources from the cutting-edge JAWS command center.",
+            "run": "dash"
+        },
+        "postinstall": {
+            "run": "postInstall",
+            "description": "Run the post-install automation for an aws-module installed via a package manager. Example: jaws postinstall awsm-users --package-manager npm",
+            "options": ["package-manager"]
+        }
+    }
+}
