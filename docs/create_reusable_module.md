@@ -67,6 +67,8 @@ The steps needed for creating your own NPM module:
 
 * Install any dependencies by using `npm install --save <dependency>`. Same goes for devDependencies (use `--save-dev` here).
 
+* Run `npm link` to create a globally-installed symbolic link to your module. In case you run into permission problems, it might be needed to run this as a superuser (using `sudo` on Linux/OSX).
+
 * Add the following `postinstall` configuration to the `scripts` section in `package.json` (don't forget to replace the module name):
 
   ```json
@@ -80,8 +82,6 @@ The steps needed for creating your own NPM module:
   This command will perform all tasks needed directly after installing the package, which are:
   * Trigger the replication of your `/awsm` directory to the project's `/aws_modules` directory
   * Merge the CloudFormation configuration into your project
-
-* Run `npm link` to create a globally-installed symbolic link to your module. In case you run into permission problems, it might be needed to run this as a superuser (using `sudo` on Linux/OSX).
 
 Now, your module is ready to be used in your local projects.
 
