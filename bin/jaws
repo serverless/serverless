@@ -54,6 +54,7 @@ exports.createRegion = function (cmd) {
 
 exports.createStage = function (cmd) {
   var theCmd = require('../lib/commands/new_stage_region');
+  var options = cmd.options;
   execute(theCmd.run(
     JAWS,
     'stage',
