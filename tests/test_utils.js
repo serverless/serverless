@@ -1,6 +1,6 @@
 'use strict';
 
-var fs = require('fs'),
+let fs = require('fs'),
     os = require('os'),
     wrench = require('wrench'),
     path = require('path'),
@@ -29,7 +29,7 @@ module.exports.createTestProject = function(projectName,
                                             projectApiGIAMRole,
                                             npmInstallDirs) {
   // Create Test Project
-  var tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
+  let tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
 
   utils.jawsDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
@@ -43,7 +43,7 @@ module.exports.createTestProject = function(projectName,
     forceDelete: true,
   });
 
-  var lambdasCF = utils.readAndParseJsonSync(__dirname + '/../lib/templates/lambdas-cf.json'),
+  let lambdasCF = utils.readAndParseJsonSync(__dirname + '/../lib/templates/lambdas-cf.json'),
       resourcesCF = utils.readAndParseJsonSync(__dirname + '/../lib/templates/resources-cf.json'),
       projectJSON = utils.readAndParseJsonSync(path.join(tmpProjectPath, 'jaws.json'));
 
@@ -71,9 +71,9 @@ module.exports.createTestProject = function(projectName,
         //https://github.com/npm/npm#using-npm-programmatically
         if (npmInstallDirs) {
           npmInstallDirs.forEach(function(dir) {
-            var fullPath = path.join(tmpProjectPath, dir);
+            let fullPath = path.join(tmpProjectPath, dir);
             console.log(fullPath);
-            utils.jawsDebug('test_utils', 'Running NPM install on ' + fullPath);
+            utils.jawsDebug('test_utils', `Running NPM install on ${fullPath}`);
             utils.npmInstall(fullPath);
           });
         }

@@ -4,7 +4,7 @@
  * JAWS Test: Dash Command
  */
 
-var Jaws = require('../../lib/index.js'),
+let Jaws = require('../../lib/index.js'),
     CMDdash = require('../../lib/commands/dash'),
     CMDtag = require('../../lib/commands/tag'),
     JawsError = require('../../lib/jaws-error'),
@@ -13,7 +13,7 @@ var Jaws = require('../../lib/index.js'),
     path = require('path'),
     assert = require('chai').assert;
 
-var config = require('../config'),
+let config = require('../config'),
     projPath,
     JAWS;
 

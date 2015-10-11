@@ -5,14 +5,14 @@
  * - Copies the test-prj template to your system's temp directory
  * - Deploys an API based on the endpoints in the project
  */
-var Jaws = require('../../lib/index.js'),
+let Jaws = require('../../lib/index.js'),
     CmdTag = require('../../lib/commands/tag'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert,
     Promise = require('bluebird');
 
-var config = require('../config'),
+let config = require('../config'),
     projPath,
     modulePaths = {},
     JAWS;

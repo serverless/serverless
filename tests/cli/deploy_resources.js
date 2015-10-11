@@ -4,7 +4,7 @@
  * JAWS Test: Deploy Resources
  */
 
-var Jaws = require('../../lib/index.js'),
+let Jaws = require('../../lib/index.js'),
     CmdDeployResources = require('../../lib/commands/deploy_resources'),
     CmdTag = require('../../lib/commands/tag'),
     JawsError = require('../../lib/jaws-error'),

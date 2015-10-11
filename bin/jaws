@@ -230,20 +230,21 @@ program
     .option('-d, --dont-exe-cf', `Don't execute the lambda cloudformation, just generate it. Zips will be uploaded to s3`)
     .action(function(type, stage, region, options) {
 
+      let allTagged = (options.tags) ? true : false,
+          theCmd;
+
       type = type.toLowerCase();
       switch (type) {
         case 'endpoint':
-          let allTagged = (options.tags) ? true : false;
-          let theCmd = require('../lib/commands/deploy_endpoint');
+          theCmd = require('../lib/commands/deploy_endpoint');
           execute(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
-          let allTagged = (options.tags) ? true : false;
-          let theCmd = require('../lib/commands/deploy_lambda');
+          theCmd = require('../lib/commands/deploy_lambda');
           execute(theCmd.run(JAWS, stage, region, allTagged, options.dontExeCf));
           break;
         case 'resources':
-          let theCmd = require('../lib/commands/deploy_resources');
+          theCmd = require('../lib/commands/deploy_resources');
           execute(theCmd.run(JAWS, stage, region));
           break;
         default:

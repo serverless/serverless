@@ -4,7 +4,7 @@
  * JAWS Test: Dash Command
  */
 
-var Jaws = require('../../lib/index.js'),
+let Jaws = require('../../lib/index.js'),
     CmdNewStageRegion = require('../../lib/commands/new_stage_region'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
@@ -14,7 +14,7 @@ var Jaws = require('../../lib/index.js'),
     shortid = require('shortid'),
     assert = require('chai').assert;
 
-var config = require('../config'),
+let config = require('../config'),
     projPath,
     JAWS;
 
@@ -45,10 +45,10 @@ describe('Test "new stage/region" command', function() {
 
       CmdNewStageRegion.run(JAWS, 'stage', config.stage2, config.region, config.noExecuteCf)
           .then(function() {
-            var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
-            var region = false;
-            for (var i = 0; i < jawsJson.stages[config.stage2].length; i++) {
-              var stage = jawsJson.stages[config.stage2][i];
+            let jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
+            let region = false;
+            for (let i = 0; i < jawsJson.stages[config.stage2].length; i++) {
+              let stage = jawsJson.stages[config.stage2][i];
               if (stage.region === config.region) {
                 region = stage.region;
               }
@@ -69,10 +69,10 @@ describe('Test "new stage/region" command', function() {
 
       CmdNewStageRegion.run(JAWS, 'region', config.stage2, config.region2, config.noExecuteCf)
           .then(function() {
-            var jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
-            var region = false;
-            for (var i = 0; i < jawsJson.stages[config.stage2].length; i++) {
-              var stage = jawsJson.stages[config.stage2][i];
+            let jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
+            let region = false;
+            for (let i = 0; i < jawsJson.stages[config.stage2].length; i++) {
+              let stage = jawsJson.stages[config.stage2][i];
               if (stage.region === config.region2) {
                 region = stage.region;
               }

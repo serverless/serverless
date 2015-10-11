@@ -3,7 +3,7 @@
 /**
  * JAWS Test: Deploy Lambda Command
  */
-var Jaws = require('../../lib/index.js'),
+let Jaws = require('../../lib/index.js'),
     CmdDeployLambda = require('../../lib/commands/deploy_lambda'),
     CmdTag = require('../../lib/commands/tag'),
     testUtils = require('../test_utils'),
@@ -12,7 +12,7 @@ var Jaws = require('../../lib/index.js'),
     assert = require('chai').assert,
     JAWS;
 
-var config = require('../config'),
+let config = require('../config'),
     projPath;
 
 describe('Test "deploy lambda" command', function() {
@@ -81,7 +81,7 @@ describe('Test "deploy lambda" command', function() {
 
     it('deploy multiple', function(done) {
       this.timeout(0);
-      var bundleDirPath = path.join(projPath, 'aws_modules/bundle');
+      let bundleDirPath = path.join(projPath, 'aws_modules/bundle');
 
       process.chdir(bundleDirPath);
 

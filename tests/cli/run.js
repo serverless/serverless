@@ -4,13 +4,13 @@
  * JAWS Test: Run Command
  */
 
-var Jaws = require('../../lib/index.js'),
+let Jaws = require('../../lib/index.js'),
     CmdRun = require('../../lib/commands/run'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert;
 
-var config = require('../config'),
+let config = require('../config'),
     projPath,
     JAWS;
 
