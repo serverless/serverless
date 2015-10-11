@@ -28,8 +28,8 @@ program
 
 program
     .command('project <cmd>')
-    .description('Work with JAWS Project. Valid <cmd>\'s: create')
-    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it')
+    .description(`Work with JAWS Project. Valid <cmd>'s: create`)
+    .option('-d, --dont-exe-cf', `Don't execute CloudFormation, just generate it`)
     .option('-s, --stage <name>', 'Name for the stage to create')
     .option('-r, --region <name>', 'Name of AWS region to use')
     .option('-u, --domain <name>', 'domain ex: myapp.com')
@@ -40,17 +40,17 @@ program
 
       if (!JawsCLI.validateCmd(cmd, ['create'])) process.exit(1);
 
-      switch (cmd){
+      switch (cmd) {
         case 'create':
-          var theCmd = require('../lib/commands/project_new');
+          let theCmd = require('../lib/commands/project_new');
           execute(theCmd.run(
-                options.projName,
-                options.stage ? options.stage.toLowerCase() : null,
-                options.region,
-                options.domain,
-                options.email,
-                options.awsProfile,
-                options.dontExeCf
+              options.projName,
+              options.stage ? options.stage.toLowerCase() : null,
+              options.region,
+              options.domain,
+              options.email,
+              options.awsProfile,
+              options.dontExeCf
           ));
           break;
         default:
@@ -67,8 +67,8 @@ program
 
 program
     .command('region <cmd>')
-    .description('Work with AWS Regions. Valid <cmd>\'s: create')
-    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it')
+    .description(`Work with AWS Regions. Valid <cmd>'s: create`)
+    .option('-d, --dont-exe-cf', `Don't execute CloudFormation, just generate it`)
     .option('-s, --stage <name>', 'Name for the stage to be created in the region')
     .option('-r, --region <name>', 'Name of AWS region to use')
     .option('-p, --aws-profile <profileName>', 'Admin AWS profile as defined in ~/.aws/credentials to use')
@@ -76,9 +76,9 @@ program
 
       if (!JawsCLI.validateCmd(cmd, ['create'])) process.exit(1);
 
-      switch (cmd){
+      switch (cmd) {
         case 'create':
-          var theCmd = require('../lib/commands/new_stage_region');
+          let theCmd = require('../lib/commands/new_stage_region');
           execute(theCmd.run(
               JAWS,
               'region',
@@ -100,8 +100,8 @@ program
 
 program
     .command('stage <cmd>')
-    .description('Work with JAWS stages in a region. Valid <cmd>\'s: create')
-    .option('-d, --dont-exe-cf', 'Don\'t execute CloudFormation, just generate it')
+    .description(`Work with JAWS stages in a region. Valid <cmd>'s: create`)
+    .option('-d, --dont-exe-cf', `Don't execute CloudFormation, just generate it`)
     .option('-s, --stage <name>', 'Name for the stage create')
     .option('-r, --region <name>', 'Name of aws region to use')
     .option('-p, --aws-profile <profileName>', 'Admin AWS profile as defined in ~/.aws/credentials to use')
@@ -109,9 +109,9 @@ program
 
       if (!JawsCLI.validateCmd(cmd, ['create'])) process.exit(1);
 
-      switch (cmd){
+      switch (cmd) {
         case 'create':
-          var theCmd = require('../lib/commands/new_stage_region');
+          let theCmd = require('../lib/commands/new_stage_region');
           execute(theCmd.run(
               JAWS,
               'stage',
@@ -130,15 +130,16 @@ program
     .command('run')
     .description('Run the lambda in CWD locally')
     .action(function() {
-      var runner = require('../lib/commands/run');
+      let runner = require('../lib/commands/run');
       execute(runner.run(JAWS));
     });
 
 program
     .command('module <cmd> [params]')
-    .description('aws-module commands\n\nValid <cmd>\'s: create' +
-        '\n\ncreate: create aws-module action. Module will be created if DNE. create <module resource> <action>' +
-        '\n\t Ex: jaws module create users list'
+    .description(`aws-module commands\n\nValid <cmd>'s: create
+
+create: create aws-module action. Module will be created if DNE. create <module resource> <action>
+\t Ex: jaws module create users list`
     )
     .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
@@ -146,7 +147,7 @@ program
     .option('-p, --package-manager <pm>', '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
     .action(function(cmd, params, options) {
 
-      var theParams = process.argv.slice(3);
+      let theParams = process.argv.slice(3);
 
       if (!theParams) {
         throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
@@ -160,7 +161,7 @@ program
           throw new JawsError('Please specify awsm resource and action name');
         }
 
-        var theCmd = require('../lib/commands/module_create'),
+        let theCmd = require('../lib/commands/module_create'),
             name = theParams[1],
             action = theParams[2],
             runtime = options.runtime || 'nodejs',
@@ -175,7 +176,7 @@ program
 
         execute(theCmd.run(JAWS, name, action, runtime, pkgMgr, modType));
       } else {
-        console.error('Unsupported cmd ' + cmd + '. Must be install|update|create');
+        console.error(`Unsupported cmd ${cmd}. Must be install|update|create`);
         process.exit(1);
       }
     });
@@ -198,17 +199,17 @@ program
       type = type.toLowerCase();
 
       if (-1 == ['endpoint', 'lambda'].indexOf(type)) {
-        console.error('Unsupported type ' + type + '. Must be endpoint|lambda');
+        console.error(`Unsupported type ${type}. Must be endpoint|lambda`);
         process.exit(1);
       }
 
-      var CmdTag = require('../lib/commands/tag');
+      let CmdTag = require('../lib/commands/tag');
       if (options.listAll) {
         execute(CmdTag.listAll(JAWS, type).then(function(relPaths) {
           console.log(relPaths);
         }));
       } else if (options.tagAll || options.untagAll) {
-        var untag = (options.untagAll) ? true : false;
+        let untag = (options.untagAll) ? true : false;
         execute(CmdTag.tagAll(JAWS, type, untag));
       } else {
         // If not tagging all, you have to be tagging whats in your CWD (null 1st param)
@@ -226,27 +227,27 @@ program
     .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
         ' By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
-    .option('-d, --dont-exe-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
+    .option('-d, --dont-exe-cf', `Don't execute the lambda cloudformation, just generate it. Zips will be uploaded to s3`)
     .action(function(type, stage, region, options) {
 
       type = type.toLowerCase();
       switch (type) {
         case 'endpoint':
-          var allTagged = (options.tags) ? true : false;
-          var theCmd = require('../lib/commands/deploy_endpoint');
+          let allTagged = (options.tags) ? true : false;
+          let theCmd = require('../lib/commands/deploy_endpoint');
           execute(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
-          var allTagged = (options.tags) ? true : false;
-          var theCmd = require('../lib/commands/deploy_lambda');
+          let allTagged = (options.tags) ? true : false;
+          let theCmd = require('../lib/commands/deploy_lambda');
           execute(theCmd.run(JAWS, stage, region, allTagged, options.dontExeCf));
           break;
         case 'resources':
-          var theCmd = require('../lib/commands/deploy_resources');
+          let theCmd = require('../lib/commands/deploy_resources');
           execute(theCmd.run(JAWS, stage, region));
           break;
         default:
-          console.error('Unsupported type ' + type + '. Must be endpoint|lambda|resources');
+          console.error(`Unsupported type ${type}. Must be endpoint|lambda|resources`);
           process.exit(1);
           break;
       }
@@ -259,22 +260,25 @@ program
 
 program
     .command('env <cmd> <stage> <region> [key] [val]')
-    .description('Manage env vars for stage & region. <region> can be "all" <stage> can be "local"' +
-        '\n\nValid <cmd>\'s:' +
-        '\n\nlist: vars for stage and region. jaws env list <stage> <region>' +
-        '\n\t Ex: jaws env list prod all' +
+    .description(`Manage env vars for stage & region. <region> can be "all" <stage> can be "local"
 
-        '\n\nget: var value for stage and region. jaws env get <stage> <region> <key>' +
-        '\n\t Ex: jaws env get prod all JAWS_STAGE' +
+Valid <cmd>'s:
 
-        '\n\nset: var value for stage and region. jaws set env <stage> <region> <key> <val>' +
-        '\n\t Ex: jaws env set prod us-east-1 TABLE_NAME users' +
+list: vars for stage and region. jaws env list <stage> <region>
 
-        '\n\nunset: var value for stage and region. jaws env unset <stage> <region> <key>' +
-        '\n\t Ex: jaws unset prod us-east-1 TABLE_NAME'
+\t Ex: jaws env list prod all
+
+get: var value for stage and region. jaws env get <stage> <region> <key>
+\t Ex: jaws env get prod all JAWS_STAGE
+
+set: var value for stage and region. jaws set env <stage> <region> <key> <val>
+\t Ex: jaws env set prod us-east-1 TABLE_NAME users
+
+unset: var value for stage and region. jaws env unset <stage> <region> <key>
+\t Ex: jaws unset prod us-east-1 TABLE_NAME`
     )
     .action(function(cmd, stage, region, key, val) {
-      var CmdEnv = require('../lib/commands/env');
+      let CmdEnv = require('../lib/commands/env');
 
       cmd = cmd.toLowerCase();
       switch (cmd) {
@@ -311,7 +315,7 @@ program
           execute(CmdEnv.setEnvKey(JAWS, stage, region, key));
           break;
         default:
-          console.error('Unsupported cmd "' + cmd + '". Must be list|get|set|unset');
+          console.error(`Unsupported cmd "${cmd}". Must be list|get|set|unset`);
           process.exit(1);
           break;
       }
@@ -325,7 +329,7 @@ program
     .command('dash')
     .description('View a project summary and select resources to deploy.')
     .action(function() {
-      var CmdDash = require('../lib/commands/dash');
+      let CmdDash = require('../lib/commands/dash');
       execute(CmdDash.run(JAWS));
     });
 
@@ -338,13 +342,13 @@ program
     .command('postinstall <module_name> <package_manager>')
     .description('Performs automation when an aws-module is installed via a package manager')
     .action(function(moduleName, packageManager) {
-      var CmdPostInstall = require('../lib/commands/postinstall');
+      let CmdPostInstall = require('../lib/commands/postinstall');
       execute(CmdPostInstall.run(JAWS, moduleName, packageManager));
     });
 
 program
     .command('*')
-    .action(function(cmd){
+    .action(function(cmd) {
       console.error('Unknown command:', cmd);
     });
 
