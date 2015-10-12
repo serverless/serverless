@@ -161,7 +161,7 @@ create: create aws-module action. Module will be created if DNE. create <module 
           throw new JawsError('Please specify awsm resource and action name');
         }
 
-        let theCmd = require('../lib/commands/module_create'),
+        let theCmd = require('../lib/commands/ModuleCreateCmd'),
             name = theParams[1],
             action = theParams[2],
             runtime = options.runtime || 'nodejs',
@@ -236,7 +236,7 @@ program
       type = type.toLowerCase();
       switch (type) {
         case 'endpoint':
-          theCmd = require('../lib/commands/deploy_endpoint');
+          theCmd = require('../lib/commands/DeployEndpointCmd');
           execute(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':

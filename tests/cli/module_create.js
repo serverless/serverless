@@ -5,7 +5,7 @@
  */
 
 let Jaws = require('../../lib/index.js'),
-    CmdNewAction = require('../../lib/commands/module_create'),
+    CmdNewAction = require('../../lib/commands/ModuleCreateCmd'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     Promise = require('bluebird'),
