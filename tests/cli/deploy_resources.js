@@ -6,7 +6,7 @@
 
 let Jaws = require('../../lib/index.js'),
     CmdDeployResources = require('../../lib/commands/DeployResources'),
-    CmdTag = require('../../lib/commands/tag'),
+    CmdTag = require('../../lib/commands/Tag'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     Promise = require('bluebird'),

@@ -78,8 +78,8 @@ program
 
       switch (cmd) {
         case 'create':
-          let theCmd = require('../lib/commands/new_stage_region');
-          execute(theCmd.run(
+          let theCmd = require('../lib/commands/StageRegion');
+          execute(theCmd.create(
               JAWS,
               'region',
               options.stage,
@@ -111,8 +111,8 @@ program
 
       switch (cmd) {
         case 'create':
-          let theCmd = require('../lib/commands/new_stage_region');
-          execute(theCmd.run(
+          let theCmd = require('../lib/commands/StageRegion');
+          execute(theCmd.create(
               JAWS,
               'stage',
               options.stage,
@@ -203,17 +203,19 @@ program
         process.exit(1);
       }
 
-      let CmdTag = require('../lib/commands/tag');
+      let Tag = require('../lib/commands/Tag'),
+          CmdTag = new Tag(JAWS, type);
+
       if (options.listAll) {
-        execute(CmdTag.listAll(JAWS, type).then(function(relPaths) {
+        execute(CmdTag.listAll().then(function(relPaths) {
           console.log(relPaths);
         }));
       } else if (options.tagAll || options.untagAll) {
         let untag = (options.untagAll) ? true : false;
-        execute(CmdTag.tagAll(JAWS, type, untag));
+        execute(CmdTag.tagAll(untag));
       } else {
         // If not tagging all, you have to be tagging whats in your CWD (null 1st param)
-        execute(CmdTag.tag(type, null, options.untag));
+        execute(Tag.tag(type, null, options.untag));
       }
     });
 
@@ -344,7 +346,7 @@ program
     .command('postinstall <module_name> <package_manager>')
     .description('Performs automation when an aws-module is installed via a package manager')
     .action(function(moduleName, packageManager) {
-      let CmdPostInstall = require('../lib/commands/postinstall');
+      let CmdPostInstall = require('../lib/commands/Postinstall');
       execute(CmdPostInstall.run(JAWS, moduleName, packageManager));
     });
 

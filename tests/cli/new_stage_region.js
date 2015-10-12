@@ -5,7 +5,7 @@
  */
 
 let Jaws = require('../../lib/index.js'),
-    CmdNewStageRegion = require('../../lib/commands/new_stage_region'),
+    CmdNewStageRegion = require('../../lib/commands/StageRegion'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     utils = require('../../lib/utils'),

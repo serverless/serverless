@@ -5,7 +5,7 @@
  */
 let Jaws = require('../../lib/index.js'),
     CmdDeployLambda = require('../../lib/commands/DeployLambda'),
-    CmdTag = require('../../lib/commands/tag'),
+    Tag = require('../../lib/commands/Tag'),
     testUtils = require('../test_utils'),
     path = require('path'),
     Promise = require('bluebird'),
@@ -86,9 +86,9 @@ describe('Test "deploy lambda" command', function() {
       process.chdir(bundleDirPath);
 
       Promise.all([
-        CmdTag.tag('lambda', bundleDirPath + '/browserify/awsm.json'),
-        CmdTag.tag('lambda', bundleDirPath + '/nonoptimized/awsm.json'),
-      ])
+            Tag.tag('lambda', bundleDirPath + '/browserify/awsm.json'),
+            Tag.tag('lambda', bundleDirPath + '/nonoptimized/awsm.json'),
+          ])
           .then(function() {
             return CmdDeployLambda.run(JAWS, config.stage, [config.region], true, config.noExecuteCf)
           })

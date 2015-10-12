@@ -6,7 +6,7 @@
  * - Deploys an API based on the endpoints in the project
  */
 let Jaws = require('../../lib/index.js'),
-    CmdTag = require('../../lib/commands/tag'),
+    Tag = require('../../lib/commands/Tag'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert,
@@ -49,18 +49,20 @@ describe('Test "tag" command', function() {
 
       this.timeout(0);
 
-      CmdTag.tag('lambda', modulePaths.lambda1, false)
+      Tag.tag('lambda', modulePaths.lambda1, false)
           .then(function() {
             assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
             assert.equal(false, require(modulePaths.lambda2).lambda.deploy);
             assert.equal(false, require(modulePaths.lambda3).lambda.deploy);
-            return CmdTag.tagAll(JAWS, 'lambda', false);
+            let CmdTag = new Tag(JAWS, 'lambda');
+            return CmdTag.tagAll(false);
           })
           .then(function() {
             assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
             assert.equal(true, require(modulePaths.lambda2).lambda.deploy);
             assert.equal(true, require(modulePaths.lambda3).lambda.deploy);
-            return CmdTag.tagAll(JAWS, 'lambda', true);
+            let CmdTag = new Tag(JAWS, 'lambda');
+            return CmdTag.tagAll(true);
           })
           .then(function() {
             assert.equal(false, require(modulePaths.lambda1).lambda.deploy);
@@ -76,18 +78,20 @@ describe('Test "tag" command', function() {
     it('tag endpoints', function(done) {
       this.timeout(0);
 
-      CmdTag.tag('endpoint', modulePaths.lambda1, false)
+      Tag.tag('endpoint', modulePaths.lambda1, false)
           .then(function() {
             assert.equal(true, require(modulePaths.lambda1).apiGateway.deploy);
             assert.equal(false, require(modulePaths.lambda2).apiGateway.deploy);
             assert.equal(false, require(modulePaths.lambda3).apiGateway.deploy);
-            return CmdTag.tagAll(JAWS, 'endpoint', false);
+            let CmdTag = new Tag(JAWS, 'endpoint');
+            return CmdTag.tagAll(false);
           })
           .then(function() {
             assert.equal(true, require(modulePaths.lambda1).apiGateway.deploy);
             assert.equal(true, require(modulePaths.lambda2).apiGateway.deploy);
             assert.equal(true, require(modulePaths.lambda3).apiGateway.deploy);
-            return CmdTag.tagAll(JAWS, 'endpoint', true);
+            let CmdTag = new Tag(JAWS, 'endpoint');
+            return CmdTag.tagAll(true);
           })
           .then(function() {
             assert.equal(false, require(modulePaths.lambda1).apiGateway.deploy);

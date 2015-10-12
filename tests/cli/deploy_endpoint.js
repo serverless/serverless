@@ -6,7 +6,7 @@
 
 let Jaws = require('../../lib/index.js'),
     CmdDeployEndpoints = require('../../lib/commands/DeployEndpoint'),
-    CmdTag = require('../../lib/commands/tag'),
+    Tag = require('../../lib/commands/Tag'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
     Promise = require('bluebird'),
@@ -38,7 +38,8 @@ describe('Test deploy endpoint command', function() {
           lambdaPaths.lambda3 = path.join(projPath, 'aws_modules', 'users', 'create', 'awsm.json');
         })
         .then(function() {
-          CmdTag.tagAll(JAWS, 'endpoint', false);
+          let CmdTag = new Tag(JAWS, 'endpoint')
+          return CmdTag.tagAll(false);
         }).then(done);
   });
 
