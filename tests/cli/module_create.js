@@ -5,39 +5,39 @@
  */
 
 var Jaws = require('../../lib/index.js'),
-    CmdNewAction = require('../../lib/commands/module_create'),
-    JawsError = require('../../lib/jaws-error'),
-    testUtils = require('../test_utils'),
-    Promise = require('bluebird'),
-    path = require('path'),
-    assert = require('chai').assert;
+  CmdNewAction = require('../../lib/commands/module_create'),
+  JawsError = require('../../lib/jaws-error'),
+  testUtils = require('../test_utils'),
+  Promise = require('bluebird'),
+  path = require('path'),
+  assert = require('chai').assert;
 
 var config = require('../config'),
-    projPath,
-    JAWS;
+  projPath,
+  JAWS;
 
-describe('Test "new module" command', function() {
+describe('Test "new module" command', function () {
 
-  before(function(done) {
+  before(function (done) {
     this.timeout(0);
     testUtils.createTestProject(
-        config.name,
-        config.stage,
-        config.region,
-        config.domain,
-        config.iamRoleArnLambda,
-        config.iamRoleArnApiGateway)
-        .then(function(pp) {
-          projPath = pp;
-          process.chdir(projPath);
-          JAWS = new Jaws();
-          done();
-        });
+      config.name,
+      config.stage,
+      config.region,
+      config.domain,
+      config.iamRoleArnLambda,
+      config.iamRoleArnApiGateway)
+      .then(function (pp) {
+        projPath = pp;
+        process.chdir(projPath);
+        JAWS = new Jaws();
+        done();
+      });
   });
 
-  describe('Positive tests', function() {
+  describe('Positive tests', function () {
 
-    it('Test "new module" command', function(done) {
+    it('Test "new module" command', function (done) {
       this.timeout(0);
 
       var module = {
@@ -49,19 +49,46 @@ describe('Test "new module" command', function() {
       };
 
       CmdNewAction.run(JAWS, module.name, module.action, module.runtime, module.pkgMgr, module.type)
-          .then(function() {
-            var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/list/awsm.json'));
-            assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
-            assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
-            assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/list');
-            done();
-          })
-          .catch(JawsError, function(e) {
-            done(e);
-          })
-          .error(function(e) {
-            done(e);
-          });
+        .then(function () {
+          var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/list/awsm.json'));
+          assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
+          assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
+          assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/list');
+          done();
+        })
+        .catch(JawsError, function (e) {
+          done(e);
+        })
+        .error(function (e) {
+          done(e);
+        });
+    });
+
+    it('Test "new java8 module" command', function (done) {
+      this.timeout(0);
+
+      var module = {
+        type: 'both',
+        name: 'users',
+        action: 'java8',
+        runtime: 'java8',
+        pkgMgr: false,
+      };
+
+      CmdNewAction.run(JAWS, module.name, module.action, module.runtime, module.pkgMgr, module.type)
+        .then(function () {
+          var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/java8/awsm.json'));
+          assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
+          assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
+          assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/java8');
+          done();
+        })
+        .catch(JawsError, function (e) {
+          done(e);
+        })
+        .error(function (e) {
+          done(e);
+        });
     });
   });
 });
