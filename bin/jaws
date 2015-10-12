@@ -42,7 +42,7 @@ program
 
       switch (cmd) {
         case 'create':
-          let theCmd = require('../lib/commands/project_new');
+          let theCmd = require('../lib/commands/ProjectCreate');
           execute(theCmd.run(
               options.projName,
               options.stage ? options.stage.toLowerCase() : null,

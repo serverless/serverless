@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "A JAWS application",
   "author": "me",
-  "license": "",
+  "license": "MIT",
   "private": false,
   "repository": {
     "type": "git",
