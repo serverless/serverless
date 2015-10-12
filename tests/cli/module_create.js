@@ -52,6 +52,7 @@ describe('Test "new module" command', function () {
         .then(function () {
           var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/list/awsm.json'));
           assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
+          assert.isTrue(jawsJson.lambda.cloudFormation.Runtime === 'nodejs');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/list');
           done();
@@ -79,6 +80,7 @@ describe('Test "new module" command', function () {
         .then(function () {
           var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/java8/awsm.json'));
           assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
+          assert.isTrue(jawsJson.lambda.cloudFormation.Runtime === 'java8');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/java8');
           done();
