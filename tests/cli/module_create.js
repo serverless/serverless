@@ -81,7 +81,7 @@ describe('Test "new module" command', function () {
           var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/getjava8/awsm.json'));
           assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.lambda.cloudFormation.Runtime === 'java8');
-          assert.isTrue(jawsJson.lambda.cloudFormation.Handler === 'com.test-prj.users.lambda::getjava8');
+          assert.isTrue(jawsJson.lambda.cloudFormation.Handler === 'com.test-prj.users.Lambda::getjava8');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/getjava8');
           done();
