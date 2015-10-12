@@ -4,7 +4,7 @@
  * JAWS Test: Deploy Lambda Command
  */
 let Jaws = require('../../lib/index.js'),
-    CmdDeployLambda = require('../../lib/commands/deploy_lambda'),
+    CmdDeployLambda = require('../../lib/commands/DeployLambda'),
     CmdTag = require('../../lib/commands/tag'),
     testUtils = require('../test_utils'),
     path = require('path'),

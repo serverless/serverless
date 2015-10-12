@@ -161,7 +161,7 @@ create: create aws-module action. Module will be created if DNE. create <module 
           throw new JawsError('Please specify awsm resource and action name');
         }
 
-        let theCmd = require('../lib/commands/ModuleCreateCmd'),
+        let theCmd = require('../lib/commands/ModuleCreate'),
             name = theParams[1],
             action = theParams[2],
             runtime = options.runtime || 'nodejs',
@@ -236,15 +236,15 @@ program
       type = type.toLowerCase();
       switch (type) {
         case 'endpoint':
-          theCmd = require('../lib/commands/DeployEndpointCmd');
+          theCmd = require('../lib/commands/DeployEndpoint');
           execute(theCmd.run(JAWS, stage, region, allTagged));
           break;
         case 'lambda':
-          theCmd = require('../lib/commands/deploy_lambda');
+          theCmd = require('../lib/commands/DeployLambda');
           execute(theCmd.run(JAWS, stage, region, allTagged, options.dontExeCf));
           break;
         case 'resources':
-          theCmd = require('../lib/commands/deploy_resources');
+          theCmd = require('../lib/commands/DeployResources');
           execute(theCmd.run(JAWS, stage, region));
           break;
         default:
@@ -279,12 +279,13 @@ unset: var value for stage and region. jaws env unset <stage> <region> <key>
 \t Ex: jaws unset prod us-east-1 TABLE_NAME`
     )
     .action(function(cmd, stage, region, key, val) {
-      let CmdEnv = require('../lib/commands/env');
+      let JawsEnv = require('../lib/commands/JawsEnv'),
+          CmdEnv = new JawsEnv(JAWS, stage, region);
 
       cmd = cmd.toLowerCase();
       switch (cmd) {
         case 'list':
-          execute(CmdEnv.listEnv(JAWS, stage, region, true));
+          execute(CmdEnv.listEnv(true));
           break;
         case 'get':
           if (!key) {
@@ -292,7 +293,7 @@ unset: var value for stage and region. jaws env unset <stage> <region> <key>
             process.exit(1);
           }
 
-          execute(CmdEnv.getEnvKey(JAWS, stage, region, key));
+          execute(CmdEnv.getEnvKey(key));
           break;
         case 'set':
           if (!key || typeof val == 'undefined') {
@@ -300,7 +301,7 @@ unset: var value for stage and region. jaws env unset <stage> <region> <key>
             process.exit(1);
           }
 
-          execute(CmdEnv.setEnvKey(JAWS, stage, region, key, val));
+          execute(CmdEnv.setEnvKey(key, val));
           break;
         case 'unset':
           if (!key) {
@@ -313,7 +314,7 @@ unset: var value for stage and region. jaws env unset <stage> <region> <key>
             process.exit(1);
           }
 
-          execute(CmdEnv.setEnvKey(JAWS, stage, region, key));
+          execute(CmdEnv.setEnvKey(key));
           break;
         default:
           console.error(`Unsupported cmd "${cmd}". Must be list|get|set|unset`);

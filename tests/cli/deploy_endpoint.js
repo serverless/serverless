@@ -5,7 +5,7 @@
  */
 
 let Jaws = require('../../lib/index.js'),
-    CmdDeployEndpoints = require('../../lib/commands/DeployEndpointCmd'),
+    CmdDeployEndpoints = require('../../lib/commands/DeployEndpoint'),
     CmdTag = require('../../lib/commands/tag'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),

@@ -5,7 +5,7 @@
  */
 
 let Jaws = require('../../lib/index.js'),
-    CmdEnv = require('../../lib/commands/env'),
+    JawsEnv = require('../../lib/commands/JawsEnv'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert;
@@ -40,7 +40,9 @@ describe('Test "env" command', function() {
     it('Test env command', function(done) {
       this.timeout(0);
 
-      CmdEnv.listEnv(JAWS, config.stage, config.region)
+      let CmdEnv = new JawsEnv(JAWS, config.stage, config.region);
+
+      CmdEnv.listEnv()
           .then(function(d) {
             done();
           })

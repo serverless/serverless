@@ -5,7 +5,7 @@
  */
 
 let Jaws = require('../../lib/index.js'),
-    CmdDeployResources = require('../../lib/commands/deploy_resources'),
+    CmdDeployResources = require('../../lib/commands/DeployResources'),
     CmdTag = require('../../lib/commands/tag'),
     JawsError = require('../../lib/jaws-error'),
     testUtils = require('../test_utils'),
