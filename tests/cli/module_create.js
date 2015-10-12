@@ -71,18 +71,19 @@ describe('Test "new module" command', function () {
       var module = {
         type: 'both',
         name: 'users',
-        action: 'java8',
+        action: 'GetJava8',
         runtime: 'java8',
         pkgMgr: false,
       };
 
       CmdNewAction.run(JAWS, module.name, module.action, module.runtime, module.pkgMgr, module.type)
         .then(function () {
-          var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/java8/awsm.json'));
+          var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/getjava8/awsm.json'));
           assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.lambda.cloudFormation.Runtime === 'java8');
+          assert.isTrue(jawsJson.lambda.cloudFormation.Handler === 'com.test-prj.users::getjava8');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
-          assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/java8');
+          assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/getjava8');
           done();
         })
         .catch(JawsError, function (e) {
