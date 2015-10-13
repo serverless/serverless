@@ -85,7 +85,7 @@ describe('Test "new module" command', function () {
           assert.isTrue(jawsJson.lambda.cloudFormation.Handler === 'com.test_prj.users.Lambda::getjava8');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/getjava8');
-          assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'src', 'main', 'java', 'Lambda.java'), 'r') !== 'undefined');
+          assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'src', 'main', 'java', 'com', 'test_prj', 'users', 'Lambda.java'), 'r') !== 'undefined');
           assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'pom.xml'), 'r') !== 'undefined');
           done();
         })
