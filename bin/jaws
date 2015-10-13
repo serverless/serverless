@@ -127,12 +127,21 @@ program
   });
 
 program
+<<<<<<< HEAD
   .command('run')
   .description('Run the lambda in CWD locally')
   .action(function() {
     let runner = require('../lib/commands/run');
     execute(runner.run(JAWS));
   });
+=======
+    .command('run')
+    .description('Run the lambda in CWD locally')
+    .action(function() {
+      let runner = require('../lib/commands/LambdaRun');
+      execute(runner.run(JAWS));
+    });
+>>>>>>> create global class
 
 program
   .command('module <cmd> [params]')
