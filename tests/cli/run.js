@@ -41,7 +41,20 @@ describe('Test "run" command', function() {
     it('Test run command', function(done) {
       this.timeout(0);
 
-      CmdRun.run(JAWS, config.stage)
+      CmdRun.run(JAWS)
+          .then(function(d) {
+            done();
+          })
+          .error(function(e) {
+            done(e);
+          });
+    });
+
+    it('Test run command with the lambda path option', function(done) {
+      this.timeout(0);
+
+      var path = projPath + '/aws_modules/sessions/show';
+      CmdRun.run(JAWS, path)
           .then(function(d) {
             done();
           })
