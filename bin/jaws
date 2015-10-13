@@ -211,23 +211,23 @@ program
     .command('env <cmd> <stage> <region> [key] [val]')
     .description('Manage env vars for stage & region. <region> can be "all" <stage> can be "local"'+
 
-'\n\n\t '+chalk.white('list:')+' vars for stage and region. '+
-'\n\t\t Syntax: '+chalk.white('$ jaws env list <stage> <region>')+
-'\n\t\t Example: '+chalk.white('$ jaws env list prod all')+
+      '\n\n\t '+chalk.white('list:')+' vars for stage and region. '+
+      '\n\t\t Syntax: '+chalk.white('$ jaws env list <stage> <region>')+
+      '\n\t\t Example: '+chalk.white('$ jaws env list prod all')+
 
-'\n\n\t '+chalk.white('get:')+' var value for stage and region. '+
-'\n\t\t Syntax '+chalk.white('$ jaws env get <stage> <region> <key>')+
-'\n\t\t Example: '+chalk.white('$ jaws env get prod all JAWS_STAGE')+
+      '\n\n\t '+chalk.white('get:')+' var value for stage and region. '+
+      '\n\t\t Syntax '+chalk.white('$ jaws env get <stage> <region> <key>')+
+      '\n\t\t Example: '+chalk.white('$ jaws env get prod all JAWS_STAGE')+
 
-'\n\n\t '+chalk.white('set:')+' var value for stage and region. '+
-'\n\t\t Syntax: '+ chalk.white('$ jaws set env <stage> <region> <key> <val> ')+
-'\n\t\t Example: '+chalk.white('jaws env set prod us-east-1 TABLE_NAME users')+
+      '\n\n\t '+chalk.white('set:')+' var value for stage and region. '+
+      '\n\t\t Syntax: '+ chalk.white('$ jaws set env <stage> <region> <key> <val> ')+
+      '\n\t\t Example: '+chalk.white('jaws env set prod us-east-1 TABLE_NAME users')+
 
-'\n\n\t '+chalk.white('unset:')+' var value for stage and region. '+
-'\n\t\t Syntax: '+chalk.white('jaws env unset <stage> <region> <key> ')+
-'\n\t\t Example: ' +chalk.white('$ jaws unset prod us-east-1 TABLE_NAME')+
+      '\n\n\t '+chalk.white('unset:')+' var value for stage and region. '+
+      '\n\t\t Syntax: '+chalk.white('jaws env unset <stage> <region> <key> ')+
+      '\n\t\t Example: ' +chalk.white('$ jaws unset prod us-east-1 TABLE_NAME')+
 
-'\n\n'
+      '\n\n'
     )
     .action(function(cmd, stage, region, key, val) {
       let JawsEnv = require('../lib/commands/JawsEnv'),
