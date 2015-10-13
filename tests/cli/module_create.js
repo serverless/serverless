@@ -10,7 +10,8 @@ var Jaws = require('../../lib/index.js'),
   testUtils = require('../test_utils'),
   Promise = require('bluebird'),
   path = require('path'),
-  assert = require('chai').assert;
+  assert = require('chai').assert,
+  fs = require('fs');
 
 var config = require('../config'),
   projPath,
@@ -84,6 +85,7 @@ describe('Test "new module" command', function () {
           assert.isTrue(jawsJson.lambda.cloudFormation.Handler === 'com.test-prj.users.Lambda::getjava8');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/getjava8');
+          assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'src', 'main', 'java', 'Lambda.java'), 'r') !== 'undefined');
           done();
         })
         .catch(JawsError, function (e) {
