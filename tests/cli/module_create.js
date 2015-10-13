@@ -11,7 +11,8 @@ var Jaws = require('../../lib/index.js'),
   Promise = require('bluebird'),
   path = require('path'),
   assert = require('chai').assert,
-  fs = require('fs');
+  fs = require('fs'),
+  utils = require('../../lib/utils/index.js');
 
 var config = require('../config'),
   projPath,
@@ -82,10 +83,12 @@ describe('Test "new module" command', function () {
           var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/getjava8/awsm.json'));
           assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.lambda.cloudFormation.Runtime === 'java8');
-          assert.isTrue(jawsJson.lambda.cloudFormation.Handler === 'com.test_prj.users.Lambda::getjava8');
+          var packageName = utils.getJavaPackageName(process.env.TEST_JAWS_DOMAIN, 'users');
+          console.log(packageName);
+          assert.isTrue(jawsJson.lambda.cloudFormation.Handler === packageName + '.Lambda::getjava8');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/getjava8');
-          assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'src', 'main', 'java', 'com', 'test_prj', 'users', 'Lambda.java'), 'r') !== 'undefined');
+          assert.isTrue(typeof fs.openSync(path.join(utils.getJavaPackagePath(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8'), packageName), 'Lambda.java'), 'r') !== 'undefined');
           assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'pom.xml'), 'r') !== 'undefined');
           done();
         })
