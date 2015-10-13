@@ -22,6 +22,30 @@ program
     .option('-v, --verbose')
     .version(JAWS._meta.version);
 
+/*
+ * Run
+ */
+
+program
+    .command('run')
+    .description('Run the lambda in CWD locally')
+    .action(function() {
+      let runner = require('../lib/commands/run');
+      execute(runner.run(JAWS));
+    });
+
+/*
+ * Dash
+ */
+
+program
+    .command('dash')
+    .description('View a project summary and select resources to deploy')
+    .action(function() {
+      let CmdDash = require('../lib/commands/dash');
+      execute(CmdDash.run(JAWS));
+    });
+
 /**
  * Project
  * - Create a new JAWS Project
@@ -125,30 +149,6 @@ program
           console.error('Something went very wrong. :O');
           process.exit(1);
       }
-    });
-
-/*
- * Dash
- */
-
-program
-    .command('dash')
-    .description('View a project summary and select resources to deploy')
-    .action(function() {
-      let CmdDash = require('../lib/commands/dash');
-      execute(CmdDash.run(JAWS));
-    });
-
-/*
- * Run
- */
-
-program
-    .command('run')
-    .description('Run the lambda in CWD locally')
-    .action(function() {
-      let runner = require('../lib/commands/run');
-      execute(runner.run(JAWS));
     });
 
 /* Module
