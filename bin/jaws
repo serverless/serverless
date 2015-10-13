@@ -130,7 +130,7 @@ program
     .command('run')
     .description('Run the lambda in CWD locally')
     .action(function() {
-      let runner = require('../lib/commands/run');
+      let runner = require('../lib/commands/LambdaRun');
       execute(runner.run(JAWS));
     });
 

@@ -5,7 +5,7 @@
  */
 
 let Jaws = require('../../lib/index.js'),
-    CmdRun = require('../../lib/commands/run'),
+    CmdRun = require('../../lib/commands/LambdaRun'),
     testUtils = require('../test_utils'),
     path = require('path'),
     assert = require('chai').assert;
