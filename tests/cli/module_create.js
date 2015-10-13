@@ -74,7 +74,7 @@ describe('Test "new module" command', function () {
         name: 'users',
         action: 'GetJava8',
         runtime: 'java8',
-        pkgMgr: false,
+        pkgMgr: 'mvn',
       };
 
       CmdNewAction.run(JAWS, module.name, module.action, module.runtime, module.pkgMgr, module.type)
@@ -86,6 +86,7 @@ describe('Test "new module" command', function () {
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/getjava8');
           assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'src', 'main', 'java', 'Lambda.java'), 'r') !== 'undefined');
+          assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'pom.xml'), 'r') !== 'undefined');
           done();
         })
         .catch(JawsError, function (e) {
