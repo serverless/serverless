@@ -4,82 +4,82 @@
  * JAWS Test: Deploy Lambda Command
  */
 var Jaws = require('../../lib/index.js'),
-    CmdDeployLambda = require('../../lib/commands/deploy_lambda'),
-    CmdTag = require('../../lib/commands/tag'),
-    testUtils = require('../test_utils'),
-    path = require('path'),
-    Promise = require('bluebird'),
-    assert = require('chai').assert,
-    JAWS;
+  CmdDeployLambda = require('../../lib/commands/deploy_lambda'),
+  CmdTag = require('../../lib/commands/tag'),
+  testUtils = require('../test_utils'),
+  path = require('path'),
+  Promise = require('bluebird'),
+  assert = require('chai').assert,
+  JAWS;
 
 var config = require('../config'),
-    projPath;
+  projPath;
 
-describe('Test "deploy lambda" command', function() {
+describe('Test "deploy lambda" command', function () {
   this.timeout(0);  //dont timeout anything
 
-  before(function(done) {
+  before(function (done) {
     this.timeout(0);  //dont timeout anything
 
     testUtils.createTestProject(
-        config.name,
-        config.stage,
-        config.region,
-        config.domain,
-        config.iamRoleArnLambda,
-        config.iamRoleArnApiG,
-        ['./'])
-        .then(function(pp) {
-          projPath = pp;
-          process.chdir(projPath);
-          JAWS = new Jaws();
-          done();
-        });
+      config.name,
+      config.stage,
+      config.region,
+      config.domain,
+      config.iamRoleArnLambda,
+      config.iamRoleArnApiG,
+      ['./'])
+      .then(function (pp) {
+        projPath = pp;
+        process.chdir(projPath);
+        JAWS = new Jaws();
+        done();
+      });
   });
 
-  describe('Positive tests', function() {
+  describe('Positive tests', function () {
 
-    it('Multi level module deploy', function(done) {
+    it('Multi level module deploy', function (done) {
       this.timeout(0);
 
       process.chdir(path.join(projPath, 'aws_modules/sessions/show'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
-          .then(function(d) {
-            done();
-          })
-          .error(function(e) {
-            done(e);
-          });
+        .then(function (d) {
+          done();
+        })
+        .error(function (e) {
+          done(e);
+        });
     });
 
-    it('browserify deploy', function(done) {
+    it('browserify deploy', function (done) {
       this.timeout(0);
       process.chdir(path.join(projPath, 'aws_modules/bundle/browserify'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
-          .then(function(d) {
-            done();
-          })
-          .error(function(e) {
-            done(e);
-          });
+        .then(function (d) {
+          done();
+        })
+        .error(function (e) {
+          done(e);
+        });
     });
 
-    it('non optimized deploy', function(done) {
+    it('non optimized deploy', function (done) {
       this.timeout(0);
       process.chdir(path.join(projPath, 'aws_modules/bundle/nonoptimized'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
-          .then(function(d) {
-            done();
-          })
-          .error(function(e) {
-            done(e);
-          });
+        .then(function (d) {
+          done();
+        })
+        .error(function (e) {
+          done(e);
+        });
     });
 
-    it('deploy multiple', function(done) {
+    it('deploy multiple', function (done) {
       this.timeout(0);
       var bundleDirPath = path.join(projPath, 'aws_modules/bundle');
 
@@ -89,15 +89,15 @@ describe('Test "deploy lambda" command', function() {
         CmdTag.tag('lambda', bundleDirPath + '/browserify/awsm.json'),
         CmdTag.tag('lambda', bundleDirPath + '/nonoptimized/awsm.json'),
       ])
-          .then(function() {
-            return CmdDeployLambda.run(JAWS, config.stage, [config.region], true, config.noExecuteCf)
-          })
-          .then(function(d) {
-            done();
-          })
-          .error(function(e) {
-            done(e);
-          });
+        .then(function () {
+          return CmdDeployLambda.run(JAWS, config.stage, [config.region], true, config.noExecuteCf)
+        })
+        .then(function (d) {
+          done();
+        })
+        .error(function (e) {
+          done(e);
+        });
     });
   });
 });
