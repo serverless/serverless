@@ -72,24 +72,24 @@ describe('Test "new module" command', function () {
 
       var module = {
         type: 'both',
-        name: 'users',
-        action: 'GetJava8',
+        name: 'java',
+        action: 'Get8',
         runtime: 'java8',
         pkgMgr: 'mvn',
       };
 
       CmdNewAction.run(JAWS, module.name, module.action, module.runtime, module.pkgMgr, module.type)
         .then(function () {
-          var jawsJson = require(path.join(process.cwd(), 'aws_modules/users/getjava8/awsm.json'));
+          var jawsJson = require(path.join(process.cwd(), 'aws_modules/java/get8/awsm.json'));
           assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
           assert.isTrue(jawsJson.lambda.cloudFormation.Runtime === 'java8');
-          var packageName = utils.getJavaPackageName(process.env.TEST_JAWS_DOMAIN, 'users');
+          var packageName = utils.getJavaPackageName(process.env.TEST_JAWS_DOMAIN, 'java');
           console.log(packageName);
-          assert.isTrue(jawsJson.lambda.cloudFormation.Handler === packageName + '.Lambda::getjava8');
+          assert.isTrue(jawsJson.lambda.cloudFormation.Handler === packageName + '.Lambda::get8');
           assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
-          assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/getjava8');
-          assert.isTrue(typeof fs.openSync(path.join(utils.getJavaPackagePath(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8'), packageName), 'Lambda.java'), 'r') !== 'undefined');
-          assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'users', 'getjava8', 'pom.xml'), 'r') !== 'undefined');
+          assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'java/get8');
+          assert.isTrue(typeof fs.openSync(path.join(utils.getJavaPackagePath(path.join(process.cwd(), 'aws_modules', 'java', 'get8'), packageName), 'Lambda.java'), 'r') !== 'undefined');
+          assert.isTrue(typeof fs.openSync(path.join(process.cwd(), 'aws_modules', 'java', 'get8', 'pom.xml'), 'r') !== 'undefined');
           done();
         })
         .catch(JawsError, function (e) {
