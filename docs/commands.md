@@ -71,7 +71,7 @@ Modeled after Heroku's environment variable commands, these commands manage envi
 
 ### Tag Commands
 
-depricated per https://github.com/jaws-framework/JAWS/issues/164
+deprecated per https://github.com/jaws-framework/JAWS/issues/164
 
 ### Deploy Commands
 
