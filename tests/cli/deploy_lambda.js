@@ -99,5 +99,20 @@ describe('Test "deploy lambda" command', function () {
           done(e);
         });
     });
+
+    it('Java deploy', function (done) {
+      this.timeout(0);
+
+      process.chdir(path.join(projPath, 'aws_modules/java/get8'));
+
+      CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
+        .then(function (d) {
+          done();
+        })
+        .error(function (e) {
+          done(e);
+        });
+    });
+
   });
 });
