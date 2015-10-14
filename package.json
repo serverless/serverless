@@ -1,8 +1,8 @@
 {
   "name": "jaws-framework",
   "version": "1.4.0",
-  "engines" : {
-    "node" : ">=4.0"
+  "engines": {
+    "node": ">=4.0"
   },
   "preferGlobal": true,
   "description": "JAWS is the serverless framework powered by Amazon Web Services.",
