@@ -1,23 +1,38 @@
 'use strict';
 
 /**
- * JAWS Test: New Command
+ * Test: Project Create Action
  * - Creates a new project in your system's temp directory
  * - Deletes the CF stack created by the project
  */
 
-let Jaws = require('../../lib/index.js'),
+let JAWS      = require('../../lib/jaws.js'),
     JawsError = require('../../lib/jaws-error'),
-    theCmd = require('../../lib/commands/ProjectCreate'),
-    path = require('path'),
-    os = require('os'),
-    utils = require('../../lib/utils'),
-    assert = require('chai').assert,
-    shortid = require('shortid');
+    path      = require('path'),
+    os        = require('os'),
+    utils     = require('../../lib/utils'),
+    assert    = require('chai').assert,
+    shortid   = require('shortid'),
+    config    = require('../config');
 
-let config = require('../config');
+// Instantiate JAWS
+let Jaws = new JAWS({
+  awsAdminKeyId: '123',
+  awsAdminSecretKey: '123',
+  interactive: false,
+});
 
-describe('Test new command', function() {
+// Project Config
+let prjConfig = {
+  noCf: true,
+  name: 'test',
+  domain: 'test.com',
+  stage: 'test',
+  notificationEmail: 'i@test.com',
+  region: 'us-east-1',
+};
+
+describe('Test Project Create', function() {
 
   before(function(done) {
     config.newName = 'jaws-test-' + shortid.generate().replace('_', '');
@@ -34,14 +49,7 @@ describe('Test new command', function() {
 
       this.timeout(0);
 
-      theCmd.run(
-          config.newName,
-          config.stage,
-          config.region,
-          config.domain,
-          config.notifyEmail,
-          config.profile,
-          config.noExecuteCf)
+      Jaws.projectCreate(prjConfig)
           .then(function() {
             let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), config.newName, 'jaws.json'));
             let region = false;
