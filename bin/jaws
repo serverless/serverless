@@ -143,7 +143,8 @@ program
     .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
     .option('-r, --runtime', '[create]: lambda runtime. Valid: nodejs')
-    .option('-p, --package-manager <pm>', '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
+    .option('-p, --package-manager <pm>',
+            '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
     .option('-m, --method <method>', '[create]: API Gateway HTTP method. E.g. GET, POST, PUT, etc.')
     .action(function(cmd, params, options) {
 
@@ -152,6 +153,7 @@ program
       if (!theParams) {
         throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
       }
+
       if (theParams[0][0] == '-') { //TODO: how do we get around this commander shortcoming?
         throw new JawsError('Specify options after cmd', JawsError.errorCodes.UNKNOWN);
       }
@@ -225,10 +227,11 @@ program
 
 program
     .command('deploy <type> [stage] [region]')
-    .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
-        ' By default will tag and deploy type at cwd')
+    .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources ' +
+        '(resources) for the specified stage. By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
-    .option('-d, --dont-exe-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
+    .option('-d, --dont-exe-cf',
+            'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
     .action(function(type, stage, region, options) {
 
       type = type.toLowerCase();
@@ -346,7 +349,7 @@ program
 
 program
     .command('*')
-    .action(function(cmd){
+    .action(function(cmd) {
       console.error('Unknown command:', cmd);
     });
 
