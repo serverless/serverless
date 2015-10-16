@@ -144,6 +144,7 @@ program
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
     .option('-r, --runtime', '[create]: lambda runtime. Valid: nodejs')
     .option('-p, --package-manager <pm>', '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
+    .option('-m, --method <method>', '[create]: API Gateway HTTP method. E.g. GET, POST, PUT, etc.')
     .action(function(cmd, params, options) {
 
       var theParams = process.argv.slice(3);
@@ -165,7 +166,8 @@ program
             action = theParams[2],
             runtime = options.runtime || 'nodejs',
             pkgMgr = options.packageManager || false,
-            modType = 'both';
+            modType = 'both',
+            httpMethod = options.method || 'GET';
 
         if (options.lambda) {
           modType = 'lambda';
@@ -173,7 +175,7 @@ program
           modType = 'endpoint';
         }
 
-        execute(theCmd.run(JAWS, name, action, runtime, pkgMgr, modType));
+        execute(theCmd.run(JAWS, name, action, runtime, pkgMgr, modType, httpMethod));
       } else {
         console.error('Unsupported cmd ' + cmd + '. Must be install|update|create');
         process.exit(1);
