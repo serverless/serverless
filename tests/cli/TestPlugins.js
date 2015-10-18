@@ -13,6 +13,7 @@ let JAWS        = require('../../lib/Jaws.js'),
     utils       = require('../../lib/utils'),
     assert      = require('chai').assert,
     shortid     = require('shortid'),
+    Promise     = require('bluebird'),
     config      = require('../config');
 
 /**
@@ -72,16 +73,17 @@ class PromisePlugin extends JawsPlugin {
    */
 
   _actionProjectCreate(options) {
-
-
     let _this = this;
-    return new Promise(function(resolve, reject) {
-      return setTimeout(function() {
-        _this.Jaws.generatorPluginHookAction = true;
-        console.log(options);
-        return resolve();
-      }, 500);
-    })
+
+    var deferred = Promise.pending();
+
+    setTimeout(function() {
+      _this.Jaws.generatorPluginAction = true;
+      console.log(options);
+      deferred.resolve();
+    }, 500);
+
+    return deferred.promise;
   }
 
   _hookPreProjectCreate() {
@@ -94,13 +96,14 @@ class PromisePlugin extends JawsPlugin {
 
   _hookPostProjectCreate() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
-      return setTimeout(function() {
-        _this.Jaws.generatorPluginHookPost = true;
-        console.log('asjfalsjfl')
-        return resolve();
-      }, 500);
-    })
+    var deferred = Promise.pending();
+    setTimeout(function() {
+      _this.Jaws.generatorPluginHookPost = true;
+      console.log('post hook resolved');
+      deferred.resolve();
+    }, 500);
+
+    return deferred.promise;
   }
 }
 
@@ -132,7 +135,7 @@ describe('Test Promise Plugins', function() {
           .then(function() {
             assert.isTrue(Jaws.generatorPluginHookPre);
             assert.isTrue(Jaws.generatorPluginHookPost);
-            assert.isTrue(Jaws.generatorPluginHookAction);
+            assert.isTrue(Jaws.generatorPluginAction);
             done();
           })
           .catch(function(e) {
