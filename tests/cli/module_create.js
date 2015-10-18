@@ -16,7 +16,7 @@ var config = require('../config'),
     projPath,
     JAWS;
 
-describe.only('Test "new module" command', function() {
+describe('Test "new module" command', function() {
 
   before(function(done) {
     this.timeout(0);

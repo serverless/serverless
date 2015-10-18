@@ -145,7 +145,7 @@ program
     .option('-r, --runtime', '[create]: lambda runtime. Valid: nodejs')
     .option('-p, --package-manager <pm>',
             '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
-    .option('-m, --method <method>', '[create]: API Gateway HTTP method. E.g. GET, POST, PUT, etc.')
+    .option('-m, --method <method>', '[create]: API Gateway HTTP method. E.g. GET, POST, PUT, etc. Default is GET.')
     .action(function(cmd, params, options) {
 
       var theParams = process.argv.slice(3);
