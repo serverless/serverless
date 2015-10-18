@@ -40,12 +40,13 @@ class PromisePlugin extends JawsPlugin {
    */
 
   registerActions() {
-    var config = {
-      handler: 'projectCreate',
-      command: 'project create',
-      options: ['options'],
-    };
-    this.Jaws.action('ProjectCreate', this._actionProjectCreate.bind(this), config); // bind is optional
+    this.Jaws.action(this._actionProjectCreate.bind(this), {
+      handler:          'projectCreate',
+      description:      'A plugin that customizes project creation',
+      context:          'project',
+      contextAction:    'create',
+      options:          ['options'],
+    }); // bind is optional
   }
 
   /**
@@ -53,8 +54,14 @@ class PromisePlugin extends JawsPlugin {
    */
 
   registerHooks() {
-    this.Jaws.hook('PreProjectCreate', this._hookPreProjectCreate.bind(this));
-    this.Jaws.hook('PostProjectCreate', this._hookPostProjectCreate.bind(this));
+    this.Jaws.hook(this._hookPreProjectCreate.bind(this), {
+      handler: 'projectCreate',
+      event:   'pre'
+    });
+    this.Jaws.hook(this._hookPostProjectCreate.bind(this), {
+      handler: 'projectCreate',
+      event:   'post'
+    });
   }
 
   /**
