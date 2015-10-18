@@ -54,8 +54,8 @@ class PromisePlugin extends JawsPlugin {
    */
 
   registerHooks() {
-    this.Jaws.hook('PreProjectCreate', this._hookPreProjectCreate());
-    this.Jaws.hook('PostProjectCreate', this._hookPostProjectCreate());
+    this.Jaws.hook('PreProjectCreate', this._hookPreProjectCreate.bind(this));
+    this.Jaws.hook('PostProjectCreate', this._hookPostProjectCreate.bind(this));
   }
 
   /**
