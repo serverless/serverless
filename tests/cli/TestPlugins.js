@@ -13,8 +13,7 @@ let JAWS        = require('../../lib/Jaws.js'),
     utils       = require('../../lib/utils'),
     assert      = require('chai').assert,
     shortid     = require('shortid'),
-    config      = require('../config'),
-    Promise     = require('bluebird');
+    config      = require('../config');
 
 /**
  * JAWS
@@ -67,10 +66,12 @@ class PromisePlugin extends JawsPlugin {
 
   _actionProjectCreate(options) {
     let _this = this;
-    return Promise.delay(500)
-        .then(function() {
-          _this.Jaws.generatorPluginHookAction = true;
-        });
+    return new Promise(function(resolve, reject) {
+      setTimeout(function() {
+        _this.Jaws.generatorPluginHookAction = true;
+        return resolve();
+      }, 500);
+    })
   }
 
   _hookPreProjectCreate() {
@@ -83,10 +84,12 @@ class PromisePlugin extends JawsPlugin {
 
   _hookPostProjectCreate() {
     let _this = this;
-    return Promise.delay(500)
-        .then(function() {
-          _this.Jaws.generatorPluginHookPost = true;
-        });
+    return new Promise(function(resolve, reject) {
+      setTimeout(function() {
+        _this.Jaws.generatorPluginHookPost = true;
+        return resolve();
+      }, 500);
+    })
   }
 }
 
