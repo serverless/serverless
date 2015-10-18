@@ -72,10 +72,13 @@ class PromisePlugin extends JawsPlugin {
    */
 
   _actionProjectCreate(options) {
+
+
     let _this = this;
     return new Promise(function(resolve, reject) {
-      setTimeout(function() {
+      return setTimeout(function() {
         _this.Jaws.generatorPluginHookAction = true;
+        console.log(options);
         return resolve();
       }, 500);
     })
@@ -92,8 +95,9 @@ class PromisePlugin extends JawsPlugin {
   _hookPostProjectCreate() {
     let _this = this;
     return new Promise(function(resolve, reject) {
-      setTimeout(function() {
+      return setTimeout(function() {
         _this.Jaws.generatorPluginHookPost = true;
+        console.log('asjfalsjfl')
         return resolve();
       }, 500);
     })
