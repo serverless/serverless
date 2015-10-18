@@ -9,6 +9,7 @@ let JAWS        = require('../../lib/Jaws.js'),
     JawsError   = require('../../lib/jaws-error'),
     path        = require('path'),
     os          = require('os'),
+    commop      = require ('commop'),
     utils       = require('../../lib/utils'),
     assert      = require('chai').assert,
     shortid     = require('shortid'),
@@ -35,13 +36,41 @@ class PromisePlugin extends JawsPlugin {
     super(Jaws, config);
   }
 
+  /**
+   * Register Actions
+   */
+
   registerActions() {
-    this.Jaws.action('ProjectCreate', this._actionProjectCreate());
+    var config = {
+      handler: 'projectCreate',
+      command: 'project create',
+      options: ['options'],
+    };
+    this.Jaws.action('ProjectCreate', this._actionProjectCreate.bind(this), config); // bind is optional
   }
+
+  /**
+   * Register Hooks
+   */
 
   registerHooks() {
     this.Jaws.hook('PreProjectCreate', this._hookPreProjectCreate());
     this.Jaws.hook('PostProjectCreate', this._hookPostProjectCreate());
+  }
+
+  /**
+   * Plugin Logic
+   * @param options
+   * @returns {*|Promise.<T>}
+   * @private
+   */
+
+  _actionProjectCreate(options) {
+    let _this = this;
+    return Promise.delay(500)
+        .then(function() {
+          _this.Jaws.generatorPluginHookAction = true;
+        });
   }
 
   _hookPreProjectCreate() {
@@ -50,14 +79,6 @@ class PromisePlugin extends JawsPlugin {
       _this.Jaws.generatorPluginHookPre = true;
       return resolve();
     })
-  }
-
-  _actionProjectCreate() {
-    let _this = this;
-    return Promise.delay(500)
-        .then(function() {
-          _this.Jaws.generatorPluginHookAction = true;
-        });
   }
 
   _hookPostProjectCreate() {

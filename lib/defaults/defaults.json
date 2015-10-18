@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    {
+      "path": "./actions/ProjectCreate.js",
+      "options": ["options"],
+      "config": {}
+    }
+  ]
+}
