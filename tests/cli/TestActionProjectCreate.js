@@ -51,7 +51,9 @@ describe('Test Project Create', function() {
 
       Jaws.projectCreate(prjConfig)
           .then(function() {
-            let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), config.newName, 'jaws.json'));
+            let jawsJson = utils.readAndParseJsonSync(
+                path.join(os.tmpdir(), config.newName, 'jaws.json'));
+
             let region = false;
 
             for (let i = 0; i < jawsJson.stages[config.stage].length; i++) {
