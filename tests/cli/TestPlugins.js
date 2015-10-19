@@ -74,33 +74,35 @@ class PromisePlugin extends JawsPlugin {
   _actionProjectCreate(paramsTest1, paramsTest2) {
     let _this = this;
     return new Promise(function(resolve) {
+      console.log('Action fired');
       setTimeout(function(){
         _this.Jaws.generatorPluginAction = true;
         _this.Jaws.paramsTest1 = paramsTest1;
         _this.Jaws.paramsTest2 = paramsTest1;
         return resolve();
-      }, 250);
+      }, 500);
     });
-
   }
 
   _hookPreProjectCreate() {
     let _this = this;
     return new Promise(function(resolve) {
+      console.log('Hook "Pre" fired');
       setTimeout(function(){
         _this.Jaws.generatorPluginHookPre = true;
         return resolve();
-      }, 1000);
+      }, 500);
     });
   }
 
   _hookPostProjectCreate() {
     let _this = this;
     return new Promise(function(resolve) {
+      console.log('Hook "Post" fired');
       setTimeout(function(){
         _this.Jaws.generatorPluginHookPost = true;
         return resolve();
-      }, 250);
+      }, 500);
     });
   }
 }
