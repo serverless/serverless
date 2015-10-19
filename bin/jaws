@@ -7,7 +7,9 @@
  * @type {Jaws|exports|module.exports}
  */
 
-let JAWS = require('../lib/Jaws');
+let JAWS      = require('../lib/Jaws'),
+    JawsUtils = require('../lib/utils/index');
+
 let Jaws = new JAWS();
 
 /**
@@ -16,17 +18,7 @@ let Jaws = new JAWS();
 
 var argv = require('minimist')(process.argv.slice(2));
 
-/**
- * Fire Command
- */
-
-return Jaws.command(argv);
-
-
-
-
-
-
+utils.execute(Jaws.command(argv));
 
 
 //var JawsError = require('../lib/jaws-error'),
