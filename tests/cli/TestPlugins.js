@@ -74,16 +74,11 @@ class PromisePlugin extends JawsPlugin {
 
   _actionProjectCreate(options) {
     let _this = this;
-
-    var deferred = Promise.pending();
-
-    setTimeout(function() {
+    console.log(options)
+    return Promise.delay(1000)
+    .then(function() {
       _this.Jaws.generatorPluginAction = true;
-      console.log(options);
-      deferred.resolve();
-    }, 500);
-
-    return deferred.promise;
+    });
   }
 
   _hookPreProjectCreate() {
@@ -96,14 +91,10 @@ class PromisePlugin extends JawsPlugin {
 
   _hookPostProjectCreate() {
     let _this = this;
-    var deferred = Promise.pending();
-    setTimeout(function() {
+    return Promise.delay(4000)
+    .then(function() {
       _this.Jaws.generatorPluginHookPost = true;
-      console.log('post hook resolved');
-      deferred.resolve();
-    }, 500);
-
-    return deferred.promise;
+    });
   }
 }
 
@@ -124,6 +115,8 @@ describe('Test Promise Plugins', function() {
 
   describe('Test Promise Plugins', function() {
     it('should run and attach values to context', function(done) {
+
+      this.timeout(0);
 
       Jaws.projectCreate({
             name: 'test',
