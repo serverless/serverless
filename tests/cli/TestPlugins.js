@@ -13,7 +13,6 @@ let JAWS        = require('../../lib/Jaws.js'),
     utils       = require('../../lib/utils'),
     assert      = require('chai').assert,
     shortid     = require('shortid'),
-    Promise     = require('bluebird'),
     config      = require('../config');
 
 /**
@@ -72,28 +71,36 @@ class PromisePlugin extends JawsPlugin {
    * @private
    */
 
-  _actionProjectCreate(options) {
+  _actionProjectCreate(paramsTest1, paramsTest2) {
     let _this = this;
-    console.log(options)
-    return Promise.delay(1000)
-    .then(function() {
-      _this.Jaws.generatorPluginAction = true;
+    return new Promise(function(resolve) {
+      setTimeout(function(){
+        _this.Jaws.generatorPluginAction = true;
+        _this.Jaws.paramsTest1 = paramsTest1;
+        _this.Jaws.paramsTest2 = paramsTest1;
+        return resolve();
+      }, 250);
     });
+
   }
 
   _hookPreProjectCreate() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
-      _this.Jaws.generatorPluginHookPre = true;
-      return resolve();
-    })
+    return new Promise(function(resolve) {
+      setTimeout(function(){
+        _this.Jaws.generatorPluginHookPre = true;
+        return resolve();
+      }, 1000);
+    });
   }
 
   _hookPostProjectCreate() {
     let _this = this;
-    return Promise.delay(4000)
-    .then(function() {
-      _this.Jaws.generatorPluginHookPost = true;
+    return new Promise(function(resolve) {
+      setTimeout(function(){
+        _this.Jaws.generatorPluginHookPost = true;
+        return resolve();
+      }, 250);
     });
   }
 }
@@ -102,7 +109,7 @@ class PromisePlugin extends JawsPlugin {
  * Run Tests
  */
 
-describe('Test Promise Plugins', function() {
+describe('Test Plugins', function() {
 
   before(function(done) {
     Jaws.addPlugin(new PromisePlugin(Jaws, {}));
@@ -113,22 +120,20 @@ describe('Test Promise Plugins', function() {
     done();
   });
 
-  describe('Test Promise Plugins', function() {
+  describe('Test Plugin', function() {
     it('should run and attach values to context', function(done) {
 
       this.timeout(0);
 
-      Jaws.projectCreate({
-            name: 'test',
-            stage: 'test',
-            region: 'us-east-1',
-            domain: 'test.com',
-            notificationEmail: 'test@test.com',
-          })
+      Jaws.projectCreate(true, true)
           .then(function() {
+            // Test context
             assert.isTrue(Jaws.generatorPluginHookPre);
             assert.isTrue(Jaws.generatorPluginHookPost);
             assert.isTrue(Jaws.generatorPluginAction);
+            // Test Params are passed through action handler
+            assert.isTrue(Jaws.paramsTest1);
+            assert.isTrue(Jaws.paramsTest2);
             done();
           })
           .catch(function(e) {
