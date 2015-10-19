@@ -4,20 +4,20 @@
  * Test: Plugins
  */
 
-let JAWS        = require('../../lib/Jaws.js'),
-    JawsPlugin  = require('../../lib/JawsPlugin'),
-    path        = require('path'),
-    assert      = require('chai').assert,
-    config      = require('../config');
+let JAWS       = require('../../lib/Jaws.js'),
+    JawsPlugin = require('../../lib/JawsPlugin'),
+    path       = require('path'),
+    assert     = require('chai').assert,
+    config     = require('../config');
 
 /**
  * JAWS
  */
 
 let Jaws = new JAWS({
-  awsAdminKeyId: '123',
+  awsAdminKeyId:     '123',
   awsAdminSecretKey: '123',
-  interactive: false,
+  interactive:       false,
 });
 
 /**
@@ -36,16 +36,18 @@ class PromisePlugin extends JawsPlugin {
 
   registerActions() {
     this.Jaws.action(this._action.bind(this), {
-      handler:          'pluginTest',
-      description:      'A test plugin',
-      context:          'plugin',
-      contextAction:    'test',
-      options:          [{
-        option: 'option',
-        shortcut: 'o',
+      handler:       'pluginTest',
+      description:   'A test plugin',
+      context:       'plugin',
+      contextAction: 'test',
+      options:       [{
+        option:      'option',
+        shortcut:    'o',
         description: 'test option 1'
       }],
     });
+
+    return Promise.resolve();
   }
 
   /**
@@ -61,11 +63,13 @@ class PromisePlugin extends JawsPlugin {
       handler: 'pluginTest',
       event:   'post'
     });
+
+    return Promise.resolve();
   }
 
   /**
    * Plugin Logic
-   * @returns {*|Promise.<T>}
+   * @returns {Promise}
    * @private
    */
 
@@ -73,8 +77,8 @@ class PromisePlugin extends JawsPlugin {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Action fired');
-      setTimeout(function(){
-        _this.Jaws.testAction = true;
+      setTimeout(function() {
+        _this.Jaws.testAction  = true;
         _this.Jaws.paramsTest1 = paramsTest1;
         _this.Jaws.paramsTest2 = paramsTest2;
         return resolve();
@@ -86,7 +90,7 @@ class PromisePlugin extends JawsPlugin {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Hook "Pre" fired');
-      setTimeout(function(){
+      setTimeout(function() {
         _this.Jaws.testHookPre = true;
         return resolve();
       }, 250);
@@ -97,7 +101,7 @@ class PromisePlugin extends JawsPlugin {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Hook "Post" fired');
-      setTimeout(function(){
+      setTimeout(function() {
         _this.Jaws.testHookPost = true;
         return resolve();
       }, 250);
@@ -125,19 +129,19 @@ describe('Test Custom Plugin', function() {
 
       this.timeout(0);
       Jaws.pluginTest(true, true)
-          .then(function() {
-            // Test context
-            assert.isTrue(Jaws.testHookPre);
-            assert.isTrue(Jaws.testHookPost);
-            assert.isTrue(Jaws.testAction);
-            // Test Params are passed through action handler
-            assert.isTrue(Jaws.paramsTest1);
-            assert.isTrue(Jaws.paramsTest2);
-            done();
-          })
-          .catch(function(e) {
-            done(e);
-          });
+        .then(function() {
+          // Test context
+          assert.isTrue(Jaws.testHookPre);
+          assert.isTrue(Jaws.testHookPost);
+          assert.isTrue(Jaws.testAction);
+          // Test Params are passed through action handler
+          assert.isTrue(Jaws.paramsTest1);
+          assert.isTrue(Jaws.paramsTest2);
+          done();
+        })
+        .catch(function(e) {
+          done(e);
+        });
     });
   });
 });

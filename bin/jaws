@@ -30,6 +30,7 @@ program
  */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 program
   .command('project <cmd>')
   .description(`Work with JAWS Project. Valid <cmd>'s: create`)
@@ -65,6 +66,11 @@ program
   });
 =======
 let JAWS = require('../lib/Jaws');
+=======
+let JAWS      = require('../lib/Jaws'),
+    JawsUtils = require('../lib/utils/index');
+
+>>>>>>> fixes
 let Jaws = new JAWS();
 >>>>>>> plugins: prepare for queue refactor
 
@@ -201,6 +207,7 @@ create: create aws-module action. Module will be created if DNE. create <module 
 var argv = require('minimist')(process.argv.slice(2));
 >>>>>>> plugins: prepare for queue refactor
 
+<<<<<<< HEAD
 /**
  * Fire Command
  */
@@ -398,6 +405,9 @@ return Jaws.command(argv);
 
 
 
+=======
+utils.execute(Jaws.command(argv));
+>>>>>>> fixes
 
 
 //var JawsError = require('../lib/jaws-error'),
