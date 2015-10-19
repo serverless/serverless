@@ -22,20 +22,9 @@ let Jaws = new JAWS({
   interactive: false,
 });
 
-// Project Config
-let prjConfig = {
-  noCf: true,
-  name: 'test',
-  domain: 'test.com',
-  stage: 'test',
-  notificationEmail: 'i@test.com',
-  region: 'us-east-1',
-};
-
 describe('Test Project Create', function() {
 
   before(function(done) {
-    config.newName = 'jaws-test-' + shortid.generate().replace('_', '');
     process.chdir(os.tmpdir());
     done();
   });
@@ -49,7 +38,17 @@ describe('Test Project Create', function() {
 
       this.timeout(0);
 
-      Jaws.projectCreate(prjConfig)
+      let name = 'jaws-test-' + shortid.generate().replace('_', '');
+
+      Jaws.projectCreate(
+          name,
+          name + '.com',
+          'test',
+          'us-east-1',
+          'test@test.com',
+          'nodejs',
+          true
+      )
           .then(function() {
             let jawsJson = utils.readAndParseJsonSync(
                 path.join(os.tmpdir(), config.newName, 'jaws.json'));

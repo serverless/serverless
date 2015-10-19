@@ -29,5 +29,5 @@ describe('AllTests', function() {
    //require('./cli/deploy_resources');
    //require('./cli/deploy_endpoint');
    //require('./cli/new_stage_region');
-   //require('./cli/TestActionProjectCreate');
+   require('./cli/TestActionProjectCreate');
 });
