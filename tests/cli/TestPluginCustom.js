@@ -35,13 +35,17 @@ class PromisePlugin extends JawsPlugin {
    */
 
   registerActions() {
-    this.Jaws.action(this._actionProjectCreate.bind(this), {
-      handler:          'projectCreate',
-      description:      'A plugin that customizes project creation',
-      context:          'project',
-      contextAction:    'create',
-      options:          [{}],
-    }); // bind is optional
+    this.Jaws.action(this._actionPluginTest.bind(this), {
+      handler:          'pluginTest',
+      description:      'A test plugin',
+      context:          'plugin',
+      contextAction:    'test',
+      options:          [{
+        option: 'option',
+        shortcut: 'o',
+        description: 'test option 1'
+      }],
+    });
   }
 
   /**
@@ -49,12 +53,12 @@ class PromisePlugin extends JawsPlugin {
    */
 
   registerHooks() {
-    this.Jaws.hook(this._hookPreProjectCreate.bind(this), {
-      handler: 'projectCreate',
+    this.Jaws.hook(this._hookPrePluginTest.bind(this), {
+      handler: 'pluginTest',
       event:   'pre'
     });
-    this.Jaws.hook(this._hookPostProjectCreate.bind(this), {
-      handler: 'projectCreate',
+    this.Jaws.hook(this._hookPostPluginTest.bind(this), {
+      handler: 'pluginTest',
       event:   'post'
     });
   }
@@ -65,12 +69,12 @@ class PromisePlugin extends JawsPlugin {
    * @private
    */
 
-  _actionProjectCreate(paramsTest1, paramsTest2) {
+  _actionPluginTest(paramsTest1, paramsTest2) {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Action fired');
       setTimeout(function(){
-        _this.Jaws.generatorPluginAction = true;
+        _this.Jaws.testAction = true;
         _this.Jaws.paramsTest1 = paramsTest1;
         _this.Jaws.paramsTest2 = paramsTest2;
         return resolve();
@@ -78,23 +82,23 @@ class PromisePlugin extends JawsPlugin {
     });
   }
 
-  _hookPreProjectCreate() {
+  _hookPrePluginTest() {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Hook "Pre" fired');
       setTimeout(function(){
-        _this.Jaws.generatorPluginHookPre = true;
+        _this.Jaws.testHookPre = true;
         return resolve();
       }, 250);
     });
   }
 
-  _hookPostProjectCreate() {
+  _hookPostPluginTest() {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Hook "Post" fired');
       setTimeout(function(){
-        _this.Jaws.generatorPluginHookPost = true;
+        _this.Jaws.testHookPost = true;
         return resolve();
       }, 250);
     });
@@ -105,7 +109,7 @@ class PromisePlugin extends JawsPlugin {
  * Run Tests
  */
 
-describe('Test Plugin Architecture', function() {
+describe('Test Custom Plugin', function() {
 
   before(function(done) {
     Jaws.addPlugin(new PromisePlugin(Jaws, {}));
@@ -116,17 +120,17 @@ describe('Test Plugin Architecture', function() {
     done();
   });
 
-  describe('Test Plugin Architecture', function() {
+  describe('Test Custom Plugin', function() {
     it('should run and attach values to context', function(done) {
 
       this.timeout(0);
 
-      Jaws.projectCreate(true, true)
+      Jaws.pluginTest(true, true)
           .then(function() {
             // Test context
-            assert.isTrue(Jaws.generatorPluginHookPre);
-            assert.isTrue(Jaws.generatorPluginHookPost);
-            assert.isTrue(Jaws.generatorPluginAction);
+            assert.isTrue(Jaws.testHookPre);
+            assert.isTrue(Jaws.testHookPost);
+            assert.isTrue(Jaws.testAction);
             // Test Params are passed through action handler
             assert.isTrue(Jaws.paramsTest1);
             assert.isTrue(Jaws.paramsTest2);
