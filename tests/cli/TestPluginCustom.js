@@ -35,7 +35,7 @@ class PromisePlugin extends JawsPlugin {
    */
 
   registerActions() {
-    this.Jaws.action(this._actionPluginTest.bind(this), {
+    this.Jaws.action(this._action.bind(this), {
       handler:          'pluginTest',
       description:      'A test plugin',
       context:          'plugin',
@@ -53,11 +53,11 @@ class PromisePlugin extends JawsPlugin {
    */
 
   registerHooks() {
-    this.Jaws.hook(this._hookPrePluginTest.bind(this), {
+    this.Jaws.hook(this._hookPre.bind(this), {
       handler: 'pluginTest',
       event:   'pre'
     });
-    this.Jaws.hook(this._hookPostPluginTest.bind(this), {
+    this.Jaws.hook(this._hookPost.bind(this), {
       handler: 'pluginTest',
       event:   'post'
     });
@@ -69,7 +69,7 @@ class PromisePlugin extends JawsPlugin {
    * @private
    */
 
-  _actionPluginTest(paramsTest1, paramsTest2) {
+  _action(paramsTest1, paramsTest2) {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Action fired');
@@ -82,7 +82,7 @@ class PromisePlugin extends JawsPlugin {
     });
   }
 
-  _hookPrePluginTest() {
+  _hookPre() {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Hook "Pre" fired');
@@ -93,7 +93,7 @@ class PromisePlugin extends JawsPlugin {
     });
   }
 
-  _hookPostPluginTest() {
+  _hookPost() {
     let _this = this;
     return new Promise(function(resolve) {
       console.log('Hook "Post" fired');
@@ -124,7 +124,6 @@ describe('Test Custom Plugin', function() {
     it('should run and attach values to context', function(done) {
 
       this.timeout(0);
-
       Jaws.pluginTest(true, true)
           .then(function() {
             // Test context

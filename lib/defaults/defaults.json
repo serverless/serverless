@@ -1,6 +1,7 @@
 {
   "plugins": [
     {
+      "plugin": "jawsProjectCreate",
       "path": "./defaults/actions/ProjectCreate.js",
       "config": {}
     }
