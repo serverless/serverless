@@ -15,7 +15,7 @@ describe('All Tests', function() {
   });
 
   //require tests vs inline so we can run sequentially
-  require('./cli/TestPlugins');
+  require('./cli/TestPluginCustom');
   //require('./cli/tag');
   //require('./cli/env');
   //require('./cli/module_create');
