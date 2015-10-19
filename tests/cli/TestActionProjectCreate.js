@@ -22,7 +22,7 @@ let Jaws = new JAWS({
   interactive: false,
 });
 
-describe('Test Project Create', function() {
+describe('Test Plugin: Project Create', function() {
 
   before(function(done) {
     process.chdir(os.tmpdir());
@@ -33,8 +33,8 @@ describe('Test Project Create', function() {
     done();
   });
 
-  describe('Positive tests', function() {
-    it('Create new project', function(done) {
+  describe('Test Plugin: Project Create', function() {
+    it('should create a new project in temp directory', function(done) {
 
       this.timeout(0);
 
@@ -51,7 +51,7 @@ describe('Test Project Create', function() {
       )
           .then(function() {
             let jawsJson = utils.readAndParseJsonSync(
-                path.join(os.tmpdir(), config.newName, 'jaws.json'));
+                path.join(os.tmpdir(), name, 'jaws.json'));
 
             let region = false;
 

@@ -110,7 +110,7 @@ class PromisePlugin extends JawsPlugin {
  * Run Tests
  */
 
-describe('Test Plugins', function() {
+describe('Test Plugin Architecture', function() {
 
   before(function(done) {
     Jaws.addPlugin(new PromisePlugin(Jaws, {}));
@@ -121,7 +121,7 @@ describe('Test Plugins', function() {
     done();
   });
 
-  describe('Test Plugin', function() {
+  describe('Test Plugin Architecture', function() {
     it('should run and attach values to context', function(done) {
 
       this.timeout(0);
