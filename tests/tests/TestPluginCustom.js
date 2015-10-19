@@ -128,7 +128,7 @@ describe('Test Custom Plugin', function() {
     it('should run and attach values to context', function(done) {
 
       this.timeout(0);
-      Jaws.pluginTest(true, true)
+      Jaws.actions.pluginTest(true, true)
         .then(function() {
           // Test context
           assert.isTrue(Jaws.testHookPre);
