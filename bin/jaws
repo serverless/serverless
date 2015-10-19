@@ -206,6 +206,7 @@ var argv = require('minimist')(process.argv.slice(2));
  */
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 program
   .command('tag [type]')
   .description('Tag lambda function or api gateway resource (endpoint) for deployment ' +
@@ -388,6 +389,9 @@ if (process.argv.length == 2) {
 =======
 console.log(argv);
 Jaws.command(argv);
+=======
+return Jaws.command(argv);
+>>>>>>> commands: allow option shortcuts
 
 
 

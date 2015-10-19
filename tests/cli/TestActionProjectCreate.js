@@ -50,8 +50,7 @@ describe('Test Plugin: Project Create', function() {
           true
       )
           .then(function() {
-            let jawsJson = utils.readAndParseJsonSync(
-                path.join(os.tmpdir(), name, 'jaws.json'));
+            let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'jaws.json'));
 
             let region = false;
 

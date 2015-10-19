@@ -6,13 +6,8 @@
 
 let JAWS        = require('../../lib/Jaws.js'),
     JawsPlugin  = require('../../lib/JawsPlugin'),
-    JawsError   = require('../../lib/jaws-error'),
     path        = require('path'),
-    os          = require('os'),
-    commop      = require ('commop'),
-    utils       = require('../../lib/utils'),
     assert      = require('chai').assert,
-    shortid     = require('shortid'),
     config      = require('../config');
 
 /**
@@ -45,7 +40,7 @@ class PromisePlugin extends JawsPlugin {
       description:      'A plugin that customizes project creation',
       context:          'project',
       contextAction:    'create',
-      options:          ['options'],
+      options:          [{}],
     }); // bind is optional
   }
 
