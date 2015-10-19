@@ -66,7 +66,6 @@ class PromisePlugin extends JawsPlugin {
 
   /**
    * Plugin Logic
-   * @param options
    * @returns {*|Promise.<T>}
    * @private
    */
@@ -78,9 +77,9 @@ class PromisePlugin extends JawsPlugin {
       setTimeout(function(){
         _this.Jaws.generatorPluginAction = true;
         _this.Jaws.paramsTest1 = paramsTest1;
-        _this.Jaws.paramsTest2 = paramsTest1;
+        _this.Jaws.paramsTest2 = paramsTest2;
         return resolve();
-      }, 500);
+      }, 250);
     });
   }
 
@@ -91,7 +90,7 @@ class PromisePlugin extends JawsPlugin {
       setTimeout(function(){
         _this.Jaws.generatorPluginHookPre = true;
         return resolve();
-      }, 500);
+      }, 250);
     });
   }
 
@@ -102,7 +101,7 @@ class PromisePlugin extends JawsPlugin {
       setTimeout(function(){
         _this.Jaws.generatorPluginHookPost = true;
         return resolve();
-      }, 500);
+      }, 250);
     });
   }
 }
