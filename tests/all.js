@@ -4,7 +4,7 @@
 //TODO: must setup an env var file for unittest
 require('./config');  //init config
 
-describe('AllTests', function() {
+describe('All Tests', function() {
 
   before(function(done) {
     this.timeout(0);  //dont timeout anything
