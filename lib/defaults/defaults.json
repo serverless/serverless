@@ -4,11 +4,6 @@
       "plugin": "jaws.core.ProjectCreate",
       "path": "./defaults/actions/ProjectCreate.js",
       "config": {}
-    },
-    {
-      "plugin": "jaws.core.DeployLambda",
-      "path": "./defaults/actions/DeployLambda.js",
-      "config": {}
     }
   ]
 }
