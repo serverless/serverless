@@ -142,7 +142,7 @@ program
     )
     .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
-    .option('-r, --runtime', '[create]: lambda runtime. Valid: nodejs')
+    .option('-r, --runtime <runtime>', '[create]: lambda runtime. Valid: nodejs')
     .option('-p, --package-manager <pm>', '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
     .action(function(cmd, params, options) {
 
