@@ -15,8 +15,8 @@ let JAWS       = require('../../lib/Jaws.js'),
  */
 
 let Jaws = new JAWS({
-  awsAdminKeyId:     '123',
-  awsAdminSecretKey: '123',
+  awsAdminKeyId:     '123', //TODO: why is this needed? the profile is set in process.env.TEST_JAWS_PROFILE (./config)
+  awsAdminSecretKey: '123', //TODO: why is this needed? the profile is set in process.env.TEST_JAWS_PROFILE (./config)
   interactive:       false,
 });
 
@@ -28,6 +28,15 @@ class PromisePlugin extends JawsPlugin {
 
   constructor(Jaws, config) {
     super(Jaws, config);
+  }
+
+  /**
+   * Define your plugins name
+   *
+   * @returns {string}
+   */
+  static getName() {
+    return 'com.yourdomain.' + PromisePlugin.name;
   }
 
   /**
@@ -129,19 +138,19 @@ describe('Test Custom Plugin', function() {
 
       this.timeout(0);
       Jaws.actions.pluginTest(true, true)
-        .then(function() {
-          // Test context
-          assert.isTrue(Jaws.testHookPre);
-          assert.isTrue(Jaws.testHookPost);
-          assert.isTrue(Jaws.testAction);
-          // Test Params are passed through action handler
-          assert.isTrue(Jaws.paramsTest1);
-          assert.isTrue(Jaws.paramsTest2);
-          done();
-        })
-        .catch(function(e) {
-          done(e);
-        });
+          .then(function() {
+            // Test context
+            assert.isTrue(Jaws.testHookPre);
+            assert.isTrue(Jaws.testHookPost);
+            assert.isTrue(Jaws.testAction);
+            // Test Params are passed through action handler
+            assert.isTrue(Jaws.paramsTest1);
+            assert.isTrue(Jaws.paramsTest2);
+            done();
+          })
+          .catch(function(e) {
+            done(e);
+          });
     });
   });
 });

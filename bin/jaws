@@ -5,13 +5,8 @@
 let JAWS      = require('../lib/Jaws'),
     JawsUtils = require('../lib/utils/index');
 
-let Jaws = new JAWS();
-
-/**
- * Parse
- */
-
-var argv = require('minimist')(process.argv.slice(2));
+let Jaws = new JAWS(),
+    argv = require('minimist')(process.argv.slice(2));
 
 JawsUtils.execute(Jaws.command(argv));
 
