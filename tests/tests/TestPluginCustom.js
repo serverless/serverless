@@ -24,7 +24,7 @@ let Jaws = new JAWS({
  * Define Plugin
  */
 
-class PromisePlugin extends JawsPlugin {
+class CustomPlugin extends JawsPlugin {
 
   constructor(Jaws, config) {
     super(Jaws, config);
@@ -36,7 +36,7 @@ class PromisePlugin extends JawsPlugin {
    * @returns {string}
    */
   static getName() {
-    return 'com.yourdomain.' + PromisePlugin.name;
+    return 'com.yourdomain.' + CustomPlugin.name;
   }
 
   /**
@@ -125,7 +125,7 @@ class PromisePlugin extends JawsPlugin {
 describe('Test Custom Plugin', function() {
 
   before(function(done) {
-    Jaws.addPlugin(new PromisePlugin(Jaws, {}));
+    Jaws.addPlugin(new CustomPlugin(Jaws, {}));
     done();
   });
 

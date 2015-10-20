@@ -1,6 +1,6 @@
 'use strict';
 
-let path = require('path'),
+const path = require('path'),
     AWS = require('aws-sdk');
 
 // Require ENV lets, can also set ENV lets in your IDE

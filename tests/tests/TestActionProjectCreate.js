@@ -40,7 +40,7 @@ describe('Test Plugin: Project Create', function() {
 
       let name = 'jaws-test-' + shortid.generate().replace('_', '');
 
-      Jaws.projectCreate(
+      Jaws.actions.projectCreate(
           name,
           name + '.com',
           'test',
