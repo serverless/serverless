@@ -30,7 +30,7 @@ file (`~/.aws/credentials`) is loaded when doing administrative tasks that inter
 Here is an example
 
 ```
-ADMIN_AWS_PROFILE=default
+JAWS_ADMIN_AWS_PROFILE=default
 ```
 
 ## lambdas-cf.json
