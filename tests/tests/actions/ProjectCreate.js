@@ -6,20 +6,20 @@
  * - Deletes the CF stack created by the project
  */
 
-let JAWS      = require('../../lib/jaws.js'),
-    JawsError = require('../../lib/jaws-error'),
+let JAWS      = require('../../../lib/Jaws.js'),
+    JawsError = require('../../../lib/jaws-error/index'),
     path      = require('path'),
     os        = require('os'),
-    utils     = require('../../lib/utils'),
+    utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     shortid   = require('shortid'),
-    config    = require('../config');
+    config    = require('../../config');
 
 // Instantiate JAWS
 let Jaws = new JAWS({
-  awsAdminKeyId: '123',
+  awsAdminKeyId:     '123',
   awsAdminSecretKey: '123',
-  interactive: false,
+  interactive:       false,
 });
 
 describe('Test Plugin: Project Create', function() {
@@ -38,17 +38,17 @@ describe('Test Plugin: Project Create', function() {
 
       this.timeout(0);
 
-      let name = 'jaws-test-' + shortid.generate().replace('_', '');
+      let name = config.name + shortid.generate().replace('_', '');
 
       Jaws.actions.projectCreate(
           name,
-          name + '.com',
-          'test',
-          'us-east-1',
-          'test@test.com',
+          config.domain,
+          config.stage,
+          config.region,
+          config.notifyEmail,
           'nodejs',
-          true
-      )
+          config.noExecuteCf
+          )
           .then(function() {
             let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'jaws.json'));
 

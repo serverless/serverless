@@ -1,7 +1,5 @@
 'use strict';
 
-//TODO: doc on needing to set env vars
-//TODO: must setup an env var file for unittest
 require('./config');  //init config
 
 describe('All Tests', function() {
@@ -15,7 +13,7 @@ describe('All Tests', function() {
   });
 
   //require tests vs inline so we can run sequentially
-  require('./tests/TestPluginCustom');
+  //require('./tests/TestPluginCustom');
   //require('./cli/tag');
   //require('./cli/env');
   //require('./cli/module_create');
@@ -24,10 +22,11 @@ describe('All Tests', function() {
   /**
    * Tests below create AWS Resources
    */
-   //require('./cli/dash');
-   //require('./cli/deploy_lambda');
-   //require('./cli/deploy_resources');
-   //require('./cli/deploy_endpoint');
-   //require('./cli/new_stage_region');
-   require('./tests/TestActionProjectCreate');
+    //require('./cli/dash');
+    //require('./cli/deploy_lambda');
+    //require('./cli/deploy_resources');
+    //require('./cli/deploy_endpoint');
+    //require('./cli/new_stage_region');
+    //require('./tests/actions/ProjectCreate');
+  require('./tests/actions/VersionLambda');
 });

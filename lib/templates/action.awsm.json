@@ -1,31 +1,55 @@
 {
-  "lambda": {
-    "envVars": [],
-    "deploy": false,
-    "package": {
-      "optimize": {
-        "builder": "browserify",
-        "minify": true,
-        "ignore": [],
-        "exclude": [
-          "aws-sdk"
-        ],
-        "includePaths": []
-      },
-      "excludePatterns": []
+  "name": "",
+  "envVars": [],
+  "package": {
+    "optimize": {
+      "builder": "browserify",
+      "minify": true,
+      "ignore": [],
+      "exclude": [
+        "aws-sdk"
+      ],
+      "includePaths": []
     },
-    "cloudFormation": {
-      "Description": "",
-      "Handler": "",
-      "MemorySize": 1024,
-      "Runtime": "nodejs",
-      "Timeout": 6
-    }
+    "excludePatterns": []
   },
-  "apiGateway": {
-    "deploy": false,
-    "cloudFormation": {
-      "Type": "",
+  "plugins": [],
+  "cloudFormation": {
+    "Lambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "",
+        "Role": {
+          "Ref": "aaLambdaRoleArn"
+        },
+        "Code": {
+          "S3Bucket": "",
+          "S3Key": ""
+        },
+        "Runtime": "nodejs",
+        "Timeout": 6,
+        "MemorySize": 1024
+      }
+    },
+    "LambdaEventSourceMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": {},
+        "FunctionName": "",
+        "StartingPosition": ""
+      }
+    },
+    "LambdaAccessPolicyX": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": "",
+        "Action": "",
+        "Principal": "",
+        "SourceAccount": ""
+      }
+    },
+    "APIGatewayEndpoint": {
+      "Type": "AWS::ApiGateway::Endpoint",
       "Path": "",
       "Method": "GET",
       "AuthorizationType": "none",
@@ -33,16 +57,15 @@
       "RequestTemplates": {},
       "RequestParameters": {},
       "Responses": {
+        "400": {
+          "statusCode": "400"
+        },
         "default": {
           "statusCode": "200",
           "responseParameters": {},
-          "responseModels": {},
           "responseTemplates": {
             "application/json": ""
           }
-        },
-        "400": {
-          "statusCode": "400"
         }
       }
     }
