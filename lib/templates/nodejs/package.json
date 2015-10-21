@@ -4,7 +4,7 @@
   "description": "A JAWS application",
   "author": "me",
   "license": "MIT",
-  "private": false,
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git://github.com/"

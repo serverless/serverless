@@ -9,10 +9,6 @@
       "Type": "String",
       "Default": "myapp.com"
     },
-    "aaJawsBucket": {
-      "Type": "String",
-      "Default": "myapp.com"
-    },
     "aaStage": {
       "Type": "String"
     },
@@ -139,7 +135,9 @@
                   ":",
                   [
                     "arn:aws:logs",
-                    { "Ref" : "AWS::Region" },
+                    {
+                      "Ref": "AWS::Region"
+                    },
                     "*:*"
                   ]
                 ]
@@ -189,7 +187,9 @@
                   ":",
                   [
                     "arn:aws:lambda",
-                    { "Ref" : "AWS::Region" },
+                    {
+                      "Ref": "AWS::Region"
+                    },
                     "*:*"
                   ]
                 ]
@@ -208,16 +208,6 @@
           }
         ]
       }
-    },
-    "JawsBucket" : {
-      "Type" : "AWS::S3::Bucket",
-      "Properties" : {
-        "AccessControl" : "Private",
-        "BucketName" : {
-          "Ref": "aaJawsBucket"
-        }
-      },
-      "DeletionPolicy" : "Retain"
     }
   },
   "Outputs": {
