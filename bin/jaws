@@ -20,10 +20,6 @@ JawsUtils.execute(Jaws.command(argv));
 //    rawDebug = require('debug'),
 //    execute = utils.execute;
 //
-//Promise.onPossiblyUnhandledRejection(function(error) {
-//  throw error;
-//});
-//
 //var JAWS = new Jaws();
 //
 //program

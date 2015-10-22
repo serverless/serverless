@@ -1,41 +1,42 @@
 {
-  "name": "jaws-users-show",
-  "version": "0.0.1",
-  "location": "https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js",
-  "author": "JAWS",
-  "description": "A lambda function to fetch a user from the database and show them",
-  "lambda": {
-    "envVars": [
-      "MYAPP_SERVICE_KEY",
-      "MYAPP_SERVICE2_KEY"
-    ],
-    "deploy": false,
-    "package": {
-      "optimize": {
-        "builder": "browserify",
-        "minify": true,
-        "ignore": [],
-        "exclude": [
-          "aws-sdk"
-        ],
-        "includePaths": []
-      },
-      "excludePatterns": []
+  "name": "lSessionsShow",
+  "envVars": [],
+  "package": {
+    "optimize": {
+      "builder": "browserify",
+      "minify": true,
+      "ignore": [],
+      "exclude": [
+        "aws-sdk"
+      ],
+      "includePaths": []
     },
-    "cloudFormation": {
-      "Description": "",
-      "Handler": "aws_modules/sessions/show/index.handler",
-      "MemorySize": 1024,
-      "Runtime": "nodejs",
-      "Timeout": 6
-    }
+    "excludePatterns": []
   },
-  "apiGateway": {
-    "deploy": false,
-    "cloudFormation": {
-      "Type": "AWS",
-      "Path": "sessions/{sessionId}",
-      "Method": "GET",
+  "plugins": [],
+  "cloudFormation": {
+    "Lambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "",
+        "Role": {
+          "Ref": "aaLambdaRoleArn"
+        },
+        "Code": {
+          "S3Bucket": "",
+          "S3Key": ""
+        },
+        "Runtime": "nodejs",
+        "Timeout": 6,
+        "MemorySize": 1024
+      },
+      "Runtime": "nodejs",
+      "Handler": "aws_modules/sessions/show/index.handler"
+    },
+    "APIGatewayEndpoint": {
+      "Type": "AWS::ApiGateway::Endpoint",
+      "Path": "sessions",
+      "Method": "POST",
       "AuthorizationType": "none",
       "ApiKeyRequired": false,
       "RequestTemplates": {

@@ -1,40 +1,41 @@
 {
-  "name": "jaws-users-signup",
-  "version": "0.0.1",
-  "location": "https://github.com/jaws-stack/jaws-users-crud-ddb-jwt-js",
-  "author": "JAWS",
-  "description": "A group of lambda functions for user crud operations using dynamodb, JSON web tokens and javascript",
-  "lambda": {
-    "envVars": [
-      "MYAPP_SERVICE_KEY",
-      "MYAPP_SERVICE2_KEY"
-    ],
-    "deploy": false,
-    "package": {
-      "optimize": {
-        "builder": "browserify",
-        "minify": true,
-        "ignore": [],
-        "exclude": [
-          "aws-sdk"
-        ],
-        "includePaths": []
-      },
-      "excludePatterns": []
+  "name": "lUsersCreate",
+  "envVars": [],
+  "package": {
+    "optimize": {
+      "builder": "browserify",
+      "minify": true,
+      "ignore": [],
+      "exclude": [
+        "aws-sdk"
+      ],
+      "includePaths": []
     },
-    "cloudFormation": {
-      "Description": "",
-      "Handler": "aws_modules/users/create/index.handler",
-      "MemorySize": 1024,
-      "Runtime": "nodejs",
-      "Timeout": 6
-    }
+    "excludePatterns": []
   },
-  "apiGateway": {
-    "deploy": false,
-    "cloudFormation": {
-      "Type": "AWS",
-      "Path": "users",
+  "plugins": [],
+  "cloudFormation": {
+    "Lambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "",
+        "Role": {
+          "Ref": "aaLambdaRoleArn"
+        },
+        "Code": {
+          "S3Bucket": "",
+          "S3Key": ""
+        },
+        "Runtime": "nodejs",
+        "Timeout": 6,
+        "MemorySize": 1024
+      },
+      "Runtime": "nodejs",
+      "Handler": "aws_modules/users/create/index.handler"
+    },
+    "APIGatewayEndpoint": {
+      "Type": "AWS::ApiGateway::Endpoint",
+      "Path": "sessions",
       "Method": "POST",
       "AuthorizationType": "none",
       "ApiKeyRequired": false,
@@ -50,6 +51,7 @@
           "responseParameters": {
             "method.response.header.Access-Control-Allow-Origin": "'*'"
           },
+          "responseModels": {},
           "responseTemplates": {
             "application/json": ""
           }

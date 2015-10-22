@@ -16,9 +16,10 @@ let config = {
   region:               'us-east-1',
   stage2:               'unittest2',
   region2:              'us-west-2',
+  //Set following 2, to an existing unit test project's ARNS, for test cases that need to interact w/ proj aws resources
+  //You can simply make a unittest project via `jaws project create` then set the env vars from the values in `project.json`
   iamRoleArnApiGateway: process.env.TEST_JAWS_APIGATEWAY_ROLE,
   iamRoleArnLambda:     process.env.TEST_JAWS_LAMBDA_ROLE,
-  profile:              process.env.TEST_JAWS_AWS_PROFILE,
   noExecuteCf:          process.env.TEST_JAWS_EXE_CF != "true",
 };
 

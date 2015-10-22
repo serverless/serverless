@@ -11,23 +11,18 @@ let fs        = require('fs'),
 
 /**
  * Create test project
- * @param projectName
- * @param projectRegion
- * @param projectStage
- * @param projectLambdaIAMRole
- * @param projectApiGIAMRole
- * @param projectRegionBucket
+ * @param config see tests/config.js
  * @param npmInstallDirs list of dirs relative to project root to execute npm install on
  * @returns {Promise} full path to proj temp dir that was just created
  */
 
-module.exports.createTestProject = function(projectName,
-                                            projectStage,
-                                            projectRegion,
-                                            projectDomain,
-                                            projectLambdaIAMRole,
-                                            projectApiGIAMRole,
-                                            npmInstallDirs) {
+module.exports.createTestProject = function(config, npmInstallDirs) {
+  let projectName          = config.name,
+      projectStage         = config.stage,
+      projectRegion        = config.region,
+      projectLambdaIAMRole = config.iamRoleArnLambda,
+      projectApiGIAMRole   = config.iamRoleArnApiGateway;
+
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
 

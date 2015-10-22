@@ -1,35 +1,58 @@
 {
-  "name": "my-project-nonoptimized-tests",
-  "version": "1.0",
-  "location": "https://github.com/jaws-stack/skinny-jeans",
-  "author": "John Serverless <john@gmail.com> http://www.google.com",
-  "description": "A lambda function that does something",
-  "lambda": {
-    "envVars": [
-      "MYAPP_SERVICE_KEY",
-      "MYAPP_SERVICE2_KEY"
-    ],
-    "deploy": false,
-    "package": {
-      "optimize": {
-        "builder": false,
-        "minify": false,
-        "ignore": [],
-        "exclude": [
-        ],
-        "includePaths": []
-      },
-      "excludePatterns": [
-        "aws_modules/[u].*",
-        "aws_modules/bundle/b.*"
-      ]
+  "name": "lBundleNonoptimized",
+  "envVars": [],
+  "package": {
+    "optimize": {
+      "builder": "browserify",
+      "minify": true,
+      "ignore": [],
+      "exclude": [
+        "aws-sdk"
+      ],
+      "includePaths": []
     },
-    "cloudFormation": {
-      "Description": "",
-      "Handler": "aws_modules/bundle/nonoptimized/handler.handler",
-      "MemorySize": 1024,
+    "excludePatterns": []
+  },
+  "plugins": [],
+  "cloudFormation": {
+    "Lambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "",
+        "Role": {
+          "Ref": "aaLambdaRoleArn"
+        },
+        "Code": {
+          "S3Bucket": "",
+          "S3Key": ""
+        },
+        "Runtime": "nodejs",
+        "Timeout": 6,
+        "MemorySize": 1024
+      },
       "Runtime": "nodejs",
-      "Timeout": 6
+      "Handler": "aws_modules/bundle/nonoptimized/handler.handler"
+    },
+    "APIGatewayEndpoint": {
+      "Type": "AWS::ApiGateway::Endpoint",
+      "Path": "bundle/nonoptimized",
+      "Method": "GET",
+      "AuthorizationType": "none",
+      "ApiKeyRequired": false,
+      "RequestTemplates": {},
+      "RequestParameters": {},
+      "Responses": {
+        "400": {
+          "statusCode": "400"
+        },
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        }
+      }
     }
   }
 }

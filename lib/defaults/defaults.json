@@ -7,6 +7,18 @@
     {
       "path": "./defaults/actions/DeployLambda.js",
       "config": {}
+    },
+    {
+      "path": "./defaults/actions/ModuleCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/VersionLambda.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/AliasLambda.js",
+      "config": {}
     }
   ]
 }

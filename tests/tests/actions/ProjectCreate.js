@@ -6,23 +6,20 @@
  * - Deletes the CF stack created by the project
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
-    JawsError = require('../../../lib/jaws-error/index'),
-    path      = require('path'),
-    os        = require('os'),
-    utils     = require('../../../lib/utils/index'),
-    assert    = require('chai').assert,
-    shortid   = require('shortid'),
-    config    = require('../../config');
+let JAWS    = require('../../../lib/Jaws.js'),
+    path    = require('path'),
+    os      = require('os'),
+    utils   = require('../../../lib/utils/index'),
+    assert  = require('chai').assert,
+    shortid = require('shortid'),
+    config  = require('../../config');
 
 // Instantiate JAWS
 let Jaws = new JAWS({
-  awsAdminKeyId:     '123',
-  awsAdminSecretKey: '123',
-  interactive:       false,
+  interactive: false,
 });
 
-describe('Test Plugin: Project Create', function() {
+describe('Test action: Project Create', function() {
 
   before(function(done) {
     process.chdir(os.tmpdir());
@@ -33,7 +30,7 @@ describe('Test Plugin: Project Create', function() {
     done();
   });
 
-  describe('Test Plugin: Project Create', function() {
+  describe('Project Create', function() {
     it('should create a new project in temp directory', function(done) {
 
       this.timeout(0);
@@ -41,34 +38,34 @@ describe('Test Plugin: Project Create', function() {
       let name = config.name + shortid.generate().replace('_', '');
 
       Jaws.actions.projectCreate(
-          name,
-          config.domain,
-          config.stage,
-          config.region,
-          config.notifyEmail,
-          'nodejs',
-          config.noExecuteCf
-          )
-          .then(function() {
-            let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'jaws.json'));
+        name,
+        config.domain,
+        config.stage,
+        config.region,
+        config.notifyEmail,
+        'nodejs',
+        config.noExecuteCf
+        )
+        .then(function() {
+          let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'jaws.json'));
 
-            let region = false;
+          let region = false;
 
-            for (let i = 0; i < jawsJson.stages[config.stage].length; i++) {
-              let stage = jawsJson.stages[config.stage][i];
-              if (stage.region === config.region) {
-                region = stage.region;
-              }
+          for (let i = 0; i < jawsJson.stages[config.stage].length; i++) {
+            let stage = jawsJson.stages[config.stage][i];
+            if (stage.region === config.region) {
+              region = stage.region;
             }
-            assert.isTrue(region !== false);
-            done();
-          })
-          .catch(JawsError, function(e) {
-            done(e);
-          })
-          .error(function(e) {
-            done(e);
-          });
+          }
+          assert.isTrue(region !== false);
+          done();
+        })
+        .catch(JawsError, function(e) {
+          done(e);
+        })
+        .error(function(e) {
+          done(e);
+        });
     });
   });
 
