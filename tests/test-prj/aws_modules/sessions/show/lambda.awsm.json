@@ -15,7 +15,7 @@
   },
   "plugins": [],
   "cloudFormation": {
-    "Lambda": {
+    "lambda": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "",
@@ -33,7 +33,7 @@
       "Runtime": "nodejs",
       "Handler": "aws_modules/sessions/show/index.handler"
     },
-    "APIGatewayEndpoint": {
+    "apiGatewayEndpoint": {
       "Type": "AWS::ApiGateway::Endpoint",
       "Path": "sessions",
       "Method": "POST",

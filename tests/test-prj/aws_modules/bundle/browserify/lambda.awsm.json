@@ -15,7 +15,7 @@
   },
   "plugins": [],
   "cloudFormation": {
-    "Lambda": {
+    "lambda": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "",
@@ -33,7 +33,7 @@
       "Runtime": "nodejs",
       "Handler": "aws_modules/bundle/browserify/handler.handler"
     },
-    "APIGatewayEndpoint": {
+    "apiGatewayEndpoint": {
       "Type": "AWS::ApiGateway::Endpoint",
       "Path": "bundle/browserify",
       "Method": "GET",

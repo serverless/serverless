@@ -15,7 +15,7 @@
   },
   "plugins": [],
   "cloudFormation": {
-    "Lambda": {
+    "lambda": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "",
@@ -33,7 +33,7 @@
       "Runtime": "nodejs",
       "Handler": "aws_modules/bundle/nonoptimized/handler.handler"
     },
-    "APIGatewayEndpoint": {
+    "apiGatewayEndpoint": {
       "Type": "AWS::ApiGateway::Endpoint",
       "Path": "bundle/nonoptimized",
       "Method": "GET",
