@@ -52,6 +52,7 @@
     "debug": "^2.2.0",
     "dotenv": "^1.2.0",
     "download": "^4.2.0",
+    "expand-home-dir": "0.0.2",
     "insert-module-globals": "^6.5.2",
     "jaws-api-gateway-client": "0.11.0",
     "keypress": "^0.2.1",
