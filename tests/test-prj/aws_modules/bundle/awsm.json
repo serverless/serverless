@@ -5,8 +5,8 @@
   "author": "",
   "description": "",
   "cloudFormation": {
-    "LambdaIamPolicyDocumentStatements": [],
-    "ApiGatewayIamPolicyDocumentStatements": [],
-    "Resources": {}
+    "lambdaIamPolicyDocumentStatements": [],
+    "apiGatewayIamPolicyDocumentStatements": [],
+    "resources": {}
   }
 }
