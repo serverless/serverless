@@ -28,7 +28,16 @@ Commands that interact with [aws modules](./aws_modules.md) (awsm)
 * ##### aws module installation and update
   
   * We leverage the most popualar package manager for the runtime and utilize a post-install hook to JAWS stuff.  For example in nodejs: `npm install awsm-images --save`. See [awsm-org](./aws_modules.md) for more info.
+
+### Lambda Commands
  
+ Commands that interact with lambdas
+ 
+ * ##### `$ jaws lambda deploy [options]... [paths|ALL]...`
+ 
+   *  Deploy lambda at CWD, lambdas at specified paths, or ALL lambdas
+
+
 ### Region Commands
 
 * ##### `$ jaws region create`
@@ -41,13 +50,6 @@ Commands that interact with [aws modules](./aws_modules.md) (awsm)
 
   * Creates a new stage in existing region.  By default executes CloudFormation to make new stage.
 
-### Dash Commands
-
-Deploy your lambdas and endpoints using the JAWS dashboard.
-
-* ##### `$ jaws dash`
-
- * Interactive dashboard used to get an overview of your project and deploy resources
 
 ### ENV Commands
 
@@ -68,18 +70,6 @@ Modeled after Heroku's environment variable commands, these commands manage envi
 * ##### `$ jaws env unset <stage> <region> <key>`
 
  * Unset the value for a specific key in stage and region (or all regions for stage)..
-
-### Tag Commands
-
-depricated per https://github.com/jaws-framework/JAWS/issues/164
-
-### Deploy Commands
-
-Non-interactive way (dash alternative) to deploy lambda|endpoint|resources from lambda CWD.
-
-* ##### `$ jaws deploy <type> [stage] [region]`
-
- * Deploys lambda|endpoint|resources 
 
 ### Run Commands
 
