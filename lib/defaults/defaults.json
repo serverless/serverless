@@ -5,7 +5,7 @@
       "config": {}
     },
     {
-      "path": "./defaults/actions/DeployLambda.js",
+      "path": "./defaults/actions/LambdaDeploy.js",
       "config": {}
     },
     {
@@ -13,11 +13,19 @@
       "config": {}
     },
     {
-      "path": "./defaults/actions/VersionLambda.js",
+      "path": "./defaults/actions/LambdaVersion.js",
       "config": {}
     },
     {
-      "path": "./defaults/actions/AliasLambda.js",
+      "path": "./defaults/actions/LambdaAlias.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvList.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvGet.js",
       "config": {}
     }
   ]
