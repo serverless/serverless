@@ -27,6 +27,14 @@
     {
       "path": "./defaults/actions/EnvGet.js",
       "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvSet.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvUnset.js",
+      "config": {}
     }
   ]
 }
