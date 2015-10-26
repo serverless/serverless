@@ -267,7 +267,7 @@ program
         '\n\nget: var value for stage and region. jaws env get <stage> <region> <key>' +
         '\n\t Ex: jaws env get prod all JAWS_STAGE' +
 
-        '\n\nset: var value for stage and region. jaws set env <stage> <region> <key> <val>' +
+        '\n\nset: var value for stage and region. jaws env set <stage> <region> <key> <val>' +
         '\n\t Ex: jaws env set prod us-east-1 TABLE_NAME users' +
 
         '\n\nunset: var value for stage and region. jaws env unset <stage> <region> <key>' +
