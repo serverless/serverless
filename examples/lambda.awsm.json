@@ -1,0 +1,77 @@
+{
+  "name": "",
+  "envVars": [],
+  "package": {
+    "optimize": {
+      "builder": "browserify",
+      "minify": true,
+      "ignore": [],
+      "exclude": [
+        "aws-sdk"
+      ],
+      "includePaths": []
+    },
+    "excludePatterns": []
+  },
+  "plugins": [],
+  "cloudFormation": {
+    "lambda": {
+      "Function": {
+        "Type": "AWS::Lambda::Function",
+        "Properties": {
+          "Handler": "",
+          "Role": {
+            "Ref": "aaLambdaRoleArn"
+          },
+          "Code": {
+            "S3Bucket": "",
+            "S3Key": ""
+          },
+          "Runtime": "nodejs",
+          "Timeout": 6,
+          "MemorySize": 1024
+        }
+      },
+      "EventSourceMapping": {
+        "Type": "AWS::Lambda::EventSourceMapping",
+        "Properties": {
+          "EventSourceArn": {},
+          "FunctionName": "",
+          "StartingPosition": ""
+        }
+      },
+      "AccessPolicyX": {
+        "Type": "AWS::Lambda::Permission",
+        "Properties": {
+          "FunctionName": "",
+          "Action": "",
+          "Principal": "",
+          "SourceAccount": ""
+        }
+      }
+    },
+    "apiGateway": {
+      "Endpoint": {
+        "Type": "AWS::ApiGateway::Endpoint",
+        "Path": "",
+        "Method": "GET",
+        "AuthorizationType": "none",
+        "ApiKeyRequired": false,
+        "RequestTemplates": {},
+        "RequestParameters": {},
+        "Responses": {
+          "400": {
+            "statusCode": "400"
+          },
+          "default": {
+            "statusCode": "200",
+            "responseParameters": {},
+            "responseTemplates": {
+              "application/json": ""
+            }
+          }
+        }
+      }
+    }
+  }
+}
