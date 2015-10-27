@@ -134,6 +134,21 @@ program
       execute(runner.run(JAWS));
     });
 
+/**
+ * Serve
+ */
+
+program
+  .command('serve')
+  .description('Simulate API Gateway to serve lambdas locally')
+  .option('-i, --init <file>', 'JS file to run as custom initialization code')
+  .option('-p, --prefix <path>', 'add URL prefix to each lambda')
+  .action(function(options) {
+    var runner = require('../lib/commands/serve');
+    execute(runner.run(JAWS, options.init, options.prefix));
+  });
+
+
 program
     .command('module <cmd> [params]')
     .description('aws-module commands\n\nValid <cmd>\'s: create' +
