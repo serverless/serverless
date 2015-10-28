@@ -41,7 +41,7 @@
     "async": "^0.9.0",
     "asynquence": "^0.8.2",
     "asynquence-contrib": "^0.22.0",
-    "aws-sdk": "^2.2.4",
+    "aws-sdk": "^2.2.12",
     "babelify": "^6.3.0",
     "bluebird": "^2.9.34",
     "browserify": "^11.0.1",
