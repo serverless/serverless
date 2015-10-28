@@ -39,6 +39,10 @@
     {
       "path": "./defaults/actions/ResourcesDeploy.js",
       "config": {}
+    },
+    {
+      "path": "./defaults/actions/EndpointDeploy.js",
+      "config": {}
     }
   ]
 }
