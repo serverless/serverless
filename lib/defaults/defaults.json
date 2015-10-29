@@ -43,6 +43,10 @@
     {
       "path": "./defaults/actions/EndpointDeploy.js",
       "config": {}
+    },
+    {
+      "path": "./defaults/actions/StageCreate.js",
+      "config": {}
     }
   ]
 }

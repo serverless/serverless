@@ -3,17 +3,23 @@
   "Description": "The AWS CloudFormation template for this JAWS project",
   "Parameters": {
     "aaProjectName": {
-      "Type": "String"
+      "Type": "String",
+      "AllowedValues": [
+      ]
     },
     "aaProjectDomain": {
       "Type": "String",
       "Default": "myapp.com"
     },
     "aaStage": {
-      "Type": "String"
+      "Type": "String",
+      "AllowedValues": [
+      ]
     },
     "aaDataModelStage": {
-      "Type": "String"
+      "Type": "String",
+      "AllowedValues": [
+      ]
     },
     "aaNotficationEmail": {
       "Type": "String",
