@@ -39,6 +39,7 @@
     "aws-sdk": "^2.2.4",
     "babelify": "^6.3.0",
     "bluebird": "^2.9.34",
+    "body-parser": "^1.14.1",
     "browserify": "^11.0.1",
     "chalk": "^1.1.0",
     "cli-spinner": "^0.2.1",
