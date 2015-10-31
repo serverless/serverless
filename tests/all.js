@@ -29,5 +29,6 @@ describe('All Tests', function() {
     //require('./cli/new_stage_region');
     //require('./tests/actions/ProjectCreate');
     //require('./tests/actions/VersionLambda');
-  require('./tests/actions/ModuleCreate');
+    //require('./tests/actions/ModuleCreate');
+    require('./tests/actions/EndpointDeploy');
 });

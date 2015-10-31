@@ -21,7 +21,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
-      projectApiGIAMRole   = config.iamRoleArnApiGateway;
+      projectApiGIAMRole   = config.iamRoleArnApiGateway,
+      projectDomain        = config.domain;
 
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
@@ -49,7 +50,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       utils.writeFile(path.join(tmpProjectPath, 'cloudformation', projectStage, projectRegion, 'resources-cf.json'), JSON.stringify(resourcesCF, null, 2)),
     ])
     .then(function() {
-      projectJSON.name                 = projectName;
+      projectJSON.name   = projectName;
       projectJSON.domain = projectDomain;
       projectJSON.stages = {};
       projectJSON.stages[projectStage] = [{
