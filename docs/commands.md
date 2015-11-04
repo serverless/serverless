@@ -43,6 +43,8 @@ Commands that interact with [aws modules](./aws_modules.md) (awsm)
 
 ### Dash Commands
 
+**dash has been depricated** it will be removed next release (v1.4), in favor of a much more scalable solution (unix style `<file> ...` notation.  Post v1.4 dash will be a super cool web interface.
+
 Deploy your lambdas and endpoints using the JAWS dashboard.
 
 * ##### `$ jaws dash`
