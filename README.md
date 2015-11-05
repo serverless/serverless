@@ -41,13 +41,13 @@ JAWS is being worked on full-time by [Austen Collins](https://twitter.com/austen
 
 *  ```$ npm install jaws-framework -g```
 
-*  ```$ jaws project create```
+*  ```$ jaws create project```
 
  **Note:** We recommend camelCase for project names. [Why?](./docs/best_practices.md#project-names)
 
 *  ```$ cd <new-project-name>```
 
-*  ```$ jaws module create greetings hello```
+*  ```$ jaws create lambda greetings hello --endpoint```
 
 * ```$ jaws dash```
 
