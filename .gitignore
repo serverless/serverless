@@ -30,6 +30,8 @@ node_modules
 
 #IDE Stuff
 **/.idea
+#Eclipse
+.project
 
 #OS STUFF
 .DS_Store
