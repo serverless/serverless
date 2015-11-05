@@ -41,8 +41,11 @@
             "application/json": ""
           }
         },
-        "400": {
+        "Request Validation Failed": {
           "statusCode": "400"
+        },
+        "404": {
+          "statusCode": "404"
         }
       }
     }
