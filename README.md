@@ -71,6 +71,7 @@ During the week of 9/21 we will be finishing up our [docs](./docs/), [best pract
 * **[Project Structure](docs/project_structure.md)**
 * **[Deployment](docs/deployment.md)**
 * **[AWSM: AWS-Modules](docs/aws_modules.md)**
+* **[Example Project: paperplane](https://github.com/eahefnawy/paperplane)**
 
 Once you become familiar with JAWS, you can read about [JAWS AWSM: Amazon Web Services Modules](https://github.com/awsm-org/awsm) to start contributing awsm's to the community.
 
