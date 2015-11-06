@@ -12,11 +12,11 @@ var fs = require('fs'),
 /**
  * Create test project
  * @param projectName
- * @param projectRegion
  * @param projectStage
+ * @param projectRegion
+ * @param projectDomain
  * @param projectLambdaIAMRole
  * @param projectApiGIAMRole
- * @param projectRegionBucket
  * @param npmInstallDirs list of dirs relative to project root to execute npm install on
  * @returns {Promise} full path to proj temp dir that was just created
  */
