@@ -10,7 +10,6 @@ let Jaws = new JAWS(),
 
 JawsUtils.execute(Jaws.command(argv));
 
-
 //var JawsError = require('../lib/jaws-error'),
 //    Jaws = require('../lib/index.js'),
 //    JawsCLI = require('../lib/utils/cli.js'),
