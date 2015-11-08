@@ -54,6 +54,7 @@
     "node-uuid": "^1.4.2",
     "node-zip": "^1.1.0",
     "prompt": "^0.2.14",
+    "proxy-agent": "^2.0.0",
     "readdirp": "^1.4.0",
     "rimraf": "^2.4.3",
     "shelljs": "^0.5.3",
