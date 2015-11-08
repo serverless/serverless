@@ -38,7 +38,6 @@ describe('Test action: Endpoint Deploy', function() {
 
       Jaws.actions.endpointDeploy(config.stage, config.region, config.noExecuteCf)
           .then(function() {
-
             done();
           })
           .catch(e => {

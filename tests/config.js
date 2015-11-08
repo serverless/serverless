@@ -10,19 +10,19 @@ process.env.DEBUG = '*';
 
 let config = {
   name:                 'test-prj',
-  domain:               process.env.TEST_JAWS_DOMAIN,
-  notifyEmail:          'tester@jawsstack.com',
-  stage:                'unittest',
-  region:               'us-east-1',
-  stage2:               'unittest2',
-  region2:              'us-west-2',
-  //Set following 2, to an existing unit test project's ARNS, for test cases that need to interact w/ proj aws resources
-  //You can simply make a unittest project via `jaws project create` then set the env vars from the values in `project.json`
-  iamRoleArnApiGateway: process.env.TEST_JAWS_APIGATEWAY_ROLE,
-  iamRoleArnLambda:     process.env.TEST_JAWS_LAMBDA_ROLE,
+  domain:               'test-prj.com',
+  notifyEmail:          process.env.TEST_JAWS_EMAIL,
+  region:               process.env.TEST_JAWS_REGION1,
+  region2:              process.env.TEST_JAWS_REGION2,
+  stage:                process.env.TEST_JAWS_STAGE1,
+  stage2:               process.env.TEST_JAWS_STAGE2,
   noExecuteCf:          process.env.TEST_JAWS_EXE_CF != "true",
   awsAdminKeyId:        process.env.TEST_JAWS_AWS_ACCESS_KEY,
   awsAdminSecretKey:    process.env.TEST_JAWS_AWS_SECRET_KEY,
+  //Set following to an existing unit test project's ARNS, for test cases that need to interact w/ proj aws resources
+  //You can simply make a unittest project via `jaws project create` then set the env vars from the values in `project.json`
+  iamRoleArnApiGateway: process.env.TEST_JAWS_APIGATEWAY_ROLE,
+  iamRoleArnLambda:     process.env.TEST_JAWS_LAMBDA_ROLE,
 };
 
 AWS.config.credentials = new AWS.SharedIniFileCredentials({

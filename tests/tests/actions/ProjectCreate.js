@@ -9,6 +9,7 @@
 let JAWS      = require('../../../lib/Jaws.js'),
     path      = require('path'),
     os        = require('os'),
+    uuid      = require('node-uuid'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     shortid   = require('shortid'),
@@ -38,7 +39,7 @@ describe('Test action: Project Create', function() {
 
       this.timeout(0);
 
-      let name = config.name + shortid.generate().replace('_', '');
+      let name = config.name  + '-' + uuid.v4();
 
       Jaws.actions.projectCreate(
         name,
