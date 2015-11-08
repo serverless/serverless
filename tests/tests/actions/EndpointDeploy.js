@@ -11,8 +11,6 @@ let JAWS      = require('../../../lib/Jaws.js'),
     testUtils = require('../../test_utils'),
     config    = require('../../config');
 
-console.log(config)
-
 let Jaws;
 
 describe('Test action: Endpoint Deploy', function() {

@@ -6,17 +6,20 @@
  * - Deletes the CF stack created by the project
  */
 
-let JAWS    = require('../../../lib/Jaws.js'),
-    path    = require('path'),
-    os      = require('os'),
-    utils   = require('../../../lib/utils/index'),
-    assert  = require('chai').assert,
-    shortid = require('shortid'),
-    config  = require('../../config');
+let JAWS      = require('../../../lib/Jaws.js'),
+    path      = require('path'),
+    os        = require('os'),
+    utils     = require('../../../lib/utils/index'),
+    assert    = require('chai').assert,
+    shortid   = require('shortid'),
+    JawsError = require('../../../lib/jaws-error'),
+    config    = require('../../config');
 
 // Instantiate JAWS
 let Jaws = new JAWS({
   interactive: false,
+  awsAdminKeyId: config.awsAdminKeyId,
+  awsAdminSecretKey: config.awsAdminSecretKey,
 });
 
 describe('Test action: Project Create', function() {

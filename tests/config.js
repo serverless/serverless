@@ -21,6 +21,8 @@ let config = {
   iamRoleArnApiGateway: process.env.TEST_JAWS_APIGATEWAY_ROLE,
   iamRoleArnLambda:     process.env.TEST_JAWS_LAMBDA_ROLE,
   noExecuteCf:          process.env.TEST_JAWS_EXE_CF != "true",
+  awsAdminKeyId:        process.env.TEST_JAWS_AWS_ACCESS_KEY,
+  awsAdminSecretKey:    process.env.TEST_JAWS_AWS_SECRET_KEY,
 };
 
 AWS.config.credentials = new AWS.SharedIniFileCredentials({
