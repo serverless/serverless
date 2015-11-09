@@ -143,7 +143,9 @@ program
     .option('-l, --lambda', '[create]: create lambda. Default is create lambda and endpoint.')
     .option('-e, --endpoint', '[create]: create API Gateway endpoint. Default is create lambda and endpoint.')
     .option('-r, --runtime', '[create]: lambda runtime. Valid: nodejs')
-    .option('-p, --package-manager <pm>', '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
+    .option('-p, --package-manager <pm>',
+            '[create]: Select package manager used when creating awsm for publishing. Valid options: npm')
+    .option('-m, --method <method>', '[create]: API Gateway HTTP method. E.g. GET, POST, PUT, etc. Default is GET.')
     .action(function(cmd, params, options) {
 
       var theParams = process.argv.slice(3);
@@ -151,6 +153,7 @@ program
       if (!theParams) {
         throw new JawsError('Missing params', JawsError.errorCodes.UNKNOWN);
       }
+
       if (theParams[0][0] == '-') { //TODO: how do we get around this commander shortcoming?
         throw new JawsError('Specify options after cmd', JawsError.errorCodes.UNKNOWN);
       }
@@ -165,7 +168,8 @@ program
             action = theParams[2],
             runtime = options.runtime || 'nodejs',
             pkgMgr = options.packageManager || false,
-            modType = 'both';
+            modType = 'both',
+            httpMethod = options.method || 'GET';
 
         if (options.lambda) {
           modType = 'lambda';
@@ -173,7 +177,7 @@ program
           modType = 'endpoint';
         }
 
-        execute(theCmd.run(JAWS, name, action, runtime, pkgMgr, modType));
+        execute(theCmd.run(JAWS, name, action, runtime, pkgMgr, modType, httpMethod));
       } else {
         console.error('Unsupported cmd ' + cmd + '. Must be install|update|create');
         process.exit(1);
@@ -223,10 +227,11 @@ program
 
 program
     .command('deploy <type> [stage] [region]')
-    .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
-        ' By default will tag and deploy type at cwd')
+    .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources ' +
+        '(resources) for the specified stage. By default will tag and deploy type at cwd')
     .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
-    .option('-d, --dont-exe-cf', 'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
+    .option('-d, --dont-exe-cf',
+            'Don\'t execute the lambda cloudformation, just generate it. Zips will be uploaded to s3')
     .action(function(type, stage, region, options) {
 
       type = type.toLowerCase();
@@ -344,7 +349,7 @@ program
 
 program
     .command('*')
-    .action(function(cmd){
+    .action(function(cmd) {
       console.error('Unknown command:', cmd);
     });
 
