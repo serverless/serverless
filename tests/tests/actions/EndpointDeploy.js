@@ -20,9 +20,11 @@ describe('Test action: Endpoint Deploy', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           process.chdir(projPath);
+
           Jaws = new JAWS({
             interactive: false,
           });
+
           done();
         });
   });
@@ -36,7 +38,12 @@ describe('Test action: Endpoint Deploy', function() {
     it('Endpoint Deploy', function(done) {
       this.timeout(0);
 
-      Jaws.actions.endpointDeploy(config.stage, config.region, config.noExecuteCf)
+      Jaws.actions.endpointDeploy(
+          config.stage,
+          config.region,
+          config.noExecuteCf,
+          'aws_modules/users/create'
+      )
           .then(function() {
             done();
           })
