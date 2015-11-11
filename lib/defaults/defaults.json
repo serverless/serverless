@@ -5,6 +5,18 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/ServiceDeploy.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EndpointPackageApiGateway.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EndpointProvisionApiGateway.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/LambdaDeploy.js",
       "config": {}
     },
@@ -38,10 +50,6 @@
     },
     {
       "path": "./defaults/actions/ResourcesDeploy.js",
-      "config": {}
-    },
-    {
-      "path": "./defaults/actions/EndpointDeploy.js",
       "config": {}
     },
     {

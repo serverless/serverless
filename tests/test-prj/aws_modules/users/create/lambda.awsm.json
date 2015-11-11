@@ -15,6 +15,7 @@
   },
   "plugins": [],
   "cloudFormation": {
+
     "lambda": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
@@ -33,31 +34,34 @@
       "Runtime": "nodejs",
       "Handler": "aws_modules/users/create/index.handler"
     },
-    "apiGatewayEndpoint": {
-      "Type": "AWS::ApiGateway::Endpoint",
-      "Path": "sessions",
-      "Method": "POST",
-      "AuthorizationType": "none",
-      "ApiKeyRequired": false,
-      "RequestTemplates": {
-        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
-      },
-      "RequestParameters": {
-        "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
-      },
-      "Responses": {
-        "default": {
-          "statusCode": "200",
-          "responseParameters": {
-            "method.response.header.Access-Control-Allow-Origin": "'*'"
-          },
-          "responseModels": {},
-          "responseTemplates": {
-            "application/json": ""
-          }
+
+    "apiGateway": {
+      "Endpoint": {
+        "Type": "AWS::ApiGateway::Endpoint",
+        "Path": "sessions",
+        "Method": "POST",
+        "AuthorizationType": "none",
+        "ApiKeyRequired": false,
+        "RequestTemplates": {
+          "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
         },
-        "400": {
-          "statusCode": "400"
+        "RequestParameters": {
+          "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
+        },
+        "Responses": {
+          "default": {
+            "statusCode": "200",
+            "responseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            },
+            "responseModels": {},
+            "responseTemplates": {
+              "application/json": ""
+            }
+          },
+          "400": {
+            "statusCode": "400"
+          }
         }
       }
     }

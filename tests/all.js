@@ -30,5 +30,5 @@ describe('All Tests', function() {
     //require('./tests/actions/ProjectCreate');
     //require('./tests/actions/VersionLambda');
     //require('./tests/actions/ModuleCreate');
-    require('./tests/actions/EndpointDeploy');
+    require('./tests/actions/ServiceDeploy');
 });
