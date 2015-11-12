@@ -5,7 +5,7 @@
       "config": {}
     },
     {
-      "path": "./defaults/actions/ServiceDeploy.js",
+      "path": "./defaults/actions/FunctionDeploy.js",
       "config": {}
     },
     {

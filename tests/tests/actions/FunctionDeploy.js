@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Service Deploy Action
+ * Test: Function Deploy Action
  */
 
 let JAWS      = require('../../../lib/Jaws.js'),
@@ -13,7 +13,7 @@ let JAWS      = require('../../../lib/Jaws.js'),
 
 let Jaws;
 
-describe('Test action: Service Deploy', function() {
+describe('Test action: Function Deploy', function() {
 
   before(function(done) {
     this.timeout(0);
@@ -33,12 +33,12 @@ describe('Test action: Service Deploy', function() {
     done();
   });
 
-  describe('Service Deploy Endpoint positive tests', function() {
+  describe('Function Deploy Endpoint positive tests', function() {
 
-    it('Service Deploy Endpoint', function(done) {
+    it('Function Deploy Endpoint', function(done) {
       this.timeout(0);
 
-      Jaws.actions.serviceDeploy(
+      Jaws.actions.functionDeploy(
           config.stage,
           config.region,
           config.noExecuteCf,
