@@ -128,10 +128,17 @@ program
 
 program
     .command('run')
-    .description('Run the lambda in CWD locally')
-    .action(function() {
+    .description('Run the lambda')
+    .option('-l, --lambda <path>', 'Path to the lambda')
+    .action(function(options) {
       var runner = require('../lib/commands/run');
-      execute(runner.run(JAWS));
+      var path = process.cwd();
+
+      if (options.lambda) {
+        path = options.lambda;
+      }
+
+      execute(runner.run(JAWS, path));
     });
 
 program
