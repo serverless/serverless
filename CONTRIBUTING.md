@@ -18,7 +18,7 @@ Fork the project [on GitHub](https://github.com/jaws-stack/JAWS) then check out 
 ```text
 $ git clone git@github.com:username/JAWS.git
 $ cd JAWS
-$ git remote add upstream git://github.com/jaws-stack/JAWS.git
+$ git remote add upstream git://github.com/jaws-framework/JAWS.git
 ```
 
 #### Which branch?
