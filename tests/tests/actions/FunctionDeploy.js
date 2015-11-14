@@ -38,13 +38,15 @@ describe('Test action: Function Deploy', function() {
     it('Function Deploy Endpoint', function(done) {
       this.timeout(0);
 
-      Jaws.actions.functionDeploy(
-          config.stage,
-          config.region,
-          config.noExecuteCf,
-          'endpoint',
-          'aws_modules/users/create'
-          )
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        noExeCf:    config.noExecuteCf,
+        type:       'endpoint',
+        functions:  ['aws_modules/users/create'],
+      };
+
+      Jaws.actions.functionDeploy(event)
           .then(function() {
             done();
           })
