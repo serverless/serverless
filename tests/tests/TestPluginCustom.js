@@ -275,7 +275,6 @@ describe('Test Custom Plugin', function() {
           })
           .then(function(evt) {
             // Test event object
-            console.log("done: ", evt);
             assert.isTrue(evt.sequence[0] === 'actionTwoPre');
             assert.isTrue(evt.sequence[1] === 'actionTwo');
             assert.isTrue(evt.sequence[2] === 'actionOnePre');
@@ -299,7 +298,6 @@ describe('Test Custom Plugin', function() {
           })
           .then(function(evt) {
             // Test event object
-            console.log("done: ", evt);
             assert.isTrue(evt.sequence[0] === 'actionThreePre');
             assert.isTrue(evt.sequence[1] === 'actionThree');
             assert.isTrue(evt.sequence[2] === 'actionOnePre');

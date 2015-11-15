@@ -1,3 +1,16 @@
 {
-  "plugins": []
+  "plugins": [
+    {
+      "path": "./defaults/actions/FunctionDeploy.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EndpointPackageApiGateway.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EndpointProvisionApiGateway.js",
+      "config": {}
+    }
+  ]
 }
