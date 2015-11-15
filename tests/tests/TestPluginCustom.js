@@ -45,11 +45,35 @@ class CustomPlugin extends JawsPlugin {
 
   registerActions() {
 
-    this.Jaws.addAction(this._action.bind(this), {
-      handler:       'pluginTest',
+    this.Jaws.addAction(this._actionOne.bind(this), {
+      handler:       'actionOne',
       description:   'A test plugin',
-      context:       'plugin',
-      contextAction: 'test',
+      context:       'action',
+      contextAction: 'one',
+      options:       [{
+        option:      'option',
+        shortcut:    'o',
+        description: 'test option 1'
+      }],
+    });
+
+    this.Jaws.addAction(this._actionTwo.bind(this), {
+      handler:       'actionTwo',
+      description:   'A test plugin',
+      context:       'action',
+      contextAction: 'two',
+      options:       [{
+        option:      'option',
+        shortcut:    'o',
+        description: 'test option 1'
+      }],
+    });
+
+    this.Jaws.addAction(this._actionThree.bind(this), {
+      handler:       'actionThree',
+      description:   'A test plugin',
+      context:       'action',
+      contextAction: 'three',
       options:       [{
         option:      'option',
         shortcut:    'o',
@@ -67,12 +91,30 @@ class CustomPlugin extends JawsPlugin {
   registerHooks() {
 
     this.Jaws.addHook(this._hookPre.bind(this), {
-      handler: 'pluginTest',
-      event:   'pre'
+      action: 'actionOne',
+      event:  'pre'
     });
     this.Jaws.addHook(this._hookPost.bind(this), {
-      handler: 'pluginTest',
-      event:   'post'
+      action: 'actionOne',
+      event:  'post'
+    });
+
+    this.Jaws.addHook(this._hookPreTwo.bind(this), {
+      action: 'actionTwo',
+      event:  'pre'
+    });
+    this.Jaws.addHook(this._hookPostTwo.bind(this), {
+      action: 'actionTwo',
+      event:  'post'
+    });
+
+    this.Jaws.addHook(this._hookPreThree.bind(this), {
+      action: 'actionThree',
+      event:  'pre'
+    });
+    this.Jaws.addHook(this._hookPostThree.bind(this), {
+      action: 'actionThree',
+      event:  'post'
     });
 
     return Promise.resolve();
@@ -84,12 +126,11 @@ class CustomPlugin extends JawsPlugin {
    * @private
    */
 
-  _action(evt) {
-    console.log("Action Fired:", evt);
+  _actionOne(evt) {
     let _this = this;
-    return new Promise(function(resolve) {
-      setTimeout(function() {
-        evt.action = true;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionOne');
         // Add evt data
         return resolve(evt);
       }, 250);
@@ -97,11 +138,10 @@ class CustomPlugin extends JawsPlugin {
   }
 
   _hookPre(evt) {
-    console.log("Pre Hook Fired:", evt);
     let _this = this;
-    return new Promise(function(resolve) {
-      setTimeout(function() {
-        evt.pre = true;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionOnePre');
         // Add evt data
         return resolve(evt);
       }, 250);
@@ -109,11 +149,81 @@ class CustomPlugin extends JawsPlugin {
   }
 
   _hookPost(evt) {
-    console.log("Post Hook Fired:", evt);
     let _this = this;
-    return new Promise(function(resolve) {
-      setTimeout(function() {
-        evt.post = true;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionOnePost');
+        // Add evt data
+        return resolve(evt);
+      }, 250);
+    });
+  }
+
+  /**
+   * Test Nesting 1 Action
+   * @param evt
+   * @returns {*}
+   * @private
+   */
+
+  _actionTwo(evt) {
+    let _this = this;
+    evt.sequence.push('actionTwo');
+    return _this.Jaws.actions.actionOne(evt);
+  }
+
+  _hookPreTwo(evt) {
+    let _this = this;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionTwoPre');
+        // Add evt data
+        return resolve(evt);
+      }, 250);
+    });
+  }
+
+  _hookPostTwo(evt) {
+    let _this = this;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionTwoPost');
+        // Add evt data
+        return resolve(evt);
+      }, 250);
+    });
+  }
+
+  /**
+   * Test Chaining & Nesting Sub-Actions
+   * @param evt
+   * @returns {*}
+   * @private
+   */
+
+  _actionThree(evt) {
+    let _this = this;
+    evt.sequence.push('actionThree');
+    return _this.Jaws.actions.actionOne(evt)
+        .then(_this.Jaws.actions.actionTwo);
+  }
+
+  _hookPreThree(evt) {
+    let _this = this;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionThreePre');
+        // Add evt data
+        return resolve(evt);
+      }, 250);
+    });
+  }
+
+  _hookPostThree(evt) {
+    let _this = this;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionThreePost');
         // Add evt data
         return resolve(evt);
       }, 250);
@@ -136,18 +246,72 @@ describe('Test Custom Plugin', function() {
     done();
   });
 
-  describe('Test Custom Plugin', function() {
-    it('should run and attach values to context', function(done) {
+  describe('Test Single Action', function() {
+    it('should successfully run hooks and actions in sequence', function(done) {
 
       this.timeout(0);
-      Jaws.actions.pluginTest({
-        test: true
-      })
+      Jaws.actions.actionOne({
+            sequence: []
+          })
           .then(function(evt) {
             // Test event object
-            assert.isTrue(evt.pre);
-            assert.isTrue(evt.action);
-            assert.isTrue(evt.post);
+            assert.isTrue(evt.sequence[0] === 'actionOnePre');
+            assert.isTrue(evt.sequence[1] === 'actionOne');
+            assert.isTrue(evt.sequence[2] === 'actionOnePost');
+            done();
+          })
+          .catch(function(e) {
+            done(e);
+          });
+    });
+  });
+
+  describe('Test Nested Sub-Action', function() {
+    it('should successfully run hooks and actions in sequence', function(done) {
+
+      this.timeout(0);
+      Jaws.actions.actionTwo({
+            sequence: []
+          })
+          .then(function(evt) {
+            // Test event object
+            console.log("done: ", evt);
+            assert.isTrue(evt.sequence[0] === 'actionTwoPre');
+            assert.isTrue(evt.sequence[1] === 'actionTwo');
+            assert.isTrue(evt.sequence[2] === 'actionOnePre');
+            assert.isTrue(evt.sequence[3] === 'actionOne');
+            assert.isTrue(evt.sequence[4] === 'actionOnePost');
+            assert.isTrue(evt.sequence[5] === 'actionTwoPost');
+            done();
+          })
+          .catch(function(e) {
+            done(e);
+          });
+    });
+  });
+
+  describe('Test Chained & Nested Sub-Actions', function() {
+    it('should successfully run hooks and actions in sequence', function(done) {
+
+      this.timeout(0);
+      Jaws.actions.actionThree({
+            sequence: []
+          })
+          .then(function(evt) {
+            // Test event object
+            console.log("done: ", evt);
+            assert.isTrue(evt.sequence[0] === 'actionThreePre');
+            assert.isTrue(evt.sequence[1] === 'actionThree');
+            assert.isTrue(evt.sequence[2] === 'actionOnePre');
+            assert.isTrue(evt.sequence[3] === 'actionOne');
+            assert.isTrue(evt.sequence[4] === 'actionOnePost');
+            assert.isTrue(evt.sequence[5] === 'actionTwoPre');
+            assert.isTrue(evt.sequence[6] === 'actionTwo');
+            assert.isTrue(evt.sequence[7] === 'actionOnePre');
+            assert.isTrue(evt.sequence[8] === 'actionOne');
+            assert.isTrue(evt.sequence[9] === 'actionOnePost');
+            assert.isTrue(evt.sequence[10] === 'actionTwoPost');
+            assert.isTrue(evt.sequence[11] === 'actionThreePost');
             done();
           })
           .catch(function(e) {
