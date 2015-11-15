@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Plugins
+ * Test: Plugin
  */
 
 let JAWS       = require('../../lib/Jaws.js'),
@@ -15,8 +15,8 @@ let JAWS       = require('../../lib/Jaws.js'),
  */
 
 let Jaws = new JAWS({
-  awsAdminKeyId:     '123', //TODO: why is this needed? the profile is set in process.env.TEST_JAWS_PROFILE (./config)
-  awsAdminSecretKey: '123', //TODO: why is this needed? the profile is set in process.env.TEST_JAWS_PROFILE (./config)
+  awsAdminKeyId:     '123',
+  awsAdminSecretKey: '123',
   interactive:       false,
 });
 
@@ -32,9 +32,9 @@ class CustomPlugin extends JawsPlugin {
 
   /**
    * Define your plugins name
-   *
    * @returns {string}
    */
+
   static getName() {
     return 'com.yourdomain.' + CustomPlugin.name;
   }
@@ -44,7 +44,8 @@ class CustomPlugin extends JawsPlugin {
    */
 
   registerActions() {
-    this.Jaws.action(this._action.bind(this), {
+
+    this.Jaws.addAction(this._action.bind(this), {
       handler:       'pluginTest',
       description:   'A test plugin',
       context:       'plugin',
@@ -64,11 +65,12 @@ class CustomPlugin extends JawsPlugin {
    */
 
   registerHooks() {
-    this.Jaws.hook(this._hookPre.bind(this), {
+
+    this.Jaws.addHook(this._hookPre.bind(this), {
       handler: 'pluginTest',
       event:   'pre'
     });
-    this.Jaws.hook(this._hookPost.bind(this), {
+    this.Jaws.addHook(this._hookPost.bind(this), {
       handler: 'pluginTest',
       event:   'post'
     });
@@ -82,37 +84,38 @@ class CustomPlugin extends JawsPlugin {
    * @private
    */
 
-  _action(paramsTest1, paramsTest2) {
+  _action(evt) {
+    console.log("Action Fired:", evt);
     let _this = this;
     return new Promise(function(resolve) {
-      console.log('Action fired');
       setTimeout(function() {
-        _this.Jaws.testAction  = true;
-        _this.Jaws.paramsTest1 = paramsTest1;
-        _this.Jaws.paramsTest2 = paramsTest2;
-        return resolve();
+        evt.action = true;
+        // Add evt data
+        return resolve(evt);
       }, 250);
     });
   }
 
-  _hookPre() {
+  _hookPre(evt) {
+    console.log("Pre Hook Fired:", evt);
     let _this = this;
     return new Promise(function(resolve) {
-      console.log('Hook "Pre" fired');
       setTimeout(function() {
-        _this.Jaws.testHookPre = true;
-        return resolve();
+        evt.pre = true;
+        // Add evt data
+        return resolve(evt);
       }, 250);
     });
   }
 
-  _hookPost() {
+  _hookPost(evt) {
+    console.log("Post Hook Fired:", evt);
     let _this = this;
     return new Promise(function(resolve) {
-      console.log('Hook "Post" fired');
       setTimeout(function() {
-        _this.Jaws.testHookPost = true;
-        return resolve();
+        evt.post = true;
+        // Add evt data
+        return resolve(evt);
       }, 250);
     });
   }
@@ -137,15 +140,14 @@ describe('Test Custom Plugin', function() {
     it('should run and attach values to context', function(done) {
 
       this.timeout(0);
-      Jaws.actions.pluginTest(true, true)
-          .then(function() {
-            // Test context
-            assert.isTrue(Jaws.testHookPre);
-            assert.isTrue(Jaws.testHookPost);
-            assert.isTrue(Jaws.testAction);
-            // Test Params are passed through action handler
-            assert.isTrue(Jaws.paramsTest1);
-            assert.isTrue(Jaws.paramsTest2);
+      Jaws.actions.pluginTest({
+        test: true
+      })
+          .then(function(evt) {
+            // Test event object
+            assert.isTrue(evt.pre);
+            assert.isTrue(evt.action);
+            assert.isTrue(evt.post);
             done();
           })
           .catch(function(e) {
