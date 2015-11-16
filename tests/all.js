@@ -13,7 +13,7 @@ describe('All Tests', function() {
   });
 
   //require tests vs inline so we can run sequentially
-  //require('./tests/TestPluginCustom');
+  require('./tests/TestPluginCustom');
   //require('./cli/tag');
   //require('./cli/env');
   //require('./cli/module_create');
@@ -30,5 +30,5 @@ describe('All Tests', function() {
     //require('./tests/actions/ProjectCreate');
     //require('./tests/actions/VersionLambda');
     //require('./tests/actions/ModuleCreate');
-    require('./tests/actions/FunctionDeploy');
+    //require('./tests/actions/FunctionDeploy');
 });

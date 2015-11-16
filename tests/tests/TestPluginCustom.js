@@ -116,6 +116,14 @@ class CustomPlugin extends JawsPlugin {
       action: 'actionThree',
       event:  'post'
     });
+    this.Jaws.addHook(this._hookPreThreeTwo.bind(this), {
+      action: 'actionThree',
+      event:  'pre'
+    });
+    this.Jaws.addHook(this._hookPostThreeTwo.bind(this), {
+      action: 'actionThree',
+      event:  'post'
+    });
 
     return Promise.resolve();
   }
@@ -229,6 +237,28 @@ class CustomPlugin extends JawsPlugin {
       }, 250);
     });
   }
+
+  _hookPreThreeTwo(evt) {
+    let _this = this;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionThreePreTwo');
+        // Add evt data
+        return resolve(evt);
+      }, 250);
+    });
+  }
+
+  _hookPostThreeTwo(evt) {
+    let _this = this;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        evt.sequence.push('actionThreePostTwo');
+        // Add evt data
+        return resolve(evt);
+      }, 250);
+    });
+  }
 }
 
 /**
@@ -289,7 +319,7 @@ describe('Test Custom Plugin', function() {
     });
   });
 
-  describe('Test Chained & Nested Sub-Actions', function() {
+  describe('Test Chained & Nested Sub-Actions w/ Multiple Hooks', function() {
     it('should successfully run hooks and actions in sequence', function(done) {
 
       this.timeout(0);
@@ -299,17 +329,19 @@ describe('Test Custom Plugin', function() {
           .then(function(evt) {
             // Test event object
             assert.isTrue(evt.sequence[0] === 'actionThreePre');
-            assert.isTrue(evt.sequence[1] === 'actionThree');
-            assert.isTrue(evt.sequence[2] === 'actionOnePre');
-            assert.isTrue(evt.sequence[3] === 'actionOne');
-            assert.isTrue(evt.sequence[4] === 'actionOnePost');
-            assert.isTrue(evt.sequence[5] === 'actionTwoPre');
-            assert.isTrue(evt.sequence[6] === 'actionTwo');
-            assert.isTrue(evt.sequence[7] === 'actionOnePre');
-            assert.isTrue(evt.sequence[8] === 'actionOne');
-            assert.isTrue(evt.sequence[9] === 'actionOnePost');
-            assert.isTrue(evt.sequence[10] === 'actionTwoPost');
-            assert.isTrue(evt.sequence[11] === 'actionThreePost');
+            assert.isTrue(evt.sequence[1] === 'actionThreePreTwo');
+            assert.isTrue(evt.sequence[2] === 'actionThree');
+            assert.isTrue(evt.sequence[3] === 'actionOnePre');
+            assert.isTrue(evt.sequence[4] === 'actionOne');
+            assert.isTrue(evt.sequence[5] === 'actionOnePost');
+            assert.isTrue(evt.sequence[6] === 'actionTwoPre');
+            assert.isTrue(evt.sequence[7] === 'actionTwo');
+            assert.isTrue(evt.sequence[8] === 'actionOnePre');
+            assert.isTrue(evt.sequence[9] === 'actionOne');
+            assert.isTrue(evt.sequence[10] === 'actionOnePost');
+            assert.isTrue(evt.sequence[11] === 'actionTwoPost');
+            assert.isTrue(evt.sequence[12] === 'actionThreePost');
+            assert.isTrue(evt.sequence[13] === 'actionThreePostTwo');
             done();
           })
           .catch(function(e) {
