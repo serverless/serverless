@@ -11,6 +11,10 @@
     {
       "path": "./defaults/actions/EndpointProvisionApiGateway.js",
       "config": {}
+    },
+    {
+      "path": "./defaults/actions/ProjectCreate.js",
+      "config": {}
     }
   ]
 }
