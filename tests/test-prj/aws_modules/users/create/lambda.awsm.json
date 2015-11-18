@@ -15,50 +15,41 @@
   },
   "plugins": [],
   "cloudFormation": {
-
     "lambda": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Runtime": "nodejs",
-        "Handler": "aws_modules/users/create/index.handler",
-        "Role": {
-          "Ref": "aaLambdaRoleArn"
-        },
-        "Code": {
-          "S3Bucket": "",
-          "S3Key": ""
-        },
-        "Timeout": 6,
-        "MemorySize": 1024
+      "Function": {
+        "Type": "AWS::Lambda::Function",
+        "Properties": {
+          "Runtime": "nodejs",
+          "Handler": "aws_modules/users/create/handler.handler",
+          "Role": {
+            "Ref": "aaLambdaRoleArn"
+          },
+          "Code": {
+            "S3Bucket": "",
+            "S3Key": ""
+          },
+          "Timeout": 6,
+          "MemorySize": 1024
+        }
       }
     },
-
-    "apiGateway": {
-      "Endpoint": {
-        "Type": "AWS::ApiGateway::Endpoint",
-        "Path": "sessions",
-        "Method": "POST",
-        "AuthorizationType": "none",
-        "ApiKeyRequired": false,
-        "RequestTemplates": {
-          "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+    "apiGatewayEndpoint": {
+      "Type": "AWS::ApiGateway::Endpoint",
+      "Path": "users/create",
+      "Method": "GET",
+      "AuthorizationType": "none",
+      "ApiKeyRequired": false,
+      "RequestTemplates": {},
+      "RequestParameters": {},
+      "Responses": {
+        "400": {
+          "statusCode": "400"
         },
-        "RequestParameters": {
-          "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
-        },
-        "Responses": {
-          "default": {
-            "statusCode": "200",
-            "responseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": "'*'"
-            },
-            "responseModels": {},
-            "responseTemplates": {
-              "application/json": ""
-            }
-          },
-          "400": {
-            "statusCode": "400"
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseTemplates": {
+            "application/json": ""
           }
         }
       }
