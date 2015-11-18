@@ -13,16 +13,19 @@ let JAWS      = require('../../../lib/Jaws.js'),
 
 let Jaws;
 
-describe('Test action: Function Deploy', function() {
+describe('Test Action: Function Deploy', function() {
 
   before(function(done) {
     this.timeout(0);
+
     testUtils.createTestProject(config)
         .then(projPath => {
           process.chdir(projPath);
 
           Jaws = new JAWS({
             interactive: false,
+            awsAdminKeyId:     config.awsAdminKeyId,
+            awsAdminSecretKey: config.awsAdminSecretKey
           });
 
           done();
@@ -33,16 +36,16 @@ describe('Test action: Function Deploy', function() {
     done();
   });
 
-  describe('Function Deploy Endpoint positive tests', function() {
+  describe('Function Deploy Code Lambda Nodejs', function() {
+    it('Function Deploy Code Lambda Nodejs', function(done) {
 
-    it('Function Deploy Endpoint', function(done) {
       this.timeout(0);
 
       let event = {
         stage:      config.stage,
         region:     config.region,
         noExeCf:    config.noExecuteCf,
-        type:       'endpoint',
+        type:       'code',
         functions:  ['aws_modules/users/create'],
       };
 
@@ -55,4 +58,27 @@ describe('Test action: Function Deploy', function() {
           });
     });
   });
+
+  //describe('Function Deploy: Endpoint: ApiGateway', function() {
+  //
+  //  it('Function Deploy Endpoint', function(done) {
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'endpoint',
+  //      functions:  ['aws_modules/users/create'],
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function() {
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
 });

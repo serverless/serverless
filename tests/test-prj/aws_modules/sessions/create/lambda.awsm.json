@@ -18,7 +18,8 @@
     "lambda": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
-        "Handler": "",
+        "Runtime": "nodejs",
+        "Handler": "aws_modules/sessions/create/index.handler",
         "Role": {
           "Ref": "aaLambdaRoleArn"
         },
@@ -26,12 +27,9 @@
           "S3Bucket": "",
           "S3Key": ""
         },
-        "Runtime": "nodejs",
         "Timeout": 6,
         "MemorySize": 1024
       },
-      "Runtime": "nodejs",
-      "Handler": "aws_modules/sessions/create/index.handler"
     },
     "apiGatewayEndpoint": {
       "Type": "AWS::ApiGateway::Endpoint",
