@@ -21,6 +21,10 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/CodeUploadLambdaNodejs.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/CodeProvisionLambdaNodejs.js",
       "config": {}
     },

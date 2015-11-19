@@ -38,7 +38,7 @@ describe('Test action: Deploy Lambda', function() {
 
   describe('Deploy Lambda positive tests', function() {
 
-    it('Multi level module deploy', function(done) {
+    it('Multi level module queued', function(done) {
       this.timeout(0);
 
       Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf, './aws_modules/sessions/show')
@@ -51,7 +51,7 @@ describe('Test action: Deploy Lambda', function() {
         });
     });
 
-    it('browserify deploy', function(done) {
+    it('browserify queued', function(done) {
       this.timeout(0);
       process.chdir(path.join(projPath, 'aws_modules/bundle/browserify'));
 
@@ -65,7 +65,7 @@ describe('Test action: Deploy Lambda', function() {
         });
     });
 
-    it('non optimized deploy', function(done) {
+    it('non optimized queued', function(done) {
       this.timeout(0);
       process.chdir(path.join(projPath, 'aws_modules/bundle/nonoptimized'));
 
@@ -79,7 +79,7 @@ describe('Test action: Deploy Lambda', function() {
         });
     });
 
-    it('deploy multiple', function(done) {
+    it('queued multiple', function(done) {
       this.timeout(0);
       process.chdir(path.join(projPath, 'aws_modules/bundle'));
 

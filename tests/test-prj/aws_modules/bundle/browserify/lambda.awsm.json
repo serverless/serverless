@@ -19,7 +19,7 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Runtime": "nodejs",
-        "Handler": "aws_modules/bundle/browserify/handler.handler"
+        "Handler": "aws_modules/bundle/browserify/handler.handler",
         "Role": {
           "Ref": "aaLambdaRoleArn"
         },

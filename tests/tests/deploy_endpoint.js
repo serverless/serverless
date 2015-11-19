@@ -17,7 +17,7 @@ let Jaws = require('../../lib/index.js'),
     projPath,
     JAWS;
 
-describe('Test deploy endpoint command', function() {
+describe('Test queued endpoint command', function() {
 
   before(function(done) {
     testUtils.createTestProject(
@@ -63,9 +63,9 @@ describe('Test deploy endpoint command', function() {
     });
 
     it('Check awsm.json files were untagged', function(done) {
-      assert.equal(false, require(lambdaPaths.lambda1).apiGateway.deploy);
-      assert.equal(false, require(lambdaPaths.lambda2).apiGateway.deploy);
-      assert.equal(false, require(lambdaPaths.lambda3).apiGateway.deploy);
+      assert.equal(false, require(lambdaPaths.lambda1).apiGateway.queued);
+      assert.equal(false, require(lambdaPaths.lambda2).apiGateway.queued);
+      assert.equal(false, require(lambdaPaths.lambda3).apiGateway.queued);
       done();
     });
 
@@ -73,7 +73,7 @@ describe('Test deploy endpoint command', function() {
 
       // Get Region JSON
       let regions = require(path.join(projPath, 'jaws.json'))
-          .stages[config.stage.toLowerCase().trim()];
+          .stage[config.stage.toLowerCase().trim()];
       let region = null;
       for (let i = 0; i < regions.length; i++) {
         if (regions[i].region.toLowerCase().trim() === config.region.toLowerCase().trim()) {

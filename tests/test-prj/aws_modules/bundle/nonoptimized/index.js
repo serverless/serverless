@@ -33,7 +33,7 @@ module.exports.run = function(event, context, cb) {
       ];
 
       return new Promise(function(resolve, reject) {
-        var q = async.queue(function(task, callback) {
+        var q = async.queued(function(task, callback) {
           request(task.url, function(error, response, body) {
             callback(error);
           });

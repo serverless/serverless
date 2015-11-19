@@ -5,7 +5,7 @@
   "author": "Vera D. Servers <vera@gmail.com> http://vera.io",
   "description": "example-project: An ambitious, server-less application built with the JAWS framework.",
   "project": {
-    "stages": {
+    "stage": {
       "mystage": [
         {
           "region": "us-east-1",

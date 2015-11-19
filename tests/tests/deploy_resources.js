@@ -17,7 +17,7 @@ let Jaws = require('../../lib/index.js'),
     projPath,
     JAWS;
 
-describe('Test deploy resources command', function() {
+describe('Test queued resources command', function() {
 
   before(function(done) {
     testUtils.createTestProject(

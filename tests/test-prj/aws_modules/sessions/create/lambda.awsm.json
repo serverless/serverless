@@ -29,7 +29,7 @@
         },
         "Timeout": 6,
         "MemorySize": 1024
-      },
+      }
     },
     "apiGatewayEndpoint": {
       "Type": "AWS::ApiGateway::Endpoint",

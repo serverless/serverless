@@ -15,7 +15,7 @@ let Jaws = require('../../lib/index.js'),
 let config = require('../config'),
     projPath;
 
-describe('Test "deploy lambda" command', function() {
+describe('Test "queued lambda" command', function() {
   this.timeout(0);  //dont timeout anything
 
   before(function(done) {
@@ -39,7 +39,7 @@ describe('Test "deploy lambda" command', function() {
 
   describe('Positive tests', function() {
 
-    it('Multi level module deploy', function(done) {
+    it('Multi level module queued', function(done) {
       this.timeout(0);
 
       process.chdir(path.join(projPath, 'aws_modules/sessions/show'));
@@ -53,7 +53,7 @@ describe('Test "deploy lambda" command', function() {
           });
     });
 
-    it('browserify deploy', function(done) {
+    it('browserify queued', function(done) {
       this.timeout(0);
       process.chdir(path.join(projPath, 'aws_modules/bundle/browserify'));
 
@@ -66,7 +66,7 @@ describe('Test "deploy lambda" command', function() {
           });
     });
 
-    it('non optimized deploy', function(done) {
+    it('non optimized queued', function(done) {
       this.timeout(0);
       process.chdir(path.join(projPath, 'aws_modules/bundle/nonoptimized'));
 
@@ -79,7 +79,7 @@ describe('Test "deploy lambda" command', function() {
           });
     });
 
-    it('deploy multiple', function(done) {
+    it('queued multiple', function(done) {
       this.timeout(0);
       let bundleDirPath = path.join(projPath, 'aws_modules/bundle');
 

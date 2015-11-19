@@ -52,8 +52,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     .then(function() {
       projectJSON.name   = projectName;
       projectJSON.domain = projectDomain;
-      projectJSON.stages = {};
-      projectJSON.stages[projectStage] = [{
+      projectJSON.stage = {};
+      projectJSON.stage[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
         iamRoleArnApiGateway: projectApiGIAMRole,

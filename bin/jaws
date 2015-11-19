@@ -104,7 +104,7 @@ JawsUtils.execute(Jaws.command(argv));
 //
 //program
 //    .command('stage <cmd>')
-//    .description(`Work with JAWS stages in a region. Valid <cmd>'s: create`)
+//    .description(`Work with JAWS stage in a region. Valid <cmd>'s: create`)
 //    .option('-d, --dont-exe-cf', `Don't execute CloudFormation, just generate it`)
 //    .option('-s, --stage <name>', 'Name for the stage create')
 //    .option('-r, --region <name>', 'Name of aws region to use')
@@ -193,7 +193,7 @@ JawsUtils.execute(Jaws.command(argv));
 //program
 //    .command('tag [type]')
 //    .description('Tag lambda function or api gateway resource (endpoint) for deployment ' +
-//        'the next time deploy command is run. Type "lambda" is the default.')
+//        'the next time queued command is run. Type "lambda" is the default.')
 //    .option('-u, --untag', 'un-tag lambda|endpoint')
 //    .option('-a, --tag-all', 'tag all lambda|endpoint functions in project')
 //    .option('-l, --list-all', 'list all tagged lambda|endpoint functions in project')
@@ -229,10 +229,10 @@ JawsUtils.execute(Jaws.command(argv));
 // */
 //
 //program
-//    .command('deploy <type> [stage] [region]')
+//    .command('queued <type> [stage] [region]')
 //    .description('Deploy a lambda function (type lambda), a REST API (endpoint), or provision AWS resources (resources) for the specified stage.' +
-//        ' By default will tag and deploy type at cwd')
-//    .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just deploy cwd')
+//        ' By default will tag and queued type at cwd')
+//    .option('-t, --tags', 'Deploy all lambdas tagged as deployable in their jaws.json. Default is to just queued cwd')
 //    .option('-d, --dont-exe-cf', `Don't execute the lambda cloudformation, just generate it. Zips will be uploaded to s3`)
 //    .action(function(type, stage, region, options) {
 //
@@ -335,7 +335,7 @@ JawsUtils.execute(Jaws.command(argv));
 //
 //program
 //    .command('dash')
-//    .description('View a project summary and select resources to deploy.')
+//    .description('View a project summary and select resources to queued.')
 //    .action(function() {
 //      let CmdDash = require('../lib/commands/dash');
 //      execute(CmdDash.run(JAWS));

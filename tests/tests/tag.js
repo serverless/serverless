@@ -51,23 +51,23 @@ describe('Test "tag" command', function() {
 
       Tag.tag('lambda', modulePaths.lambda1, false)
           .then(function() {
-            assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda2).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda3).lambda.deploy);
+            assert.equal(true, require(modulePaths.lambda1).lambda.queued);
+            assert.equal(false, require(modulePaths.lambda2).lambda.queued);
+            assert.equal(false, require(modulePaths.lambda3).lambda.queued);
             let CmdTag = new Tag(JAWS, 'lambda');
             return CmdTag.tagAll(false);
           })
           .then(function() {
-            assert.equal(true, require(modulePaths.lambda1).lambda.deploy);
-            assert.equal(true, require(modulePaths.lambda2).lambda.deploy);
-            assert.equal(true, require(modulePaths.lambda3).lambda.deploy);
+            assert.equal(true, require(modulePaths.lambda1).lambda.queued);
+            assert.equal(true, require(modulePaths.lambda2).lambda.queued);
+            assert.equal(true, require(modulePaths.lambda3).lambda.queued);
             let CmdTag = new Tag(JAWS, 'lambda');
             return CmdTag.tagAll(true);
           })
           .then(function() {
-            assert.equal(false, require(modulePaths.lambda1).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda2).lambda.deploy);
-            assert.equal(false, require(modulePaths.lambda3).lambda.deploy);
+            assert.equal(false, require(modulePaths.lambda1).lambda.queued);
+            assert.equal(false, require(modulePaths.lambda2).lambda.queued);
+            assert.equal(false, require(modulePaths.lambda3).lambda.queued);
             done();
           })
           .error(function(e) {
@@ -80,23 +80,23 @@ describe('Test "tag" command', function() {
 
       Tag.tag('endpoint', modulePaths.lambda1, false)
           .then(function() {
-            assert.equal(true, require(modulePaths.lambda1).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda2).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda3).apiGateway.deploy);
+            assert.equal(true, require(modulePaths.lambda1).apiGateway.queued);
+            assert.equal(false, require(modulePaths.lambda2).apiGateway.queued);
+            assert.equal(false, require(modulePaths.lambda3).apiGateway.queued);
             let CmdTag = new Tag(JAWS, 'endpoint');
             return CmdTag.tagAll(false);
           })
           .then(function() {
-            assert.equal(true, require(modulePaths.lambda1).apiGateway.deploy);
-            assert.equal(true, require(modulePaths.lambda2).apiGateway.deploy);
-            assert.equal(true, require(modulePaths.lambda3).apiGateway.deploy);
+            assert.equal(true, require(modulePaths.lambda1).apiGateway.queued);
+            assert.equal(true, require(modulePaths.lambda2).apiGateway.queued);
+            assert.equal(true, require(modulePaths.lambda3).apiGateway.queued);
             let CmdTag = new Tag(JAWS, 'endpoint');
             return CmdTag.tagAll(true);
           })
           .then(function() {
-            assert.equal(false, require(modulePaths.lambda1).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda2).apiGateway.deploy);
-            assert.equal(false, require(modulePaths.lambda3).apiGateway.deploy);
+            assert.equal(false, require(modulePaths.lambda1).apiGateway.queued);
+            assert.equal(false, require(modulePaths.lambda2).apiGateway.queued);
+            assert.equal(false, require(modulePaths.lambda3).apiGateway.queued);
             done();
           })
           .error(function(e) {

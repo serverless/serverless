@@ -47,8 +47,8 @@ describe('Test "new stage/region" command', function() {
           .then(function() {
             let jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
             let region = false;
-            for (let i = 0; i < jawsJson.stages[config.stage2].length; i++) {
-              let stage = jawsJson.stages[config.stage2][i];
+            for (let i = 0; i < jawsJson.stage[config.stage2].length; i++) {
+              let stage = jawsJson.stage[config.stage2][i];
               if (stage.region === config.region) {
                 region = stage.region;
               }
@@ -71,8 +71,8 @@ describe('Test "new stage/region" command', function() {
           .then(function() {
             let jawsJson = utils.readAndParseJsonSync(path.join(process.cwd(), 'jaws.json'));
             let region = false;
-            for (let i = 0; i < jawsJson.stages[config.stage2].length; i++) {
-              let stage = jawsJson.stages[config.stage2][i];
+            for (let i = 0; i < jawsJson.stage[config.stage2].length; i++) {
+              let stage = jawsJson.stage[config.stage2][i];
               if (stage.region === config.region2) {
                 region = stage.region;
               }
