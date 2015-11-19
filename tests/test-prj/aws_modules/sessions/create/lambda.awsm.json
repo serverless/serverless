@@ -16,19 +16,21 @@
   "plugins": [],
   "cloudFormation": {
     "lambda": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Runtime": "nodejs",
-        "Handler": "aws_modules/sessions/create/index.handler",
-        "Role": {
-          "Ref": "aaLambdaRoleArn"
-        },
-        "Code": {
-          "S3Bucket": "",
-          "S3Key": ""
-        },
-        "Timeout": 6,
-        "MemorySize": 1024
+      "Function": {
+        "Type": "AWS::Lambda::Function",
+        "Properties": {
+          "Runtime": "nodejs",
+          "Handler": "aws_modules/sessions/create/index.handler",
+          "Role": {
+            "Ref": "aaLambdaRoleArn"
+          },
+          "Code": {
+            "S3Bucket": "",
+            "S3Key": ""
+          },
+          "Timeout": 6,
+          "MemorySize": 1024
+        }
       }
     },
     "apiGatewayEndpoint": {

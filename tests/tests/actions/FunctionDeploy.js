@@ -46,7 +46,6 @@ describe('Test Action: Function Deploy', function() {
         region:     config.region,
         noExeCf:    config.noExecuteCf,
         type:       'code',
-        functions:  ['aws_modules/users/create'],
       };
 
       Jaws.actions.functionDeploy(event)
@@ -68,8 +67,7 @@ describe('Test Action: Function Deploy', function() {
   //      stage:      config.stage,
   //      region:     config.region,
   //      noExeCf:    config.noExecuteCf,
-  //      type:       'endpoint',
-  //      functions:  ['aws_modules/users/create'],
+  //      type:       'endpoint'
   //    };
   //
   //    Jaws.actions.functionDeploy(event)
