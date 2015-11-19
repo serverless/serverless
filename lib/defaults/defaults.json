@@ -23,6 +23,10 @@
     {
       "path": "./defaults/actions/CodeProvisionLambdaNodejs.js",
       "config": {}
+    },
+    {
+      "path": "./defaults/actions/StageCreate.js",
+      "config": {}
     }
   ]
 }
