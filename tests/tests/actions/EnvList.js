@@ -40,11 +40,12 @@ describe('Test Action: Env List', function() {
 
       this.timeout(0);
 
+
       let event = {
         stage:      config.stage,
         region:     config.region,
       };
-
+      
       Jaws.actions.envList(event)
           .then(function() {
             done();
@@ -52,6 +53,7 @@ describe('Test Action: Env List', function() {
           .catch(e => {
             done(e);
           });
+
     });
   });
 

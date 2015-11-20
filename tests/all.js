@@ -29,10 +29,10 @@ describe('All Tests', function() {
     //require('./cli/new_stage_region');
     //require('./tests/actions/ProjectCreate');
     //require('./tests/actions/VersionLambda');
-    require('./tests/actions/ModuleCreate');
+    //require('./tests/actions/ModuleCreate');
     //require('./tests/actions/FunctionDeploy');
     //require('./tests/actions/StageCreate');
-    //require('./tests/actions/ProjectCreate');
+    require('./tests/actions/ProjectCreate');
     //require('./tests/actions/EnvList');
     //require('./tests/actions/EnvGet');
     //require('./tests/actions/EnvUnset');
