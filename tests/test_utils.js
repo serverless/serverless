@@ -26,6 +26,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
+  
+
 
   utils.jawsDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
@@ -73,7 +75,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
           utils.npmInstall(fullPath);
         });
       }
-
+      
       return tmpProjectPath;
     });
 };

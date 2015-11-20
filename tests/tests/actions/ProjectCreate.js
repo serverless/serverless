@@ -40,16 +40,15 @@ describe('Test action: Project Create', function() {
       this.timeout(0);
 
       let name = config.name  + '-' + uuid.v4();
-
-      Jaws.actions.projectCreate(
-        name,
-        config.domain,
-        config.stage,
-        config.region,
-        config.notifyEmail,
-        'nodejs',
-        config.noExecuteCf
-        )
+      let event = {
+        name: name,
+        domain: config.domain,
+        notificationEmail: config.notifyEmail,
+        stage:      config.stage,
+        region:     config.region,
+        noCf:    config.noExecuteCf,
+      };
+      Jaws.actions.projectCreate(event)
         .then(function() {
           let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'jaws.json'));
 
@@ -73,12 +72,4 @@ describe('Test action: Project Create', function() {
     });
   });
 
-  //it('Delete Cloudformation stack from new project', function(done) {
-  //  this.timeout(0);
-  //  let CF = new config.AWS.CloudFormation();
-  //  CF.deleteStack({ StackName: config.stage + '-' + config.name }, function(err, data) {
-  //    if (err) console.log(err, err.stack);
-  //    done();
-  //  });
-  //});
 });

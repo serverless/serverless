@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Function Deploy Action
+ * Test: Stage Create Action
  */
 
 let JAWS      = require('../../../lib/Jaws.js'),
@@ -9,18 +9,23 @@ let JAWS      = require('../../../lib/Jaws.js'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
+    os        = require('os'),
     config    = require('../../config');
 
 let Jaws;
 
-describe('Test Action: Function Deploy', function() {
+describe('Test Action: Stage Create', function() {
 
   before(function(done) {
     this.timeout(0);
-
     testUtils.createTestProject(config)
         .then(projPath => {
+          this.timeout(0);
+          console.log('come onnnnnn')
+          console.log(projPath)
           process.chdir(projPath);
+          // for some weird reason process.chdir adds /private/ before cwd path!!!!
+          console.log(process.cwd())
           Jaws = new JAWS({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -35,19 +40,18 @@ describe('Test Action: Function Deploy', function() {
     done();
   });
 
-  describe('Function Deploy Code Lambda Nodejs', function() {
-    it('Function Deploy Code Lambda Nodejs', function(done) {
+  describe('Stage Create', function() {
+    it('Creates stage', function(done) {
 
       this.timeout(0);
 
       let event = {
-        stage:      config.stage,
-        region:     config.region,
+        stage:      config.stage2,
+        region:     config.region2,
         noExeCf:    config.noExecuteCf,
-        type:       'code',
       };
 
-      Jaws.actions.functionDeploy(event)
+      Jaws.actions.stageCreate(event)
           .then(function() {
             done();
           })
@@ -56,26 +60,4 @@ describe('Test Action: Function Deploy', function() {
           });
     });
   });
-
-  //describe('Function Deploy: Endpoint: ApiGateway', function() {
-  //
-  //  it('Function Deploy Endpoint', function(done) {
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      noExeCf:    config.noExecuteCf,
-  //      type:       'endpoint'
-  //    };
-  //
-  //    Jaws.actions.functionDeploy(event)
-  //        .then(function() {
-  //          done();
-  //        })
-  //        .catch(e => {
-  //          done(e);
-  //        });
-  //  });
-  //});
 });
