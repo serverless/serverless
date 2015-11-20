@@ -5,6 +5,10 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/ModuleCreate.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/FunctionDeploy.js",
       "config": {}
     },
@@ -34,6 +38,22 @@
     },
     {
       "path": "./defaults/actions/StageCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvList.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvGet.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvSet.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/EnvUnset.js",
       "config": {}
     }
   ]

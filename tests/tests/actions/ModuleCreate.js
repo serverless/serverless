@@ -37,8 +37,12 @@ describe('Test action: Module Create', function() {
 
     it('create a new module with defaults', function(done) {
       this.timeout(0);
+      let event = {
+        resource: 'users',
+        action:   'list',
+      };
 
-      Jaws.actions.moduleCreate(null, null, null, null, 'users', 'list')
+      Jaws.actions.moduleCreate(event)
         .then(function() {
           let awsmJson = utils.readAndParseJsonSync(path.join(Jaws._projectRootPath, 'aws_modules', 'users', 'list', 'lambda.awsm.json'));
           //TODO: add introspections for attrs that should be set)
