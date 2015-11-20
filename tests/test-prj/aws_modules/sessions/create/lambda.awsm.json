@@ -1,5 +1,5 @@
 {
-  "name": "lSessionsCreate",
+  "name": "SessionsCreate",
   "envVars": [],
   "package": {
     "optimize": {

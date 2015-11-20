@@ -1,5 +1,5 @@
 {
-  "name": "lUsersCreate",
+  "name": "UsersCreate",
   "envVars": [],
   "package": {
     "optimize": {

@@ -1,5 +1,5 @@
 {
-  "name": "lBundleNonoptimized",
+  "name": "BundleNonoptimized",
   "envVars": [],
   "package": {
     "optimize": {
