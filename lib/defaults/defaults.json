@@ -9,6 +9,10 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/ModulePostinstall.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/FunctionDeploy.js",
       "config": {}
     },
