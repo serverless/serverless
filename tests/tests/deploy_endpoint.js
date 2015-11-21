@@ -29,13 +29,13 @@ describe('Test queued endpoint command', function() {
         config.iamRoleArnApiGateway)
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'aws_modules/sessions/show'));
+          process.chdir(path.join(projPath, 'slss_modules/sessions/show'));
           JAWS = new Jaws();
 
           // Get Lambda Paths
-          lambdaPaths.lambda1 = path.join(projPath, 'aws_modules', 'sessions', 'show', 'awsm.json');
-          lambdaPaths.lambda2 = path.join(projPath, 'aws_modules', 'sessions', 'create', 'awsm.json');
-          lambdaPaths.lambda3 = path.join(projPath, 'aws_modules', 'users', 'create', 'awsm.json');
+          lambdaPaths.lambda1 = path.join(projPath, 'slss_modules', 'sessions', 'show', 'awsm.json');
+          lambdaPaths.lambda2 = path.join(projPath, 'slss_modules', 'sessions', 'create', 'awsm.json');
+          lambdaPaths.lambda3 = path.join(projPath, 'slss_modules', 'users', 'create', 'awsm.json');
         })
         .then(function() {
           let CmdTag = new Tag(JAWS, 'endpoint')

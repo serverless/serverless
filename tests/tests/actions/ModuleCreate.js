@@ -44,7 +44,7 @@ describe('Test action: Module Create', function() {
 
       Jaws.actions.moduleCreate(event)
         .then(function() {
-          let awsmJson = utils.readAndParseJsonSync(path.join(Jaws._projectRootPath, 'aws_modules', 'users', 'list', 'lambda.awsm.json'));
+          let awsmJson = utils.readAndParseJsonSync(path.join(Jaws._projectRootPath, 'slss_modules', 'users', 'list', 'lambda.awsm.json'));
           //TODO: add introspections for attrs that should be set)
           done();
         })

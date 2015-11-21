@@ -20,7 +20,7 @@
         "Type": "AWS::Lambda::Function",
         "Properties": {
           "Runtime": "nodejs",
-          "Handler": "aws_modules/sessions/show/index.handler",
+          "Handler": "slss_modules/sessions/show/index.handler",
           "Role": {
             "Ref": "aaLambdaRoleArn"
           },

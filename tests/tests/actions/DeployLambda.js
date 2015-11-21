@@ -41,7 +41,7 @@ describe('Test action: Deploy Lambda', function() {
     it('Multi level module queued', function(done) {
       this.timeout(0);
 
-      Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf, './aws_modules/sessions/show')
+      Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf, './slss_modules/sessions/show')
         .then(deployedLambdas => {
           //TODO: add assertions
           done();
@@ -53,7 +53,7 @@ describe('Test action: Deploy Lambda', function() {
 
     it('browserify queued', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'aws_modules/bundle/browserify'));
+      process.chdir(path.join(projPath, 'slss_modules/bundle/browserify'));
 
       Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf)
         .then(deployedLambdas => {
@@ -67,7 +67,7 @@ describe('Test action: Deploy Lambda', function() {
 
     it('non optimized queued', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'aws_modules/bundle/nonoptimized'));
+      process.chdir(path.join(projPath, 'slss_modules/bundle/nonoptimized'));
 
       Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf)
         .then(deployedLambdas => {
@@ -81,7 +81,7 @@ describe('Test action: Deploy Lambda', function() {
 
     it('queued multiple', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'aws_modules/bundle'));
+      process.chdir(path.join(projPath, 'slss_modules/bundle'));
 
       Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf, './browserify', './nonoptimized')
         .then(deployedLambdas => {

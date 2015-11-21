@@ -42,7 +42,7 @@ describe('Test action: Endpoint Deploy', function() {
           config.stage,
           config.region,
           config.noExecuteCf,
-          'aws_modules/users/create'
+          'slss_modules/users/create'
       )
           .then(function() {
             done();

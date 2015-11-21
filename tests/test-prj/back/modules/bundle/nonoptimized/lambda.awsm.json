@@ -1,5 +1,5 @@
 {
-  "name": "SessionsCreate",
+  "name": "BundleNonoptimized",
   "envVars": [],
   "package": {
     "optimize": {
@@ -20,7 +20,7 @@
         "Type": "AWS::Lambda::Function",
         "Properties": {
           "Runtime": "nodejs",
-          "Handler": "aws_modules/sessions/create/index.handler",
+          "Handler": "slss_modules/bundle/nonoptimized/handler.handler",
           "Role": {
             "Ref": "aaLambdaRoleArn"
           },
@@ -35,27 +35,22 @@
     },
     "apiGatewayEndpoint": {
       "Type": "AWS::ApiGateway::Endpoint",
-      "Path": "sessions",
-      "Method": "POST",
+      "Path": "bundle/nonoptimized",
+      "Method": "GET",
       "AuthorizationType": "none",
       "ApiKeyRequired": false,
-      "RequestTemplates": {
-        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
-      },
-      "RequestParameters": {
-        "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
-      },
+      "RequestTemplates": {},
+      "RequestParameters": {},
       "Responses": {
+        "400": {
+          "statusCode": "400"
+        },
         "default": {
           "statusCode": "200",
           "responseParameters": {},
-          "responseModels": {},
           "responseTemplates": {
             "application/json": ""
           }
-        },
-        "400": {
-          "statusCode": "400"
         }
       }
     }

@@ -26,7 +26,7 @@ describe('Test "run" command', function() {
         config.iamRoleArnApiGateway)
         .then(function(pp) {
           projPath = pp;
-          process.chdir(path.join(projPath, 'aws_modules', 'sessions', 'show'));
+          process.chdir(path.join(projPath, 'slss_modules', 'sessions', 'show'));
           JAWS = new Jaws();
           done();
         });

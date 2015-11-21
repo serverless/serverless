@@ -42,7 +42,7 @@ describe('Test "queued lambda" command', function() {
     it('Multi level module queued', function(done) {
       this.timeout(0);
 
-      process.chdir(path.join(projPath, 'aws_modules/sessions/show'));
+      process.chdir(path.join(projPath, 'slss_modules/sessions/show'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
           .then(function(d) {
@@ -55,7 +55,7 @@ describe('Test "queued lambda" command', function() {
 
     it('browserify queued', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'aws_modules/bundle/browserify'));
+      process.chdir(path.join(projPath, 'slss_modules/bundle/browserify'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
           .then(function(d) {
@@ -68,7 +68,7 @@ describe('Test "queued lambda" command', function() {
 
     it('non optimized queued', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'aws_modules/bundle/nonoptimized'));
+      process.chdir(path.join(projPath, 'slss_modules/bundle/nonoptimized'));
 
       CmdDeployLambda.run(JAWS, config.stage, [config.region], false, config.noExecuteCf)
           .then(function(d) {
@@ -81,7 +81,7 @@ describe('Test "queued lambda" command', function() {
 
     it('queued multiple', function(done) {
       this.timeout(0);
-      let bundleDirPath = path.join(projPath, 'aws_modules/bundle');
+      let bundleDirPath = path.join(projPath, 'slss_modules/bundle');
 
       process.chdir(bundleDirPath);
 

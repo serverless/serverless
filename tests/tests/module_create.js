@@ -50,7 +50,7 @@ describe('Test "new module" command', function() {
 
       CmdNewAction.run(JAWS, module.name, module.action, module.runtime, module.pkgMgr, module.type)
           .then(function() {
-            let jawsJson = require(path.join(process.cwd(), 'aws_modules/users/list/awsm.json'));
+            let jawsJson = require(path.join(process.cwd(), 'slss_modules/users/list/awsm.json'));
             assert.isTrue(typeof jawsJson.lambda.cloudFormation !== 'undefined');
             assert.isTrue(typeof jawsJson.apiGateway.cloudFormation !== 'undefined');
             assert.isTrue(jawsJson.apiGateway.cloudFormation.Path === 'users/list');
