@@ -45,6 +45,10 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/RegionCreate.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/EnvList.js",
       "config": {}
     },
