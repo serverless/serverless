@@ -13,6 +13,14 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/FunctionRun.js",
+      "config": {}
+    },
+    {
+      "path": "./defaults/actions/FunctionRunLambdaNodeJs.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/FunctionDeploy.js",
       "config": {}
     },
