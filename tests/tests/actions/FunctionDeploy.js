@@ -45,6 +45,13 @@ describe('Test Action: Function Deploy', function() {
         region:     config.region,
         noExeCf:    config.noExecuteCf,
         type:       'code',
+        paths:      [
+          'bundle/browserify',
+          'bundle/nonoptimized',
+          'sessions/create',
+          'sessions/show',
+          'users/create'
+        ]
       };
 
       Jaws.actions.functionDeploy(event)
