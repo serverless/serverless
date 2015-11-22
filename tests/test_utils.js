@@ -57,7 +57,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
         iamRoleArnApiGateway: projectApiGIAMRole,
-        jawsBucket:           utils.generateJawsBucketName(projectStage, projectRegion, projectDomain),
+        jawsBucket:           utils.generateJawsBucketName(projectRegion, projectDomain),
       },];
 
       fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));

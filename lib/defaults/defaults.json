@@ -29,6 +29,10 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/EndpointBuildApiGateway.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/EndpointProvisionApiGateway.js",
       "config": {}
     },

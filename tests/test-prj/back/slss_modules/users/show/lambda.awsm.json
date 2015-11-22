@@ -37,7 +37,7 @@
       "Endpoint": {
         "Type": "AWS::ApiGateway::Endpoint",
         "Path": "users",
-        "Method": "POST",
+        "Method": "GET",
         "AuthorizationType": "none",
         "ApiKeyRequired": false,
         "RequestTemplates": {
