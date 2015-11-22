@@ -35,8 +35,8 @@ describe('Test Action: Function Deploy', function() {
     done();
   });
 
-  describe('Function Deploy Code Lambda Nodejs', function() {
-    it('Function Deploy Code Lambda Nodejs', function(done) {
+  describe('Function Deploy - Code - Lambda - Nodejs', function() {
+    it('should deploy code', function(done) {
 
       this.timeout(0);
 
@@ -64,25 +64,32 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
-  //describe('Function Deploy: Endpoint: ApiGateway', function() {
-  //
-  //  it('Function Deploy Endpoint', function(done) {
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      noExeCf:    config.noExecuteCf,
-  //      type:       'endpoint'
-  //    };
-  //
-  //    Jaws.actions.functionDeploy(event)
-  //        .then(function() {
-  //          done();
-  //        })
-  //        .catch(e => {
-  //          done(e);
-  //        });
-  //  });
-  //});
+  describe('Function Deploy - Endpoint - ApiGateway', function() {
+
+    it('should deploy endpoints', function(done) {
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        noExeCf:    config.noExecuteCf,
+        type:       'endpoint',
+        paths:      [
+          'bundle/browserify',
+          'bundle/nonoptimized',
+          'sessions/create',
+          'sessions/show',
+          'users/create'
+        ]
+      };
+
+      Jaws.actions.functionDeploy(event)
+          .then(function() {
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+    });
+  });
 });

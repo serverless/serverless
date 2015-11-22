@@ -33,23 +33,25 @@
         }
       }
     },
-    "apiGatewayEndpoint": {
-      "Type": "AWS::ApiGateway::Endpoint",
-      "Path": "users/create",
-      "Method": "GET",
-      "AuthorizationType": "none",
-      "ApiKeyRequired": false,
-      "RequestTemplates": {},
-      "RequestParameters": {},
-      "Responses": {
-        "400": {
-          "statusCode": "400"
-        },
-        "default": {
-          "statusCode": "200",
-          "responseParameters": {},
-          "responseTemplates": {
-            "application/json": ""
+    "apiGateway": {
+      "Endpoint": {
+        "Type": "AWS::ApiGateway::Endpoint",
+        "Path": "users/create",
+        "Method": "GET",
+        "AuthorizationType": "none",
+        "ApiKeyRequired": false,
+        "RequestTemplates": {},
+        "RequestParameters": {},
+        "Responses": {
+          "400": {
+            "statusCode": "400"
+          },
+          "default": {
+            "statusCode": "200",
+            "responseParameters": {},
+            "responseTemplates": {
+              "application/json": ""
+            }
           }
         }
       }
