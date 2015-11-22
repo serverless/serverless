@@ -21,7 +21,6 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
-      projectApiGIAMRole   = config.iamRoleArnApiGateway,
       projectDomain        = config.domain;
 
   // Create Test Project
@@ -56,8 +55,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectJSON.stage[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
-        iamRoleArnApiGateway: projectApiGIAMRole,
         jawsBucket:           utils.generateJawsBucketName(projectRegion, projectDomain),
+        apiFunctionAlias:     'LATEST',
       },];
 
       fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
