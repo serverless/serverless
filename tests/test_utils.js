@@ -26,8 +26,6 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
-  
-
 
   utils.jawsDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
@@ -48,8 +46,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   delete lambdasCF.Resources.lTemplate;
 
   return Promise.all([
-      utils.writeFile(path.join(tmpProjectPath, 'cloudformation', projectStage, projectRegion, 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
-      utils.writeFile(path.join(tmpProjectPath, 'cloudformation', projectStage, projectRegion, 'resources-cf.json'), JSON.stringify(resourcesCF, null, 2)),
+      utils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
+      utils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'resources-cf.json'), JSON.stringify(resourcesCF, null, 2)),
     ])
     .then(function() {
       projectJSON.name   = projectName;

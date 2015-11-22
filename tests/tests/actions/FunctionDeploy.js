@@ -20,14 +20,20 @@ describe('Test Action: Function Deploy', function() {
 
     testUtils.createTestProject(config)
         .then(projPath => {
+
           process.chdir(projPath);
+
           Jaws = new JAWS({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
           });
 
-          done();
+          // Create new region
+          return Jaws.actions.regionCreate({
+            stage:  config.stage,
+            region: config.region2
+          }).then(done);
         });
   });
 
