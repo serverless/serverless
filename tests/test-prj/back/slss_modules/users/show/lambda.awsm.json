@@ -1,5 +1,5 @@
 {
-  "name": "SessionsCreate",
+  "name": "UsersShow",
   "envVars": [],
   "package": {
     "optimize": {
@@ -20,7 +20,7 @@
         "Type": "AWS::Lambda::Function",
         "Properties": {
           "Runtime": "nodejs",
-          "Handler": "slss_modules/sessions/create/index.handler",
+          "Handler": "slss_modules/users/show/index.handler",
           "Role": {
             "Ref": "aaLambdaRoleArn"
           },
@@ -36,7 +36,7 @@
     "apiGateway": {
       "Endpoint": {
         "Type": "AWS::ApiGateway::Endpoint",
-        "Path": "sessions",
+        "Path": "users",
         "Method": "POST",
         "AuthorizationType": "none",
         "ApiKeyRequired": false,

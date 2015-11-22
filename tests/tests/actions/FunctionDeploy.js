@@ -29,11 +29,13 @@ describe('Test Action: Function Deploy', function() {
             awsAdminSecretKey: config.awsAdminSecretKey
           });
 
-          // Create new region
-          return Jaws.actions.regionCreate({
-            stage:  config.stage,
-            region: config.region2
-          }).then(done);
+          done();
+
+          // Create new region for multi-region tests
+          //return Jaws.actions.regionCreate({
+          //  stage:  config.stage,
+          //  region: config.region2
+          //}).then(done);
         });
   });
 
@@ -41,34 +43,34 @@ describe('Test Action: Function Deploy', function() {
     done();
   });
 
-  describe('Function Deploy - Code - Lambda - Nodejs', function() {
-    it('should deploy code', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
-        type:       'code',
-        paths:      [
-          'bundle/browserify',
-          'bundle/nonoptimized',
-          'sessions/create',
-          'sessions/show',
-          'users/create'
-        ]
-      };
-
-      Jaws.actions.functionDeploy(event)
-          .then(function() {
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
+  //describe('Function Deploy - Code - Lambda - Nodejs', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'code',
+  //      paths:      [
+  //        'bundle/browserify',
+  //        'bundle/nonoptimized',
+  //        'multiple/endpoints',
+  //        'users/show',
+  //        'users/create'
+  //      ]
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function() {
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
 
   describe('Function Deploy - Endpoint - ApiGateway', function() {
 
@@ -83,8 +85,8 @@ describe('Test Action: Function Deploy', function() {
         paths:      [
           'bundle/browserify',
           'bundle/nonoptimized',
-          'sessions/create',
-          'sessions/show',
+          'multiple/endpoints',
+          'users/show',
           'users/create'
         ]
       };
