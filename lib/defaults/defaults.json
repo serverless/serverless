@@ -75,6 +75,10 @@
     {
       "path": "./defaults/actions/EnvUnset.js",
       "config": {}
+    },
+    {
+      "path": "./defaults/actions/ResourcesDeploy.js",
+      "config": {}
     }
   ]
 }
