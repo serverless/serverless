@@ -59,7 +59,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectJSON.stages[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
-        jawsBucket:           utils.generateJawsBucketName(projectRegion, projectDomain),
+        regionBucket:         utils.generateRegionBucketName(projectRegion, projectDomain),
         apiFunctionAlias:     'LATEST',
       },];
 

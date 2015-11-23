@@ -29,11 +29,7 @@ describe('Test Action: Function Deploy', function() {
             awsAdminSecretKey: config.awsAdminSecretKey
           });
 
-          //Create new region for multi-region tests
-          return Jaws.actions.regionCreate({
-            stage:  config.stage,
-            region: config.region2
-          }).then(done);
+          done();
         });
   });
 

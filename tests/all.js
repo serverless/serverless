@@ -23,12 +23,12 @@ describe('All Tests', function() {
    * Tests below create AWS Resources
    */
 
-  require('./tests/actions/ProjectCreate');
-  require('./tests/actions/StageCreate');
-  require('./tests/actions/RegionCreate');
+  //require('./tests/actions/ProjectCreate');
+  //require('./tests/actions/StageCreate');
+  //require('./tests/actions/RegionCreate');
   //require('./tests/actions/VersionLambda');
   //require('./tests/actions/ModuleCreate');
-  //require('./tests/actions/FunctionDeploy');
+  require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EnvList');
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvUnset');
