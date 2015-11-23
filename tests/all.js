@@ -22,19 +22,21 @@ describe('All Tests', function() {
   /**
    * Tests below create AWS Resources
    */
-    //require('./cli/dash');
-    //require('./cli/deploy_lambda');
-    //require('./cli/deploy_resources');
-    //require('./cli/deploy_endpoint');
-    //require('./cli/new_stage_region');
-    //require('./tests/actions/ProjectCreate');
-    //require('./tests/actions/VersionLambda');
-    //require('./tests/actions/ModuleCreate');
-    //require('./tests/actions/FunctionDeploy');
-    //require('./tests/actions/StageCreate');
-    //require('./tests/actions/ProjectCreate');
-    //require('./tests/actions/EnvList');
-    //require('./tests/actions/EnvGet');
-    //require('./tests/actions/EnvUnset');
-    //require('./tests/actions/EnvSet');
+
+  require('./tests/actions/ProjectCreate');
+  //require('./tests/actions/StageCreate');
+  //require('./tests/actions/RegionCreate');
+  //require('./tests/actions/ProjectCreate');
+  //require('./tests/actions/VersionLambda');
+  //require('./tests/actions/ModuleCreate');
+  //require('./tests/actions/FunctionDeploy');
+  //require('./tests/actions/EnvList');
+  //require('./tests/actions/EnvGet');
+  //require('./tests/actions/EnvUnset');
+  //require('./tests/actions/EnvSet');
+  //require('./cli/dash');
+  //require('./cli/deploy_lambda');
+  //require('./cli/deploy_resources');
+  //require('./cli/deploy_endpoint');
+  //require('./cli/new_stage_region');
 });

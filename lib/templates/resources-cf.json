@@ -4,8 +4,7 @@
   "Parameters": {
     "aaProjectName": {
       "Type": "String",
-      "AllowedValues": [
-      ]
+      "AllowedValues": []
     },
     "aaProjectDomain": {
       "Type": "String",

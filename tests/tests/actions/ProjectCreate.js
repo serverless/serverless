@@ -54,8 +54,8 @@ describe('Test action: Project Create', function() {
 
           let region = false;
 
-          for (let i = 0; i < jawsJson.stage[config.stage].length; i++) {
-            let stage = jawsJson.stage[config.stage][i];
+          for (let i = 0; i < jawsJson.stages[config.stage].length; i++) {
+            let stage = jawsJson.stages[config.stage][i];
             if (stage.region === config.region) {
               region = stage.region;
             }
