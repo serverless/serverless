@@ -43,34 +43,34 @@ describe('Test Action: Function Deploy', function() {
     done();
   });
 
-  //describe('Function Deploy - Code - Lambda - Nodejs', function() {
-  //  it('should deploy code', function(done) {
-  //
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      noExeCf:    config.noExecuteCf,
-  //      type:       'code',
-  //      paths:      [
-  //        'bundle/browserify',
-  //        'bundle/nonoptimized',
-  //        'multiple/endpoints',
-  //        'users/show',
-  //        'users/create'
-  //      ]
-  //    };
-  //
-  //    Jaws.actions.functionDeploy(event)
-  //        .then(function() {
-  //          done();
-  //        })
-  //        .catch(e => {
-  //          done(e);
-  //        });
-  //  });
-  //});
+  describe('Function Deploy - Code - Lambda - Nodejs', function() {
+    it('should deploy code', function(done) {
+
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        noExeCf:    config.noExecuteCf,
+        type:       'code',
+        paths:      [
+          'bundle/browserify',
+          'bundle/nonoptimized',
+          'multiple/endpoints',
+          'users/show',
+          'users/create'
+        ]
+      };
+
+      Jaws.actions.functionDeploy(event)
+          .then(function() {
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+    });
+  });
 
   describe('Function Deploy - Endpoint - ApiGateway', function() {
 
