@@ -42,7 +42,11 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       resourcesCF = utils.readAndParseJsonSync(__dirname + '/../lib/templates/resources-cf.json'),
       projectJSON = utils.readAndParseJsonSync(path.join(tmpProjectPath, 'jaws.json'));
 
+  // Delete Lambda Template
   delete lambdasCF.Resources.lTemplate;
+
+  // Add project name to AllowedValues
+  resourcesCF.Parameters.aaProjectName.AllowedValues.push(projectName);
 
   return Promise.all([
       utils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
@@ -51,8 +55,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     .then(function() {
       projectJSON.name   = projectName;
       projectJSON.domain = projectDomain;
-      projectJSON.stage = {};
-      projectJSON.stage[projectStage] = [{
+      projectJSON.stages = {};
+      projectJSON.stages[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
         jawsBucket:           utils.generateJawsBucketName(projectRegion, projectDomain),

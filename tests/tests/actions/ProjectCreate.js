@@ -46,7 +46,7 @@ describe('Test action: Project Create', function() {
         notificationEmail: config.notifyEmail,
         stage:      config.stage,
         region:     config.region,
-        noCf:    config.noExecuteCf,
+        noExeCf:    config.noExecuteCf,
       };
       Jaws.actions.projectCreate(event)
         .then(function() {
