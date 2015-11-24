@@ -37,5 +37,4 @@ describe('All Tests', function() {
   //require('./cli/deploy_lambda');
   //require('./cli/deploy_resources');
   //require('./cli/deploy_endpoint');
-  //require('./cli/new_stage_region');
 });
