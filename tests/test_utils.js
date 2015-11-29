@@ -59,8 +59,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectJSON.stages[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
-        regionBucket:         utils.generateRegionBucketName(projectRegion, projectDomain),
-        apiFunctionAlias:     'LATEST',
+        regionBucket:         utils.generateRegionBucketName(projectRegion, projectDomain)
       },];
 
       fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
