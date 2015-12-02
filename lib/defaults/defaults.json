@@ -25,6 +25,10 @@
       "config": {}
     },
     {
+      "path": "./defaults/actions/FunctionCreate.js",
+      "config": {}
+    },
+    {
       "path": "./defaults/actions/FunctionRunLambdaNodeJs.js",
       "config": {}
     },
