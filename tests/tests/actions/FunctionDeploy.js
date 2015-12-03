@@ -61,123 +61,7 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
-  describe('Function Deploy Code', function() {
-    it('should deploy code', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
-        type:       'code',
-        paths:      [
-          'users/create'
-        ]
-      };
-
-      Jaws.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
-
-
-  describe('Function Deploy Endpoint', function() {
-
-    it('should deploy endpoints', function(done) {
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
-        type:       'endpoint',
-        paths:      [
-          'users/create'
-        ]
-      };
-
-      Jaws.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
-
-
-  describe('Function Deploy Both', function() {
-    it('should deploy code', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
-        type:       'both',
-        paths:      [
-          'users/create'
-        ]
-      };
-
-      Jaws.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
-
-
-  describe('Function Deploy Both with "all" option.', function() {
-    it('should deploy code', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
-        type:       'both',
-        all:        true
-      };
-
-      Jaws.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
-
-
-  //describe('Function Deploy Both across multiple regions', function() {
-  //
-  //  // Create a new region
-  //  before(function(done) {
-  //    this.timeout(0);
-  //
-  //    Jaws.actions.regionCreate();
-  //
-  //  });
-  //
-  //
+  //describe('Function Deploy Code', function() {
   //  it('should deploy code', function(done) {
   //
   //    this.timeout(0);
@@ -202,4 +86,127 @@ describe('Test Action: Function Deploy', function() {
   //        });
   //  });
   //});
+  //
+  //
+  //describe('Function Deploy Endpoint', function() {
+  //
+  //  it('should deploy endpoints', function(done) {
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'endpoint',
+  //      paths:      [
+  //        'users/create'
+  //      ]
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function(evt) {
+  //          validateEvent(evt);
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
+  //
+  //
+  //describe('Function Deploy Both', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'both',
+  //      paths:      [
+  //        'users/create'
+  //      ]
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function(evt) {
+  //          validateEvent(evt);
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
+  //
+  //
+  //describe('Function Deploy Both with "all" option.', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'both',
+  //      all:        true
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function(evt) {
+  //          validateEvent(evt);
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
+
+
+  describe('Function Deploy Both across multiple regions', function() {
+
+    // Create a new region
+    before(function(done) {
+      this.timeout(0);
+
+      Jaws.actions.regionCreate({
+        stage: config.stage,
+        region: config.region2,
+      })
+      .then(function() {
+        done();
+      })
+      .catch(function(e) {
+        done(e);
+      });
+    });
+
+    it('should deploy code', function(done) {
+
+      //this.timeout(0);
+      //
+      //let event = {
+      //  stage:      config.stage,
+      //  region:     config.region,
+      //  noExeCf:    config.noExecuteCf,
+      //  type:       'code',
+      //  paths:      [
+      //    'users/create'
+      //  ]
+      //};
+      //
+      //Jaws.actions.functionDeploy(event)
+      //    .then(function(evt) {
+      //      validateEvent(evt);
+      //      done();
+      //    })
+      //    .catch(e => {
+      //      done(e);
+      //    });
+    });
+  });
 });
