@@ -37,7 +37,94 @@ describe('Test Action: Function Deploy', function() {
     done();
   });
 
-  describe('Function Deploy - Code - Lambda - Nodejs', function() {
+  //describe('Function Deploy - Code: Lambda, Nodejs', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'code',
+  //      paths:      [
+  //        'bundle/browserify',
+  //        'bundle/nonoptimized',
+  //        'multiple/endpoints',
+  //        'users/show',
+  //        'users/create'
+  //      ]
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function() {
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
+
+  //describe('Function Deploy - Endpoint: ApiGateway', function() {
+  //
+  //  it('should deploy endpoints', function(done) {
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'endpoint',
+  //      paths:      [
+  //        'bundle/browserify',
+  //        'bundle/nonoptimized',
+  //        'multiple/endpoints',
+  //        'users/show',
+  //        'users/create'
+  //      ]
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function() {
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
+
+  //describe('Function Deploy - All: With selected paths', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'all',
+  //      paths:      [
+  //        'bundle/browserify',
+  //        'bundle/nonoptimized',
+  //        'multiple/endpoints',
+  //        'users/show',
+  //        'users/create'
+  //      ]
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function() {
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
+
+  describe('Function Deploy - All: With "all" option.', function() {
     it('should deploy code', function(done) {
 
       this.timeout(0);
@@ -46,14 +133,8 @@ describe('Test Action: Function Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         noExeCf:    config.noExecuteCf,
-        type:       'code',
-        paths:      [
-          'bundle/browserify',
-          'bundle/nonoptimized',
-          'multiple/endpoints',
-          'users/show',
-          'users/create'
-        ]
+        type:       'all',
+        all:        true
       };
 
       Jaws.actions.functionDeploy(event)
@@ -66,32 +147,25 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
-  describe('Function Deploy - Endpoint - ApiGateway', function() {
-
-    it('should deploy endpoints', function(done) {
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
-        type:       'endpoint',
-        paths:      [
-          'bundle/browserify',
-          'bundle/nonoptimized',
-          'multiple/endpoints',
-          'users/show',
-          'users/create'
-        ]
-      };
-
-      Jaws.actions.functionDeploy(event)
-          .then(function() {
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
+  //describe('Function Deploy - All: Multi-Region deployment, with "all" option.', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      noExeCf:    config.noExecuteCf,
+  //      type:       'all',
+  //      all:        true
+  //    };
+  //
+  //    Jaws.actions.functionDeploy(event)
+  //        .then(function() {
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
 });
