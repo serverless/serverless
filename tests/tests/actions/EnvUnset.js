@@ -4,14 +4,14 @@
  * Test: Env Unset Action
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
     config    = require('../../config');
 
-let Jaws;
+let serverless;
 
 describe('Test Action: Env Unset', function() {
 
@@ -21,7 +21,7 @@ describe('Test Action: Env Unset', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           process.chdir(projPath);
-          Jaws = new JAWS({
+          serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
@@ -43,10 +43,10 @@ describe('Test Action: Env Unset', function() {
       let event = {
         stage:      config.stage,
         region:     config.region,
-        key:    'JAWS_STAGE',
+        key:        'SERVERLESS_STAGE',
       };
 
-      Jaws.actions.envUnset(event)
+      serverless.actions.envUnset(event)
           .then(function() {
             done();
           })

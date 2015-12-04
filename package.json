@@ -1,22 +1,19 @@
 {
-  "name": "jaws-framework",
-  "version": "1.4.0",
+  "name": "serverless",
+  "version": "0.0.1",
   "engines": {
     "node": ">=4.0"
   },
   "preferGlobal": true,
-  "description": "JAWS is the serverless framework powered by Amazon Web Services.",
-  "author": "Austen Collins <austen@servant.co>, Ryan Pendergast <ryan.pendergast@gmail.com>",
+  "description": "The Serverless Application Framework Powered By Amazon Web Services - http://www.serverless.com",
+  "author": "serverless.com",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/jaws-framework/JAWS.git"
-  },
+  "repository": {},
   "keywords": [
-    "jaws",
-    "jaws framework",
-    "jaws cli",
     "serverless",
+    "serverless framework",
+    "serverless applications",
+    "serverless modules",
     "api gateway",
     "lambda",
     "aws",
@@ -24,11 +21,12 @@
     "amazon",
     "amazon web services",
     "dynamodb",
-    "awsm"
+    "serverless.com"
   ],
-  "main": "lib/Jaws.js",
+  "main": "lib/serverless.js",
   "bin": {
-    "jaws": "./bin/jaws"
+    "serverless": "./bin/serverless",
+    "sl": "./bin/serverless"
   },
   "scripts": {
     "test": "mocha tests/all"

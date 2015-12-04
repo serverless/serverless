@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "The AWS CloudFormation template for this JAWS projects lambdas",
+  "Description": "The AWS CloudFormation template for this Serverless application's Lambda functions",
   "Parameters": {
     "aaLambdaRoleArn": {
       "Type": "String",

@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+'use strict';
+
+let Serverless      = require('../lib/Serverless'),
+    ServerlessUtils = require('../lib/utils/index'),
+    serverless      = new Serverless(),
+    argv            = require('minimist')(process.argv.slice(2));
+
+ServerlessUtils.execute(serverless.command(argv));

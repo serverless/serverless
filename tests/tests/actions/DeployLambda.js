@@ -6,7 +6,7 @@
  * - Deletes the CF stack created by the project
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
@@ -14,7 +14,7 @@ let JAWS      = require('../../../lib/Jaws.js'),
     Promise   = require('bluebird'),
     config    = require('../../config');
 
-let Jaws,
+let serverless,
     projPath;
 
 describe('Test action: Deploy Lambda', function() {
@@ -25,7 +25,7 @@ describe('Test action: Deploy Lambda', function() {
       .then(pp => {
         process.chdir(pp);
         projPath = pp;
-        Jaws     = new JAWS({
+        serverless     = new Serverless({
           interactive: false,
         });
         done();
@@ -41,7 +41,7 @@ describe('Test action: Deploy Lambda', function() {
     it('Multi level module queued', function(done) {
       this.timeout(0);
 
-      Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf, './slss_modules/sessions/show')
+      serverless.actions.lambdaDeploy(null, null, config.noExecuteCf, './modules/sessions/show')
         .then(deployedLambdas => {
           //TODO: add assertions
           done();
@@ -53,9 +53,9 @@ describe('Test action: Deploy Lambda', function() {
 
     it('browserify queued', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'slss_modules/bundle/browserify'));
+      process.chdir(path.join(projPath, 'modules/bundle/browserify'));
 
-      Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf)
+      serverless.actions.lambdaDeploy(null, null, config.noExecuteCf)
         .then(deployedLambdas => {
           //TODO: add assertions
           done();
@@ -67,9 +67,9 @@ describe('Test action: Deploy Lambda', function() {
 
     it('non optimized queued', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'slss_modules/bundle/nonoptimized'));
+      process.chdir(path.join(projPath, 'modules/bundle/nonoptimized'));
 
-      Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf)
+      serverless.actions.lambdaDeploy(null, null, config.noExecuteCf)
         .then(deployedLambdas => {
           //TODO: add assertions
           done();
@@ -81,9 +81,9 @@ describe('Test action: Deploy Lambda', function() {
 
     it('queued multiple', function(done) {
       this.timeout(0);
-      process.chdir(path.join(projPath, 'slss_modules/bundle'));
+      process.chdir(path.join(projPath, 'modules/bundle'));
 
-      Jaws.actions.lambdaDeploy(null, null, config.noExecuteCf, './browserify', './nonoptimized')
+      serverless.actions.lambdaDeploy(null, null, config.noExecuteCf, './browserify', './nonoptimized')
         .then(deployedLambdas => {
           //TODO: add assertions
           done();

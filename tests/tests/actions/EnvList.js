@@ -4,14 +4,14 @@
  * Test: Env List Action
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
     config    = require('../../config');
 
-let Jaws;
+let serverless;
 
 describe('Test Action: Env List', function() {
 
@@ -21,7 +21,7 @@ describe('Test Action: Env List', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           process.chdir(projPath);
-          Jaws = new JAWS({
+          serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
@@ -46,7 +46,7 @@ describe('Test Action: Env List', function() {
         region:     config.region,
       };
       
-      Jaws.actions.envList(event)
+      serverless.actions.envList(event)
           .then(function() {
             done();
           })

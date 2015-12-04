@@ -20,7 +20,7 @@ let config = {
   awsAdminKeyId:        process.env.TEST_JAWS_AWS_ACCESS_KEY,
   awsAdminSecretKey:    process.env.TEST_JAWS_AWS_SECRET_KEY,
   //Set following to an existing unit test project's ARNS, for test cases that need to interact w/ proj aws resources
-  //You can simply make a unittest project via `jaws project create` then set the env vars from the values in `project.json`
+  //You can simply make a unittest project via `serverless project create` then set the env vars from the values in `project.json`
   iamRoleArnLambda:     process.env.TEST_JAWS_LAMBDA_ROLE,
 };
 

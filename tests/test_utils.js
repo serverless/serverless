@@ -6,7 +6,7 @@ let fs        = require('fs'),
     path      = require('path'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
-    JawsError = require('../lib/jaws-error'),
+    SError = require('../lib/ServerlessError'),
     utils     = require('../lib/utils');
 
 /**
@@ -26,10 +26,10 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
 
-  utils.jawsDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
+  utils.sDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
   if (fs.existsSync(tmpProjectPath)) {
-    return Promise.reject(new JawsError('Temp dir ' + tmpProjectPath + ' already exists'));
+    return Promise.reject(new SError('Temp dir ' + tmpProjectPath + ' already exists'));
   }
 
   // Copy test project to temp directory
@@ -40,7 +40,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   let lambdasCF   = utils.readAndParseJsonSync(__dirname + '/../lib/templates/lambdas-cf.json'),
       resourcesCF = utils.readAndParseJsonSync(__dirname + '/../lib/templates/resources-cf.json'),
-      projectJSON = utils.readAndParseJsonSync(path.join(tmpProjectPath, 'jaws.json'));
+      projectJSON = utils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
 
   // Delete Lambda Template
   delete lambdasCF.Resources.lTemplate;
@@ -62,8 +62,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
         regionBucket:         utils.generateRegionBucketName(projectRegion, projectDomain)
       },];
 
-      fs.writeFileSync(path.join(tmpProjectPath, 'jaws.json'), JSON.stringify(projectJSON, null, 2));
-      fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), 'JAWS_ADMIN_AWS_PROFILE=' + process.env.TEST_JAWS_PROFILE);
+      fs.writeFileSync(path.join(tmpProjectPath, 's-project.json'), JSON.stringify(projectJSON, null, 2));
+      fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), 'SERVERLESS_ADMIN_AWS_PROFILE=' + process.env.TEST_SERVERLESS_PROFILE);
 
       //Need to run npm install on the test project, they recommend NOT doing this programatically
       //https://github.com/npm/npm#using-npm-programmatically
@@ -71,7 +71,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
         npmInstallDirs.forEach(function(dir) {
           let fullPath = path.join(tmpProjectPath, dir);
           console.log(fullPath);
-          utils.jawsDebug('test_utils', `Running NPM install on ${fullPath}`);
+          utils.sDebug('test_utils', `Running NPM install on ${fullPath}`);
           utils.npmInstall(fullPath);
         });
       }

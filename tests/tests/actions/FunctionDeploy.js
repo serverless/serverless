@@ -4,14 +4,14 @@
  * Test: Function Deploy Action
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
     config    = require('../../config');
 
-let Jaws;
+let serverless;
 
 /**
  * Validate Event
@@ -43,7 +43,7 @@ describe('Test Action: Function Deploy', function() {
 
           process.chdir(projPath);
 
-          Jaws = new JAWS({
+          serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
@@ -76,7 +76,7 @@ describe('Test Action: Function Deploy', function() {
   //      ]
   //    };
   //
-  //    Jaws.actions.functionDeploy(event)
+  //    S.actions.functionDeploy(event)
   //        .then(function(evt) {
   //          validateEvent(evt);
   //          done();
@@ -103,7 +103,7 @@ describe('Test Action: Function Deploy', function() {
   //      ]
   //    };
   //
-  //    Jaws.actions.functionDeploy(event)
+  //    S.actions.functionDeploy(event)
   //        .then(function(evt) {
   //          validateEvent(evt);
   //          done();
@@ -130,7 +130,7 @@ describe('Test Action: Function Deploy', function() {
   //      ]
   //    };
   //
-  //    Jaws.actions.functionDeploy(event)
+  //    S.actions.functionDeploy(event)
   //        .then(function(evt) {
   //          validateEvent(evt);
   //          done();
@@ -155,7 +155,7 @@ describe('Test Action: Function Deploy', function() {
   //      all:        true
   //    };
   //
-  //    Jaws.actions.functionDeploy(event)
+  //    S.actions.functionDeploy(event)
   //        .then(function(evt) {
   //          validateEvent(evt);
   //          done();
@@ -173,7 +173,7 @@ describe('Test Action: Function Deploy', function() {
     before(function(done) {
       this.timeout(0);
 
-      Jaws.actions.regionCreate({
+      serverless.actions.regionCreate({
         stage: config.stage,
         region: config.region2,
       })
@@ -199,7 +199,7 @@ describe('Test Action: Function Deploy', function() {
       //  ]
       //};
       //
-      //Jaws.actions.functionDeploy(event)
+      //S.actions.functionDeploy(event)
       //    .then(function(evt) {
       //      validateEvent(evt);
       //      done();

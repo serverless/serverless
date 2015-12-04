@@ -4,14 +4,14 @@
  * Test: Endpoint Deploy Action
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
     config    = require('../../config');
 
-let Jaws;
+let serverless;
 
 describe('Test action: Endpoint Deploy', function() {
 
@@ -21,7 +21,7 @@ describe('Test action: Endpoint Deploy', function() {
         .then(projPath => {
           process.chdir(projPath);
 
-          Jaws = new JAWS({
+          serverless = new Serverless({
             interactive: false,
           });
 
@@ -38,11 +38,11 @@ describe('Test action: Endpoint Deploy', function() {
     it('Endpoint Deploy', function(done) {
       this.timeout(0);
 
-      Jaws.actions.endpointDeploy(
+      serverless.actions.endpointDeploy(
           config.stage,
           config.region,
           config.noExecuteCf,
-          'slss_modules/users/create'
+          'modules/users/create'
       )
           .then(function() {
             done();

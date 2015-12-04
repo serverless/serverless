@@ -4,7 +4,7 @@
  * Test: Stage Create Action
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
@@ -12,7 +12,7 @@ let JAWS      = require('../../../lib/Jaws.js'),
     os        = require('os'),
     config    = require('../../config');
 
-let Jaws;
+let serverless;
 
 describe('Test Action: Stage Create', function() {
 
@@ -25,7 +25,7 @@ describe('Test Action: Stage Create', function() {
           this.timeout(0);
           process.chdir(projPath);
 
-          Jaws = new JAWS({
+          serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
@@ -50,7 +50,7 @@ describe('Test Action: Stage Create', function() {
         noExeCf:    config.noExecuteCf,
       };
 
-      Jaws.actions.stageCreate(event)
+      serverless.actions.stageCreate(event)
           .then(function() {
             done();
           })

@@ -5,7 +5,7 @@
  * Test: Region Create Action
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
@@ -13,7 +13,7 @@ let JAWS      = require('../../../lib/Jaws.js'),
     os        = require('os'),
     config    = require('../../config');
 
-let Jaws;
+let serverless;
 
 describe('Test Action: Region Create', function() {
 
@@ -26,7 +26,7 @@ describe('Test Action: Region Create', function() {
           process.chdir(projPath);
           // for some weird reason process.chdir adds /private/ before cwd path!!!!
           console.log(process.cwd());
-          Jaws = new JAWS({
+          serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
@@ -51,7 +51,7 @@ describe('Test Action: Region Create', function() {
         noExeCf:    config.noExecuteCf,
       };
 
-      Jaws.actions.regionCreate(event)
+      serverless.actions.regionCreate(event)
           .then(function() {
             done();
           })

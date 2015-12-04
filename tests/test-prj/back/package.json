@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/jaws-framework/JAWS.git"
+    "url": "git://github.com/serverless/serverless.git"
   },
   "keywords": [],
   "dependencies": {

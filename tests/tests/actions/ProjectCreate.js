@@ -6,18 +6,18 @@
  * - Deletes the CF stack created by the project
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
-    path      = require('path'),
-    os        = require('os'),
-    uuid      = require('node-uuid'),
-    utils     = require('../../../lib/utils/index'),
-    assert    = require('chai').assert,
-    shortid   = require('shortid'),
-    JawsError = require('../../../lib/jaws-error'),
-    config    = require('../../config');
+let Serverless  = require('../../../lib/Serverless'),
+    SError      = require('../../../lib/ServerlessError'),
+    path        = require('path'),
+    os          = require('os'),
+    uuid        = require('node-uuid'),
+    utils       = require('../../../lib/utils/index'),
+    assert      = require('chai').assert,
+    shortid     = require('shortid'),
+    config      = require('../../config');
 
 // Instantiate JAWS
-let Jaws = new JAWS({
+let serverless = new Serverless({
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey,
@@ -48,9 +48,9 @@ describe('Test action: Project Create', function() {
         region:     config.region,
         noExeCf:    config.noExecuteCf,
       };
-      Jaws.actions.projectCreate(event)
+      serverless.actions.projectCreate(event)
         .then(function() {
-          let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'jaws.json'));
+          let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
 
           let region = false;
 
@@ -63,7 +63,7 @@ describe('Test action: Project Create', function() {
           assert.isTrue(region !== false);
           done();
         })
-        .catch(JawsError, function(e) {
+        .catch(SError, function(e) {
           done(e);
         })
         .error(function(e) {

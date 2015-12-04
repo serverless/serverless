@@ -1,0 +1,96 @@
+{
+  "plugins": [
+    {
+      "path": "./actions/ProjectCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/ModuleCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/ModulePostinstall.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionVersion.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionAlias.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionRun.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionRunLambdaNodeJs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionDeploy.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EndpointPackageApiGateway.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EndpointBuildApiGateway.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EndpointProvisionApiGateway.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/CodePackageLambdaNodejs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/CodeCompressLambdaNodejs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/CodeUploadLambdaNodejs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/CodeProvisionLambdaNodejs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/StageCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/RegionCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvList.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvGet.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvSet.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvUnset.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/ResourcesDeploy.js",
+      "config": {}
+    }
+  ]
+}

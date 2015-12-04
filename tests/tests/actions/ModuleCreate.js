@@ -6,14 +6,14 @@
  * - Deletes the CF stack created by the project
  */
 
-let JAWS      = require('../../../lib/Jaws.js'),
+let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
     utils     = require('../../../lib/utils/index'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
     config    = require('../../config');
 
-let Jaws;
+let serverless;
 
 describe('Test action: Module Create', function() {
 
@@ -22,7 +22,7 @@ describe('Test action: Module Create', function() {
     testUtils.createTestProject(config)
       .then(projPath => {
         process.chdir(projPath);
-        Jaws = new JAWS({
+        serverless = new Serverless({
           interactive: false,
         });
         done();
@@ -42,9 +42,9 @@ describe('Test action: Module Create', function() {
         action:   'list',
       };
 
-      Jaws.actions.moduleCreate(event)
+      serverless.actions.moduleCreate(event)
         .then(function() {
-          let awsmJson = utils.readAndParseJsonSync(path.join(Jaws._projectRootPath, 'slss_modules', 'users', 'list', 'lambda.awsm.json'));
+          let awsmJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'modules', 'users', 'list', 's-function.json'));
           //TODO: add introspections for attrs that should be set)
           done();
         })
