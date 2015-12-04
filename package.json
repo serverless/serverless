@@ -10,7 +10,7 @@
   "license": "MIT",
   "repository" :
   { "type" : "git",
-    "url" : "https://github.com/jaws-framework/JAWS/tree/v1.4"
+    "url" : "https://github.com/jaws-framework/JAWS/tree/v1.4.git"
   },
   "keywords": [
     "serverless",
