@@ -9,7 +9,7 @@
       "config": {}
     },
     {
-      "path": "./actions/ModulePostinstall.js",
+      "path": "./actions/ModuleInstall.js",
       "config": {}
     },
     {
