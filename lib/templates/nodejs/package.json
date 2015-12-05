@@ -11,7 +11,5 @@
   },
   "keywords": [],
   "devDependencies": {},
-  "dependencies": {
-    "jaws-core-js": "~0.0.2"
-  }
+  "dependencies": {}
 }
