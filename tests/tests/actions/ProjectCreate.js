@@ -41,17 +41,18 @@ describe('Test action: Project Create', function() {
 
       let name = config.name  + '-' + uuid.v4();
       let event = {
-        name: name,
-        domain: config.domain,
-        notificationEmail: config.notifyEmail,
-        stage:      config.stage,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
+        name:               name,
+        domain:             config.domain,
+        notificationEmail:  config.notifyEmail,
+        stage:              config.stage,
+        region:             config.region,
+        noExeCf:            config.noExecuteCf,
       };
+
       serverless.actions.projectCreate(event)
         .then(function() {
-          let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
 
+          let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
           let region = false;
 
           for (let i = 0; i < jawsJson.stages[config.stage].length; i++) {
@@ -60,6 +61,7 @@ describe('Test action: Project Create', function() {
               region = stage.region;
             }
           }
+
           assert.isTrue(region !== false);
           done();
         })
@@ -71,5 +73,4 @@ describe('Test action: Project Create', function() {
         });
     });
   });
-
 });
