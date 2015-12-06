@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Env Get Action
+ * Test: Function Run Action
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
@@ -13,21 +13,7 @@ let Serverless = require('../../../lib/Serverless.js'),
 
 let serverless;
 
-/**
- * Validate Event
- * - Validate an event object's properties
- */
-
-let validateEvent = function(evt) {
-  
-  assert.equal(true, typeof evt.region != 'undefined');
-  assert.equal(true, typeof evt.stage != 'undefined');
-  assert.equal('SERVERLESS_STAGE', evt.key);
-  assert.equal('development', evt.valByRegion[evt.region]);
-
-};
-
-describe('Test Action: Env Get', function() {
+describe('Test Action: Function Run', function() {
 
   before(function(done) {
     this.timeout(0);
@@ -36,8 +22,10 @@ describe('Test Action: Env Get', function() {
         .then(projPath => {
           this.timeout(0);
           
-          process.chdir(projPath);
-
+          let functionPath = path.join(projPath, 'back', 'modules', 'users', 'show');
+          
+          process.chdir(functionPath);
+          
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -52,23 +40,15 @@ describe('Test Action: Env Get', function() {
     done();
   });
 
-  describe('Env Get', function() {
-    it('Should Get Env Var', function(done) {
+  describe('Function Run', function() {
+    it('should run the function with no errors', function(done) {
       
       this.timeout(0);
 
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        key:        'SERVERLESS_STAGE',
-      };
 
-      serverless.actions.envGet(event)
-          .then(function(evt) {
-            
-            // Validate Event
-            validateEvent(evt);
-            
+      serverless.actions.functionRun()
+          .then(function() {
+
             done();
           })
           .catch(e => {
