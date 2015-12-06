@@ -73,9 +73,9 @@ describe('Test Env Set & Env Unset actions', function() {
             validateEvent(setEvt, true);
             
             let unsetEvent = {
-              stage:      config.stage,
-              region:     config.region,
-              key:    'ENV_SET_TEST_KEY',
+              stage:      setEvt.stage,
+              region:     setEvt.region,
+              key:    setEvt.key,
             };
 
             serverless.actions.envUnset(unsetEvent)
