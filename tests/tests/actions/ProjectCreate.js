@@ -23,6 +23,26 @@ let serverless = new Serverless({
   awsAdminSecretKey: config.awsAdminSecretKey,
 });
 
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.name != 'undefined');
+  assert.equal(true, typeof evt.domain != 'undefined');
+  assert.equal(true, typeof evt.notificationEmail != 'undefined');
+  assert.equal(true, typeof evt.region != 'undefined');
+  assert.equal(true, typeof evt.noExeCf != 'undefined');
+  assert.equal(true, typeof evt.runtime != 'undefined');
+  assert.equal(true, typeof evt.stage != 'undefined');
+
+  if (!config.noExecuteCf) {
+    assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
+  }
+
+};
+
 describe('Test action: Project Create', function() {
 
   before(function(done) {
@@ -44,19 +64,21 @@ describe('Test action: Project Create', function() {
         name:               name,
         domain:             config.domain,
         notificationEmail:  config.notifyEmail,
-        stage:              config.stage,
         region:             config.region,
         noExeCf:            config.noExecuteCf,
       };
 
       serverless.actions.projectCreate(event)
-        .then(function() {
+        .then(function(evt) {
 
-          let jawsJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
+          // Validate Event
+          validateEvent(evt);
+
+          let projectJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
           let region = false;
 
-          for (let i = 0; i < jawsJson.stages[config.stage].length; i++) {
-            let stage = jawsJson.stages[config.stage][i];
+          for (let i = 0; i < projectJson.stages.development.length; i++) {
+            let stage = projectJson.stages[config.stage][i];
             if (stage.region === config.region) {
               region = stage.region;
             }

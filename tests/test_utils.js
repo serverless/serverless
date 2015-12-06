@@ -6,7 +6,7 @@ let fs        = require('fs'),
     path      = require('path'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
-    SError = require('../lib/ServerlessError'),
+    SError    = require('../lib/ServerlessError'),
     utils     = require('../lib/utils');
 
 /**
