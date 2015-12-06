@@ -63,7 +63,13 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       },];
 
       fs.writeFileSync(path.join(tmpProjectPath, 's-project.json'), JSON.stringify(projectJSON, null, 2));
-      fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), 'SERVERLESS_ADMIN_AWS_PROFILE=' + process.env.TEST_SERVERLESS_PROFILE);
+
+      // Write Admin.env file
+      let adminEnv = 'SERVERLESS_ADMIN_AWS_ACCESS_KEY_ID='
+          + process.env.TEST_SERVERLESS_AWS_ACCESS_KEY + os.EOL
+          + 'SERVERLESS_ADMIN_AWS_SECRET_ACCESS_KEY='
+          + process.env.TEST_SERVERLESS_AWS_SECRET_KEY + os.EOL;
+      fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), adminEnv);
 
       //Need to run npm install on the test project, they recommend NOT doing this programatically
       //https://github.com/npm/npm#using-npm-programmatically

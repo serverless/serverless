@@ -14,6 +14,21 @@ let Serverless      = require('../../../lib/Serverless.js'),
 
 let serverless;
 
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.region != 'undefined');
+  assert.equal(true, typeof evt.noExeCf != 'undefined');
+  assert.equal(true, typeof evt.stage != 'undefined');
+
+  if (!config.noExecuteCf) {
+    assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
+  }
+};
+
 describe('Test Action: Stage Create', function() {
 
   before(function(done) {
@@ -51,7 +66,11 @@ describe('Test Action: Stage Create', function() {
       };
 
       serverless.actions.stageCreate(event)
-          .then(function() {
+          .then(function(evt) {
+
+            // Validate Event
+            validateEvent(evt);
+
             done();
           })
           .catch(e => {

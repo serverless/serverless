@@ -40,7 +40,6 @@ let validateEvent = function(evt) {
   if (!config.noExecuteCf) {
     assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
   }
-
 };
 
 describe('Test action: Project Create', function() {
