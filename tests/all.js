@@ -11,16 +11,14 @@ describe('All Tests', function() {
 
   after(function() {});
 
-  //require('./tests/actions/TestPluginCustom');
-  //require('./tests/actions/ProjectCreate');
-  //require('./tests/actions/StageCreate');
-  //require('./tests/actions/RegionCreate');
-  //require('./tests/actions/ModuleCreate');
+  require('./tests/actions/TestPluginCustom');
+  require('./tests/actions/ProjectCreate');
+  require('./tests/actions/StageCreate');
+  require('./tests/actions/RegionCreate');
+  require('./tests/actions/ModuleCreate');
+  require('./tests/actions/EnvList');
+  require('./tests/actions/EnvGet');
+  require('./tests/actions/EnvSetUnset');
   //require('./tests/actions/FunctionDeploy'); // TODO: Austen needs to keep working on this...
 
-  // TODO: Finish tests...
-  //require('./tests/actions/EnvList');
-  //require('./tests/actions/EnvGet');
-  //require('./tests/actions/EnvUnset');
-  require('./tests/actions/EnvSetUnset');
 });

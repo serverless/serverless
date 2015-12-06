@@ -11,5 +11,7 @@
   },
   "keywords": [],
   "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "dotenv": "^1.2.0"
+  }
 }
