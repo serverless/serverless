@@ -1,9 +1,10 @@
 'use strict';
 
 /**
- * Test: Module Create Action
+ * Test: Module Install Action
  * - Creates a new project in your system's temp directory
- * - Deletes the CF stack created by the project
+ * - Installs module-test Module from github using the ModuleInstall action
+ * - asserts that the Module was installed correctly
  */
 
 let Serverless      = require('../../../lib/Serverless.js'),
@@ -15,21 +16,7 @@ let Serverless      = require('../../../lib/Serverless.js'),
 
 let serverless;
 
-/**
- * Validate Event
- * - Validate an event object's properties
- */
-
-let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.module != 'undefined');
-  assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.lambda != 'undefined');
-  assert.equal(true, typeof evt.endpoint != 'undefined');
-  assert.equal(true, typeof evt.runtime != 'undefined');
-  assert.equal(true, typeof evt.pkgMgr != 'undefined');
-};
-
-describe('Test action: Module Create', function() {
+describe('Test action: Module Install', function() {
 
   before(function(done) {
     this.timeout(0);
@@ -47,21 +34,20 @@ describe('Test action: Module Create', function() {
     done();
   });
 
-  describe('Module Create positive tests', function() {
+  describe('Module Install positive tests', function() {
 
-    it('create a new module with defaults', function(done) {
+    it('installs module-test Module from github', function(done) {
       this.timeout(0);
       let event = {
-        module:   'temp',
-        function: 'one',
+        url:   'https://github.com/serverless/serverless-module-test'
       };
 
-      serverless.actions.moduleCreate(event)
+      serverless.actions.moduleInstall(event)
           .then(function(evt) {
 
-            validateEvent(evt);
+            assert.equal('https://github.com/serverless/serverless-module-test', evt.url);
 
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'module-test', 'func', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, typeof functionJson.envVars != 'undefined');
             assert.equal(true, typeof functionJson.package != 'undefined');
