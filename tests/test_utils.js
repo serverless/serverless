@@ -4,6 +4,7 @@ let fs        = require('fs'),
     os        = require('os'),
     wrench    = require('wrench'),
     path      = require('path'),
+    rimraf    = require('rimraf'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
     SError    = require('../lib/ServerlessError'),
@@ -17,7 +18,7 @@ let fs        = require('fs'),
  */
 
 module.exports.createTestProject = function(config, npmInstallDirs) {
-  let projectName          = ('testprj-' + uuid.v4()).replace(/-/g, ''),
+  let projectName          = 's-test-prj',
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
@@ -28,8 +29,9 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   utils.sDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
+  // Delete test folder if already exists
   if (fs.existsSync(tmpProjectPath)) {
-    return Promise.reject(new SError('Temp dir ' + tmpProjectPath + ' already exists'));
+    rimraf.sync(tmpProjectPath);
   }
 
   // Copy test project to temp directory

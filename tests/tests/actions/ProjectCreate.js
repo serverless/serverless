@@ -10,6 +10,7 @@ let Serverless  = require('../../../lib/Serverless'),
     SError      = require('../../../lib/ServerlessError'),
     path        = require('path'),
     os          = require('os'),
+    AWS         = require('aws-sdk'),
     uuid        = require('node-uuid'),
     utils       = require('../../../lib/utils/index'),
     assert      = require('chai').assert,
@@ -24,6 +25,62 @@ let serverless = new Serverless({
 });
 
 /**
+ * Test Cleanup
+ * - Remove Stage CloudFormation Stack
+ */
+
+let cleanup = function(evt, cb) {
+
+  AWS.config.update({
+    region:          evt.region,
+    accessKeyId:     config.awsAdminKeyId,
+    secretAccessKey: config.awsAdminSecretKey,
+  });
+
+  // Delete Region Bucket
+  let s3 = new AWS.S3();
+
+  // Delete All Objects in Bucket first, this is required
+  s3.listObjects({
+    Bucket: evt.regionBucket
+  }, function(err, data) {
+    if (err) return console.log(err);
+
+    let params = {
+      Bucket: evt.regionBucket
+    };
+    params.Delete = {};
+    params.Delete.Objects = [];
+
+    data.Contents.forEach(function(content) {
+      params.Delete.Objects.push({Key: content.Key});
+    });
+    s3.deleteObjects(params, function(err, data) {
+      if (err) return console.log(err);
+
+      // Delete Bucket
+      s3.deleteBucket({
+        Bucket: evt.regionBucket
+      }, function (err, data) {
+        if (err) console.log(err, err.stack); // an error occurred
+
+        if (!evt.stageCfStack) return cb();
+
+        // Delete CloudFormation Resources Stack
+        let cloudformation = new AWS.CloudFormation();
+        cloudformation.deleteStack({
+          StackName: evt.stageCfStack
+        }, function (err, data) {
+          if (err) console.log(err, err.stack); // an error occurred
+
+          return cb();
+        });
+      });
+    });
+  });
+};
+
+/**
  * Validate Event
  * - Validate an event object's properties
  */
@@ -36,11 +93,17 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.noExeCf != 'undefined');
   assert.equal(true, typeof evt.runtime != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
+  assert.equal(true, typeof evt.regionBucket != 'undefined');
 
   if (!config.noExecuteCf) {
     assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
+    assert.equal(true, typeof evt.stageCfStack != 'undefined');
   }
 };
+
+/**
+ * Tests
+ */
 
 describe('Test action: Project Create', function() {
 
@@ -74,6 +137,7 @@ describe('Test action: Project Create', function() {
             // Validate Event
             validateEvent(evt);
 
+            // Validate Project JSON
             let projectJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
             let region = false;
 
@@ -83,9 +147,10 @@ describe('Test action: Project Create', function() {
                 region = stage.region;
               }
             }
-
             assert.isTrue(region !== false);
-            done();
+
+            // Cleanup
+            cleanup(evt, done);
           })
           .catch(SError, function(e) {
             done(e);

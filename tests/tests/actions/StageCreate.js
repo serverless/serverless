@@ -10,6 +10,7 @@ let Serverless      = require('../../../lib/Serverless.js'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
     os        = require('os'),
+    AWS       = require('aws-sdk'),
     config    = require('../../config');
 
 let serverless;
@@ -27,7 +28,28 @@ let validateEvent = function(evt) {
 
   if (!config.noExecuteCf) {
     assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
+    assert.equal(true, typeof evt.stageCfStack != 'undefined');
   }
+};
+
+/**
+ * Test Cleanup
+ * - Remove Stage CloudFormation Stack
+ */
+
+let cleanup = function(evt, cb) {
+
+  let cloudformation = new AWS.CloudFormation({
+    region:          evt.region,
+    accessKeyId:     config.awsAdminKeyId,
+    secretAccessKey: config.awsAdminSecretKey,
+  });
+  cloudformation.deleteStack({
+    StackName: evt.stageCfStack
+  }, function(err, data) {
+    if (err) console.log(err, err.stack); // an error occurred
+    return cb();
+  });
 };
 
 describe('Test Action: Stage Create', function() {
@@ -51,10 +73,6 @@ describe('Test Action: Stage Create', function() {
         });
   });
 
-  after(function(done) {
-    done();
-  });
-
   describe('Stage Create', function() {
     it('should create stage', function(done) {
 
@@ -72,7 +90,8 @@ describe('Test Action: Stage Create', function() {
             // Validate Event
             validateEvent(evt);
 
-            done();
+            // Cleanup
+            cleanup(evt, done);
           })
           .catch(e => {
             done(e);
