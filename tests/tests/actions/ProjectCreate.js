@@ -58,40 +58,41 @@ describe('Test action: Project Create', function() {
 
       this.timeout(0);
 
-      let name = config.name  + '-' + uuid.v4();
-      let event = {
+      let name    = ('testprj-' + uuid.v4()).replace(/-/g, '');
+      let domain  = name + '.com';
+      let event   = {
         name:               name,
-        domain:             config.domain,
+        domain:             domain,
         notificationEmail:  config.notifyEmail,
         region:             config.region,
         noExeCf:            config.noExecuteCf,
       };
 
       serverless.actions.projectCreate(event)
-        .then(function(evt) {
+          .then(function(evt) {
 
-          // Validate Event
-          validateEvent(evt);
+            // Validate Event
+            validateEvent(evt);
 
-          let projectJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
-          let region = false;
+            let projectJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
+            let region = false;
 
-          for (let i = 0; i < projectJson.stages.development.length; i++) {
-            let stage = projectJson.stages[config.stage][i];
-            if (stage.region === config.region) {
-              region = stage.region;
+            for (let i = 0; i < projectJson.stages.development.length; i++) {
+              let stage = projectJson.stages[config.stage][i];
+              if (stage.region === config.region) {
+                region = stage.region;
+              }
             }
-          }
 
-          assert.isTrue(region !== false);
-          done();
-        })
-        .catch(SError, function(e) {
-          done(e);
-        })
-        .error(function(e) {
-          done(e);
-        });
+            assert.isTrue(region !== false);
+            done();
+          })
+          .catch(SError, function(e) {
+            done(e);
+          })
+          .error(function(e) {
+            done(e);
+          });
     });
   });
 });

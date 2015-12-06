@@ -25,9 +25,8 @@ describe('All Tests', function() {
 
   require('./tests/actions/ProjectCreate');
   require('./tests/actions/StageCreate');
-  //require('./tests/actions/RegionCreate');
-  //require('./tests/actions/VersionLambda');
-  //require('./tests/actions/ModuleCreate');
+  require('./tests/actions/RegionCreate');
+  require('./tests/actions/ModuleCreate');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EnvList');
   //require('./tests/actions/EnvGet');

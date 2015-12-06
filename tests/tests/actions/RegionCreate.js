@@ -15,6 +15,22 @@ let Serverless      = require('../../../lib/Serverless.js'),
 
 let serverless;
 
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.region != 'undefined');
+  assert.equal(true, typeof evt.noExeCf != 'undefined');
+  assert.equal(true, typeof evt.stage != 'undefined');
+  assert.equal(true, typeof evt.regionBucket != 'undefined');
+
+  if (!config.noExecuteCf) {
+    assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
+  }
+};
+
 describe('Test Action: Region Create', function() {
 
   before(function(done) {
@@ -23,9 +39,9 @@ describe('Test Action: Region Create', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           this.timeout(0);
-          process.chdir(projPath);
-          // for some weird reason process.chdir adds /private/ before cwd path!!!!
-          console.log(process.cwd());
+
+          process.chdir(projPath);  // Ror some weird reason process.chdir adds /private/ before cwd path
+
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -52,7 +68,8 @@ describe('Test Action: Region Create', function() {
       };
 
       serverless.actions.regionCreate(event)
-          .then(function() {
+          .then(function(evt) {
+            validateEvent(evt);
             done();
           })
           .catch(e => {

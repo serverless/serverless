@@ -23,6 +23,7 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.region != 'undefined');
   assert.equal(true, typeof evt.noExeCf != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
+  assert.equal(true, typeof evt.regionBucket != 'undefined');
 
   if (!config.noExecuteCf) {
     assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
@@ -61,7 +62,7 @@ describe('Test Action: Stage Create', function() {
 
       let event = {
         stage:      config.stage2,
-        region:     config.region2,
+        region:     config.region,
         noExeCf:    config.noExecuteCf,
       };
 

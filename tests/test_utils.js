@@ -17,14 +17,14 @@ let fs        = require('fs'),
  */
 
 module.exports.createTestProject = function(config, npmInstallDirs) {
-  let projectName          = config.name,
+  let projectName          = ('testprj-' + uuid.v4()).replace(/-/g, ''),
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
-      projectDomain        = config.domain;
+      projectDomain        = projectName + '.com';
 
   // Create Test Project
-  let tmpProjectPath = path.join(os.tmpdir(), projectName + '-' + uuid.v4());
+  let tmpProjectPath = path.join(os.tmpdir(), projectName);
 
   utils.sDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
@@ -47,6 +47,14 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   // Add project name to AllowedValues
   resourcesCF.Parameters.aaProjectName.AllowedValues.push(projectName);
+
+  // Add stages to AllowedValues
+  resourcesCF.Parameters.aaStage.AllowedValues.push(config.stage);
+  resourcesCF.Parameters.aaStage.AllowedValues.push(config.stage2);
+
+  // Add stages to AllowedValues
+  resourcesCF.Parameters.aaDataModelStage.AllowedValues.push(config.stage);
+  resourcesCF.Parameters.aaDataModelStage.AllowedValues.push(config.stage2);
 
   return Promise.all([
       utils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
