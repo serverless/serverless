@@ -64,6 +64,7 @@ let cleanup = function(evt, cb) {
       }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
 
+        // If no evt.stageCfStack, skip
         if (!evt.stageCfStack) return cb();
 
         // Delete CloudFormation Resources Stack

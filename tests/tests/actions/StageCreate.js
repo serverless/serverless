@@ -39,6 +39,8 @@ let validateEvent = function(evt) {
 
 let cleanup = function(evt, cb) {
 
+  if (config.noExecuteCf) return cb();
+
   let cloudformation = new AWS.CloudFormation({
     region:          evt.region,
     accessKeyId:     config.awsAdminKeyId,
