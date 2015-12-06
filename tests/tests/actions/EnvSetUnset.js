@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Env List Action
+ * Test: Env Set & Env Unset Actions
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
@@ -18,17 +18,18 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
+let validateEvent = function(evt, isSet) {
   
   assert.equal(true, typeof evt.region != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
-  assert.equal(evt.region, evt.envMapsByRegion[0].regionName);
-  assert.equal('development', evt.envMapsByRegion[0].vars.SERVERLESS_STAGE);
-  assert.equal('development', evt.envMapsByRegion[0].vars.SERVERLESS_DATA_MODEL_STAGE);
+  assert.equal('ENV_SET_TEST_KEY', evt.key);
+  
+  if(isSet) assert.equal('ENV_SET_TEST_VAL', evt.value);
+  
 
 };
 
-describe('Test Action: Env List', function() {
+describe('Test Env Set & Env Unset actions', function() {
 
   before(function(done) {
     this.timeout(0);
@@ -38,7 +39,7 @@ describe('Test Action: Env List', function() {
           this.timeout(0);
           
           process.chdir(projPath);
-
+          
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -53,29 +54,42 @@ describe('Test Action: Env List', function() {
     done();
   });
 
-  describe('Env List', function() {
-    it('Env List', function(done) {
+  describe('Env Set & Env Unset', function() {
+    it('Sets then unsets an env var', function(done) {
 
       this.timeout(0);
-
-
-      let event = {
+      
+      let setEvent = {
         stage:      config.stage,
         region:     config.region,
+        key:    'ENV_SET_TEST_KEY',
+        value:       'ENV_SET_TEST_VAL',
       };
-      
-      serverless.actions.envList(event)
-          .then(function(evt) {
+
+      serverless.actions.envSet(setEvent)
+          .then(function(setEvt) {
             
-            // Validate Event
-            validateEvent(evt);
+            // Validate Set Event
+            validateEvent(setEvt, true);
             
-            done();
+            let unsetEvent = {
+              stage:      config.stage,
+              region:     config.region,
+              key:    'ENV_SET_TEST_KEY',
+            };
+
+            serverless.actions.envUnset(unsetEvent)
+                .then(function(unsetEvt) {
+                  
+                  // Validate Unset Event
+                  validateEvent(unsetEvt, false);
+                  
+                  done();
+                });
           })
           .catch(e => {
             done(e);
           });
-
     });
   });
 
