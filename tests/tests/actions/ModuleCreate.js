@@ -15,18 +15,32 @@ let Serverless      = require('../../../lib/Serverless.js'),
 
 let serverless;
 
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.module != 'undefined');
+  assert.equal(true, typeof evt.function != 'undefined');
+  assert.equal(true, typeof evt.lambda != 'undefined');
+  assert.equal(true, typeof evt.endpoint != 'undefined');
+  assert.equal(true, typeof evt.runtime != 'undefined');
+  assert.equal(true, typeof evt.pkgMgr != 'undefined');
+};
+
 describe('Test action: Module Create', function() {
 
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-      .then(projPath => {
-        process.chdir(projPath);
-        serverless = new Serverless({
-          interactive: false,
+        .then(projPath => {
+          process.chdir(projPath);
+          serverless = new Serverless({
+            interactive: false,
+          });
+          done();
         });
-        done();
-      });
   });
 
   after(function(done) {
@@ -38,19 +52,25 @@ describe('Test action: Module Create', function() {
     it('create a new module with defaults', function(done) {
       this.timeout(0);
       let event = {
-        resource: 'users',
-        action:   'list',
+        module:   'temp',
+        function: 'one',
       };
 
       serverless.actions.moduleCreate(event)
-        .then(function() {
-          let awsmJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'modules', 'users', 'list', 's-function.json'));
-          //TODO: add introspections for attrs that should be set)
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+          .then(function(evt) {
+
+            validateEvent(evt);
+
+            let moduleJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
+            assert.equal(true, typeof moduleJson.name != 'undefined');
+            assert.equal(true, typeof moduleJson.envVars != 'undefined');
+            assert.equal(true, typeof moduleJson.package != 'undefined');
+            assert.equal(true, typeof moduleJson.cloudFormation != 'undefined');
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
     });
   });
 });

@@ -21,6 +21,7 @@ describe('Test Action: Env List', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           process.chdir(projPath);
+
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,

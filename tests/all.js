@@ -9,31 +9,19 @@ describe('All Tests', function() {
     done();
   });
 
-  after(function() {
-  });
+  after(function() {});
 
-  //require tests vs inline so we can run sequentially
-  //require('./tests/TestPluginCustom');
-  //require('./cli/tag');
-  //require('./cli/env');
-  //require('./cli/module_create');
-  //require('./cli/run');
-
-  /**
-   * Tests below create AWS Resources
-   */
-
-  require('./tests/actions/ProjectCreate');
-  require('./tests/actions/StageCreate');
-  require('./tests/actions/RegionCreate');
-  require('./tests/actions/ModuleCreate');
+  //require('./tests/actions/TestPluginCustom');
+  //require('./tests/actions/ProjectCreate');
+  //require('./tests/actions/StageCreate');
+  //require('./tests/actions/RegionCreate');
+  //require('./tests/actions/ModuleCreate');
   //require('./tests/actions/FunctionDeploy');
-  //require('./tests/actions/EnvList');
-  //require('./tests/actions/EnvGet');
-  //require('./tests/actions/EnvUnset');
-  //require('./tests/actions/EnvSet');
+
+
+  //require('./tests/actions/EnvList');  // TODO: Figure out how to write tests
+  //require('./tests/actions/EnvGet');   // TODO: Figure out how to write tests
+  //require('./tests/actions/EnvUnset'); // TODO: Figure out how to write tests
+  //require('./tests/actions/EnvSet');   // TODO: Figure out how to write tests
   //require('./cli/dash');
-  //require('./cli/deploy_lambda');
-  //require('./cli/deploy_resources');
-  //require('./cli/deploy_endpoint');
 });
