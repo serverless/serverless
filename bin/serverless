@@ -2,9 +2,12 @@
 
 'use strict';
 
+let argv = require('minimist')(process.argv.slice(2));
+
+if (argv.debug) process.env.DEBUG = '*';
+
 let Serverless      = require('../lib/Serverless'),
     ServerlessUtils = require('../lib/utils/index'),
-    serverless      = new Serverless(),
-    argv            = require('minimist')(process.argv.slice(2));
-
+    serverless      = new Serverless();
+    
 ServerlessUtils.execute(serverless.command(argv));
