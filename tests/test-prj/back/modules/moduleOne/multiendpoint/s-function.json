@@ -13,7 +13,6 @@
     },
     "excludePatterns": []
   },
-  "plugins": [],
   "cloudFormation": {
     "lambda": {
       "Function": {

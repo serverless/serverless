@@ -22,7 +22,6 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.type != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
   assert.equal(true, typeof evt.regions != 'undefined');
-  assert.equal(true, typeof evt.paths != 'undefined');
   assert.equal(true, typeof evt.all != 'undefined');
   assert.equal(true, typeof evt.aliasEndpoint != 'undefined');
   assert.equal(true, typeof evt.aliasFunction != 'undefined');
@@ -62,6 +61,32 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
+    describe('Function Deploy Code', function() {
+      it('should deploy code', function(done) {
+
+        this.timeout(0);
+
+        let event = {
+          stage:      config.stage,
+          region:     config.region,
+          type:       'code',
+          paths:      [
+            'modulefail/fail'
+          ]
+        };
+
+        serverless.actions.functionDeploy(event)
+            .then(function(evt) {
+              validateEvent(evt);
+              console.log(evt.failed['us-east-1']);
+              done();
+            })
+            .catch(e => {
+              done(e);
+            });
+      });
+    });
+
     //describe('Function Deploy Code', function() {
     //  it('should deploy code', function(done) {
     //
@@ -72,7 +97,10 @@ describe('Test Action: Function Deploy', function() {
     //      region:     config.region,
     //      type:       'code',
     //      paths:      [
-    //        'moduletwo/fail'
+    //        'moduletwo/browserify',
+    //        'moduletwo/nonoptimized',
+    //        'moduleone/simple',
+    //        'moduleone/multiendpoint'
     //      ]
     //    };
     //
@@ -86,62 +114,34 @@ describe('Test Action: Function Deploy', function() {
     //        });
     //  });
     //});
-
-    describe('Function Deploy Code', function() {
-      it('should deploy code', function(done) {
-
-        this.timeout(0);
-
-        let event = {
-          stage:      config.stage,
-          region:     config.region,
-          type:       'code',
-          paths:      [
-            'moduletwo/browserify',
-            'moduletwo/nonoptimized',
-            'moduleone/simple',
-            'moduleone/multiendpoint'
-          ]
-        };
-
-        serverless.actions.functionDeploy(event)
-            .then(function(evt) {
-              validateEvent(evt);
-              done();
-            })
-            .catch(e => {
-              done(e);
-            });
-      });
-    });
-
-    describe('Function Deploy Endpoint', function() {
-
-      it('should deploy endpoints', function(done) {
-        this.timeout(0);
-
-        let event = {
-          stage:      config.stage,
-          region:     config.region,
-          type:       'endpoint',
-          paths:      [
-            'moduletwo/browserify',
-            'moduletwo/nonoptimized',
-            'moduleone/simple',
-            'moduleone/multiendpoint'
-          ]
-        };
-
-        serverless.actions.functionDeploy(event)
-            .then(function(evt) {
-              validateEvent(evt);
-              done();
-            })
-            .catch(e => {
-              done(e);
-            });
-      });
-    });
+    //
+    //describe('Function Deploy Endpoint', function() {
+    //
+    //  it('should deploy endpoints', function(done) {
+    //    this.timeout(0);
+    //
+    //    let event = {
+    //      stage:      config.stage,
+    //      region:     config.region,
+    //      type:       'endpoint',
+    //      paths:      [
+    //        'moduletwo/browserify',
+    //        'moduletwo/nonoptimized',
+    //        'moduleone/simple',
+    //        'moduleone/multiendpoint'
+    //      ]
+    //    };
+    //
+    //    serverless.actions.functionDeploy(event)
+    //        .then(function(evt) {
+    //          validateEvent(evt);
+    //          done();
+    //        })
+    //        .catch(e => {
+    //          done(e);
+    //        });
+    //  });
+    //});
 
   //describe('Function Deploy Both', function() {
   //  it('should deploy code', function(done) {
@@ -162,6 +162,7 @@ describe('Test Action: Function Deploy', function() {
   //
   //    serverless.actions.functionDeploy(event)
   //        .then(function(evt) {
+  //          console.log(evt);
   //          validateEvent(evt);
   //          done();
   //        })
@@ -170,7 +171,7 @@ describe('Test Action: Function Deploy', function() {
   //        });
   //  });
   //});
-  //
+
   //describe('Function Deploy Both with "all" option.', function() {
   //  it('should deploy code', function(done) {
   //

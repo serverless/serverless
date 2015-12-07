@@ -1,65 +1,103 @@
 {
-  "name": "ModuleoneSimple",
-  "envVars": [],
-  "package": {
-    "optimize": {
-      "builder": "browserify",
-      "minify": true,
-      "ignore": [],
-      "exclude": [
-        "aws-sdk"
-      ],
-      "includePaths": []
-    },
-    "excludePatterns": []
-  },
-  "plugins": [],
-  "cloudFormation": {
-    "lambda": {
-      "Function": {
-        "Type": "AWS::Lambda::Function",
-        "Properties": {
-          "Runtime": "nodejs",
-          "Handler": "modules/moduleone/simple/handler.handler",
-          "Role": {
-            "Ref": "aaLambdaRoleArn"
+  functions: [
+    {
+      name: "simpleOne",
+      envVars: [],
+      package: {
+        excludePatterns: []
+      },
+      handler: 'one.handler',
+      timeout: 6,
+      memorySize: 1024,
+      endpoints: [
+        {
+          "path": "simple/one",
+          "method": "GET",
+          "authorizationType": "none",
+          "apiKeyRequired": false,
+          "requestTemplates": {
+            "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
           },
-          "Code": {
-            "S3Bucket": "",
-            "S3Key": ""
+          "requestParameters": {
+            "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
           },
-          "Timeout": 6,
-          "MemorySize": 1024
-        }
-      }
-    },
-    "apiGateway": {
-      "Endpoint": {
-        "Type": "AWS::ApiGateway::Endpoint",
-        "Path": "users",
-        "Method": "GET",
-        "AuthorizationType": "none",
-        "ApiKeyRequired": false,
-        "RequestTemplates": {
-          "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
-        },
-        "RequestParameters": {
-          "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
-        },
-        "Responses": {
-          "default": {
-            "statusCode": "200",
-            "responseParameters": {},
-            "responseModels": {},
-            "responseTemplates": {
-              "application/json": ""
+          "responses": {
+            "default": {
+              "statusCode": "200",
+              "responseParameters": {},
+              "responseModels": {},
+              "responseTemplates": {
+                "application/json": ""
+              }
+            },
+            "400": {
+              "statusCode": "400"
             }
-          },
-          "400": {
-            "statusCode": "400"
           }
         }
-      }
+      ]
+    },
+    {
+      name: "simpleTwo",
+      envVars: [],
+      package: {
+        excludePatterns: []
+      },
+      handler: 'two.handler',
+      timeout: 6,
+      memorySize: 1024,
+      endpoints: [
+        {
+          "path": "simple/two",
+          "method": "GET",
+          "authorizationType": "none",
+          "apiKeyRequired": false,
+          "requestTemplates": {
+            "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+          },
+          "requestParameters": {
+            "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
+          },
+          "responses": {
+            "default": {
+              "statusCode": "200",
+              "responseParameters": {},
+              "responseModels": {},
+              "responseTemplates": {
+                "application/json": ""
+              }
+            },
+            "400": {
+              "statusCode": "400"
+            }
+          }
+        },
+        {
+          "path": "simple/two-b",
+          "method": "GET",
+          "authorizationType": "none",
+          "apiKeyRequired": false,
+          "requestTemplates": {
+            "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+          },
+          "requestParameters": {
+            "integration.request.querystring.integrationQueryParam": "method.request.querystring.access_token"
+          },
+          "responses": {
+            "default": {
+              "statusCode": "200",
+              "responseParameters": {},
+              "responseModels": {},
+              "responseTemplates": {
+                "application/json": ""
+              }
+            },
+            "400": {
+              "statusCode": "400"
+            }
+          }
+        }
+      ]
     }
-  }
+  ]
 }
