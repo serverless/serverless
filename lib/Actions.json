@@ -13,14 +13,6 @@
       "config": {}
     },
     {
-      "path": "./actions/FunctionVersion.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/FunctionAlias.js",
-      "config": {}
-    },
-    {
       "path": "./actions/FunctionRun.js",
       "config": {}
     },
