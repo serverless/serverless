@@ -8,10 +8,9 @@
   "description": "The Serverless Application Framework Powered By Amazon Web Services - http://www.serverless.com",
   "author": "serverless.com",
   "license": "MIT",
-  "repository" :
-  {
-    "type" : "git",
-    "url" : "https://github.com/jaws-framework/JAWS#v1.4"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaws-framework/JAWS#v1.4"
   },
   "keywords": [
     "serverless",
@@ -66,6 +65,7 @@
     "rimraf": "^2.4.3",
     "shelljs": "^0.5.3",
     "shortid": "^2.2.2",
+    "sleep": "^3.0.0",
     "temp": "^0.8.3",
     "uglify-js": "^2.4.24",
     "wrench": "^1.5.8"

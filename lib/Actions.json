@@ -29,7 +29,7 @@
       "config": {}
     },
     {
-      "path": "./actions/EndpointPackageApiGateway.js",
+      "path": "./actions/EndpointPrepareApiGateway.js",
       "config": {}
     },
     {
