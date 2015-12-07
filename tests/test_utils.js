@@ -8,7 +8,7 @@ let fs        = require('fs'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
     SError    = require('../lib/ServerlessError'),
-    utils     = require('../lib/utils');
+    SUtils    = require('../lib/utils');
 
 /**
  * Create test project
@@ -27,7 +27,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
 
-  utils.sDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
+  SUtils.sDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
   // Delete test folder if already exists
   if (fs.existsSync(tmpProjectPath)) {
@@ -40,9 +40,9 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     forceDelete: true,
   });
 
-  let lambdasCF   = utils.readAndParseJsonSync(__dirname + '/../lib/templates/lambdas-cf.json'),
-      resourcesCF = utils.readAndParseJsonSync(__dirname + '/../lib/templates/resources-cf.json'),
-      projectJSON = utils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
+  let lambdasCF   = SUtils.readAndParseJsonSync(__dirname + '/../lib/templates/lambdas-cf.json'),
+      resourcesCF = SUtils.readAndParseJsonSync(__dirname + '/../lib/templates/resources-cf.json'),
+      projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
 
   // Delete Lambda Template
   delete lambdasCF.Resources.lTemplate;
@@ -59,8 +59,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   resourcesCF.Parameters.aaDataModelStage.AllowedValues.push(config.stage2);
 
   return Promise.all([
-      utils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
-      utils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'resources-cf.json'), JSON.stringify(resourcesCF, null, 2)),
+      SUtils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
+      SUtils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'resources-cf.json'), JSON.stringify(resourcesCF, null, 2)),
     ])
     .then(function() {
       projectJSON.name   = projectName;
@@ -69,7 +69,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectJSON.stages[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
-        regionBucket:         utils.generateRegionBucketName(projectRegion, projectDomain)
+        regionBucket:         SUtils.generateRegionBucketName(projectRegion, projectDomain)
       },];
 
       fs.writeFileSync(path.join(tmpProjectPath, 's-project.json'), JSON.stringify(projectJSON, null, 2));
@@ -87,8 +87,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
         npmInstallDirs.forEach(function(dir) {
           let fullPath = path.join(tmpProjectPath, 'back', 'modules', dir);
-          utils.sDebug('test_utils', `Running NPM install on ${fullPath}`);
-          utils.npmInstall(fullPath);
+          SUtils.sDebug('test_utils', `Running NPM install on ${fullPath}`);
+          SUtils.npmInstall(fullPath);
         });
       }
       

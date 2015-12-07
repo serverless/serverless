@@ -1,6 +1,9 @@
 'use strict';
 
-require('dotenv');
+// Load ENV
+var ServerlessHelpers = require('serverless-helpers-js');
+ServerlessHelpers.loadEnv();
+console.log(process.env);
 
 // Lambda Handler
 module.exports.handler = function(event, context) {

@@ -19,6 +19,7 @@
     "moment": "^2.10.6",
     "node-uuid": "^1.4.2",
     "request": "^2.61.0",
+    "serverless-helpers-js": "~0.0.3",
     "shortid": "^2.2.2",
     "through2": "^2.0.0",
     "underscore": "^1.8.3"

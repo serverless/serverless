@@ -143,56 +143,56 @@ describe('Test Action: Function Deploy', function() {
       });
     });
 
-  describe('Function Deploy Both', function() {
-    it('should deploy code', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        type:       'both',
-        paths:      [
-          'moduletwo/browserify',
-          'moduletwo/nonoptimized',
-          'moduleone/simple',
-          'moduleone/multiendpoint'
-        ]
-      };
-
-      serverless.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
-
-  describe('Function Deploy Both with "all" option.', function() {
-    it('should deploy code', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        type:       'both',
-        all:        true
-      };
-
-      serverless.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
+  //describe('Function Deploy Both', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      type:       'both',
+  //      paths:      [
+  //        'moduletwo/browserify',
+  //        'moduletwo/nonoptimized',
+  //        'moduleone/simple',
+  //        'moduleone/multiendpoint'
+  //      ]
+  //    };
+  //
+  //    serverless.actions.functionDeploy(event)
+  //        .then(function(evt) {
+  //          validateEvent(evt);
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
+  //
+  //describe('Function Deploy Both with "all" option.', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      type:       'both',
+  //      all:        true
+  //    };
+  //
+  //    serverless.actions.functionDeploy(event)
+  //        .then(function(evt) {
+  //          validateEvent(evt);
+  //          done();
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
 
   //describe('Function deploy "both", across multiple regions', function() {
   //

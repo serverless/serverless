@@ -1,6 +1,9 @@
 'use strict';
 
-require('dotenv');
+// Load ENV
+var ServerlessHelpers = require('serverless-helpers-js');
+ServerlessHelpers.loadEnv();
+console.log(process.env);
 
 // Modularized Code
 var moduleOne = require('../../moduleone/lib');
