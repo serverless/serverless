@@ -84,9 +84,9 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       //Need to run npm install on the test project, they recommend NOT doing this programatically
       //https://github.com/npm/npm#using-npm-programmatically
       if (npmInstallDirs) {
-        npmInstallDirs.forEach(function(dir) {
-          let fullPath = path.join(tmpProjectPath, dir);
 
+        npmInstallDirs.forEach(function(dir) {
+          let fullPath = path.join(tmpProjectPath, 'back', 'modules', dir);
           utils.sDebug('test_utils', `Running NPM install on ${fullPath}`);
           utils.npmInstall(fullPath);
         });

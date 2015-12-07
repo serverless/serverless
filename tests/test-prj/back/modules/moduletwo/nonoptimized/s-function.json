@@ -1,17 +1,18 @@
 {
-  "name": "BundleNonoptimized",
+  "name": "ModuletwoNonoptimized",
   "envVars": [],
   "package": {
     "optimize": {
-      "builder": "browserify",
-      "minify": true,
+      "builder": false,
+      "minify": false,
       "ignore": [],
       "exclude": [
-        "aws-sdk"
       ],
       "includePaths": []
     },
-    "excludePatterns": []
+    "excludePatterns": [
+      "modules/moduletwo/b.*"
+    ]
   },
   "plugins": [],
   "cloudFormation": {
@@ -20,7 +21,7 @@
         "Type": "AWS::Lambda::Function",
         "Properties": {
           "Runtime": "nodejs",
-          "Handler": "modules/bundle/nonoptimized/handler.handler",
+          "Handler": "modules/moduletwo/nonoptimized/handler.handler",
           "Role": {
             "Ref": "aaLambdaRoleArn"
           },

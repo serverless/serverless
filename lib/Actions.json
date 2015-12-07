@@ -37,7 +37,7 @@
       "config": {}
     },
     {
-      "path": "./actions/EndpointProvisionApiGateway.js",
+      "path": "./actions/EndpointDeployApiGateway.js",
       "config": {}
     },
     {
@@ -45,15 +45,7 @@
       "config": {}
     },
     {
-      "path": "./actions/CodeCompressLambdaNodejs.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/CodeUploadLambdaNodejs.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/CodeProvisionLambdaNodejs.js",
+      "path": "./actions/CodeDeployLambdaNodejs.js",
       "config": {}
     },
     {

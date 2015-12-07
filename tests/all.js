@@ -22,7 +22,7 @@ describe('All Tests', function() {
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvSetUnset');
   //require('./tests/actions/ResourcesDeploy');
-  require('./tests/actions/FunctionRun');
-  //require('./tests/actions/FunctionDeploy'); // TODO: Austen needs to keep working on this...
+  //require('./tests/actions/FunctionRun');
+  //require('./tests/actions/FunctionDeploy');
 
 });

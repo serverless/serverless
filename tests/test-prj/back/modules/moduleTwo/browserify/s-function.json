@@ -1,5 +1,5 @@
 {
-  "name": "BundleBrowserify",
+  "name": "ModuletwoBrowserify",
   "envVars": [],
   "package": {
     "optimize": {
@@ -20,7 +20,7 @@
         "Type": "AWS::Lambda::Function",
         "Properties": {
           "Runtime": "nodejs",
-          "Handler": "modules/bundle/browserify/handler.handler",
+          "Handler": "modules/moduletwo/browserify/handler.handler",
           "Role": {
             "Ref": "aaLambdaRoleArn"
           },

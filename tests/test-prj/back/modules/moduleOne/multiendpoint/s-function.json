@@ -1,5 +1,5 @@
 {
-  "name": "MultipleEndpoints",
+  "name": "ModuleoneMultiendpoint",
   "envVars": [],
   "package": {
     "optimize": {
@@ -20,7 +20,7 @@
         "Type": "AWS::Lambda::Function",
         "Properties": {
           "Runtime": "nodejs",
-          "Handler": "modules/multiple/endpoints/index.handler",
+          "Handler": "modules/moduleone/multiendpoint/handler.handler",
           "Role": {
             "Ref": "aaLambdaRoleArn"
           },

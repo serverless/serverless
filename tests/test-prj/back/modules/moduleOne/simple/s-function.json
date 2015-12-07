@@ -1,5 +1,5 @@
 {
-  "name": "UsersCreate",
+  "name": "ModuleoneSimple",
   "envVars": [],
   "package": {
     "optimize": {
@@ -20,7 +20,7 @@
         "Type": "AWS::Lambda::Function",
         "Properties": {
           "Runtime": "nodejs",
-          "Handler": "modules/users/create/index.handler",
+          "Handler": "modules/moduleone/simple/handler.handler",
           "Role": {
             "Ref": "aaLambdaRoleArn"
           },
@@ -37,7 +37,7 @@
       "Endpoint": {
         "Type": "AWS::ApiGateway::Endpoint",
         "Path": "users",
-        "Method": "POST",
+        "Method": "GET",
         "AuthorizationType": "none",
         "ApiKeyRequired": false,
         "RequestTemplates": {

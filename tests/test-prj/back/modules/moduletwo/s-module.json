@@ -1,0 +1,12 @@
+{
+  "name": "moduleTwo",
+  "version": "0.0.1",
+  "location": "https://github.com/...",
+  "author": "",
+  "description": "",
+  "cloudFormation": {
+    "lambdaIamPolicyDocumentStatements": [],
+    "apiGatewayIamPolicyDocumentStatements": [],
+    "resources": {}
+  }
+}

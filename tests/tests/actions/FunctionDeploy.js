@@ -25,7 +25,8 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.noExeCf != 'undefined');
   assert.equal(true, typeof evt.paths != 'undefined');
   assert.equal(true, typeof evt.all != 'undefined');
-  assert.equal(true, typeof evt.endpointAlias != 'undefined');
+  assert.equal(true, typeof evt.aliasEndpoint != 'undefined');
+  assert.equal(true, typeof evt.aliasFunction != 'undefined');
   assert.equal(true, typeof evt.functions != 'undefined');
 };
 
@@ -38,7 +39,7 @@ describe('Test Action: Function Deploy', function() {
   before(function(done) {
     this.timeout(0);
 
-    testUtils.createTestProject(config)
+    testUtils.createTestProject(config, ['moduleone', 'moduletwo'])
         .then(projPath => {
 
           process.chdir(projPath);
@@ -61,60 +62,64 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
-  //describe('Function Deploy Code', function() {
-  //  it('should deploy code', function(done) {
-  //
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      noExeCf:    config.noExecuteCf,
-  //      type:       'code',
-  //      paths:      [
-  //        'users/create'
-  //      ]
-  //    };
-  //
-  //    S.actions.functionDeploy(event)
-  //        .then(function(evt) {
-  //          validateEvent(evt);
-  //          done();
-  //        })
-  //        .catch(e => {
-  //          done(e);
-  //        });
-  //  });
-  //});
-  //
-  //
-  //describe('Function Deploy Endpoint', function() {
-  //
-  //  it('should deploy endpoints', function(done) {
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      noExeCf:    config.noExecuteCf,
-  //      type:       'endpoint',
-  //      paths:      [
-  //        'users/create'
-  //      ]
-  //    };
-  //
-  //    S.actions.functionDeploy(event)
-  //        .then(function(evt) {
-  //          validateEvent(evt);
-  //          done();
-  //        })
-  //        .catch(e => {
-  //          done(e);
-  //        });
-  //  });
-  //});
-  //
-  //
+  describe('Function Deploy Code', function() {
+    it('should deploy code', function(done) {
+
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        type:       'code',
+        paths:      [
+          'moduletwo/browserify',
+          'moduletwo/nonoptimized',
+          'moduleone/simple',
+          'moduleone/multiendpoint'
+        ]
+      };
+
+      serverless.actions.functionDeploy(event)
+          .then(function(evt) {
+            validateEvent(evt);
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+    });
+  });
+
+
+  describe('Function Deploy Endpoint', function() {
+
+    it('should deploy endpoints', function(done) {
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        type:       'endpoint',
+        paths:      [
+          'moduletwo/browserify',
+          'moduletwo/nonoptimized',
+          'moduleone/simple',
+          'moduleone/multiendpoint'
+        ]
+      };
+
+      serverless.actions.functionDeploy(event)
+          .then(function(evt) {
+            validateEvent(evt);
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+    });
+  });
+
+
   //describe('Function Deploy Both', function() {
   //  it('should deploy code', function(done) {
   //
@@ -123,14 +128,13 @@ describe('Test Action: Function Deploy', function() {
   //    let event = {
   //      stage:      config.stage,
   //      region:     config.region,
-  //      noExeCf:    config.noExecuteCf,
   //      type:       'both',
   //      paths:      [
   //        'users/create'
   //      ]
   //    };
   //
-  //    S.actions.functionDeploy(event)
+  //    serverless.actions.functionDeploy(event)
   //        .then(function(evt) {
   //          validateEvent(evt);
   //          done();
@@ -150,12 +154,11 @@ describe('Test Action: Function Deploy', function() {
   //    let event = {
   //      stage:      config.stage,
   //      region:     config.region,
-  //      noExeCf:    config.noExecuteCf,
   //      type:       'both',
   //      all:        true
   //    };
   //
-  //    S.actions.functionDeploy(event)
+  //    serverless.actions.functionDeploy(event)
   //        .then(function(evt) {
   //          validateEvent(evt);
   //          done();
@@ -167,46 +170,45 @@ describe('Test Action: Function Deploy', function() {
   //});
 
 
-  describe('Function Deploy Both across multiple regions', function() {
-
-    // Create a new region
-    before(function(done) {
-      this.timeout(0);
-
-      serverless.actions.regionCreate({
-        stage: config.stage,
-        region: config.region2,
-      })
-      .then(function() {
-        done();
-      })
-      .catch(function(e) {
-        done(e);
-      });
-    });
-
-    it('should deploy code', function(done) {
-
-      //this.timeout(0);
-      //
-      //let event = {
-      //  stage:      config.stage,
-      //  region:     config.region,
-      //  noExeCf:    config.noExecuteCf,
-      //  type:       'code',
-      //  paths:      [
-      //    'users/create'
-      //  ]
-      //};
-      //
-      //S.actions.functionDeploy(event)
-      //    .then(function(evt) {
-      //      validateEvent(evt);
-      //      done();
-      //    })
-      //    .catch(e => {
-      //      done(e);
-      //    });
-    });
-  });
+  //describe('Function deploy "both", across multiple regions', function() {
+  //
+  //  // Create a new region
+  //  before(function(done) {
+  //    this.timeout(0);
+  //
+  //    serverless.actions.regionCreate({
+  //      stage: config.stage,
+  //      region: config.region2,
+  //    })
+  //    .then(function() {
+  //      done();
+  //    })
+  //    .catch(function(e) {
+  //      done(e);
+  //    });
+  //  });
+  //
+  //  it('should deploy code', function(done) {
+  //
+  //    //this.timeout(0);
+  //    //
+  //    //let event = {
+  //    //  stage:      config.stage,
+  //    //  region:     config.region,
+  //    //  type:       'code',
+  //    //  paths:      [
+  //    //    'users/create'
+  //    //  ]
+  //    //};
+  //    //
+  //    //serverless.actions.functionDeploy(event)
+  //    //    .then(function(evt) {
+  //    //      validateEvent(evt);
+  //    //      done();
+  //    //    })
+  //    //    .catch(e => {
+  //    //      done(e);
+  //    //    });
+  //  });
+  //});
 });

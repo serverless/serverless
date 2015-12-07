@@ -1,0 +1,16 @@
+{
+  "name": "test-prj",
+  "version": "1.0.0",
+  "preferGlobal": true,
+  "description": "unittest project",
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/serverless/serverless.git"
+  },
+  "keywords": [],
+  "dependencies": {
+    "dotenv": "^1.2.0"
+  }
+}
