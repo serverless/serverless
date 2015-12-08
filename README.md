@@ -12,6 +12,7 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 ## Links
 * [Gitter](https://gitter.im/serverless/serverless)
 * [Road Map](https://trello.com/b/EX6SxBJJ/framework)
+* [Twitter](https://twitter.com/goserverless)
 
 ## Get Started
 This is a command line tool.  It requires Node V4.  Install it via npm:
