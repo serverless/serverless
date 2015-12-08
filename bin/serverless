@@ -9,5 +9,5 @@ if (argv.debug) process.env.DEBUG = '*';
 let Serverless      = require('../lib/Serverless'),
     ServerlessUtils = require('../lib/utils/index'),
     serverless      = new Serverless();
-    
+
 ServerlessUtils.execute(serverless.command(argv));
