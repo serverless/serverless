@@ -29,11 +29,11 @@
       "config": {}
     },
     {
-      "path": "./actions/CodePackageLambdaNodejs.js",
+      "path": "./actions/CodePackageLambdaNodeJs.js",
       "config": {}
     },
     {
-      "path": "./actions/CodeDeployLambdaNodejs.js",
+      "path": "./actions/CodeDeployLambdaNodeJs.js",
       "config": {}
     },
     {
