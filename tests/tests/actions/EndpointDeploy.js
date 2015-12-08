@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Function Deploy Action
+ * Test: Endpoint Deploy Action
  */
 
 let Serverless  = require('../../../lib/Serverless.js'),
@@ -22,8 +22,8 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.stage != 'undefined');
   assert.equal(true, typeof evt.regions != 'undefined');
   assert.equal(true, typeof evt.all != 'undefined');
-  assert.equal(true, typeof evt.aliasFunction != 'undefined');
-  assert.equal(true, typeof evt.functions != 'undefined');
+  assert.equal(true, typeof evt.aliasEndpoint != 'undefined');
+  assert.equal(true, typeof evt.endpoints != 'undefined');
   assert.equal(true, typeof evt.deployed != 'undefined');
 
   if (evt.failed) {
@@ -40,12 +40,12 @@ let validateEvent = function(evt) {
  * Create Test Project
  */
 
-describe('Test Action: Function Deploy', function() {
+describe('Test Action: Endpoint Deploy', function() {
 
   before(function(done) {
     this.timeout(0);
 
-    testUtils.createTestProject(config, ['moduleone'])
+    testUtils.createTestProject(config)
         .then(projPath => {
 
           process.chdir(projPath);
@@ -68,20 +68,19 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
-  describe('Function Deploy: Specify One Path', function() {
-    it('should deploy functions', function(done) {
-
+  describe('Endpoint Deploy: Specify One Path', function() {
+    it('should deploy endpoints', function(done) {
       this.timeout(0);
 
       let event = {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'moduleone/simple!#simpleOne'
+          'moduleone/simple!#simpleOne!@simple/one'
         ]
       };
 
-      serverless.actions.functionDeploy(event)
+      serverless.actions.endpointDeploy(event)
           .then(function(evt) {
             validateEvent(evt);
             done();
@@ -92,18 +91,17 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
-  describe('Function Deploy: Specify All Paths', function() {
-    it('should deploy code', function(done) {
-
+  describe('Endpoint Deploy: Specify All Paths', function() {
+    it('should deploy endpoints', function(done) {
       this.timeout(0);
 
       let event = {
         stage:      config.stage,
         region:     config.region,
-        all:        true
+        all:        true,
       };
 
-      serverless.actions.functionDeploy(event)
+      serverless.actions.endpointDeploy(event)
           .then(function(evt) {
             validateEvent(evt);
             done();

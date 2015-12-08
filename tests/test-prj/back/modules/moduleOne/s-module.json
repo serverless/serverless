@@ -1,8 +1,10 @@
 {
   "name": "moduleOne",
   "version": "0.0.1",
+  "profile": "aws-1",
   "location": "https://github.com/...",
   "author": "",
+  "runtime": "nodejs",
   "description": "",
   "cloudFormation": {
     "lambdaIamPolicyDocumentStatements": [],

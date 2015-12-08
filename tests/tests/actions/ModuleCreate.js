@@ -23,10 +23,7 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.module != 'undefined');
   assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.lambda != 'undefined');
-  assert.equal(true, typeof evt.endpoint != 'undefined');
   assert.equal(true, typeof evt.runtime != 'undefined');
-  assert.equal(true, typeof evt.pkgMgr != 'undefined');
 };
 
 describe('Test action: Module Create', function() {
@@ -58,14 +55,10 @@ describe('Test action: Module Create', function() {
 
       serverless.actions.moduleCreate(event)
           .then(function(evt) {
-
             validateEvent(evt);
-
             let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
-            assert.equal(true, typeof functionJson.name != 'undefined');
-            assert.equal(true, typeof functionJson.envVars != 'undefined');
-            assert.equal(true, typeof functionJson.package != 'undefined');
-            assert.equal(true, typeof functionJson.cloudFormation != 'undefined');
+            assert.equal(true, typeof functionJson.functions.TempOne != 'undefined');
+            assert.equal(true, typeof functionJson.functions.TempOne.endpoints['temp/one'] != 'undefined');
             done();
           })
           .catch(e => {

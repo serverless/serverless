@@ -6,6 +6,6 @@ ServerlessHelpers.loadEnv();
 console.log(process.env);
 
 // Lambda Handler
-module.exports.handler = function(event, context) {
-  return context.done(null, { message: 'simple lambda function has run successfully' });
+module.exports.one = function(event, context) {
+  return context.done(null, { message: '"Simple Two - One" lambda function has run successfully' });
 };

@@ -43,9 +43,7 @@
     "asynquence": "^0.8.2",
     "asynquence-contrib": "^0.22.0",
     "aws-sdk": "^2.2.21",
-    "babelify": "^6.3.0",
     "bluebird": "^2.9.34",
-    "browserify": "^12.0.1",
     "chalk": "^1.1.0",
     "cli-spinner": "^0.2.1",
     "commop": "^1.2.0",
@@ -67,7 +65,6 @@
     "shortid": "^2.2.2",
     "sleep": "^3.0.0",
     "temp": "^0.8.3",
-    "uglify-js": "^2.4.24",
     "wrench": "^1.5.8"
   }
 }
