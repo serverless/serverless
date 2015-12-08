@@ -21,9 +21,10 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
+  console.log(evt)
   assert.equal(true, typeof evt.module != 'undefined');
   assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.lambda != 'undefined');
+  assert.equal(true, typeof evt.handler != 'undefined');
   assert.equal(true, typeof evt.endpoint != 'undefined');
   assert.equal(true, typeof evt.runtime != 'undefined');
   assert.equal(true, typeof evt.pkgMgr != 'undefined');
@@ -52,8 +53,10 @@ describe('Test action: Function Create', function() {
     it('create a new Function inside the users Module', function(done) {
       this.timeout(0);
       let event = {
-        module:   'users',
-        function: 'new',
+        module:    'moduleone',
+        function:  'new',
+        runtime:   'nodejs',
+        pkgMgr:    'npm',
       };
 
       serverless.actions.functionCreate(event)
@@ -61,11 +64,9 @@ describe('Test action: Function Create', function() {
 
             validateEvent(evt);
 
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'users', 'new', 's-function.json'));
-            assert.equal(true, typeof functionJson.name != 'undefined');
-            assert.equal(true, typeof functionJson.envVars != 'undefined');
-            assert.equal(true, typeof functionJson.package != 'undefined');
-            assert.equal(true, typeof functionJson.cloudFormation != 'undefined');
+            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'moduleone', 'new', 's-function.json'));
+            assert.equal(true, typeof functionJson.functions.ModuleoneNew != 'undefined');
+            assert.equal(true, typeof functionJson.functions.ModuleoneNew.endpoints['moduleone/new'] != 'undefined');
             done();
           })
           .catch(e => {
