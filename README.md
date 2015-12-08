@@ -5,7 +5,7 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 
 ####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
 
-**Status 12/8:** We've just released this today and it is under heavy development.  Please use to test only, while we fix bugs. PRs are welcomed!
+**Status 12/8:** We re-branded from JAWS and pushed out a HUGE release on 12/8.  We're now cleaning up bugs.  Please help us test :)
 
 ```
 npm install serverless -g
