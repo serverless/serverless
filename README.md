@@ -7,11 +7,11 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 
 **Status 12/8:** We've just released this today and it is under heavy development.  Please use to test only, while we fix bugs. PRs are welcomed!
 
-#####Note: This project was formerly JAWS, but we've rebranded.
-
 ```
 npm install serverless -g
 ```
+
+#####Note: This project was formerly JAWS, but we've rebranded.
 
 ##Differences From JAWS:
 
