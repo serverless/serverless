@@ -1,14 +1,13 @@
 ![Serverless Application Framework AWS Lambda API Gateway](img/serverless_readme_header.jpg)
 
-Serverless V0 (BETA)
+Serverless V0 (BETA) -- Formerly "JAWS"
 =================================
 
 ####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
 
-#####Note: This project was formerly JAWS, but we've rebranded.
-
 **Status 12/8:** We've just released this today and it is under heavy development.  Please use to test only, while we fix bugs. PRs are welcomed!
 
+#####Note: This project was formerly JAWS, but we've rebranded.
 
 ```
 npm install serverless -g
