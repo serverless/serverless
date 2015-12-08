@@ -35,6 +35,6 @@ node_modules
 .DS_Store
 .tmp
 
-#JAWS STUFF
+#SERVERLESS STUFF
 admin.env
 .env

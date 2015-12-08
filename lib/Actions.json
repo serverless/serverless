@@ -1,0 +1,80 @@
+{
+  "plugins": [
+    {
+      "path": "./actions/ProjectCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/ModuleCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/ModuleInstall.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionRun.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionRunLambdaNodeJs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/FunctionDeploy.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/CodePackageLambdaNodejs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/CodeDeployLambdaNodejs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EndpointDeploy.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EndpointBuildApiGateway.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EndpointDeployApiGateway.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/StageCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/RegionCreate.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvList.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvGet.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvSet.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/EnvUnset.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/ResourcesDeploy.js",
+      "config": {}
+    }
+  ]
+}

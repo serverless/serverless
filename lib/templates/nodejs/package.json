@@ -1,10 +1,10 @@
 {
   "name": "",
   "version": "0.0.1",
-  "description": "A JAWS application",
+  "description": "Serverless module dependencies",
   "author": "me",
-  "license": "",
-  "private": false,
+  "license": "MIT",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git://github.com/"
@@ -12,6 +12,6 @@
   "keywords": [],
   "devDependencies": {},
   "dependencies": {
-    "jaws-core-js": "~0.0.2"
+    "serverless-helpers-js": "~0.0.3"
   }
 }

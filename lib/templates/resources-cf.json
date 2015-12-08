@@ -1,23 +1,24 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "The AWS CloudFormation template for this JAWS project",
+  "Description": "The AWS CloudFormation template for this Serverless application's resources outside of Lambdas and Api Gateway",
   "Parameters": {
     "aaProjectName": {
-      "Type": "String"
+      "Type": "String",
+      "AllowedValues": []
     },
     "aaProjectDomain": {
       "Type": "String",
       "Default": "myapp.com"
     },
-    "aaJawsBucket": {
-      "Type": "String",
-      "Default": "myapp.com"
-    },
     "aaStage": {
-      "Type": "String"
+      "Type": "String",
+      "AllowedValues": [
+      ]
     },
     "aaDataModelStage": {
-      "Type": "String"
+      "Type": "String",
+      "AllowedValues": [
+      ]
     },
     "aaNotficationEmail": {
       "Type": "String",
@@ -51,28 +52,6 @@
         "Path": "/"
       }
     },
-    "IamRoleApiGateway": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "apigateway.amazonaws.com"
-                ]
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Path": "/"
-      }
-    },
     "IamInstanceProfileLambda": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
@@ -84,24 +63,7 @@
         ]
       }
     },
-    "IamInstanceProfileApiGateway": {
-      "Type": "AWS::IAM::InstanceProfile",
-      "Properties": {
-        "Path": "/",
-        "Roles": [
-          {
-            "Ref": "IamRoleApiGateway"
-          }
-        ]
-      }
-    },
     "IamGroupLambda": {
-      "Type": "AWS::IAM::Group",
-      "Properties": {
-        "Path": "/"
-      }
-    },
-    "IamGroupApiGateway": {
       "Type": "AWS::IAM::Group",
       "Properties": {
         "Path": "/"
@@ -139,7 +101,9 @@
                   ":",
                   [
                     "arn:aws:logs",
-                    { "Ref" : "AWS::Region" },
+                    {
+                      "Ref": "AWS::Region"
+                    },
                     "*:*"
                   ]
                 ]
@@ -158,66 +122,6 @@
           }
         ]
       }
-    },
-    "IamPolicyApiGateway": {
-      "Type": "AWS::IAM::Policy",
-      "Properties": {
-        "PolicyName": {
-          "Fn::Join": [
-            "_-_",
-            [
-              {
-                "Ref": "aaStage"
-              },
-              {
-                "Ref": "aaProjectName"
-              },
-              "api-gateway"
-            ]
-          ]
-        },
-        "PolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Action": [
-                "lambda:InvokeFunction"
-              ],
-              "Resource": {
-                "Fn::Join": [
-                  ":",
-                  [
-                    "arn:aws:lambda",
-                    { "Ref" : "AWS::Region" },
-                    "*:*"
-                  ]
-                ]
-              }
-            }
-          ]
-        },
-        "Roles": [
-          {
-            "Ref": "IamRoleApiGateway"
-          }
-        ],
-        "Groups": [
-          {
-            "Ref": "IamGroupApiGateway"
-          }
-        ]
-      }
-    },
-    "JawsBucket" : {
-      "Type" : "AWS::S3::Bucket",
-      "Properties" : {
-        "AccessControl" : "Private",
-        "BucketName" : {
-          "Ref": "aaJawsBucket"
-        }
-      },
-      "DeletionPolicy" : "Retain"
     }
   },
   "Outputs": {
@@ -226,15 +130,6 @@
       "Value": {
         "Fn::GetAtt": [
           "IamRoleLambda",
-          "Arn"
-        ]
-      }
-    },
-    "IamRoleArnApiGateway": {
-      "Description": "ARN of the api gateway IAM role",
-      "Value": {
-        "Fn::GetAtt": [
-          "IamRoleApiGateway",
           "Arn"
         ]
       }
