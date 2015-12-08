@@ -10,6 +10,7 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 **Note:** This project was formerly JAWS.
 
 ## Links
+* [Docs](http://docs.serverless.com)
 * [Gitter](https://gitter.im/serverless/serverless)
 * [Road Map](https://trello.com/b/EX6SxBJJ/framework)
 * [Twitter](https://twitter.com/goserverless)
