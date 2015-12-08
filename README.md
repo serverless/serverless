@@ -3,15 +3,23 @@
 Serverless V0 (BETA)
 =================================
 
-The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
+####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
 
-This is under heavy development.  Please test only with this version for the next week while we fix bugs.
+#####Note: This project was formerly JAWS, but we've rebranded.
+
+**Status 12/8:** We've just released this today and it is under heavy development.  Please use to test only, while we fix bugs. PRs are welcomed!
+
+
+```
+npm install serverless -g
+```
 
 ##Differences From JAWS:
 
-* **One Set Of Lambdas Per Region:**  JAWS created a separate CloudFormation stack of Lambdas for each stage/region.  Serverless creates one set of Lambdas in each region and use Lambda aliases for each of your Project Stages.
-* **AWS-Approved Workflow:**  The new workflow includes Lambda versioning and aliasing support.  Every time you deploy a Lambda it is versioned and aliased to your target stage.  This prevents trampling and allows large teams to work on one set of Lambdas per region without trampling eachother.
-* **Lambdas No Longer Deploy Via CloudFormation:**  We no longer use CloudFormation to deploy your Lambdas.  It is too slow and it lacks versioning and aliasing support which our new workflow relies on.  Lambda Function names are also much neater now.
-* **1 REST API With Your Project's Stages:**  JAWS created a separate REST API on API Gateway for each of your Project stages.  Now, your project just has one REST API and your Project's Stages are added as stages on that REST API.
-* **Function Deploy Code, Endpoint or Both:** Endpoints are considered an attribute of Functions and the new commands reflect that.  You can use "function deploy code", "function deploy endpoint", or "function deploy both".
-* **Multiple Endpoints Per Lambda Support:** Reduce Lambda boilerplate significantly by adding multiple Endpoints to a single Lambda function.  We recommend creating 1 Lambda function for your resource (Users, Images, etc.) and creating Endpoints for each Method used for that resource.  Then use the Lambda to determine the Method and route it to the correct logic in your Module's 'lib' folder.
+* **Name & Filename Changes:**  Having JAWS and AWSM was too confusing.  Now, we're just Serverless and Serverless modules.  Your project JSON is now `s-project.json`, your module JSON is now `s-module.json` and your function JSON is now `s-function.json`.
+* **New Function JSON Format:**  Our new function JSON format (`s-function.json`) helps reduce boilerplate.  You can still have 1 folder containing 1 Lambda w/ 1 Endpoint.  However, now you can have 1 folder containing 1 Lambda w/ multiple endpoints.  As well as 1 folder containing multiple Lambdas each with multiple endpoints.  You can point your multiple Lambdas to different handlers on a single file, or to different files within the folder.  It's flexible.
+* **One Set Of Lambdas Per Region:**  JAWS created a separate CloudFormation stack of Lambdas for each stage + region.  Serverless creates one set of Lambdas for all stages, and replicates them in every region used by your project.
+* **AWS-Recommended Workflow:**  Lambda versioning and aliasing support is automatically included.  Every time you deploy a Lambda, it is versioned and aliased to the stage you targeted your deployment to.  This allows large teams to work on one set of Lambdas per region without trampling eachout.
+* **Removed CloudFormation Support For Project Lambdas:**  We no longer use CloudFormation to deploy your Lambdas.  It is too slow and it is behind on features which we would like to support today.  Our `s-function.json` resembles CF syntax, but is leaner and offers an abstraction layer which we will use to assist your workflow further in the near future.  Lambda Function names are also much neater now.
+* **1 REST API Containing Your Project's Stages:**  JAWS created a separate REST API on API Gateway for each of your Project stages.  Now, your project just has one REST API and your Project's Stages are added as stages on that REST API.
+* **Stage Variable Support:**  Each stage in your API Gateway REST API uses an API Gateway stage variable to point to Lambdas aliased with the same stage name.  By changing that variable, you can point all endpoints inyour REST API Stage to an entirely different set of aliased Lambdas.
