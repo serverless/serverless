@@ -7,7 +7,7 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 
 **Status 12/8:** We re-branded from JAWS and pushed out a HUGE release on 12/8.  We're now cleaning up bugs, finishing the new docs and cleaning up everything else.  By the end of this week we will have made rapid progress.  Please stay tuned and help us test :)
 
-**Note:** This project was formerly JAWS, but we've rebranded.
+**Note:** This project was formerly JAWS.
 
 ## Links
 * [Gitter](https://gitter.im/serverless/serverless)
