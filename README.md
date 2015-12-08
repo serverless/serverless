@@ -7,6 +7,8 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 
 **Status 12/8:** We re-branded from JAWS and pushed out a HUGE release on 12/8.  We're now cleaning up bugs, finishing the new docs and cleaning up everything else.  By the end of this week we will have made rapid progress.  Please stay tuned and help us test :)
 
+**Note:** This project was formerly JAWS, but we've rebranded.
+
 ## Links
 * [Gitter](https://gitter.im/serverless/serverless)
 * [Road Map](https://trello.com/b/EX6SxBJJ/framework)
@@ -16,9 +18,6 @@ This is a command line tool.  It requires Node V4.  Install it via npm:
 ```
 npm install serverless -g
 ```
-
-
-##### Note: This project was formerly JAWS, but we've rebranded.
 
 ## Differences From JAWS:
 
