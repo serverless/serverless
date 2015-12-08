@@ -69,7 +69,7 @@ describe('Test Action: Env List', function() {
             
             // Validate Event
             validateEvent(evt);
-            console.log(evt.envMapsByRegion);
+
             done();
           })
           .catch(e => {

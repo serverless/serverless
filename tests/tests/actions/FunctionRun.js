@@ -22,7 +22,7 @@ describe('Test Action: Function Run', function() {
         .then(projPath => {
           this.timeout(0);
           
-          let functionPath = path.join(projPath, 'back', 'modules', 'users', 'show');
+          let functionPath = path.join(projPath, 'back', 'modules', 'moduleone', 'simple');
           
           process.chdir(functionPath);
           
