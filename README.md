@@ -5,12 +5,12 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 
 ####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
 
-**Status 12/8:** We re-branded from JAWS and pushed out a HUGE release on 12/8.  We're now cleaning up bugs, finishing the new docs and cleaning up everything else.  By the end of this week we will have made rapid progress.  Please stay tuned and help us test :)
+We've re-branded from JAWS and pushed out a HUGE release. We're now cleaning up bugs, finishing the new docs and fixing broken features. By the end of this week we will have made rapid progress. Please help us test, submit pull requests, and check out our **[Road Map](https://trello.com/b/EX6SxBJJ/framework)**  for daily status updates.  We will be moving quickly, stay tuned :)
 
 **Note:** This project was formerly JAWS.
 
 ## Links
-* [Docs](http://docs.serverless.com)
+* [Documentation (Under Construction)](http://docs.serverless.com)
 * [Gitter](https://gitter.im/serverless/serverless)
 * [Road Map](https://trello.com/b/EX6SxBJJ/framework)
 * [Twitter](https://twitter.com/goserverless)
