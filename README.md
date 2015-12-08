@@ -5,15 +5,20 @@ Serverless V0 (BETA) -- Formerly "JAWS"
 
 ####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
 
-**Status 12/8:** We re-branded from JAWS and pushed out a HUGE release on 12/8.  We're now cleaning up bugs.  Please help us test :)
+**Status 12/8:** We re-branded from JAWS and pushed out a HUGE release on 12/8.  We're now cleaning up bugs, finishing the new docs and cleaning up everything else.  Please stay tuned and help us test :)
 
 ```
 npm install serverless -g
 ```
 
-#####Note: This project was formerly JAWS, but we've rebranded.
+## Links
+* [Gitter](https://gitter.im/serverless/serverless)
+* [Road Map](https://trello.com/b/EX6SxBJJ/framework)
 
-##Differences From JAWS:
+
+##### Note: This project was formerly JAWS, but we've rebranded.
+
+## Differences From JAWS:
 
 * **Node V4:**  The new Serverless Command Line Tool uses Node V4.  We recommend using Node Version Manager (NVM) to seamlessly upgrade your local version of Node.
 * **Name & Filename Changes:**  Having JAWS and AWSM was too confusing.  Now, we're just Serverless and Serverless modules.  Your project JSON is now `s-project.json`, your module JSON is now `s-module.json` and your function JSON is now `s-function.json`.
