@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "engines": {
     "node": ">=4.0"
   },
@@ -10,7 +10,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jaws-framework/JAWS#v1.4"
+    "url": "https://github.com/serverless/serverless"
   },
   "keywords": [
     "serverless",
