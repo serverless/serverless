@@ -15,7 +15,7 @@ describe('All Tests', function() {
   //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/ProjectCreate');
   //require('./tests/actions/StageCreate');
-  require('./tests/actions/RegionCreate');
+  //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ModuleInstall');
   //require('./tests/actions/ModuleCreate');
   //require('./tests/actions/FunctionCreate');
@@ -23,7 +23,7 @@ describe('All Tests', function() {
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvSetUnset');
   //require('./tests/actions/ResourcesDeploy');
-  //require('./tests/actions/FunctionRun');
+  require('./tests/actions/FunctionRun');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');
 

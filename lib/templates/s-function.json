@@ -1,10 +1,9 @@
 {
   "functions": {
-
     "functionTemplate": {
-      "envVars": [],
       "custom": {
-        "excludePatterns": []
+        "excludePatterns": [],
+        "envVars": []
       },
       "handler": "",
       "timeout": 6,
