@@ -18,16 +18,18 @@ describe('Test Action: Function Run', function() {
   before(function(done) {
     this.timeout(0);
     
-    testUtils.createTestProject(config)
+    testUtils.createTestProject(config ['moduleone/simple'])
         .then(projPath => {
+
           this.timeout(0);
-          
+
+          // Make function path the current working directory
           let functionPath = path.join(projPath, 'back', 'modules', 'moduleone', 'simple');
-          
+
           process.chdir(functionPath);
           
           serverless = new Serverless({
-            interactive: false,
+            interactive: true,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
           });
@@ -45,10 +47,11 @@ describe('Test Action: Function Run', function() {
       
       this.timeout(0);
 
-
-      serverless.actions.functionRun()
-          .then(function() {
-
+      serverless.actions.functionRun({
+        path: 'moduleone/simple!#simpleOne'
+      })
+          .then(function(evt) {
+            console.log(evt);
             done();
           })
           .catch(e => {
