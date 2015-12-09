@@ -40,13 +40,10 @@
   },
   "dependencies": {
     "async": "^0.9.0",
-    "asynquence": "^0.8.2",
-    "asynquence-contrib": "^0.22.0",
     "aws-sdk": "^2.2.21",
     "bluebird": "^2.9.34",
     "chalk": "^1.1.0",
     "cli-spinner": "^0.2.1",
-    "commop": "^1.2.0",
     "debug": "^2.2.0",
     "dotenv": "^1.2.0",
     "download": "^4.2.0",
