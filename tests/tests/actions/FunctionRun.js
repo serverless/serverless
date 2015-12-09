@@ -13,12 +13,24 @@ let Serverless = require('../../../lib/Serverless.js'),
 
 let serverless;
 
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.function != 'undefined');
+  assert.equal(true, typeof evt.event != 'undefined');
+  assert.equal(true, typeof evt.result != 'undefined');
+  assert.equal(true, typeof evt.handler != 'undefined');
+};
+
 describe('Test Action: Function Run', function() {
 
   before(function(done) {
     this.timeout(0);
     
-    testUtils.createTestProject(config ['moduleone/simple'])
+    testUtils.createTestProject(config, ['moduleone/simple'])
         .then(projPath => {
 
           this.timeout(0);
@@ -42,16 +54,36 @@ describe('Test Action: Function Run', function() {
     done();
   });
 
-  describe('Function Run', function() {
+  describe('Function Run w/ Path', function() {
     it('should run the function with no errors', function(done) {
       
       this.timeout(0);
 
       serverless.actions.functionRun({
-        path: 'moduleone/simple!#simpleOne'
+        path: 'moduleone/simple#simpleOne'
       })
           .then(function(evt) {
-            console.log(evt);
+            validateEvent(evt);
+            assert.equal(true, evt.result.status == 'success');
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+    });
+  });
+
+  describe('Function Run w/ Name', function() {
+    it('should run the function with no errors', function(done) {
+
+      this.timeout(0);
+
+      serverless.actions.functionRun({
+            name: 'simpleOne'
+          })
+          .then(function(evt) {
+            validateEvent(evt);
+            assert.equal(true, evt.result.status == 'success');
             done();
           })
           .catch(e => {

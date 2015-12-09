@@ -77,7 +77,7 @@ describe('Test Action: Function Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'moduleone/simple!#simpleOne'
+          'moduleone/simple#simpleOne'
         ]
       };
 
