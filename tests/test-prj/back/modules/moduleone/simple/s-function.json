@@ -3,7 +3,7 @@
 
     "simpleOne": {
       "envVars": [],
-      "package": {
+      "custom": {
         "excludePatterns": []
       },
       "handler": "modules/moduleone/simple/one.one",
@@ -37,7 +37,7 @@
 
     "simpleTwo": {
       "envVars": [],
-      "package": {
+      "custom": {
         "excludePatterns": []
       },
       "handler": "modules/moduleone/simple/two.one",
@@ -71,7 +71,7 @@
 
     "simpleThree": {
       "envVars": [],
-      "package": {
+      "custom": {
         "excludePatterns": []
       },
       "handler": "modules/moduleone/simple/one.two",

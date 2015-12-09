@@ -21,7 +21,6 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  console.log(evt)
   assert.equal(true, typeof evt.module != 'undefined');
   assert.equal(true, typeof evt.function != 'undefined');
   assert.equal(true, typeof evt.handler != 'undefined');
