@@ -3,7 +3,7 @@
 
     "functionTemplate": {
       "envVars": [],
-      "package": {
+      "custom": {
         "excludePatterns": []
       },
       "handler": "",
