@@ -62,8 +62,7 @@ describe('Test action: Function Create', function() {
           .then(function(evt) {
 
             validateEvent(evt);
-
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'moduleone', 'new', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(evt.function.pathFunction);
             assert.equal(true, typeof functionJson.functions.ModuleoneNew != 'undefined');
             assert.equal(true, typeof functionJson.functions.ModuleoneNew.endpoints['moduleone/new'] != 'undefined');
             done();

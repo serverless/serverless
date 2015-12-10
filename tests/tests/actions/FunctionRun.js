@@ -20,9 +20,9 @@ let serverless;
 
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.event != 'undefined');
+  assert.equal(true, typeof evt.function.event != 'undefined');
   assert.equal(true, typeof evt.result != 'undefined');
-  assert.equal(true, typeof evt.handler != 'undefined');
+  assert.equal(true, typeof evt.function.handler != 'undefined');
 };
 
 describe('Test Action: Function Run', function() {
