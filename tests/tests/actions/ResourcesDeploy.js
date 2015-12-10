@@ -76,7 +76,7 @@ describe('Test action: Resources Deploy', function() {
 
             // Validate Event
             validateEvent(evt);
-            
+
             SUtils.sDebug('Rolling back to the origin CF template');
             // roll back
             let CfTemplatePath = path.join(globalProjPath, 'cloudformation', 'resources-cf.json');
