@@ -19,10 +19,10 @@ describe('All Tests', function() {
   //require('./tests/actions/ModuleInstall');
   //require('./tests/actions/ModuleCreate');
   //require('./tests/actions/FunctionCreate');
-  require('./tests/actions/EnvList');
+  //require('./tests/actions/EnvList');
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvSetUnset');
-  //require('./tests/actions/ResourcesDeploy');
+  require('./tests/actions/ResourcesDeploy');
   //require('./tests/actions/FunctionRun');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');
