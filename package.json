@@ -28,7 +28,9 @@
   ],
   "main": "lib/serverless.js",
   "bin": {
-    "serverless": "./bin/serverless"
+    "serverless": "./bin/serverless",
+    "slss": "./bin/serverless",
+    "sls": "./bin/serverless"
   },
   "scripts": {
     "test": "mocha tests/all"
