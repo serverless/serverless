@@ -4,7 +4,7 @@
 **This repo is going to stick around for the time being as a place where JAWS users
 can find the JAWS docs.**
 
-**Pull Requests for documentation are welcome.  No patches to bugs or
+**Pull Requests for documentation updates are welcome.  No patches to bugs or
 functionality will be made in this repository.  For those, please upgrade to
 the new awesome _[serverless](http://serverless.com)_ framework.**
 
