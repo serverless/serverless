@@ -78,11 +78,12 @@ describe('Test Default Action With Pre Hook', function() {
     this.timeout(0);
     testUtils.createTestProject(config)
         .then(projPath => {
-          process.chdir(projPath);
+
+      process.chdir(projPath);
           serverless = new Serverless({
             interactive: false,
           });
-          
+
           serverless.addPlugin(new CustomPlugin(serverless, {}));
           done();
         });
