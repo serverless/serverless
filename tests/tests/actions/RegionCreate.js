@@ -61,9 +61,13 @@ let cleanup = function(evt, cb) {
     params.Delete = {};
     params.Delete.Objects = [];
 
-    data.Contents.forEach(function(content) {
-      params.Delete.Objects.push({Key: content.Key});
-    });
+    if (data.Contents) {
+      data.Contents.forEach(function(content) {
+        params.Delete.Objects.push({Key: content.Key});
+      });
+    } else {
+      console.log('[Tests RegionCreate] data.Contents undefined');
+    }
     s3.deleteObjects(params, function(err, data) {
       if (err) return console.log(err);
 
