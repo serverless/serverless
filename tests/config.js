@@ -17,6 +17,7 @@ let config = {
   awsAdminKeyId:        process.env.TEST_SERVERLESS_AWS_ACCESS_KEY,
   awsAdminSecretKey:    process.env.TEST_SERVERLESS_AWS_SECRET_KEY,
   iamRoleArnLambda:     process.env.TEST_SERVERLESS_LAMBDA_ROLE,
+  projectName:          process.env.TEST_SERVERLESS_PROJECT_NAME,
 };
 
 module.exports = config;
