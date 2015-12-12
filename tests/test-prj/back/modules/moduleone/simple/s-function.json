@@ -9,8 +9,9 @@
       "handler": "modules/moduleone/simple/one.one",
       "timeout": 6,
       "memorySize": 1024,
-      "endpoints": {
-        "simple/one": {
+      "endpoints": [
+        {
+          "path": "simple/one",
           "method": "GET",
           "authorizationType": "none",
           "apiKeyRequired": false,
@@ -32,7 +33,7 @@
             }
           }
         }
-      }
+      ]
     },
 
     "simpleTwo": {
@@ -43,8 +44,9 @@
       "handler": "modules/moduleone/simple/two.one",
       "timeout": 6,
       "memorySize": 1024,
-      "endpoints": {
-        "simple/two": {
+      "endpoints": [
+        {
+          "path": "simple/two",
           "method": "GET",
           "authorizationType": "none",
           "apiKeyRequired": false,
@@ -66,7 +68,7 @@
             }
           }
         }
-      }
+      ]
     },
 
     "simpleThree": {
@@ -77,8 +79,9 @@
       "handler": "modules/moduleone/simple/one.two",
       "timeout": 6,
       "memorySize": 1024,
-      "endpoints": {
-        "simple/three-a": {
+      "endpoints": [
+        {
+          "path": "simple/three",
           "method": "GET",
           "authorizationType": "none",
           "apiKeyRequired": false,
@@ -100,8 +103,9 @@
             }
           }
         },
-        "simple/three-b": {
-          "method": "GET",
+        {
+          "path": "simple/three",
+          "method": "POST",
           "authorizationType": "none",
           "apiKeyRequired": false,
           "requestTemplates": {
@@ -122,7 +126,7 @@
             }
           }
         }
-      }
+      ]
     }
   }
 }
