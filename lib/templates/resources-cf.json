@@ -29,6 +29,24 @@
       "Default": "1"
     }
   },
+  "Metadata": {
+      "AWS::CloudFormation::Interface": {
+          "ParameterGroups": [
+              {
+              "Label": {"default": "Project Settings"},
+              "Parameters": ["aaProjectName", "aaProjectDomain", "aaStage", "aaDataModelStage"]
+              },
+              {
+              "Label": {"default": "Monitoring"},
+              "Parameters": ["aaNotficationEmail"]
+              },
+              {
+              "Label": {"default": "Database Settings (DynamoDB)"},
+              "Parameters": ["aaDefaultDynamoRWThroughput"]
+              }
+          ]
+      }
+  },
   "Resources": {
     "IamRoleLambda": {
       "Type": "AWS::IAM::Role",
