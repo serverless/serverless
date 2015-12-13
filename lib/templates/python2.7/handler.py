@@ -6,6 +6,6 @@ log.setLevel(logging.DEBUG)
 
 import json
 
-def handler_function(event, context):
+def handler(event, context):
     log.debug("Received event {}".format(json.dumps(event)))
     return {}
