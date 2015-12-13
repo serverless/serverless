@@ -2,29 +2,29 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The AWS CloudFormation template for this Serverless application's resources outside of Lambdas and Api Gateway",
   "Parameters": {
-    "aaProjectName": {
+    "ProjectName": {
       "Type": "String",
       "AllowedValues": []
     },
-    "aaProjectDomain": {
+    "ProjectDomain": {
       "Type": "String",
       "Default": "myapp.com"
     },
-    "aaStage": {
+    "Stage": {
       "Type": "String",
       "AllowedValues": [
       ]
     },
-    "aaDataModelStage": {
+    "DataModelStage": {
       "Type": "String",
       "AllowedValues": [
       ]
     },
-    "aaNotficationEmail": {
+    "NotificationEmail": {
       "Type": "String",
       "Default": "you@you.com"
     },
-    "aaDefaultDynamoRWThroughput": {
+    "DynamoRWThroughput": {
       "Type": "String",
       "Default": "1"
     }
@@ -34,15 +34,15 @@
           "ParameterGroups": [
               {
               "Label": {"default": "Project Settings"},
-              "Parameters": ["aaProjectName", "aaProjectDomain", "aaStage", "aaDataModelStage"]
+              "Parameters": ["ProjectName", "ProjectDomain", "Stage", "DataModelStage"]
               },
               {
               "Label": {"default": "Monitoring"},
-              "Parameters": ["aaNotficationEmail"]
+              "Parameters": ["NotificationEmail"]
               },
               {
               "Label": {"default": "Database Settings (DynamoDB)"},
-              "Parameters": ["aaDefaultDynamoRWThroughput"]
+              "Parameters": ["DynamoRWThroughput"]
               }
           ]
       }
@@ -95,10 +95,10 @@
             "_-_",
             [
               {
-                "Ref": "aaStage"
+                "Ref": "Stage"
               },
               {
-                "Ref": "aaProjectName"
+                "Ref": "ProjectName"
               },
               "lambda"
             ]
