@@ -33,7 +33,7 @@ class CustomPlugin extends SPlugin {
   static getName() {
     return 'com.yourdomain.' + CustomPlugin.name;
   }
-  
+
   /**
    * Register Hooks
    */
@@ -47,7 +47,7 @@ class CustomPlugin extends SPlugin {
 
     return Promise.resolve();
   }
-  
+
   _defaultActionPreHook(evt) {
     let _this = this;
     return new Promise(function (resolve) {
