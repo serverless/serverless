@@ -58,7 +58,7 @@ describe('Test action: Module Create', function() {
             validateEvent(evt);
             let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
             assert.equal(true, typeof functionJson.functions.TempOne != 'undefined');
-            assert.equal(true, typeof functionJson.functions.TempOne.endpoints['temp/one'] != 'undefined');
+            assert.equal(true, functionJson.functions.TempOne.endpoints.length);
             done();
           })
           .catch(e => {
