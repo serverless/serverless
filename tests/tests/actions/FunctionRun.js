@@ -35,10 +35,7 @@ describe('Test Action: Function Run', function() {
 
           this.timeout(0);
 
-          // Make function path the current working directory
-          let functionPath = path.join(projPath, 'back', 'modules', 'moduleone', 'simple');
-
-          process.chdir(functionPath);
+          process.chdir(projPath);
           
           serverless = new Serverless({
             interactive: true,

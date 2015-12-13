@@ -45,6 +45,10 @@
       "config": {}
     },
     {
+      "path": "./actions/DashDeploy.js",
+      "config": {}
+    },
+    {
       "path": "./actions/EndpointDeployApiGateway.js",
       "config": {}
     },
