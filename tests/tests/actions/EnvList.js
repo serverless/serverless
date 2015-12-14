@@ -19,7 +19,7 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  
+
   assert.equal(true, typeof evt.region != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
   assert.equal(evt.region, evt.envMapsByRegion[0].regionName);
@@ -36,7 +36,7 @@ describe('Test Action: Env List', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           this.timeout(0);
-          
+
           process.chdir(projPath);
 
           serverless = new Serverless({
@@ -63,10 +63,10 @@ describe('Test Action: Env List', function() {
         stage:      config.stage,
         region:     config.region,
       };
-      
+
       serverless.actions.envList(event)
           .then(function(evt) {
-            
+
             // Validate Event
             validateEvent(evt);
 
