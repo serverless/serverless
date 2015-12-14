@@ -15,7 +15,9 @@
           "method": "GET",
           "authorizationType": "none",
           "apiKeyRequired": false,
-          "requestParameters": {},
+          "requestParameters": {
+            "integration.request.querystring.integrationQueryParam" : "method.request.querystring.longitude"
+          },
           "requestTemplates": {
             "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
           },
