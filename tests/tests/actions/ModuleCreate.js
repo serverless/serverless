@@ -47,7 +47,9 @@ describe('Test action: Module Create', function() {
   describe('Module Create positive tests', function() {
 
     it('create a new module with defaults', function(done) {
+
       this.timeout(0);
+
       let event = {
         module:   'temp',
         function: 'one',

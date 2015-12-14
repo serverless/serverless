@@ -24,7 +24,6 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.module != 'undefined');
   assert.equal(true, typeof evt.function != 'undefined');
   assert.equal(true, typeof evt.runtime != 'undefined');
-  assert.equal(true, typeof evt.pkgMgr != 'undefined');
 };
 
 describe('Test action: Function Create', function() {
@@ -52,8 +51,7 @@ describe('Test action: Function Create', function() {
       let event = {
         module:    'moduleone',
         function:  'new',
-        runtime:   'nodejs',
-        pkgMgr:    'npm',
+        runtime:   'nodejs0'
       };
 
       serverless.actions.functionCreate(event)
