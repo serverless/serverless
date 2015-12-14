@@ -91,7 +91,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
           SUtils.npmInstall(fullPath);
         });
       }
-      
+
       return tmpProjectPath;
     });
 };
