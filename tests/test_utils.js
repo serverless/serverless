@@ -48,15 +48,15 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   delete lambdasCF.Resources.lTemplate;
 
   // Add project name to AllowedValues
-  resourcesCF.Parameters.aaProjectName.AllowedValues.push(projectName);
+  resourcesCF.Parameters.ProjectName.AllowedValues.push(projectName);
 
   // Add stages to AllowedValues
-  resourcesCF.Parameters.aaStage.AllowedValues.push(config.stage);
-  resourcesCF.Parameters.aaStage.AllowedValues.push(config.stage2);
+  resourcesCF.Parameters.Stage.AllowedValues.push(config.stage);
+  resourcesCF.Parameters.Stage.AllowedValues.push(config.stage2);
 
   // Add stages to AllowedValues
-  resourcesCF.Parameters.aaDataModelStage.AllowedValues.push(config.stage);
-  resourcesCF.Parameters.aaDataModelStage.AllowedValues.push(config.stage2);
+  resourcesCF.Parameters.DataModelStage.AllowedValues.push(config.stage);
+  resourcesCF.Parameters.DataModelStage.AllowedValues.push(config.stage2);
 
   return Promise.all([
       SUtils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
