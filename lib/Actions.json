@@ -37,10 +37,6 @@
       "config": {}
     },
     {
-      "path": "./actions/CreateEventSourceLambdaNodeJs.js",
-      "config": {}
-    },
-    {
       "path": "./actions/EndpointDeploy.js",
       "config": {}
     },
