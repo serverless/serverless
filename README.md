@@ -5,7 +5,7 @@ Serverless V0 (BETA) - Formerly "JAWS"
 
 ####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
 
-We've re-branded from JAWS and pushed out a HUGE release. We're now cleaning up bugs, finishing the new docs and fixing broken features. By the end of this week we will have made rapid progress. Please help us test, submit pull requests, and check out our **[Road Map](https://trello.com/b/EX6SxBJJ/framework)**  for daily status updates.  We will be moving quickly, stay tuned :)
+We've re-branded from JAWS and pushed out an entirely refactored product. We're now cleaning up bugs, finishing the new docs and fixing broken features. By the end of this week we will have made rapid progress. Please help us test, submit pull requests, and check out our **[Road Map](https://trello.com/b/EX6SxBJJ/framework)**  for daily status updates.  We will be moving quickly, stay tuned :)
 
 **Note:** This project was formerly JAWS.
 
@@ -20,6 +20,13 @@ This is a command line tool.  It requires Node V4.  Install it via npm:
 ```
 npm install serverless -g
 ```
+
+## Plugins
+Serverless is comprised of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
+* **[Plugin Boilerplate](https://github.com/serverless/serverless-plugin-boilerplate)** - Make a Serverless Plugin with this simple boilerplate.
+* **[Serve](https://github.com/Nopik/serverless-serve)** - Simulate API Gateway locally, so all function calls can be run via localhost.
+* **[Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting)** - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
+* **[Optimizer](https://github.com/martinlindenberg/serverless-plugin-alerting)** - Optimizes your code for performance in Lambda.
 
 ## Differences From JAWS:
 
