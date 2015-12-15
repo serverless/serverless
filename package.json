@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "0.0.7",
+  "version": "0.0.13",
   "engines": {
     "node": ">=4.0"
   },
@@ -29,7 +29,8 @@
   "main": "lib/serverless.js",
   "bin": {
     "serverless": "./bin/serverless",
-    "sl": "./bin/serverless"
+    "slss": "./bin/serverless",
+    "sls": "./bin/serverless"
   },
   "scripts": {
     "test": "mocha tests/all"
@@ -60,7 +61,6 @@
     "rimraf": "^2.4.3",
     "shelljs": "^0.5.3",
     "shortid": "^2.2.2",
-    "sleep": "^3.0.0",
     "temp": "^0.8.3",
     "wrench": "^1.5.8"
   }

@@ -14,7 +14,6 @@ let Serverless = require('../../../lib/Serverless.js'),
     assert     = require('chai').assert,
     testUtils  = require('../../test_utils'),
     SUtils     = require('../../../lib/utils/index'),
-    sleep      = require('sleep'),
     fs         = require('fs'),
     config     = require('../../config');
 
@@ -27,7 +26,7 @@ let globalProjPath;
  */
 
 let validateEvent = function(evt) {
-  
+
   assert.equal(true, typeof evt.region != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
 
@@ -45,16 +44,16 @@ describe('Test action: Resources Deploy', function() {
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
           });
-          
+
           globalProjPath = projPath;
           let CfTemplatePath = path.join(projPath, 'cloudformation', 'resources-cf.json');
           let CfTemplateJson = SUtils.readAndParseJsonSync(CfTemplatePath);
-          
+
           CfTemplateJson.Resources.testBucket = { "Type" : "AWS::S3::Bucket" };
-          
-          
+
+
           fs.writeFileSync(CfTemplatePath, JSON.stringify(CfTemplateJson, null, 2));
-          
+
           done();
         });
   });
@@ -77,26 +76,26 @@ describe('Test action: Resources Deploy', function() {
 
             // Validate Event
             validateEvent(evt);
-            
+
             SUtils.sDebug('Rolling back to the origin CF template');
             // roll back
             let CfTemplatePath = path.join(globalProjPath, 'cloudformation', 'resources-cf.json');
             let CfTemplateJson = SUtils.readAndParseJsonSync(CfTemplatePath);
-            
+
             delete CfTemplateJson.Resources.testBucket;
-            
-            
+
+
             fs.writeFileSync(CfTemplatePath, JSON.stringify(CfTemplateJson, null, 2));
-            
+
             serverless.actions.resourcesDeploy(evt)
                 .then(function(evt) {
-                  
+
                   // Validate Event
                   validateEvent(evt);
                   done();
                 });
-            
-            
+
+
           })
           .catch(e => {
             done(e);

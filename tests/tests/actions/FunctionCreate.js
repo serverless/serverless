@@ -23,10 +23,7 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.module != 'undefined');
   assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.handler != 'undefined');
-  assert.equal(true, typeof evt.endpoint != 'undefined');
   assert.equal(true, typeof evt.runtime != 'undefined');
-  assert.equal(true, typeof evt.pkgMgr != 'undefined');
 };
 
 describe('Test action: Function Create', function() {
@@ -54,18 +51,15 @@ describe('Test action: Function Create', function() {
       let event = {
         module:    'moduleone',
         function:  'new',
-        runtime:   'nodejs',
-        pkgMgr:    'npm',
+        runtime:   'nodejs'
       };
 
       serverless.actions.functionCreate(event)
           .then(function(evt) {
-
             validateEvent(evt);
-
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'moduleone', 'new', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(path.join(evt.function.pathFunction, 's-function.json'));
             assert.equal(true, typeof functionJson.functions.ModuleoneNew != 'undefined');
-            assert.equal(true, typeof functionJson.functions.ModuleoneNew.endpoints['moduleone/new'] != 'undefined');
+            assert.equal(true, functionJson.functions.ModuleoneNew.endpoints.length);
             done();
           })
           .catch(e => {

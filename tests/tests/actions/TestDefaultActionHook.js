@@ -33,7 +33,7 @@ class CustomPlugin extends SPlugin {
   static getName() {
     return 'com.yourdomain.' + CustomPlugin.name;
   }
-  
+
   /**
    * Register Hooks
    */
@@ -47,7 +47,7 @@ class CustomPlugin extends SPlugin {
 
     return Promise.resolve();
   }
-  
+
   _defaultActionPreHook(evt) {
     let _this = this;
     return new Promise(function (resolve) {
@@ -78,11 +78,12 @@ describe('Test Default Action With Pre Hook', function() {
     this.timeout(0);
     testUtils.createTestProject(config)
         .then(projPath => {
-          process.chdir(projPath);
+
+      process.chdir(projPath);
           serverless = new Serverless({
             interactive: false,
           });
-          
+
           serverless.addPlugin(new CustomPlugin(serverless, {}));
           done();
         });
@@ -106,7 +107,7 @@ describe('Test Default Action With Pre Hook', function() {
             validateEvent(evt);
             let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
             assert.equal(true, typeof functionJson.functions.TempOne != 'undefined');
-            assert.equal(true, typeof functionJson.functions.TempOne.endpoints['temp/one'] != 'undefined');
+            assert.equal(true, functionJson.functions.TempOne.endpoints.length);
             done();
           })
           .catch(e => {

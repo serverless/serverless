@@ -1,16 +1,16 @@
 {
   "functions": {
-
     "functionTemplate": {
-      "envVars": [],
       "custom": {
-        "excludePatterns": []
+        "excludePatterns": [],
+        "envVars": []
       },
       "handler": "",
       "timeout": 6,
       "memorySize": 1024,
-      "endpoints": {
-        "endpointTemplate": {
+      "endpoints": [
+        {
+          "path": "",
           "method": "GET",
           "authorizationType": "none",
           "apiKeyRequired": false,
@@ -32,7 +32,7 @@
             }
           }
         }
-      }
+      ]
     }
   }
 }

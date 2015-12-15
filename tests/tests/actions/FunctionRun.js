@@ -20,26 +20,23 @@ let serverless;
 
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.event != 'undefined');
+  assert.equal(true, typeof evt.function.event != 'undefined');
   assert.equal(true, typeof evt.result != 'undefined');
-  assert.equal(true, typeof evt.handler != 'undefined');
+  assert.equal(true, typeof evt.function.handler != 'undefined');
 };
 
 describe('Test Action: Function Run', function() {
 
   before(function(done) {
     this.timeout(0);
-    
+
     testUtils.createTestProject(config, ['moduleone/simple'])
         .then(projPath => {
 
           this.timeout(0);
 
-          // Make function path the current working directory
-          let functionPath = path.join(projPath, 'back', 'modules', 'moduleone', 'simple');
+          process.chdir(projPath);
 
-          process.chdir(functionPath);
-          
           serverless = new Serverless({
             interactive: true,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -56,7 +53,7 @@ describe('Test Action: Function Run', function() {
 
   describe('Function Run w/ Path', function() {
     it('should run the function with no errors', function(done) {
-      
+
       this.timeout(0);
 
       serverless.actions.functionRun({
