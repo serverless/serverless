@@ -51,7 +51,7 @@ describe('Test action: Function Create', function() {
       let event = {
         module:    'moduleone',
         function:  'new',
-        runtime:   'nodejs0'
+        runtime:   'nodejs'
       };
 
       serverless.actions.functionCreate(event)

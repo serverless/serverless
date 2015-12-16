@@ -1,0 +1,14 @@
+language: node_js
+
+node_js:
+  - '4.2.3'
+
+sudo: false
+
+install:
+  - travis_retry npm install jshint jscs
+
+script:
+  - ./node_modules/jshint/bin/jshint .
+  - ./node_modules/jscs/bin/jscs .
+

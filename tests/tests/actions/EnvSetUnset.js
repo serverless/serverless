@@ -19,13 +19,13 @@ let serverless;
  */
 
 let validateEvent = function(evt, isSet) {
-  
+
   assert.equal(true, typeof evt.region != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
   assert.equal('ENV_SET_TEST_KEY', evt.key);
-  
+
   if(isSet) assert.equal('ENV_SET_TEST_VAL', evt.value);
-  
+
 
 };
 
@@ -37,9 +37,9 @@ describe('Test Env Set & Env Unset actions', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           this.timeout(0);
-          
+
           process.chdir(projPath);
-          
+
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -58,7 +58,7 @@ describe('Test Env Set & Env Unset actions', function() {
     it('Sets then unsets an env var', function(done) {
 
       this.timeout(0);
-      
+
       let setEvent = {
         stage:      config.stage,
         region:     config.region,
@@ -68,10 +68,10 @@ describe('Test Env Set & Env Unset actions', function() {
 
       serverless.actions.envSet(setEvent)
           .then(function(setEvt) {
-            
+
             // Validate Set Event
             validateEvent(setEvt, true);
-            
+
             let unsetEvent = {
               stage:      setEvt.stage,
               region:     setEvt.region,
@@ -80,10 +80,10 @@ describe('Test Env Set & Env Unset actions', function() {
 
             serverless.actions.envUnset(unsetEvent)
                 .then(function(unsetEvt) {
-                  
+
                   // Validate Unset Event
                   validateEvent(unsetEvt, false);
-                  
+
                   done();
                 });
           })

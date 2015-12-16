@@ -8,6 +8,7 @@
       "handler": "",
       "timeout": 6,
       "memorySize": 1024,
+      "eventSourceArn": "",
       "endpoints": [
         {
           "path": "",

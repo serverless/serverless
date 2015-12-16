@@ -19,7 +19,7 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  
+
   assert.equal(true, typeof evt.region != 'undefined');
   assert.equal(true, typeof evt.stage != 'undefined');
   assert.equal('SERVERLESS_STAGE', evt.key);
@@ -31,11 +31,11 @@ describe('Test Action: Env Get', function() {
 
   before(function(done) {
     this.timeout(0);
-    
+
     testUtils.createTestProject(config)
         .then(projPath => {
           this.timeout(0);
-          
+
           process.chdir(projPath);
 
           serverless = new Serverless({
@@ -54,7 +54,7 @@ describe('Test Action: Env Get', function() {
 
   describe('Env Get', function() {
     it('Should Get Env Var', function(done) {
-      
+
       this.timeout(0);
 
       let event = {
@@ -65,10 +65,10 @@ describe('Test Action: Env Get', function() {
 
       serverless.actions.envGet(event)
           .then(function(evt) {
-            
+
             // Validate Event
             validateEvent(evt);
-            
+
             done();
           })
           .catch(e => {

@@ -29,14 +29,14 @@ describe('Test Action: Function Run', function() {
 
   before(function(done) {
     this.timeout(0);
-    
+
     testUtils.createTestProject(config, ['moduleone/simple'])
         .then(projPath => {
 
           this.timeout(0);
 
           process.chdir(projPath);
-          
+
           serverless = new Serverless({
             interactive: true,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -53,7 +53,7 @@ describe('Test Action: Function Run', function() {
 
   describe('Function Run w/ Path', function() {
     it('should run the function with no errors', function(done) {
-      
+
       this.timeout(0);
 
       serverless.actions.functionRun({

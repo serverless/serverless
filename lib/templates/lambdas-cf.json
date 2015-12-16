@@ -2,7 +2,7 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The AWS CloudFormation template for this Serverless application's Lambda functions",
   "Parameters": {
-    "aaLambdaRoleArn": {
+    "LambdaRoleArn": {
       "Type": "String",
       "Default": ""
     }
@@ -19,7 +19,7 @@
         "Handler": "",
         "MemorySize": 1024,
         "Role": {
-          "Ref": "aaLambdaRoleArn"
+          "Ref": "LambdaRoleArn"
         },
         "Runtime": "",
         "Timeout": 6
