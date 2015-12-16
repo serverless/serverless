@@ -37,6 +37,10 @@
       "config": {}
     },
     {
+      "path": "./actions/CodeEventDeployLambda.js",
+      "config": {}
+    },
+    {
       "path": "./actions/EndpointDeploy.js",
       "config": {}
     },

@@ -8,7 +8,14 @@
       "handler": "",
       "timeout": 6,
       "memorySize": 1024,
-      "eventSourceArn": "",
+      "event": [
+        {
+        "EventSourceArn": "",
+        "StartingPosition": "TRIM_HORIZON",
+        "BatchSize": 100,
+        "Enabled": true
+        }
+      ],
       "endpoints": [
         {
           "path": "",
