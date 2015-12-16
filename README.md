@@ -26,7 +26,7 @@ Serverless is comprised of Plugins.  A group of default Plugins ship with the Fr
 * **[Plugin Boilerplate](https://github.com/serverless/serverless-plugin-boilerplate)** - Make a Serverless Plugin with this simple boilerplate.
 * **[Serve](https://github.com/Nopik/serverless-serve)** - Simulate API Gateway locally, so all function calls can be run via localhost.
 * **[Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting)** - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
-* **[Optimizer](https://github.com/martinlindenberg/serverless-plugin-alerting)** - Optimizes your code for performance in Lambda.
+* **[Optimizer](https://github.com/serverless/serverless-optimizer-plugin)** - Optimizes your code for performance in Lambda.
 
 ## Differences From JAWS:
 
