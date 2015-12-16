@@ -8,7 +8,7 @@
       "handler": "",
       "timeout": 6,
       "memorySize": 1024,
-      "event": [
+      "events": [
         {
         "EventSourceArn": "",
         "StartingPosition": "TRIM_HORIZON",
