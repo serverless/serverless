@@ -13,7 +13,7 @@ describe('All Tests', function() {
 
   require('./tests/actions/TestPluginCustom');
   require('./tests/actions/TestDefaultActionHook');
-  //require('./tests/actions/ProjectCreate');
+  require('./tests/actions/ProjectCreate');
   require('./tests/actions/StageCreate');
   require('./tests/actions/RegionCreate');
   require('./tests/actions/ModuleInstall');
@@ -24,7 +24,7 @@ describe('All Tests', function() {
   require('./tests/actions/EnvSetUnset');
   require('./tests/actions/ResourcesDeploy');
   require('./tests/actions/FunctionRun');
-  //require('./tests/actions/FunctionDeploy');
-  //require('./tests/actions/EndpointDeploy');
+  require('./tests/actions/FunctionDeploy');
+  require('./tests/actions/EndpointDeploy');
 
 });
