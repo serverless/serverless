@@ -35,7 +35,7 @@ parser.add_argument(
 )
 
 
-class FakeContext(object):
+class FakeLambdaContext(object):
     def __init__(self, name='Fake', version='LATEST'):
         self.name = name
         self.version = version
@@ -126,7 +126,7 @@ def import_program_as_module(handler_file):
 
 def run_with_context(handler, function_path, event=None):
     function = getattr(handler, function_path)
-    return function(event or {}, FakeContext())
+    return function(event or {}, FakeLambdaContext())
 
 
 if __name__ == '__main__':
