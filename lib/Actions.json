@@ -25,6 +25,10 @@
       "config": {}
     },
     {
+      "path": "./actions/FunctionRunLambdaPython2.js",
+      "config": {}
+    },
+    {
       "path": "./actions/FunctionDeploy.js",
       "config": {}
     },
