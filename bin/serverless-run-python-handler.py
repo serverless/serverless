@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import argparse
+import StringIO
 import traceback
 import contextlib
 import imp
@@ -80,6 +81,32 @@ def preserve_value(namespace, name):
     setattr(namespace, name, saved_value)
 
 
+@contextlib.contextmanager
+def capture_fds(stdout=None, stderr=None):
+    """Replace stdout and stderr with a different file handle.
+
+    Call with no arguments to just ignore stdout or stderr.
+    """
+    orig_stdout, orig_stderr = sys.stdout, sys.stderr
+    orig_stdout.flush()
+    orig_stderr.flush()
+
+    temp_stdout = stdout or StringIO.StringIO()
+    temp_stderr = stderr or StringIO.StringIO()
+    sys.stdout, sys.stderr = temp_stdout, temp_stderr
+
+
+    yield
+
+    sys.stdout = orig_stdout
+    sys.stderr = orig_stderr
+
+    temp_stdout.flush()
+    temp_stdout.seek(0)
+    temp_stderr.flush()
+    temp_stderr.seek(0)
+
+
 def make_module_from_file(module_name, module_filepath):
     """Make a new module object from the source code in specified file.
 
@@ -144,12 +171,26 @@ if __name__ == '__main__':
               u'your code and try again.'.format(path))
         bail_out()
 
+    stdout, stderr = StringIO.StringIO(), StringIO.StringIO()
+    output = {}
     try:
-        result = run_with_context(handler, args.handler_function, args.event)
-        print(json.dumps(result))
+        with capture_fds(stdout, stderr):
+            result = run_with_context(handler, args.handler_function, args.event)
+            output['result'] = result
     except Exception as e:
-        print(u'Failure running handler function {f} from file {file}'.format(
+        message = u'Failure running handler function {f} from file {file}:\n{tb}'
+        output['exception'] = message.format(
             f=args.handler_function,
-            file=path
-        ))
-        bail_out(127)
+            file=path,
+            tb=traceback.format_exception(*sys.exc_info()),
+        )
+        output['success'] = False
+    else:
+        output['success'] = True
+    finally:
+        output.update({
+            'stdout': stdout.read(),
+            'stderr': stderr.read(),
+        })
+
+    print(json.dumps(output))
