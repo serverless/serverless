@@ -58,8 +58,8 @@ describe('Test action: Function Create', function() {
           .then(function(evt) {
             validateEvent(evt);
             let functionJson = utils.readAndParseJsonSync(path.join(evt.function.pathFunction, 's-function.json'));
-            assert.equal(true, typeof functionJson.functions.ModuleoneNew != 'undefined');
-            assert.equal(true, functionJson.functions.ModuleoneNew.endpoints.length);
+            assert.equal(true, typeof functionJson.functions.new != 'undefined');
+            assert.equal(true, functionJson.functions.new.endpoints.length);
             done();
           })
           .catch(e => {
