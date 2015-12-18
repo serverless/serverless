@@ -77,25 +77,22 @@ describe('Test action: Resources Deploy', function() {
             // Validate Event
             validateEvent(evt);
 
-            SUtils.sDebug('Rolling back to the origin CF template');
+            SUtils.sDebug('Rolling back to the original s-test-prj CF template');
+
             // roll back
             let CfTemplatePath = path.join(globalProjPath, 'cloudformation', 'resources-cf.json');
             let CfTemplateJson = SUtils.readAndParseJsonSync(CfTemplatePath);
 
             delete CfTemplateJson.Resources.testBucket;
 
-
             fs.writeFileSync(CfTemplatePath, JSON.stringify(CfTemplateJson, null, 2));
 
             serverless.actions.resourcesDeploy(evt)
                 .then(function(evt) {
-
                   // Validate Event
                   validateEvent(evt);
                   done();
                 });
-
-
           })
           .catch(e => {
             done(e);

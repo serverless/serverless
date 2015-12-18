@@ -1,7 +1,7 @@
 {
   "functions": {
 
-    "simpleOne": {
+    "one": {
       "envVars": [],
       "custom": {
         "excludePatterns": []
@@ -38,7 +38,7 @@
       ]
     },
 
-    "simpleTwo": {
+    "two": {
       "envVars": [],
       "custom": {
         "excludePatterns": []
@@ -73,7 +73,7 @@
       ]
     },
 
-    "simpleThree": {
+    "three": {
       "envVars": [],
       "custom": {
         "excludePatterns": []
