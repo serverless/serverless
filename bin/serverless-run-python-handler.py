@@ -133,10 +133,12 @@ def make_module_from_file(module_name, module_filepath):
 
 
 def bail_out(code=99):
-        print(u'--- BEGIN TRACEBACK ---')
-        traceback.print_exception(*sys.exc_info())
-        print(u'--- END TRACEBACK ---')
-        sys.exit(99)
+    output = {
+        'success': False,
+        'exception': traceback.format_exception(*sys.exc_info()),
+    }
+    print(json.dumps(output))
+    sys.exit(code)
 
 
 def import_program_as_module(handler_file):
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     if not os.path.isfile(path):
         print(u'There is no such file "{}". --handler-path must be a '
               u'Python file'.format(path))
-        sys.exit(99)
+        bail_out(100)
 
     try:
         handler = import_program_as_module(path)
