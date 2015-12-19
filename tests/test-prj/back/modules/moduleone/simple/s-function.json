@@ -54,7 +54,10 @@
           "apiKeyRequired": false,
           "requestParameters": {},
           "requestTemplates": {
-            "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+            "application/json": {
+              "access_token": "$input.params('access_token')",
+              "body": "$input.json('$')"
+            }
           },
           "responses": {
             "default": {
