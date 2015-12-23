@@ -9,6 +9,7 @@ let Serverless  = require('../../../lib/Serverless.js'),
     utils       = require('../../../lib/utils/index'),
     assert      = require('chai').assert,
     testUtils   = require('../../test_utils'),
+    AWS         = require('aws-sdk'),
     config      = require('../../config');
 
 let serverless;
@@ -36,6 +37,34 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.failed === 'undefined');
 };
 
+
+/**
+ * Test Cleanup
+ * - Remove Event Source mapping
+ */
+
+let cleanup = function(UUID, cb) {
+  let awsConfig = {
+    region:          config.region,
+    accessKeyId:     config.awsAdminKeyId,
+    secretAccessKey: config.awsAdminSecretKey,
+  };
+
+  let lambda = new AWS.Lambda(awsConfig);
+
+  let params = {
+    UUID: UUID
+  };
+
+  lambda.deleteEventSourceMapping(params, function(e, data) {
+    if (e) {
+      cb(e)
+    } else {
+      cb()
+    }
+  });
+
+};
 /**
  * Create Test Project
  */
@@ -92,6 +121,36 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
+  describe('Function Deploy: Specify One with event source', function() {
+    it('should deploy functions and event source', function(done) {
+
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        paths:      [
+          'moduleone/simple#two'
+        ]
+      };
+
+      serverless.actions.functionDeploy(event)
+        .then(function(evt) {
+          validateEvent(evt);
+
+          // validate event source was created and returned UUID
+          assert.equal(true, typeof evt.functions[0].events[0].UUID != 'undefined');
+
+
+          cleanup(evt.functions[0].events[0].UUID, done);
+
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+  });
+
   describe('Function Deploy: Specify All Paths', function() {
     it('should deploy code', function(done) {
 
@@ -106,7 +165,9 @@ describe('Test Action: Function Deploy', function() {
       serverless.actions.functionDeploy(event)
           .then(function(evt) {
             validateEvent(evt);
-            done();
+
+            cleanup(evt.functions[1].events[0].UUID, done);
+
           })
           .catch(e => {
             done(e);

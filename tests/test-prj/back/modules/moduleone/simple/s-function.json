@@ -9,6 +9,15 @@
       "handler": "modules/moduleone/simple/one.one",
       "timeout": 6,
       "memorySize": 1024,
+      "events": [
+        {
+          "name": "default",
+          "eventSourceArn": "",
+          "startingPosition": "TRIM_HORIZON",
+          "batchSize": 100,
+          "enabled": true
+        }
+      ],
       "endpoints": [
         {
           "path": "simple/one",
@@ -46,6 +55,15 @@
       "handler": "modules/moduleone/simple/two.one",
       "timeout": 6,
       "memorySize": 1024,
+      "events": [
+        {
+          "name": "default",
+          "eventSourceArn": "arn:aws:dynamodb:us-east-1:149631484542:table/event-source-1/stream/2015-12-23T10:20:24.171",
+          "startingPosition": "TRIM_HORIZON",
+          "batchSize": 100,
+          "enabled": true
+        }
+      ],
       "endpoints": [
         {
           "path": "simple/two",
@@ -84,6 +102,15 @@
       "handler": "modules/moduleone/simple/one.two",
       "timeout": 6,
       "memorySize": 1024,
+      "events": [
+        {
+          "name": "default",
+          "eventSourceArn": "",
+          "startingPosition": "TRIM_HORIZON",
+          "batchSize": 100,
+          "enabled": true
+        }
+      ],
       "endpoints": [
         {
           "path": "simple/three",
