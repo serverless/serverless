@@ -10,4 +10,6 @@ let Serverless      = require('../lib/Serverless'),
     ServerlessUtils = require('../lib/utils/index'),
     serverless      = new Serverless();
 
-ServerlessUtils.execute(serverless.command(argv));
+serverless.initialize(function (err) {
+	ServerlessUtils.execute(serverless.command(argv));
+})
