@@ -7,6 +7,7 @@
 let Serverless  = require('../../../lib/Serverless.js'),
     path        = require('path'),
     utils       = require('../../../lib/utils/index'),
+    Eventsutils = require('../../../lib/utils/aws/events'),
     assert      = require('chai').assert,
     testUtils   = require('../../test_utils'),
     AWS         = require('aws-sdk'),
@@ -97,8 +98,32 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
-  describe('Function Deploy: Specify One Path', function() {
-    it('should deploy functions', function(done) {
+  //describe('Function Deploy: Specify One Path', function() {
+  //  it('should deploy functions', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      paths:      [
+  //        'moduleone/simple#one'
+  //      ]
+  //    };
+  //
+  //    serverless.actions.functionDeploy(event)
+  //      .then(function(evt) {
+  //        validateEvent(evt);
+  //        done();
+  //      })
+  //      .catch(e => {
+  //        done(e);
+  //      });
+  //  });
+  //});
+
+  describe('Function Deploy: Specify One Path with S3 event source', function() {
+    it('should deploy function and S3 event source', function(done) {
 
       this.timeout(0);
 
@@ -111,39 +136,20 @@ describe('Test Action: Function Deploy', function() {
       };
 
       serverless.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
-
-  describe('Function Deploy: Specify One with event source', function() {
-    it('should deploy functions and event source', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        paths:      [
-          'moduleone/simple#two'
-        ]
-      };
-
-      serverless.actions.functionDeploy(event)
         .then(function(evt) {
           validateEvent(evt);
+          let awsConfig = {
+            region:          config.region,
+            accessKeyId:     config.awsAdminKeyId,
+            secretAccessKey: config.awsAdminSecretKey,
+          };
+          let eventSource = {
+            bucket: 's3-event-source-test',
+            bucketEvents: ['s3:ObjectCreated:*']
+          };
+          Eventsutils.s3(awsConfig, null, eventSource, done);
 
-          // validate event source was created and returned UUID
-          assert.equal(true, typeof evt.functions[0].events[0].UUID != 'undefined');
-
-
-          cleanup(evt.functions[0].events[0].UUID, done);
-
+          //done();
         })
         .catch(e => {
           done(e);
@@ -151,27 +157,57 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
-  describe('Function Deploy: Specify All Paths', function() {
-    it('should deploy code', function(done) {
+  //describe('Function Deploy: Specify One with event source', function() {
+  //  it('should deploy functions and event source', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      paths:      [
+  //        'moduleone/simple#two'
+  //      ]
+  //    };
+  //
+  //    serverless.actions.functionDeploy(event)
+  //      .then(function(evt) {
+  //        validateEvent(evt);
+  //
+  //        // validate event source was created and returned UUID
+  //        assert.equal(true, typeof evt.functions[0].events[0].UUID != 'undefined');
+  //
+  //
+  //        cleanup(evt.functions[0].events[0].UUID, done);
+  //
+  //      })
+  //      .catch(e => {
+  //        done(e);
+  //      });
+  //  });
+  //});
 
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        all:        true
-      };
-
-      serverless.actions.functionDeploy(event)
-          .then(function(evt) {
-            validateEvent(evt);
-
-            cleanup(evt.functions[1].events[0].UUID, done);
-
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
+  //describe('Function Deploy: Specify All Paths', function() {
+  //  it('should deploy code', function(done) {
+  //
+  //    this.timeout(0);
+  //
+  //    let event = {
+  //      stage:      config.stage,
+  //      region:     config.region,
+  //      all:        true
+  //    };
+  //
+  //    serverless.actions.functionDeploy(event)
+  //        .then(function(evt) {
+  //          validateEvent(evt);
+  //
+  //          cleanup(evt.functions[1].events[0].UUID, done);
+  //
+  //        })
+  //        .catch(e => {
+  //          done(e);
+  //        });
+  //  });
+  //});
 });
