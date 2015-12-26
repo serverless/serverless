@@ -1,0 +1,15 @@
+{
+  "project": {
+    "stages": {
+      "development": {
+        "regions": {
+          "us-east-1": {
+            "variables": {}
+          }
+        },
+        "variables": {}
+      }
+    },
+    "variables": {}
+  }
+}
