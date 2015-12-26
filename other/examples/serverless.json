@@ -1,0 +1,72 @@
+{
+  "name": "serverless-project",
+  "version": "0.0.1",
+  "profile": "serverless-0",
+  "location": "https://github.com...",
+  "author": "",
+  "description": "",
+  "cloudFormation": {
+    "lambdaIamPolicyDocumentStatements": [{}],
+    "resources": {}
+  },
+  "custom": {},
+  "plugins": [],
+
+  "modules": {
+    "users": {
+      "name": "users",
+      "version": "0.0.1",
+      "profile": "aws-0",
+      "location": "https://github.com...",
+      "runtime": "nodejs",
+      "author": "",
+      "description": "",
+      "cloudFormation": {
+        "lambdaIamPolicyDocumentStatements": [{}],
+        "resources": {}
+      },
+      "custom": {},
+
+      "functions": {
+        "usersCreate": {
+          "name": "usersCreate",
+          "handler": "modules/users/users/handlers.usersCreate",
+          "timeout": 6,
+          "memorySize": 1024,
+          "custom": {
+            "excludePatterns": [],
+            "envVars": []
+          },
+          "endpoints": [
+            {
+              "path": "users/create",
+              "method": "POST",
+              "authorizationType": "none",
+              "apiKeyRequired": false,
+              "requestParameters": {
+                "integration.request.querystring.code": "method.request.querystring.code",
+                "integration.request.querystring.state": "method.request.querystring.state"
+              },
+              "requestTemplates": {
+                "application/json": "{\"code\":\"$input.params('code')\"}"
+              },
+              "responses": {
+                "400": {
+                  "statusCode": "400"
+                },
+                "default": {
+                  "statusCode": "200",
+                  "responseParameters": {},
+                  "responseModels": {},
+                  "responseTemplates": {
+                    "application/json": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
