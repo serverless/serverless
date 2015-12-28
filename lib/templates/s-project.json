@@ -11,52 +11,6 @@
   "cloudFormation" : {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "The AWS CloudFormation template for this Serverless application's resources outside of Lambdas and Api Gateway",
-    "Parameters": {
-      "ProjectName": {
-        "Type": "String",
-        "AllowedValues": []
-      },
-      "ProjectDomain": {
-        "Type": "String",
-        "Default": "myapp.com"
-      },
-      "Stage": {
-        "Type": "String",
-        "AllowedValues": [
-        ]
-      },
-      "DataModelStage": {
-        "Type": "String",
-        "AllowedValues": [
-        ]
-      },
-      "NotificationEmail": {
-        "Type": "String",
-        "Default": "you@you.com"
-      },
-      "DynamoRWThroughput": {
-        "Type": "String",
-        "Default": "1"
-      }
-    },
-    "Metadata": {
-      "AWS::CloudFormation::Interface": {
-        "ParameterGroups": [
-          {
-            "Label": {"default": "Project Settings"},
-            "Parameters": ["ProjectName", "ProjectDomain", "Stage", "DataModelStage"]
-          },
-          {
-            "Label": {"default": "Monitoring"},
-            "Parameters": ["NotificationEmail"]
-          },
-          {
-            "Label": {"default": "Database Settings (DynamoDB)"},
-            "Parameters": ["DynamoRWThroughput"]
-          }
-        ]
-      }
-    },
     "Resources": {
       "IamRoleLambda": {
         "Type": "AWS::IAM::Role",
@@ -83,20 +37,7 @@
       "IamPolicyLambda": {
         "Type": "AWS::IAM::Policy",
         "Properties": {
-          "PolicyName": {
-            "Fn::Join": [
-              "_-_",
-              [
-                {
-                  "Ref": "Stage"
-                },
-                {
-                  "Ref": "ProjectName"
-                },
-                "lambda"
-              ]
-            ]
-          },
+          "PolicyName": "$$stage-$$projectName-lambda",
           "PolicyDocument": {
             "Version": "2012-10-17",
             "Statement": [
@@ -107,18 +48,7 @@
                   "logs:CreateLogStream",
                   "logs:PutLogEvents"
                 ],
-                "Resource": {
-                  "Fn::Join": [
-                    ":",
-                    [
-                      "arn:aws:logs",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      "*:*"
-                    ]
-                  ]
-                }
+                "Resource": "arn:aws:logs:$$region:*:"
               }
             ]
           },
