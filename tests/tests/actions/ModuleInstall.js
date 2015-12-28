@@ -2,7 +2,7 @@
 
 /**
  * Test: Module Install Action
- * - Creates a new project in your system's temp directory
+ * - Creates a new private in your system's temp directory
  * - Installs module-test Module from github using the ModuleInstall action
  * - asserts that the Module was installed correctly
  */

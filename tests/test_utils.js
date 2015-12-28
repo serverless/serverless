@@ -11,9 +11,9 @@ let fs        = require('fs'),
     SUtils    = require('../lib/utils');
 
 /**
- * Create test project
+ * Create test private
  * @param config see tests/config.js
- * @param npmInstallDirs list of dirs relative to project root to execute npm install on
+ * @param npmInstallDirs list of dirs relative to private root to execute npm install on
  * @returns {Promise} full path to proj temp dir that was just created
  */
 
@@ -27,14 +27,14 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
 
-  SUtils.sDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
+  SUtils.sDebug('test_utils', 'Creating test private in ' + tmpProjectPath + '\n');
 
   // Delete test folder if already exists
   if (fs.existsSync(tmpProjectPath)) {
     rimraf.sync(tmpProjectPath);
   }
 
-  // Copy test project to temp directory
+  // Copy test private to temp directory
   fs.mkdirSync(tmpProjectPath);
   wrench.copyDirSyncRecursive(path.join(__dirname, './test-prj'), tmpProjectPath, {
     forceDelete: true,
@@ -42,12 +42,12 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   let lambdasCF   = SUtils.readAndParseJsonSync(__dirname + '/../lib/templates/lambdas-cf.json'),
       resourcesCF = SUtils.readAndParseJsonSync(__dirname + '/../lib/templates/resources-cf.json'),
-      projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
+      projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-private.json'));
 
   // Delete Lambda Template
   delete lambdasCF.Resources.lTemplate;
 
-  // Add project name to AllowedValues
+  // Add private name to AllowedValues
   resourcesCF.Parameters.ProjectName.AllowedValues.push(projectName);
 
   // Add stages to AllowedValues
@@ -69,10 +69,10 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectJSON.stages[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
-        regionBucket:         SUtils.generateRegionBucketName(projectRegion, projectDomain)
+        regionBucket:         SUtils.generateProjectBucketName(projectRegion, projectDomain)
       },];
 
-      fs.writeFileSync(path.join(tmpProjectPath, 's-project.json'), JSON.stringify(projectJSON, null, 2));
+      fs.writeFileSync(path.join(tmpProjectPath, 's-private.json'), JSON.stringify(projectJSON, null, 2));
 
       // Write Admin.env file
       let adminEnv = 'SERVERLESS_ADMIN_AWS_ACCESS_KEY_ID='
@@ -81,7 +81,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
           + process.env.TEST_SERVERLESS_AWS_SECRET_KEY + os.EOL;
       fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), adminEnv);
 
-      //Need to run npm install on the test project, they recommend NOT doing this programatically
+      //Need to run npm install on the test private, they recommend NOT doing this programatically
       //https://github.com/npm/npm#using-npm-programmatically
       if (npmInstallDirs) {
 

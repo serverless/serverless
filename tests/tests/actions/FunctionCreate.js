@@ -2,7 +2,7 @@
 
 /**
  * Test: Function Create Action
- * - Creates a new project in your system's temp directory
+ * - Creates a new private in your system's temp directory
  * - Creates a new Function inside the "users" module
  */
 

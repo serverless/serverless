@@ -70,23 +70,6 @@
         "Path": "/"
       }
     },
-    "IamInstanceProfileLambda": {
-      "Type": "AWS::IAM::InstanceProfile",
-      "Properties": {
-        "Path": "/",
-        "Roles": [
-          {
-            "Ref": "IamRoleLambda"
-          }
-        ]
-      }
-    },
-    "IamGroupLambda": {
-      "Type": "AWS::IAM::Group",
-      "Properties": {
-        "Path": "/"
-      }
-    },
     "IamPolicyLambda": {
       "Type": "AWS::IAM::Policy",
       "Properties": {

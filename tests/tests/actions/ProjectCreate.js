@@ -2,8 +2,8 @@
 
 /**
  * Test: Project Create Action
- * - Creates a new project in your system's temp directory
- * - Deletes the CF stack created by the project
+ * - Creates a new private in your system's temp directory
+ * - Deletes the CF stack created by the private
  */
 
 let Serverless  = require('../../../lib/Serverless'),
@@ -118,7 +118,7 @@ describe('Test action: Project Create', function() {
   });
 
   describe('Project Create', function() {
-    it('should create a new project in temp directory', function(done) {
+    it('should create a new private in temp directory', function(done) {
 
       this.timeout(0);
 
@@ -139,7 +139,7 @@ describe('Test action: Project Create', function() {
             validateEvent(evt);
 
             // Validate Project JSON
-            let projectJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-project.json'));
+            let projectJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-private.json'));
             let region = false;
 
             for (let i = 0; i < projectJson.stages.development.length; i++) {

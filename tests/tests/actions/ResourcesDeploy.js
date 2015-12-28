@@ -2,8 +2,8 @@
 
 /**
  * Test: Resources Deploy Action
- * - Creates a new project in your system's temp directory
- * - Makes a tiny update to the project's CF template
+ * - Creates a new private in your system's temp directory
+ * - Makes a tiny update to the private's CF template
  * - Deploy new CF template
  * - Deploy/Rollback the original CF template for cleaning
  */

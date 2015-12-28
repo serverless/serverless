@@ -2,8 +2,8 @@
 
 /**
  * Test: Module Create Action
- * - Creates a new project in your system's temp directory
- * - Creates a new Module inside test project
+ * - Creates a new private in your system's temp directory
+ * - Creates a new Module inside test private
  */
 
 let Serverless      = require('../../../lib/Serverless.js'),

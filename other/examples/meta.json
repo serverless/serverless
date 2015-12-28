@@ -1,5 +1,5 @@
 {
-  "project": {
+  "private": {
     "stages": {
       "development": {
         "regions": {
@@ -10,6 +10,9 @@
         "variables": {}
       }
     },
+    "variables": {}
+  },
+  "public": {
     "variables": {}
   }
 }
