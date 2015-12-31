@@ -69,8 +69,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectJSON.stages[projectStage] = [{
         region:               projectRegion,
         iamRoleArnLambda:     projectLambdaIAMRole,
-        regionBucket:         SUtils.generateProjectBucketName(projectRegion, projectDomain)
-      },];
+        regionBucket:         SUtils.generateProjectBucketName(projectDomain)
+      }];
 
       fs.writeFileSync(path.join(tmpProjectPath, 's-private.json'), JSON.stringify(projectJSON, null, 2));
 
