@@ -37,6 +37,10 @@
       "config": {}
     },
     {
+      "path": "./actions/CodePackageLambdaPython2.js",
+      "config": {}
+    },
+    {
       "path": "./actions/CodeDeployLambdaNodeJs.js",
       "config": {}
     },
