@@ -52,6 +52,7 @@
     "immutable": "^3.7.6",
     "insert-module-globals": "^6.5.2",
     "keypress": "^0.2.1",
+    "lodash": "^3.9.0",
     "minimist": "^1.2.0",
     "mkdirp-then": "^1.1.0",
     "moment": "^2.10.6",
@@ -59,12 +60,12 @@
     "node-zip": "^1.1.0",
     "prompt": "^0.2.14",
     "readdirp": "^1.4.0",
+    "replaceall": "^0.1.6",
     "rimraf": "^2.4.3",
     "shelljs": "^0.5.3",
     "shortid": "^2.2.2",
     "temp": "^0.8.3",
     "traverse": "^0.6.6",
-    "wrench": "^1.5.8",
-    "lodash": "^3.9.0"
+    "wrench": "^1.5.8"
   }
 }
