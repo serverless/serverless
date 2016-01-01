@@ -105,7 +105,7 @@ describe('Test Default Action With Pre Hook', function() {
       serverless.actions.moduleCreate(event)
           .then(function(evt) {
             validateEvent(evt);
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
             assert.equal(true, typeof functionJson.functions.one != 'undefined');
             assert.equal(true, functionJson.functions.one.endpoints.length);
             done();

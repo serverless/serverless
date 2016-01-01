@@ -47,7 +47,7 @@ describe('Test action: Module Install', function() {
 
             assert.equal('https://github.com/serverless/serverless-module-test', evt.url);
 
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'module-test', 'func', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'module-test', 'func', 's-function.json'));
             assert.equal(true, typeof functionJson.functions['Module-testFunc'] != 'undefined');
             assert.equal(true, typeof functionJson.functions['Module-testFunc'].endpoints['module-test/func'] != 'undefined');
             done();

@@ -6,8 +6,11 @@ let argv = require('minimist')(process.argv.slice(2));
 
 if (argv.debug) process.env.DEBUG = '*';
 
-let Serverless      = require('../lib/Serverless'),
-    ServerlessUtils = require('../lib/utils/index'),
-    serverless      = new Serverless();
+let S      = require('../lib/Serverless'),
+    SUtils = require('../lib/utils/index'),
+    serverless      = new S({
+      interactive: typeof process.env.CI !== 'undefined' ? process.env.CI : true,
+      projectPath: SUtils.getProjectPath(process.cwd())
+    });
 
-ServerlessUtils.execute(serverless.command(argv));
+SUtils.execute(serverless.command(argv));
