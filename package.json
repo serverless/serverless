@@ -26,7 +26,7 @@
     "dynamodb",
     "serverless.com"
   ],
-  "main": "lib/serverless.js",
+  "main": "lib/Serverless.js",
   "bin": {
     "serverless": "./bin/serverless",
     "slss": "./bin/serverless",
