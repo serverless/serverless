@@ -1,0 +1,38 @@
+{
+  "name" : "one",
+  "envVars": [],
+  "custom": {
+    "excludePatterns": []
+  },
+  "handler": "modules/moduleone/functions/one/handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "events": [],
+  "endpoints": [
+    {
+      "path": "moduleone/one",
+      "method": "GET",
+      "authorizationType": "none",
+      "apiKeyRequired": false,
+      "requestParameters": {
+        "integration.request.querystring.integrationQueryParam" : "method.request.querystring.longitude"
+      },
+      "requestTemplates": {
+        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+      },
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    }
+  ]
+}

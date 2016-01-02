@@ -27,7 +27,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
 
-  SUtils.sDebug('test_utils', 'Creating test private in ' + tmpProjectPath + '\n');
+  SUtils.sDebug('test_utils', 'Creating test project in ' + tmpProjectPath + '\n');
 
   // Delete test folder if already exists
   if (fs.existsSync(tmpProjectPath)) {
@@ -40,39 +40,38 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     forceDelete: true,
   });
 
-  let lambdasCF   = SUtils.readAndParseJsonSync(__dirname + '/../lib/templates/lambdas-cf.json'),
-      resourcesCF = SUtils.readAndParseJsonSync(__dirname + '/../lib/templates/resources-cf.json'),
-      projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-private.json'));
+  let projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
+  projectJSON.name = projectName;
 
-  // Delete Lambda Template
-  delete lambdasCF.Resources.lTemplate;
+  let commonVariablesPrivate = {
+    project: projectName,
+    domain: projectDomain,
+    projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion)
+  };
 
-  // Add private name to AllowedValues
-  resourcesCF.Parameters.ProjectName.AllowedValues.push(projectName);
+  let commonVariablesPublic = {
+    project: projectName,
+  };
 
-  // Add stages to AllowedValues
-  resourcesCF.Parameters.Stage.AllowedValues.push(config.stage);
-  resourcesCF.Parameters.Stage.AllowedValues.push(config.stage2);
+  let stageVariables = {
+    stage: projectStage
+  };
 
-  // Add stages to AllowedValues
-  resourcesCF.Parameters.DataModelStage.AllowedValues.push(config.stage);
-  resourcesCF.Parameters.DataModelStage.AllowedValues.push(config.stage2);
+  let regionVariables = {
+    region: projectRegion,
+    resourcesStackName: `${projectName}-${projectRegion}-r`,
+    iamRoleArnLambda: projectLambdaIAMRole
+  };
 
   return Promise.all([
-      SUtils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'lambdas-cf.json'), JSON.stringify(lambdasCF, null, 2)),
-      SUtils.writeFile(path.join(tmpProjectPath, 'cloudformation', 'resources-cf.json'), JSON.stringify(resourcesCF, null, 2)),
+      SUtils.writeFile(path.join(tmpProjectPath, 'meta', 'private', 'resources', `s-resources-cf-${projectStage}-${projectRegion}.json`), JSON.stringify(projectJSON.cloudFormation, null, 2)),
+      Sutils.writeFile(path.join(tmpProjectPath, 'meta', 'private', 'variables', 's-variables-common.json'), JSON.stringify(commonVariablesPrivate, null, 2)),
+      Sutils.writeFile(path.join(tmpProjectPath, 'meta', 'private', 'variables', `s-variables-${projectStage}.json`), JSON.stringify(stageVariables, null, 2)),
+      Sutils.writeFile(path.join(tmpProjectPath, 'meta', 'private', 'variables', `s-variables-${projectStage}-${projectRegion}.json`), JSON.stringify(regionVariables, null, 2)),
+      Sutils.writeFile(path.join(tmpProjectPath, 'meta', 'public', 'variables', `s-variables-common.json`), JSON.stringify(commonVariablesPublic, null, 2)),
+      Sutils.writeFile(path.join(tmpProjectPath, `s-project.json`), JSON.stringify(projectJSON, null, 2)),
     ])
     .then(function() {
-      projectJSON.name   = projectName;
-      projectJSON.domain = projectDomain;
-      projectJSON.stages = {};
-      projectJSON.stages[projectStage] = [{
-        region:               projectRegion,
-        iamRoleArnLambda:     projectLambdaIAMRole,
-        regionBucket:         SUtils.generateProjectBucketName(projectDomain)
-      }];
-
-      fs.writeFileSync(path.join(tmpProjectPath, 's-private.json'), JSON.stringify(projectJSON, null, 2));
 
       // Write Admin.env file
       let adminEnv = 'SERVERLESS_ADMIN_AWS_ACCESS_KEY_ID='
@@ -81,7 +80,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
           + process.env.TEST_SERVERLESS_AWS_SECRET_KEY + os.EOL;
       fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), adminEnv);
 
-      //Need to run npm install on the test private, they recommend NOT doing this programatically
+      //Need to run npm install on the test project, they recommend NOT doing this programatically
       //https://github.com/npm/npm#using-npm-programmatically
       if (npmInstallDirs) {
 
