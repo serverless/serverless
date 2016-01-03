@@ -25,6 +25,7 @@ describe('Test action: Module Install', function() {
           process.chdir(projPath);
           serverless = new Serverless({
             interactive: false,
+            projectPath: projPath
           });
           done();
         });
@@ -38,18 +39,17 @@ describe('Test action: Module Install', function() {
 
     it('installs module-test Module from github', function(done) {
       this.timeout(0);
-      let event = {
+      let options = {
         url:   'https://github.com/serverless/serverless-module-test'
       };
 
-      serverless.actions.moduleInstall(event)
-          .then(function(evt) {
+      serverless.actions.moduleInstall(options)
+          .then(function(options) {
 
-            assert.equal('https://github.com/serverless/serverless-module-test', evt.url);
+            let Function = new serverless.classes.Function(serverless, {module: 'module-test', function: 'function-test'});
 
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'module-test', 'func', 's-function.json'));
-            assert.equal(true, typeof functionJson.functions['Module-testFunc'] != 'undefined');
-            assert.equal(true, typeof functionJson.functions['Module-testFunc'].endpoints['module-test/func'] != 'undefined');
+            assert.equal(Function.data.name, 'function-test');
+            assert.equal('https://github.com/serverless/serverless-module-test', options.url);
             done();
           })
           .catch(e => {

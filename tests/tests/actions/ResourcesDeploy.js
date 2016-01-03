@@ -18,19 +18,6 @@ let Serverless = require('../../../lib/Serverless.js'),
     config     = require('../../config');
 
 let serverless;
-let globalProjPath;
-
-/**
- * Validate Event
- * - Validate an event object's properties
- */
-
-let validateEvent = function(options) {
-
-  assert.equal(true, typeof options.region != 'undefined');
-  assert.equal(true, typeof options.stage != 'undefined');
-
-};
 
 describe('Test action: Resources Deploy', function() {
 
@@ -46,14 +33,10 @@ describe('Test action: Resources Deploy', function() {
             projectPath: projPath
           });
 
-          globalProjPath = projPath;
-          let CfTemplatePath = path.join(projPath, 'cloudformation', 'resources-cf.json');
-          let CfTemplateJson = SUtils.readAndParseJsonSync(CfTemplatePath);
-
-          CfTemplateJson.Resources.testBucket = { "Type" : "AWS::S3::Bucket" };
-
-
-          fs.writeFileSync(CfTemplatePath, JSON.stringify(CfTemplateJson, null, 2));
+          SUtils.sDebug('Adding test bucket resource');
+          let Project = new serverless.classes.Project(serverless);
+          Project.data.cloudFormation.Resources.testBucket = { "Type" : "AWS::S3::Bucket" };
+          Project.save();
 
           done();
         });
@@ -75,23 +58,13 @@ describe('Test action: Resources Deploy', function() {
       serverless.actions.resourcesDeploy(event)
           .then(function(options) {
 
-            // Validate Event
-            validateEvent(options);
-
-            SUtils.sDebug('Rolling back to the original s-test-prj CF template');
-
-            // roll back
-            let CfTemplatePath = path.join(globalProjPath, 'cloudformation', 'resources-cf.json');
-            let CfTemplateJson = SUtils.readAndParseJsonSync(CfTemplatePath);
-
-            delete CfTemplateJson.Resources.testBucket;
-
-            fs.writeFileSync(CfTemplatePath, JSON.stringify(CfTemplateJson, null, 2));
+            SUtils.sDebug('removing test bucket resource');
+            let Project = new serverless.classes.Project(serverless);
+            delete Project.data.cloudFormation.Resources['testBucket'];
+            Project.save();
 
             serverless.actions.resourcesDeploy(options)
                 .then(function(options) {
-                  // Validate Event
-                  validateEvent(options);
                   done();
                 });
           })
