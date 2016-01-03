@@ -13,8 +13,8 @@ describe('All Tests', function() {
 
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
-  require('./tests/actions/ProjectCreate');
-  //require('./tests/actions/StageCreate');
+  //require('./tests/actions/ProjectCreate');
+  require('./tests/actions/StageCreate');
   //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ModuleInstall');
   //require('./tests/actions/ModuleCreate');

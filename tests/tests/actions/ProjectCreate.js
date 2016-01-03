@@ -24,15 +24,34 @@ let serverless = new Serverless({
   awsAdminSecretKey: config.awsAdminSecretKey
 });
 
+
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(Meta) {
+  assert.equal(true, typeof Meta.data.private.variables.project != 'undefined');
+  assert.equal(true, typeof Meta.data.private.variables.domain != 'undefined');
+  assert.equal(true, typeof Meta.data.private.variables.projectBucket != 'undefined');
+  assert.equal(true, typeof Meta.data.private.stages[config.stage].variables.stage != 'undefined');
+  assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.region != 'undefined');
+
+  if (!config.noExecuteCf) {
+    assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
+    assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+  }
+};
+
 /**
  * Test Cleanup
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(options, cb) {
+let cleanup = function(Meta, cb) {
 
   AWS.config.update({
-    region:          options.region,
+    region:          config.region,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey,
   });
@@ -42,12 +61,12 @@ let cleanup = function(options, cb) {
 
   // Delete All Objects in Bucket first, this is required
   s3.listObjects({
-    Bucket: options.projectBucket
+    Bucket: Meta.data.private.variables.projectBucket
   }, function(err, data) {
     if (err) return console.log(err);
 
     let params = {
-      Bucket: options.projectBucket
+      Bucket: Meta.data.private.variables.projectBucket
     };
     params.Delete = {};
     params.Delete.Objects = [];
@@ -60,17 +79,17 @@ let cleanup = function(options, cb) {
 
       // Delete Bucket
       s3.deleteBucket({
-        Bucket: options.projectBucket
+        Bucket: Meta.data.private.variables.projectBucket
       }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
 
-        // If no options.stageCfStack, skip
-        if (!options.stageCfStack) return cb();
+        // If no stack, skip
+        if (config.noExecuteCf) return cb();
 
         // Delete CloudFormation Resources Stack
         let cloudformation = new AWS.CloudFormation();
         cloudformation.deleteStack({
-          StackName: options.stageCfStack
+          StackName: Meta.data.private.stages[config.stage].regions[config.region].variables.resourcesStackName
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
 
@@ -79,25 +98,6 @@ let cleanup = function(options, cb) {
       });
     });
   });
-};
-
-/**
- * Validate Event
- * - Validate an event object's properties
- */
-
-let validateEvent = function(options) {
-  assert.equal(true, typeof options.name != 'undefined');
-  assert.equal(true, typeof options.domain != 'undefined');
-  assert.equal(true, typeof options.notificationEmail != 'undefined');
-  assert.equal(true, typeof options.region != 'undefined');
-  assert.equal(true, typeof options.noExeCf != 'undefined');
-  assert.equal(true, typeof options.stage != 'undefined');
-
-  if (!config.noExecuteCf) {
-    assert.equal(true, typeof options.iamRoleLambdaArn != 'undefined');
-    assert.equal(true, typeof options.stageCfStack != 'undefined');
-  }
 };
 
 /**
@@ -122,7 +122,7 @@ describe('Test action: Project Create', function() {
 
       let name    = ('testprj-' + uuid.v4()).replace(/-/g, '');
       let domain  = name + '.com';
-      let event   = {
+      let options   = {
         name:               name,
         domain:             domain,
         notificationEmail:  config.notifyEmail,
@@ -130,18 +130,15 @@ describe('Test action: Project Create', function() {
         noExeCf:            config.noExecuteCf,
       };
 
-      serverless.actions.projectCreate(event)
+      serverless.actions.projectCreate(options)
           .then(function(options) {
+            let Meta = new serverless.classes.Meta(serverless);
 
             // Validate Event
-            validateEvent(options.options);
-
-            let commonVariablesJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'meta', 'private', 'variables', 's-variables-common.json'));
-
-            options.options.projectBucket = commonVariablesJson.projectBucket;
+            validateEvent(Meta);
 
             // Cleanup
-            cleanup(options.options, done);
+            cleanup(Meta, done);
           })
           .catch(SError, function(e) {
             done(e);

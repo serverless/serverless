@@ -20,15 +20,9 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(options) {
-  assert.equal(true, typeof options.region != 'undefined');
-  assert.equal(true, typeof options.noExeCf != 'undefined');
-  assert.equal(true, typeof options.stage != 'undefined');
-
-  if (!config.noExecuteCf) {
-    assert.equal(true, typeof options.iamRoleLambdaArn != 'undefined');
-    assert.equal(true, typeof options.stageCfStack != 'undefined');
-  }
+let validateEvent = function(Meta) {
+  assert.equal(true, typeof Meta.data.private.stages[config.stage2].variables.stage != 'undefined');
+  assert.equal(true, typeof Meta.data.private.stages[config.stage2].regions[config.region].variables.region != 'undefined');
 };
 
 /**
@@ -36,19 +30,27 @@ let validateEvent = function(options) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(options, cb) {
+let cleanup = function(Meta, cb) {
 
-  if (config.noExecuteCf) return cb();
-
-  let cloudformation = new AWS.CloudFormation({
-    region:          options.region,
+  AWS.config.update({
+    region:          Meta.data.private.variables.projectBucket.split('.')[1],
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey,
   });
-  cloudformation.deleteStack({
-    StackName: options.stageCfStack
-  }, function(err, data) {
-    if (err) console.log(err, err.stack); // an error occurred
+
+  let s3 = new AWS.S3();
+
+  let params = {
+    Bucket: Meta.data.private.variables.projectBucket,
+    Delete: {
+      Objects: [{
+        Key: `${Meta.data.private.variables.projectBucket}/serverless/${Meta.data.private.variables.project}/${config.stage2}/`
+      }]
+    }
+  };
+
+  s3.deleteObjects(params, function(err, data) {
+    if (err) return console.log(err);
     return cb();
   });
 };
@@ -82,18 +84,18 @@ describe('Test Action: Stage Create', function() {
 
       let options = {
         stage:      config.stage2,
-        region:     config.region,
-        noExeCf:    config.noExecuteCf,
+        region:     config.region
       };
 
       serverless.actions.stageCreate(options)
           .then(function(options) {
+            let Meta = new serverless.classes.Meta(serverless);
 
             // Validate Event
-            validateEvent(options.options);
+            validateEvent(Meta);
 
             // Cleanup
-            cleanup(options.options, done);
+            cleanup(Meta, done);
           })
           .catch(e => {
             done(e);
