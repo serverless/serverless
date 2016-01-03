@@ -21,7 +21,7 @@ let Serverless  = require('../../../lib/Serverless'),
 let serverless = new Serverless({
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
-  awsAdminSecretKey: config.awsAdminSecretKey,
+  awsAdminSecretKey: config.awsAdminSecretKey
 });
 
 /**
@@ -29,10 +29,10 @@ let serverless = new Serverless({
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(evt, cb) {
+let cleanup = function(options, cb) {
 
   AWS.config.update({
-    region:          evt.region,
+    region:          options.region,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey,
   });
@@ -42,12 +42,12 @@ let cleanup = function(evt, cb) {
 
   // Delete All Objects in Bucket first, this is required
   s3.listObjects({
-    Bucket: evt.regionBucket
+    Bucket: options.projectBucket
   }, function(err, data) {
     if (err) return console.log(err);
 
     let params = {
-      Bucket: evt.regionBucket
+      Bucket: options.projectBucket
     };
     params.Delete = {};
     params.Delete.Objects = [];
@@ -60,17 +60,17 @@ let cleanup = function(evt, cb) {
 
       // Delete Bucket
       s3.deleteBucket({
-        Bucket: evt.regionBucket
+        Bucket: options.projectBucket
       }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
 
-        // If no evt.stageCfStack, skip
-        if (!evt.stageCfStack) return cb();
+        // If no options.stageCfStack, skip
+        if (!options.stageCfStack) return cb();
 
         // Delete CloudFormation Resources Stack
         let cloudformation = new AWS.CloudFormation();
         cloudformation.deleteStack({
-          StackName: evt.stageCfStack
+          StackName: options.stageCfStack
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
 
@@ -86,19 +86,17 @@ let cleanup = function(evt, cb) {
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.name != 'undefined');
-  assert.equal(true, typeof evt.domain != 'undefined');
-  assert.equal(true, typeof evt.notificationEmail != 'undefined');
-  assert.equal(true, typeof evt.region != 'undefined');
-  assert.equal(true, typeof evt.noExeCf != 'undefined');
-  assert.equal(true, typeof evt.runtime != 'undefined');
-  assert.equal(true, typeof evt.stage != 'undefined');
-  assert.equal(true, typeof evt.regionBucket != 'undefined');
+let validateEvent = function(options) {
+  assert.equal(true, typeof options.name != 'undefined');
+  assert.equal(true, typeof options.domain != 'undefined');
+  assert.equal(true, typeof options.notificationEmail != 'undefined');
+  assert.equal(true, typeof options.region != 'undefined');
+  assert.equal(true, typeof options.noExeCf != 'undefined');
+  assert.equal(true, typeof options.stage != 'undefined');
 
   if (!config.noExecuteCf) {
-    assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
-    assert.equal(true, typeof evt.stageCfStack != 'undefined');
+    assert.equal(true, typeof options.iamRoleLambdaArn != 'undefined');
+    assert.equal(true, typeof options.stageCfStack != 'undefined');
   }
 };
 
@@ -133,25 +131,17 @@ describe('Test action: Project Create', function() {
       };
 
       serverless.actions.projectCreate(event)
-          .then(function(evt) {
+          .then(function(options) {
 
             // Validate Event
-            validateEvent(evt);
+            validateEvent(options.options);
 
-            // Validate Project JSON
-            let projectJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 's-private.json'));
-            let region = false;
+            let commonVariablesJson = utils.readAndParseJsonSync(path.join(os.tmpdir(), name, 'meta', 'private', 'variables', 's-variables-common.json'));
 
-            for (let i = 0; i < projectJson.stages.development.length; i++) {
-              let stage = projectJson.stages[config.stage][i];
-              if (stage.region === config.region) {
-                region = stage.region;
-              }
-            }
-            assert.isTrue(region !== false);
+            options.options.projectBucket = commonVariablesJson.projectBucket;
 
             // Cleanup
-            cleanup(evt, done);
+            cleanup(options.options, done);
           })
           .catch(SError, function(e) {
             done(e);
