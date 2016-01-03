@@ -49,6 +49,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion)
   };
 
+
   let commonVariablesPublic = {
     project: projectName
   };

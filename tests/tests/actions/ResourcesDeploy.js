@@ -25,10 +25,10 @@ let globalProjPath;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
+let validateEvent = function(options) {
 
-  assert.equal(true, typeof evt.region != 'undefined');
-  assert.equal(true, typeof evt.stage != 'undefined');
+  assert.equal(true, typeof options.region != 'undefined');
+  assert.equal(true, typeof options.stage != 'undefined');
 
 };
 
@@ -42,7 +42,8 @@ describe('Test action: Resources Deploy', function() {
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
+            awsAdminSecretKey: config.awsAdminSecretKey,
+            projectPath: projPath
           });
 
           globalProjPath = projPath;
@@ -72,10 +73,10 @@ describe('Test action: Resources Deploy', function() {
       };
 
       serverless.actions.resourcesDeploy(event)
-          .then(function(evt) {
+          .then(function(options) {
 
             // Validate Event
-            validateEvent(evt);
+            validateEvent(options);
 
             SUtils.sDebug('Rolling back to the original s-test-prj CF template');
 
@@ -87,10 +88,10 @@ describe('Test action: Resources Deploy', function() {
 
             fs.writeFileSync(CfTemplatePath, JSON.stringify(CfTemplateJson, null, 2));
 
-            serverless.actions.resourcesDeploy(evt)
-                .then(function(evt) {
+            serverless.actions.resourcesDeploy(options)
+                .then(function(options) {
                   // Validate Event
-                  validateEvent(evt);
+                  validateEvent(options);
                   done();
                 });
           })

@@ -20,15 +20,14 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.region != 'undefined');
-  assert.equal(true, typeof evt.noExeCf != 'undefined');
-  assert.equal(true, typeof evt.stage != 'undefined');
-  assert.equal(true, typeof evt.regionBucket != 'undefined');
+let validateEvent = function(options) {
+  assert.equal(true, typeof options.region != 'undefined');
+  assert.equal(true, typeof options.noExeCf != 'undefined');
+  assert.equal(true, typeof options.stage != 'undefined');
 
   if (!config.noExecuteCf) {
-    assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
-    assert.equal(true, typeof evt.stageCfStack != 'undefined');
+    assert.equal(true, typeof options.iamRoleLambdaArn != 'undefined');
+    assert.equal(true, typeof options.stageCfStack != 'undefined');
   }
 };
 
@@ -37,17 +36,17 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(evt, cb) {
+let cleanup = function(options, cb) {
 
   if (config.noExecuteCf) return cb();
 
   let cloudformation = new AWS.CloudFormation({
-    region:          evt.region,
+    region:          options.region,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey,
   });
   cloudformation.deleteStack({
-    StackName: evt.stageCfStack
+    StackName: options.stageCfStack
   }, function(err, data) {
     if (err) console.log(err, err.stack); // an error occurred
     return cb();
@@ -68,7 +67,8 @@ describe('Test Action: Stage Create', function() {
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
+            awsAdminSecretKey: config.awsAdminSecretKey,
+            projectPath: projPath
           });
 
           done();
@@ -80,20 +80,20 @@ describe('Test Action: Stage Create', function() {
 
       this.timeout(0);
 
-      let event = {
+      let options = {
         stage:      config.stage2,
         region:     config.region,
         noExeCf:    config.noExecuteCf,
       };
 
-      serverless.actions.stageCreate(event)
-          .then(function(evt) {
+      serverless.actions.stageCreate(options)
+          .then(function(options) {
 
             // Validate Event
-            validateEvent(evt);
+            validateEvent(options.options);
 
             // Cleanup
-            cleanup(evt, done);
+            cleanup(options.options, done);
           })
           .catch(e => {
             done(e);

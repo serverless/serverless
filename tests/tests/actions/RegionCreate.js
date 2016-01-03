@@ -15,22 +15,16 @@ let Serverless    = require('../../../lib/Serverless'),
     config        = require('../../config');
 
 let serverless;
-
+let projPathGlobal;
 /**
  * Validate Event
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.region != 'undefined');
-  assert.equal(true, typeof evt.noExeCf != 'undefined');
-  assert.equal(true, typeof evt.stage != 'undefined');
-  assert.equal(true, typeof evt.regionBucket != 'undefined');
-
-  if (!config.noExecuteCf) {
-    assert.equal(true, typeof evt.iamRoleLambdaArn != 'undefined');
-    assert.equal(true, typeof evt.stageCfStack != 'undefined');
-  }
+let validateEvent = function(options) {
+  assert.equal(true, typeof options.region != 'undefined');
+  assert.equal(true, typeof options.noExeCf != 'undefined');
+  assert.equal(true, typeof options.stage != 'undefined');
 };
 
 /**
@@ -38,10 +32,12 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(evt, cb) {
+let cleanup = function(options, cb) {
+
+  if (config.noExecuteCf) return cb();
 
   AWS.config.update({
-    region:          config.region2,
+    region:          options.projectBucket.split('.')[1],
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey,
   });
@@ -51,12 +47,12 @@ let cleanup = function(evt, cb) {
 
   // Delete All Objects in Bucket first, this is required
   s3.listObjects({
-    Bucket: evt.regionBucket
+    Bucket: options.projectBucket
   }, function(err, data) {
     if (err) console.log(err);
 
     let params = {
-      Bucket: evt.regionBucket
+      Bucket: options.projectBucket
     };
     params.Delete = {};
     params.Delete.Objects = [];
@@ -69,7 +65,7 @@ let cleanup = function(evt, cb) {
 
       // Delete Bucket
       s3.deleteBucket({
-        Bucket: evt.regionBucket
+        Bucket: options.projectBucket
       }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
 
@@ -78,7 +74,7 @@ let cleanup = function(evt, cb) {
         // Delete CloudFormation Resources Stack
         let cloudformation = new AWS.CloudFormation();
         cloudformation.deleteStack({
-          StackName: evt.stageCfStack
+          StackName: options.stageCfStack
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
 
@@ -101,13 +97,14 @@ describe('Test Action: Region Create', function() {
     testUtils.createTestProject(config)
         .then(projPath => {
           this.timeout(0);
-
+          projPathGlobal = projPath;
           process.chdir(projPath);  // Ror some weird reason process.chdir adds /private/ before cwd path
 
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
+            awsAdminSecretKey: config.awsAdminSecretKey,
+            projectPath: projPath
           });
 
           done();
@@ -123,20 +120,25 @@ describe('Test Action: Region Create', function() {
 
       this.timeout(0);
 
-      let event = {
+      let options = {
         stage:      config.stage,
         region:     config.region2,
         noExeCf:    config.noExecuteCf,
       };
 
-      serverless.actions.regionCreate(event)
-          .then(function(evt) {
+      serverless.actions.regionCreate(options)
+          .then(function(options) {
+
+            let Meta = new serverless.classes.Meta(serverless);
+            options.options.projectBucket = Meta.data.private.variables.projectBucket;
+            options.options.stageCfStack  = Meta.data.private.stages[options.options.stage].regions[options.options.region];
+
 
             // Validate Event
-            validateEvent(evt);
+            validateEvent(options.options);
 
             // Cleanup
-            cleanup(evt, done);
+            cleanup(options.options, done);
           })
           .catch(e => {
             done(e);
