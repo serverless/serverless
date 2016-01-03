@@ -18,13 +18,13 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
+let validateEvent = function(options) {
 
-  assert.equal(true, typeof evt.region != 'undefined');
-  assert.equal(true, typeof evt.stage != 'undefined');
-  assert.equal(evt.region, evt.envMapsByRegion[0].regionName);
-  assert.equal('development', evt.envMapsByRegion[0].vars.SERVERLESS_STAGE);
-  assert.equal('development', evt.envMapsByRegion[0].vars.SERVERLESS_DATA_MODEL_STAGE);
+  assert.equal(true, typeof options.region != 'undefined');
+  assert.equal(true, typeof options.stage != 'undefined');
+  assert.equal(options.region, options.envMapsByRegion[0].regionName);
+  assert.equal('development', options.envMapsByRegion[0].vars.SERVERLESS_STAGE);
+  assert.equal('development', options.envMapsByRegion[0].vars.SERVERLESS_DATA_MODEL_STAGE);
 
 };
 
@@ -42,7 +42,8 @@ describe('Test Action: Env List', function() {
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
+            awsAdminSecretKey: config.awsAdminSecretKey,
+            projectPath: projPath
           });
 
           done();
@@ -65,10 +66,10 @@ describe('Test Action: Env List', function() {
       };
 
       serverless.actions.envList(event)
-          .then(function(evt) {
+          .then(function(options) {
 
             // Validate Event
-            validateEvent(evt);
+            validateEvent(options);
 
             done();
           })

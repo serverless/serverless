@@ -1,7 +1,7 @@
 {
   "name" : "one",
-  "envVars": [],
   "custom": {
+    "envVars": [],
     "excludePatterns": []
   },
   "handler": "modules/moduleone/functions/one/handler.handler",

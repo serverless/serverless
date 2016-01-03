@@ -20,10 +20,9 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.module != 'undefined');
-  assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.runtime != 'undefined');
+let validateEvent = function(options) {
+  assert.equal(true, typeof options.module != 'undefined');
+  assert.equal(true, typeof options.function != 'undefined');
 };
 
 describe('Test action: Function Create', function() {
@@ -35,6 +34,7 @@ describe('Test action: Function Create', function() {
           process.chdir(projPath);
           serverless = new Serverless({
             interactive: false,
+            projectPath: projPath
           });
           done();
         });
@@ -50,16 +50,15 @@ describe('Test action: Function Create', function() {
       this.timeout(0);
       let event = {
         module:    'moduleone',
-        function:  'new',
-        runtime:   'nodejs'
+        function:  'new'
       };
 
       serverless.actions.functionCreate(event)
-          .then(function(evt) {
-            validateEvent(evt);
-            let functionJson = utils.readAndParseJsonSync(path.join(evt.function.pathFunction, 's-function.json'));
-            assert.equal(true, typeof functionJson.functions.new != 'undefined');
-            assert.equal(true, functionJson.functions.new.endpoints.length);
+          .then(function(options) {
+            validateEvent(options);
+            let functionJson = utils.readAndParseJsonSync(path.join(options.functionPath, 's-function.json'));
+            assert.equal(true, typeof functionJson.name != 'undefined');
+            assert.equal(true, functionJson.endpoints.length);
             done();
           })
           .catch(e => {

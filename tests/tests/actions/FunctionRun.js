@@ -18,11 +18,11 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.function != 'undefined');
-  assert.equal(true, typeof evt.function.event != 'undefined');
-  assert.equal(true, typeof evt.result != 'undefined');
-  assert.equal(true, typeof evt.function.handler != 'undefined');
+let validateEvent = function(options) {
+  assert.equal(true, typeof options.function != 'undefined');
+  assert.equal(true, typeof options.event != 'undefined');
+  assert.equal(true, typeof options.result != 'undefined');
+  assert.equal(true, typeof options.function.handler != 'undefined');
 };
 
 describe('Test Action: Function Run', function() {
@@ -30,7 +30,7 @@ describe('Test Action: Function Run', function() {
   before(function(done) {
     this.timeout(0);
 
-    testUtils.createTestProject(config, ['moduleone/simple'])
+    testUtils.createTestProject(config, ['moduleone/functions/one'])
         .then(projPath => {
 
           this.timeout(0);
@@ -40,7 +40,8 @@ describe('Test Action: Function Run', function() {
           serverless = new Serverless({
             interactive: true,
             awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
+            awsAdminSecretKey: config.awsAdminSecretKey,
+            projectPath: projPath
           });
 
           done();
@@ -57,30 +58,12 @@ describe('Test Action: Function Run', function() {
       this.timeout(0);
 
       serverless.actions.functionRun({
-        path: 'moduleone/simple#one'
+        path: 'moduleone/one'
       })
-          .then(function(evt) {
-            validateEvent(evt);
-            assert.equal(true, evt.result.status == 'success');
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-    });
-  });
+          .then(function(options) {
 
-  describe('Function Run w/ Name', function() {
-    it('should run the function with no errors', function(done) {
-
-      this.timeout(0);
-
-      serverless.actions.functionRun({
-            name: 'one'
-          })
-          .then(function(evt) {
-            validateEvent(evt);
-            assert.equal(true, evt.result.status == 'success');
+            validateEvent(options);
+            assert.equal(true, options.result.status === 'success');
             done();
           })
           .catch(e => {
