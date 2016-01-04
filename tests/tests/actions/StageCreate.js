@@ -82,13 +82,15 @@ describe('Test Action: Stage Create', function() {
 
       this.timeout(0);
 
-      let options = {
-        stage:      config.stage2,
-        region:     config.region
+      let evt = {
+        options: {
+          stage:      config.stage2,
+          region:     config.region
+        }
       };
 
-      serverless.actions.stageCreate(options)
-          .then(function(options) {
+      serverless.actions.stageCreate(evt)
+          .then(function(evt) {
             let Meta = new serverless.classes.Meta(serverless);
 
             // Validate Event

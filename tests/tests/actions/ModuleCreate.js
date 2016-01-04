@@ -20,10 +20,10 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(options) {
-  assert.equal(true, typeof options.module != 'undefined');
-  assert.equal(true, typeof options.function != 'undefined');
-  assert.equal(true, typeof options.runtime != 'undefined');
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.module != 'undefined');
+  assert.equal(true, typeof evt.options.function != 'undefined');
+  assert.equal(true, typeof evt.options.runtime != 'undefined');
 };
 
 describe('Test action: Module Create', function() {
@@ -51,14 +51,14 @@ describe('Test action: Module Create', function() {
 
       this.timeout(0);
 
-      let event = {
+      let evt = {
         module:   'temp',
-        function: 'one',
+        function: 'one'
       };
 
-      serverless.actions.moduleCreate(event)
-          .then(function(options) {
-            validateEvent(options);
+      serverless.actions.moduleCreate(evt)
+          .then(function(evt) {
+            validateEvent(evt);
             let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'temp', 'functions', 'one', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);

@@ -18,13 +18,12 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(options) {
-
-  assert.equal(true, typeof options.region != 'undefined');
-  assert.equal(true, typeof options.stage != 'undefined');
-  assert.equal(options.region, options.envMapsByRegion[0].regionName);
-  assert.equal('development', options.envMapsByRegion[0].vars.SERVERLESS_STAGE);
-  assert.equal('development', options.envMapsByRegion[0].vars.SERVERLESS_DATA_MODEL_STAGE);
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.region != 'undefined');
+  assert.equal(true, typeof evt.options.stage != 'undefined');
+  assert.equal(evt.options.region, evt.data.envMapsByRegion[0].regionName);
+  assert.equal('development', evt.data.envMapsByRegion[0].vars.SERVERLESS_STAGE);
+  assert.equal('development', evt.data.envMapsByRegion[0].vars.SERVERLESS_DATA_MODEL_STAGE);
 
 };
 
@@ -60,16 +59,16 @@ describe('Test Action: Env List', function() {
       this.timeout(0);
 
 
-      let event = {
+      let evt = {
         stage:      config.stage,
         region:     config.region,
       };
 
-      serverless.actions.envList(event)
-          .then(function(options) {
+      serverless.actions.envList(evt)
+          .then(function(evt) {
 
             // Validate Event
-            validateEvent(options);
+            validateEvent(evt);
 
             done();
           })

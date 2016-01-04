@@ -18,13 +18,11 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(options) {
-
-  assert.equal(true, typeof options.region != 'undefined');
-  assert.equal(true, typeof options.stage != 'undefined');
-  assert.equal('SERVERLESS_STAGE', options.key);
-  assert.equal('development', options.valByRegion[options.region]);
-
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.region != 'undefined');
+  assert.equal(true, typeof evt.options.stage != 'undefined');
+  assert.equal('SERVERLESS_STAGE', evt.options.key);
+  assert.equal('development', evt.data.valByRegion[evt.options.region][evt.options.key]);
 };
 
 describe('Test Action: Env Get', function() {
@@ -57,17 +55,17 @@ describe('Test Action: Env Get', function() {
 
       this.timeout(0);
 
-      let options = {
+      let evt = {
         stage:      config.stage,
         region:     config.region,
         key:        'SERVERLESS_STAGE'
       };
 
-      serverless.actions.envGet(options)
-          .then(function(options) {
+      serverless.actions.envGet(evt)
+          .then(function(evt) {
 
             // Validate returned data
-            validateEvent(options);
+            validateEvent(evt);
 
             done();
           })

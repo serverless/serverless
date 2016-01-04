@@ -102,12 +102,12 @@ describe('Test Default Action With Pre Hook', function() {
     it('adds a pre hook to Module Create default Action', function(done) {
 
       this.timeout(0);
-      let options = {
+      let evt = {
         module:   'temp',
         function: 'one'
       };
 
-      serverless.actions.moduleCreate(options)
+      serverless.actions.moduleCreate(evt)
           .then(function(result) {
             validateResult(result);
             let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'temp', 'functions', 'one', 's-function.json'));

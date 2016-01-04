@@ -18,11 +18,12 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(options) {
-  assert.equal(true, typeof options.function != 'undefined');
-  assert.equal(true, typeof options.event != 'undefined');
-  assert.equal(true, typeof options.result != 'undefined');
-  assert.equal(true, typeof options.function.handler != 'undefined');
+let validateEvent = function(evt) {
+  console.log(evt)
+  assert.equal(true, typeof evt.options.function != 'undefined');
+  assert.equal(true, typeof evt.options.function.handler != 'undefined');
+  assert.equal(true, typeof evt.data.result != 'undefined');
+  assert.equal(true, evt.data.result.status === 'success');
 };
 
 describe('Test Action: Function Run', function() {
@@ -56,14 +57,15 @@ describe('Test Action: Function Run', function() {
     it('should run the function with no errors', function(done) {
 
       this.timeout(0);
+      let evt = {
+        options: {
+          path: ['moduleone/one']
+        }
+      };
+      serverless.actions.functionRun(evt)
+          .then(function(evt) {
+            validateEvent(evt);
 
-      serverless.actions.functionRun({
-        path: 'moduleone/one'
-      })
-          .then(function(options) {
-
-            validateEvent(options);
-            assert.equal(true, options.result.status === 'success');
             done();
           })
           .catch(e => {

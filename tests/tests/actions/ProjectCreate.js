@@ -122,16 +122,18 @@ describe('Test action: Project Create', function() {
 
       let name    = ('testprj-' + uuid.v4()).replace(/-/g, '');
       let domain  = name + '.com';
-      let options   = {
-        name:               name,
-        domain:             domain,
-        notificationEmail:  config.notifyEmail,
-        region:             config.region,
-        noExeCf:            config.noExecuteCf,
+      let evt   = {
+        options: {
+          name:               name,
+          domain:             domain,
+          notificationEmail:  config.notifyEmail,
+          region:             config.region,
+          noExeCf:            config.noExecuteCf,
+        }
       };
 
-      serverless.actions.projectCreate(options)
-          .then(function(options) {
+      serverless.actions.projectCreate(evt)
+          .then(function(evt) {
             let Meta = new serverless.classes.Meta(serverless);
 
             // Validate Event

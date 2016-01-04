@@ -18,13 +18,13 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(options, isSet) {
+let validateEvent = function(evt, isSet) {
 
-  assert.equal(true, typeof options.region != 'undefined');
-  assert.equal(true, typeof options.stage != 'undefined');
-  assert.equal('ENV_SET_TEST_KEY', options.key);
+  assert.equal(true, typeof evt.options.region != 'undefined');
+  assert.equal(true, typeof evt.options.stage != 'undefined');
+  assert.equal('ENV_SET_TEST_KEY', evt.options.key);
 
-  if(isSet) assert.equal('ENV_SET_TEST_VAL', options.value);
+  if (isSet) assert.equal('ENV_SET_TEST_VAL', evt.options.value);
 
 
 };
@@ -60,30 +60,30 @@ describe('Test Env Set & Env Unset actions', function() {
 
       this.timeout(0);
 
-      let setEvent = {
+      let setEvt = {
         stage:      config.stage,
         region:     config.region,
         key:    'ENV_SET_TEST_KEY',
         value:       'ENV_SET_TEST_VAL',
       };
 
-      serverless.actions.envSet(setEvent)
-          .then(function(setoptions) {
+      serverless.actions.envSet(setEvt)
+          .then(function(setEvt) {
 
             // Validate Set Event
-            validateEvent(setoptions, true);
+            validateEvent(setEvt, true);
 
-            let unsetEvent = {
-              stage:      setoptions.stage,
-              region:     setoptions.region,
-              key:    setoptions.key,
+            let unsetEvt = {
+              stage:      setEvt.options.stage,
+              region:     setEvt.options.region,
+              key:    setEvt.options.key,
             };
 
-            serverless.actions.envUnset(unsetEvent)
-                .then(function(unsetoptions) {
+            serverless.actions.envUnset(unsetEvt)
+                .then(function(unsetEvt) {
 
                   // Validate Unset Event
-                  validateEvent(unsetoptions, false);
+                  validateEvent(unsetEvt, false);
 
                   done();
                 });

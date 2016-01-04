@@ -50,21 +50,21 @@ describe('Test action: Resources Deploy', function() {
 
     it('deploys an updated CF template', function(done) {
       this.timeout(0);
-      let event = {
+      let evt = {
         stage:      config.stage,
         region:     config.region,
       };
 
-      serverless.actions.resourcesDeploy(event)
-          .then(function(options) {
+      serverless.actions.resourcesDeploy(evt)
+          .then(function(evt) {
 
             SUtils.sDebug('removing test bucket resource');
             let Project = new serverless.classes.Project(serverless);
             delete Project.data.cloudFormation.Resources['testBucket'];
             Project.save();
 
-            serverless.actions.resourcesDeploy(options)
-                .then(function(options) {
+            serverless.actions.resourcesDeploy(evt)
+                .then(function(evt) {
                   done();
                 });
           })

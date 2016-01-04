@@ -88,13 +88,15 @@ describe('Test Action: Region Create', function() {
 
       this.timeout(0);
 
-      let options = {
-        stage:      config.stage,
-        region:     config.region2
+      let evt = {
+        options: {
+          stage:      config.stage,
+          region:     config.region2
+        }
       };
 
-      serverless.actions.regionCreate(options)
-          .then(function(options) {
+      serverless.actions.regionCreate(evt)
+          .then(function(evt) {
 
             let Meta = new serverless.classes.Meta(serverless);
 

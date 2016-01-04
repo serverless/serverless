@@ -39,17 +39,18 @@ describe('Test action: Module Install', function() {
 
     it('installs module-test Module from github', function(done) {
       this.timeout(0);
-      let options = {
-        url:   'https://github.com/serverless/serverless-module-test'
+      let evt = {
+        options: {
+          url: ['https://github.com/serverless/serverless-module-test']
+        }
       };
 
-      serverless.actions.moduleInstall(options)
-          .then(function(options) {
-
+      serverless.actions.moduleInstall(evt)
+          .then(function(evt) {
             let Function = new serverless.classes.Function(serverless, {module: 'module-test', function: 'function-test'});
 
             assert.equal(Function.data.name, 'function-test');
-            assert.equal('https://github.com/serverless/serverless-module-test', options.url);
+            assert.equal('https://github.com/serverless/serverless-module-test', evt.options.url);
             done();
           })
           .catch(e => {
