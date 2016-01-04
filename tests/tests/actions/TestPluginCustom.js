@@ -17,7 +17,7 @@ let Serverless       = require('../../../lib/Serverless.js'),
 let serverless = new Serverless({
   awsAdminKeyId:     '123',
   awsAdminSecretKey: '123',
-  interactive:       false,
+  interactive:       false
 });
 
 /**
@@ -53,7 +53,7 @@ class CustomPlugin extends SPlugin {
         option:      'option',
         shortcut:    'o',
         description: 'test option 1'
-      }],
+      }]
     });
 
     this.S.addAction(this._actionTwo.bind(this), {
@@ -65,7 +65,7 @@ class CustomPlugin extends SPlugin {
         option:      'option',
         shortcut:    'o',
         description: 'test option 1'
-      }],
+      }]
     });
 
     this.S.addAction(this._actionThree.bind(this), {
@@ -77,7 +77,7 @@ class CustomPlugin extends SPlugin {
         option:      'option',
         shortcut:    'o',
         description: 'test option 1'
-      }],
+      }]
     });
 
     return Promise.resolve();
@@ -133,128 +133,128 @@ class CustomPlugin extends SPlugin {
    * @private
    */
 
-  _actionOne(evt) {
+  _actionOne(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionOne');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionOne');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
-  _hookPre(evt) {
+  _hookPre(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionOnePre');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionOnePre');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
-  _hookPost(evt) {
+  _hookPost(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionOnePost');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionOnePost');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
   /**
    * Test Nesting 1 Action
-   * @param evt
+   * @param options
    * @returns {*}
    * @private
    */
 
-  _actionTwo(evt) {
+  _actionTwo(options) {
     let _this = this;
-    evt.sequence.push('actionTwo');
-    return _this.S.actions.actionOne(evt);
+    options.sequence.push('actionTwo');
+    return _this.S.actions.actionOne(options);
   }
 
-  _hookPreTwo(evt) {
+  _hookPreTwo(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionTwoPre');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionTwoPre');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
-  _hookPostTwo(evt) {
+  _hookPostTwo(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionTwoPost');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionTwoPost');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
   /**
    * Test Chaining & Nesting Sub-Actions
-   * @param evt
+   * @param options
    * @returns {*}
    * @private
    */
 
-  _actionThree(evt) {
+  _actionThree(options) {
     let _this = this;
-    evt.sequence.push('actionThree');
-    return _this.S.actions.actionOne(evt)
+    options.sequence.push('actionThree');
+    return _this.S.actions.actionOne(options)
         .then(_this.S.actions.actionTwo);
   }
 
-  _hookPreThree(evt) {
+  _hookPreThree(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionThreePre');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionThreePre');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
-  _hookPostThree(evt) {
+  _hookPostThree(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionThreePost');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionThreePost');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
-  _hookPreThreeTwo(evt) {
+  _hookPreThreeTwo(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionThreePreTwo');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionThreePreTwo');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
 
-  _hookPostThreeTwo(evt) {
+  _hookPostThreeTwo(options) {
     let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        evt.sequence.push('actionThreePostTwo');
-        // Add evt data
-        return resolve(evt);
+        options.sequence.push('actionThreePostTwo');
+        // Add options data
+        return resolve(options);
       }, 250);
     });
   }
@@ -279,14 +279,15 @@ describe('Test Custom Plugin', function() {
     it('should successfully run hooks and actions in sequence', function(done) {
 
       this.timeout(0);
+
       serverless.actions.actionOne({
             sequence: []
           })
-          .then(function(evt) {
+          .then(function(options) {
             // Test event object
-            assert.isTrue(evt.sequence[0] === 'actionOnePre');
-            assert.isTrue(evt.sequence[1] === 'actionOne');
-            assert.isTrue(evt.sequence[2] === 'actionOnePost');
+            assert.isTrue(options.sequence[0] === 'actionOnePre');
+            assert.isTrue(options.sequence[1] === 'actionOne');
+            assert.isTrue(options.sequence[2] === 'actionOnePost');
             done();
           })
           .catch(function(e) {
@@ -299,17 +300,18 @@ describe('Test Custom Plugin', function() {
     it('should successfully run hooks and actions in sequence', function(done) {
 
       this.timeout(0);
+
       serverless.actions.actionTwo({
             sequence: []
           })
-          .then(function(evt) {
+          .then(function(options) {
             // Test event object
-            assert.isTrue(evt.sequence[0] === 'actionTwoPre');
-            assert.isTrue(evt.sequence[1] === 'actionTwo');
-            assert.isTrue(evt.sequence[2] === 'actionOnePre');
-            assert.isTrue(evt.sequence[3] === 'actionOne');
-            assert.isTrue(evt.sequence[4] === 'actionOnePost');
-            assert.isTrue(evt.sequence[5] === 'actionTwoPost');
+            assert.isTrue(options.sequence[0] === 'actionTwoPre');
+            assert.isTrue(options.sequence[1] === 'actionTwo');
+            assert.isTrue(options.sequence[2] === 'actionOnePre');
+            assert.isTrue(options.sequence[3] === 'actionOne');
+            assert.isTrue(options.sequence[4] === 'actionOnePost');
+            assert.isTrue(options.sequence[5] === 'actionTwoPost');
             done();
           })
           .catch(function(e) {
@@ -322,25 +324,26 @@ describe('Test Custom Plugin', function() {
     it('should successfully run hooks and actions in sequence', function(done) {
 
       this.timeout(0);
+
       serverless.actions.actionThree({
             sequence: []
           })
-          .then(function(evt) {
+          .then(function(options) {
             // Test event object
-            assert.isTrue(evt.sequence[0] === 'actionThreePre');
-            assert.isTrue(evt.sequence[1] === 'actionThreePreTwo');
-            assert.isTrue(evt.sequence[2] === 'actionThree');
-            assert.isTrue(evt.sequence[3] === 'actionOnePre');
-            assert.isTrue(evt.sequence[4] === 'actionOne');
-            assert.isTrue(evt.sequence[5] === 'actionOnePost');
-            assert.isTrue(evt.sequence[6] === 'actionTwoPre');
-            assert.isTrue(evt.sequence[7] === 'actionTwo');
-            assert.isTrue(evt.sequence[8] === 'actionOnePre');
-            assert.isTrue(evt.sequence[9] === 'actionOne');
-            assert.isTrue(evt.sequence[10] === 'actionOnePost');
-            assert.isTrue(evt.sequence[11] === 'actionTwoPost');
-            assert.isTrue(evt.sequence[12] === 'actionThreePost');
-            assert.isTrue(evt.sequence[13] === 'actionThreePostTwo');
+            assert.isTrue(options.sequence[0] === 'actionThreePre');
+            assert.isTrue(options.sequence[1] === 'actionThreePreTwo');
+            assert.isTrue(options.sequence[2] === 'actionThree');
+            assert.isTrue(options.sequence[3] === 'actionOnePre');
+            assert.isTrue(options.sequence[4] === 'actionOne');
+            assert.isTrue(options.sequence[5] === 'actionOnePost');
+            assert.isTrue(options.sequence[6] === 'actionTwoPre');
+            assert.isTrue(options.sequence[7] === 'actionTwo');
+            assert.isTrue(options.sequence[8] === 'actionOnePre');
+            assert.isTrue(options.sequence[9] === 'actionOne');
+            assert.isTrue(options.sequence[10] === 'actionOnePost');
+            assert.isTrue(options.sequence[11] === 'actionTwoPost');
+            assert.isTrue(options.sequence[12] === 'actionThreePost');
+            assert.isTrue(options.sequence[13] === 'actionThreePostTwo');
             done();
           })
           .catch(function(e) {

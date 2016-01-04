@@ -49,28 +49,29 @@ class CustomPlugin extends SPlugin {
   }
 
   _defaultActionPreHook(options) {
-    let _this = this;
     return new Promise(function (resolve) {
       setTimeout(function () {
-        options.hook = 'defaultActionPreHook';
-        // Add options data
-        return resolve(options);
+        return resolve({
+          options: options,
+          data: {
+            hook: 'defaultActionPreHook'
+          }
+        });
       }, 250);
     });
   }
 }
 
 /**
- * Validate Event
+ * Validate Result
  * - Validate an event object's properties
  */
 
-let validateEvent = function(options) {
-  assert.equal(true, typeof options.module != 'undefined');
-  assert.equal(true, typeof options.function != 'undefined');
-  assert.equal(true, typeof options.runtime != 'undefined');
-  assert.equal(true, typeof options.hook != 'undefined');
-
+let validateResult = function(result) {
+  assert.equal(true, typeof result.options.module != 'undefined');
+  assert.equal(true, typeof result.options.function != 'undefined');
+  assert.equal(true, typeof result.options.runtime != 'undefined');
+  assert.equal(true, typeof result.data.hook != 'undefined');
 };
 
 
@@ -99,15 +100,16 @@ describe('Test Default Action With Pre Hook', function() {
   describe('Test Default Action With Pre Hook', function() {
 
     it('adds a pre hook to Module Create default Action', function(done) {
+
       this.timeout(0);
-      let event = {
+      let options = {
         module:   'temp',
         function: 'one'
       };
 
-      serverless.actions.moduleCreate(event)
-          .then(function(options) {
-            validateEvent(options);
+      serverless.actions.moduleCreate(options)
+          .then(function(result) {
+            validateResult(result);
             let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'temp', 'functions', 'one', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
