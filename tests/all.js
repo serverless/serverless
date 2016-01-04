@@ -11,8 +11,8 @@ describe('All Tests', function() {
 
   after(function() {});
 
-  //require('./tests/actions/TestPluginCustom');
-  require('./tests/actions/TestDefaultActionHook');
+  require('./tests/actions/TestPluginCustom');
+  //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/ProjectCreate');
   //require('./tests/actions/StageCreate');
   //require('./tests/actions/RegionCreate');

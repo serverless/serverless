@@ -37,7 +37,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   // Copy test private to temp directory
   fs.mkdirSync(tmpProjectPath);
   wrench.copyDirSyncRecursive(path.join(__dirname, './test-prj'), tmpProjectPath, {
-    forceDelete: true,
+    forceDelete: true
   });
 
   let projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
@@ -48,7 +48,6 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     domain: projectDomain,
     projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion)
   };
-
 
   let commonVariablesPublic = {
     project: projectName
