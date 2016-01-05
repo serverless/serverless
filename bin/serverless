@@ -9,7 +9,7 @@ if (argv.debug) process.env.DEBUG = '*';
 let S      = require('../lib/Serverless'),
     SUtils = require('../lib/utils/index'),
     serverless      = new S({
-      interactive: typeof process.env.CI !== 'undefined' ? process.env.CI : true,
+      interactive: typeof process.env.CI !== 'undefined' ? false : true,
       projectPath: SUtils.getProjectPath(process.cwd())
     });
 
