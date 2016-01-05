@@ -22,7 +22,7 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.region != 'undefined');
   assert.equal(true, typeof evt.options.stage != 'undefined');
   assert.equal('SERVERLESS_STAGE', evt.options.key);
-  assert.equal('development', evt.data.valByRegion[evt.options.region][evt.options.key]);
+  assert.equal('development', evt.data.valuesByRegion[evt.options.region][evt.options.key]);
 };
 
 describe('Test Action: Env Get', function() {

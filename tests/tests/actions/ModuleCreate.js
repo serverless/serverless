@@ -58,10 +58,11 @@ describe('Test action: Module Create', function() {
 
       serverless.actions.moduleCreate(evt)
           .then(function(evt) {
-            validateEvent(evt);
             let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'temp', 'functions', 'one', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
+
+            validateEvent(evt);
             done();
           })
           .catch(e => {

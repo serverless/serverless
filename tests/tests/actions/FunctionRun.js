@@ -19,9 +19,7 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  console.log(evt)
-  assert.equal(true, typeof evt.options.function != 'undefined');
-  assert.equal(true, typeof evt.options.function.handler != 'undefined');
+  assert.equal(true, typeof evt.options.path != 'undefined');
   assert.equal(true, typeof evt.data.result != 'undefined');
   assert.equal(true, evt.data.result.status === 'success');
 };
@@ -59,7 +57,7 @@ describe('Test Action: Function Run', function() {
       this.timeout(0);
       let evt = {
         options: {
-          path: ['moduleone/one']
+          path: 'moduleone/one'
         }
       };
       serverless.actions.functionRun(evt)

@@ -23,7 +23,6 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
       projectDomain        = projectName + '.com';
-
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
 

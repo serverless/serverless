@@ -21,9 +21,9 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.region != 'undefined');
   assert.equal(true, typeof evt.options.stage != 'undefined');
-  assert.equal(evt.options.region, evt.data.envMapsByRegion[0].regionName);
-  assert.equal('development', evt.data.envMapsByRegion[0].vars.SERVERLESS_STAGE);
-  assert.equal('development', evt.data.envMapsByRegion[0].vars.SERVERLESS_DATA_MODEL_STAGE);
+  assert.equal(evt.options.region, evt.data.variablesByRegion[0].region);
+  assert.equal('development', evt.data.variablesByRegion[0].vars.SERVERLESS_STAGE);
+  assert.equal('development', evt.data.variablesByRegion[0].vars.SERVERLESS_DATA_MODEL_STAGE);
 
 };
 

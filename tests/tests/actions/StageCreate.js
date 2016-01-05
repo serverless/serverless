@@ -20,10 +20,12 @@ let serverless;
  * - Validate an event object's properties
  */
 
-let validateEvent = function(Meta) {
-  assert.equal(true, typeof Meta.data.private.stages[config.stage2].variables.stage != 'undefined');
-  assert.equal(true, typeof Meta.data.private.stages[config.stage2].regions[config.region].variables.region != 'undefined');
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.region !== 'undefined');
+  assert.equal(true, typeof evt.options.stage !== 'undefined');
+  assert.equal(true, typeof evt.data !== 'undefined');
 };
+
 
 /**
  * Test Cleanup
@@ -35,7 +37,7 @@ let cleanup = function(Meta, cb) {
   AWS.config.update({
     region:          Meta.data.private.variables.projectBucket.split('.')[1],
     accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey,
+    secretAccessKey: config.awsAdminSecretKey
   });
 
   let s3 = new AWS.S3();
@@ -95,7 +97,7 @@ describe('Test Action: Stage Create', function() {
             let Meta = new serverless.classes.Meta(serverless);
             assert.equal(true, typeof Meta.data.private.stages[config.stage2].variables.stage != 'undefined');
             assert.equal(true, typeof Meta.data.private.stages[config.stage2].regions[config.region].variables.region != 'undefined');
-            console.log(evt);
+
             // Validate EVT
             validateEvent(evt);
 

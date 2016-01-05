@@ -7,7 +7,6 @@
 let Serverless  = require('../../../lib/Serverless.js'),
     path        = require('path'),
     utils       = require('../../../lib/utils/index'),
-    Eventsutils = require('../../../lib/utils/aws/events'),
     assert      = require('chai').assert,
     testUtils   = require('../../test_utils'),
     AWS         = require('aws-sdk'),
@@ -21,23 +20,22 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.stage != 'undefined');
-  assert.equal(true, typeof evt.regions != 'undefined');
-  assert.equal(true, typeof evt.all != 'undefined');
-  assert.equal(true, typeof evt.aliasFunction != 'undefined');
-  assert.equal(true, typeof evt.functions != 'undefined');
-  assert.equal(true, typeof evt.deployed != 'undefined');
+  assert.equal(true, typeof evt.options.stage != 'undefined');
+  assert.equal(true, typeof evt.options.region != 'undefined');
+  assert.equal(true, typeof evt.options.all != 'undefined');
+  assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
+  assert.equal(true, typeof evt.options.paths != 'undefined');
+  assert.equal(true, typeof evt.data.deployed != 'undefined');
 
-  if (evt.failed) {
-    for (let i = 0; i < Object.keys(evt.failed).length; i++) {
-      console.log(Object.keys(evt.failed)[i]);
-      console.log(evt.failed[Object.keys(evt.failed)[i]]);
+  if (evt.data.failed) {
+    for (let i = 0; i < Object.keys(evt.data.failed).length; i++) {
+      console.log(Object.keys(evt.data.failed)[i]);
+      console.log(evt.data.failed[Object.keys(evt.data.failed)[i]]);
     }
   }
 
-  assert.equal(true, typeof evt.failed === 'undefined');
+  assert.equal(true, typeof evt.data.failed === 'undefined');
 };
-
 
 /**
  * Test Cleanup
@@ -48,7 +46,7 @@ let cleanup = function(UUID, cb) {
   let awsConfig = {
     region:          config.region,
     accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey,
+    secretAccessKey: config.awsAdminSecretKey
   };
 
   let lambda = new AWS.Lambda(awsConfig);
@@ -64,8 +62,8 @@ let cleanup = function(UUID, cb) {
       cb()
     }
   });
-
 };
+
 /**
  * Create Test Project
  */
@@ -81,9 +79,10 @@ describe('Test Action: Function Deploy', function() {
           process.chdir(projPath);
 
           serverless = new Serverless({
-            interactive: false,
+            interactive:       false,
             awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
+            awsAdminSecretKey: config.awsAdminSecretKey,
+            projectPath:       projPath
           });
 
           done();
@@ -98,8 +97,32 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
-  //describe('Function Deploy: Specify One Path', function() {
-  //  it('should deploy functions', function(done) {
+  describe('Function Deploy: Specify One Path', function() {
+    it('should deploy functions', function(done) {
+
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        paths:      [
+          'moduleone/one'
+        ]
+      };
+
+      serverless.actions.functionDeploy(event)
+        .then(function(evt) {
+          validateEvent(evt);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+  });
+
+  //describe('Function Deploy: Specify One Path with S3 event source', function() {
+  //  it('should deploy function and S3 event source', function(done) {
   //
   //    this.timeout(0);
   //
@@ -114,48 +137,24 @@ describe('Test Action: Function Deploy', function() {
   //    serverless.actions.functionDeploy(event)
   //      .then(function(evt) {
   //        validateEvent(evt);
-  //        done();
+  //        let awsConfig = {
+  //          region:          config.region,
+  //          accessKeyId:     config.awsAdminKeyId,
+  //          secretAccessKey: config.awsAdminSecretKey,
+  //        };
+  //        let eventSource = {
+  //          bucket: 's3-event-source-test',
+  //          bucketEvents: ['s3:ObjectCreated:*']
+  //        };
+  //        Eventsutils.s3(awsConfig, null, eventSource, done);
+  //
+  //        //done();
   //      })
   //      .catch(e => {
   //        done(e);
   //      });
   //  });
   //});
-
-  describe('Function Deploy: Specify One Path with S3 event source', function() {
-    it('should deploy function and S3 event source', function(done) {
-
-      this.timeout(0);
-
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        paths:      [
-          'moduleone/simple#one'
-        ]
-      };
-
-      serverless.actions.functionDeploy(event)
-        .then(function(evt) {
-          validateEvent(evt);
-          let awsConfig = {
-            region:          config.region,
-            accessKeyId:     config.awsAdminKeyId,
-            secretAccessKey: config.awsAdminSecretKey,
-          };
-          let eventSource = {
-            bucket: 's3-event-source-test',
-            bucketEvents: ['s3:ObjectCreated:*']
-          };
-          Eventsutils.s3(awsConfig, null, eventSource, done);
-
-          //done();
-        })
-        .catch(e => {
-          done(e);
-        });
-    });
-  });
 
   //describe('Function Deploy: Specify One with event source', function() {
   //  it('should deploy functions and event source', function(done) {

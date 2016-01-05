@@ -63,8 +63,8 @@ describe('Test Env Set & Env Unset actions', function() {
       let setEvt = {
         stage:      config.stage,
         region:     config.region,
-        key:    'ENV_SET_TEST_KEY',
-        value:       'ENV_SET_TEST_VAL',
+        key:        'ENV_SET_TEST_KEY',
+        value:      'ENV_SET_TEST_VAL'
       };
 
       serverless.actions.envSet(setEvt)

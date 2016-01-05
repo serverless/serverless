@@ -19,6 +19,17 @@ let Serverless = require('../../../lib/Serverless.js'),
 
 let serverless;
 
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.region !== 'undefined');
+  assert.equal(true, typeof evt.options.stage !== 'undefined');
+  assert.equal(true, typeof evt.data !== 'undefined');
+};
+
 describe('Test action: Resources Deploy', function() {
 
   before(function(done) {
@@ -49,14 +60,18 @@ describe('Test action: Resources Deploy', function() {
   describe('Resources Deploy positive tests', function() {
 
     it('deploys an updated CF template', function(done) {
+
       this.timeout(0);
       let evt = {
         stage:      config.stage,
-        region:     config.region,
+        region:     config.region
       };
 
       serverless.actions.resourcesDeploy(evt)
           .then(function(evt) {
+
+            // Validate Evt
+            validateEvent(evt);
 
             SUtils.sDebug('removing test bucket resource');
             let Project = new serverless.classes.Project(serverless);
@@ -65,6 +80,9 @@ describe('Test action: Resources Deploy', function() {
 
             serverless.actions.resourcesDeploy(evt)
                 .then(function(evt) {
+
+                  // Validate Evt
+                  validateEvent(evt);
                   done();
                 });
           })

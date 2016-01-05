@@ -15,13 +15,16 @@ let Serverless    = require('../../../lib/Serverless'),
     config        = require('../../config');
 
 let serverless;
+
 /**
  * Validate Event
  * - Validate an event object's properties
  */
 
-let validateEvent = function(Meta) {
-  assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region2].variables.region != 'undefined');
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.region !== 'undefined');
+  assert.equal(true, typeof evt.options.stage !== 'undefined');
+  assert.equal(true, typeof evt.data !== 'undefined');
 };
 
 /**
@@ -99,9 +102,10 @@ describe('Test Action: Region Create', function() {
           .then(function(evt) {
 
             let Meta = new serverless.classes.Meta(serverless);
+            assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region2].variables.region != 'undefined');
 
             // Validate Event
-            validateEvent(Meta);
+            validateEvent(evt);
 
             // Cleanup
             cleanup(Meta, done);
