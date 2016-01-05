@@ -48,11 +48,11 @@ class CustomPlugin extends SPlugin {
     return Promise.resolve();
   }
 
-  _defaultActionPreHook(options) {
+  _defaultActionPreHook(evt) {
     return new Promise(function (resolve) {
       setTimeout(function () {
         return resolve({
-          options: options,
+          options: evt.options,
           data: {
             hook: 'defaultActionPreHook'
           }
@@ -73,7 +73,6 @@ let validateResult = function(result) {
   assert.equal(true, typeof result.options.runtime != 'undefined');
   assert.equal(true, typeof result.data.hook != 'undefined');
 };
-
 
 describe('Test Default Action With Pre Hook', function() {
 

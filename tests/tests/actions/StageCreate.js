@@ -91,10 +91,13 @@ describe('Test Action: Stage Create', function() {
 
       serverless.actions.stageCreate(evt)
           .then(function(evt) {
-            let Meta = new serverless.classes.Meta(serverless);
 
-            // Validate Event
-            validateEvent(Meta);
+            let Meta = new serverless.classes.Meta(serverless);
+            assert.equal(true, typeof Meta.data.private.stages[config.stage2].variables.stage != 'undefined');
+            assert.equal(true, typeof Meta.data.private.stages[config.stage2].regions[config.region].variables.region != 'undefined');
+            console.log(evt);
+            // Validate EVT
+            validateEvent(evt);
 
             // Cleanup
             cleanup(Meta, done);

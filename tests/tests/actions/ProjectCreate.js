@@ -17,30 +17,26 @@ let Serverless  = require('../../../lib/Serverless'),
     shortid     = require('shortid'),
     config      = require('../../config');
 
-// Instantiate JAWS
+// Instantiate
 let serverless = new Serverless({
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey
 });
 
-
 /**
  * Validate Event
  * - Validate an event object's properties
  */
 
-let validateEvent = function(Meta) {
-  assert.equal(true, typeof Meta.data.private.variables.project != 'undefined');
-  assert.equal(true, typeof Meta.data.private.variables.domain != 'undefined');
-  assert.equal(true, typeof Meta.data.private.variables.projectBucket != 'undefined');
-  assert.equal(true, typeof Meta.data.private.stages[config.stage].variables.stage != 'undefined');
-  assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.region != 'undefined');
-
-  if (!config.noExecuteCf) {
-    assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-    assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
-  }
+let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.name !== 'undefined');
+  assert.equal(true, typeof evt.options.domain !== 'undefined');
+  assert.equal(true, typeof evt.options.notificationEmail !== 'undefined');
+  assert.equal(true, typeof evt.options.region !== 'undefined');
+  assert.equal(true, typeof evt.options.noExeCf !== 'undefined');
+  assert.equal(true, typeof evt.options.stage !== 'undefined');
+  assert.equal(true, typeof evt.data !== 'undefined');
 };
 
 /**
@@ -53,7 +49,7 @@ let cleanup = function(Meta, cb) {
   AWS.config.update({
     region:          config.region,
     accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey,
+    secretAccessKey: config.awsAdminSecretKey
   });
 
   // Delete Region Bucket
@@ -128,16 +124,27 @@ describe('Test action: Project Create', function() {
           domain:             domain,
           notificationEmail:  config.notifyEmail,
           region:             config.region,
-          noExeCf:            config.noExecuteCf,
+          noExeCf:            config.noExecuteCf
         }
       };
 
       serverless.actions.projectCreate(evt)
           .then(function(evt) {
+
+            // Validate Meta
             let Meta = new serverless.classes.Meta(serverless);
+            assert.equal(true, typeof Meta.data.private.variables.project != 'undefined');
+            assert.equal(true, typeof Meta.data.private.variables.domain != 'undefined');
+            assert.equal(true, typeof Meta.data.private.variables.projectBucket != 'undefined');
+            assert.equal(true, typeof Meta.data.private.stages[config.stage].variables.stage != 'undefined');
+            assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.region != 'undefined');
+            if (!config.noExecuteCf) {
+              assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
+              assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+            }
 
             // Validate Event
-            validateEvent(Meta);
+            validateEvent(evt);
 
             // Cleanup
             cleanup(Meta, done);
