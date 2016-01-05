@@ -8,6 +8,15 @@
       "handler": "",
       "timeout": 6,
       "memorySize": 1024,
+      "events": [
+        {
+        "name": "default",
+        "eventSourceArn": "",
+        "startingPosition": "TRIM_HORIZON",
+        "batchSize": 100,
+        "enabled": true
+        }
+      ],
       "endpoints": [
         {
           "path": "",

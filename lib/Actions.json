@@ -37,7 +37,7 @@
       "config": {}
     },
     {
-      "path": "./actions/CreateEventSourceLambdaNodeJs.js",
+      "path": "./actions/CodeEventDeployLambda.js",
       "config": {}
     },
     {

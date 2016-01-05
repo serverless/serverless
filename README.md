@@ -1,6 +1,6 @@
-![Serverless Application Framework AWS Lambda API Gateway](img/serverless_readme_header.jpg)
+![Serverless Application Framework AWS Lambda API Gateway](img/serverless_framework_readme_large.gif)
 
-Serverless V0 (BETA) - Formerly "JAWS"
+Serverless Framework V0 (BETA)
 =================================
 
 ####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
@@ -26,7 +26,8 @@ Serverless is comprised of Plugins.  A group of default Plugins ship with the Fr
 * **[Plugin Boilerplate](https://github.com/serverless/serverless-plugin-boilerplate)** - Make a Serverless Plugin with this simple boilerplate.
 * **[Serve](https://github.com/Nopik/serverless-serve)** - Simulate API Gateway locally, so all function calls can be run via localhost.
 * **[Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting)** - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
-* **[Optimizer](https://github.com/martinlindenberg/serverless-plugin-alerting)** - Optimizes your code for performance in Lambda.
+* **[Optimizer](https://github.com/serverless/serverless-optimizer-plugin)** - Optimizes your code for performance in Lambda.
+* **[CORS](https://github.com/joostfarla/serverless-cors-plugin)** - Adds support for CORS (Cross-origin resource sharing).
 
 ## Differences From JAWS:
 

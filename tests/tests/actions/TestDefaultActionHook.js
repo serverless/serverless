@@ -106,8 +106,8 @@ describe('Test Default Action With Pre Hook', function() {
           .then(function(evt) {
             validateEvent(evt);
             let functionJson = utils.readAndParseJsonSync(path.join(serverless._projectRootPath, 'back', 'modules', 'temp', 'one', 's-function.json'));
-            assert.equal(true, typeof functionJson.functions.TempOne != 'undefined');
-            assert.equal(true, functionJson.functions.TempOne.endpoints.length);
+            assert.equal(true, typeof functionJson.functions.one != 'undefined');
+            assert.equal(true, functionJson.functions.one.endpoints.length);
             done();
           })
           .catch(e => {

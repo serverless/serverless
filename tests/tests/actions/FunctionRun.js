@@ -57,7 +57,7 @@ describe('Test Action: Function Run', function() {
       this.timeout(0);
 
       serverless.actions.functionRun({
-        path: 'moduleone/simple#simpleOne'
+        path: 'moduleone/simple#one'
       })
           .then(function(evt) {
             validateEvent(evt);
@@ -76,7 +76,7 @@ describe('Test Action: Function Run', function() {
       this.timeout(0);
 
       serverless.actions.functionRun({
-            name: 'simpleOne'
+            name: 'one'
           })
           .then(function(evt) {
             validateEvent(evt);
