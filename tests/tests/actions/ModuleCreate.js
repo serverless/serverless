@@ -52,8 +52,10 @@ describe('Test action: Module Create', function() {
       this.timeout(0);
 
       let evt = {
-        module:   'temp',
-        function: 'one'
+        options: {
+          module:   'temp',
+          function: 'one'
+        }
       };
 
       serverless.actions.moduleCreate(evt)

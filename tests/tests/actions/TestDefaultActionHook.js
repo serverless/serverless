@@ -102,8 +102,10 @@ describe('Test Default Action With Pre Hook', function() {
 
       this.timeout(0);
       let evt = {
-        module:   'temp',
-        function: 'one'
+        options: {
+          module:   'temp',
+          function: 'one'
+        }
       };
 
       serverless.actions.moduleCreate(evt)
