@@ -22,7 +22,6 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.stage != 'undefined');
   assert.equal(true, typeof evt.options.region != 'undefined');
-  assert.equal(true, typeof evt.options.all != 'undefined');
   assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
   assert.equal(true, typeof evt.options.paths != 'undefined');
   assert.equal(true, typeof evt.data.deployed != 'undefined');
@@ -102,15 +101,17 @@ describe('Test Action: Function Deploy', function() {
 
       this.timeout(0);
 
-      let event = {
-        stage:      config.stage,
-        region:     config.region,
-        paths:      [
-          'moduleone/one'
-        ]
+      let evt = {
+        options: {
+          stage:      config.stage,
+          region:     config.region,
+          paths:      [
+            'moduleone/one'
+          ]
+        }
       };
 
-      serverless.actions.functionDeploy(event)
+      serverless.actions.functionDeploy(evt)
         .then(function(evt) {
           validateEvent(evt);
           done();
