@@ -21,6 +21,7 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.component != 'undefined');
   assert.equal(true, typeof evt.options.module != 'undefined');
   assert.equal(true, typeof evt.options.function != 'undefined');
 };
@@ -49,14 +50,17 @@ describe('Test action: Function Create', function() {
     it('create a new Function inside the users Module', function(done) {
       this.timeout(0);
       let evt = {
-        module:    'moduleone',
-        function:  'new'
+        options: {
+          component: 'nodejscomponent'
+          module:    'module1',
+          function:  'new'
+        }
       };
 
       serverless.actions.functionCreate(evt)
           .then(function(evt) {
             validateEvent(evt);
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'moduleone', 'functions', 'one', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'nodejscomponent', 'module1', 'function1', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
             done();

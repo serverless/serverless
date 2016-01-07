@@ -2,8 +2,8 @@
 
 /**
  * Test: Module Create Action
- * - Creates a new private in your system's temp directory
- * - Creates a new Module inside test private
+ * - Creates a new project in your system's temp directory
+ * - Creates a new Module inside test project
  */
 
 let Serverless      = require('../../../lib/Serverless.js'),
@@ -21,6 +21,7 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
+  assert.equal(true, typeof evt.options.component != 'undefined');
   assert.equal(true, typeof evt.options.module != 'undefined');
   assert.equal(true, typeof evt.options.function != 'undefined');
   assert.equal(true, typeof evt.options.runtime != 'undefined');
@@ -53,14 +54,15 @@ describe('Test action: Module Create', function() {
 
       let evt = {
         options: {
-          module:   'temp',
-          function: 'one'
+          component:   'nodejscomponent',
+          module:   'newmodule',
+          function: 'newfunction'
         }
       };
 
       serverless.actions.moduleCreate(evt)
           .then(function(evt) {
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'back', 'modules', 'temp', 'functions', 'one', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
 

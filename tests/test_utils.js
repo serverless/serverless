@@ -84,7 +84,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       if (npmInstallDirs) {
 
         npmInstallDirs.forEach(function(dir) {
-          let fullPath = path.join(tmpProjectPath, 'nodejscomponent', dir);
+          let fullPath = path.join(tmpProjectPath, dir);
           SUtils.sDebug('test_utils', `Running NPM install on ${fullPath}`);
           SUtils.npmInstall(fullPath);
         });

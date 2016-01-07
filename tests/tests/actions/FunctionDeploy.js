@@ -72,7 +72,7 @@ describe('Test Action: Function Deploy', function() {
   before(function(done) {
     this.timeout(0);
 
-    testUtils.createTestProject(config, ['moduleone'])
+    testUtils.createTestProject(config, ['nodejscomponent'])
         .then(projPath => {
 
           process.chdir(projPath);
@@ -106,7 +106,7 @@ describe('Test Action: Function Deploy', function() {
           stage:      config.stage,
           region:     config.region,
           paths:      [
-            'moduleone/one'
+            'nodejscomponent/module1/function1'
           ]
         }
       };
@@ -131,7 +131,7 @@ describe('Test Action: Function Deploy', function() {
   //      stage:      config.stage,
   //      region:     config.region,
   //      paths:      [
-  //        'moduleone/simple#one'
+  //        'nodejscomponent/module1/function1'
   //      ]
   //    };
   //
@@ -166,7 +166,7 @@ describe('Test Action: Function Deploy', function() {
   //      stage:      config.stage,
   //      region:     config.region,
   //      paths:      [
-  //        'moduleone/simple#two'
+  //        'nodejscomponent/module1/function1'
   //      ]
   //    };
   //
