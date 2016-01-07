@@ -5,6 +5,10 @@
       "config": {}
     },
     {
+      "path": "./actions/ComponentCreate.js",
+      "config": {}
+    },
+    {
       "path": "./actions/ModuleCreate.js",
       "config": {}
     },
