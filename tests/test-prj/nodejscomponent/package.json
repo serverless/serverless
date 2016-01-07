@@ -1,8 +1,8 @@
 {
-  "name": "test-prj",
+  "name": "nodejscomponent",
   "version": "1.0.0",
   "preferGlobal": true,
-  "description": "unittest project",
+  "description": "unittest nodejs component",
   "author": "",
   "license": "MIT",
   "repository": {

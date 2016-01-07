@@ -1,25 +1,24 @@
 {
-  "name": "two",
+  "name" : "function1",
   "custom": {
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "modules/moduleone/functions/two/handler.handler",
+  "handler": "nodejscomponent/module1/function1/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
   "endpoints": [
     {
-      "path": "moduleone/two",
+      "path": "nodejscomponent/module1/function1",
       "method": "GET",
       "authorizationType": "none",
       "apiKeyRequired": false,
-      "requestParameters": {},
+      "requestParameters": {
+        "integration.request.querystring.integrationQueryParam" : "method.request.querystring.longitude"
+      },
       "requestTemplates": {
-        "application/json": {
-          "access_token": "$input.params('access_token')",
-          "body": "$input.json('$')"
-        }
+        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
       },
       "responses": {
         "default": {

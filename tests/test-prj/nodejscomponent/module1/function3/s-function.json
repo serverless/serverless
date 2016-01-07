@@ -1,16 +1,16 @@
 {
-  "name": "three",
+  "name": "function3",
   "custom": {
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "modules/moduleone/functions/three/handler.handler",
+  "handler": "nodejscomponent/module1/function3/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
   "endpoints": [
     {
-      "path": "moduleone/three",
+      "path": "nodejscomponent/module1/function3",
       "method": "GET",
       "authorizationType": "none",
       "apiKeyRequired": false,
