@@ -63,10 +63,10 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   };
 
   return Promise.all([
-      SUtils.writeFile(path.join(tmpProjectPath, 'meta', 'resources', `s-resources-cf-${projectStage}-${projectRegion}.json`), JSON.stringify(projectJSON.cloudFormation, null, 2)),
-      SUtils.writeFile(path.join(tmpProjectPath, 'meta', 'variables', 's-variables-common.json'), JSON.stringify(commonVariablesPrivate, null, 2)),
-      SUtils.writeFile(path.join(tmpProjectPath, 'meta', 'variables', `s-variables-${projectStage}.json`), JSON.stringify(stageVariables, null, 2)),
-      SUtils.writeFile(path.join(tmpProjectPath, 'meta', 'variables', `s-variables-${projectStage}-${projectRegion.replace(/-/g, '')}.json`), JSON.stringify(regionVariables, null, 2)),
+      SUtils.writeFile(path.join(tmpProjectPath, '_meta', 'resources', `s-resources-cf-${projectStage}-${projectRegion}.json`), JSON.stringify(projectJSON.cloudFormation, null, 2)),
+      SUtils.writeFile(path.join(tmpProjectPath, '_meta', 'variables', 's-variables-common.json'), JSON.stringify(commonVariablesPrivate, null, 2)),
+      SUtils.writeFile(path.join(tmpProjectPath, '_meta', 'variables', `s-variables-${projectStage}.json`), JSON.stringify(stageVariables, null, 2)),
+      SUtils.writeFile(path.join(tmpProjectPath, '_meta', 'variables', `s-variables-${projectStage}-${projectRegion.replace(/-/g, '')}.json`), JSON.stringify(regionVariables, null, 2)),
       SUtils.writeFile(path.join(tmpProjectPath, `s-project.json`), JSON.stringify(projectJSON, null, 2))
     ])
     .then(function() {
