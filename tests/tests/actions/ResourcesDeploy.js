@@ -46,7 +46,7 @@ describe('Test action: Resources Deploy', function() {
 
           SUtils.sDebug('Adding test bucket resource');
           let Project = new serverless.classes.Project(serverless);
-          Project.data.cloudFormation.Resources.testBucket = { "Type" : "AWS::S3::Bucket" };
+          Project.data.cloudFormation.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
           Project.save();
 
           done();
@@ -73,18 +73,6 @@ describe('Test action: Resources Deploy', function() {
             // Validate Evt
             validateEvent(evt);
 
-            SUtils.sDebug('removing test bucket resource');
-            let Project = new serverless.classes.Project(serverless);
-            delete Project.data.cloudFormation.Resources['testBucket'];
-            Project.save();
-
-            serverless.actions.resourcesDeploy(evt)
-                .then(function(evt) {
-
-                  // Validate Evt
-                  validateEvent(evt);
-                  done();
-                });
           })
           .catch(e => {
             done(e);
