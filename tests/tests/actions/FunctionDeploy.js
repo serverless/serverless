@@ -5,12 +5,12 @@
  */
 
 let Serverless  = require('../../../lib/Serverless.js'),
-    path        = require('path'),
-    utils       = require('../../../lib/utils/index'),
-    assert      = require('chai').assert,
-    testUtils   = require('../../test_utils'),
-    AWS         = require('aws-sdk'),
-    config      = require('../../config');
+  path        = require('path'),
+  utils       = require('../../../lib/utils/index'),
+  assert      = require('chai').assert,
+  testUtils   = require('../../test_utils'),
+  AWS         = require('aws-sdk'),
+  config      = require('../../config');
 
 let serverless;
 
@@ -73,19 +73,19 @@ describe('Test Action: Function Deploy', function() {
     this.timeout(0);
 
     testUtils.createTestProject(config, ['nodejscomponent'])
-        .then(projPath => {
+      .then(projPath => {
 
-          process.chdir(projPath);
+        process.chdir(projPath);
 
-          serverless = new Serverless({
-            interactive:       false,
-            awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey,
-            projectPath:       projPath
-          });
-
-          done();
+        serverless = new Serverless({
+          interactive:       false,
+          awsAdminKeyId:     config.awsAdminKeyId,
+          awsAdminSecretKey: config.awsAdminSecretKey,
+          projectPath:       projPath
         });
+
+        done();
+      });
   });
 
   after(function(done) {
@@ -101,17 +101,15 @@ describe('Test Action: Function Deploy', function() {
 
       this.timeout(0);
 
-      let evt = {
-        options: {
-          stage:      config.stage,
-          region:     config.region,
-          paths:      [
-            'nodejscomponent/module1/function1'
-          ]
-        }
+      let options = {
+        stage:      config.stage,
+        region:     config.region,
+        paths:      [
+          'nodejscomponent/module1/function1'
+        ]
       };
 
-      serverless.actions.functionDeploy(evt)
+      serverless.actions.functionDeploy(options)
         .then(function(evt) {
           validateEvent(evt);
           done();

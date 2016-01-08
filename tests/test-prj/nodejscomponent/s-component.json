@@ -1,4 +1,4 @@
 {
-  name: "nodejscomponent",
-  runtime: "nodejs"
+  "name": "nodejscomponent",
+  "runtime": "nodejs"
 }

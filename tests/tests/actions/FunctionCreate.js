@@ -51,7 +51,7 @@ describe('Test action: Function Create', function() {
       this.timeout(0);
       let evt = {
         options: {
-          component: 'nodejscomponent'
+          component: 'nodejscomponent',
           module:    'module1',
           function:  'new'
         }

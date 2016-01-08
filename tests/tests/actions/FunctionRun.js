@@ -5,11 +5,11 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-    path       = require('path'),
-    utils      = require('../../../lib/utils/index'),
-    assert     = require('chai').assert,
-    testUtils  = require('../../test_utils'),
-    config     = require('../../config');
+  path       = require('path'),
+  utils      = require('../../../lib/utils/index'),
+  assert     = require('chai').assert,
+  testUtils  = require('../../test_utils'),
+  config     = require('../../config');
 
 let serverless;
 
@@ -29,22 +29,22 @@ describe('Test Action: Function Run', function() {
   before(function(done) {
     this.timeout(0);
 
-    testUtils.createTestProject(config, ['moduleone/functions/one'])
-        .then(projPath => {
+    testUtils.createTestProject(config, ['nodejscomponent'])
+      .then(projPath => {
 
-          this.timeout(0);
+        this.timeout(0);
 
-          process.chdir(projPath);
+        process.chdir(projPath);
 
-          serverless = new Serverless({
-            interactive: true,
-            awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey,
-            projectPath: projPath
-          });
-
-          done();
+        serverless = new Serverless({
+          interactive: true,
+          awsAdminKeyId:     config.awsAdminKeyId,
+          awsAdminSecretKey: config.awsAdminSecretKey,
+          projectPath: projPath
         });
+
+        done();
+      });
   });
 
   after(function(done) {
@@ -55,20 +55,19 @@ describe('Test Action: Function Run', function() {
     it('should run the function with no errors', function(done) {
 
       this.timeout(0);
-      let evt = {
-        options: {
-          path: 'nodejscomponent/module1/function1'
-        }
+      let options = {
+        path: 'nodejscomponent/module1/function1'
       };
-      serverless.actions.functionRun(evt)
-          .then(function(evt) {
-            validateEvent(evt);
 
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
+      serverless.actions.functionRun(options)
+        .then(function(evt) {
+          validateEvent(evt);
+
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
     });
   });
 

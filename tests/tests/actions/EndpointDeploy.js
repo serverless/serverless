@@ -19,11 +19,10 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.options.stage != 'undefined');
-  assert.equal(true, typeof evt.options.region != 'undefined');
-  assert.equal(true, typeof evt.options.all != 'undefined');
-  assert.equal(true, typeof evt.options.paths != 'undefined');
-  assert.equal(true, typeof evt.data.deployed != 'undefined');
+  assert.equal(true, typeof evt.options.stage   != 'undefined');
+  assert.equal(true, typeof evt.options.region  != 'undefined');
+  assert.equal(true, typeof evt.options.paths   != 'undefined');
+  assert.equal(true, typeof evt.data.deployed   != 'undefined');
 
   if (evt.data.failed) {
     for (let i = 0; i < Object.keys(evt.data.failed).length; i++) {
@@ -76,7 +75,7 @@ describe('Test Action: Endpoint Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'moduleone/one@moduleone/one~GET'
+          'nodejscomponent/module1/function1@nodejscomponent/module1/function1~GET'
         ]
       };
 

@@ -3,7 +3,7 @@
 const path = require('path');
 
 // Require ENV lets, can also set ENV lets in your IDE
-require('dotenv').config({path: path.join(__dirname, '.env'), silent: true});
+require('dotenv').config({ path: path.join(__dirname, '.env'), silent: true });
 
 process.env.DEBUG = '*';
 
