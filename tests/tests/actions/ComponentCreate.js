@@ -52,15 +52,11 @@ describe('Test action: Component Create', function() {
 
       this.timeout(0);
 
-      let evt = {
-        options: {
-          component:   'newcomponent',
-          module:   'newmodule',
-          function: 'newfunction'
-        }
-      };
-
-      serverless.actions.moduleCreate(evt)
+      serverless.actions.componentCreate({
+          component: 'newcomponent',
+          module:    'newmodule',
+          function:  'newfunction'
+        })
         .then(function(evt) {
           let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'newcomponent', 'newmodule', 'newfunction', 's-function.json'));
           assert.equal(true, typeof functionJson.name != 'undefined');
