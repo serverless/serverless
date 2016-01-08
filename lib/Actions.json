@@ -13,10 +13,6 @@
       "config": {}
     },
     {
-      "path": "./actions/ModuleInstall.js",
-      "config": {}
-    },
-    {
       "path": "./actions/FunctionRun.js",
       "config": {}
     },

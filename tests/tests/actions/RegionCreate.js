@@ -35,7 +35,7 @@ let validateEvent = function(evt) {
 let cleanup = function(Meta, cb) {
 
   AWS.config.update({
-    region:          Meta.data.private.variables.projectBucket.split('.')[1],
+    region:          Meta.data.variables.projectBucket.split('.')[1],
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey,
   });
@@ -43,10 +43,10 @@ let cleanup = function(Meta, cb) {
   let s3 = new AWS.S3();
 
   let params = {
-    Bucket: Meta.data.private.variables.projectBucket,
+    Bucket: Meta.data.variables.projectBucket,
     Delete: {
       Objects: [{
-      Key: `${Meta.data.private.variables.projectBucket}/serverless/${Meta.data.private.variables.project}/${config.stage}/${config.region2}/`
+      Key: `${Meta.data.variables.projectBucket}/serverless/${Meta.data.variables.project}/${config.stage}/${config.region2}/`
       }]
     }
   };
@@ -102,7 +102,7 @@ describe('Test Action: Region Create', function() {
           .then(function(evt) {
 
             let Meta = new serverless.classes.Meta(serverless);
-            assert.equal(true, typeof Meta.data.private.stages[config.stage].regions[config.region2].variables.region != 'undefined');
+            assert.equal(true, typeof Meta.data.stages[config.stage].regions[config.region2].variables.region != 'undefined');
 
             // Validate Event
             validateEvent(evt);
