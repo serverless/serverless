@@ -4,7 +4,7 @@
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "nodejscomponent/module1/function1/handler.handler",
+  "handler": "module1/function1/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "events": [],

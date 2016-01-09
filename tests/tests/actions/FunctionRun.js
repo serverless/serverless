@@ -61,8 +61,8 @@ describe('Test Action: Function Run', function() {
 
       serverless.actions.functionRun(options)
         .then(function(evt) {
-          validateEvent(evt);
 
+          validateEvent(evt);
           done();
         })
         .catch(e => {
