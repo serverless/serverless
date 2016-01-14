@@ -1,25 +1,30 @@
 ![Serverless Application Framework AWS Lambda API Gateway](img/serverless_framework_readme_large.gif)
 
-Serverless Framework V0 (BETA)
+Serverless Framework V0.1.0 (BETA)
 =================================
 
 ####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
 
-We've re-branded from JAWS and pushed out an entirely refactored product. We're now cleaning up bugs, finishing the new docs and fixing broken features. By the end of this week we will have made rapid progress. Please help us test, submit pull requests, and check out our **[Road Map](https://trello.com/b/EX6SxBJJ/framework)**  for daily status updates.  We will be moving quickly, stay tuned :)
+Serverless is an application framework for building serverless web, mobile and IoT applications. Serverless comes in the form of a command line interface that provides structure, automation and optimization to help you build and maintain Serverless apps.
 
-**Note:** This project was formerly JAWS.
+Serverless uses AWS services exclusively, since it relies on AWS's Lambda service to provide event-driven compute resources and many AWS services integrate nicely with Lambda. A Serverless app can be simply a group of lambda functions to accomplish some tasks, or an entire back-end comprised of hundreds of lambda functions.
 
-## Links
-* [Documentation (Under Construction)](http://docs.serverless.com)
-* [Gitter](https://gitter.im/serverless/serverless)
-* [Road Map](https://trello.com/b/EX6SxBJJ/framework)
-* [Twitter](https://twitter.com/goserverless)
+We made a strong effort to make not just a groundbreaking Serverless framework, but the best framework for building applications with AWS in general (that is also Serverless!). As a result, Serverless incorporates years of AWS expertise into its tooling, giving you best practices out-of-the-box.
 
-## Get Started
-This is a command line tool.  It requires Node V4.  Install it via npm:
+## Installing Serverless
+You can install The Serverless Framework via npm: (requires Node V4)
 ```
 npm install serverless -g
 ```
+
+## Links
+* [Documentation](http://docs.serverless.com/v0.1.0/docs/)
+* [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
+* [Gitter Chatroom](https://gitter.im/serverless/serverless)
+* [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless)
+* [Twitter](https://twitter.com/goserverless)
+* [Serverless Meetups](http://www.meetup.com/serverless/)
+
 
 ## Plugins
 Serverless is comprised of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
@@ -28,14 +33,10 @@ Serverless is comprised of Plugins.  A group of default Plugins ship with the Fr
 * **[Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting)** - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
 * **[Optimizer](https://github.com/serverless/serverless-optimizer-plugin)** - Optimizes your code for performance in Lambda.
 
-## Differences From JAWS:
+## Contributing
+We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
 
-* **Node V4:**  The new Serverless Command Line Tool uses Node V4.  We recommend using [n](https://github.com/tj/n) to seamlessly upgrade your local version of Node.
-* **Name & Filename Changes:**  Having JAWS and AWSM was too confusing.  Now, we're just Serverless and Serverless modules.  Your project JSON is now `s-project.json`, your module JSON is now `s-module.json` and your function JSON is now `s-function.json`.
-* **New Function JSON Format:**  Our new function JSON format (`s-function.json`) helps reduce boilerplate.  You can still have 1 folder containing 1 Lambda w/ 1 Endpoint.  However, now you can have 1 folder containing 1 Lambda w/ multiple endpoints.  As well as 1 folder containing multiple Lambdas each with multiple endpoints.  You can point your multiple Lambdas to different handlers on a single file, or to different files within the folder.  It's flexible.
-* **One Set Of Lambdas Per Region:**  JAWS created a separate CloudFormation stack of Lambdas for each stage + region.  Serverless creates one set of Lambdas for all stages, and replicates them in every region used by your project.
-* **AWS-Recommended Workflow:**  Lambda versioning and aliasing support is automatically included.  Every time you deploy a Lambda, it is versioned and aliased to the stage you targeted your deployment to.  This allows large teams to work on one set of Lambdas per region without trampling each other.
-* **Removed CloudFormation Support For Project Lambdas:**  We no longer use CloudFormation to deploy your Lambdas.  It is too slow and it is behind on features which we would like to support today.  Our `s-function.json` resembles CF syntax, but is leaner and offers an abstraction layer which we will use to assist your workflow further in the near future.  Lambda Function names are also much neater now.
-* **1 REST API Containing Your Project's Stages:**  JAWS created a separate REST API on API Gateway for each of your Project stages.  Now, your project just has one REST API and your Project's Stages are added as stages on that REST API.
-* **Stage Variable Support:**  Each stage in your API Gateway REST API uses an API Gateway stage variable to point to Lambdas aliased with the same stage name.  By changing that variable, you can point all endpoints in your REST API Stage to an entirely different set of aliased Lambdas.
-* **Plugin Architecture:** Every Action Serverless does is a Plugin.  You can make your own plugins too to add "pre" and "post" hooks on Actions, create custom Actions, or replace an Action entirely.
+* Propose your changes before you start working on a PR. You can reach us by submitting a Github issue, or discuss it in the [Gitter Chatroom](https://gitter.im/serverless/serverless). This is just to make sure that no one else is working on the same change, and to figure out the best way to solve the issue.
+* If you're out of ideas, but still want to contribute, check out our [Road Map](https://trello.com/b/EX6SxBJJ/serverless). There's a lot we want to get done, and we'd love your help!
+* Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless).
+* You can also contribute by writing. Feel free to let us know if you want to publish a useful original guide in our docs (attributed to you, thank you!) that you feel will help the community.
