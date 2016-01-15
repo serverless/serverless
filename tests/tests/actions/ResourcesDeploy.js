@@ -48,7 +48,7 @@ describe('Test action: Resources Deploy', function() {
           let Project = new serverless.classes.Project(serverless);
           // generate unique bucket name to get a unique CF template on every test.
           // CF will remove the previous bucket for us!
-          Project.data.cloudFormation.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
+          Project.get().cloudFormation.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
           Project.save();
 
           done();

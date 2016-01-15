@@ -19,7 +19,7 @@ describe('All Tests', function() {
   //require('./tests/classes/ServerlessStateTest');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
-  require('./tests/actions/ProjectCreate');
+  //require('./tests/actions/ProjectCreate');
   //require('./tests/actions/StageCreate');
   //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ComponentCreate');
