@@ -45,7 +45,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   let commonVariablesPrivate = {
     project: projectName,
     domain: projectDomain,
-    projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion)
+    projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion),
+    endpointVariable: "none"
   };
 
   let commonVariablesPublic = {
@@ -81,7 +82,6 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       //Need to run npm install on the test project, they recommend NOT doing this programatically
       //https://github.com/npm/npm#using-npm-programmatically
       if (npmInstallDirs) {
-
         npmInstallDirs.forEach(function(dir) {
           let fullPath = path.join(tmpProjectPath, dir);
           SUtils.sDebug('test_utils', `Running NPM install on ${fullPath}`);

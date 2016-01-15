@@ -10,7 +10,7 @@
   "events": [],
   "endpoints": [
     {
-      "path": "nodejscomponent/module1/function3",
+      "path": "module1/function3",
       "method": "GET",
       "authorizationType": "none",
       "apiKeyRequired": false,
@@ -33,7 +33,7 @@
       }
     },
     {
-      "path": "moduleone/three",
+      "path": "module1/function3",
       "method": "POST",
       "authorizationType": "none",
       "apiKeyRequired": false,

@@ -10,13 +10,11 @@
   "events": [],
   "endpoints": [
     {
-      "path": "nodejscomponent/module1/function1",
+      "path": "module1/function1",
       "method": "GET",
-      "authorizationType": "none",
+      "authorizationType": "${endpointVariable}",
       "apiKeyRequired": false,
-      "requestParameters": {
-        "integration.request.querystring.integrationQueryParam" : "method.request.querystring.longitude"
-      },
+      "requestParameters": "$${module1.endpointTemplate}",
       "requestTemplates": {
         "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
       },

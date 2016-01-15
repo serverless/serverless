@@ -10,7 +10,7 @@
   "events": [],
   "endpoints": [
     {
-      "path": "nodejscomponent/module1/function2",
+      "path": "module1/function2",
       "method": "GET",
       "authorizationType": "none",
       "apiKeyRequired": false,

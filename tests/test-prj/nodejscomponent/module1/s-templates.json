@@ -1,0 +1,5 @@
+{
+  "endpointTemplate": {
+    "integration.request.querystring.integrationQueryParam" : "method.request.querystring.longitude"
+  }
+}
