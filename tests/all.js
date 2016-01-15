@@ -11,15 +11,15 @@ describe('All Tests', function() {
 
   after(function() {});
 
-  require('./tests/classes/ServerlessEndpointTest');
-  require('./tests/classes/ServerlessFunctionTest');
-  require('./tests/classes/ServerlessModuleTest');
-  require('./tests/classes/ServerlessComponentTest');
-  require('./tests/classes/ServerlessProjectTest');
-  require('./tests/classes/ServerlessStateTest');
+  //require('./tests/classes/ServerlessEndpointTest');
+  //require('./tests/classes/ServerlessFunctionTest');
+  //require('./tests/classes/ServerlessModuleTest');
+  //require('./tests/classes/ServerlessComponentTest');
+  //require('./tests/classes/ServerlessProjectTest');
+  //require('./tests/classes/ServerlessStateTest');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
-  //require('./tests/actions/ProjectCreate');
+  require('./tests/actions/ProjectCreate');
   //require('./tests/actions/StageCreate');
   //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ComponentCreate');

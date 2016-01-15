@@ -68,6 +68,18 @@ describe('Test Serverless Function Class', function() {
     //  done();
     //});
 
+    it('Get populated instance data', function(done) {
+      instance.getPopulated({ stage: config.stage, region: config.region })
+        .then(function(data) {
+          assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
+          assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+
     it('Set instance data', function(done) {
       let clone = instance.get();
       clone.name = 'newFunction';
