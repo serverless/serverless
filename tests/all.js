@@ -10,7 +10,6 @@ describe('All Tests', function() {
   });
 
   after(function() {});
-
   //require('./tests/classes/ServerlessEndpointTest');
   //require('./tests/classes/ServerlessFunctionTest');
   //require('./tests/classes/ServerlessModuleTest');
@@ -30,6 +29,6 @@ describe('All Tests', function() {
   //require('./tests/actions/EnvSetUnset');
   require('./tests/actions/ResourcesDeploy');
   //require('./tests/actions/FunctionRun');
-  //require('./tests/actions/FunctionDeploy');
+  require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');
 });

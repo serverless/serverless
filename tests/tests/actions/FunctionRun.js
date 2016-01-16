@@ -28,7 +28,6 @@ describe('Test Action: Function Run', function() {
 
   before(function(done) {
     this.timeout(0);
-
     testUtils.createTestProject(config, ['nodejscomponent'])
       .then(projPath => {
 
