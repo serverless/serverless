@@ -69,13 +69,14 @@ describe('Test Action: Endpoint Deploy', function() {
 
   describe('Endpoint Deploy: Specify One Path', function() {
     it('should deploy endpoints', function(done) {
+
       this.timeout(0);
 
       let event = {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1@nodejscomponent/module1/function1~GET'
+          'nodejscomponent/module1/function1@module1/function1~GET'
         ]
       };
 
