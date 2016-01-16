@@ -16,7 +16,7 @@ describe('All Tests', function() {
   //require('./tests/classes/ServerlessModuleTest');
   //require('./tests/classes/ServerlessComponentTest');
   //require('./tests/classes/ServerlessProjectTest');
-  //require('./tests/classes/ServerlessStateTest');
+  require('./tests/classes/ServerlessStateTest');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/ProjectCreate');

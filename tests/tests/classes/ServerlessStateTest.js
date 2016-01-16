@@ -59,7 +59,6 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-
     it('Get populated instance data', function(done) {
       instance.getPopulated({ stage: config.stage, region: config.region })
         .then(function(data) {
@@ -83,6 +82,41 @@ describe('Test Serverless State Class', function() {
     it('Save instance to the file system', function(done) {
       instance.save()
         .then(function(instance) {
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+
+    it('Get project', function(done) {
+      let project = instance.getProject();
+      assert.equal(true, project.name === 'newProject');
+      done();
+    });
+
+    it('Get meta', function(done) {
+      let meta = instance.getMeta();
+      assert.equal(true, typeof meta.variables !== 'undefined');
+      done();
+    });
+
+    it('Get resources (unpopulated)', function(done) {
+      instance.getResources()
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+
+    it('Get resources (populated)', function(done) {
+      instance.getResources({ populate: true, stage: config.stage, region: config.region })
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
           done();
         })
         .catch(e => {

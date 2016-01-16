@@ -57,12 +57,12 @@ let cleanup = function(Meta, cb) {
 
   // Delete All Objects in Bucket first, this is required
   s3.listObjects({
-    Bucket: Meta.data.variables.projectBucket
+    Bucket: Meta.variables.projectBucket
   }, function(err, data) {
     if (err) return console.log(err);
 
     let params = {
-      Bucket: Meta.data.variables.projectBucket
+      Bucket: Meta.variables.projectBucket
     };
     params.Delete = {};
     params.Delete.Objects = [];
@@ -75,7 +75,7 @@ let cleanup = function(Meta, cb) {
 
       // Delete Bucket
       s3.deleteBucket({
-        Bucket: Meta.data.variables.projectBucket
+        Bucket: Meta.variables.projectBucket
       }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
 
@@ -85,7 +85,7 @@ let cleanup = function(Meta, cb) {
         // Delete CloudFormation Resources Stack
         let cloudformation = new AWS.CloudFormation();
         cloudformation.deleteStack({
-          StackName: Meta.data.stages[config.stage].regions[config.region].variables.resourcesStackName
+          StackName: Meta.stages[config.stage].regions[config.region].variables.resourcesStackName
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
 
@@ -133,21 +133,23 @@ describe('Test action: Project Create', function() {
 
             // Validate Meta
             let Meta = new serverless.classes.Meta(serverless);
-            assert.equal(true, typeof Meta.data.variables.project != 'undefined');
-            assert.equal(true, typeof Meta.data.variables.domain != 'undefined');
-            assert.equal(true, typeof Meta.data.variables.projectBucket != 'undefined');
-            assert.equal(true, typeof Meta.data.stages[config.stage].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.data.stages[config.stage].regions[config.region].variables.region != 'undefined');
-            if (!config.noExecuteCf) {
-              assert.equal(true, typeof Meta.data.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-              assert.equal(true, typeof Meta.data.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
-            }
+            Meta.load().then(function() {
+              assert.equal(true, typeof Meta.variables.project != 'undefined');
+              assert.equal(true, typeof Meta.variables.domain != 'undefined');
+              assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
+              assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
+              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
+              if (!config.noExecuteCf) {
+                assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
+                assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+              }
 
-            // Validate Event
-            validateEvent(evt);
+              // Validate Event
+              validateEvent(evt);
 
-            // Cleanup
-            cleanup(Meta, done);
+              // Cleanup
+              cleanup(Meta, done);
+            });
           })
           .catch(SError, function(e) {
             done(e);
