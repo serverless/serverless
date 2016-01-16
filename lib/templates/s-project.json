@@ -6,6 +6,7 @@
   "author": "",
   "description": "",
   "domain": "",
+  "functionNameTemplate": "{projectName}-{functionName}",
   "stages": {},
   "custom": {},
   "plugins": []
