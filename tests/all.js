@@ -15,7 +15,7 @@ describe('All Tests', function() {
   //require('./tests/classes/ServerlessModuleTest');
   //require('./tests/classes/ServerlessComponentTest');
   //require('./tests/classes/ServerlessProjectTest');
-  //require('./tests/classes/ServerlessStateTest');
+  require('./tests/classes/ServerlessStateTest');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/ProjectCreate');
@@ -27,7 +27,7 @@ describe('All Tests', function() {
   //require('./tests/actions/EnvList');
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvSetUnset');
-  require('./tests/actions/ResourcesDeploy');
+  //require('./tests/actions/ResourcesDeploy');
   //require('./tests/actions/FunctionRun');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');

@@ -147,6 +147,12 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
+    it('Get components by component', function(done) {
+      let components = instance.getComponents({ component: 'nodejscomponent' });
+      assert.equal(true, components[0].name === 'nodejscomponent');
+      done();
+    });
+
     it('Get modules w/o paths', function(done) {
       let modules = instance.getModules();
       assert.equal(true, modules[0].name === 'module1');
@@ -156,6 +162,18 @@ describe('Test Serverless State Class', function() {
     it('Get modules w paths', function(done) {
       let modules = instance.getModules({ paths: ['nodejscomponent/module1'] });
       assert.equal(true, modules[0].name === 'module1');
+      done();
+    });
+
+    it('Get modules by component and module', function(done) {
+      let modules = instance.getModules({ component: 'nodejscomponent', module: 'module1' });
+      assert.equal(true, modules[0].name === 'module1');
+      done();
+    });
+
+    it('Get modules by component', function(done) {
+      let modules = instance.getModules({ component: 'nodejscomponent' });
+      assert.equal(true, modules.length === 1);
       done();
     });
 
@@ -171,6 +189,12 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
+    it('Get functions by component, module and function', function(done) {
+      let functions = instance.getFunctions({ component: 'nodejscomponent', module: 'module1', function: 'function1' });
+      assert.equal(true, functions.length === 1);
+      done();
+    });
+
     it('Get endpoints w/o paths', function(done) {
       let endpoints = instance.getEndpoints();
       assert.equal(true, endpoints.length === 4);
@@ -180,6 +204,24 @@ describe('Test Serverless State Class', function() {
     it('Get endpoints w paths', function(done) {
       let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/module1/function1@module1/function1~GET'] });
       assert.equal(true, endpoints.length === 1);
+      done();
+    });
+
+    it('Get endpoints by component, module, function, path and method', function(done) {
+      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'module1', function: 'function3', endpointPath: 'module1/function3', endpointMethod: 'POST' });
+      assert.equal(true, endpoints.length === 1);
+      done();
+    });
+
+    it('Get endpoints by component, module and function', function(done) {
+      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'module1', function: 'function1' });
+      assert.equal(true, endpoints.length === 1);
+      done();
+    });
+
+    it('Get endpoints by component and method', function(done) {
+      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', endpointMethod: 'GET' });
+      assert.equal(true, endpoints.length === 3);
       done();
     });
 
