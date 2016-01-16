@@ -5,12 +5,11 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-  SPlugin    = require('../../../lib/ServerlessPlugin'),
-  path       = require('path'),
-  utils      = require('../../../lib/utils/index'),
-  assert     = require('chai').assert,
-  testUtils  = require('../../test_utils'),
-  config     = require('../../config');
+  path         = require('path'),
+  utils        = require('../../../lib/utils/index'),
+  assert       = require('chai').assert,
+  testUtils    = require('../../test_utils'),
+  config       = require('../../config');
 
 let serverless;
 let instance;
@@ -181,6 +180,18 @@ describe('Test Serverless State Class', function() {
     it('Get endpoints w paths', function(done) {
       let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/module1/function1@module1/function1~GET'] });
       assert.equal(true, endpoints.length === 1);
+      done();
+    });
+
+    it('Validate stage exists', function(done) {
+      assert.equal(true, instance.validateStageExists(config.stage));
+      assert.equal(false, instance.validateStageExists('invalid'));
+      done();
+    });
+
+    it('Validate region exists', function(done) {
+      assert.equal(true, instance.validateRegionExists(config.stage, config.region));
+      assert.equal(false, instance.validateRegionExists(config.stage, 'invalid'));
       done();
     });
   });
