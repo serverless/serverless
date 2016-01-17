@@ -22,7 +22,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
-      projectDomain        = projectName + '.com';
+      projectDomain        = projectName + '-' + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(36) + '.com';
 
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
