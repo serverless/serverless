@@ -25,11 +25,19 @@
       "config": {}
     },
     {
+      "path": "./actions/FunctionRunLambdaPython2.js",
+      "config": {}
+    },
+    {
       "path": "./actions/FunctionDeploy.js",
       "config": {}
     },
     {
       "path": "./actions/CodePackageLambdaNodeJs.js",
+      "config": {}
+    },
+    {
+      "path": "./actions/CodePackageLambdaPython2.js",
       "config": {}
     },
     {
