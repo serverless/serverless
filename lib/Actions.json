@@ -1,88 +1,25 @@
 {
   "plugins": [
-    {
-      "path": "./actions/ProjectCreate.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/ComponentCreate.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/ModuleCreate.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/FunctionRun.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/FunctionCreate.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/FunctionRunLambdaNodeJs.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/FunctionDeploy.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/CodePackageLambdaNodeJs.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/CodeDeployLambdaNodeJs.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/CodeEventDeployLambda.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/EndpointDeploy.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/EndpointBuildApiGateway.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/DashDeploy.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/EndpointDeployApiGateway.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/StageCreate.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/RegionCreate.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/EnvList.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/EnvGet.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/EnvSet.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/EnvUnset.js",
-      "config": {}
-    },
-    {
-      "path": "./actions/ResourcesDeploy.js",
-      "config": {}
-    }
+    "./actions/ProjectCreate.js",
+    "./actions/ComponentCreate.js",
+    "./actions/ModuleCreate.js",
+    "./actions/FunctionRun.js",
+    "./actions/FunctionCreate.js",
+    "./actions/FunctionRunLambdaNodeJs.js",
+    "./actions/FunctionDeploy.js",
+    "./actions/CodePackageLambdaNodeJs.js",
+    "./actions/CodeDeployLambdaNodeJs.js",
+    "./actions/CodeEventDeployLambda.js",
+    "./actions/EndpointDeploy.js",
+    "./actions/EndpointBuildApiGateway.js",
+    "./actions/DashDeploy.js",
+    "./actions/EndpointDeployApiGateway.js",
+    "./actions/StageCreate.js",
+    "./actions/RegionCreate.js",
+    "./actions/EnvList.js",
+    "./actions/EnvGet.js",
+    "./actions/EnvSet.js",
+    "./actions/EnvUnset.js",
+    "./actions/ResourcesDeploy.js"
   ]
 }

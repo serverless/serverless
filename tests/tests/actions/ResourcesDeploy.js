@@ -81,7 +81,6 @@ describe('Test action: Resources Deploy', function() {
 
             // Validate Evt
             validateEvent(evt);
-
             done();
 
           })
