@@ -32,12 +32,17 @@ describe('Test action: Function Create', function() {
     this.timeout(0);
     testUtils.createTestProject(config)
         .then(projPath => {
+
           process.chdir(projPath);
+
           serverless = new Serverless({
             interactive: false,
             projectPath: projPath
           });
-          done();
+
+          return serverless.state.load().then(function() {
+            done();
+          });
         });
   });
 

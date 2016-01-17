@@ -55,7 +55,9 @@ describe('Test Action: Endpoint Deploy', function() {
             projectPath: projPath
           });
 
-          done();
+          return serverless.state.load().then(function() {
+            done();
+          });
         });
   });
 

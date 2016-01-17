@@ -78,7 +78,9 @@ describe('Test Action: Region Create', function() {
             projectPath: projPath
           });
 
-          done();
+          return serverless.state.load().then(function() {
+            done();
+          });
         });
   });
 

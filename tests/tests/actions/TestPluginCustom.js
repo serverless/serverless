@@ -12,15 +12,7 @@ let Serverless = require('../../../lib/Serverless.js'),
     assert     = require('chai').assert,
     config     = require('../../config');
 
-/**
- * Serverless
- */
-
-let serverless = new Serverless({
-  awsAdminKeyId:     '123',
-  awsAdminSecretKey: '123',
-  interactive:       false
-});
+let serverless;
 
 /**
  * Define Plugin
@@ -258,8 +250,16 @@ class CustomPlugin extends SPlugin {
 describe('Test Custom Plugin', function() {
 
   before(function(done) {
+
+    serverless = new Serverless({
+      awsAdminKeyId:     '123',
+      awsAdminSecretKey: '123',
+      interactive:       false
+    });
+
     serverless.addPlugin(new CustomPlugin(serverless, {}));
     done();
+
   });
 
   after(function(done) {

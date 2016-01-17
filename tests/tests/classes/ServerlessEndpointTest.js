@@ -64,15 +64,10 @@ describe('Test Serverless Endpoint Class', function() {
     });
 
     it('Get populated instance data', function(done) {
-      instance.getPopulated({ stage: config.stage, region: config.region })
-        .then(function(data) {
-          assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
-          assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+      let data = instance.getPopulated({ stage: config.stage, region: config.region });
+      assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
+      assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
+      done();
     });
 
     it('Set instance data', function(done) {

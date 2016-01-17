@@ -35,6 +35,7 @@ describe('Test Action: Env Get', function() {
           this.timeout(0);
 
           process.chdir(projPath);
+
           serverless = new Serverless({
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
@@ -42,7 +43,9 @@ describe('Test Action: Env Get', function() {
             projectPath: projPath
           });
 
-          done();
+          return serverless.state.load().then(function() {
+            done();
+          });
         });
   });
 

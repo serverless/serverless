@@ -47,7 +47,9 @@ describe('Test Env Set & Env Unset actions', function() {
             projectPath: projPath
           });
 
-          done();
+          return serverless.state.load().then(function() {
+            done();
+          });
         });
   });
 

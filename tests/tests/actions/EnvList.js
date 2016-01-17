@@ -45,7 +45,9 @@ describe('Test Action: Env List', function() {
             projectPath: projPath
           });
 
-          done();
+          return serverless.state.load().then(function() {
+            done();
+          });
         });
   });
 

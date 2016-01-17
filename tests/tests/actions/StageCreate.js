@@ -75,7 +75,9 @@ describe('Test Action: Stage Create', function() {
             projectPath: projPath
           });
 
-          done();
+          return serverless.state.load().then(function() {
+            done();
+          });
         });
   });
 

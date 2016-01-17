@@ -59,15 +59,10 @@ describe('Test Serverless State Class', function() {
     });
 
     it('Get populated instance data', function(done) {
-      instance.getPopulated({ stage: config.stage, region: config.region })
-        .then(function(data) {
-          assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
-          assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+      let data = instance.getPopulated({ stage: config.stage, region: config.region })
+      assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
+      assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
+      done();
     });
 
     it('Set instance data', function(done) {
@@ -101,26 +96,16 @@ describe('Test Serverless State Class', function() {
     });
 
     it('Get resources (unpopulated)', function(done) {
-      instance.getResources()
-        .then(function(resources) {
-          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+      let resources = instance.getResources();
+      assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+      done();
     });
 
     it('Get resources (populated)', function(done) {
-      instance.getResources({ populate: true, stage: config.stage, region: config.region })
-        .then(function(resources) {
-          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+      let resources = instance.getResources({ populate: true, stage: config.stage, region: config.region });
+      assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
+      assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
+      done();
     });
 
     it('Get stages', function(done) {

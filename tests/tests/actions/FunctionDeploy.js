@@ -76,7 +76,7 @@ describe('Test Action: Function Deploy', function() {
       .then(projPath => {
 
         process.chdir(projPath);
-        console.log(projPath);
+
         serverless = new Serverless({
           interactive:       false,
           awsAdminKeyId:     config.awsAdminKeyId,
@@ -84,7 +84,9 @@ describe('Test Action: Function Deploy', function() {
           projectPath:       projPath
         });
 
-        done();
+        return serverless.state.load().then(function() {
+          done();
+        });
       });
   });
 
