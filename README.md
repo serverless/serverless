@@ -28,6 +28,7 @@ Serverless is comprised of Plugins.  A group of default Plugins ship with the Fr
 * **[Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting)** - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
 * **[Optimizer](https://github.com/serverless/serverless-optimizer-plugin)** - Optimizes your code for performance in Lambda.
 * **[CORS](https://github.com/joostfarla/serverless-cors-plugin)** - Adds support for CORS (Cross-origin resource sharing).
+* **[CloudFormation Validator](https://github.com/tmilewski/serverless-resources-validation-plugin)** - Adds support for validating your CloudFormation template.
 
 ## Differences From JAWS:
 
