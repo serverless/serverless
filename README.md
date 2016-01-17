@@ -27,13 +27,14 @@ Awesome! You've just installed Serverless. To learn how to use the framework, pl
 * [Twitter](https://twitter.com/goserverless)
 * [Serverless Meetups](http://www.meetup.com/serverless/)
 
-
 ## Plugins
 Serverless is comprised of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
 * **[Plugin Boilerplate](https://github.com/serverless/serverless-plugin-boilerplate)** - Make a Serverless Plugin with this simple boilerplate.
 * **[Serve](https://github.com/Nopik/serverless-serve)** - Simulate API Gateway locally, so all function calls can be run via localhost.
 * **[Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting)** - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
 * **[Optimizer](https://github.com/serverless/serverless-optimizer-plugin)** - Optimizes your code for performance in Lambda.
+* **[CORS](https://github.com/joostfarla/serverless-cors-plugin)** - Adds support for CORS (Cross-origin resource sharing).
+* **[CloudFormation Validator](https://github.com/tmilewski/serverless-resources-validation-plugin)** - Adds support for validating your CloudFormation template.
 
 ## Contributing
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
