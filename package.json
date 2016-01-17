@@ -5,7 +5,7 @@
     "node": ">=4.0"
   },
   "preferGlobal": true,
-  "description": "The Serverless Application Framework Powered By Amazon Web Services - http://www.serverless.com",
+  "description": "The Serverless Application Framework - Powered By Amazon Web Services - http://www.serverless.com",
   "author": "serverless.com",
   "license": "MIT",
   "repository": {
