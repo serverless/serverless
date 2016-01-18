@@ -7,7 +7,7 @@ Serverless is the application framework for building serverless web, mobile and 
 
 We believe AWS Lambda will be the focal point of AWS cloud, and the Serverless Framework approaches AWS from that perspective.
 
-We work on this live in our [Gitter chatroom](https://gitter.im/serverless/serverless). Everyone is welcome :)
+We work on this live in our [Gitter Chatroom](https://gitter.im/serverless/serverless). Everyone is welcome :)
 
 ## Install
 
