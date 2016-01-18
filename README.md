@@ -3,7 +3,7 @@
 Serverless Framework (BETA)
 =================================
 
-Serverless is the application framework for building serverless web, mobile and IoT applications. It's a command line interface that provides structure, automation and optimization to help you build and maintain Serverless apps across teams of any size.  It's completely extensible via Plugins and developed full-time by a dedicated team.
+Serverless is the application framework for building serverless web, mobile and IoT applications. It's a command line interface that helps you build and maintain Serverless apps across teams of any size.  It's completely extensible via Plugins and developed full-time by a dedicated team.
 
 We believe AWS Lambda will be the focal point of AWS cloud, and the Serverless Framework approaches AWS from that perspective.
 
