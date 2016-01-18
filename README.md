@@ -5,9 +5,9 @@ Serverless Framework (BETA)
 
 Serverless is the application framework for building serverless web, mobile and IoT applications. It's a command line interface that provides structure, automation and optimization to help you build and maintain Serverless apps across teams of any size.  It's completely extensible via Plugins and developed full-time by a dedicated team.
 
-In the future, we believe AWS Lambda will be the focal point of AWS cloud, and the Framework approaches AWS from that perspective.
+We believe AWS Lambda will be the focal point of AWS cloud, and the Serverless Framework approaches AWS from that perspective.
 
-We work on this live in our [Gitter chatroom](https://gitter.im/serverless/serverless). Enjoy :)
+We work on this live in our [Gitter chatroom](https://gitter.im/serverless/serverless). Everyone is welcome :)
 
 ## Install
 
@@ -17,7 +17,7 @@ Install The Serverless Framework via npm: (requires Node V4)
 npm install serverless -g
 ```
 
-Done :)  Now refer to our [docs](http://docs.serverless.com/v0.1.0/docs/) for next steps.
+Done!  Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for next steps.
 
 ## Features
 
