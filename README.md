@@ -1,25 +1,44 @@
 ![Serverless Application Framework AWS Lambda API Gateway](other/img/serverless_framework_readme_large.gif)
 
-Serverless Framework V0.1.0 (BETA)
+Serverless Framework (BETA)
 =================================
 
-####The Serverless Application Framework Powered By Amazon Web Services - [serverless.com](http://www.serverless.com)
+Serverless is the application framework for building serverless web, mobile and IoT applications. It's a command line interface that provides structure, automation and optimization to help you build and maintain Serverless apps across teams of any size.  It's completely extensible via Plugins and developed full-time by a dedicated team.
 
-Serverless is an application framework for building serverless web, mobile and IoT applications. Serverless comes in the form of a command line interface that provides structure, automation and optimization to help you build and maintain Serverless apps.
+In the future, we believe AWS Lambda will be the focal point of AWS cloud, and the Framework approaches AWS from that perspective.
 
-Serverless uses AWS services exclusively, since it relies on AWS's Lambda service to provide event-driven compute resources and many AWS services integrate nicely with Lambda. A Serverless app can be simply a group of lambda functions to accomplish some tasks, or an entire back-end comprised of hundreds of lambda functions.
+We work on this live in our [Gitter chatroom](https://gitter.im/serverless/serverless). Enjoy :)
 
-We made a strong effort to make not just a groundbreaking Serverless framework, but the best framework for building applications with AWS in general (that is also Serverless!). As a result, Serverless incorporates years of AWS expertise into its tooling, giving you best practices out-of-the-box.
+## Install
 
-## Installing Serverless
-You can install The Serverless Framework via npm: (requires Node V4)
+Install The Serverless Framework via npm: (requires Node V4)
+
 ```
 npm install serverless -g
 ```
 
-Awesome! You've just installed Serverless. To learn how to use the framework, please refer to our [docs](http://docs.serverless.com/v0.1.0/docs/)
+Done :)  Now refer to our [docs](http://docs.serverless.com/v0.1.0/docs/) for next steps.
+
+## Features
+
+* Run/test AWS Lambda functions locally
+* Auto-deploy, version & alias your Lambda functions
+* Auto-deploys your REST API to AWS API Gateway
+* Support for multiple stages
+* Support for multiple regions within stages
+* Manage & deploy AWS CloudFormation resources
+* Project Variables & Module Templates to reduce configuration settings
+* Environment variable support
+* Interactive dashboard to easily select and deploy functions and endpoints
+* Optimize your Lambda functions for faster response times
+* Components allow for easy sharing of code across Lambda functions
+* Shareable project files and modules
+* 100% Extensible - Extend or modify the Framework and its operations via Plugins
+* Powerful classes and methods for easy plugin development
+* AWS best practices and optimizations built in!
 
 ## Links
+
 * [Documentation](http://docs.serverless.com/v0.1.0/docs/)
 * [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
