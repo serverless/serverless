@@ -44,7 +44,10 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(Meta, cb) {
+let cleanup = function(Meta, cb, evt) {
+
+  // Project Create no longer creates a Project Bucket if noExeCf is set
+  if (evt.options.noExeCf) return cb();
 
   AWS.config.update({
     region:          config.region,
@@ -148,7 +151,7 @@ describe('Test action: Project Create', function() {
               validateEvent(evt);
 
               // Cleanup
-              cleanup(Meta, done);
+              cleanup(Meta, done, evt);
             });
           })
           .catch(SError, function(e) {
