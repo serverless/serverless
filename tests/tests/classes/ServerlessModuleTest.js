@@ -104,5 +104,11 @@ describe('Test Serverless Module Class', function() {
           done(e);
         });
     });
+
+    it('Get component', function() {
+      let component = instance.getComponent();
+      assert.instanceOf(component, serverless.classes.Component);
+      assert.equal(component.name, instance._config.component);
+    });
   });
 });
