@@ -48,6 +48,9 @@ let cleanup = function(UUID, cb) {
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey
   };
+  if(_this.S._awsSessionToken) {
+    awsConfig.sessionToken = _this.S._awsSessionToken;
+  }
 
   let lambda = new AWS.Lambda(awsConfig);
 
