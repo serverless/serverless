@@ -1,6 +1,7 @@
 {
   "plugins": [
     "./actions/ProjectCreate.js",
+    "./actions/ProjectInstall.js",
     "./actions/ComponentCreate.js",
     "./actions/ModuleCreate.js",
     "./actions/FunctionRun.js",
