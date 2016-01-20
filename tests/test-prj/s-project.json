@@ -48,7 +48,7 @@
                   "logs:CreateLogStream",
                   "logs:PutLogEvents"
                 ],
-                "Resource": "arn:aws:logs:${region}:*:"
+                "Resource": "arn:aws:logs:${region}:*:*"
               }
             ]
           },
