@@ -49,6 +49,7 @@
     "dotenv": "^1.2.0",
     "download": "^4.2.0",
     "expand-home-dir": "0.0.2",
+    "fs-extra": "^0.26.4",
     "immutable": "^3.7.6",
     "insert-module-globals": "^6.5.2",
     "keypress": "^0.2.1",
