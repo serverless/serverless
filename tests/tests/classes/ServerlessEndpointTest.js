@@ -108,5 +108,11 @@ describe('Test Serverless Endpoint Class', function() {
           done(e);
         });
     });
+
+    it('Get function', function() {
+      let func = instance.getFunction();
+      assert.instanceOf(func, serverless.classes.Function);
+      assert.equal(func.name, instance._config.function);
+    });
   });
 });
