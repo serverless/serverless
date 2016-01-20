@@ -128,7 +128,7 @@ describe('Test action: Project Install', function() {
           notificationEmail:  config.notifyEmail,
           region:             config.region,
           noExeCf:            config.noExecuteCf,
-          project:            'func4'
+          project:            'serverless-starter'
         }
       };
 
