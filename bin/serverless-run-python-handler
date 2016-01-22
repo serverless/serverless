@@ -95,7 +95,6 @@ def capture_fds(stdout=None, stderr=None):
     temp_stderr = stderr or StringIO.StringIO()
     sys.stdout, sys.stderr = temp_stdout, temp_stderr
 
-
     yield
 
     sys.stdout = orig_stdout
@@ -162,37 +161,35 @@ if __name__ == '__main__':
     args = parser.parse_args(sys.argv[1:])
     path = os.path.expanduser(args.handler_path)
     if not os.path.isfile(path):
-        print(u'There is no such file "{}". --handler-path must be a '
+        message = (u'There is no such file "{}". --handler-path must be a '
               u'Python file'.format(path))
-        bail_out(100)
+        print(json.dumps({"success": False, "exception": message}))
+        sys.exit(100)
 
     try:
         handler = import_program_as_module(path)
     except Exception as e:
-        print(u'Could not import your handler file, {}, please check '
-              u'your code and try again.'.format(path))
         bail_out()
 
     stdout, stderr = StringIO.StringIO(), StringIO.StringIO()
     output = {}
-    try:
-        with capture_fds(stdout, stderr):
+    with capture_fds(stdout, stderr):
+        try:
             result = run_with_context(handler, args.handler_function, args.event)
             output['result'] = result
-    except Exception as e:
-        message = u'Failure running handler function {f} from file {file}:\n{tb}'
-        output['exception'] = message.format(
-            f=args.handler_function,
-            file=path,
-            tb=traceback.format_exception(*sys.exc_info()),
-        )
-        output['success'] = False
-    else:
-        output['success'] = True
-    finally:
-        output.update({
-            'stdout': stdout.read(),
-            'stderr': stderr.read(),
-        })
+        except Exception as e:
+            message = u'Failure running handler function {f} from file {file}:\n{tb}'
+            output['exception'] = message.format(
+                f=args.handler_function,
+                file=path,
+                tb=traceback.format_exception(*sys.exc_info()),
+            )
+            output['success'] = False
+        else:
+            output['success'] = True
+    output.update({
+        'stdout': stdout.read(),
+        'stderr': stderr.read(),
+    })
 
     print(json.dumps(output))
