@@ -221,5 +221,36 @@ describe('Test Serverless State Class', function() {
       assert.equal(false, instance.validateRegionExists(config.stage, 'invalid'));
       done();
     });
+
+    it('Set Assets', function(done) {
+
+      let project   = new instance._S.classes.Project(instance._S);
+      project.name  = 'testProject';
+      instance.setAsset(project);
+
+      let component  = new instance._S.classes.Component(instance._S, { component: 'testComponent' });
+      component.name = 'testComponent';
+      instance.setAsset(component);
+
+      let module   = new instance._S.classes.Module(instance._S, { component: component.name, module: 'testModule' });
+      module.name  = 'testModule';
+      instance.setAsset(module);
+
+      let func   = new instance._S.classes.Function(instance._S, { component: component.name, module: module.name, function: 'testFunction' });
+      func.name  = 'testFunction';
+      instance.setAsset(func);
+
+      let endpoint   = new instance._S.classes.Endpoint(instance._S, { component: component.name, module: module.name, function: func.name, endpointPath: 'test/function', endpointMethod: 'GET' });
+      endpoint.path  = 'test/endpoint';
+      instance.setAsset(endpoint);
+
+      assert.equal(true, instance.project.name === 'testProject');
+      assert.equal(true, typeof instance.project.components[component.name] !== 'undefined');
+      assert.equal(true, typeof instance.project.components[component.name].modules[module.name] !== 'undefined');
+      assert.equal(true, typeof instance.project.components[component.name].modules[module.name].functions[func.name] !== 'undefined');
+      assert.equal(true, instance.project.components[component.name].modules[module.name].functions[func.name].endpoints.length > 0);
+
+      done();
+    });
   });
 });
