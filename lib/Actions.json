@@ -10,6 +10,7 @@
     "./actions/FunctionRunLambdaPython2.js",
     "./actions/FunctionDeploy.js",
     "./actions/CodePackageLambdaNodeJs.js",
+    "./actions/CodePackageLambdaPython2.js",
     "./actions/CodeDeployLambdaNodeJs.js",
     "./actions/CodeEventDeployLambda.js",
     "./actions/EndpointDeploy.js",
