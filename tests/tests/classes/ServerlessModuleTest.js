@@ -30,13 +30,17 @@ describe('Test Serverless Module Class', function() {
           projectPath: projPath
         });
 
-        // Instantiate Class
-        instance = new serverless.classes.Module(serverless, {
-          component: 'nodejscomponent',
-          module:    'module1'
-        });
+        return serverless.init()
+          .then(function() {
 
-        done();
+            // Instantiate Class
+            instance = new serverless.classes.Module(serverless, {
+              component: 'nodejscomponent',
+              module: 'module1'
+            });
+
+            done();
+          });
       });
   });
 

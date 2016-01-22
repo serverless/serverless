@@ -30,10 +30,14 @@ describe('Test Serverless Project Class', function() {
           projectPath: projPath
         });
 
-        // Instantiate Class
-        instance = new serverless.classes.Project(serverless);
+        return serverless.init()
+          .then(function() {
 
-        done();
+            // Instantiate Class
+            instance = new serverless.classes.Project(serverless);
+
+            done();
+          });
       });
   });
 

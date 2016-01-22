@@ -29,10 +29,14 @@ describe('Test Serverless State Class', function() {
           projectPath: projPath
         });
 
-        // Instantiate Class
-        instance = new serverless.classes.State(serverless);
+        return serverless.init()
+          .then(function() {
 
-        done();
+            // Instantiate Class
+            instance = new serverless.classes.State(serverless);
+
+            done();
+          });
       });
   });
 

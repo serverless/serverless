@@ -29,14 +29,18 @@ describe('Test Serverless Function Class', function() {
           projectPath: projPath
         });
 
-        // Instantiate Class
-        instance = new serverless.classes.Function(serverless, {
-          component: 'nodejscomponent',
-          module:    'module1',
-          function:  'function1'
-        });
+        return serverless.init()
+          .then(function() {
 
-        done();
+            // Instantiate Class
+            instance = new serverless.classes.Function(serverless, {
+              component: 'nodejscomponent',
+              module: 'module1',
+              function: 'function1'
+            });
+
+            done();
+          });
       });
   });
 

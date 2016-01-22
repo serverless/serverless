@@ -29,16 +29,20 @@ describe('Test Serverless Endpoint Class', function() {
           projectPath: projPath
         });
 
-        // Instantiate Class
-        instance = new serverless.classes.Endpoint(serverless, {
-          component:      'nodejscomponent',
-          module:         'module1',
-          function:       'function1',
-          endpointPath:   'module1/function1',
-          endpointMethod: 'GET'
-        });
+        return serverless.init()
+          .then(function() {
 
-        done();
+            // Instantiate Class
+            instance = new serverless.classes.Endpoint(serverless, {
+              component: 'nodejscomponent',
+              module: 'module1',
+              function: 'function1',
+              endpointPath: 'module1/function1',
+              endpointMethod: 'GET'
+            });
+
+            done();
+          });
       });
   });
 
