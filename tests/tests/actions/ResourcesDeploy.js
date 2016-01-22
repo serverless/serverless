@@ -46,7 +46,8 @@ describe('Test action: Resources Deploy', function() {
             projectPath: projPath
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init()
+            .then(function() {
 
             SUtils.sDebug('Adding test bucket resource');
 
