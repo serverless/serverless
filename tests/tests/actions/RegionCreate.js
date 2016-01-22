@@ -96,7 +96,8 @@ describe('Test Action: Region Create', function() {
       let evt = {
         options: {
           stage:      config.stage,
-          region:     config.region2
+          region:     config.region2,
+          noExeCf:    config.noExecuteCf
         }
       };
 

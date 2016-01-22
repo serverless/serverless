@@ -75,7 +75,8 @@ describe('Test action: Resources Deploy', function() {
       this.timeout(0);
       let evt = {
         stage:      config.stage,
-        region:     config.region
+        region:     config.region,
+        noExeCf:    config.noExecuteCf
       };
 
       serverless.actions.resourcesDeploy(evt)

@@ -89,7 +89,8 @@ describe('Test Action: Stage Create', function() {
       let evt = {
         options: {
           stage:      config.stage2,
-          region:     config.region
+          region:     config.region,
+          noExeCf:    config.noExecuteCf
         }
       };
 
