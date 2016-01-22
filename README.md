@@ -55,6 +55,7 @@ Serverless is comprised of Plugins.  A group of default Plugins ship with the Fr
 * [CORS](https://github.com/joostfarla/serverless-cors-plugin) - Adds support for CORS (Cross-origin resource sharing).
 * [CloudFormation Validator](https://github.com/tmilewski/serverless-resources-validation-plugin) - Adds support for validating your CloudFormation template.
 * [Prune](https://github.com/Nopik/serverless-lambda-prune-plugin) - Delete old versions of AWS lambdas from your account so that you don't exceed the code storage limit.
+* [Base-Path](https://github.com/daffinity/serverless-base-path-plugin) - Sets a base path for all API Gateway endpoints in a Component.
 
 ## Contributing
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
