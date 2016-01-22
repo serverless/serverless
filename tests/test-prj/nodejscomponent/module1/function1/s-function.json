@@ -14,7 +14,7 @@
       "method": "GET",
       "authorizationType": "${endpointVariable}",
       "apiKeyRequired": false,
-      "requestParameters": "$${module1.endpointTemplate}",
+      "requestParameters": "$${endpointTemplate}",
       "requestTemplates": {
         "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
       },
