@@ -11,6 +11,7 @@
     "./actions/FunctionDeploy.js",
     "./actions/CodePackageLambda.js",
     "./actions/CodeDeployLambdaNodeJs.js",
+    "./actions/CodeDeployLambdaPython2.js",
     "./actions/CodeEventDeployLambda.js",
     "./actions/EndpointDeploy.js",
     "./actions/EndpointBuildApiGateway.js",
