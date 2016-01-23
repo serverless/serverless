@@ -1,0 +1,7 @@
+{
+  "apiRequestTemplate": {
+    "application/json": {
+      "headerParams" : "$input.params().header"
+    }
+  }
+}

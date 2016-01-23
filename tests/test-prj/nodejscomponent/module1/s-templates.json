@@ -1,5 +1,10 @@
 {
   "endpointTemplate": {
     "integration.request.querystring.integrationQueryParam" : "method.request.querystring.longitude"
+  },
+  "apiRequestTemplate": {
+    "application/json": {
+      "queryParams" : "$input.params().querystring"
+    }
   }
 }
