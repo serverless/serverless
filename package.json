@@ -33,7 +33,7 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test": "mocha tests/all"
+    "test": "DEBUG=\"*\" mocha tests/all"
   },
   "devDependencies": {
     "chai": "^3.2.0",
