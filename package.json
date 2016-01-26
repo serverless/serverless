@@ -30,7 +30,8 @@
   "bin": {
     "serverless": "./bin/serverless",
     "slss": "./bin/serverless",
-    "sls": "./bin/serverless"
+    "sls": "./bin/serverless",
+    "serverless-run-python-handler": "./bin/serverless-run-python-handler"
   },
   "scripts": {
     "test": "DEBUG=\"*\" mocha tests/all"
