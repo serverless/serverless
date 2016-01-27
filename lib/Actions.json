@@ -24,6 +24,7 @@
     "./actions/EnvGet.js",
     "./actions/EnvSet.js",
     "./actions/EnvUnset.js",
-    "./actions/ResourcesDeploy.js"
+    "./actions/ResourcesDeploy.js",
+    "./actions/ResourcesRemove.js"
   ]
 }
