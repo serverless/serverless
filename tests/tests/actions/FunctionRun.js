@@ -42,7 +42,8 @@ describe('Test Action: Function Run', function() {
           projectPath: projPath
         });
 
-        return serverless.state.load().then(function() {
+        return serverless.state.load()
+          .then(function() {
           done();
         });
       });
