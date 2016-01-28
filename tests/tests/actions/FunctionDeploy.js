@@ -24,7 +24,7 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.region != 'undefined');
   assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
   assert.equal(true, typeof evt.options.paths != 'undefined');
-  assert.equal(true, typeof evt.data.deployed != 'undefined');
+
 
   if (evt.data.failed) {
     for (let i = 0; i < Object.keys(evt.data.failed).length; i++) {
@@ -34,6 +34,7 @@ let validateEvent = function(evt) {
   }
 
   assert.equal(true, typeof evt.data.failed === 'undefined');
+  assert.equal(true, typeof evt.data.deployed != 'undefined');
 };
 
 /**
