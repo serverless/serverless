@@ -15,7 +15,7 @@
     "./actions/EndpointDeploy.js",
     "./actions/EndpointBuildApiGateway.js",
     "./actions/EventDeploy.js",
-    "./actions/EventDeployStream.js",
+    "./actions/EventDeployStreamLambda.js",
     "./actions/DashDeploy.js",
     "./actions/DashSummary.js",
     "./actions/EndpointDeployApiGateway.js",
