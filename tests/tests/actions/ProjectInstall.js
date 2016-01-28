@@ -136,24 +136,24 @@ describe('Test action: Project Install', function() {
         .then(function(evt) {
 
           // Validate Meta
-          let Meta = new serverless.classes.Meta(serverless);
-          Meta.load().then(function() {
-            assert.equal(true, typeof Meta.variables.project != 'undefined');
-            assert.equal(true, typeof Meta.variables.domain != 'undefined');
-            assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
-            if (!config.noExecuteCf) {
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
-            }
+          let Meta = serverless.state.getMeta();
 
-            // Validate Event
-            validateEvent(evt);
+          assert.equal(true, typeof Meta.variables.project != 'undefined');
+          assert.equal(true, typeof Meta.variables.domain != 'undefined');
+          assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
+          assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
+          assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
+          if (!config.noExecuteCf) {
+            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
+            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+          }
 
-            // Cleanup
-            cleanup(Meta, done, evt);
-          });
+          // Validate Event
+          validateEvent(evt);
+
+          // Cleanup
+          cleanup(Meta, done, evt);
+
         })
         .catch(SError, function(e) {
           done(e);
