@@ -126,6 +126,7 @@ describe('Test action: Project Init', function() {
           name:               name,
           domain:             domain,
           notificationEmail:  config.notifyEmail,
+          stage:              config.stage,
           region:             config.region,
           noExeCf:            config.noExecuteCf
         }
@@ -136,7 +137,6 @@ describe('Test action: Project Init', function() {
 
           // Validate Meta
           let Meta = serverless.state.getMeta();
-
           assert.equal(true, typeof Meta.variables.project != 'undefined');
           assert.equal(true, typeof Meta.variables.domain != 'undefined');
           assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
