@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Project Create Action
+ * Test: Project Install Action
  * - Creates a new private in your system's temp directory
  * - Deletes the CF stack created by the private
  */
@@ -91,7 +91,6 @@ let cleanup = function(Meta, cb, evt) {
           StackName: Meta.stages[config.stage].regions[config.region].variables.resourcesStackName
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
-
           return cb();
         });
       });
@@ -126,6 +125,7 @@ describe('Test action: Project Install', function() {
           name:               name,
           domain:             domain,
           notificationEmail:  config.notifyEmail,
+          stage:              config.stage,
           region:             config.region,
           noExeCf:            config.noExecuteCf,
           project:            'serverless-starter'
