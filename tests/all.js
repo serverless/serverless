@@ -32,4 +32,5 @@ describe('All Tests', function() {
   //require('./tests/actions/EndpointDeploy');
   require('./tests/actions/ProjectInit');
   require('./tests/actions/ProjectInstall');
+  require('./tests/actions/projectLifeCycle.js');
 });
