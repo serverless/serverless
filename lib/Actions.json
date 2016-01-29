@@ -26,6 +26,8 @@
     "./actions/EnvUnset.js",
     "./actions/ResourcesDeploy.js",
     "./actions/ResourcesRemove.js",
-    "./actions/RegionRemove.js"
+    "./actions/RegionRemove.js",
+    "./actions/StageRemove.js",
+    "./actions/ProjectRemove.js"
   ]
 }
