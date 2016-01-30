@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
 'use strict';
-var AWS = require('aws-sdk');
-var HttpsProxyAgent = require('https-proxy-agent');
-AWS.config.httpOptions.agent = new HttpsProxyAgent(process.env.HTTP_PROXY);
 
 let argv = require('minimist')(process.argv.slice(2));
 

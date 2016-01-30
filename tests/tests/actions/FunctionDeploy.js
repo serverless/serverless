@@ -7,6 +7,7 @@
 let Serverless  = require('../../../lib/Serverless.js'),
   path        = require('path'),
   utils       = require('../../../lib/utils/index'),
+  awsMisc     = require('../../../lib/utils/aws/Misc'),
   assert      = require('chai').assert,
   testUtils   = require('../../test_utils'),
   AWS         = require('aws-sdk'),
@@ -43,14 +44,7 @@ let validateEvent = function(evt) {
  */
 
 let cleanup = function(UUID, cb) {
-  let awsConfig = {
-    region:          config.region,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  };
-  if(_this.S._awsSessionToken) {
-    awsConfig.sessionToken = _this.S._awsSessionToken;
-  }
+  let awsConfig = awsMisc.createAwsConfig(config);
 
   let lambda = new AWS.Lambda(awsConfig);
 
@@ -142,11 +136,7 @@ describe('Test Action: Function Deploy', function() {
   //    serverless.actions.functionDeploy(event)
   //      .then(function(evt) {
   //        validateEvent(evt);
-  //        let awsConfig = {
-  //          region:          config.region,
-  //          accessKeyId:     config.awsAdminKeyId,
-  //          secretAccessKey: config.awsAdminSecretKey,
-  //        };
+  //        let awsConfig = awsMisc.createAwsConfig(config);
   //        let eventSource = {
   //          bucket: 's3-event-source-test',
   //          bucketEvents: ['s3:ObjectCreated:*']
