@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Project Livecycle
+ * Test: Project Lifecycle
  * - Project Init
  * - Stage Create
  * - Region Create
