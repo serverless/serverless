@@ -65,7 +65,6 @@
     "rimraf": "^2.4.3",
     "shelljs": "^0.5.3",
     "shortid": "^2.2.2",
-    "string-format": "^0.5.0",
     "temp": "^0.8.3",
     "traverse": "^0.6.6",
     "wrench": "^1.5.8"
