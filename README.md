@@ -43,7 +43,7 @@ Done!  Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for
 * [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
-* [Facebook](https://www.facebook.com/serverlessframework)
+* [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
 * [Serverless Meetups](http://www.meetup.com/serverless/)
 
