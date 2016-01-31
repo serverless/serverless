@@ -42,7 +42,8 @@ Done!  Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for
 * [Documentation](http://docs.serverless.com/v0.1.0/docs/)
 * [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
-* [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless)
+* [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
+* [Facebook](https://www.facebook.com/serverlessframework)
 * [Twitter](https://twitter.com/goserverless)
 * [Serverless Meetups](http://www.meetup.com/serverless/)
 
@@ -63,5 +64,5 @@ We love our contributors! If you'd like to contribute to the project, feel free 
 
 * Propose your changes before you start working on a PR. You can reach us by submitting a Github issue, or discuss it in the [Gitter Chatroom](https://gitter.im/serverless/serverless). This is just to make sure that no one else is working on the same change, and to figure out the best way to solve the issue.
 * If you're out of ideas, but still want to contribute, check out our [Road Map](https://trello.com/b/EX6SxBJJ/serverless). There's a lot we want to get done, and we'd love your help!
-* Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless).
+* Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework).
 * You can also contribute by writing. Feel free to let us know if you want to publish a useful original guide in our docs (attributed to you, thank you!) that you feel will help the community.
