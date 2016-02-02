@@ -9,15 +9,31 @@ The Framework and its related tools are maintained by a dedicated, full-time tea
 
 Also, we are hiring.  If you are a developer and these tools/idealogies appeal to you and you want to work on these all day long, [please send us a message](team@serverless.com).
 
-## Install
+## Features
+
+* Run/test AWS Lambda functions locally
+* Auto-deploy, version & alias your Lambda functions
+* Auto-deploys your REST API to AWS API Gateway
+* Support for multiple stages
+* Support for multiple regions within stages
+* Manage & deploy AWS CloudFormation resources
+* Project Variables & Module Templates reduce configuration settings
+* Environment variable support
+* Interactive dashboard to easily select and deploy functions and endpoints
+* Optimize your Lambda functions for faster response times
+* Components allow for easy sharing of code across Lambda functions
+* Shareable project files and modules
+* 100% Extensible - Extend or modify the Framework and its operations via Plugins
+* Powerful classes and methods for easy plugin development
+* AWS best practices and optimizations built in!
+
+## Getting Started
 
 Install The Serverless Framework via npm: (requires Node V4)
 
 ```
 npm install serverless -g
 ```
-
-## Getting Started
 
 You can either install an existing project or create your own.  We recommend starting out with the [Serverless-Starter](https://www.github.com/serverless/serverless-starter)
 
@@ -31,27 +47,7 @@ Or you can create your own project
 serverless project create
 ```
 
-Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for more info.
-
-Enjoy!
-
-## Features
-
-* Run/test AWS Lambda functions locally
-* Auto-deploy, version & alias your Lambda functions
-* Auto-deploys your REST API to AWS API Gateway
-* Support for multiple stages
-* Support for multiple regions within stages
-* Manage & deploy AWS CloudFormation resources
-* Project Variables & Module Templates to reduce configuration settings
-* Environment variable support
-* Interactive dashboard to easily select and deploy functions and endpoints
-* Optimize your Lambda functions for faster response times
-* Components allow for easy sharing of code across Lambda functions
-* Shareable project files and modules
-* 100% Extensible - Extend or modify the Framework and its operations via Plugins
-* Powerful classes and methods for easy plugin development
-* AWS best practices and optimizations built in!
+Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for more info.  Enjoy!
 
 ## Links
 
