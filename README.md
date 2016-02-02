@@ -41,6 +41,7 @@ Done!  Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for
 
 * [Documentation](http://docs.serverless.com/v0.1.0/docs/)
 * [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
+* [Email Updates](http://eepurl.com/bvz5Nj)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
