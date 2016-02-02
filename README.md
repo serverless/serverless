@@ -15,7 +15,7 @@ Install The Serverless Framework via npm: (requires Node V4)
 npm install serverless -g
 ```
 
-## Get Started
+## Getting Started
 
 You can either install an existing project, or create your own.  We recommend starting out with the [Serverless-Starter](https://www.github.com/serverless/serverless-starter)
 
