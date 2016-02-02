@@ -7,7 +7,7 @@ Serverless is the application framework for building web, mobile and IoT applica
 
 The Framework and its related tools are maintained by a dedicated, full-time team.  We work on this live in our [Gitter Chatroom](https://gitter.im/serverless/serverless). Please join us, everyone is welcome :)
 
-Also, we are hiring.  If you are a developer and these tools/idealogies appeal to you and you want to work on them all day long, [please send us a message](team@serverless.com).
+Also, we are hiring.  If you are a developer and these tools/idealogies appeal to you and you want to work on these all day long, [please send us a message](team@serverless.com).
 
 ## Install
 
