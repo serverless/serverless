@@ -47,6 +47,7 @@ Done!  Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for
 * [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
 * [Serverless Meetups](http://www.meetup.com/serverless/)
+* [Contact Us](mailto:team@serverless.com)
 
 ## Plugins
 Serverless is comprised of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
