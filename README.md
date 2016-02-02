@@ -58,6 +58,7 @@ Serverless is comprised of Plugins.  A group of default Plugins ship with the Fr
 * [Prune](https://github.com/Nopik/serverless-lambda-prune-plugin) - Delete old versions of AWS lambdas from your account so that you don't exceed the code storage limit.
 * [Base-Path](https://github.com/daffinity/serverless-base-path-plugin) - Sets a base path for all API Gateway endpoints in a Component.
 * [Test](https://github.com/arabold/serverless-test-plugin) - A Simple Integration Test Framework for Serverless.
+* [SNS Subscribe](https://github.com/martinlindenberg/serverless-plugin-sns) This plugin easily subscribes your lambda functions to SNS notifications.
 
 ## Contributing
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
