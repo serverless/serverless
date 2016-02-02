@@ -68,7 +68,7 @@ Enjoy!
 ## Projects
 Serverless Projects are shareable.  You can install these via the Serverless Framework CLI by using `$ serverless project install <project-name>`
 * [serverless-starter](https://github.com/serverless/serverless-starter) - A simple boilerplate for new projects with a few architectural options.
-* [serverless-graphql-blog](https://github.com/serverless/serverless-graphql-blog - A blog boilerplate that leverages GraphQL in front of DyndamoDB to offer a minimal REST API feautring only 1 endpoint.
+* [serverless-graphql-blog](https://github.com/serverless/serverless-graphql-blog) - A blog boilerplate that leverages GraphQL in front of DyndamoDB to offer a minimal REST API feautring only 1 endpoint.
 
 ## Plugins
 Serverless is comprised of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
