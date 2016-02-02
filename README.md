@@ -3,9 +3,11 @@
 Serverless Framework (BETA)
 =================================
 
-Serverless is the application framework for building serverless web, mobile and IoT applications. It's a command line interface that helps you build and maintain Serverless apps across teams of any size.  It's completely extensible via Plugins and developed full-time by a dedicated team.  We believe AWS Lambda will be the focal point of AWS cloud, and the Serverless Framework interprets AWS from Lambda's perspective.
+Serverless is the application framework for building web, mobile and IoT applications exclusively on Amazon Web Services' Lambda and API Gateway. It's a command line interface that helps you build and maintain serverless apps across teams of any size.  It's also completely extensible via Plugins.  We believe AWS Lambda will be the focal point of AWS cloud, and the Serverless Framework interprets AWS from Lambda's perspective.
 
 The Framework and its related tools are maintained by a dedicated, full-time team.  We work on this live in our [Gitter Chatroom](https://gitter.im/serverless/serverless). Please join us, everyone is welcome :)
+
+Also, we are hiring.  If you are a developer and these tools/idealogies appeal to you and you want to work on them all day long, [please send us a message](team@serverless.com).
 
 ## Install
 
