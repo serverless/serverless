@@ -32,7 +32,7 @@ let validateEvent = function(evt) {
       console.log(evt.data.failed[Object.keys(evt.data.failed)[i]]);
     }
   }
-
+  console.log(evt);
   assert.equal(true, typeof evt.data.failed === 'undefined');
   assert.equal(true, typeof evt.data.deployed != 'undefined');
 };
