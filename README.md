@@ -62,7 +62,7 @@ Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for more i
 * [Contact Us](mailto:team@serverless.com)
 
 ## Projects
-Serverless Projects are shareable.  You can install these via the Serverless Framework CLI by using `$ serverless project install <project-name>`
+Serverless Projects are shareable and installable.  You can publish them to npm and install them via the Serverless Framework CLI by using `$ serverless project install <project-name>`
 * [serverless-starter](https://github.com/serverless/serverless-starter) - A simple boilerplate for new projects with a few architectural options.
 * [serverless-graphql-blog](https://github.com/serverless/serverless-graphql-blog) - A blog boilerplate that leverages GraphQL in front of DyndamoDB to offer a minimal REST API feautring only 1 endpoint.
 
