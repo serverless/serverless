@@ -17,7 +17,7 @@ npm install serverless -g
 
 ## Getting Started
 
-You can either install an existing project, or create your own.  We recommend starting out with the [Serverless-Starter](https://www.github.com/serverless/serverless-starter)
+You can either install an existing project or create your own.  We recommend starting out with the [Serverless-Starter](https://www.github.com/serverless/serverless-starter)
 
 ```
 serverless project install serverless-starter
@@ -29,7 +29,7 @@ Or you can create your own project
 serverless project create
 ```
 
-Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for next steps.
+Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for more info.
 
 Enjoy!
 
