@@ -1,4 +1,4 @@
-![Serverless Application Framework AWS Lambda API Gateway](other/img/serverless_framework_readme_large.gif)
+![Serverless Application Framework AWS Lambda API Gateway](other/img/serverless_framework_header.png)
 
 Serverless Framework (BETA)
 =================================
