@@ -14,6 +14,14 @@
       "config": {
         "streamArn": "${streamArn}"
       }
+    },
+    {
+      "name": "s3",
+      "type": "s3",
+      "config": {
+        "bucket": "${testEventBucket}",
+        "bucketEvents": ["s3:ObjectCreated:*"]
+      }
     }
   ],
   "endpoints": [

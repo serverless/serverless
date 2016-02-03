@@ -61,7 +61,9 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     region: projectRegion,
     resourcesStackName: `${projectName}-${projectStage}-r`,
     iamRoleArnLambda: projectLambdaIAMRole,
+    testEventBucket: config.testEventBucket,
     streamArn: config.streamArn,
+    'eventID:nodejscomponent/module1/function1#dynamodb': config.streamUUID,
   };
 
   return Promise.all([

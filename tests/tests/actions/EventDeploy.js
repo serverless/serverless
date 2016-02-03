@@ -93,4 +93,28 @@ describe('Test Action: Event Deploy', function() {
     });
   });
 
+  describe('Event Deploy: S3', function() {
+    it('should deploy S3 based event source', function(done) {
+
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        paths:      [
+          'nodejscomponent/module1/function1#s3'
+        ]
+      };
+
+      serverless.actions.eventDeploy(event)
+        .then(function(evt) {
+          validateEvent(evt);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+  });
+
 });
