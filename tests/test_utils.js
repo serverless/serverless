@@ -60,7 +60,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
   let regionVariables = {
     region: projectRegion,
     resourcesStackName: `${projectName}-${projectStage}-r`,
-    iamRoleArnLambda: projectLambdaIAMRole
+    iamRoleArnLambda: projectLambdaIAMRole,
+    streamArn: config.streamArn,
   };
 
   return Promise.all([

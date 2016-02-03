@@ -7,7 +7,15 @@
   "handler": "module1/function1/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
-  "events": [],
+  "events": [
+    {
+      "name": "dynamodb",
+      "type": "dynamoDBstream",
+      "config": {
+        "streamArn": "${streamArn}"
+      }
+    }
+  ],
   "endpoints": [
     {
       "path": "module1/function1",
