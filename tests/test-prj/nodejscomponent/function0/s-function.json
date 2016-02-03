@@ -4,13 +4,13 @@
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "module1/function0/handler.handler",
+  "handler": "function0/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
   "endpoints": [
     {
-      "path": "module1/function0",
+      "path": "function0",
       "method": "GET",
       "authorizationType": "${endpointVariable}",
       "apiKeyRequired": false,
