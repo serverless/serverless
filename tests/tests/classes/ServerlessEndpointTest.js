@@ -35,9 +35,9 @@ describe('Test Serverless Endpoint Class', function() {
             // Instantiate Class
             instance = new serverless.classes.Endpoint(serverless, {
               component: 'nodejscomponent',
-              module: 'module1',
+              module: 'group1',
               function: 'function1',
-              endpointPath: 'module1/function1',
+              endpointPath: 'group1/function1',
               endpointMethod: 'GET'
             });
 
@@ -95,7 +95,7 @@ describe('Test Serverless Endpoint Class', function() {
     it('Create new and save', function(done) {
       let endpoint = new serverless.classes.Endpoint(serverless, {
         component: 'nodejscomponent',
-        module: 'module1',
+        module: 'group1',
         function: 'function1',
         endpointPath: 'test',
         endpointMethod: 'GET'

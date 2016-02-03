@@ -36,7 +36,7 @@ describe('Test Serverless Module Class', function() {
             // Instantiate Class
             instance = new serverless.classes.Module(serverless, {
               component: 'nodejscomponent',
-              module: 'module1'
+              module: 'group1'
             });
 
             done();
@@ -94,7 +94,7 @@ describe('Test Serverless Module Class', function() {
     it('Create new and save', function(done) {
       let module = new serverless.classes.Module(serverless, {
         component: 'nodejscomponent',
-        module: 'module1'
+        module: 'group1'
       });
 
       module.save()

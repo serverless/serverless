@@ -108,7 +108,7 @@ describe('Test Action: Function Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1'
+          'nodejscomponent/group1/function1'
         ]
       };
 
@@ -132,7 +132,7 @@ describe('Test Action: Function Deploy', function() {
   //      stage:      config.stage,
   //      region:     config.region,
   //      paths:      [
-  //        'nodejscomponent/module1/function1'
+  //        'nodejscomponent/group1/function1'
   //      ]
   //    };
   //
@@ -167,7 +167,7 @@ describe('Test Action: Function Deploy', function() {
   //      stage:      config.stage,
   //      region:     config.region,
   //      paths:      [
-  //        'nodejscomponent/module1/function1'
+  //        'nodejscomponent/group1/function1'
   //      ]
   //    };
   //

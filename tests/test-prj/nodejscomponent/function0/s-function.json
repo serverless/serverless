@@ -1,0 +1,34 @@
+{
+  "name" : "function0",
+  "custom": {
+    "envVars": [],
+    "excludePatterns": []
+  },
+  "handler": "module1/function0/handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "events": [],
+  "endpoints": [
+    {
+      "path": "module1/function0",
+      "method": "GET",
+      "authorizationType": "${endpointVariable}",
+      "apiKeyRequired": false,
+      "requestParameters": "$${endpointTemplate}",
+      "requestTemplates": "$${apiRequestTemplate}",
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    }
+  ]
+}

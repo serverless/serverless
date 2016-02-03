@@ -58,7 +58,7 @@ describe('Test Action: Function Run', function() {
 
       this.timeout(0);
       let options = {
-        path: 'nodejscomponent/module1/function1'
+        path: 'nodejscomponent/group1/function1'
       };
 
       serverless.actions.functionRun(options)
