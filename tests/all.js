@@ -19,7 +19,7 @@ describe('All Tests', function() {
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/StageCreate');
-  //require('./tests/actions/RegionCreate');
+  require('./tests/actions/RegionCreate');
   //require('./tests/actions/ComponentCreate');
   //require('./tests/actions/ModuleCreate');
   //require('./tests/actions/FunctionCreate');
@@ -30,7 +30,7 @@ describe('All Tests', function() {
   //require('./tests/actions/FunctionRun');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');
-  require('./tests/actions/EventDeploy');
+  //require('./tests/actions/EventDeploy');
   //require('./tests/actions/ProjectCreate');
   //require('./tests/actions/ProjectInstall');
 });
