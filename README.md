@@ -47,11 +47,11 @@ Or you can create your own project
 serverless project create
 ```
 
-Refer to our [documentation](http://docs.serverless.com/v0.3.0/docs) for more info.  Enjoy!
+Refer to our [documentation](http://docs.serverless.com) for more info.  Enjoy!
 
 ## Links
 
-* [Documentation](http://docs.serverless.com/v0.3.0/docs)
+* [Documentation](http://docs.serverless.com)
 * [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
 * [Email Updates](http://eepurl.com/bvz5Nj)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
