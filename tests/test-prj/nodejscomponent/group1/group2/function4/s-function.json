@@ -4,13 +4,13 @@
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "module1/function4/handler.handler",
+  "handler": "group1/function4/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
   "endpoints": [
     {
-      "path": "module1/function4",
+      "path": "group1/function4",
       "method": "GET",
       "authorizationType": "none",
       "apiKeyRequired": false,
@@ -33,7 +33,7 @@
       }
     },
     {
-      "path": "module1/function4",
+      "path": "group1/function4",
       "method": "POST",
       "authorizationType": "none",
       "apiKeyRequired": false,
