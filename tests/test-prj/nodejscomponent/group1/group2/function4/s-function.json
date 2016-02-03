@@ -1,0 +1,59 @@
+{
+  "name": "function4",
+  "custom": {
+    "envVars": [],
+    "excludePatterns": []
+  },
+  "handler": "module1/function4/handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "events": [],
+  "endpoints": [
+    {
+      "path": "module1/function4",
+      "method": "GET",
+      "authorizationType": "none",
+      "apiKeyRequired": false,
+      "requestParameters": {},
+      "requestTemplates": {
+        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+      },
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    },
+    {
+      "path": "module1/function4",
+      "method": "POST",
+      "authorizationType": "none",
+      "apiKeyRequired": false,
+      "requestTemplates": {
+        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+      },
+      "requestParameters": {},
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    }
+  ]
+}

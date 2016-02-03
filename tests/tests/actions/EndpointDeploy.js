@@ -78,7 +78,7 @@ describe('Test Action: Endpoint Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1@module1/function1~GET'
+          'nodejscomponent/group1/function1@group1/function1~GET'
         ]
       };
 
