@@ -144,7 +144,7 @@ describe('Test Serverless State Class', function() {
 
     it('Get functions w/o paths', function(done) {
       let functions = instance.getFunctions();
-      assert.equal(true, functions.length === 3);
+      assert.equal(true, functions.length === 5);
       done();
     });
 
@@ -154,15 +154,24 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
+    it('Get functions w/ partial paths', function(done) {
+      let functions = instance.getFunctions({ paths: ['nodejscomponent/group1/group2'] });
+      assert.equal(true, functions.length === 1);
+      done();
+    });
+
     it('Get functions by component, module and function', function(done) {
-      let functions = instance.getFunctions({ component: 'nodejscomponent', module: 'group1', function: 'function1' });
+      let functions = instance.getFunctions({
+        component: 'nodejscomponent',
+        module: 'group1',
+        function: 'function1' });
       assert.equal(true, functions.length === 1);
       done();
     });
 
     it('Get endpoints w/o paths', function(done) {
       let endpoints = instance.getEndpoints();
-      assert.equal(true, endpoints.length === 4);
+      assert.equal(true, endpoints.length === 7);
       done();
     });
 
@@ -172,8 +181,15 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
+    it('Get endpoints w/ partial paths', function(done) {
+      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1/group2'] });
+      assert.equal(true, endpoints.length === 2);
+      done();
+    });
+
     it('Get endpoints by component, module, function, path and method', function(done) {
       let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'group1', function: 'function3', endpointPath: 'group1/function3', endpointMethod: 'POST' });
+      console.log(endpoints)
       assert.equal(true, endpoints.length === 1);
       done();
     });
@@ -184,8 +200,8 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    it('Get endpoints by component and method', function(done) {
-      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', endpointMethod: 'GET' });
+    it('Get endpoints by method', function(done) {
+      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1'], endpointMethod: 'GET' });
       assert.equal(true, endpoints.length === 3);
       done();
     });

@@ -33,7 +33,7 @@
       }
     },
     {
-      "path": "module1/function3",
+      "path": "group1/function3",
       "method": "POST",
       "authorizationType": "none",
       "apiKeyRequired": false,
