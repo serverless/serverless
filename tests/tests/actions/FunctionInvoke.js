@@ -1,15 +1,20 @@
 'use strict';
 
 /**
- * Test: Function Logs Action
+ * Test: Function Invoke Action
  * - Invokes a function
- * - Gets logs for the function
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
     assert     = require('chai').assert,
     testUtils  = require('../../test_utils'),
     config     = require('../../config');
+
+let Lambda     = require('../../../lib/utils/aws/Lambda')({
+      region:          config.region,
+      accessKeyId:     config.awsAdminKeyId,
+      secretAccessKey: config.awsAdminSecretKey
+    });
 
 let serverless;
 
@@ -21,20 +26,12 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.stage != 'undefined');
   assert.equal(true, typeof evt.options.region != 'undefined');
-  assert.equal(true, typeof evt.data.results != 'undefined');
+  assert.equal(true, typeof evt.data.lambdaName != 'undefined');
+  assert.equal(true, typeof evt.data.payload != 'undefined');
+
 };
 
-
-const evt = {
-  options: {
-    stage:     config.stage,
-    region:    config.region,
-    duration: '7days',
-    path: 'nodejscomponent/module1/function1'
-  }
-};
-
-describe('Test action: Function Logs', function() {
+describe('Test action: Function invoke', function() {
   this.timeout(0);
 
   before(function() {
@@ -49,18 +46,21 @@ describe('Test action: Function Logs', function() {
         projectPath: projPath
       });
       return serverless.state.load();
-    })
-    .then(() => {
-      return serverless.actions.functionInvoke(evt);
     });
   });
 
-  describe('Function Logs positive tests', function() {
+  describe('Function Invoke positive tests', function() {
 
-    it('should get logs for the function', function() {
+    it('should invoke the function', function() {
+      let evt = {
+        options: {
+          stage:     config.stage,
+          region:    config.region,
+          path: 'nodejscomponent/module1/function1'
+        }
+      };
 
-
-      return serverless.actions.functionLogs(evt)
+      return serverless.actions.functionInvoke(evt)
         .then(validateEvent);
     });
   });
