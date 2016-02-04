@@ -117,4 +117,28 @@ describe('Test Action: Event Deploy', function() {
     });
   });
 
+  describe('Event Deploy: SNS', function() {
+    it('should deploy SNS based event source', function(done) {
+
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        paths:      [
+          'nodejscomponent/module1/function1#sns'
+        ]
+      };
+
+      serverless.actions.eventDeploy(event)
+        .then(function(evt) {
+          validateEvent(evt);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+  });
+
 });
