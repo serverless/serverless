@@ -86,3 +86,7 @@ We love our contributors! If you'd like to contribute to the project, feel free 
 * If you're out of ideas, but still want to contribute, check out our [Road Map](https://trello.com/b/EX6SxBJJ/serverless). There's a lot we want to get done, and we'd love your help!
 * Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework).
 * You can also contribute by writing. Feel free to let us know if you want to publish a useful original guide in our docs (attributed to you, thank you!) that you feel will help the community.
+
+## Consultants
+These consultants use the Serverless Framework and can help you build your serverless projects.
+* [Trek10](https://www.trek10.com/)
