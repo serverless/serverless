@@ -34,9 +34,7 @@ describe('Test Serverless Function Class', function() {
 
             // Instantiate Class
             instance = new serverless.classes.Function(serverless, {
-              component: 'nodejscomponent',
-              module: 'group1',
-              function: 'function1'
+              sPath: 'nodejscomponent/group1/function1'
             });
 
             done();
@@ -93,9 +91,7 @@ describe('Test Serverless Function Class', function() {
 
     it('Create new and save', function(done) {
       let func = new serverless.classes.Function(serverless, {
-        component: 'nodejscomponent',
-        module: 'group1',
-        function: 'function4'
+        sPath: 'nodejscomponent/group1/function1'
       });
 
       func.save()
@@ -108,12 +104,6 @@ describe('Test Serverless Function Class', function() {
         .catch(e => {
           done(e);
         });
-    });
-
-    it('Get module', function() {
-      let module = instance.getModule();
-      assert.instanceOf(module, serverless.classes.Module);
-      assert.equal(module.name, instance._config.module);
     });
   });
 });

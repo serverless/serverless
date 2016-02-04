@@ -35,7 +35,7 @@ describe('Test Serverless Component Class', function() {
 
             // Instantiate Class
             instance = new serverless.classes.Component(serverless, {
-              component: 'nodejscomponent'
+              sPath: 'nodejscomponent'
             });
 
             done();
@@ -92,7 +92,7 @@ describe('Test Serverless Component Class', function() {
 
     it('Create new and save', function(done) {
       let component = new serverless.classes.Component(serverless, {
-        component: 'nodejscomponent'
+        sPath: 'nodejscomponent'
       });
 
       component.save()

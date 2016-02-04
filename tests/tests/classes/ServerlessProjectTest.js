@@ -70,21 +70,21 @@ describe('Test Serverless Project Class', function() {
 
       // We've set a template in the project that gets extended at the module level and function level, check it:
       // Project template
-      assert.equal(true, typeof data.components.nodejscomponent.modules.module1.functions.function1.endpoints[0].requestTemplates['application/json'].httpMethod !== 'undefined');
+      assert.equal(true, typeof data.components.nodejscomponent.functions['nodejscomponent/group1/function1'].endpoints[0].requestTemplates['application/json'].httpMethod !== 'undefined');
       // Component template
-      assert.equal(true, typeof data.components.nodejscomponent.modules.module1.functions.function1.endpoints[0].requestTemplates['application/json'].headerParams !== 'undefined');
+      assert.equal(true, typeof data.components.nodejscomponent.functions['nodejscomponent/group1/function1'].endpoints[0].requestTemplates['application/json'].headerParams !== 'undefined');
       // Module template
-      assert.equal(true, typeof data.components.nodejscomponent.modules.module1.functions.function1.endpoints[0].requestTemplates['application/json'].queryParams !== 'undefined');
+      assert.equal(true, typeof data.components.nodejscomponent.functions['nodejscomponent/group1/function1'].endpoints[0].requestTemplates['application/json'].queryParams !== 'undefined');
 
       // Test subjective template inheritance
       // These functions have their own s-templates.json files which give them the same template, with one different property
 
       // Function1 template
-      assert.equal(true, data.components.nodejscomponent.modules.module1.functions.function1.endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id1')");
+      assert.equal(true, data.components.nodejscomponent.functions['nodejscomponent/group1/function1'].endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id1')");
       // Function2 template
-      assert.equal(true, data.components.nodejscomponent.modules.module1.functions.function2.endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id2')");
+      assert.equal(true, data.components.nodejscomponent.functions['nodejscomponent/group1/function2'].endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id2')");
       // Function3 template - s-templates.json left undefined
-      assert.equal(true, typeof data.components.nodejscomponent.modules.module1.functions.function3.endpoints[0].requestTemplates['application/json'].pathParams === 'undefined');
+      assert.equal(true, typeof data.components.nodejscomponent.functions['nodejscomponent/group1/function3'].endpoints[0].requestTemplates['application/json'].pathParams === 'undefined');
 
       done();
     });

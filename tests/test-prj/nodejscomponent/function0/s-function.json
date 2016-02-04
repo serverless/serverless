@@ -14,8 +14,8 @@
       "method": "GET",
       "authorizationType": "${endpointVariable}",
       "apiKeyRequired": false,
-      "requestParameters": "$${endpointTemplate}",
-      "requestTemplates": "$${apiRequestTemplate}",
+      "requestParameters": {},
+      "requestTemplates": {},
       "responses": {
         "default": {
           "statusCode": "200",
