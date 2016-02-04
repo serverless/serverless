@@ -101,6 +101,7 @@ describe('Test Serverless State Class', function() {
 
     it('Get resources (unpopulated)', function(done) {
       let resources = instance.getResources();
+      console.log(resources)
       assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
       done();
     });

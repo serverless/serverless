@@ -7,7 +7,13 @@
   "runtime": "nodejs",
   "description": "",
   "cloudFormation": {
-    "lambdaIamPolicyDocumentStatements": [],
+    "lambdaIamPolicyDocumentStatements": [
+      {
+        "Effect": "Allow",
+        "Action": "s3:ListBucket",
+        "Resource": "arn:aws:s3:::fake_bucket"
+      }
+    ],
     "resources": {}
   }
 }
