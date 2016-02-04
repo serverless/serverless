@@ -64,6 +64,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     testEventBucket: config.testEventBucket,
     streamArn: config.streamArn,
     'eventID:nodejscomponent/module1/function1#dynamodb': config.streamUUID,
+    topicArn: config.topicArn,
   };
 
   return Promise.all([
