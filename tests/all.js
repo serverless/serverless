@@ -36,4 +36,3 @@ describe('All Tests', function() {
   require('./tests/actions/FunctionInvoke.js');
   require('./tests/actions/FunctionLogs.js');
 });
-
