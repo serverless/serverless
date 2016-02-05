@@ -23,6 +23,7 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.sPath != 'undefined');
   assert.equal(true, typeof evt.options.name != 'undefined');
+  assert.equal(true, typeof evt.data.sPath != 'undefined');
 };
 
 describe('Test action: Function Create', function() {
