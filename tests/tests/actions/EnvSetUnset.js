@@ -78,7 +78,7 @@ describe('Test Env Set & Env Unset actions', function() {
             let unsetEvt = {
               stage:      setEvt.options.stage,
               region:     setEvt.options.region,
-              key:    setEvt.options.key,
+              key:        setEvt.options.key
             };
 
             serverless.actions.envUnset(unsetEvt)
