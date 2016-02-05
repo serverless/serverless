@@ -10,18 +10,17 @@ describe('All Tests', function() {
   });
 
   after(function() {});
-  require('./tests/classes/ServerlessStateTest');
-  require('./tests/classes/ServerlessProjectTest');
-  require('./tests/classes/ServerlessComponentTest');
-  require('./tests/classes/ServerlessFunctionTest');
-  require('./tests/classes/ServerlessEndpointTest');
+  //require('./tests/classes/ServerlessStateTest');
+  //require('./tests/classes/ServerlessProjectTest');
+  //require('./tests/classes/ServerlessComponentTest');
+  //require('./tests/classes/ServerlessFunctionTest');
+  //require('./tests/classes/ServerlessEndpointTest');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/StageCreate');
   //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ComponentCreate');
-  //require('./tests/actions/ModuleCreate');
-  //require('./tests/actions/FunctionCreate');
+  require('./tests/actions/FunctionCreate');
   //require('./tests/actions/EnvList');
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvSetUnset');

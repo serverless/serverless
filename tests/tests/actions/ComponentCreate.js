@@ -6,12 +6,12 @@
  * - Creates a new Component inside test project
  */
 
-let Serverless      = require('../../../lib/Serverless.js'),
-  path      = require('path'),
-  utils     = require('../../../lib/utils/index'),
-  assert    = require('chai').assert,
-  testUtils = require('../../test_utils'),
-  config    = require('../../config');
+let Serverless  = require('../../../lib/Serverless.js'),
+  path          = require('path'),
+  utils         = require('../../../lib/utils/index'),
+  assert        = require('chai').assert,
+  testUtils     = require('../../test_utils'),
+  config        = require('../../config');
 
 let serverless;
 

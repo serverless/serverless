@@ -67,7 +67,6 @@ describe('Test Serverless Project Class', function() {
       let data = instance.getPopulated({ stage: config.stage, region: config.region });
       assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
       assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-
       // We've set a template in the project that gets extended at the module level and function level, check it:
       // Project template
       assert.equal(true, typeof data.components.nodejscomponent.functions['nodejscomponent/group1/function1'].endpoints[0].requestTemplates['application/json'].httpMethod !== 'undefined');
