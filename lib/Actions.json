@@ -28,6 +28,8 @@
     "./actions/ResourcesRemove.js",
     "./actions/RegionRemove.js",
     "./actions/StageRemove.js",
-    "./actions/ProjectRemove.js"
+    "./actions/ProjectRemove.js",
+    "./actions/FunctionLogs.js",
+    "./actions/FunctionInvoke.js"
   ]
 }
