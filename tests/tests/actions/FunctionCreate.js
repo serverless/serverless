@@ -21,9 +21,8 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.options.component != 'undefined');
-  assert.equal(true, typeof evt.options.module != 'undefined');
-  assert.equal(true, typeof evt.options.function != 'undefined');
+  assert.equal(true, typeof evt.options.sPath != 'undefined');
+  assert.equal(true, typeof evt.options.name != 'undefined');
 };
 
 describe('Test action: Function Create', function() {
@@ -56,9 +55,8 @@ describe('Test action: Function Create', function() {
       this.timeout(0);
       let evt = {
         options: {
-          component: 'nodejscomponent',
-          module:    'group1',
-          function:  'new'
+          sPath: 'nodejscomponent/temp',
+          name:  'new'
         }
       };
 

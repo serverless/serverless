@@ -100,19 +100,23 @@ describe('Test Serverless State Class', function() {
     });
 
     it('Get resources (unpopulated)', function(done) {
-      let resources = instance.getResources();
-      console.log(resources)
-      assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
-      done();
+      let resources = instance.getResources()
+        .then(function(resources) {
+          console.log(resources)
+          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+          done();
+        });
     });
 
     it('Get resources (populated)', function(done) {
       let resources = instance.getResources({
-        populate: true, stage: config.stage, region: config.region
-      });
-      assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
-      assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
-      done();
+          populate: true, stage: config.stage, region: config.region
+        })
+        .then(function() {
+          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
+          done();
+        });
     });
 
     it('Get stages', function(done) {
