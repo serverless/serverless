@@ -68,7 +68,6 @@ describe('Test Action: Event Deploy', function() {
   /**
    * Tests
    */
-
   describe('Event Deploy: DynamoDB', function() {
     it('should deploy DynamoDB stream event', function(done) {
 
@@ -127,6 +126,30 @@ describe('Test Action: Event Deploy', function() {
         region:     config.region,
         paths:      [
           'nodejscomponent/module1/function1#sns'
+        ]
+      };
+
+      serverless.actions.eventDeploy(event)
+        .then(function(evt) {
+          validateEvent(evt);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+  });
+
+  describe('Event Deploy: Scheduled', function() {
+    it('should deploy schedule based event source', function(done) {
+
+      this.timeout(0);
+
+      let event = {
+        stage:      config.stage,
+        region:     config.region,
+        paths:      [
+          'nodejscomponent/module1/function1#schedule'
         ]
       };
 

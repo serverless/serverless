@@ -29,6 +29,13 @@
       "config": {
         "topicArn": "${topicArn}"
       }
+    },
+    {
+      "name": "schedule",
+      "type": "schedule",
+      "config": {
+        "schedule": "rate(5 minutes)"
+      }
     }
   ],
   "endpoints": [

@@ -17,6 +17,7 @@
     "./actions/EventDeployStreamLambda.js",
     "./actions/EventDeployS3Lambda.js",
     "./actions/EventDeploySNSLambda.js",
+    "./actions/EventDeployScheduledLambda.js",
     "./actions/DashDeploy.js",
     "./actions/DashSummary.js",
     "./actions/EndpointDeployApiGateway.js",
