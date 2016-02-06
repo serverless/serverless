@@ -8,13 +8,11 @@
 let Serverless = require('../../../lib/Serverless.js'),
     assert     = require('chai').assert,
     testUtils  = require('../../test_utils'),
+    awsMisc     = require('../../../lib/utils/aws/Misc'),
     config     = require('../../config');
 
-let Lambda     = require('../../../lib/utils/aws/Lambda')({
-      region:          config.region,
-      accessKeyId:     config.awsAdminKeyId,
-      secretAccessKey: config.awsAdminSecretKey
-    });
+let awsConfig = awsMisc.createAwsConfig(config);
+let Lambda     = require('../../../lib/utils/aws/Lambda')(awsConfig);
 
 let serverless;
 

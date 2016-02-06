@@ -16,5 +16,8 @@ let config = {
   awsAdminSecretKey:    process.env.TEST_SERVERLESS_AWS_SECRET_KEY,
   iamRoleArnLambda:     process.env.TEST_SERVERLESS_LAMBDA_ROLE,
 };
+if(process.env.TEST_SERVERLESS_AWS_SESSION_TOKEN) {
+  config.awsAdminSessionToken = process.env.TEST_SERVERLESS_AWS_SESSION_TOKEN;
+}
 
 module.exports = config;
