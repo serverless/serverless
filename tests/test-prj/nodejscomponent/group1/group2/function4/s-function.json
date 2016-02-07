@@ -11,7 +11,7 @@
   "events": [],
   "endpoints": [
     {
-      "path": "group1/function4",
+      "path": "group2/function4",
       "method": "GET",
       "authorizationType": "none",
       "apiKeyRequired": false,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "path": "group1/function4",
+      "path": "group2/function4",
       "method": "POST",
       "authorizationType": "none",
       "apiKeyRequired": false,
