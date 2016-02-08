@@ -24,7 +24,6 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.data.results != 'undefined');
 };
 
-
 const evt = {
   options: {
     stage:     config.stage,
@@ -58,7 +57,6 @@ describe('Test action: Function Logs', function() {
   describe('Function Logs positive tests', function() {
 
     it('should get logs for the function', function() {
-
 
       return serverless.actions.functionLogs(evt)
         .then(validateEvent);

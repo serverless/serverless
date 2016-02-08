@@ -26,6 +26,7 @@ describe('All Tests', function() {
   //require('./tests/actions/EnvSetUnset');
   //require('./tests/actions/ResourcesDeploy');
   require('./tests/actions/FunctionRun');
+  //require('./tests/actions/FunctionLogs');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');
   //require('./tests/actions/ProjectInit');

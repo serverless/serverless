@@ -1,4 +1,4 @@
-'use strict';
+ 'use strict';
 
 /**
  * Test: Function Invoke Action
