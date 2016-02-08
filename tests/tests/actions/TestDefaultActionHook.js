@@ -68,7 +68,7 @@ class CustomPlugin extends SPlugin {
  */
 
 let validateResult = function(result) {
-  assert.equal(true, typeof result.options.name != 'undefined');
+  assert.equal(true, typeof result.options.sPath != 'undefined');
   assert.equal(true, typeof result.options.runtime != 'undefined');
   assert.equal(true, typeof result.data.hook != 'undefined');
 };
@@ -105,7 +105,7 @@ describe('Test Default Action With Pre Hook', function() {
       this.timeout(0);
       let evt = {
         options: {
-          name:   'testcomponent'
+          sPath:   'testcomponent'
         }
       };
 
