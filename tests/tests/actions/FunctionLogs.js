@@ -29,7 +29,7 @@ const evt = {
     stage:     config.stage,
     region:    config.region,
     duration: '7days',
-    path: 'nodejscomponent/module1/function1'
+    path: 'nodejscomponent/group1/function1'
   }
 };
 
@@ -50,7 +50,7 @@ describe('Test action: Function Logs', function() {
       return serverless.state.load();
     })
     .then(() => {
-      return serverless.actions.functionInvoke(evt);
+      return serverless.actions.functionRun(evt);
     });
   });
 
