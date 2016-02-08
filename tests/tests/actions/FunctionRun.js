@@ -13,6 +13,17 @@ let Serverless = require('../../../lib/Serverless.js'),
 
 let serverless;
 
+/**
+ * Validate Event
+ * - Validate an event object's properties
+ */
+
+let validateEvent = function(evt) {
+    assert.equal(true, typeof evt.options.path != 'undefined');
+    assert.equal(true, typeof evt.data.result.response != 'undefined');
+    assert.equal(true, evt.data.result.status === 'success');
+};
+
 
 describe('Test Action: Function Run', function() {
 
@@ -54,9 +65,7 @@ describe('Test Action: Function Run', function() {
 
             serverless.actions.functionRun(options)
                 .then(function(evt) {
-                    assert.equal(true, typeof evt.options.path != 'undefined');
-                    assert.equal(true, typeof evt.data.result != 'undefined');
-                    assert.equal(true, evt.data.result.status === 'success');
+                    validateEvent(evt);
                     done();
                 })
                 .catch(e => {
@@ -76,8 +85,7 @@ describe('Test Action: Function Run', function() {
 
             serverless.actions.functionRun(options)
                 .then(function(evt) {
-                    assert.equal(true, typeof evt.options.path != 'undefined');
-                    assert.equal(true, typeof evt.data.payload != 'undefined');
+                    validateEvent(evt);
                     done();
                 })
                 .catch(e => {
