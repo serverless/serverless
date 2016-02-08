@@ -5,11 +5,11 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-    path         = require('path'),
-    utils        = require('../../../lib/utils/index'),
-    assert       = require('chai').assert,
-    testUtils    = require('../../test_utils'),
-    config       = require('../../config');
+  path         = require('path'),
+  utils        = require('../../../lib/utils/index'),
+  assert       = require('chai').assert,
+  testUtils    = require('../../test_utils'),
+  config       = require('../../config');
 
 let serverless;
 let instance;
@@ -19,25 +19,25 @@ describe('Test Serverless State Class', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-        .then(projPath => {
+      .then(projPath => {
 
-          process.chdir(projPath);
+        process.chdir(projPath);
 
-          // Instantiate Serverless
-          serverless = new Serverless({
-            interactive: false,
-            projectPath: projPath
-          });
-
-          return serverless.init()
-              .then(function() {
-
-                // Instantiate Class
-                instance = new serverless.classes.State(serverless);
-
-                done();
-              });
+        // Instantiate Serverless
+        serverless = new Serverless({
+          interactive: false,
+          projectPath: projPath
         });
+
+        return serverless.init()
+          .then(function() {
+
+            // Instantiate Class
+            instance = new serverless.classes.State(serverless);
+
+            done();
+          });
+      });
   });
 
   after(function(done) {
@@ -48,12 +48,12 @@ describe('Test Serverless State Class', function() {
 
     it('Load instance from file system', function(done) {
       instance.load()
-          .then(function(instance) {
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
+        .then(function(instance) {
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
     });
 
     it('Get instance data, without private properties', function(done) {
@@ -79,12 +79,12 @@ describe('Test Serverless State Class', function() {
 
     it('Save instance to the file system', function(done) {
       instance.save()
-          .then(function(instance) {
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
+        .then(function(instance) {
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
     });
 
     it('Get project', function(done) {
@@ -100,18 +100,22 @@ describe('Test Serverless State Class', function() {
     });
 
     it('Get resources (unpopulated)', function(done) {
-      let resources = instance.getResources();
-      assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
-      done();
+      instance.getResources()
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+          done();
+        });
     });
 
     it('Get resources (populated)', function(done) {
-      let resources = instance.getResources({
-        populate: true, stage: config.stage, region: config.region
-      })
-      assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
-      assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
-      done();
+      instance.getResources({
+          populate: true, stage: config.stage, region: config.region
+        })
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
+          done();
+        });
     });
 
     it('Get stages', function(done) {

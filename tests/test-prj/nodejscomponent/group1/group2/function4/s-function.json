@@ -1,6 +1,6 @@
 {
   "name": "function4",
-  "nameTemplate": "${project}-${stage}-function4",
+  "customName": "${project}-${stage}-function4",
   "custom": {
     "envVars": [],
     "excludePatterns": []

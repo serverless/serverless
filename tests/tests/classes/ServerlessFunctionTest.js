@@ -72,7 +72,7 @@ describe('Test Serverless Function Class', function() {
     });
 
     it('Get deployed name', function(done) {
-      instance.nameTemplate = "${stage}-func";
+      instance.customName = "${stage}-func";
       let data = instance.getDeployedName({ stage: config.stage, region: config.region });
       assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
       assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
