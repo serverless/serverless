@@ -25,14 +25,12 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
   assert.equal(true, typeof evt.options.paths != 'undefined');
 
-
   if (evt.data.failed) {
     for (let i = 0; i < Object.keys(evt.data.failed).length; i++) {
       console.log(Object.keys(evt.data.failed)[i]);
       console.log(evt.data.failed[Object.keys(evt.data.failed)[i]]);
     }
   }
-  console.log(evt);
   assert.equal(true, typeof evt.data.failed === 'undefined');
   assert.equal(true, typeof evt.data.deployed != 'undefined');
 };
