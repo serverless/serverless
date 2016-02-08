@@ -71,6 +71,15 @@ describe('Test Serverless Function Class', function() {
       done();
     });
 
+    it('Get deployed name', function(done) {
+      instance.nameTemplate = "${stage}-func";
+      let data = instance.getDeployedName({ stage: config.stage, region: config.region });
+      assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
+      assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
+      assert.equal(true, data === config.stage + '-func');
+      done();
+    });
+
     it('Set instance data', function(done) {
       let clone = instance.get();
       clone.name = 'newFunction';
