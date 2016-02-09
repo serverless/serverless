@@ -63,7 +63,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     iamRoleArnLambda: projectLambdaIAMRole,
     testEventBucket: config.testEventBucket,
     streamArn: config.streamArn,
-    'eventID:nodejscomponent/module1/function1#dynamodb': config.streamUUID,
+    'eventID:nodejscomponent/group1/function1#dynamodb': config.streamUUID,
     topicArn: config.topicArn,
   };
 

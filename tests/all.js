@@ -13,7 +13,7 @@ describe('All Tests', function() {
   //require('./tests/classes/ServerlessStateTest');
   //require('./tests/classes/ServerlessProjectTest');
   //require('./tests/classes/ServerlessComponentTest');
-  //require('./tests/classes/ServerlessFunctionTest');
+  require('./tests/classes/ServerlessFunctionTest');
   //require('./tests/classes/ServerlessEndpointTest');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
@@ -29,8 +29,7 @@ describe('All Tests', function() {
   //require('./tests/actions/FunctionLogs');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');
-  require('./tests/actions/EventDeploy');
-  //require('./tests/actions/ProjectCreate');
+  //require('./tests/actions/EventDeploy');
   //require('./tests/actions/ProjectInit');
   //require('./tests/actions/ProjectInstall');
   //require('./tests/actions/ProjectLifeCycle.js');

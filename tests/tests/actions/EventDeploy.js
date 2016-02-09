@@ -77,7 +77,7 @@ describe('Test Action: Event Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1#dynamodb'
+          'nodejscomponent/group1/function1#dynamodb'
         ]
       };
 
@@ -101,7 +101,7 @@ describe('Test Action: Event Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1#s3'
+          'nodejscomponent/group1/function1#s3'
         ]
       };
 
@@ -125,7 +125,7 @@ describe('Test Action: Event Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1#sns'
+          'nodejscomponent/group1/function1#sns'
         ]
       };
 
@@ -149,7 +149,7 @@ describe('Test Action: Event Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1#schedule'
+          'nodejscomponent/group1/function1#schedule'
         ]
       };
 
