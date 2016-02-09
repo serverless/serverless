@@ -2,8 +2,8 @@
   "plugins": [
     "./actions/ProjectCreate.js",
     "./actions/ProjectInstall.js",
+    "./actions/ProjectInit.js",
     "./actions/ComponentCreate.js",
-    "./actions/ModuleCreate.js",
     "./actions/FunctionRun.js",
     "./actions/FunctionCreate.js",
     "./actions/FunctionRunLambdaNodeJs.js",
@@ -27,6 +27,11 @@
     "./actions/EnvGet.js",
     "./actions/EnvSet.js",
     "./actions/EnvUnset.js",
-    "./actions/ResourcesDeploy.js"
+    "./actions/ResourcesDeploy.js",
+    "./actions/ResourcesRemove.js",
+    "./actions/RegionRemove.js",
+    "./actions/StageRemove.js",
+    "./actions/ProjectRemove.js",
+    "./actions/FunctionLogs.js"
   ]
 }

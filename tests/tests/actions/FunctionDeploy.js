@@ -24,7 +24,6 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.region != 'undefined');
   assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
   assert.equal(true, typeof evt.options.paths != 'undefined');
-  assert.equal(true, typeof evt.data.deployed != 'undefined');
 
   if (evt.data.failed) {
     for (let i = 0; i < Object.keys(evt.data.failed).length; i++) {
@@ -32,8 +31,8 @@ let validateEvent = function(evt) {
       console.log(evt.data.failed[Object.keys(evt.data.failed)[i]]);
     }
   }
-
   assert.equal(true, typeof evt.data.failed === 'undefined');
+  assert.equal(true, typeof evt.data.deployed != 'undefined');
 };
 
 /**
@@ -107,7 +106,7 @@ describe('Test Action: Function Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/module1/function1'
+          'nodejscomponent/group1/function1'
         ]
       };
 
@@ -122,92 +121,28 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
-  //describe('Function Deploy: Specify One Path with S3 event source', function() {
-  //  it('should deploy function and S3 event source', function(done) {
-  //
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      paths:      [
-  //        'nodejscomponent/module1/function1'
-  //      ]
-  //    };
-  //
-  //    serverless.actions.functionDeploy(event)
-  //      .then(function(evt) {
-  //        validateEvent(evt);
-  //        let awsConfig = {
-  //          region:          config.region,
-  //          accessKeyId:     config.awsAdminKeyId,
-  //          secretAccessKey: config.awsAdminSecretKey,
-  //        };
-  //        let eventSource = {
-  //          bucket: 's3-event-source-test',
-  //          bucketEvents: ['s3:ObjectCreated:*']
-  //        };
-  //        Eventsutils.s3(awsConfig, null, eventSource, done);
-  //
-  //        //done();
-  //      })
-  //      .catch(e => {
-  //        done(e);
-  //      });
-  //  });
-  //});
+  describe('Function Deploy: Nested W/ Name Template', function() {
+    it('should deploy functions', function(done) {
 
-  //describe('Function Deploy: Specify One with event source', function() {
-  //  it('should deploy functions and event source', function(done) {
-  //
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      paths:      [
-  //        'nodejscomponent/module1/function1'
-  //      ]
-  //    };
-  //
-  //    serverless.actions.functionDeploy(event)
-  //      .then(function(evt) {
-  //        validateEvent(evt);
-  //
-  //        // validate event source was created and returned UUID
-  //        assert.equal(true, typeof evt.functions[0].events[0].UUID != 'undefined');
-  //
-  //
-  //        cleanup(evt.functions[0].events[0].UUID, done);
-  //
-  //      })
-  //      .catch(e => {
-  //        done(e);
-  //      });
-  //  });
-  //});
+      this.timeout(0);
 
-  //describe('Function Deploy: Specify All Paths', function() {
-  //  it('should deploy code', function(done) {
-  //
-  //    this.timeout(0);
-  //
-  //    let event = {
-  //      stage:      config.stage,
-  //      region:     config.region,
-  //      all:        true
-  //    };
-  //
-  //    serverless.actions.functionDeploy(event)
-  //        .then(function(evt) {
-  //          validateEvent(evt);
-  //
-  //          cleanup(evt.functions[1].events[0].UUID, done);
-  //
-  //        })
-  //        .catch(e => {
-  //          done(e);
-  //        });
-  //  });
-  //});
+      let options = {
+        stage:      config.stage,
+        region:     config.region,
+        paths:      [
+          'nodejscomponent/group1/group2/function4'
+        ]
+      };
+
+      serverless.actions.functionDeploy(options)
+          .then(function(evt) {
+            validateEvent(evt);
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+    });
+  });
+
 });

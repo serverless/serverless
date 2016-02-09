@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Test: Project Create Action
+ * Test: Project Install Action
  * - Creates a new private in your system's temp directory
  * - Deletes the CF stack created by the private
  */
@@ -91,7 +91,6 @@ let cleanup = function(Meta, cb, evt) {
           StackName: Meta.stages[config.stage].regions[config.region].variables.resourcesStackName
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
-
           return cb();
         });
       });
@@ -126,6 +125,7 @@ describe('Test action: Project Install', function() {
           name:               name,
           domain:             domain,
           notificationEmail:  config.notifyEmail,
+          stage:              config.stage,
           region:             config.region,
           noExeCf:            config.noExecuteCf,
           project:            'serverless-starter'
@@ -136,24 +136,24 @@ describe('Test action: Project Install', function() {
         .then(function(evt) {
 
           // Validate Meta
-          let Meta = new serverless.classes.Meta(serverless);
-          Meta.load().then(function() {
-            assert.equal(true, typeof Meta.variables.project != 'undefined');
-            assert.equal(true, typeof Meta.variables.domain != 'undefined');
-            assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
-            if (!config.noExecuteCf) {
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
-            }
+          let Meta = serverless.state.getMeta();
 
-            // Validate Event
-            validateEvent(evt);
+          assert.equal(true, typeof Meta.variables.project != 'undefined');
+          assert.equal(true, typeof Meta.variables.domain != 'undefined');
+          assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
+          assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
+          assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
+          if (!config.noExecuteCf) {
+            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
+            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+          }
 
-            // Cleanup
-            cleanup(Meta, done, evt);
-          });
+          // Validate Event
+          validateEvent(evt);
+
+          // Cleanup
+          cleanup(Meta, done, evt);
+
         })
         .catch(SError, function(e) {
           done(e);

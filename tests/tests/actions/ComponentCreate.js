@@ -6,12 +6,12 @@
  * - Creates a new Component inside test project
  */
 
-let Serverless      = require('../../../lib/Serverless.js'),
-  path      = require('path'),
-  utils     = require('../../../lib/utils/index'),
-  assert    = require('chai').assert,
-  testUtils = require('../../test_utils'),
-  config    = require('../../config');
+let Serverless  = require('../../../lib/Serverless.js'),
+  path          = require('path'),
+  utils         = require('../../../lib/utils/index'),
+  assert        = require('chai').assert,
+  testUtils     = require('../../test_utils'),
+  config        = require('../../config');
 
 let serverless;
 
@@ -21,10 +21,8 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.options.component != 'undefined');
-  assert.equal(true, typeof evt.options.module != 'undefined');
-  assert.equal(true, typeof evt.options.function != 'undefined');
   assert.equal(true, typeof evt.options.runtime != 'undefined');
+  assert.equal(true, typeof evt.data.sPath != 'undefined');
 };
 
 describe('Test action: Component Create', function() {
@@ -58,15 +56,10 @@ describe('Test action: Component Create', function() {
       this.timeout(0);
 
       serverless.actions.componentCreate({
-          component: 'newcomponent',
-          module:    'newmodule',
-          function:  'newfunction'
+          sPath: 'newcomponent',
+          runtime: 'nodejs'
         })
         .then(function(evt) {
-          let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'newcomponent', 'newmodule', 'newfunction', 's-function.json'));
-          assert.equal(true, typeof functionJson.name != 'undefined');
-          assert.equal(true, functionJson.endpoints.length);
-
           validateEvent(evt);
           done();
         })

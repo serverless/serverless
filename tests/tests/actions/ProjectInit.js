@@ -1,21 +1,21 @@
 'use strict';
 
 /**
- * Test: Project Create Action
+ * Test: Project Init Action
  * - Creates a new private in your system's temp directory
  * - Deletes the CF stack created by the private
  */
 
 let Serverless  = require('../../../lib/Serverless'),
-    SError      = require('../../../lib/ServerlessError'),
-    path        = require('path'),
-    os          = require('os'),
-    AWS         = require('aws-sdk'),
-    uuid        = require('node-uuid'),
-    utils       = require('../../../lib/utils/index'),
-    assert      = require('chai').assert,
-    shortid     = require('shortid'),
-    config      = require('../../config');
+  SError      = require('../../../lib/ServerlessError'),
+  path        = require('path'),
+  os          = require('os'),
+  AWS         = require('aws-sdk'),
+  uuid        = require('node-uuid'),
+  utils       = require('../../../lib/utils/index'),
+  assert      = require('chai').assert,
+  shortid     = require('shortid'),
+  config      = require('../../config');
 
 // Instantiate
 let serverless = new Serverless({
@@ -103,7 +103,7 @@ let cleanup = function(Meta, cb, evt) {
  * Tests
  */
 
-describe('Test action: Project Create', function() {
+describe('Test action: Project Init', function() {
 
   before(function(done) {
     process.chdir(os.tmpdir());
@@ -114,7 +114,7 @@ describe('Test action: Project Create', function() {
     done();
   });
 
-  describe('Project Create', function() {
+  describe('Project Init', function() {
     it('should create a new private in temp directory', function(done) {
 
       this.timeout(0);
@@ -126,40 +126,40 @@ describe('Test action: Project Create', function() {
           name:               name,
           domain:             domain,
           notificationEmail:  config.notifyEmail,
+          stage:              config.stage,
           region:             config.region,
           noExeCf:            config.noExecuteCf
         }
       };
 
-      serverless.actions.projectCreate(evt)
-          .then(function(evt) {
+      serverless.actions.projectInit(evt)
+        .then(function(evt) {
 
-            // Validate Meta
-            let Meta = new serverless.classes.Meta(serverless);
-            Meta.load().then(function() {
-              assert.equal(true, typeof Meta.variables.project != 'undefined');
-              assert.equal(true, typeof Meta.variables.domain != 'undefined');
-              assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-              assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
-              if (!config.noExecuteCf) {
-                assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-                assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
-              }
+          // Validate Meta
+          let Meta = serverless.state.getMeta();
+          assert.equal(true, typeof Meta.variables.project != 'undefined');
+          assert.equal(true, typeof Meta.variables.domain != 'undefined');
+          assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
+          assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
+          assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
+          if (!config.noExecuteCf) {
+            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
+            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+          }
 
-              // Validate Event
-              validateEvent(evt);
+          // Validate Event
+          validateEvent(evt);
 
-              // Cleanup
-              cleanup(Meta, done, evt);
-            });
-          })
-          .catch(SError, function(e) {
-            done(e);
-          })
-          .error(function(e) {
-            done(e);
-          });
+          // Cleanup
+          cleanup(Meta, done, evt);
+
+        })
+        .catch(SError, function(e) {
+          done(e);
+        })
+        .error(function(e) {
+          done(e);
+        });
     });
   });
 });
