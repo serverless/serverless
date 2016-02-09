@@ -9,13 +9,13 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-    path       = require('path'),
-    utils      = require('../../../lib/utils/index'),
-    assert     = require('chai').assert,
-    testUtils  = require('../../test_utils'),
-    SUtils     = require('../../../lib/utils/index'),
-    fs         = require('fs'),
-    config     = require('../../config');
+  path       = require('path'),
+  utils      = require('../../../lib/utils/index'),
+  assert     = require('chai').assert,
+  testUtils  = require('../../test_utils'),
+  SUtils     = require('../../../lib/utils/index'),
+  fs         = require('fs'),
+  config     = require('../../config');
 
 let serverless;
 
@@ -35,33 +35,34 @@ describe('Test action: Resources Deploy', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-        .then(projPath => {
+      .then(projPath => {
 
-          process.chdir(projPath);
+        process.chdir(projPath);
 
-          serverless = new Serverless({
-            interactive: false,
-            awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey,
-            projectPath: projPath
-          });
+        serverless = new Serverless({
+          interactive: false,
+          awsAdminKeyId:     config.awsAdminKeyId,
+          awsAdminSecretKey: config.awsAdminSecretKey,
+          projectPath: projPath
+        });
 
-          return serverless.init()
-            .then(function() {
+        return serverless.init()
+          .then(function() {
 
             SUtils.sDebug('Adding test bucket resource');
 
             let newProject = serverless.state.project.get();
-            // adding new Module resource
-            newProject.components.nodejscomponent.modules.module1.cloudFormation.resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
-            serverless.state.set({project: newProject});
+
+            // Adding new Module resource
+            newProject.cloudFormation.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
+            serverless.state.setAsset(newProject);
 
             return serverless.state.save()
               .then(function() {
                 done();
               });
           });
-        });
+      });
   });
 
   after(function(done) {
@@ -80,16 +81,16 @@ describe('Test action: Resources Deploy', function() {
       };
 
       serverless.actions.resourcesDeploy(evt)
-          .then(function(evt) {
+        .then(function(evt) {
 
-            // Validate Evt
-            validateEvent(evt);
-            done();
+          // Validate Evt
+          validateEvent(evt);
+          done();
 
-          })
-          .catch(e => {
-            done(e);
-          });
+        })
+        .catch(e => {
+          done(e);
+        });
     });
   });
 });

@@ -41,7 +41,7 @@ class CustomPlugin extends SPlugin {
   registerHooks() {
 
     this.S.addHook(this._defaultActionPreHook.bind(this), {
-      action: 'moduleCreate',
+      action: 'componentCreate',
       event:  'pre'
     });
 
@@ -68,9 +68,7 @@ class CustomPlugin extends SPlugin {
  */
 
 let validateResult = function(result) {
-  assert.equal(true, typeof result.options.component != 'undefined');
-  assert.equal(true, typeof result.options.module != 'undefined');
-  assert.equal(true, typeof result.options.function != 'undefined');
+  assert.equal(true, typeof result.options.sPath != 'undefined');
   assert.equal(true, typeof result.options.runtime != 'undefined');
   assert.equal(true, typeof result.data.hook != 'undefined');
 };
@@ -102,23 +100,18 @@ describe('Test Default Action With Pre Hook', function() {
 
   describe('Test Default Action With Pre Hook', function() {
 
-    it('adds a pre hook to Module Create default Action', function(done) {
+    it('adds a pre hook to Component Create default Action', function(done) {
 
       this.timeout(0);
       let evt = {
         options: {
-          component:   'nodejscomponent',
-          module:   'newmodule',
-          function: 'newfunction'
+          sPath:   'testcomponent'
         }
       };
 
-      serverless.actions.moduleCreate(evt)
+      serverless.actions.componentCreate(evt)
           .then(function(result) {
             validateResult(result);
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
-            assert.equal(true, typeof functionJson.name != 'undefined');
-            assert.equal(true, functionJson.endpoints.length);
             done();
           })
           .catch(e => {

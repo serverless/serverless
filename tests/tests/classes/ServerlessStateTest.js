@@ -62,12 +62,12 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    it('Get populated instance data', function(done) {
-      let data = instance.getPopulated({ stage: config.stage, region: config.region });
-      assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
-      assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-      done();
-    });
+    //it('Get populated instance data', function(done) {
+    //  let data = instance.getPopulated({ stage: config.stage, region: config.region });
+    //  assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
+    //  assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
+    //  done();
+    //});
 
     it('Set instance data', function(done) {
       let clone = instance.get();
@@ -100,16 +100,22 @@ describe('Test Serverless State Class', function() {
     });
 
     it('Get resources (unpopulated)', function(done) {
-      let resources = instance.getResources();
-      assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
-      done();
+      instance.getResources()
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+          done();
+        });
     });
 
     it('Get resources (populated)', function(done) {
-      let resources = instance.getResources({ populate: true, stage: config.stage, region: config.region });
-      assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
-      assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
-      done();
+      instance.getResources({
+          populate: true, stage: config.stage, region: config.region
+        })
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
+          done();
+        });
     });
 
     it('Get stages', function(done) {
@@ -142,75 +148,66 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    it('Get modules w/o paths', function(done) {
-      let modules = instance.getModules();
-      assert.equal(true, modules[0].name === 'module1');
-      done();
-    });
-
-    it('Get modules w paths', function(done) {
-      let modules = instance.getModules({ paths: ['nodejscomponent/module1'] });
-      assert.equal(true, modules[0].name === 'module1');
-      done();
-    });
-
-    it('Get modules by component and module', function(done) {
-      let modules = instance.getModules({ component: 'nodejscomponent', module: 'module1' });
-      assert.equal(true, modules[0].name === 'module1');
-      done();
-    });
-
-    it('Get modules by component', function(done) {
-      let modules = instance.getModules({ component: 'nodejscomponent' });
-      assert.equal(true, modules.length === 1);
-      done();
-    });
-
     it('Get functions w/o paths', function(done) {
       let functions = instance.getFunctions();
-      assert.equal(true, functions.length === 3);
+      assert.equal(true, functions.length === 5);
       done();
     });
 
     it('Get functions w paths', function(done) {
-      let functions = instance.getFunctions({ paths: ['nodejscomponent/module1/function1'] });
+      let functions = instance.getFunctions({ paths: ['nodejscomponent/group1/function1'] });
+      assert.equal(true, functions.length === 1);
+      done();
+    });
+
+    it('Get functions w/ partial paths', function(done) {
+      let functions = instance.getFunctions({ paths: ['nodejscomponent/group1/group2'] });
       assert.equal(true, functions.length === 1);
       done();
     });
 
     it('Get functions by component, module and function', function(done) {
-      let functions = instance.getFunctions({ component: 'nodejscomponent', module: 'module1', function: 'function1' });
+      let functions = instance.getFunctions({
+        component: 'nodejscomponent',
+        module: 'group1',
+        function: 'function1' });
       assert.equal(true, functions.length === 1);
       done();
     });
 
     it('Get endpoints w/o paths', function(done) {
       let endpoints = instance.getEndpoints();
-      assert.equal(true, endpoints.length === 4);
+      assert.equal(true, endpoints.length === 7);
       done();
     });
 
     it('Get endpoints w paths', function(done) {
-      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/module1/function1@module1/function1~GET'] });
+      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1/function1@group1/function1~GET'] });
       assert.equal(true, endpoints.length === 1);
       done();
     });
 
+    it('Get endpoints w/ partial paths', function(done) {
+      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1/group2'] });
+      assert.equal(true, endpoints.length === 2);
+      done();
+    });
+
     it('Get endpoints by component, module, function, path and method', function(done) {
-      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'module1', function: 'function3', endpointPath: 'module1/function3', endpointMethod: 'POST' });
+      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'group1', function: 'function3', endpointPath: 'group1/function3', endpointMethod: 'POST' });
       assert.equal(true, endpoints.length === 1);
       done();
     });
 
     it('Get endpoints by component, module and function', function(done) {
-      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'module1', function: 'function1' });
+      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'group1', function: 'function1' });
       assert.equal(true, endpoints.length === 1);
       done();
     });
 
-    it('Get endpoints by component and method', function(done) {
-      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', endpointMethod: 'GET' });
-      assert.equal(true, endpoints.length === 3);
+    it('Get endpoints by method', function(done) {
+      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1'], endpointMethod: 'GET' });
+      assert.equal(true, endpoints.length === 4);
       done();
     });
 
@@ -232,27 +229,22 @@ describe('Test Serverless State Class', function() {
       project.name  = 'testProject';
       instance.setAsset(project);
 
-      let component  = new instance._S.classes.Component(instance._S, { component: 'testComponent' });
+      let component  = new instance._S.classes.Component(instance._S, { sPath: 'testComponent' });
       component.name = 'testComponent';
       instance.setAsset(component);
 
-      let module   = new instance._S.classes.Module(instance._S, { component: component.name, module: 'testModule' });
-      module.name  = 'testModule';
-      instance.setAsset(module);
-
-      let func   = new instance._S.classes.Function(instance._S, { component: component.name, module: module.name, function: 'testFunction' });
+      let func   = new instance._S.classes.Function(instance._S, { sPath: 'testComponent/group1/testFunction' });
       func.name  = 'testFunction';
       instance.setAsset(func);
 
-      let endpoint   = new instance._S.classes.Endpoint(instance._S, { component: component.name, module: module.name, function: func.name, endpointPath: 'test/function', endpointMethod: 'GET' });
+      let endpoint   = new instance._S.classes.Endpoint(instance._S, { sPath: 'testComponent/group1/testFunction@group1/testFunction~GET' });
       endpoint.path  = 'test/endpoint';
       instance.setAsset(endpoint);
 
       assert.equal(true, instance.project.name === 'testProject');
       assert.equal(true, typeof instance.project.components[component.name] !== 'undefined');
-      assert.equal(true, typeof instance.project.components[component.name].modules[module.name] !== 'undefined');
-      assert.equal(true, typeof instance.project.components[component.name].modules[module.name].functions[func.name] !== 'undefined');
-      assert.equal(true, instance.project.components[component.name].modules[module.name].functions[func.name].endpoints.length > 0);
+      assert.equal(true, typeof instance.project.components[component.name].functions[func._config.sPath] !== 'undefined');
+      assert.equal(true, instance.project.components[component.name].functions[func._config.sPath].endpoints.length > 0);
 
       done();
     });

@@ -24,13 +24,12 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.data.results != 'undefined');
 };
 
-
 const evt = {
   options: {
     stage:     config.stage,
     region:    config.region,
     duration: '7days',
-    path: 'nodejscomponent/module1/function1'
+    path: 'nodejscomponent/group1/function1'
   }
 };
 
@@ -51,14 +50,13 @@ describe('Test action: Function Logs', function() {
       return serverless.state.load();
     })
     .then(() => {
-      return serverless.actions.functionInvoke(evt);
+      return serverless.actions.functionRun(evt);
     });
   });
 
   describe('Function Logs positive tests', function() {
 
     it('should get logs for the function', function() {
-
 
       return serverless.actions.functionLogs(evt)
         .then(validateEvent);
