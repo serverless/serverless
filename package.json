@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "async": "^0.9.0",
-    "aws-sdk": "^2.2.21",
+    "aws-sdk": "^2.2.33",
     "bluebird": "^2.9.34",
     "chalk": "^1.1.0",
     "cli-spinner": "^0.2.1",

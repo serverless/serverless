@@ -15,6 +15,10 @@ let config = {
   awsAdminKeyId:        process.env.TEST_SERVERLESS_AWS_ACCESS_KEY,
   awsAdminSecretKey:    process.env.TEST_SERVERLESS_AWS_SECRET_KEY,
   iamRoleArnLambda:     process.env.TEST_SERVERLESS_LAMBDA_ROLE,
+  testEventBucket:      process.env.TEST_EVENT_BUCKET,
+  topicArn:             process.env.TEST_TOPIC_ARN,
+  streamArn:            process.env.TEST_STREAM_ARN,
+  streamUUID:           process.env.TEST_STREAM_UUID,
 };
 
 module.exports = config;

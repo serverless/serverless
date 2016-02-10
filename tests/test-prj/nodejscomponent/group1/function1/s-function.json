@@ -7,7 +7,37 @@
   "handler": "group1/function1/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
-  "events": [],
+  "events": [
+    {
+      "name": "dynamodb",
+      "type": "dynamoDBstream",
+      "config": {
+        "streamArn": "${streamArn}"
+      }
+    },
+    {
+      "name": "s3",
+      "type": "s3",
+      "config": {
+        "bucket": "${testEventBucket}",
+        "bucketEvents": ["s3:ObjectCreated:*"]
+      }
+    },
+    {
+      "name": "sns",
+      "type": "sns",
+      "config": {
+        "topicArn": "${topicArn}"
+      }
+    },
+    {
+      "name": "schedule",
+      "type": "schedule",
+      "config": {
+        "schedule": "rate(5 minutes)"
+      }
+    }
+  ],
   "endpoints": [
     {
       "path": "group1/function1",
