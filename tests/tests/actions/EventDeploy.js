@@ -101,7 +101,7 @@ describe('Test Action: Event Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/group1/function1#s3'
+          'nodejscomponent/group1/function1#schedule'
         ]
       };
 
@@ -149,7 +149,7 @@ describe('Test Action: Event Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/group1/function1#schedule'
+          'nodejscomponent/group1/function1#s3'
         ]
       };
 
