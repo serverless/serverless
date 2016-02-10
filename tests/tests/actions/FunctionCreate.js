@@ -35,9 +35,8 @@ describe('Test action: Function Create', function() {
 
           process.chdir(projPath);
 
-          serverless = new Serverless({
-            interactive: false,
-            projectPath: projPath
+          serverless = new Serverless( projPath, {
+            interactive: false
           });
 
           return serverless.state.load().then(function() {
@@ -64,7 +63,7 @@ describe('Test action: Function Create', function() {
       serverless.actions.functionCreate(evt)
           .then(function(evt) {
             validateEvent(evt);
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'nodejscomponent', 'group1', 'function1', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(serverless.getProject().getFilePath( 'nodejscomponent', 'group1', 'function1', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
             done();

@@ -39,11 +39,10 @@ describe('Test action: Resources Deploy', function() {
 
         process.chdir(projPath);
 
-        serverless = new Serverless({
+        serverless = new Serverless( projPath, {
           interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
-          awsAdminSecretKey: config.awsAdminSecretKey,
-          projectPath: projPath
+          awsAdminSecretKey: config.awsAdminSecretKey
         });
 
         return serverless.init()
@@ -51,7 +50,7 @@ describe('Test action: Resources Deploy', function() {
 
             SUtils.sDebug('Adding test bucket resource');
 
-            let newProject = serverless.project.get();
+            let newProject = serverless.getProject().get();
 
             // Adding new Module resource
             newProject.cloudFormation.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };

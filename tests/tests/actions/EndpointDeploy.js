@@ -48,11 +48,10 @@ describe('Test Action: Endpoint Deploy', function() {
 
                 process.chdir(projPath);
 
-                serverless = new Serverless({
+                serverless = new Serverless( projPath, {
                     interactive: false,
                     awsAdminKeyId:     config.awsAdminKeyId,
-                    awsAdminSecretKey: config.awsAdminSecretKey,
-                    projectPath: projPath
+                    awsAdminSecretKey: config.awsAdminSecretKey
                 });
 
                 return serverless.state.load().then(function() {

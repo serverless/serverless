@@ -25,9 +25,7 @@ describe('Test Serverless State Class', function() {
         process.chdir(projPath);
 
         // Instantiate Serverless
-        let project = new Project( projPath );
-        project.load();
-        serverless = new Serverless( project, {
+        serverless = new Serverless( projPath, {
           interactive: false
         });
 
