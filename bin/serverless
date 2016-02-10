@@ -2,18 +2,7 @@
 
 'use strict';
 
-let argv = require('minimist')(process.argv.slice(2)),
-    proxy = process.env.proxy || process.env.HTTP_PROXY || process.env.http_proxy || process.env.HTTPS_PROXY || process.env.https_proxy;
-
-if(proxy) {
-    let AWS = require('aws-sdk'),
-        url = require('url'),
-        HttpsProxyAgent = require('https-proxy-agent'),
-        proxyOptions;
-    proxyOptions = url.parse(proxy);
-    proxyOptions.secureEndpoint = true;
-    AWS.config.httpOptions.agent = new HttpsProxyAgent(proxyOptions);
-}
+let argv = require('minimist')(process.argv.slice(2));
 
 if (argv.debug) process.env.DEBUG = '*';
 
