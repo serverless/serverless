@@ -33,6 +33,7 @@
     "./actions/StageRemove.js",
     "./actions/ProjectRemove.js",
     "./actions/FunctionLogs.js",
-    "./actions/ResourcesDiff.js"
+    "./actions/ResourcesDiff.js",
+    "./actions/PluginCreate"
   ]
 }
