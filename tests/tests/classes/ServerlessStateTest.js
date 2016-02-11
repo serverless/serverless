@@ -103,6 +103,8 @@ describe('Test Serverless State Class', function() {
       instance.getResources()
         .then(function(resources) {
           assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
           done();
         });
     });
@@ -114,6 +116,8 @@ describe('Test Serverless State Class', function() {
         .then(function(resources) {
           assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
           assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
           done();
         });
     });
@@ -208,6 +212,25 @@ describe('Test Serverless State Class', function() {
     it('Get endpoints by method', function(done) {
       let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1'], endpointMethod: 'GET' });
       assert.equal(true, endpoints.length === 4);
+      done();
+    });
+
+    // asfasf
+    it('Get events w/o paths', function(done) {
+      let events = instance.getEvents();
+      assert.equal(true, events.length === 4);
+      done();
+    });
+
+    it('Get events w paths', function(done) {
+      let events = instance.getEvents({ paths: ['nodejscomponent/group1/function1#s3'] });
+      assert.equal(true, events.length === 1);
+      done();
+    });
+
+    it('Get events w partial paths', function(done) {
+      let events = instance.getEvents({ paths: ['nodejscomponent/group1'] });
+      assert.equal(true, events.length === 4);
       done();
     });
 

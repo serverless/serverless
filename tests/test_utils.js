@@ -49,10 +49,6 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     endpointVariable: "none"
   };
 
-  let commonVariablesPublic = {
-    project: projectName
-  };
-
   let stageVariables = {
     stage: projectStage
   };
@@ -64,7 +60,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     testEventBucket: config.testEventBucket,
     streamArn: config.streamArn,
     'eventID:nodejscomponent/group1/function1#dynamodb': config.streamUUID,
-    topicArn: config.topicArn,
+    topicArn: config.topicArn
   };
 
   return Promise.all([

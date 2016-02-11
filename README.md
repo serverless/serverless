@@ -52,9 +52,10 @@ Refer to our [documentation](http://docs.serverless.com) for more info.  Enjoy!
 ## Links
 
 * [Documentation](http://docs.serverless.com)
-* [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
+* [Road Map](https://github.com/serverless/serverless/milestones)
+* [Changelog](https://github.com/serverless/serverless/releases)
 * [Email Updates](http://eepurl.com/bvz5Nj)
-* [Gitter Chatroom](https://gitter.im/serverless/serverless)
+* [Gitter Chatroom](https://gitter.im/serverless/serverless) - We are in here all day long!
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
