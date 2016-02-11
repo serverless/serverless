@@ -11,21 +11,24 @@ Also, we are hiring.  If you are a developer and these tools/ideologies appeal t
 
 ## Features
 
-* Run/test AWS Lambda functions locally
-* Auto-deploy, version & alias your Lambda functions
+* Run/test AWS Lambda functions locally, or remotely
+* Auto-deploys, versions & aliases your Lambda functions
 * Auto-deploys your REST API to AWS API Gateway
+* Auto-deploys your Lambda Events
 * Support for multiple stages
 * Support for multiple regions within stages
 * Manage & deploy AWS CloudFormation resources
 * Project Variables & Module Templates reduce configuration settings
 * Environment variable support
+* Use Multiple Endpoints W/ Each Function
 * Interactive dashboard to easily select and deploy functions and endpoints
 * Optimize your Lambda functions for faster response times
 * Components allow for easy sharing of code across Lambda functions
 * Shareable project files and modules
 * 100% Extensible - Extend or modify the Framework and its operations via Plugins
 * Powerful classes and methods for easy plugin development
-* AWS best practices and optimizations built in!
+* AWS best practices and optimizations built in
+* A fantastic and welcoming community!
 
 ## Getting Started
 
