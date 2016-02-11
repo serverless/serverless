@@ -120,7 +120,7 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
-  describe('Function Deploy: Nested W/ Name Template', function() {
+  describe('Function Deploy: Nested W/ Custom Name', function() {
     it('should deploy functions', function(done) {
 
       this.timeout(0);
