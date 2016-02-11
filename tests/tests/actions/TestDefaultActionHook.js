@@ -81,9 +81,8 @@ describe('Test Default Action With Pre Hook', function() {
         .then(projPath => {
 
           process.chdir(projPath);
-          serverless = new Serverless({
-            interactive: false,
-            projectPath: projPath
+          serverless = new Serverless( projPath, {
+            interactive: false
           });
 
           serverless.addPlugin(new CustomPlugin(serverless, {}));

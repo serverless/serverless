@@ -41,11 +41,10 @@ describe('Test action: Function Logs', function() {
     .then(projPath => {
       process.chdir(projPath);
 
-      serverless = new Serverless({
+      serverless = new Serverless( projPath, {
         awsAdminKeyId:     config.awsAdminKeyId,
         awsAdminSecretKey: config.awsAdminSecretKey,
-        interactive: false,
-        projectPath: projPath
+        interactive: false
       });
       return serverless.state.load();
     })
