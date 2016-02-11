@@ -1,6 +1,7 @@
 {
   "name": "function4",
   "customName": "${project}-${stage}-function4",
+  "customRole": false,
   "custom": {
     "envVars": [],
     "excludePatterns": []
