@@ -11,7 +11,7 @@
       {
         "Effect": "Allow",
         "Action": "s3:ListBucket",
-        "Resource": "arn:aws:s3:::fake_bucket"
+        "Resource": "arn:aws:s3:::fake_bucket2"
       }
     ],
     "resources": {}

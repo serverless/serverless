@@ -52,9 +52,10 @@ Refer to our [documentation](http://docs.serverless.com) for more info.  Enjoy!
 ## Links
 
 * [Documentation](http://docs.serverless.com)
-* [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
+* [Road Map](https://github.com/serverless/serverless/milestones)
+* [Changelog](https://github.com/serverless/serverless/releases)
 * [Email Updates](http://eepurl.com/bvz5Nj)
-* [Gitter Chatroom](https://gitter.im/serverless/serverless)
+* [Gitter Chatroom](https://gitter.im/serverless/serverless) - We are in here all day long!
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
@@ -83,7 +84,7 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
 
 * Propose your changes before you start working on a PR. You can reach us by submitting a Github issue, or discuss it in the [Gitter Chatroom](https://gitter.im/serverless/serverless). This is just to make sure that no one else is working on the same change, and to figure out the best way to solve the issue.
-* If you're out of ideas, but still want to contribute, check out our [Road Map](https://trello.com/b/EX6SxBJJ/serverless). There's a lot we want to get done, and we'd love your help!
+* If you're out of ideas, but still want to contribute, check out our [Road Map](https://github.com/serverless/serverless/milestones). There's a lot we want to get done, and we'd love your help!
 * Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework).
 * You can also contribute by writing. Feel free to let us know if you want to publish a useful original guide in our docs (attributed to you, thank you!) that you feel will help the community.
 

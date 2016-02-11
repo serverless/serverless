@@ -27,7 +27,7 @@
       "name": "sns",
       "type": "sns",
       "config": {
-        "topicArn": "${topicArn}"
+        "topicName": "test-event-source"
       }
     },
     {
