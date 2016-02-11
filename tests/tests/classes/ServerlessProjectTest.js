@@ -105,6 +105,24 @@ describe('Test Serverless Project Class', function() {
         });
     });
 
+    it('Get functions w/o paths', function(done) {
+      let functions = instance.getAllFunctions();
+      assert.equal(true, functions.length === 5);
+      done();
+    });
+
+    it('Get function by path', function(done) {
+      let func = instance.getFunction( 'nodejscomponent/group1/function1' );
+      assert.equal(true, func != undefined);
+      done();
+    });
+
+    it('Get function by partial path', function(done) {
+      let func = instance.getFunction( 'nodejscomponent/group1/group2' );
+      assert.equal(true, func != undefined);
+      done();
+    });
+
     it('Create new and save', function(done) {
       // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
       // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.

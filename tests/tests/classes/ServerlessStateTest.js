@@ -152,33 +152,6 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    it('Get functions w/o paths', function(done) {
-      let functions = instance.getFunctions();
-      assert.equal(true, functions.length === 5);
-      done();
-    });
-
-    it('Get functions w paths', function(done) {
-      let functions = instance.getFunctions({ paths: ['nodejscomponent/group1/function1'] });
-      assert.equal(true, functions.length === 1);
-      done();
-    });
-
-    it('Get functions w/ partial paths', function(done) {
-      let functions = instance.getFunctions({ paths: ['nodejscomponent/group1/group2'] });
-      assert.equal(true, functions.length === 1);
-      done();
-    });
-
-    it('Get functions by component, module and function', function(done) {
-      let functions = instance.getFunctions({
-        component: 'nodejscomponent',
-        module: 'group1',
-        function: 'function1' });
-      assert.equal(true, functions.length === 1);
-      done();
-    });
-
     it('Get endpoints w/o paths', function(done) {
       let endpoints = instance.getEndpoints();
       assert.equal(true, endpoints.length === 7);
