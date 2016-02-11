@@ -50,6 +50,7 @@
     "dotenv": "^2.0.0",
     "download": "^4.2.0",
     "fs-extra": "^0.26.4",
+    "json-diff": "^0.3.1",
     "keypress": "^0.2.1",
     "lodash": "^4.2.1",
     "minimist": "^1.2.0",
