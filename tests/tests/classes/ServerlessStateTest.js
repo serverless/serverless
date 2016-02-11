@@ -103,7 +103,6 @@ describe('Test Serverless State Class', function() {
       instance.getResources()
         .then(function(resources) {
           assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
-          console.log(JSON.stringify(resources))
           assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
           assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
           done();
