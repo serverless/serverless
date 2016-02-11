@@ -170,25 +170,6 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    // asfasf
-    it('Get events w/o paths', function(done) {
-      let events = instance.getEvents();
-      assert.equal(true, events.length === 4);
-      done();
-    });
-
-    it('Get events w paths', function(done) {
-      let events = instance.getEvents({ paths: ['nodejscomponent/group1/function1#s3'] });
-      assert.equal(true, events.length === 1);
-      done();
-    });
-
-    it('Get events w partial paths', function(done) {
-      let events = instance.getEvents({ paths: ['nodejscomponent/group1'] });
-      assert.equal(true, events.length === 4);
-      done();
-    });
-
     it('Validate stage exists', function(done) {
       assert.equal(true, instance.validateStageExists(config.stage));
       assert.equal(false, instance.validateStageExists('invalid'));

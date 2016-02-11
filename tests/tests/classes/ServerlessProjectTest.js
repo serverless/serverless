@@ -135,6 +135,24 @@ describe('Test Serverless Project Class', function() {
       done();
     });
 
+    it('Get events w/o paths', function(done) {
+      let events = instance.getEvents();
+      assert.equal(true, events.length === 4);
+      done();
+    });
+
+    it('Get events w paths', function(done) {
+      let events = instance.getEvents({ paths: ['nodejscomponent/group1/function1#s3'] });
+      assert.equal(true, events.length === 1);
+      done();
+    });
+
+    it('Get events w partial paths', function(done) {
+      let events = instance.getEvents({ paths: ['nodejscomponent/group1'] });
+      assert.equal(true, events.length === 4);
+      done();
+    });
+
     it('Create new and save', function(done) {
       // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
       // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.
