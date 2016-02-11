@@ -51,11 +51,8 @@ describe('Test action: Resources Deploy', function() {
 
             SUtils.sDebug('Adding test bucket resource');
 
-            let newProject = serverless.state.project.get();
-
             // Adding new Module resource
-            newProject.cloudFormation.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
-            serverless.state.setAsset(newProject);
+            serverless.state.project.cloudFormation.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
 
             return serverless.state.save()
               .then(function() {
