@@ -14,13 +14,13 @@ Also, we are hiring.  If you are a developer and these tools/ideologies appeal t
 * Run/test AWS Lambda functions locally, or remotely
 * Auto-deploys, versions & aliases your Lambda functions
 * Auto-deploys your REST API to AWS API Gateway
-* Auto-deploys your Lambda Events
+* Auto-deploys your Lambda events
 * Support for multiple stages
 * Support for multiple regions within stages
 * Manage & deploy AWS CloudFormation resources
 * Project Variables & Module Templates reduce configuration settings
 * Environment variable support
-* Use Multiple Endpoints W/ Each Function
+* Assign multiple endpoints to a function
 * Interactive dashboard to easily select and deploy functions and endpoints
 * Optimize your Lambda functions for faster response times
 * Components allow for easy sharing of code across Lambda functions
