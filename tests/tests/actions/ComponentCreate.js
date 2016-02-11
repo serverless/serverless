@@ -34,9 +34,8 @@ describe('Test action: Component Create', function() {
 
         process.chdir(projPath);
 
-        serverless = new Serverless({
-          interactive: false,
-          projectPath: projPath
+        serverless = new Serverless( projPath, {
+          interactive: false
         });
 
         return serverless.state.load().then(function() {

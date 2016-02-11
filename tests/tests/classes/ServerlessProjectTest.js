@@ -25,16 +25,15 @@ describe('Test Serverless Project Class', function() {
         process.chdir(projPath);
 
         // Instantiate Serverless
-        serverless = new Serverless({
-          interactive: false,
-          projectPath: projPath
+        serverless = new Serverless( projPath, {
+          interactive: false
         });
 
         return serverless.init()
           .then(function() {
 
             // Instantiate Class
-            instance = new serverless.classes.Project(serverless);
+            instance = serverless.getProject();
 
             done();
           });
@@ -107,7 +106,13 @@ describe('Test Serverless Project Class', function() {
     });
 
     it('Create new and save', function(done) {
-      let project = new serverless.classes.Project(serverless);
+      // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
+      // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.
+      // So, either the code should be moved fully to Project and be tested here (preferred)
+      // or not really tested here. To make this happen we should first remove ServerlessState and ServerlessMeta
+      // classes completely.
+      let project = new serverless.classes.Project(serverless.getProject().getRootPath());
+      project.setServerless( serverless );
 
       project.save()
         .then(function(instance) {
