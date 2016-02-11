@@ -26,7 +26,7 @@ let Serverless  = require('../../../lib/Serverless'),
   config      = require('../../config');
 
 
-let serverless = new Serverless({
+let serverless = new Serverless( undefined, {
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey
