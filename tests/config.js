@@ -20,5 +20,8 @@ let config = {
   streamArn:            process.env.TEST_STREAM_ARN,
   streamUUID:           process.env.TEST_STREAM_UUID,
 };
+if(process.env.TEST_SERVERLESS_AWS_SESSION_TOKEN) {
+  config.awsAdminSessionToken = process.env.TEST_SERVERLESS_AWS_SESSION_TOKEN;
+}
 
 module.exports = config;
