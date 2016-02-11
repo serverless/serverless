@@ -123,6 +123,18 @@ describe('Test Serverless Project Class', function() {
       done();
     });
 
+    it('Get components w/o paths', function(done) {
+      let components = instance.getAllComponents();
+      assert.equal(true, components[0].name === 'nodejscomponent');
+      done();
+    });
+
+    it('Get components w paths', function(done) {
+      let components = instance.getAllComponents({ paths: ['nodejscomponent'] });
+      assert.equal(true, components[0].name === 'nodejscomponent');
+      done();
+    });
+
     it('Create new and save', function(done) {
       // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
       // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.

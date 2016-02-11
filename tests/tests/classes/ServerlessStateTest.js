@@ -134,24 +134,6 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    it('Get components w/o paths', function(done) {
-      let components = instance.getComponents();
-      assert.equal(true, components[0].name === 'nodejscomponent');
-      done();
-    });
-
-    it('Get components w paths', function(done) {
-      let components = instance.getComponents({ paths: ['nodejscomponent'] });
-      assert.equal(true, components[0].name === 'nodejscomponent');
-      done();
-    });
-
-    it('Get components by component', function(done) {
-      let components = instance.getComponents({ component: 'nodejscomponent' });
-      assert.equal(true, components[0].name === 'nodejscomponent');
-      done();
-    });
-
     it('Get endpoints w/o paths', function(done) {
       let endpoints = instance.getEndpoints();
       assert.equal(true, endpoints.length === 7);
