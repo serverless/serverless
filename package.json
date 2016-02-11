@@ -57,7 +57,7 @@
     "moment": "^2.11.2",
     "node-uuid": "^1.4.2",
     "node-zip": "^1.1.0",
-    "prompt": "^1.0.0",
+    "prompt": "^0.3.0",
     "readdirp": "^2.0.0",
     "replaceall": "^0.1.6",
     "rimraf": "^2.4.3",
