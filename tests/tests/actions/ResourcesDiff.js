@@ -62,7 +62,7 @@ describe('Test action: Resources Diff', function() {
         SUtils.sDebug('Adding test bucket resource');
 
         // Adding new Module resource
-        serverless.state.project.cloudFormation.Resources[testBucketName] = { "Type" : "AWS::S3::Bucket" };
+        serverless.getProject().cloudFormation.Resources[testBucketName] = { "Type" : "AWS::S3::Bucket" };
 
         return serverless.state.save();
       });

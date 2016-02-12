@@ -105,6 +105,95 @@ describe('Test Serverless Project Class', function() {
         });
     });
 
+    it('Get functions w/o paths', function(done) {
+      let functions = instance.getAllFunctions();
+      assert.equal(true, functions.length === 5);
+      done();
+    });
+
+    it('Get function by path', function(done) {
+      let func = instance.getFunction( 'nodejscomponent/group1/function1' );
+      assert.equal(true, func != undefined);
+      done();
+    });
+
+    it('Get function by partial path', function(done) {
+      let func = instance.getFunction( 'nodejscomponent/group1/group2' );
+      assert.equal(true, func != undefined);
+      done();
+    });
+
+    it('Get components w/o paths', function(done) {
+      let components = instance.getAllComponents();
+      assert.equal(true, components[0].name === 'nodejscomponent');
+      done();
+    });
+
+    it('Get components w paths', function(done) {
+      let components = instance.getAllComponents({ paths: ['nodejscomponent'] });
+      assert.equal(true, components[0].name === 'nodejscomponent');
+      done();
+    });
+
+    it('Get events w/o paths', function(done) {
+      let events = instance.getAllEvents();
+      assert.equal(true, events.length === 4);
+      done();
+    });
+
+    it('Get events w paths', function(done) {
+      let events = instance.getAllEvents({ paths: ['nodejscomponent/group1/function1#s3'] });
+      assert.equal(true, events.length === 1);
+      done();
+    });
+
+    it('Get events w partial paths', function(done) {
+      let events = instance.getAllEvents({ paths: ['nodejscomponent/group1'] });
+      assert.equal(true, events.length === 4);
+      done();
+    });
+
+    it('Get endpoints w/o paths', function(done) {
+      let endpoints = instance.getAllEndpoints();
+      assert.equal(true, endpoints.length === 7);
+      done();
+    });
+
+    it('Get endpoints w paths', function(done) {
+      let endpoints = instance.getAllEndpoints({ paths: ['nodejscomponent/group1/function1@group1/function1~GET'] });
+      assert.equal(true, endpoints.length === 1);
+      done();
+    });
+
+    it('Get endpoints w/ partial paths', function(done) {
+      let endpoints = instance.getAllEndpoints({ paths: ['nodejscomponent/group1/group2'] });
+      assert.equal(true, endpoints.length === 2);
+      done();
+    });
+
+    it('Get resources (unpopulated)', function(done) {
+      instance.getResources()
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
+          done();
+        });
+    });
+
+    it('Get resources (populated)', function(done) {
+      instance.getResources({
+          populate: true, stage: config.stage, region: config.region
+        })
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
+          done();
+        });
+    });
+
     it('Create new and save', function(done) {
       // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
       // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.
