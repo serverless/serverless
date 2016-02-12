@@ -136,20 +136,38 @@ describe('Test Serverless Project Class', function() {
     });
 
     it('Get events w/o paths', function(done) {
-      let events = instance.getEvents();
+      let events = instance.getAllEvents();
       assert.equal(true, events.length === 4);
       done();
     });
 
     it('Get events w paths', function(done) {
-      let events = instance.getEvents({ paths: ['nodejscomponent/group1/function1#s3'] });
+      let events = instance.getAllEvents({ paths: ['nodejscomponent/group1/function1#s3'] });
       assert.equal(true, events.length === 1);
       done();
     });
 
     it('Get events w partial paths', function(done) {
-      let events = instance.getEvents({ paths: ['nodejscomponent/group1'] });
+      let events = instance.getAllEvents({ paths: ['nodejscomponent/group1'] });
       assert.equal(true, events.length === 4);
+      done();
+    });
+
+    it('Get endpoints w/o paths', function(done) {
+      let endpoints = instance.getAllEndpoints();
+      assert.equal(true, endpoints.length === 7);
+      done();
+    });
+
+    it('Get endpoints w paths', function(done) {
+      let endpoints = instance.getAllEndpoints({ paths: ['nodejscomponent/group1/function1@group1/function1~GET'] });
+      assert.equal(true, endpoints.length === 1);
+      done();
+    });
+
+    it('Get endpoints w/ partial paths', function(done) {
+      let endpoints = instance.getAllEndpoints({ paths: ['nodejscomponent/group1/group2'] });
+      assert.equal(true, endpoints.length === 2);
       done();
     });
 

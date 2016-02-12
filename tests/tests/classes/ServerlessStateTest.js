@@ -134,42 +134,6 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    it('Get endpoints w/o paths', function(done) {
-      let endpoints = instance.getEndpoints();
-      assert.equal(true, endpoints.length === 7);
-      done();
-    });
-
-    it('Get endpoints w paths', function(done) {
-      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1/function1@group1/function1~GET'] });
-      assert.equal(true, endpoints.length === 1);
-      done();
-    });
-
-    it('Get endpoints w/ partial paths', function(done) {
-      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1/group2'] });
-      assert.equal(true, endpoints.length === 2);
-      done();
-    });
-
-    it('Get endpoints by component, module, function, path and method', function(done) {
-      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'group1', function: 'function3', endpointPath: 'group1/function3', endpointMethod: 'POST' });
-      assert.equal(true, endpoints.length === 1);
-      done();
-    });
-
-    it('Get endpoints by component, module and function', function(done) {
-      let endpoints = instance.getEndpoints({ component: 'nodejscomponent', module: 'group1', function: 'function1' });
-      assert.equal(true, endpoints.length === 1);
-      done();
-    });
-
-    it('Get endpoints by method', function(done) {
-      let endpoints = instance.getEndpoints({ paths: ['nodejscomponent/group1'], endpointMethod: 'GET' });
-      assert.equal(true, endpoints.length === 4);
-      done();
-    });
-
     it('Validate stage exists', function(done) {
       assert.equal(true, instance.validateStageExists(config.stage));
       assert.equal(false, instance.validateStageExists('invalid'));
