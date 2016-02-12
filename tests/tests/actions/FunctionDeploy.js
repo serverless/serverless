@@ -41,11 +41,7 @@ let validateEvent = function(evt) {
  */
 
 let cleanup = function(UUID, cb) {
-  let awsConfig = {
-    region:          config.region,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  };
+  let awsConfig = awsMisc.createAwsConfig(_this.S.config);
 
   let lambda = new AWS.Lambda(awsConfig);
 
@@ -76,12 +72,15 @@ describe('Test Action: Function Deploy', function() {
 
         process.chdir(projPath);
 
-        serverless = new Serverless({
-          interactive:       false,
-          awsAdminKeyId:     config.awsAdminKeyId,
-          awsAdminSecretKey: config.awsAdminSecretKey,
-          projectPath:       projPath
-        });
+        let sConfig = {
+          interactive:        false,
+          awsAdminKeyId:      config.awsAdminKeyId,
+          awsAdminSecretKey:  config.awsAdminSecretKey
+        };
+        if(config.awsAdminSessionToken) {
+          sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+        }
+        serverless = new Serverless(projPath, sConfig);
 
         return serverless.state.load().then(function() {
           done();

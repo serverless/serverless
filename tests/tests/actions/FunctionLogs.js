@@ -41,12 +41,15 @@ describe('Test action: Function Logs', function() {
     .then(projPath => {
       process.chdir(projPath);
 
-      serverless = new Serverless({
-        awsAdminKeyId:     config.awsAdminKeyId,
-        awsAdminSecretKey: config.awsAdminSecretKey,
-        interactive: false,
-        projectPath: projPath
-      });
+      let sConfig = {
+        interactive:        false,
+        awsAdminKeyId:      config.awsAdminKeyId,
+        awsAdminSecretKey:  config.awsAdminSecretKey
+      };
+      if(config.awsAdminSessionToken) {
+        sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+      }
+      serverless = new Serverless(projPath, sConfig);
       return serverless.state.load();
     })
     .then(() => {
