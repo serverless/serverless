@@ -87,12 +87,6 @@ describe('Test Serverless State Class', function() {
         });
     });
 
-    it('Get project', function(done) {
-      let project = instance.getProject();
-      assert.equal(true, project.name === 'newProject');
-      done();
-    });
-
     it('Get meta', function(done) {
       let meta = instance.getMeta();
       assert.equal(true, typeof meta.variables !== 'undefined');
