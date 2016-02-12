@@ -251,7 +251,7 @@ describe('Test Custom Plugin', function() {
 
   before(function(done) {
 
-    serverless = new Serverless({
+    serverless = new Serverless( undefined, {
       awsAdminKeyId:     '123',
       awsAdminSecretKey: '123',
       interactive:       false

@@ -25,9 +25,8 @@ describe('Test Serverless Component Class', function() {
         process.chdir(projPath);
 
         // Instantiate Serverless
-        serverless = new Serverless({
-          interactive: false,
-          projectPath: projPath
+        serverless = new Serverless( projPath, {
+          interactive: false
         });
 
         return serverless.init()
