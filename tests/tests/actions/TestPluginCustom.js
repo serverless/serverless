@@ -251,11 +251,15 @@ describe('Test Custom Plugin', function() {
 
   before(function(done) {
 
-    serverless = new Serverless( undefined, {
-      awsAdminKeyId:     '123',
-      awsAdminSecretKey: '123',
-      interactive:       false
-    });
+    let sConfig = {
+      interactive:        false,
+      awsAdminKeyId:      config.awsAdminKeyId,
+      awsAdminSecretKey:  config.awsAdminSecretKey
+    };
+    if(config.awsAdminSessionToken) {
+      sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+    }
+    serverless = new Serverless(undefined, sConfig);
 
     serverless.addPlugin(new CustomPlugin(serverless, {}));
     done();

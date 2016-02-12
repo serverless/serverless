@@ -36,11 +36,15 @@ describe('Test Action: Function Run', function() {
 
                 process.chdir(projPath);
 
-                serverless = new Serverless( projPath, {
-                    interactive: true,
-                    awsAdminKeyId:     config.awsAdminKeyId,
-                    awsAdminSecretKey: config.awsAdminSecretKey
-                });
+                let sConfig = {
+                    interactive:        true,
+                    awsAdminKeyId:      config.awsAdminKeyId,
+                    awsAdminSecretKey:  config.awsAdminSecretKey
+                };
+                if(config.awsAdminSessionToken) {
+                    sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+                }
+                serverless = new Serverless(projPath, sConfig);
 
                 return serverless.state.load()
                     .then(function() {

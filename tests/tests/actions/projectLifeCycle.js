@@ -26,11 +26,15 @@ let Serverless  = require('../../../lib/Serverless'),
   config      = require('../../config');
 
 
-let serverless = new Serverless( undefined, {
-  interactive: false,
-  awsAdminKeyId: config.awsAdminKeyId,
-  awsAdminSecretKey: config.awsAdminSecretKey
-});
+let sConfig = {
+  interactive:        false,
+  awsAdminKeyId:      config.awsAdminKeyId,
+  awsAdminSecretKey:  config.awsAdminSecretKey
+};
+if(config.awsAdminSessionToken) {
+  sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+}
+let serverless = new Serverless(undefined, sConfig);
 
 // Removes project S3 bucket
 let cleanup = function(evt) {
@@ -39,11 +43,8 @@ let cleanup = function(evt) {
   // Project Create no longer creates a Project Bucket if noExeCf is set
   if (evt.options.noExeCf) return;
 
-  let s3 = require('../../../lib/utils/aws/S3')({
-    region:          config.region,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  });
+  let awsConfig = awsMisc.createAwsConfig(_this.S.config);
+  let s3 = require('../../../lib/utils/aws/S3')(awsConfig);
 
   // Delete Region Bucket
   // Delete All Objects in Bucket first, this is required

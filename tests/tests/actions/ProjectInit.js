@@ -18,11 +18,15 @@ let Serverless  = require('../../../lib/Serverless'),
   config      = require('../../config');
 
 // Instantiate
-let serverless = new Serverless( undefined, {
-  interactive: false,
-  awsAdminKeyId: config.awsAdminKeyId,
-  awsAdminSecretKey: config.awsAdminSecretKey
-});
+let sConfig = {
+  interactive:        false,
+  awsAdminKeyId:      config.awsAdminKeyId,
+  awsAdminSecretKey:  config.awsAdminSecretKey
+};
+if(config.awsAdminSessionToken) {
+  sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+}
+let serverless = new Serverless(undefined, sConfig);
 
 /**
  * Validate Event
@@ -49,11 +53,9 @@ let cleanup = function(Meta, cb, evt) {
   // Project Create no longer creates a Project Bucket if noExeCf is set
   if (evt.options.noExeCf) return cb();
 
-  AWS.config.update({
-    region:          config.region,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  });
+  let awsConfig = awsMisc.createAwsConfig(this.S.config);
+  
+  AWS.config.update(awsConfig);
 
   // Delete Region Bucket
   let s3 = new AWS.S3();
