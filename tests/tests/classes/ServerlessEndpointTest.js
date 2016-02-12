@@ -50,16 +50,6 @@ describe('Test Serverless Endpoint Class', function() {
   });
 
   describe('Tests', function() {
-    it('Load instance from file system', function(done) {
-      instance.load()
-        .then(function(instance) {
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
-    });
-
     it('Get instance data, without private properties', function(done) {
       let clone = instance.get();
       assert.equal(true, typeof clone._config === 'undefined');
@@ -79,37 +69,6 @@ describe('Test Serverless Endpoint Class', function() {
       instance.set(clone);
       assert.equal(true, instance.method === 'POST');
       done();
-    });
-
-    it('Save instance to the file system', function(done) {
-      instance.save()
-        .then(function(instance) {
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
-    });
-
-    it('Create new and save', function(done) {
-      let endpoint = new serverless.classes.Endpoint(serverless, serverless.getProject().getFunction('nodejscomponent/group1/function1'), {
-        component: 'nodejscomponent',
-        module: 'group1',
-        function: 'function1',
-        endpointPath: 'test',
-        endpointMethod: 'GET'
-      });
-
-      endpoint.save()
-        .then(function(instance) {
-          return endpoint.load()
-            .then(function(instance) {
-              done();
-            });
-        })
-        .catch(e => {
-          done(e);
-        });
     });
 
     it('Get function', function() {
