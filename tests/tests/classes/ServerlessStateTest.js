@@ -99,29 +99,6 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    it('Get resources (unpopulated)', function(done) {
-      instance.getResources()
-        .then(function(resources) {
-          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
-          done();
-        });
-    });
-
-    it('Get resources (populated)', function(done) {
-      instance.getResources({
-          populate: true, stage: config.stage, region: config.region
-        })
-        .then(function(resources) {
-          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
-          done();
-        });
-    });
-
     it('Get stages', function(done) {
       let stages = instance.getStages();
       assert.equal(true, stages[0] === config.stage);
@@ -153,23 +130,23 @@ describe('Test Serverless State Class', function() {
       //project.name  = 'testProject';
       //instance.setAsset(project);
 
-      let component  = new instance._S.classes.Component(instance._S, { sPath: 'testComponent' });
-      component.name = 'testComponent';
-      instance.setAsset(component);
-
-      let func   = new instance._S.classes.Function(instance._S, { sPath: 'testComponent/group1/testFunction' });
-      func.name  = 'testFunction';
-      instance.setAsset(func);
-
-      let endpoint   = new instance._S.classes.Endpoint(instance._S, { sPath: 'testComponent/group1/testFunction@group1/testFunction~GET' });
-      endpoint.path  = 'test/endpoint';
-      instance.setAsset(endpoint);
+      //let component  = new instance._S.classes.Component(instance._S, { sPath: 'testComponent' });
+      //component.name = 'testComponent';
+      //instance.setAsset(component);
+      //
+      //let func   = new instance._S.classes.Function(instance._S, { sPath: 'testComponent/group1/testFunction' });
+      //func.name  = 'testFunction';
+      //instance.setAsset(func);
+      //
+      //let endpoint   = new instance._S.classes.Endpoint(instance._S, { sPath: 'testComponent/group1/testFunction@group1/testFunction~GET' });
+      //endpoint.path  = 'test/endpoint';
+      //instance.setAsset(endpoint);
 
       // TODO
       //assert.equal(true, instance._S.getProject().name === 'testProject');
-      assert.equal(true, typeof instance.project.components[component.name] !== 'undefined');
-      assert.equal(true, typeof instance.project.components[component.name].functions[func._config.sPath] !== 'undefined');
-      assert.equal(true, instance.project.components[component.name].functions[func._config.sPath].endpoints.length > 0);
+      //assert.equal(true, typeof instance.project.components[component.name] !== 'undefined');
+      //assert.equal(true, typeof instance.project.components[component.name].functions[func._config.sPath] !== 'undefined');
+      //assert.equal(true, instance.project.components[component.name].functions[func._config.sPath].endpoints.length > 0);
 
       done();
     });

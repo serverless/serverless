@@ -171,6 +171,29 @@ describe('Test Serverless Project Class', function() {
       done();
     });
 
+    it('Get resources (unpopulated)', function(done) {
+      instance.getResources()
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
+          done();
+        });
+    });
+
+    it('Get resources (populated)', function(done) {
+      instance.getResources({
+          populate: true, stage: config.stage, region: config.region
+        })
+        .then(function(resources) {
+          assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket1') !== -1);
+          assert.equal(true, JSON.stringify(resources).indexOf('fake_bucket2') !== -1); // TODO: Back compat support.  Remove V1
+          done();
+        });
+    });
+
     it('Create new and save', function(done) {
       // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
       // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.
