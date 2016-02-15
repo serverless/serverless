@@ -34,6 +34,10 @@
     "./actions/ProjectRemove.js",
     "./actions/FunctionLogs.js",
     "./actions/ResourcesDiff.js",
-    "./actions/PluginCreate"
+    "./actions/PluginCreate.js",
+    "./actions/PluginSearch.js",
+    "./actions/PluginAdd.js",
+    "./actions/PluginRemove.js",
+    "./actions/PluginList.js"
   ]
 }
