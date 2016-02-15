@@ -20,6 +20,7 @@ Also, we are hiring.  If you are a developer and these tools/ideologies appeal t
 * Manage & deploy AWS CloudFormation resources
 * Project Variables & Module Templates reduce configuration settings
 * Environment variable support
+* Event Sources support
 * Assign multiple endpoints to a function
 * Interactive dashboard to easily select and deploy functions and endpoints
 * Optimize your Lambda functions for faster response times
