@@ -44,11 +44,16 @@ describe('Test action: Resources Diff', function() {
 
         process.chdir(projPath);
 
-        serverless = new Serverless( projPath, {
-          interactive: false,
-          awsAdminKeyId:     config.awsAdminKeyId,
-          awsAdminSecretKey: config.awsAdminSecretKey
-        });
+        let sConfig = {
+          interactive:        false,
+          awsAdminKeyId:      config.awsAdminKeyId,
+          awsAdminSecretKey:  config.awsAdminSecretKey,
+          projectPath:        projPath
+        };
+        if(config.awsAdminSessionToken) {
+          sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+        }
+        serverless = new Serverless(projPath, sConfig);
 
         return serverless.init();
       })

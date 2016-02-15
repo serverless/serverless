@@ -48,11 +48,15 @@ describe('Test Action: Event Deploy', function() {
 
         process.chdir(projPath);
 
-        serverless = new Serverless( projPath, {
+        let sConfig = {
           interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
           awsAdminSecretKey: config.awsAdminSecretKey
-        });
+        };
+        if(config.awsAdminSessionToken) {
+          sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+        }
+        serverless = new Serverless(projPath, sConfig);
 
         return serverless.state.load().then(function() {
           done();

@@ -36,7 +36,7 @@ describe('Test action: Module Create', function() {
 
           process.chdir(projPath);
 
-          serverless = new Serverless( projPath, {
+          serverless = new Serverless(projPath, {
             interactive: false
           });
 

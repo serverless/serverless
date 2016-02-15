@@ -34,11 +34,9 @@ let validateEvent = function(evt) {
 
 let cleanup = function(Meta, cb) {
 
-  AWS.config.update({
-    region:          Meta.variables.projectBucket.split('.')[1],
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  });
+  let awsConfig = awsMisc.createAwsConfig(this.S.config);
+  awsConfig.region = Meta.variables.projectBucket.split('.')[1];
+  AWS.config.update(awsConfig);
 
   let s3 = new AWS.S3();
 
@@ -68,11 +66,15 @@ describe('Test Action: Stage Create', function() {
           this.timeout(0);
           process.chdir(projPath);
 
-          serverless = new Serverless( projPath, {
-            interactive: false,
-            awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
-          });
+          let sConfig = {
+            interactive:        false,
+            awsAdminKeyId:      config.awsAdminKeyId,
+            awsAdminSecretKey:  config.awsAdminSecretKey
+          };
+          if(config.awsAdminSessionToken) {
+            sConfig.awsAdminSessionToken = config.awsAdminSessionToken;
+          }
+          serverless = new Serverless(projPath, sConfig);
 
           return serverless.state.load().then(function() {
             done();
