@@ -77,7 +77,7 @@ describe('Test Action: Region Create', function() {
             awsAdminSecretKey: config.awsAdminSecretKey
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init().then(function() {
             done();
           });
         });

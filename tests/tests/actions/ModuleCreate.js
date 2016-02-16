@@ -40,7 +40,7 @@ describe('Test action: Module Create', function() {
             interactive: false
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init().then(function() {
             done();
           });
         });

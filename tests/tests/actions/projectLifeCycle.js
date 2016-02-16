@@ -70,8 +70,12 @@ describe('Test: Project Live Cycle', function() {
 
   describe('Test action: Project Init', function() {
 
-    before(function() {
+    before(function(done) {
       process.chdir(os.tmpdir());
+
+      serverless.init().then(function(){
+        done();
+      });
     });
 
     describe('Project Init', function() {
