@@ -46,7 +46,7 @@ describe('Test action: Function Logs', function() {
         awsAdminSecretKey: config.awsAdminSecretKey,
         interactive: false
       });
-      return serverless.state.load();
+      return serverless.init();
     })
     .then(() => {
       return serverless.actions.functionRun(evt);

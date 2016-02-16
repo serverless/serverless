@@ -85,9 +85,9 @@ describe('Test Default Action With Pre Hook', function() {
             interactive: false
           });
 
-          serverless.addPlugin(new CustomPlugin(serverless, {}));
+          return serverless.init().then(function() {
+            serverless.addPlugin(new CustomPlugin(serverless, {}));
 
-          return serverless.state.load().then(function() {
             done();
           });
         });

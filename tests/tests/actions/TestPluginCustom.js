@@ -257,9 +257,10 @@ describe('Test Custom Plugin', function() {
       interactive:       false
     });
 
-    serverless.addPlugin(new CustomPlugin(serverless, {}));
-    done();
-
+    serverless.init().then(function(){
+      serverless.addPlugin(new CustomPlugin(serverless, {}));
+      done();
+    });
   });
 
   after(function(done) {

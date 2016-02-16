@@ -82,7 +82,7 @@ describe('Test Action: Function Deploy', function() {
           awsAdminSecretKey: config.awsAdminSecretKey
         });
 
-        return serverless.state.load().then(function() {
+        return serverless.init().then(function() {
           done();
         });
       });

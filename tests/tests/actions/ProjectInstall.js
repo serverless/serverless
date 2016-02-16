@@ -106,7 +106,10 @@ describe('Test action: Project Install', function() {
 
   before(function(done) {
     process.chdir(os.tmpdir());
-    done();
+
+    serverless.init().then(function(){
+      done();
+    });
   });
 
   after(function(done) {

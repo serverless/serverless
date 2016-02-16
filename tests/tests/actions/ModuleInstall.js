@@ -40,7 +40,7 @@ describe('Test action: Module Install', function() {
             projectPath: projPath
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init().then(function() {
             done();
           });
         });
