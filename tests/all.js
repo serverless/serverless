@@ -34,4 +34,5 @@ describe('All Tests', function() {
   require('./tests/actions/ProjectInstall');
   require('./tests/actions/ProjectLifeCycle.js');
   require('./tests/actions/ResourcesDiff');
+  require('./tests/actions/PluginCreate');
 });
