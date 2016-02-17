@@ -7,7 +7,7 @@ let fs        = require('fs'),
     rimraf    = require('rimraf'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
-    SError    = require('../lib/ServerlessError'),
+    SError    = require('../lib/Error'),
     SUtils    = require('../lib/utils');
 
 /**

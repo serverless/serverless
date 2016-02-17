@@ -7,7 +7,7 @@
  */
 
 let Serverless  = require('../../../lib/Serverless'),
-  SError      = require('../../../lib/ServerlessError'),
+  SError      = require('../../../lib/Error'),
   path        = require('path'),
   os          = require('os'),
   AWS         = require('aws-sdk'),
