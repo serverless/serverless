@@ -2,14 +2,19 @@
 
 'use strict';
 
-let argv = require('minimist')(process.argv.slice(2));
+let SUtils = require('../lib/utils');
+let argv   = require('minimist')(process.argv.slice(2));
 
 if (argv.debug) process.env.DEBUG = '*';
 
 let S           = require('../lib/Serverless'),
     Project     = require('../lib/Project'),
-    serverless  = new S( Project.findProjectPath(process.cwd()), {
-      interactive: typeof process.env.CI !== 'undefined' ? false : true
+    serverless  = new S({
+      interactive: typeof process.env.CI === 'undefined',
+      serializer: {
+        type:        'FileSystem',
+        projectPath: SUtils.findProjectPath(process.cwd())
+      }
     });
 
 serverless.init().then(function(){

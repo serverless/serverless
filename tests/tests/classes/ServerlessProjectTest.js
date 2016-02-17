@@ -220,7 +220,7 @@ describe('Test Serverless Project Class', function() {
 
     it('Create new and save', function(done) {
       // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
-      // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.
+      // split between ServerlessState and Meta classes, ProjectInit action, and Project itself.
       // So, either the code should be moved fully to Project and be tested here (preferred)
       // or not really tested here. To make this happen we should first remove ServerlessState and ServerlessMeta
       // classes completely.
