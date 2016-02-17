@@ -62,13 +62,6 @@ describe('Test Serverless State Class', function() {
       done();
     });
 
-    //it('Get populated instance data', function(done) {
-    //  let data = instance.getPopulated({ stage: config.stage, region: config.region });
-    //  assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
-    //  assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-    //  done();
-    //});
-
     it('Set instance data', function(done) {
       let clone = instance.get();
       clone.project.name = 'newProject';
@@ -90,30 +83,6 @@ describe('Test Serverless State Class', function() {
     it('Get meta', function(done) {
       let meta = instance.getMeta();
       assert.equal(true, typeof meta.variables !== 'undefined');
-      done();
-    });
-
-    it('Get stages', function(done) {
-      let stages = instance.getStages();
-      assert.equal(true, stages[0] === config.stage);
-      done();
-    });
-
-    it('Get regions', function(done) {
-      let regions = instance.getRegions(config.stage);
-      assert.equal(true, regions[0] === config.region);
-      done();
-    });
-
-    it('Validate stage exists', function(done) {
-      assert.equal(true, instance.validateStageExists(config.stage));
-      assert.equal(false, instance.validateStageExists('invalid'));
-      done();
-    });
-
-    it('Validate region exists', function(done) {
-      assert.equal(true, instance.validateRegionExists(config.stage, config.region));
-      assert.equal(false, instance.validateRegionExists(config.stage, 'invalid'));
       done();
     });
 

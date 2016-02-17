@@ -194,6 +194,30 @@ describe('Test Serverless Project Class', function() {
         });
     });
 
+    it('Validate region exists', function(done) {
+      assert.equal(true, instance.validateRegionExists(config.stage, config.region));
+      assert.equal(false, instance.validateRegionExists(config.stage, 'invalid'));
+      done();
+    });
+
+    it('Validate stage exists', function(done) {
+      assert.equal(true, instance.validateStageExists(config.stage));
+      assert.equal(false, instance.validateStageExists('invalid'));
+      done();
+    });
+
+    it('Get regions', function(done) {
+      let regions = instance.getRegions(config.stage);
+      assert.equal(true, regions[0] === config.region);
+      done();
+    });
+
+    it('Get stages', function(done) {
+      let stages = instance.getStages();
+      assert.equal(true, stages[0] === config.stage);
+      done();
+    });
+
     it('Create new and save', function(done) {
       // TODO: Project creation is an unholy mess now. It currently is done partially outside of Project class,
       // split between ServerlessState and Meta classes, ProjectInit action, and ServerlessProject itself.
