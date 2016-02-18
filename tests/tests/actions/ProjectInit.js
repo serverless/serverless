@@ -88,7 +88,7 @@ let cleanup = function(Meta, cb, evt) {
         // Delete CloudFormation Resources Stack
         let cloudformation = new AWS.CloudFormation();
         cloudformation.deleteStack({
-          StackName: Meta.stages[config.stage].regions[config.region].variables.resourcesStackName
+          StackName: serverless.getProject().getRegion(config.stage, config.region)._variables.resourcesStackName
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
 
@@ -140,14 +140,17 @@ describe('Test action: Project Init', function() {
 
           // Validate Meta
           let Meta = serverless.state.getMeta();
+          let stage = serverless.getProject().getStage(config.stage);
+          let region = serverless.getProject().getRegion(config.stage, config.region);
+
           assert.equal(true, typeof Meta.variables.project != 'undefined');
           assert.equal(true, typeof Meta.variables.domain != 'undefined');
           assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-          assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
-          assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
+          assert.equal(true, typeof stage._variables.stage != 'undefined');
+          assert.equal(true, typeof region._variables.region != 'undefined');
           if (!config.noExecuteCf) {
-            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+            assert.equal(true, typeof region._variables.iamRoleArnLambda != 'undefined');
+            assert.equal(true, typeof region._variables.resourcesStackName != 'undefined');
           }
 
           // Validate Event

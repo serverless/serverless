@@ -97,8 +97,9 @@ describe('Test Action: Stage Create', function() {
           .then(function(evt) {
 
             let Meta = serverless.state.meta;
-            assert.equal(true, typeof Meta.stages[config.stage2].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage2].regions[config.region].variables.region != 'undefined');
+            let project = serverless.getProject();
+            assert.equal(true, typeof project.getStage(config.stage2)._variables.stage != 'undefined');
+            assert.equal(true, typeof project.getRegion(config.stage2, config.region)._variables.region != 'undefined');
 
             // Validate EVT
             validateEvent(evt);
