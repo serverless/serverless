@@ -105,7 +105,8 @@ describe('Test Action: Region Create', function() {
 
             let Meta = serverless.state.meta;
             //console.log(serverless.state.meta.stages)
-            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region2].variables.region != 'undefined');
+
+            assert.equal(true, typeof serverless.getProject().getRegion(config.stage, config.region2)._variables.region != 'undefined');
 
             // Validate Event
             validateEvent(evt);
