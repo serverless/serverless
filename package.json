@@ -50,6 +50,7 @@
     "dotenv": "^2.0.0",
     "download": "^4.2.0",
     "fs-extra": "^0.26.4",
+    "glob": "^7.0.0",
     "https-proxy-agent": "^1.0.0",
     "json-diff": "^0.3.1",
     "keypress": "^0.2.1",
