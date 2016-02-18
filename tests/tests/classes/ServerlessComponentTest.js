@@ -65,7 +65,7 @@ describe('Test Serverless Component Class', function() {
     });
 
     it('Get populated instance data', function(done) {
-      let data = instance.getPopulated({ stage: config.stage, region: config.region });
+      let data = instance.toObjectPopulated({ stage: config.stage, region: config.region });
       assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
       assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
       done();
