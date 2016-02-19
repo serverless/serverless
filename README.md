@@ -83,6 +83,7 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Base-Path](https://github.com/daffinity/serverless-base-path-plugin) - Sets a base path for all API Gateway endpoints in a Component.
 * [Test](https://github.com/arabold/serverless-test-plugin) - A Simple Integration Test Framework for Serverless.
 * [SNS Subscribe](https://github.com/martinlindenberg/serverless-plugin-sns) This plugin easily subscribes your lambda functions to SNS notifications.
+* [JSHint](https://github.com/joostfarla/serverless-jshint-plugin) Detect errors and potential problems in your Lambda functions.
 
 ## Contributing
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
