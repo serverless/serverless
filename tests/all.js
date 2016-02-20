@@ -21,7 +21,7 @@ describe('All Tests', function() {
   //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ComponentCreate');
   //require('./tests/actions/FunctionCreate');
-  //require('./tests/actions/EnvList');
+  require('./tests/actions/EnvList');
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvSetUnset');
   //require('./tests/actions/ResourcesDeploy');
@@ -29,7 +29,7 @@ describe('All Tests', function() {
   //require('./tests/actions/FunctionLogs');
   //require('./tests/actions/FunctionDeploy');
   //require('./tests/actions/EndpointDeploy');
-  require('./tests/actions/EventDeploy');
+  //require('./tests/actions/EventDeploy');
   //require('./tests/actions/ProjectInit');
   //require('./tests/actions/ProjectInstall');
   //require('./tests/actions/ProjectLifeCycle.js');
