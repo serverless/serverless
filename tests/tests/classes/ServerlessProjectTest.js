@@ -31,7 +31,6 @@ describe('Test Serverless Project Class', function() {
 
         return serverless.init()
           .then(function() {
-
             // Instantiate Class
             instance = serverless.getProject();
 
@@ -78,7 +77,7 @@ describe('Test Serverless Project Class', function() {
       // These functions have their own s-templates.json files which give them the same template, with one different property
 
       // Function1 template
-      assert.equal(true, data.components.nodejscomponent.functions['nodejscomponent/group1/function1'].endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id1')");
+      assert.equal(data.components.nodejscomponent.functions['nodejscomponent/group1/function1'].endpoints[0].requestTemplates['application/json'].pathParams, "$input.path('$.id1')");
       // Function2 template
       assert.equal(true, data.components.nodejscomponent.functions['nodejscomponent/group1/function2'].endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id2')");
       // Function3 template - s-templates.json left undefined

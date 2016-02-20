@@ -116,14 +116,18 @@ describe('Test: Project Live Cycle', function() {
 
             // Validate Meta
             let Meta = serverless.state.getMeta();
+            let stage = serverless.getProject().getStage(config.stage);
+            let region = serverless.getProject().getRegion(config.stage, config.region);
+
+
             assert.equal(true, typeof Meta.variables.project != 'undefined');
             assert.equal(true, typeof Meta.variables.domain != 'undefined');
             assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
+            assert.equal(true, typeof stage._variables.stage != 'undefined');
+            assert.equal(true, typeof region._variables.region != 'undefined');
             if (!config.noExecuteCf) {
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+              assert.equal(true, typeof region._variables.iamRoleArnLambda != 'undefined');
+              assert.equal(true, typeof region._variables.resourcesStackName != 'undefined');
             }
 
             // Validate Event
@@ -156,8 +160,11 @@ describe('Test: Project Live Cycle', function() {
           .then(function(evt) {
 
             let Meta = serverless.state.meta;
-            assert.equal(true, typeof Meta.stages[config.stage2].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage2].regions[config.region].variables.region != 'undefined');
+            let stage = serverless.getProject().getStage(config.stage2);
+            let region = serverless.getProject().getRegion(config.stage2, config.region);
+
+            assert.equal(true, typeof stage._variables.stage != 'undefined');
+            assert.equal(true, typeof region._variables.region != 'undefined');
 
             // Validate EVT
             validateEvent(evt);
@@ -188,8 +195,7 @@ describe('Test: Project Live Cycle', function() {
 
         return serverless.actions.regionCreate(evt)
           .then(function(evt) {
-            let Meta = serverless.state.meta;
-            assert.equal(true, typeof Meta.stages[config.stage2].regions[config.region2].variables.region != 'undefined');
+            assert.equal(true, typeof serverless.getProject().getRegion(config.stage2, config.region2)._variables.region != 'undefined');
 
             // Validate Event
             validateEvent(evt);
