@@ -85,6 +85,7 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [SNS Subscribe](https://github.com/martinlindenberg/serverless-plugin-sns) This plugin easily subscribes your lambda functions to SNS notifications.
 * [JSHint](https://github.com/joostfarla/serverless-jshint-plugin) Detect errors and potential problems in your Lambda functions.
 * [Webpack](https://github.com/asprouse/serverless-webpack-plugin) Use Webpack to optimize your Serverless Node.js Functions
+* [Serverless Client](https://github.com/serverless/serverless-client-s3) Deploy and config a web client for your Serverless project to S3.
 
 ## Contributing
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
