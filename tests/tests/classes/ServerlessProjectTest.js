@@ -206,7 +206,7 @@ describe('Test Serverless Project Class', function() {
     });
 
     it('Get regions', function(done) {
-      let regions = instance.getRegions(config.stage);
+      let regions = instance.getAllRegions(config.stage);
       assert.equal(true, regions[0] === config.region);
       done();
     });

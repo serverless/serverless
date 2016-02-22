@@ -56,7 +56,6 @@
     "keypress": "^0.2.1",
     "lodash": "^4.2.1",
     "minimist": "^1.2.0",
-    "mkdirp": "^0.5.1",
     "moment": "^2.11.2",
     "node-uuid": "^1.4.2",
     "node-zip": "^1.1.0",

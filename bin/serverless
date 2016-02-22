@@ -10,13 +10,14 @@ if (argv.debug) process.env.DEBUG = '*';
 let S           = require('../lib/Serverless'),
     Project     = require('../lib/Project'),
     serverless  = new S({
-      interactive: typeof process.env.CI === 'undefined',
-      serializer: {
-        type:        'FileSystem',
-        projectPath: SUtils.findProjectPath(process.cwd())
-      }
+        interactive: typeof process.env.CI === 'undefined',
+        serializer: {
+            type:        'FileSystem',
+            projectPath: SUtils.findProjectPath(process.cwd())
+        }
     });
 
-serverless.init().then(function(){
-  serverless.command(argv);
-});
+serverless.init()
+    .then(function(){
+        serverless.command(argv);
+    });
