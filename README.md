@@ -98,3 +98,4 @@ We love our contributors! If you'd like to contribute to the project, feel free 
 ## Consultants
 These consultants use the Serverless Framework and can help you build your serverless projects.
 * [Trek10](https://www.trek10.com/)
+* [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](http://highscalability.com/blog/2016/1/20/building-an-infinitely-scaleable-online-recording-campaign-f.html)
