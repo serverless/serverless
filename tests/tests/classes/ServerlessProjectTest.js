@@ -223,7 +223,7 @@ describe('Test Serverless Project Class', function() {
       // So, either the code should be moved fully to Project and be tested here (preferred)
       // or not really tested here. To make this happen we should first remove ServerlessState and ServerlessMeta
       // classes completely.
-      let project = new serverless.classes.Project(serverless.getProject().getRootPath(), serverless);
+      let project = new serverless.classes.Project(serverless.getProject().getFilePath(), serverless);
 
       project.save()
         .then(function(instance) {
