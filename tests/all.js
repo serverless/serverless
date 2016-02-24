@@ -10,8 +10,7 @@ describe('All Tests', function() {
   });
 
   after(function() {});
-  //require('./tests/classes/ServerlessStateTest');
-  //require('./tests/classes/ServerlessProjectTest');
+  require('./tests/classes/ServerlessProjectTest');
   //require('./tests/classes/ServerlessComponentTest');
   //require('./tests/classes/ServerlessFunctionTest');
   //require('./tests/classes/ServerlessEndpointTest');
@@ -21,7 +20,7 @@ describe('All Tests', function() {
   //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ComponentCreate');
   //require('./tests/actions/FunctionCreate');
-  require('./tests/actions/EnvList');
+  //require('./tests/actions/EnvList');
   //require('./tests/actions/EnvGet');
   //require('./tests/actions/EnvSetUnset');
   //require('./tests/actions/ResourcesDeploy');
