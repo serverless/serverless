@@ -1,7 +1,7 @@
 {
   "name": "",
   "version": "0.0.1",
-  "description": "Serverless module dependencies",
+  "description": "Serverless component dependencies",
   "author": "me",
   "license": "MIT",
   "private": true,
