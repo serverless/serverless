@@ -11,6 +11,7 @@ let config = {
   region2:              process.env.TEST_SERVERLESS_REGION2,
   stage:                process.env.TEST_SERVERLESS_STAGE1,
   stage2:               process.env.TEST_SERVERLESS_STAGE2,
+  profile:              process.env.TEST_SERVERLESS_PROFILE,
   noExecuteCf:          process.env.TEST_SERVERLESS_EXE_CF != "true",
   awsAdminKeyId:        process.env.TEST_SERVERLESS_AWS_ACCESS_KEY,
   awsAdminSecretKey:    process.env.TEST_SERVERLESS_AWS_SECRET_KEY,

@@ -31,7 +31,7 @@ let serverless = new Serverless( undefined, {
 
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.name !== 'undefined');
-  assert.equal(true, typeof evt.options.domain !== 'undefined');
+  assert.equal(true, typeof evt.options.bucket !== 'undefined');
   assert.equal(true, typeof evt.options.notificationEmail !== 'undefined');
   assert.equal(true, typeof evt.options.region !== 'undefined');
   assert.equal(true, typeof evt.options.noExeCf !== 'undefined');
@@ -123,14 +123,15 @@ describe('Test action: Project Init', function() {
       this.timeout(0);
 
       let name    = ('testprj-' + uuid.v4()).replace(/-/g, '');
-      let domain  = name + '.com';
+      let bucket  = name + '.com';
       let evt   = {
         options: {
           name:               name,
-          domain:             domain,
+          bucket:             bucket,
           notificationEmail:  config.notifyEmail,
           stage:              config.stage,
           region:             config.region,
+          profile:            config.profile,
           noExeCf:            config.noExecuteCf
         }
       };
@@ -139,25 +140,27 @@ describe('Test action: Project Init', function() {
         .then(function(evt) {
 
           // Validate Meta
-          let Meta = serverless.state.getMeta();
-          let stage = serverless.getProject().getStage(config.stage);
-          let region = serverless.getProject().getRegion(config.stage, config.region);
+          let project = serverless.getProject();
+          let stage   = project.getStage(config.stage);
+          let region  = project.getRegion(config.stage, config.region);
 
-          assert.equal(true, typeof Meta.variables.project != 'undefined');
-          assert.equal(true, typeof Meta.variables.domain != 'undefined');
-          assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-          assert.equal(true, typeof stage._variables.stage != 'undefined');
-          assert.equal(true, typeof region._variables.region != 'undefined');
+          assert.equal(true, typeof project.getVariables().project != 'undefined');
+          assert.equal(true, typeof project.getVariables().projectBucket != 'undefined');
+          assert.equal(true, typeof project.getVariables().projectBucketRegion != 'undefined');
+          assert.equal(true, typeof stage.getVariables().stage != 'undefined');
+          assert.equal(true, typeof region.getVariables().region != 'undefined');
           if (!config.noExecuteCf) {
-            assert.equal(true, typeof region._variables.iamRoleArnLambda != 'undefined');
-            assert.equal(true, typeof region._variables.resourcesStackName != 'undefined');
+            assert.equal(true, typeof region.getVariables().iamRoleArnLambda != 'undefined');
+            assert.equal(true, typeof region.getVariables().resourcesStackName != 'undefined');
+
           }
 
           // Validate Event
           validateEvent(evt);
+          done();
 
           // Cleanup
-          cleanup(Meta, done, evt);
+          //cleanup(serverless, done, evt);
 
         })
         .catch(SError, function(e) {
