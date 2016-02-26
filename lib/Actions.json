@@ -13,7 +13,6 @@
     "./actions/CodeDeployLambda.js",
     "./actions/EndpointDeploy.js",
     "./actions/EndpointBuildApiGateway.js",
-    "./actions/EndpointRun.js",
     "./actions/EventDeploy.js",
     "./actions/EventLambdaStream.js",
     "./actions/EventLambdaS3.js",
