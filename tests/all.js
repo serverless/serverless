@@ -10,7 +10,7 @@ describe('All Tests', function() {
   });
 
   after(function() {});
-  //require('./tests/classes/ServerlessProjectTest');
+  require('./tests/classes/ServerlessProjectTest');
   //require('./tests/classes/ServerlessComponentTest');
   //require('./tests/classes/ServerlessFunctionTest');
   //require('./tests/classes/ServerlessEndpointTest');

@@ -39,9 +39,9 @@ describe('Test Serverless Project Class', function() {
 
   describe('Tests', function() {
 
-    it.skip('Load instance from file system', function() {
-      return instance.load();
-    });
+    // it.skip('Load instance from file system', function() {
+    //   return instance.load();
+    // });
 
     it('Get instance data, without private properties', function() {
       let clone = instance.toObject();
@@ -73,12 +73,20 @@ describe('Test Serverless Project Class', function() {
     });
 
     it('Set instance data', function() {
-      // console.log(22222111, instance.getVariables().toObject());
       let clone = instance.toObject();
-      // console.log(22222, clone);
+      instance.getVariablesObject()
+      // console.log('_partials', instance.resources.defaultResources._partials)
       clone.name = 'newProject';
+      // console.log(clone.resources)
       instance.fromObject(clone);
-      assert.equal(true, instance.name === 'newProject');
+
+      assert.equal(instance.name, 'newProject');
+
+      let varObj = instance.getVariablesObject(config.stage, config.region);
+
+      assert.isObject(varObj);
+      assert.propertyVal(varObj, 'stage', config.stage);
+      assert.propertyVal(varObj, 'region', config.region);
 
     });
 
@@ -91,27 +99,23 @@ describe('Test Serverless Project Class', function() {
       assert.equal(true, functions.length === 5);
     });
 
-    it('Get function by path', function() {
+    it('Get function by name', function() {
       let func = instance.getFunction( 'function1' );
-      assert.equal(true, func != undefined);
+      assert.isDefined(func);
     });
 
-    it.skip('Get function by partial path', function() {
-      let func = instance.getFunction( 'nodejscomponent/group1/group2' );
-      assert.equal(true, func != undefined);
-    });
-
-    it('Get components w/o paths', function() {
+    it('Get all components', function() {
       let components = instance.getAllComponents();
-      assert.equal(true, components[0].name === 'nodejscomponent');
+      assert.equal(components[0].name, 'nodejscomponent');
+      assert.lengthOf(components, 1);
     });
 
-    it('Get components w paths', function() {
-      let components = instance.getAllComponents({ paths: ['nodejscomponent'] });
-      assert.equal(true, components[0].name === 'nodejscomponent');
+    it('Get components by name', function() {
+      let component = instance.getComponent('nodejscomponent');
+      assert.equal(component.name, 'nodejscomponent');
     });
 
-    it('Get events w/o paths', function() {
+    it('Get all events', function() {
       let events = instance.getAllEvents();
       assert.equal(true, events.length === 4);
     });
@@ -121,30 +125,14 @@ describe('Test Serverless Project Class', function() {
       assert.isDefined(event);
     });
 
-    it('Get events w partial paths', function() {
-      let events = instance.getAllEvents({ paths: ['nodejscomponent/group1'] });
-      assert.equal(true, events.length === 4);
-    });
-
-    it('Get endpoints w/o paths', function() {
+    it('Get all endpoints', function() {
       let endpoints = instance.getAllEndpoints();
       assert.lengthOf(endpoints, 7);
-    });
-
-    it.skip('Get endpoints w paths', function() {
-      let endpoints = instance.getAllEndpoints({ paths: ['nodejscomponent/group1/function1@group1/function1~GET'] });
-      assert.equal(true, endpoints.length === 1);
     });
 
     it('Get endpoints by path and method', function() {
       let endpoint = instance.getEndpoint('group1/function1', 'GET');
       assert.isDefined(endpoint);
-    });
-
-
-    it.skip('Get endpoints w/ partial paths', function() {
-      let endpoints = instance.getAllEndpoints({ paths: ['nodejscomponent/group1/group2'] });
-      assert.equal(true, endpoints.length === 2);
     });
 
     it('Get resources (unpopulated)', function() {
