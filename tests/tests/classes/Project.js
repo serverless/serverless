@@ -75,7 +75,6 @@ describe('Test Serverless Project Class', function() {
             instance.getVariablesObject();
             clone.name = 'newProject';
             instance.fromObject(clone);
-
             assert.equal(instance.name, 'newProject');
         });
 
