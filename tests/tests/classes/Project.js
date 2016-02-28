@@ -53,7 +53,7 @@ describe('Test Serverless Project Class', function() {
           *   Populated project data no longer populates its components and functions.
           *   So I don't think we need the following tests here, and we should test them
           *   in their respective class tests - Eslam @ Feb 28 2016
-          *=============================================================================/
+          *============================================================================*/
 
           //assert.isDefined(data.components.nodejscomponent.functions.function1.endpoints[0].requestTemplates['application/json'].httpMethod);
           //// Component template
