@@ -29,7 +29,7 @@ describe('Test Serverless Project Class', function() {
 
                 return serverless.init()
                     .then(function() {
-                        // Instantiate Class
+
                         instance = serverless.getProject();
                     });
             });

@@ -11,12 +11,12 @@ describe('All Tests', function() {
 
   after(function() {});
   require('./tests/classes/Project');
-  //require('./tests/classes/Component');
+  require('./tests/classes/Component');
   //require('./tests/classes/Function');
   //require('./tests/classes/Endpoint');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
-  // require('./tests/actions/StageCreate');
+  //require('./tests/actions/StageCreate');
   //require('./tests/actions/RegionCreate');
   //require('./tests/actions/ComponentCreate');
   //require('./tests/actions/FunctionCreate');

@@ -20,22 +20,19 @@ describe('Test Serverless Component Class', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-      .then(projPath => {
+      .then(projectPath => {
 
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
-        // Instantiate Serverless
-        serverless = new Serverless( projPath, {
+        serverless = new Serverless({
+          projectPath,
           interactive: false
         });
 
         return serverless.init()
           .then(function() {
 
-            // Instantiate Class
-            instance = new serverless.classes.Component(serverless, serverless.getProject(), {
-              sPath: 'nodejscomponent'
-            });
+            instance = serverless.getProject().getComponent('nodejscomponent');
 
             done();
           });
@@ -48,62 +45,60 @@ describe('Test Serverless Component Class', function() {
 
   describe('Tests', function() {
 
-    it('Load instance from file system', function(done) {
-      instance.load()
-        .then(function(instance) {
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+    it('Get instance data, without component properties', function() {
+      let clone = instance.toObject();
+
+      assert.equal(true, typeof clone._class === 'undefined');
+      assert.equal(true, typeof clone.templates._class === 'undefined');
+      assert.equal(true, typeof clone._runtime === 'undefined');
+      assert.equal(clone.runtime, 'nodejs');
+      assert.equal(clone.name, 'nodejscomponent');
     });
 
-    it('Get instance data, without private properties', function(done) {
-      let clone = instance.get();
-      assert.equal(true, typeof clone._config === 'undefined');
-      done();
+    it('getRuntime', function() {
+      assert.equal(instance.getRuntime().name, 'nodejs');
     });
 
-    it('Get populated instance data', function(done) {
-      let data = instance.toObjectPopulated({ stage: config.stage, region: config.region });
-      assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
-      assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-      done();
+    it('getProject', function() {
+      assert.equal(instance.getProject().name, 's-test-prj');
     });
 
-    it('Set instance data', function(done) {
-      let clone = instance.get();
-      clone.name = 'newComponent';
-      instance.set(clone);
-      assert.equal(true, instance.name === 'newComponent');
-      done();
+    it('getAllFunctions', function() {
+      assert.equal(instance.getAllFunctions().length, 5);
+
+      // make sure the functions array is an array of function classes, not objects
+      assert.equal(instance.getAllFunctions()[0]._class, 'Function')
     });
 
-    it('Save instance to the file system', function(done) {
-      instance.save()
-        .then(function(instance) {
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+    it('getTemplates', function() {
+      assert.equal(instance.getTemplates()._class, 'Templates');
+      assert.equal(instance.getTemplates().apiRequestTemplate != 'undefined', true);
+      assert.equal(instance.getTemplates()._parents.length, 1);
     });
 
-    it('Create new and save', function(done) {
-      let component = new serverless.classes.Component(serverless, serverless.getProject(), {
-        sPath: 'nodejscomponent'
-      });
+    it('fromObject', function() {
+      let componentObj = instance.toObject();
 
-      component.save()
-        .then(function(instance) {
-          return component.load()
-            .then(function() {
-              done();
-            });
-        })
-        .catch(e => {
-          done(e);
-        });
+      componentObj.name = 'newComponentName';
+      componentObj.runtime = 'python2.7';
+
+      instance.fromObject(componentObj);
+
+      assert.equal(instance.getName(), 'newComponentName');
+      assert.equal(instance.getRuntime().name, 'python2.7');
+    });
+
+    it('update data and save', function() {
+
+      let componentObj = instance.toObject();
+      componentObj.name = 'newComponentName';
+      instance.fromObject(componentObj);
+
+      return instance.save()
+          .then(function() {
+            let savedComponentName = utils.readAndParseJsonSync(path.join(serverless.getProject().getRootPath(), instance.getFilePath('s-component.json'))).name;
+            assert.equal(savedComponentName, 'newComponentName')
+          })
     });
   });
 });
