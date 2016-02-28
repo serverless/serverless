@@ -34,7 +34,7 @@
     "serverless-run-python-handler": "./bin/serverless-run-python-handler"
   },
   "scripts": {
-    "test": "DEBUG=\"*\" mocha tests/all"
+    "test": "mocha tests/all"
   },
   "devDependencies": {
     "chai": "^3.2.0",
