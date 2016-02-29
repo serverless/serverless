@@ -87,8 +87,7 @@ describe('Test Serverless Function Class', function() {
     });
 
     it('getTemplates', function() {
-      assert.equal(instance.getTemplates()._class, 'Templates');
-      assert.equal(instance.getTemplates()._parents.length, 3);
+      assert.lengthOf(instance.templates._parents, 1, 'has one parent');
     });
 
     it('Set instance data', function() {

@@ -75,15 +75,19 @@ describe('Test Serverless Endpoint Class', function() {
     });
 
     it('getTemplates', function() {
-      assert.equal(instance.getTemplates()._class, 'Templates');
-      assert.equal(instance.getTemplates()._parents.length, 3);
+      assert.isObject(instance.getTemplates());
     });
 
     it('Set instance data', function() {
-      let clone = instance.toObject();
+      let clone = instance.toObject(),
+          orig  = instance.toObject();
+
       clone.path = 'new/path';
       instance.fromObject(clone);
-      assert.equal(true, instance.path === 'new/path');
+      assert.equal(instance.path, 'new/path');
+
+      // restore the original state
+      instance.fromObject(orig);
     });
   });
 });

@@ -79,7 +79,7 @@ describe('Test Serverless Project Class', function() {
         });
 
         it('Get function by name', function() {
-          let func = instance.getFunction( 'function1' );
+          let func = instance.getFunction( 'function4' );
           assert.isDefined(func);
         });
 
@@ -111,7 +111,7 @@ describe('Test Serverless Project Class', function() {
 
         it('Get endpoints by path and method', function() {
           let endpoint = instance.getEndpoint('group1/function1', 'GET');
-          assert.isDefined(endpoint);
+          assert.isDefined(endpoint, 'endpoint is defined');
         });
 
         it('Get resources (unpopulated)', function() {
@@ -148,10 +148,14 @@ describe('Test Serverless Project Class', function() {
         });
 
         it('Set instance data', function() {
-            let clone = instance.toObject();
-            clone.name = 'newProject';
-            instance.fromObject(clone);
-            assert.equal(instance.name, 'newProject');
+          let clone = instance.toObject();
+          let orig = instance.toObject();
+          clone.name = 'newProject';
+          instance.fromObject(clone);
+          assert.equal(instance.name, 'newProject');
+
+          // restore the original state
+          instance.fromObject(orig);
         });
 
         it('Save instance to the file system', function() {
