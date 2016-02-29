@@ -19,22 +19,20 @@ describe('Test Serverless Function Class', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-      .then(projPath => {
+      .then(projectPath => {
 
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
         // Instantiate Serverless
-        serverless = new Serverless( projPath, {
+        serverless = new Serverless({
+          projectPath,
           interactive: false
         });
 
         return serverless.init()
           .then(function() {
 
-            // Instantiate Class
-            instance = new serverless.classes.Function(serverless, serverless.getProject().getComponent('nodejscomponent'), {
-              sPath: 'nodejscomponent/group1/function1'
-            });
+            instance = serverless.getProject().getFunction('function1');
 
             done();
           });
@@ -47,70 +45,63 @@ describe('Test Serverless Function Class', function() {
 
   describe('Tests', function() {
 
-    it('Load instance from file system', function(done) {
-      instance.load()
-        .then(function(instance) {
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+    it('Get instance data, without project properties', function() {
+      let clone = instance.toObject();
+      assert.equal(true, typeof clone._class === 'undefined');
+      assert.equal(true, typeof clone._component === 'undefined');
+      assert.equal(true, typeof clone._rootPath === 'undefined');
     });
 
-    it('Get instance data, without private properties', function(done) {
-      let clone = instance.get();
-      assert.equal(true, typeof clone._config === 'undefined');
-      done();
-    });
-
-    it('Get populated instance data', function(done) {
+    it('Get populated instance data', function() {
       let data = instance.toObjectPopulated({ stage: config.stage, region: config.region });
       assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
       assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-      done();
     });
 
-    it('Get deployed name', function(done) {
+    it('getDeployedName', function() {
       instance.customName = "${stage}-func";
       let data = instance.getDeployedName({ stage: config.stage, region: config.region });
       assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
       assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
       assert.equal(true, data === config.stage + '-func');
-      done();
     });
 
-    it('Set instance data', function(done) {
-      let clone = instance.get();
-      clone.name = 'newFunction';
-      instance.set(clone);
-      assert.equal(true, instance.name === 'newFunction');
-      done();
+    it('getAllEndpoints', function() {
+      assert.equal(instance.getAllEndpoints().length, 1);
     });
 
-    it('Save instance to the file system', function(done) {
-      instance.save()
-        .then(function(instance) {
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
+    it('getAllEvents', function() {
+      assert.equal(instance.getAllEvents().length, 4);
     });
 
-    it('Create new and save', function(done) {
-      let func = new serverless.classes.Function(serverless, serverless.getProject().getComponent('nodejscomponent'), {
-        sPath: 'nodejscomponent/group1/function1'
-      });
+    it('getProject', function() {
+      assert.equal(instance.getProject().name, 's-test-prj');
+    });
 
-      func.save()
-        .then(function(instance) {
-          return func.load()
-            .then(function() {
-              done();
-            });
-        })
-        .catch(e => {
-          done(e);
+
+    it('getTemplates', function() {
+      assert.equal(instance.getTemplates()._class, 'Templates');
+      assert.equal(instance.getTemplates()._parents.length, 3);
+    });
+
+    it('Set instance data', function() {
+      let clone = instance.toObject();
+      clone.name = 'newFunctionName';
+      instance.fromObject(clone);
+      assert.equal(true, instance.name === 'newFunctionName');
+    });
+
+
+    it('update data and save', function() {
+
+      let funcObj = instance.toObject();
+      funcObj.name = 'newFunctionName';
+      instance.fromObject(funcObj);
+
+      return instance.save()
+        .then(function() {
+          let savedFunctionName = utils.readAndParseJsonSync(path.join(serverless.getProject().getRootPath(), instance.getFilePath('s-function.json'))).name;
+          assert.equal(savedFunctionName, 'newFunctionName')
         });
     });
   });
