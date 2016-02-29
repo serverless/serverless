@@ -10,10 +10,10 @@ describe('All Tests', function() {
   });
 
   after(function() {});
-  //require('./tests/classes/Project');
-  //require('./tests/classes/Component');
+  require('./tests/classes/Project');
+  require('./tests/classes/Component');
   require('./tests/classes/Function');
-  //require('./tests/classes/Endpoint');
+  require('./tests/classes/Endpoint');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/StageCreate');

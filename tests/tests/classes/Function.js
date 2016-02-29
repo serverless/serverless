@@ -50,6 +50,9 @@ describe('Test Serverless Function Class', function() {
       assert.equal(true, typeof clone._class === 'undefined');
       assert.equal(true, typeof clone._component === 'undefined');
       assert.equal(true, typeof clone._rootPath === 'undefined');
+      assert.equal(clone.name, 'function1');
+      assert.equal(clone.endpoints.length, 1);
+      assert.equal(clone.events.length, 4);
     });
 
     it('Get populated instance data', function() {
@@ -78,6 +81,10 @@ describe('Test Serverless Function Class', function() {
       assert.equal(instance.getProject().name, 's-test-prj');
     });
 
+    it('getComponent', function() {
+      assert.equal(instance.getComponent()._class, 'Component');
+      assert.equal(instance.getComponent().name, 'nodejscomponent');
+    });
 
     it('getTemplates', function() {
       assert.equal(instance.getTemplates()._class, 'Templates');

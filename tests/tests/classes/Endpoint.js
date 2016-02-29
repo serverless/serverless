@@ -18,27 +18,20 @@ describe('Test Serverless Endpoint Class', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-      .then(function(prjPath) {
+      .then(projectPath => {
 
-        projPath = prjPath;
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
         // Instantiate Serverless
-        serverless = new Serverless( projPath, {
+        serverless = new Serverless({
+          projectPath,
           interactive: false
         });
 
         return serverless.init()
           .then(function() {
 
-            // Instantiate Class
-            instance = new serverless.classes.Endpoint(serverless, serverless.getProject().getFunction( 'nodejscomponent/group1/function1' ), {
-              component: 'nodejscomponent',
-              module: 'group1',
-              function: 'function1',
-              endpointPath: 'group1/function1',
-              endpointMethod: 'GET'
-            });
+            instance = serverless.getProject().getEndpoint('group1/function1', 'GET');
 
             done();
           });
@@ -50,37 +43,47 @@ describe('Test Serverless Endpoint Class', function() {
   });
 
   describe('Tests', function() {
-    it('Get instance data, without private properties', function(done) {
-      let clone = instance.get();
-      assert.equal(true, typeof clone._config === 'undefined');
-      done();
+
+    it('Get instance data, without project properties', function() {
+      let clone = instance.toObject();
+      assert.equal(true, typeof clone._class === 'undefined');
+      assert.equal(true, typeof clone._component === 'undefined');
+      assert.equal(true, typeof clone._rootPath === 'undefined');
+      assert.equal(clone.path, 'group1/function1');
+      assert.equal(clone.method, 'GET');
+      assert.equal(true, JSON.stringify(clone).indexOf('$${') != -1);
     });
 
-    it('Get populated instance data', function(done) {
+    it('Get populated instance data', function() {
       let data = instance.toObjectPopulated({ stage: config.stage, region: config.region });
       assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
       assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
-      done();
     });
 
-    it('Set instance data', function(done) {
-      let clone = instance.get();
-      clone.method = 'POST';
-      instance.set(clone);
-      assert.equal(true, instance.method === 'POST');
-      done();
+    it('getProject', function() {
+      assert.equal(instance.getProject().name, 's-test-prj');
     });
 
-    it('Get function', function() {
-      let func = instance.getFunction();
-      assert.instanceOf(func, serverless.classes.Function);
-      assert.equal(true, instance._config.sPath.indexOf(func._config.sPath) !== -1)
+    it('getFunction', function() {
+      assert.equal(instance.getFunction()._class, 'Function');
+      assert.equal(instance.getFunction().name, 'function1');
     });
 
-    it('Get component', function() {
-      let comp = instance.getComponent();
-      assert.instanceOf(comp, serverless.classes.Component);
-      assert.equal(true, instance._config.sPath.indexOf(comp._config.sPath) !== -1)
+    it('getComponent', function() {
+      assert.equal(instance.getComponent()._class, 'Component');
+      assert.equal(instance.getComponent().name, 'nodejscomponent');
+    });
+
+    it('getTemplates', function() {
+      assert.equal(instance.getTemplates()._class, 'Templates');
+      assert.equal(instance.getTemplates()._parents.length, 3);
+    });
+
+    it('Set instance data', function() {
+      let clone = instance.toObject();
+      clone.path = 'new/path';
+      instance.fromObject(clone);
+      assert.equal(true, instance.path === 'new/path');
     });
   });
 });
