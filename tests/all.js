@@ -10,12 +10,12 @@ describe('All Tests', function() {
   });
 
   after(function() {});
-  require('./tests/classes/Project'); // working
-  require('./tests/classes/Component'); // working
-  require('./tests/classes/Function'); // working
-  require('./tests/classes/Endpoint'); // working
-  require('./tests/classes/Stage'); // working
-  require('./tests/classes/Region'); // working
+  require('./tests/classes/Project');
+  require('./tests/classes/Component');
+  require('./tests/classes/Function');
+  require('./tests/classes/Endpoint');
+  require('./tests/classes/Stage');
+  require('./tests/classes/Region');
   // require('./tests/actions/TestPluginCustom'); // working
   // //require('./tests/actions/TestDefaultActionHook'); // BROKEN. Something has to do with getParentTemplate
   // require('./tests/actions/StageCreate'); // working
