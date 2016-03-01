@@ -38,3 +38,6 @@ node_modules
 #SERVERLESS STUFF
 admin.env
 .env
+
+#Don't track dev branch metadata
+_meta/**/*-dev*
