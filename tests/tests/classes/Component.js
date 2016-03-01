@@ -7,7 +7,7 @@
 let Serverless = require('../../../lib/Serverless.js'),
   SPlugin    = require('../../../lib/Plugin'),
   path       = require('path'),
-  utils      = require('../../../lib/utils/index'),
+  utils      = require('../../../lib/utils/new'),
   assert     = require('chai').assert,
   testUtils  = require('../../test_utils'),
   config     = require('../../config');
@@ -93,10 +93,9 @@ describe('Test Serverless Component Class', function() {
       let componentObj = instance.toObject();
       componentObj.name = 'newComponentName';
       instance.fromObject(componentObj);
-
       return instance.save()
           .then(function() {
-            let savedComponentName = utils.readAndParseJsonSync(path.join(serverless.getProject().getFilePath1(), instance.getRootPath('s-component.json'))).name;
+            let savedComponentName = utils.readFileSync(instance.getFilePath()).name;
             assert.equal(savedComponentName, 'newComponentName')
           })
     });

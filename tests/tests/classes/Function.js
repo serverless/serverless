@@ -6,7 +6,7 @@
 
 let Serverless = require('../../../lib/Serverless.js'),
   path       = require('path'),
-  utils      = require('../../../lib/utils/index'),
+  utils      = require('../../../lib/utils/new'),
   assert     = require('chai').assert,
   testUtils  = require('../../test_utils'),
   config     = require('../../config');
@@ -107,7 +107,7 @@ describe('Test Serverless Function Class', function() {
 
       return instance.save()
         .then(function() {
-          let savedFunctionName = utils.readAndParseJsonSync(path.join(serverless.getProject().getFilePath1(), instance.getRootPath('s-function.json'))).name;
+          let savedFunctionName = utils.readFileSync(instance.getRootPath('s-function.json')).name;
           assert.equal(savedFunctionName, 'newFunctionName')
         });
     });

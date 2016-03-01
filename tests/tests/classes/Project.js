@@ -29,7 +29,6 @@ describe('Test Serverless Project Class', function() {
 
                 return serverless.init()
                     .then(function() {
-
                         instance = serverless.getProject();
                     });
             });
