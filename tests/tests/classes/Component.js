@@ -96,7 +96,7 @@ describe('Test Serverless Component Class', function() {
 
       return instance.save()
           .then(function() {
-            let savedComponentName = utils.readAndParseJsonSync(path.join(serverless.getProject().getRootPath(), instance.getFilePath('s-component.json'))).name;
+            let savedComponentName = utils.readAndParseJsonSync(path.join(serverless.getProject().getFilePath1(), instance.getRootPath('s-component.json'))).name;
             assert.equal(savedComponentName, 'newComponentName')
           })
     });

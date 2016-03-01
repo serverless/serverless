@@ -48,7 +48,7 @@ describe('Test Serverless Endpoint Class', function() {
       let clone = instance.toObject();
       assert.equal(true, typeof clone._class === 'undefined');
       assert.equal(true, typeof clone._component === 'undefined');
-      assert.equal(true, typeof clone._rootPath === 'undefined');
+      assert.equal(true, typeof clone._filePath === 'undefined');
       assert.equal(clone.path, 'group1/function1');
       assert.equal(clone.method, 'GET');
       assert.equal(true, JSON.stringify(clone).indexOf('$${') != -1);

@@ -66,7 +66,7 @@ describe('Test action: Module Create', function() {
 
       serverless.actions.moduleCreate(evt)
           .then(function(evt) {
-            let functionJson = utils.readAndParseJsonSync(serverless.getProject().getFilePath( 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
+            let functionJson = utils.readAndParseJsonSync(serverless.getProject().getRootPath( 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
 

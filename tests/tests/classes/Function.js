@@ -49,7 +49,7 @@ describe('Test Serverless Function Class', function() {
       let clone = instance.toObject();
       assert.equal(true, typeof clone._class === 'undefined');
       assert.equal(true, typeof clone._component === 'undefined');
-      assert.equal(true, typeof clone._rootPath === 'undefined');
+      assert.equal(true, typeof clone._filePath === 'undefined');
       assert.equal(clone.name, 'function1');
       assert.equal(clone.endpoints.length, 1);
       assert.equal(clone.events.length, 4);
@@ -107,7 +107,7 @@ describe('Test Serverless Function Class', function() {
 
       return instance.save()
         .then(function() {
-          let savedFunctionName = utils.readAndParseJsonSync(path.join(serverless.getProject().getRootPath(), instance.getFilePath('s-function.json'))).name;
+          let savedFunctionName = utils.readAndParseJsonSync(path.join(serverless.getProject().getFilePath1(), instance.getRootPath('s-function.json'))).name;
           assert.equal(savedFunctionName, 'newFunctionName')
         });
     });

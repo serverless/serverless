@@ -1,7 +1,6 @@
 {
   "name": "s-test-prj",
   "version": "0.0.1",
-  "profile": "serverless-v0.1.0",
   "location": "https://github.com/...",
   "author": "",
   "description": "A Slick New Serverless Project",
