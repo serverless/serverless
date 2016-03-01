@@ -16,8 +16,8 @@ describe('All Tests', function() {
   require('./tests/classes/Endpoint');
   require('./tests/classes/Stage');
   require('./tests/classes/Region');
-  // require('./tests/actions/TestPluginCustom'); // working
-  // //require('./tests/actions/TestDefaultActionHook'); // BROKEN. Something has to do with getParentTemplate
+  require('./tests/actions/TestPluginCustom');
+  require('./tests/actions/TestDefaultActionHook');
   // require('./tests/actions/StageCreate'); // working
   // require('./tests/actions/RegionCreate'); // working
   // require('./tests/actions/ComponentCreate'); // working

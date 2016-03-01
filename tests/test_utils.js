@@ -18,11 +18,13 @@ let fs        = require('fs'),
  */
 
 module.exports.createTestProject = function(config, npmInstallDirs) {
+
   let projectName          = 's-test-prj',
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
       projectBucket        = 'serverless.' + projectRegion + '.' + projectName + '.com';
+
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
 

@@ -73,7 +73,6 @@ describe('Test Serverless Component Class', function() {
     it('getTemplates', function() {
       assert.equal(instance.getTemplates()._class, 'Templates');
       assert.equal(instance.getTemplates().apiRequestTemplate != 'undefined', true);
-      assert.equal(instance.getTemplates()._parents.length, 1);
     });
 
     it('fromObject', function() {

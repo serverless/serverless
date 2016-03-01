@@ -7,12 +7,12 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-    SPlugin    = require('../../../lib/Plugin'),
-    path       = require('path'),
-    utils      = require('../../../lib/utils/index'),
-    assert     = require('chai').assert,
-    testUtils  = require('../../test_utils'),
-    config     = require('../../config');
+  SPlugin      = require('../../../lib/Plugin'),
+  path         = require('path'),
+  utils        = require('../../../lib/utils/index'),
+  assert       = require('chai').assert,
+  testUtils    = require('../../test_utils'),
+  config       = require('../../config');
 
 let serverless;
 
@@ -77,28 +77,26 @@ describe('Test Default Action With Pre Hook', function() {
 
   before(function(done) {
     this.timeout(0);
+
     testUtils.createTestProject(config)
-        .then(projectPath => {
+      .then(projectPath => {
 
-          serverless = new Serverless({
-            projectPath,
-            interactive: false
-          });
-
-          return serverless.init().then(function() {
-            serverless.addPlugin(new CustomPlugin(serverless, {}));
-
-            done();
-          });
+        serverless = new Serverless({
+          projectPath,
+          interactive: false
         });
-  });
 
-  after(function(done) {
-    done();
+        return serverless.init()
+          .then(function() {
+            return serverless.addPlugin(new CustomPlugin(serverless, {}))
+              .then(function() {
+                done();
+              });
+          });
+      });
   });
 
   describe('Test Default Action With Pre Hook', function() {
-
     it('adds a pre hook to Component Create default Action', function(done) {
 
       this.timeout(0);
@@ -109,13 +107,13 @@ describe('Test Default Action With Pre Hook', function() {
       };
 
       serverless.actions.componentCreate(evt)
-          .then(function(result) {
-            validateResult(result);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
+        .then(function(result) {
+          validateResult(result);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
     });
   });
 });
