@@ -14,6 +14,8 @@ describe('All Tests', function() {
   require('./tests/classes/Component');
   require('./tests/classes/Function');
   require('./tests/classes/Endpoint');
+  require('./tests/classes/Stage');
+  require('./tests/classes/Region');
   //require('./tests/actions/TestPluginCustom');
   //require('./tests/actions/TestDefaultActionHook');
   //require('./tests/actions/StageCreate');

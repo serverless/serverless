@@ -44,8 +44,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   let commonVariablesPrivate = {
     project: projectName,
-    domain: projectDomain,
     projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion),
+    projectBucketRegion: projectDomain,
     endpointVariable: "none"
   };
 

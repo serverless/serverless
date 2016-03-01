@@ -142,9 +142,31 @@ describe('Test Serverless Project Class', function() {
           assert.equal(true, regions[0].getName() === config.region);
         });
 
+        it('Get one region', function() {
+          let region = instance.getRegion(config.stage, config.region);
+          assert.equal(true, region.getName() === config.region);
+        });
+
         it('Get stages', function() {
           let stages = instance.getAllStages();
-          assert.equal(true, stages[0].name === config.stage);
+          assert.equal(true, stages[0].getName() === config.stage);
+        });
+
+        it('Get one stage', function() {
+          let stage = instance.getStage(config.stage);
+          assert.equal(true, stage.getName() === config.stage);
+        });
+
+        it('getVariables', function() {
+          let variables  = instance.getVariables();
+          assert.equal(variables.project, 's-test-prj');
+          assert.equal(true, variables._class != 'undefined');
+        });
+
+        it('addVariables', function() {
+          let variables  = instance.addVariables({newVar: 'newVal'});
+          assert.equal(variables.project, 's-test-prj');
+          assert.equal(variables.newVar, 'newVal');
         });
 
         it('Set instance data', function() {
