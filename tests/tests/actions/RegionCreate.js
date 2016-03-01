@@ -32,10 +32,10 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(Meta, cb) {
+let cleanup = function(project, cb) {
 
   AWS.config.update({
-    region:          Meta.variables.projectBucket.split('.')[1],
+    region:          project.getVariables().projectBucketRegion,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey,
   });
@@ -43,10 +43,10 @@ let cleanup = function(Meta, cb) {
   let s3 = new AWS.S3();
 
   let params = {
-    Bucket: Meta.variables.projectBucket,
+    Bucket: project.getVariables().projectBucket,
     Delete: {
       Objects: [{
-      Key: `${Meta.variables.projectBucket}/serverless/${Meta.variables.project}/${config.stage}/${config.region2}/`
+      Key: `${project.getVariables().projectBucket}/serverless/${project.getVariables().project}/${config.stage}/${config.region2}/`
       }]
     }
   };
@@ -67,11 +67,12 @@ describe('Test Action: Region Create', function() {
     this.timeout(0);
 
     testUtils.createTestProject(config)
-        .then(projPath => {
+        .then(projectPath => {
           this.timeout(0);
-          process.chdir(projPath);  // Ror some weird reason process.chdir adds /private/ before cwd path
+          process.chdir(projectPath);  // Ror some weird reason process.chdir adds /private/ before cwd path
 
-          serverless = new Serverless( projPath, {
+          serverless = new Serverless({
+            projectPath,
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey
@@ -102,17 +103,15 @@ describe('Test Action: Region Create', function() {
 
       serverless.actions.regionCreate(evt)
           .then(function(evt) {
+            let project = serverless.getProject();
+            assert.equal(project.getRegion(config.stage, config.region2).getVariables().region, config.region2);
 
-            let Meta = serverless.state.meta;
-            //console.log(serverless.state.meta.stages)
-
-            assert.equal(true, typeof serverless.getProject().getRegion(config.stage, config.region2)._variables.region != 'undefined');
 
             // Validate Event
             validateEvent(evt);
 
             // Cleanup
-            cleanup(Meta, done);
+            cleanup(project, done);
           })
           .catch(e => {
             done(e);

@@ -78,10 +78,10 @@ describe('Test Default Action With Pre Hook', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-        .then(projPath => {
+        .then(projectPath => {
 
-          process.chdir(projPath);
-          serverless = new Serverless( projPath, {
+          serverless = new Serverless({
+            projectPath,
             interactive: false
           });
 
@@ -104,7 +104,7 @@ describe('Test Default Action With Pre Hook', function() {
       this.timeout(0);
       let evt = {
         options: {
-          sPath:   'testcomponent'
+          name:   'testcomponent'
         }
       };
 

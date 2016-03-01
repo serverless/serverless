@@ -44,13 +44,13 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(Meta, cb, evt) {
+let cleanup = function(project, cb) {
 
   // Project Create no longer creates a Project Bucket if noExeCf is set
   if (evt.options.noExeCf) return cb();
 
   AWS.config.update({
-    region:          config.region,
+    region:          project.getVariables().projectBucketRegion,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey
   });
@@ -60,12 +60,12 @@ let cleanup = function(Meta, cb, evt) {
 
   // Delete All Objects in Bucket first, this is required
   s3.listObjects({
-    Bucket: Meta.variables.projectBucket
+    Bucket: project.getVariables().projectBucket
   }, function(err, data) {
     if (err) return console.log(err);
 
     let params = {
-      Bucket: Meta.variables.projectBucket
+      Bucket: project.getVariables().projectBucket
     };
     params.Delete = {};
     params.Delete.Objects = [];
@@ -78,17 +78,14 @@ let cleanup = function(Meta, cb, evt) {
 
       // Delete Bucket
       s3.deleteBucket({
-        Bucket: Meta.variables.projectBucket
+        Bucket: project.getVariables().projectBucket
       }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
-
-        // If no stack, skip
-        if (config.noExecuteCf) return cb();
 
         // Delete CloudFormation Resources Stack
         let cloudformation = new AWS.CloudFormation();
         cloudformation.deleteStack({
-          StackName: Meta.stages[config.stage].regions[config.region].variables.resourcesStackName
+          StackName: project.getRegion(config.stage, config.region).getVariables().resourcesStackName
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
           return cb();
@@ -127,9 +124,9 @@ describe('Test action: Project Install', function() {
         options: {
           name:               name,
           domain:             domain,
-          notificationEmail:  config.notifyEmail,
           stage:              config.stage,
           region:             config.region,
+          profile:            config.profile,
           noExeCf:            config.noExecuteCf,
           project:            'serverless-starter'
         }
@@ -138,27 +135,25 @@ describe('Test action: Project Install', function() {
       serverless.actions.projectInstall(evt)
         .then(function(evt) {
 
-          // Validate Meta
-          let Meta = serverless.state.getMeta();
-          let stage = serverless.getProject().getStage(config.stage);
-          let region = serverless.getProject().getRegion(config.stage, config.region);
+          let project = serverless.getProject();
+          let stage   = project.getStage(config.stage);
+          let region  = project.getRegion(config.stage, config.region);
 
-
-          assert.equal(true, typeof Meta.variables.project != 'undefined');
-          assert.equal(true, typeof Meta.variables.domain != 'undefined');
-          assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-          assert.equal(true, typeof stage._variables.stage != 'undefined');
-          assert.equal(true, typeof region._variables.region != 'undefined');
+          assert.equal(true, typeof project.getVariables().project != 'undefined');
+          assert.equal(true, typeof project.getVariables().projectBucket != 'undefined');
+          assert.equal(true, typeof project.getVariables().projectBucketRegion != 'undefined');
+          assert.equal(true, typeof stage.getVariables().stage != 'undefined');
+          assert.equal(true, typeof region.getVariables().region != 'undefined');
           if (!config.noExecuteCf) {
-            assert.equal(true, typeof region._variables.iamRoleArnLambda != 'undefined');
-            assert.equal(true, typeof region._variables.resourcesStackName != 'undefined');
+            assert.equal(true, typeof region.getVariables().iamRoleArnLambda != 'undefined');
+            assert.equal(true, typeof region.getVariables().resourcesStackName != 'undefined');
+
           }
 
           // Validate Event
           validateEvent(evt);
 
-          // Cleanup
-          cleanup(Meta, done, evt);
+          evt.options.noExeCf ? done() : cleanup(serverless, done);
 
         })
         .catch(SError, function(e) {

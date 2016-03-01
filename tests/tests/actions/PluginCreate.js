@@ -19,7 +19,7 @@ let serverless;
 
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.data !== 'undefined');
-  assert.equal(true, typeof evt.data.pluginName !== 'undefined');
+  assert.equal(true, typeof evt.data.name !== 'undefined');
 };
 
 /**
@@ -32,8 +32,13 @@ describe('Test Action: Plugin Create', function() {
   before(function() {
 
     return testUtils.createTestProject(config)
-      .then(projPath => {
-        serverless = new Serverless( projPath, {
+      .then(projectPath => {
+
+        this.timeout(0);
+        process.chdir(projectPath);
+
+        serverless = new Serverless({
+          projectPath,
           interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
           awsAdminSecretKey: config.awsAdminSecretKey
@@ -49,7 +54,7 @@ describe('Test Action: Plugin Create', function() {
       let evt = {
         options: {
           skipNpm: true,
-          pluginName: 'test-plugin'
+          name: 'test-plugin'
         }
       };
 

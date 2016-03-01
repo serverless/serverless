@@ -22,7 +22,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
-      projectDomain        = projectName + '.com';
+      projectBucket        = 'serverless.' + projectRegion + '.' + projectName + '.com';
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
 
@@ -44,8 +44,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   let commonVariablesPrivate = {
     project: projectName,
-    projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion),
-    projectBucketRegion: projectDomain,
+    projectBucket: projectBucket,
+    projectBucketRegion: projectRegion,
     endpointVariable: "none"
   };
 
@@ -59,7 +59,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     iamRoleArnLambda: projectLambdaIAMRole,
     testEventBucket: config.testEventBucket,
     streamArn: config.streamArn,
-    'eventID:nodejscomponent/group1/function1#dynamodb': config.streamUUID,
+    'eventID:dynamodb': config.streamUUID,
     topicArn: config.topicArn
   };
 

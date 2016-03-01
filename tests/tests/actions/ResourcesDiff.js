@@ -40,11 +40,12 @@ describe('Test action: Resources Diff', function() {
   before(function() {
 
     return testUtils.createTestProject(config)
-      .then(projPath => {
+      .then(projectPath => {
 
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
-        serverless = new Serverless( projPath, {
+        serverless = new Serverless({
+          projectPath,
           interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
           awsAdminSecretKey: config.awsAdminSecretKey
@@ -56,10 +57,11 @@ describe('Test action: Resources Diff', function() {
 
         SUtils.sDebug('Adding test bucket resource');
 
-        // Adding new Module resource
-        serverless.getProject().cloudFormation.Resources[testBucketName] = { "Type" : "AWS::S3::Bucket" };
 
-        return serverless.state.save();
+        let defaultResources = serverless.getProject().getResources().toObject();
+        defaultResources.Resources[testBucketName] = { "Type" : "AWS::S3::Bucket" };
+        serverless.getProject().getResources().fromObject(defaultResources);
+
       });
   });
 
@@ -70,7 +72,7 @@ describe('Test action: Resources Diff', function() {
 
       const evt = {
         stage:      config.stage,
-        region:     config.region,
+        region:     config.region
       };
 
       return serverless.actions.resourcesDiff(evt).then(validateEvent);

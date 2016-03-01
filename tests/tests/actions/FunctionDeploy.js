@@ -23,7 +23,7 @@ let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.stage != 'undefined');
   assert.equal(true, typeof evt.options.region != 'undefined');
   assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
-  assert.equal(true, typeof evt.options.paths != 'undefined');
+  assert.equal(true, typeof evt.options.names != 'undefined');
 
   if (evt.data.failed) {
     for (let i = 0; i < Object.keys(evt.data.failed).length; i++) {
@@ -72,12 +72,13 @@ describe('Test Action: Function Deploy', function() {
     this.timeout(0);
 
     testUtils.createTestProject(config, ['nodejscomponent'])
-      .then(projPath => {
+      .then(projectPath => {
 
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
-        serverless = new Serverless( projPath, {
-          interactive:       false,
+        serverless = new Serverless({
+          projectPath,
+          interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
           awsAdminSecretKey: config.awsAdminSecretKey
         });
@@ -104,8 +105,8 @@ describe('Test Action: Function Deploy', function() {
       let options = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
-          'nodejscomponent/group1/function1'
+        names:      [
+          'function1'
         ]
       };
 
@@ -129,7 +130,7 @@ describe('Test Action: Function Deploy', function() {
         stage:      config.stage,
         region:     config.region,
         paths:      [
-          'nodejscomponent/group1/group2/function4'
+          'function4'
         ]
       };
 

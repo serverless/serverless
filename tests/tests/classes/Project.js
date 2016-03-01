@@ -117,14 +117,12 @@ describe('Test Serverless Project Class', function() {
         it('Get resources (unpopulated)', function() {
           let resources = instance.getAllResources().toObject();
           assert.equal(true, JSON.stringify(resources).indexOf('${') !== -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('fakeBucket') !== -1);
         });
 
         it('Get resources (populated)', function() {
           let resources = instance.getAllResources().toObjectPopulated({populate: true, stage: config.stage, region: config.region})
           assert.equal(true, JSON.stringify(resources).indexOf('$${') == -1);
           assert.equal(true, JSON.stringify(resources).indexOf('${') == -1);
-          assert.equal(true, JSON.stringify(resources).indexOf('fakeBucket') !== -1);
         });
 
         it('Validate region exists', function() {

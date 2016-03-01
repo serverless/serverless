@@ -35,12 +35,13 @@ describe('Test Env Set & Env Unset actions', function() {
     this.timeout(0);
 
     testUtils.createTestProject(config)
-        .then(projPath => {
+        .then(projectPath => {
           this.timeout(0);
 
-          process.chdir(projPath);
+          process.chdir(projectPath);
 
-          serverless = new Serverless( projPath, {
+          serverless = new Serverless({
+            projectPath,
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
             awsAdminSecretKey: config.awsAdminSecretKey

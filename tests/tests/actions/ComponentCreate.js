@@ -22,7 +22,7 @@ let serverless;
 
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.runtime != 'undefined');
-  assert.equal(true, typeof evt.data.sPath != 'undefined');
+  assert.equal(true, typeof evt.data.name != 'undefined');
 };
 
 describe('Test action: Component Create', function() {
@@ -30,12 +30,15 @@ describe('Test action: Component Create', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-      .then(projPath => {
+      .then(projectPath => {
 
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
-        serverless = new Serverless( projPath, {
-          interactive: false
+        serverless = new Serverless({
+          projectPath,
+          interactive: false,
+          awsAdminKeyId:     config.awsAdminKeyId,
+          awsAdminSecretKey: config.awsAdminSecretKey
         });
 
         return serverless.init().then(function() {
@@ -55,11 +58,13 @@ describe('Test action: Component Create', function() {
       this.timeout(0);
 
       serverless.actions.componentCreate({
-          sPath: 'newcomponent',
+          name: 'newcomponent',
           runtime: 'nodejs'
         })
         .then(function(evt) {
           validateEvent(evt);
+          let componentJson = utils.readAndParseJsonSync(serverless.getProject().getFilePath( 'newcomponent', 's-component.json'));
+          assert.equal(componentJson.name, 'newcomponent');
           done();
         })
         .catch(e => {

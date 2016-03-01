@@ -48,12 +48,6 @@
           }
         ]
       }
-    },
-    "fakeBucket": {
-      "Type" : "AWS::S3::Bucket",
-      "Properties" : {
-        "BucketName" : "fakeBucket"
-      }
     }
   },
   "Outputs": {

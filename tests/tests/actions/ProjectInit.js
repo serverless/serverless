@@ -32,7 +32,6 @@ let serverless = new Serverless( undefined, {
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.name !== 'undefined');
   assert.equal(true, typeof evt.options.bucket !== 'undefined');
-  assert.equal(true, typeof evt.options.notificationEmail !== 'undefined');
   assert.equal(true, typeof evt.options.region !== 'undefined');
   assert.equal(true, typeof evt.options.noExeCf !== 'undefined');
   assert.equal(true, typeof evt.options.stage !== 'undefined');
@@ -44,13 +43,10 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(Meta, cb, evt) {
-
-  // Project Create no longer creates a Project Bucket if noExeCf is set
-  if (evt.options.noExeCf) return cb();
+let cleanup = function(project, cb) {
 
   AWS.config.update({
-    region:          config.region,
+    region:          project.getVariables().projectBucketRegion,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey
   });
@@ -60,12 +56,12 @@ let cleanup = function(Meta, cb, evt) {
 
   // Delete All Objects in Bucket first, this is required
   s3.listObjects({
-    Bucket: Meta.variables.projectBucket
+    Bucket: project.getVariables().projectBucket
   }, function(err, data) {
     if (err) return console.log(err);
 
     let params = {
-      Bucket: Meta.variables.projectBucket
+      Bucket: project.getVariables().projectBucket
     };
     params.Delete = {};
     params.Delete.Objects = [];
@@ -78,17 +74,14 @@ let cleanup = function(Meta, cb, evt) {
 
       // Delete Bucket
       s3.deleteBucket({
-        Bucket: Meta.variables.projectBucket
+        Bucket: project.getVariables().projectBucket
       }, function (err, data) {
         if (err) console.log(err, err.stack); // an error occurred
-
-        // If no stack, skip
-        if (config.noExecuteCf) return cb();
 
         // Delete CloudFormation Resources Stack
         let cloudformation = new AWS.CloudFormation();
         cloudformation.deleteStack({
-          StackName: serverless.getProject().getRegion(config.stage, config.region)._variables.resourcesStackName
+          StackName: project.getRegion(config.stage, config.region).getVariables().resourcesStackName
         }, function (err, data) {
           if (err) console.log(err, err.stack); // an error occurred
 
@@ -128,7 +121,6 @@ describe('Test action: Project Init', function() {
         options: {
           name:               name,
           bucket:             bucket,
-          notificationEmail:  config.notifyEmail,
           stage:              config.stage,
           region:             config.region,
           profile:            config.profile,
@@ -139,7 +131,6 @@ describe('Test action: Project Init', function() {
       serverless.actions.projectInit(evt)
         .then(function(evt) {
 
-          // Validate Meta
           let project = serverless.getProject();
           let stage   = project.getStage(config.stage);
           let region  = project.getRegion(config.stage, config.region);
@@ -157,10 +148,8 @@ describe('Test action: Project Init', function() {
 
           // Validate Event
           validateEvent(evt);
-          done();
 
-          // Cleanup
-          //cleanup(serverless, done, evt);
+          evt.options.noExeCf ? done() : cleanup(project, done);
 
         })
         .catch(SError, function(e) {
