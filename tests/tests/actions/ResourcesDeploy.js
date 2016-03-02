@@ -49,7 +49,7 @@ describe('Test action: Resources Deploy', function() {
           .then(function() {
             done();
 
-            SUtils.sDebug('Adding test bucket resource');
+            utils.sDebug('Adding test bucket resource');
 
             let defaultResources = serverless.getProject().getResources().toObject();
             defaultResources.Resources['testBucket' + (new Date).getTime().toString()] = { "Type" : "AWS::S3::Bucket" };
