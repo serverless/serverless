@@ -8,7 +8,7 @@ let fs        = require('fs'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
     SError    = require('../lib/Error'),
-    SUtils    = require('../lib/utils/new');
+    SUtils    = require('../lib/utils/index');
 
 /**
  * Create test private

@@ -7,7 +7,7 @@
 let Serverless = require('../../../lib/Serverless.js'),
   SPlugin    = require('../../../lib/Plugin'),
   path       = require('path'),
-  utils      = require('../../../lib/utils/new'),
+  utils      = require('../../../lib/utils/index'),
   assert     = require('chai').assert,
   testUtils  = require('../../test_utils'),
   config     = require('../../config');

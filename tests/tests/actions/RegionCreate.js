@@ -7,7 +7,7 @@
 
 let Serverless    = require('../../../lib/Serverless'),
     path          = require('path'),
-    utils         = require('../../../lib/utils/new'),
+    utils         = require('../../../lib/utils/index'),
     assert        = require('chai').assert,
     testUtils     = require('../../test_utils'),
     os            = require('os'),

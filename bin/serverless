@@ -2,7 +2,7 @@
 
 'use strict';
 
-let SUtils = require('../lib/utils/new');
+let SUtils = require('../lib/utils/index');
 let argv   = require('minimist')(process.argv.slice(2));
 
 if (argv.debug) process.env.DEBUG = '*';
