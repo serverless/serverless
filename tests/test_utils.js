@@ -8,7 +8,7 @@ let fs        = require('fs'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
     SError    = require('../lib/Error'),
-    SUtils    = require('../lib/utils');
+    SUtils    = require('../lib/utils/new');
 
 /**
  * Create test private
@@ -41,7 +41,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     forceDelete: true
   });
 
-  let projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
+  let projectJSON = SUtils.readFileSync(path.join(tmpProjectPath, 's-project.json'));
   projectJSON.name = projectName;
 
   let commonVariablesPrivate = {

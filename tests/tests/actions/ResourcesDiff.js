@@ -11,7 +11,7 @@
 const Serverless = require('../../../lib/Serverless.js'),
   assert         = require('chai').assert,
   testUtils      = require('../../test_utils'),
-  SUtils         = require('../../../lib/utils/index'),
+  SUtils         = require('../../../lib/utils/new'),
   config         = require('../../config');
 
 let serverless,

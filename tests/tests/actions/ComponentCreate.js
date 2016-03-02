@@ -8,7 +8,7 @@
 
 let Serverless  = require('../../../lib/Serverless.js'),
   path          = require('path'),
-  utils         = require('../../../lib/utils/index'),
+  utils         = require('../../../lib/utils/new'),
   assert        = require('chai').assert,
   testUtils     = require('../../test_utils'),
   config        = require('../../config');
@@ -63,7 +63,7 @@ describe('Test action: Component Create', function() {
         })
         .then(function(evt) {
           validateEvent(evt);
-          let componentJson = utils.readAndParseJsonSync(serverless.getProject().getFilePath( 'newcomponent', 's-component.json'));
+          let componentJson = utils.readFileSync(serverless.getProject().getFilePath( 'newcomponent', 's-component.json'));
           assert.equal(componentJson.name, 'newcomponent');
           done();
         })

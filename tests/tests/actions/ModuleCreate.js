@@ -8,7 +8,7 @@
 
 let Serverless      = require('../../../lib/Serverless.js'),
     path      = require('path'),
-    utils     = require('../../../lib/utils/index'),
+    utils     = require('../../../lib/utils/new'),
     assert    = require('chai').assert,
     testUtils = require('../../test_utils'),
     config    = require('../../config');
@@ -66,7 +66,7 @@ describe('Test action: Module Create', function() {
 
       serverless.actions.moduleCreate(evt)
           .then(function(evt) {
-            let functionJson = utils.readAndParseJsonSync(serverless.getProject().getRootPath( 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
+            let functionJson = utils.readFileSync(serverless.getProject().getRootPath( 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
 

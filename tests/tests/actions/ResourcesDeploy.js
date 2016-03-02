@@ -10,10 +10,9 @@
 
 let Serverless = require('../../../lib/Serverless.js'),
   path       = require('path'),
-  utils      = require('../../../lib/utils/index'),
+  utils      = require('../../../lib/utils/new'),
   assert     = require('chai').assert,
   testUtils  = require('../../test_utils'),
-  SUtils     = require('../../../lib/utils/index'),
   fs         = require('fs'),
   config     = require('../../config');
 
