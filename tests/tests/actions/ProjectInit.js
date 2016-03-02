@@ -123,7 +123,7 @@ describe('Test action: Project Init', function() {
           bucket:             bucket,
           stage:              config.stage,
           region:             config.region,
-          profile:            config.profile,
+          profile:            config.profile_development,
           noExeCf:            config.noExecuteCf
         }
       };

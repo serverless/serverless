@@ -83,17 +83,17 @@ describe('Test Action: Stage Create', function() {
     it('should create stage', function(done) {
 
       this.timeout(0);
-console.log(config)
+
       let evt = {
         options: {
           stage:      config.stage2,
           region:     config.region,
-          profile:    config.profile,
+          profile:    config.profile_development,
           noExeCf:    config.noExecuteCf
         }
       };
 
-      serverless.actions.stageCreate(evt)
+      return serverless.actions.stageCreate(evt)
           .then(function(evt) {
             let project = serverless.getProject();
             assert.equal(project.getStage(config.stage2).getVariables().stage, config.stage2);

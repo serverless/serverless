@@ -126,7 +126,7 @@ describe('Test action: Project Install', function() {
           domain:             domain,
           stage:              config.stage,
           region:             config.region,
-          profile:            config.profile,
+          profile:            config.profile_development,
           noExeCf:            config.noExecuteCf,
           project:            'serverless-starter'
         }
