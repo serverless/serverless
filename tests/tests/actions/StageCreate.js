@@ -88,7 +88,7 @@ describe('Test Action: Stage Create', function() {
         options: {
           stage:      config.stage2,
           region:     config.region,
-          profile:    config.profile_development,
+          profile:    config.profile_production,
           noExeCf:    config.noExecuteCf
         }
       };
