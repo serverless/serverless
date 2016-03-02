@@ -63,7 +63,7 @@ describe('Test action: Component Create', function() {
         })
         .then(function(evt) {
           validateEvent(evt);
-          let componentJson = utils.readFileSync(serverless.getProject().getFilePath( 'newcomponent', 's-component.json'));
+          let componentJson = utils.readFileSync(serverless.getProject().getRootPath( 'newcomponent', 's-component.json'));
           assert.equal(componentJson.name, 'newcomponent');
           done();
         })
