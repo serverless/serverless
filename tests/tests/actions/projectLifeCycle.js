@@ -88,7 +88,7 @@ describe('Test: Project Live Cycle', function() {
           options: {
             name:               name,
             bucket:             bucket,
-            profile:            config.profile,
+            profile:            config.profile_development,
             stage:              config.stage,
             region:             config.region,
             noExeCf:            config.noExecuteCf
@@ -143,7 +143,7 @@ describe('Test: Project Live Cycle', function() {
           options: {
             stage:      config.stage2,
             region:     config.region,
-            profile:    config.profile,
+            profile:    config.profile_development,
             noExeCf:    config.noExecuteCf
           }
         };
