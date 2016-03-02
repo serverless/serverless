@@ -70,9 +70,7 @@ describe('Test Action: Stage Create', function() {
 
           serverless = new Serverless({
             projectPath,
-            interactive: false,
-            awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey
+            interactive: false
           });
 
           return serverless.init().then(function() {
@@ -85,7 +83,7 @@ describe('Test Action: Stage Create', function() {
     it('should create stage', function(done) {
 
       this.timeout(0);
-
+console.log(config)
       let evt = {
         options: {
           stage:      config.stage2,
