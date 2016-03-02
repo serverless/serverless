@@ -6,6 +6,7 @@ describe('All Tests', function() {
   this.timeout(0);  // Don't timeout anything
   before(function() {});
   after(function() {});
+
   // require('./tests/classes/Project');
   // require('./tests/classes/Component');
   // require('./tests/classes/Function');
@@ -28,7 +29,7 @@ describe('All Tests', function() {
   // require('./tests/actions/EndpointDeploy');
   // require('./tests/actions/EventDeploy');
   // require('./tests/actions/ProjectInit');
-  // require('./tests/actions/ProjectInstall'); // BROKEN. Something has to do with getParentTemplate
+  // require('./tests/actions/ProjectInstall'); // BROKEN.
   // require('./tests/actions/ProjectLifeCycle.js');
   // require('./tests/actions/ResourcesDiff');
   // require('./tests/actions/PluginCreate');
