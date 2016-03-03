@@ -129,7 +129,7 @@ describe('Test Action: Function Deploy', function() {
       let options = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
+        names:      [
           'function4'
         ]
       };
