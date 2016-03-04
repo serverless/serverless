@@ -29,7 +29,7 @@ const evt = {
     stage:     config.stage,
     region:    config.region,
     duration: '7days',
-    path: 'nodejscomponent/group1/function1'
+    name: 'function1'
   }
 };
 
@@ -38,16 +38,17 @@ describe('Test action: Function Logs', function() {
 
   before(function() {
     return testUtils.createTestProject(config)
-    .then(projPath => {
-      process.chdir(projPath);
+    .then(projectPath => {
+      process.chdir(projectPath);
 
       serverless = new Serverless({
-        awsAdminKeyId:     config.awsAdminKeyId,
-        awsAdminSecretKey: config.awsAdminSecretKey,
+        projectPath,
         interactive: false,
-        projectPath: projPath
+        awsAdminKeyId:     config.awsAdminKeyId,
+        awsAdminSecretKey: config.awsAdminSecretKey
       });
-      return serverless.state.load();
+
+      return serverless.init();
     })
     .then(() => {
       return serverless.actions.functionRun(evt);

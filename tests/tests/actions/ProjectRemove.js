@@ -37,14 +37,13 @@ describe('Test Action: Project Remove', function() {
         this.timeout(0);
         process.chdir(projPath);  // Ror some weird reason process.chdir adds /private/ before cwd path
 
-        serverless = new Serverless({
+        serverless = new Serverless( projPath, {
           interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
-          awsAdminSecretKey: config.awsAdminSecretKey,
-          projectPath: projPath
+          awsAdminSecretKey: config.awsAdminSecretKey
         });
 
-        return serverless.state.load().then(function() {
+        return serverless.init().then(function() {
           done();
         });
       });

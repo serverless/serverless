@@ -14,10 +14,10 @@
     "./actions/EndpointDeploy.js",
     "./actions/EndpointBuildApiGateway.js",
     "./actions/EventDeploy.js",
-    "./actions/EventDeployStreamLambda.js",
-    "./actions/EventDeployS3Lambda.js",
-    "./actions/EventDeploySNSLambda.js",
-    "./actions/EventDeployScheduledLambda.js",
+    "./actions/EventLambdaStream.js",
+    "./actions/EventLambdaS3.js",
+    "./actions/EventLambdaSNS.js",
+    "./actions/EventLambdaSchedule.js",
     "./actions/DashDeploy.js",
     "./actions/DashSummary.js",
     "./actions/EndpointDeployApiGateway.js",
@@ -32,6 +32,12 @@
     "./actions/RegionRemove.js",
     "./actions/StageRemove.js",
     "./actions/ProjectRemove.js",
-    "./actions/FunctionLogs.js"
+    "./actions/FunctionLogs.js",
+    "./actions/ResourcesDiff.js",
+    "./actions/PluginCreate",
+    "./actions/FunctionRemove.js",
+    "./actions/EventRemove.js",
+    "./actions/EndpointRemove.js",
+    "./actions/FunctionRollback.js"
   ]
 }

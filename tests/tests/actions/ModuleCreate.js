@@ -36,12 +36,11 @@ describe('Test action: Module Create', function() {
 
           process.chdir(projPath);
 
-          serverless = new Serverless({
-            interactive: false,
-            projectPath: projPath
+          serverless = new Serverless( projPath, {
+            interactive: false
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init().then(function() {
             done();
           });
         });
@@ -67,7 +66,7 @@ describe('Test action: Module Create', function() {
 
       serverless.actions.moduleCreate(evt)
           .then(function(evt) {
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
+            let functionJson = utils.readFileSync(serverless.getProject().getRootPath( 'nodejscomponent', 'newmodule', 'newfunction', 's-function.json'));
             assert.equal(true, typeof functionJson.name != 'undefined');
             assert.equal(true, functionJson.endpoints.length);
 

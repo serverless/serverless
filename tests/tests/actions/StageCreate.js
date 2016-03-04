@@ -32,10 +32,10 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(Meta, cb) {
+let cleanup = function(project, cb) {
 
   AWS.config.update({
-    region:          Meta.variables.projectBucket.split('.')[1],
+    region:          project.getVariables().projectBucketRegion,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey
   });
@@ -43,10 +43,10 @@ let cleanup = function(Meta, cb) {
   let s3 = new AWS.S3();
 
   let params = {
-    Bucket: Meta.variables.projectBucket,
+    Bucket: project.getVariables().projectBucket,
     Delete: {
       Objects: [{
-        Key: `${Meta.variables.projectBucket}/serverless/${Meta.variables.project}/${config.stage2}/`
+        Key: `${project.getVariables().projectBucket}/serverless/${project.getVariables().project}/${config.stage2}/`
       }]
     }
   };
@@ -63,19 +63,17 @@ describe('Test Action: Stage Create', function() {
     this.timeout(0);
 
     testUtils.createTestProject(config)
-        .then(projPath => {
+        .then(projectPath => {
 
           this.timeout(0);
-          process.chdir(projPath);
+          process.chdir(projectPath);
 
           serverless = new Serverless({
-            interactive: false,
-            awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey,
-            projectPath: projPath
+            projectPath,
+            interactive: false
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init().then(function() {
             done();
           });
         });
@@ -90,22 +88,23 @@ describe('Test Action: Stage Create', function() {
         options: {
           stage:      config.stage2,
           region:     config.region,
+          profile:    config.profile_production,
           noExeCf:    config.noExecuteCf
         }
       };
 
-      serverless.actions.stageCreate(evt)
+      return serverless.actions.stageCreate(evt)
           .then(function(evt) {
-
-            let Meta = serverless.state.meta;
-            assert.equal(true, typeof Meta.stages[config.stage2].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage2].regions[config.region].variables.region != 'undefined');
+            let project = serverless.getProject();
+            assert.equal(project.getStage(config.stage2).getVariables().stage, config.stage2);
+            assert.equal(project.getRegion(config.stage2, config.region).getVariables().region, config.region);
 
             // Validate EVT
             validateEvent(evt);
 
             // Cleanup
-            cleanup(Meta, done);
+            evt.options.noExeCf ? done() : cleanup(project, done);
+
           })
           .catch(e => {
             done(e);

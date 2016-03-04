@@ -28,13 +28,15 @@ build/Release
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
 
-#IDE Stuff
+#IDE
 **/.idea
 
-#OS STUFF
+#OS
 .DS_Store
 .tmp
 
-#SERVERLESS STUFF
+#SERVERLESS
 admin.env
 .env
+#Prevent the tracking of the metadata of stages that start with dev
+_meta/**/*-dev*

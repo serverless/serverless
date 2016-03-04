@@ -31,19 +31,19 @@ describe('Test Action: Env Get', function() {
     this.timeout(0);
 
     testUtils.createTestProject(config)
-        .then(projPath => {
+        .then(projectPath => {
           this.timeout(0);
 
-          process.chdir(projPath);
+          process.chdir(projectPath);
 
           serverless = new Serverless({
+            projectPath,
             interactive: false,
             awsAdminKeyId:     config.awsAdminKeyId,
-            awsAdminSecretKey: config.awsAdminSecretKey,
-            projectPath: projPath
+            awsAdminSecretKey: config.awsAdminSecretKey
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init().then(function() {
             done();
           });
         });

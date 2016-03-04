@@ -21,7 +21,7 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.stage   != 'undefined');
   assert.equal(true, typeof evt.options.region  != 'undefined');
-  assert.equal(true, typeof evt.options.paths   != 'undefined');
+  assert.equal(true, typeof evt.options.names   != 'undefined');
   assert.equal(true, typeof evt.data.deployed   != 'undefined');
 
   if (evt.data.failed) {
@@ -44,18 +44,18 @@ describe('Test Action: Event Deploy', function() {
     this.timeout(0);
 
     testUtils.createTestProject(config)
-      .then(projPath => {
+      .then(projectPath => {
 
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
         serverless = new Serverless({
+          projectPath,
           interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
-          awsAdminSecretKey: config.awsAdminSecretKey,
-          projectPath: projPath
+          awsAdminSecretKey: config.awsAdminSecretKey
         });
 
-        return serverless.state.load().then(function() {
+        return serverless.init().then(function() {
           done();
         });
       });
@@ -76,8 +76,8 @@ describe('Test Action: Event Deploy', function() {
       let event = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
-          'nodejscomponent/group1/function1#dynamodb'
+        names:      [
+          'dynamodb'
         ]
       };
 
@@ -100,8 +100,8 @@ describe('Test Action: Event Deploy', function() {
       let event = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
-          'nodejscomponent/group1/function1#schedule'
+        names:      [
+          's3'
         ]
       };
 
@@ -124,8 +124,8 @@ describe('Test Action: Event Deploy', function() {
       let event = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
-          'nodejscomponent/group1/function1#sns'
+        names:      [
+          'sns'
         ]
       };
 
@@ -148,8 +148,8 @@ describe('Test Action: Event Deploy', function() {
       let event = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
-          'nodejscomponent/group1/function1#s3'
+        names:      [
+          'schedule'
         ]
       };
 
