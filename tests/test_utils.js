@@ -75,9 +75,9 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     .then(function() {
 
       // Write Admin.env file
-      let adminEnv = 'AWS_PROFILE_DEVELOPMENT='
+      let adminEnv = 'AWS_DEVELOPMENT_PROFILE='
           + process.env.TEST_SERVERLESS_AWS_PROFILE_DEVELOPMENT + os.EOL
-          + 'AWS_PROFILE_PRODUCTION='
+          + 'AWS_PRODUCTION_PROFILE='
           + process.env.TEST_SERVERLESS_AWS_PROFILE_PRODUCTION + os.EOL;
       fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), adminEnv);
 
