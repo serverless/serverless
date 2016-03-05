@@ -105,7 +105,7 @@ describe('Test Action: Endpoint Deploy', function() {
             let event = {
                 stage:      config.stage,
                 region:     config.region,
-                paths:      [
+                names:      [
                     'group2/function4#GET'
                 ]
             };
