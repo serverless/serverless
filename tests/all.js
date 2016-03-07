@@ -33,4 +33,5 @@ describe('All Tests', function() {
   require('./tests/actions/ProjectLifeCycle.js');
   require('./tests/actions/ResourcesDiff');
   require('./tests/actions/PluginCreate');
+  require('./tests/actions/FunctionRollback');
 });
