@@ -47,21 +47,21 @@ describe('Test Serverless Project Class', function() {
       assert.equal(true, JSON.stringify(data).indexOf('$${') == -1);
       assert.equal(true, JSON.stringify(data).indexOf('${') == -1);
 
-      assert.isDefined(data.components.nodejscomponent.functions.function1.endpoints[0].requestTemplates['application/json'].httpMethod);
+      assert.isDefined(data.functions.function1.endpoints[0].requestTemplates['application/json'].httpMethod);
       // Component template
-      assert.equal(true, typeof data.components.nodejscomponent.functions.function1.endpoints[0].requestTemplates['application/json'].headerParams !== 'undefined');
+      assert.equal(true, typeof data.functions.function1.endpoints[0].requestTemplates['application/json'].headerParams !== 'undefined');
       // Module template
-      assert.equal(true, typeof data.components.nodejscomponent.functions.function1.endpoints[0].requestTemplates['application/json'].queryParams !== 'undefined');
+      assert.equal(true, typeof data.functions.function1.endpoints[0].requestTemplates['application/json'].queryParams !== 'undefined');
 
       // Test relative template inheritance
       // These functions have their own s-templates.json files which give them the same template, with one different property
 
       // Function1 template
-      assert.equal(data.components.nodejscomponent.functions.function1.endpoints[0].requestTemplates['application/json'].pathParams, "$input.path('$.id1')");
+      assert.equal(data.functions.function1.endpoints[0].requestTemplates['application/json'].pathParams, "$input.path('$.id1')");
       // Function2 template
-      assert.equal(true, data.components.nodejscomponent.functions.function2.endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id2')");
+      assert.equal(true, data.functions.function2.endpoints[0].requestTemplates['application/json'].pathParams === "$input.path('$.id2')");
       // Function3 template - s-templates.json left undefined
-      assert.equal(true, typeof data.components.nodejscomponent.functions.function3.endpoints[0].requestTemplates['application/json'].pathParams === 'undefined');
+      assert.equal(true, typeof data.functions.function3.endpoints[0].requestTemplates['application/json'].pathParams === 'undefined');
     });
 
     //
@@ -75,16 +75,6 @@ describe('Test Serverless Project Class', function() {
       assert.isDefined(func);
     });
 
-    it('Get all components', function() {
-      let components = instance.getAllComponents();
-      assert.equal(components[0].name, 'nodejscomponent');
-      assert.lengthOf(components, 1);
-    });
-
-    it('Get components by name', function() {
-      let component = instance.getComponent('nodejscomponent');
-      assert.equal(component.name, 'nodejscomponent');
-    });
 
     it('Get all events', function() {
       let events = instance.getAllEvents();

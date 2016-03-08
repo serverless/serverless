@@ -46,7 +46,6 @@ describe('Test Serverless Endpoint Class', function() {
     it('Get instance data, without project properties', function() {
       let clone = instance.toObject();
       assert.equal(true, typeof clone._class === 'undefined');
-      assert.equal(true, typeof clone._component === 'undefined');
       assert.equal(true, typeof clone._filePath === 'undefined');
       assert.equal(clone.path, 'group1/function1');
       assert.equal(clone.method, 'GET');
@@ -66,11 +65,6 @@ describe('Test Serverless Endpoint Class', function() {
     it('getFunction', function() {
       assert.equal(instance.getFunction()._class, 'Function');
       assert.equal(instance.getFunction().name, 'function1');
-    });
-
-    it('getComponent', function() {
-      assert.equal(instance.getComponent()._class, 'Component');
-      assert.equal(instance.getComponent().name, 'nodejscomponent');
     });
 
     it('getTemplates', function() {
