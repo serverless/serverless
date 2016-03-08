@@ -71,7 +71,7 @@ describe('Test Action: Function Deploy', function() {
   before(function(done) {
     this.timeout(0);
 
-    testUtils.createTestProject(config, ['nodejscomponent'])
+    testUtils.createTestProject(config, ['functions'])
       .then(projectPath => {
 
         process.chdir(projectPath);
@@ -97,31 +97,31 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
-  describe('Function Deploy: Specify One Path', function() {
-    it('should deploy functions', function(done) {
+  // describe('Function Deploy: Specify One Path', function() {
+  //   it('should deploy functions', function(done) {
+  //
+  //     this.timeout(0);
+  //
+  //     let options = {
+  //       stage:      config.stage,
+  //       region:     config.region,
+  //       names:      [
+  //         'function1'
+  //       ]
+  //     };
+  //
+  //     serverless.actions.functionDeploy(options)
+  //       .then(function(evt) {
+  //         validateEvent(evt);
+  //         done();
+  //       })
+  //       .catch(e => {
+  //         done(e);
+  //       });
+  //   });
+  // });
 
-      this.timeout(0);
-
-      let options = {
-        stage:      config.stage,
-        region:     config.region,
-        names:      [
-          'function1'
-        ]
-      };
-
-      serverless.actions.functionDeploy(options)
-        .then(function(evt) {
-          validateEvent(evt);
-          done();
-        })
-        .catch(e => {
-          done(e);
-        });
-    });
-  });
-
-  describe('Function Deploy: Nested W/ Custom Name', function() {
+  describe('Function Deploy: Nested W/ Custom Name & Limited Parent Dir', function() {
     it('should deploy functions', function(done) {
 
       this.timeout(0);
