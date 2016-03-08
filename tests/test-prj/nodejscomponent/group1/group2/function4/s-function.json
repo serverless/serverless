@@ -18,6 +18,7 @@
       "path": "group2/function4",
       "method": "GET",
       "authorizationType": "none",
+      "authorizerFunction": "function4",
       "apiKeyRequired": false,
       "requestParameters": {},
       "requestTemplates": {

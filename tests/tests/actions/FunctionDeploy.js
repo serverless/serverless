@@ -144,5 +144,4 @@ describe('Test Action: Function Deploy', function() {
           });
     });
   });
-
 });
