@@ -7,7 +7,7 @@ describe('All Tests', function() {
   before(function() {});
   after(function() {});
 
-  // require('./tests/classes/Project');
+   require('./tests/classes/Project');
   // require('./tests/classes/Component');
   // require('./tests/classes/Function');
   // require('./tests/classes/Endpoint');
@@ -27,11 +27,11 @@ describe('All Tests', function() {
   // require('./tests/actions/FunctionLogs');
   // require('./tests/actions/FunctionDeploy');
   // require('./tests/actions/EndpointDeploy');
-//   require('./tests/actions/EventDeploy');
-//   require('./tests/actions/ProjectInit');
-//   require('./tests/actions/ProjectInstall'); // BROKEN.
-//   require('./tests/actions/ProjectLifeCycle.js');
-//   require('./tests/actions/ResourcesDiff');
-//   require('./tests/actions/PluginCreate');
-//   require('./tests/actions/FunctionRollback');
+  // require('./tests/actions/EventDeploy');
+  // require('./tests/actions/ProjectInit');
+  // require('./tests/actions/ProjectInstall'); // BROKEN.
+  // require('./tests/actions/ProjectLifeCycle.js');
+  // require('./tests/actions/ResourcesDiff');
+  // require('./tests/actions/PluginCreate');
+  // require('./tests/actions/FunctionRollback');
 });

@@ -3,7 +3,6 @@
     "./actions/ProjectCreate.js",
     "./actions/ProjectInstall.js",
     "./actions/ProjectInit.js",
-    "./actions/ComponentCreate.js",
     "./actions/FunctionRun.js",
     "./actions/FunctionCreate.js",
     "./actions/FunctionRunLambdaNodeJs.js",
