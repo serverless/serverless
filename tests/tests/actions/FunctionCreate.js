@@ -56,14 +56,14 @@ describe('Test action: Function Create', function() {
       this.timeout(0);
       let evt = {
         options: {
-          path: 'nodejscomponent/temp'
+          path: 'functions/temp'
         }
       };
 
       serverless.actions.functionCreate(evt)
           .then(function(evt) {
             validateEvent(evt);
-            let functionJson = utils.readFileSync(serverless.getProject().getRootPath('nodejscomponent', 'temp', 's-function.json'));
+            let functionJson = utils.readFileSync(serverless.getProject().getRootPath('functions', 'temp', 's-function.json'));
             assert.equal(functionJson.name, 'temp');
             done();
           })

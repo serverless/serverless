@@ -6,7 +6,7 @@
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "group1/function4/handler.handler",
+  "handler": "group2/function4/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "authorizer": {
