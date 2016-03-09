@@ -7,7 +7,8 @@ describe('All Tests', function() {
   before(function() {});
   after(function() {});
 
-   require('./tests/classes/Project');
+  require('./tests/classes/ProviderAws');
+  require('./tests/classes/Project');
   require('./tests/classes/Function');
   require('./tests/classes/Endpoint');
   require('./tests/classes/Stage');
