@@ -27,7 +27,7 @@ describe('Test Action: Function Rollback', function() {
   this.timeout(0);
 
   before(function() {
-    return testUtils.createTestProject(config, ['nodejscomponent'])
+    return testUtils.createTestProject(config, ['functions'])
       .then(projectPath => {
         process.chdir(projectPath);
 
