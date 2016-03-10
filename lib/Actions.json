@@ -5,8 +5,6 @@
     "./actions/ProjectInit.js",
     "./actions/FunctionRun.js",
     "./actions/FunctionCreate.js",
-    "./actions/FunctionRunLambdaNodeJs.js",
-    "./actions/FunctionRunLambdaPython2.js",
     "./actions/FunctionDeploy.js",
     "./actions/CodePackageLambda.js",
     "./actions/CodeDeployLambda.js",
