@@ -12,6 +12,7 @@
   "authorizer": {
     "identitySource": "method.request.header.Authorization"
   },
+  "runtime": "nodejs",
   "events": [],
   "endpoints": [
     {

@@ -8,6 +8,7 @@
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
+  "runtime": "nodejs",
   "endpoints": [
     {
       "path": "function0",

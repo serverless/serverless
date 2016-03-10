@@ -7,6 +7,7 @@
   "handler": "group1/function2/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
+  "runtime": "nodejs",
   "events": [],
   "endpoints": [
     {
