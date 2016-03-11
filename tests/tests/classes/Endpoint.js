@@ -30,7 +30,7 @@ describe('Test Serverless Endpoint Class', function() {
         return serverless.init()
           .then(function() {
 
-            instance = serverless.getProject().getEndpoint('group1/function1', 'GET');
+            instance = serverless.getProject().getEndpoint('group1/function1~GET');
 
             done();
           });

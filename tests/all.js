@@ -7,7 +7,7 @@ describe('All Tests', function() {
   before(function() {});
   after(function() {});
 
-  //  require('./tests/classes/Project');
+  // require('./tests/classes/Project');
   // require('./tests/classes/Function');
   // require('./tests/classes/Endpoint');
   // require('./tests/classes/Stage');
@@ -23,7 +23,7 @@ describe('All Tests', function() {
   // require('./tests/actions/ResourcesDeploy');
   // require('./tests/actions/FunctionRun');
   // require('./tests/actions/FunctionLogs');
-  // require('./tests/actions/FunctionDeploy');
+  require('./tests/actions/FunctionDeploy');
   require('./tests/actions/EndpointDeploy');
   // require('./tests/actions/EventDeploy');
   // require('./tests/actions/ProjectInit');
