@@ -43,14 +43,14 @@
     {
       "path": "group1/function1",
       "method": "GET",
-      "authorizationType": "${endpointVariable}",
+      "authorizationType": "CUSTOM",
       "authorizerFunction": "function4",
       "apiKeyRequired": false,
       "requestParameters": "$${endpointTemplate}",
       "requestTemplates": "$${apiRequestTemplate}",
       "responses": {
         "default": {
-          "statusCode": "200",
+          "statusCode": "${statusCode}",
           "responseParameters": {},
           "responseModels": {},
           "responseTemplates": {
