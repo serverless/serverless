@@ -27,7 +27,7 @@ describe('All Tests', function() {
   require('./tests/actions/EndpointDeploy');
   require('./tests/actions/EventDeploy');
   require('./tests/actions/ProjectInit');
-  // require('./tests/actions/ProjectInstall'); // BROKEN.
+  require('./tests/actions/ProjectInstall');
   require('./tests/actions/ResourcesDiff');
   require('./tests/actions/PluginCreate');
   require('./tests/actions/FunctionRollback');
