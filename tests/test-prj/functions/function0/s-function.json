@@ -13,7 +13,7 @@
     {
       "path": "function0",
       "method": "GET",
-      "authorizationType": "${endpointVariable}",
+      "authorizationType": "none",
       "apiKeyRequired": false,
       "requestParameters": {},
       "requestTemplates": {},

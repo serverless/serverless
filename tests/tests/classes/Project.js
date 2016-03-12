@@ -92,7 +92,7 @@ describe('Test Serverless Project Class', function() {
     });
 
     it('Get endpoints by path and method', function() {
-      let endpoint = instance.getEndpoint('group1/function1', 'GET');
+      let endpoint = instance.getEndpoint('group1/function1~GET');
       assert.isDefined(endpoint);
     });
 

@@ -78,7 +78,7 @@ describe('Test Action: Endpoint Deploy', function() {
                 stage:      config.stage,
                 region:     config.region,
                 names:      [
-                    'group1/function1#GET'
+                    'group1/function1~GET'
                 ]
             };
 
@@ -106,7 +106,7 @@ describe('Test Action: Endpoint Deploy', function() {
                 stage:      config.stage,
                 region:     config.region,
                 names:      [
-                    'group2/function4#GET'
+                    'group2/function4~GET'
                 ]
             };
 

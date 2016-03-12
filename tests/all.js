@@ -7,7 +7,7 @@ describe('All Tests', function() {
   before(function() {});
   after(function() {});
 
-   require('./tests/classes/Project');
+  require('./tests/classes/Project');
   require('./tests/classes/Function');
   require('./tests/classes/Endpoint');
   require('./tests/classes/Stage');
@@ -31,5 +31,5 @@ describe('All Tests', function() {
   require('./tests/actions/ResourcesDiff');
   require('./tests/actions/PluginCreate');
   require('./tests/actions/FunctionRollback');
-  // require('./tests/actions/ProjectLifeCycle.js');
+  require('./tests/actions/ProjectLifeCycle.js');
 });
