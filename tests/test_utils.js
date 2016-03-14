@@ -48,7 +48,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     project: projectName,
     projectBucket: projectBucket,
     projectBucketRegion: projectRegion,
-    endpointVariable: "none"
+    statusCode: "200"
   };
 
   let stageVariables = {

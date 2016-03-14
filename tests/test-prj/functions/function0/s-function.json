@@ -8,11 +8,12 @@
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
+  "runtime": "nodejs",
   "endpoints": [
     {
       "path": "function0",
       "method": "GET",
-      "authorizationType": "${endpointVariable}",
+      "authorizationType": "none",
       "apiKeyRequired": false,
       "requestParameters": {},
       "requestTemplates": {},

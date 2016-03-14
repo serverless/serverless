@@ -9,7 +9,9 @@
   "handler": "group2/function4/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
+  "runtime": "nodejs",
   "authorizer": {
+    "type": "TOKEN",
     "identitySource": "method.request.header.Authorization"
   },
   "events": [],
@@ -18,7 +20,6 @@
       "path": "group2/function4",
       "method": "GET",
       "authorizationType": "none",
-      "authorizerFunction": "function4",
       "apiKeyRequired": false,
       "requestParameters": {},
       "requestTemplates": {

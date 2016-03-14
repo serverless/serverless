@@ -18,9 +18,6 @@ describe('All Tests', function() {
   require('./tests/actions/StageCreate');
   require('./tests/actions/RegionCreate');
   require('./tests/actions/FunctionCreate');
-  require('./tests/actions/EnvList');
-  require('./tests/actions/EnvGet');
-  require('./tests/actions/EnvSetUnset');
   require('./tests/actions/ResourcesDeploy');
   require('./tests/actions/FunctionRun');
   require('./tests/actions/FunctionLogs');
@@ -28,9 +25,9 @@ describe('All Tests', function() {
   require('./tests/actions/EndpointDeploy');
   require('./tests/actions/EventDeploy');
   require('./tests/actions/ProjectInit');
-  // require('./tests/actions/ProjectInstall'); // BROKEN.
+  require('./tests/actions/ProjectInstall');
   require('./tests/actions/ResourcesDiff');
   require('./tests/actions/PluginCreate');
   require('./tests/actions/FunctionRollback');
-  // require('./tests/actions/ProjectLifeCycle.js');
+  require('./tests/actions/ProjectLifeCycle.js');
 });

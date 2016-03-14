@@ -7,6 +7,7 @@
   "handler": "group1/function1/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
+  "runtime": "nodejs",
   "events": [
     {
       "name": "dynamodb",
@@ -42,13 +43,14 @@
     {
       "path": "group1/function1",
       "method": "GET",
-      "authorizationType": "${endpointVariable}",
+      "authorizationType": "CUSTOM",
+      "authorizerFunction": "function4",
       "apiKeyRequired": false,
       "requestParameters": "$${endpointTemplate}",
       "requestTemplates": "$${apiRequestTemplate}",
       "responses": {
         "default": {
-          "statusCode": "200",
+          "statusCode": "${statusCode}",
           "responseParameters": {},
           "responseModels": {},
           "responseTemplates": {

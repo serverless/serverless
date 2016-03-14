@@ -97,29 +97,29 @@ describe('Test Action: Function Deploy', function() {
    * Tests
    */
 
-  // describe('Function Deploy: Specify One Path', function() {
-  //   it('should deploy functions', function(done) {
-  //
-  //     this.timeout(0);
-  //
-  //     let options = {
-  //       stage:      config.stage,
-  //       region:     config.region,
-  //       names:      [
-  //         'function1'
-  //       ]
-  //     };
-  //
-  //     serverless.actions.functionDeploy(options)
-  //       .then(function(evt) {
-  //         validateEvent(evt);
-  //         done();
-  //       })
-  //       .catch(e => {
-  //         done(e);
-  //       });
-  //   });
-  // });
+  describe('Function Deploy: Specify One Path', function() {
+    it('should deploy functions', function(done) {
+
+      this.timeout(0);
+
+      let options = {
+        stage:      config.stage,
+        region:     config.region,
+        names:      [
+          'function1'
+        ]
+      };
+
+      serverless.actions.functionDeploy(options)
+        .then(function(evt) {
+          validateEvent(evt);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
+    });
+  });
 
   describe('Function Deploy: Nested W/ Custom Name & Limited Parent Dir', function() {
     it('should deploy functions', function(done) {
