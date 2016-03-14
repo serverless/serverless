@@ -7,13 +7,13 @@ describe('All Tests', function() {
   before(function() {});
   after(function() {});
 
-  require('./tests/classes/Project');
-  require('./tests/classes/Function');
-  require('./tests/classes/Endpoint');
-  require('./tests/classes/Stage');
-  require('./tests/classes/Region');
-  require('./tests/actions/TestPluginCustom');
-  require('./tests/actions/TestDefaultActionHook');
+  // require('./tests/classes/Project');
+  // require('./tests/classes/Function');
+  // require('./tests/classes/Endpoint');
+  // require('./tests/classes/Stage');
+  // require('./tests/classes/Region');
+  // require('./tests/actions/TestPluginCustom');
+  // require('./tests/actions/TestDefaultActionHook');
   require('./tests/actions/StageCreate');
   require('./tests/actions/RegionCreate');
   require('./tests/actions/FunctionCreate');
