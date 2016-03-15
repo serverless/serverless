@@ -5,10 +5,10 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-  path       = require('path'),
-  assert     = require('chai').assert,
-  testUtils  = require('../../test_utils'),
-  config     = require('../../config');
+  path         = require('path'),
+  assert       = require('chai').assert,
+  testUtils    = require('../../test_utils'),
+  config       = require('../../config');
 
 let serverless;
 let instance;
