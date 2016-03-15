@@ -31,7 +31,6 @@ let serverless = new Serverless( undefined, {
 
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.name !== 'undefined');
-  assert.equal(true, typeof evt.options.bucket !== 'undefined');
   assert.equal(true, typeof evt.options.region !== 'undefined');
   assert.equal(true, typeof evt.options.noExeCf !== 'undefined');
   assert.equal(true, typeof evt.options.stage !== 'undefined');
@@ -120,7 +119,6 @@ describe('Test action: Project Init', function() {
       let evt   = {
         options: {
           name:               name,
-          bucket:             bucket,
           stage:              config.stage,
           region:             config.region,
           profile:            config.profile_development,
@@ -136,14 +134,12 @@ describe('Test action: Project Init', function() {
           let region  = project.getRegion(config.stage, config.region);
 
           assert.equal(true, typeof project.getVariables().project != 'undefined');
-          assert.equal(true, typeof project.getVariables().projectBucket != 'undefined');
-          assert.equal(true, typeof project.getVariables().projectBucketRegion != 'undefined');
           assert.equal(true, typeof stage.getVariables().stage != 'undefined');
           assert.equal(true, typeof region.getVariables().region != 'undefined');
+
           if (!config.noExecuteCf) {
             assert.equal(true, typeof region.getVariables().iamRoleArnLambda != 'undefined');
             assert.equal(true, typeof region.getVariables().resourcesStackName != 'undefined');
-
           }
 
           // Validate Event
