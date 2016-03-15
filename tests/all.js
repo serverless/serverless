@@ -12,8 +12,8 @@ describe('All Tests', function() {
   require('./tests/classes/Endpoint');
   require('./tests/classes/Stage');
   require('./tests/classes/Region');
-  // require('./tests/actions/TestPluginCustom');
-  // require('./tests/actions/TestDefaultActionHook');
+  require('./tests/actions/TestPluginCustom');
+  // require('./tests/actions/TestDefaultActionHook'); // Update actions, then add them back to Actions.json, then this should work.
   // require('./tests/actions/StageCreate');
   // require('./tests/actions/RegionCreate');
   // require('./tests/actions/FunctionCreate');

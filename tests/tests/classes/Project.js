@@ -161,7 +161,7 @@ describe('Test Serverless Project Class', function() {
     });
 
     it('Create new and save', function() {
-      let project = new serverless.classes.Project(serverless);
+      let project = new serverless.classes.Project();
       return project.save()
         .then(function() {
           return project.load();
