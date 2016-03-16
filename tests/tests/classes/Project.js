@@ -5,10 +5,10 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-  path       = require('path'),
-  assert     = require('chai').assert,
-  testUtils  = require('../../test_utils'),
-  config     = require('../../config');
+  path         = require('path'),
+  assert       = require('chai').assert,
+  testUtils    = require('../../test_utils'),
+  config       = require('../../config');
 
 let serverless;
 let instance;
@@ -161,7 +161,7 @@ describe('Test Serverless Project Class', function() {
     });
 
     it('Create new and save', function() {
-      let project = new serverless.classes.Project(serverless);
+      let project = new serverless.classes.Project();
       return project.save()
         .then(function() {
           return project.load();

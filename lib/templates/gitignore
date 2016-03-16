@@ -38,5 +38,6 @@ node_modules
 #SERVERLESS
 admin.env
 .env
-#Prevent the tracking of the metadata of stages that start with dev
-_meta/**/*-dev*
+
+#Ignore _meta folder
+_meta

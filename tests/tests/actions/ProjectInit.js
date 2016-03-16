@@ -31,65 +31,10 @@ let serverless = new Serverless( undefined, {
 
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.name !== 'undefined');
-  assert.equal(true, typeof evt.options.bucket !== 'undefined');
   assert.equal(true, typeof evt.options.region !== 'undefined');
   assert.equal(true, typeof evt.options.noExeCf !== 'undefined');
   assert.equal(true, typeof evt.options.stage !== 'undefined');
   assert.equal(true, typeof evt.data !== 'undefined');
-};
-
-/**
- * Test Cleanup
- * - Remove Stage CloudFormation Stack
- */
-
-let cleanup = function(project, cb) {
-
-  AWS.config.update({
-    region:          project.getVariables().projectBucketRegion,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  });
-
-  // Delete Region Bucket
-  let s3 = new AWS.S3();
-
-  // Delete All Objects in Bucket first, this is required
-  s3.listObjects({
-    Bucket: project.getVariables().projectBucket
-  }, function(err, data) {
-    if (err) return console.log(err);
-
-    let params = {
-      Bucket: project.getVariables().projectBucket
-    };
-    params.Delete = {};
-    params.Delete.Objects = [];
-
-    data.Contents.forEach(function(content) {
-      params.Delete.Objects.push({Key: content.Key});
-    });
-    s3.deleteObjects(params, function(err, data) {
-      if (err) return console.log(err);
-
-      // Delete Bucket
-      s3.deleteBucket({
-        Bucket: project.getVariables().projectBucket
-      }, function (err, data) {
-        if (err) console.log(err, err.stack); // an error occurred
-
-        // Delete CloudFormation Resources Stack
-        let cloudformation = new AWS.CloudFormation();
-        cloudformation.deleteStack({
-          StackName: project.getRegion(config.stage, config.region).getVariables().resourcesStackName
-        }, function (err, data) {
-          if (err) console.log(err, err.stack); // an error occurred
-
-          return cb();
-        });
-      });
-    });
-  });
 };
 
 /**
@@ -120,7 +65,6 @@ describe('Test action: Project Init', function() {
       let evt   = {
         options: {
           name:               name,
-          bucket:             bucket,
           stage:              config.stage,
           region:             config.region,
           profile:            config.profile_development,
@@ -136,21 +80,18 @@ describe('Test action: Project Init', function() {
           let region  = project.getRegion(config.stage, config.region);
 
           assert.equal(true, typeof project.getVariables().project != 'undefined');
-          assert.equal(true, typeof project.getVariables().projectBucket != 'undefined');
-          assert.equal(true, typeof project.getVariables().projectBucketRegion != 'undefined');
           assert.equal(true, typeof stage.getVariables().stage != 'undefined');
           assert.equal(true, typeof region.getVariables().region != 'undefined');
+
           if (!config.noExecuteCf) {
             assert.equal(true, typeof region.getVariables().iamRoleArnLambda != 'undefined');
             assert.equal(true, typeof region.getVariables().resourcesStackName != 'undefined');
-
           }
 
           // Validate Event
           validateEvent(evt);
 
-          evt.options.noExeCf ? done() : cleanup(project, done);
-
+          done();
         })
         .catch(SError, function(e) {
           done(e);
