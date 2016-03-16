@@ -81,7 +81,8 @@ describe('Test Action: Function Run', function() {
             this.timeout(0);
             let options = {
                 name: 'function1',
-                stage: 'development'
+                stage: 'development',
+                runDeployed: true
             };
 
             serverless.actions.functionRun(options)
