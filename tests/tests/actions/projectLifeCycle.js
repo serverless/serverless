@@ -14,17 +14,17 @@
 
 
 let Serverless  = require('../../../lib/Serverless'),
-  path        = require('path'),
-  os          = require('os'),
-  uuid        = require('node-uuid'),
-  utils       = require('../../../lib/utils/index'),
-  assert      = require('chai').assert,
-  wrench    = require('wrench'),
-  shortid     = require('shortid'),
-  testUtils = require('../../test_utils'),
-  BbPromise = require('bluebird'),
-  AWS         = require('aws-sdk'),
-  config      = require('../../config');
+  path          = require('path'),
+  os            = require('os'),
+  uuid          = require('node-uuid'),
+  utils         = require('../../../lib/utils/index'),
+  assert        = require('chai').assert,
+  wrench        = require('wrench'),
+  shortid       = require('shortid'),
+  testUtils     = require('../../test_utils'),
+  BbPromise     = require('bluebird'),
+  AWS           = require('aws-sdk'),
+  config        = require('../../config');
 
 
 let serverless = new Serverless( undefined, {
@@ -32,37 +32,6 @@ let serverless = new Serverless( undefined, {
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey
 });
-
-// Removes project S3 bucket
-let cleanup = function(evt) {
-  let project = serverless.getProject();
-
-  // Project Create no longer creates a Project Bucket if noExeCf is set
-  if (evt.options.noExeCf) return;
-
-  AWS.config.update({
-    region:          project.getVariables().projectBucketRegion,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  });
-
-  let s3 = BbPromise.promisifyAll(new AWS.S3());
-
-  // Delete Region Bucket
-  // Delete All Objects in Bucket first, this is required
-  s3.listObjectsAsync({Bucket: project.getVariables().projectBucket})
-    .then(function(data) {
-      let params = {
-        Bucket: project.getVariables().projectBucket,
-        Delete: {}
-      };
-
-      params.Delete.Objects = data.Contents.map((content) => ({Key: content.Key}));
-
-      return s3.deleteObjectsAsync(params);
-    })
-    .then(() => s3.deleteBucketAsync({Bucket: project.getVariables().projectBucket}))
-};
 
 /**
  * Tests
@@ -304,7 +273,7 @@ describe('Test: Project Live Cycle', function() {
   describe('Test Action: Project Remove', function() {
 
     describe('Project Remove positive tests', function() {
-      it('should remove project', function() {
+      it('should remove project', function(done) {
         let evt = {
           options: {
             noExeCf:    config.noExecuteCf
@@ -319,7 +288,9 @@ describe('Test: Project Live Cycle', function() {
 
         return serverless.actions.projectRemove(evt)
           .then(validateEvent)
-          .then(cleanup)
+          .then(function() {
+            done();
+          });
       });
     });
   });

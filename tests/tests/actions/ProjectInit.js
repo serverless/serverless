@@ -38,60 +38,6 @@ let validateEvent = function(evt) {
 };
 
 /**
- * Test Cleanup
- * - Remove Stage CloudFormation Stack
- */
-
-let cleanup = function(project, cb) {
-
-  AWS.config.update({
-    region:          project.getVariables().projectBucketRegion,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  });
-
-  // Delete Region Bucket
-  let s3 = new AWS.S3();
-
-  // Delete All Objects in Bucket first, this is required
-  s3.listObjects({
-    Bucket: project.getVariables().projectBucket
-  }, function(err, data) {
-    if (err) return console.log(err);
-
-    let params = {
-      Bucket: project.getVariables().projectBucket
-    };
-    params.Delete = {};
-    params.Delete.Objects = [];
-
-    data.Contents.forEach(function(content) {
-      params.Delete.Objects.push({Key: content.Key});
-    });
-    s3.deleteObjects(params, function(err, data) {
-      if (err) return console.log(err);
-
-      // Delete Bucket
-      s3.deleteBucket({
-        Bucket: project.getVariables().projectBucket
-      }, function (err, data) {
-        if (err) console.log(err, err.stack); // an error occurred
-
-        // Delete CloudFormation Resources Stack
-        let cloudformation = new AWS.CloudFormation();
-        cloudformation.deleteStack({
-          StackName: project.getRegion(config.stage, config.region).getVariables().resourcesStackName
-        }, function (err, data) {
-          if (err) console.log(err, err.stack); // an error occurred
-
-          return cb();
-        });
-      });
-    });
-  });
-};
-
-/**
  * Tests
  */
 
@@ -145,8 +91,7 @@ describe('Test action: Project Init', function() {
           // Validate Event
           validateEvent(evt);
 
-          evt.options.noExeCf ? done() : cleanup(project, done);
-
+          done();
         })
         .catch(SError, function(e) {
           done(e);
