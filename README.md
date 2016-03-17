@@ -102,3 +102,4 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Just Serverless](http://justserverless.com)
 * [SC5 Online](https://sc5.io)
 * [Carrot Creative](https://carrot.is)
+* [microapps](http://microapps.com)
