@@ -17,49 +17,55 @@ let Serverless = require('../../../lib/Serverless.js'),
 let serverless;
 
 /**
- * Define Plugin
+ * Define Custom Plugin
  */
 
-class CustomPlugin extends SPlugin {
+function loadPlugin(S) {
 
-  constructor(S, config) {
-    super(S, config);
+  class CustomPlugin extends S.classes.Plugin {
+
+    constructor() {
+      super();
+    }
+
+    /**
+     * Define your plugins name
+     */
+
+    static getName() {
+      return 'com.yourdomain.' + CustomPlugin.name;
+    }
+
+    /**
+     * Register Hooks
+     */
+
+    registerHooks() {
+
+      S.addHook(this._defaultActionPreHook.bind(this), {
+        action: 'functionCreate',
+        event: 'pre'
+      });
+
+      return Promise.resolve();
+    }
+
+    _defaultActionPreHook(evt) {
+      return new Promise(function (resolve) {
+        setTimeout(function () {
+          return resolve({
+            options: evt.options,
+            data: {
+              hook: 'defaultActionPreHook'
+            }
+          });
+        }, 250);
+      });
+    }
   }
 
-  /**
-   * Define your plugins name
-   */
+  return CustomPlugin;
 
-  static getName() {
-    return 'com.yourdomain.' + CustomPlugin.name;
-  }
-
-  /**
-   * Register Hooks
-   */
-
-  registerHooks() {
-
-    this.S.addHook(this._defaultActionPreHook.bind(this), {
-      action: 'functionCreate',
-      event:  'pre'
-    });
-
-    return Promise.resolve();
-  }
-
-  _defaultActionPreHook(evt) {
-    return new Promise(function (resolve) {
-      setTimeout(function () {
-        return resolve({
-          options: evt.options,
-          data: {
-            hook: 'defaultActionPreHook'
-          }
-        });
-      }, 250);
-    });
-  }
 }
 
 /**
@@ -84,9 +90,11 @@ describe('Test Default Action With Pre Hook', function() {
           interactive: false
         });
 
+        let customPlugin = loadPlugin(serverless);
+
         return serverless.init()
           .then(function() {
-            return serverless.addPlugin(new CustomPlugin(serverless, {}))
+            return serverless.addPlugin(new customPlugin())
               .then(function() {
                 done();
               });

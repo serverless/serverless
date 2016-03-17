@@ -77,7 +77,6 @@ describe('Test Serverless Stage Class', function() {
       assert.equal(instance.getProject().getName(), 's-test-prj');
     });
 
-
     it('Set instance data', function() {
       let clone = instance.toObject();
       clone.name = 'newStage';
