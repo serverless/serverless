@@ -1,8 +1,10 @@
 exports.handler = function(event, context) {
 
+  console.log('Running custom authorizer at ', new Date().toISOString() );
+
   var token = event.authorizationToken;
   token = 'allow'; // Auto-pass token for Serverless test
-  
+
   // Call oauth provider, crack jwt token, etc.
   // In this example, the token is treated as the status for simplicity.
 
