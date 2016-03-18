@@ -268,10 +268,12 @@ describe('Test Serverless ProviderAws Class', function() {
         provider,
         credentials,
         config,
+        environmentVars,
         credentialsFiles;
     this.timeout(0);
 
     before(function() {
+        environmentVars = JSON.stringify(process.env); // save for later - be sure not to disrupt existing environment
         credentialsFiles = prepareCredentialsFile();
         return testUtils.createTestProject(testConfig)
             .then(projectPath => {
@@ -289,6 +291,9 @@ describe('Test Serverless ProviderAws Class', function() {
     after(function(){
         if(credentialsFiles) {
             revertCredentialsFile(credentialsFiles);
+        }
+        if(environmentVars) {
+            process.env = JSON.parse(environmentVars);
         }
     });
     
