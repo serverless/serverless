@@ -22,7 +22,7 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.stage != 'undefined');
   assert.equal(true, typeof evt.options.region != 'undefined');
-  assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
+  assert.equal(true, typeof evt.options.functionAlias != 'undefined');
   assert.equal(true, typeof evt.options.names != 'undefined');
 
   if (evt.data.failed) {
