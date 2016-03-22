@@ -7,59 +7,65 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-    SPlugin    = require('../../../lib/ServerlessPlugin'),
-    path       = require('path'),
-    utils      = require('../../../lib/utils/index'),
-    assert     = require('chai').assert,
-    testUtils  = require('../../test_utils'),
-    config     = require('../../config');
+  SPlugin      = require('../../../lib/Plugin'),
+  path         = require('path'),
+  utils        = require('../../../lib/utils/index'),
+  assert       = require('chai').assert,
+  testUtils    = require('../../test_utils'),
+  config       = require('../../config');
 
 let serverless;
 
 /**
- * Define Plugin
+ * Define Custom Plugin
  */
 
-class CustomPlugin extends SPlugin {
+function loadPlugin(S) {
 
-  constructor(S, config) {
-    super(S, config);
+  class CustomPlugin extends S.classes.Plugin {
+
+    constructor() {
+      super();
+    }
+
+    /**
+     * Define your plugins name
+     */
+
+    static getName() {
+      return 'com.yourdomain.' + CustomPlugin.name;
+    }
+
+    /**
+     * Register Hooks
+     */
+
+    registerHooks() {
+
+      S.addHook(this._defaultActionPreHook.bind(this), {
+        action: 'functionCreate',
+        event: 'pre'
+      });
+
+      return Promise.resolve();
+    }
+
+    _defaultActionPreHook(evt) {
+      return new Promise(function (resolve) {
+        setTimeout(function () {
+          return resolve({
+            options: evt.options,
+            data: {
+              hook: 'defaultActionPreHook'
+            }
+          });
+        }, 250);
+      });
+    }
   }
 
-  /**
-   * Define your plugins name
-   */
+  return CustomPlugin;
 
-  static getName() {
-    return 'com.yourdomain.' + CustomPlugin.name;
-  }
-
-  /**
-   * Register Hooks
-   */
-
-  registerHooks() {
-
-    this.S.addHook(this._defaultActionPreHook.bind(this), {
-      action: 'componentCreate',
-      event:  'pre'
-    });
-
-    return Promise.resolve();
-  }
-
-  _defaultActionPreHook(evt) {
-    return new Promise(function (resolve) {
-      setTimeout(function () {
-        return resolve({
-          options: evt.options,
-          data: {
-            hook: 'defaultActionPreHook'
-          }
-        });
-      }, 250);
-    });
-  }
 }
 
 /**
@@ -68,8 +74,6 @@ class CustomPlugin extends SPlugin {
  */
 
 let validateResult = function(result) {
-  assert.equal(true, typeof result.options.sPath != 'undefined');
-  assert.equal(true, typeof result.options.runtime != 'undefined');
   assert.equal(true, typeof result.data.hook != 'undefined');
 };
 
@@ -77,46 +81,45 @@ describe('Test Default Action With Pre Hook', function() {
 
   before(function(done) {
     this.timeout(0);
+
     testUtils.createTestProject(config)
-        .then(projPath => {
+      .then(projectPath => {
 
-          process.chdir(projPath);
-          serverless = new Serverless({
-            interactive: false,
-            projectPath: projPath
-          });
-
-          serverless.addPlugin(new CustomPlugin(serverless, {}));
-
-          return serverless.state.load().then(function() {
-            done();
-          });
+        serverless = new Serverless({
+          projectPath,
+          interactive: false
         });
-  });
 
-  after(function(done) {
-    done();
+        let customPlugin = loadPlugin(serverless);
+
+        return serverless.init()
+          .then(function() {
+            return serverless.addPlugin(new customPlugin())
+              .then(function() {
+                done();
+              });
+          });
+      });
   });
 
   describe('Test Default Action With Pre Hook', function() {
-
     it('adds a pre hook to Component Create default Action', function(done) {
 
       this.timeout(0);
       let evt = {
         options: {
-          sPath:   'testcomponent'
+          path:   'testFunction'
         }
       };
 
-      serverless.actions.componentCreate(evt)
-          .then(function(result) {
-            validateResult(result);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
+      serverless.actions.functionCreate(evt)
+        .then(function(result) {
+          validateResult(result);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
     });
   });
 });

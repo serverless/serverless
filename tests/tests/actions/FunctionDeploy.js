@@ -22,8 +22,8 @@ let serverless;
 let validateEvent = function(evt) {
   assert.equal(true, typeof evt.options.stage != 'undefined');
   assert.equal(true, typeof evt.options.region != 'undefined');
-  assert.equal(true, typeof evt.options.aliasFunction != 'undefined');
-  assert.equal(true, typeof evt.options.paths != 'undefined');
+  assert.equal(true, typeof evt.options.functionAlias != 'undefined');
+  assert.equal(true, typeof evt.options.names != 'undefined');
 
   if (evt.data.failed) {
     for (let i = 0; i < Object.keys(evt.data.failed).length; i++) {
@@ -71,19 +71,19 @@ describe('Test Action: Function Deploy', function() {
   before(function(done) {
     this.timeout(0);
 
-    testUtils.createTestProject(config, ['nodejscomponent'])
-      .then(projPath => {
+    testUtils.createTestProject(config, ['functions'])
+      .then(projectPath => {
 
-        process.chdir(projPath);
+        process.chdir(projectPath);
 
         serverless = new Serverless({
-          interactive:       false,
+          projectPath,
+          interactive: false,
           awsAdminKeyId:     config.awsAdminKeyId,
-          awsAdminSecretKey: config.awsAdminSecretKey,
-          projectPath:       projPath
+          awsAdminSecretKey: config.awsAdminSecretKey
         });
 
-        return serverless.state.load().then(function() {
+        return serverless.init().then(function() {
           done();
         });
       });
@@ -105,8 +105,8 @@ describe('Test Action: Function Deploy', function() {
       let options = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
-          'nodejscomponent/group1/function1'
+        names:      [
+          'function1'
         ]
       };
 
@@ -121,7 +121,7 @@ describe('Test Action: Function Deploy', function() {
     });
   });
 
-  describe('Function Deploy: Nested W/ Custom Name', function() {
+  describe('Function Deploy: Nested W/ Custom Name & Limited Parent Dir', function() {
     it('should deploy functions', function(done) {
 
       this.timeout(0);
@@ -129,8 +129,8 @@ describe('Test Action: Function Deploy', function() {
       let options = {
         stage:      config.stage,
         region:     config.region,
-        paths:      [
-          'nodejscomponent/group1/group2/function4'
+        names:      [
+          'function4'
         ]
       };
 
@@ -144,5 +144,4 @@ describe('Test Action: Function Deploy', function() {
           });
     });
   });
-
 });

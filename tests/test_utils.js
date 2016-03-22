@@ -7,8 +7,8 @@ let fs        = require('fs'),
     rimraf    = require('rimraf'),
     Promise   = require('bluebird'),
     uuid      = require('node-uuid'),
-    SError    = require('../lib/ServerlessError'),
-    SUtils    = require('../lib/utils');
+    SError    = require('../lib/Error'),
+    SUtils    = require('../lib/utils/index');
 
 /**
  * Create test private
@@ -18,11 +18,13 @@ let fs        = require('fs'),
  */
 
 module.exports.createTestProject = function(config, npmInstallDirs) {
+
   let projectName          = 's-test-prj',
       projectStage         = config.stage,
       projectRegion        = config.region,
       projectLambdaIAMRole = config.iamRoleArnLambda,
-      projectDomain        = projectName + '.com';
+      projectBucket        = 'serverless.' + projectRegion + '.' + projectName + '.com';
+
   // Create Test Project
   let tmpProjectPath = path.join(os.tmpdir(), projectName);
 
@@ -39,14 +41,14 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     forceDelete: true
   });
 
-  let projectJSON = SUtils.readAndParseJsonSync(path.join(tmpProjectPath, 's-project.json'));
+  let projectJSON = SUtils.readFileSync(path.join(tmpProjectPath, 's-project.json'));
   projectJSON.name = projectName;
 
   let commonVariablesPrivate = {
     project: projectName,
-    domain: projectDomain,
-    projectBucket: SUtils.generateProjectBucketName(projectDomain, projectRegion),
-    endpointVariable: "none"
+    projectBucket: projectBucket,
+    projectBucketRegion: projectRegion,
+    statusCode: "200"
   };
 
   let stageVariables = {
@@ -59,7 +61,7 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     iamRoleArnLambda: projectLambdaIAMRole,
     testEventBucket: config.testEventBucket,
     streamArn: config.streamArn,
-    'eventID:nodejscomponent/group1/function1#dynamodb': config.streamUUID,
+    'eventID:dynamodb': config.streamUUID,
     topicArn: config.topicArn
   };
 
@@ -73,10 +75,10 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
     .then(function() {
 
       // Write Admin.env file
-      let adminEnv = 'SERVERLESS_ADMIN_AWS_ACCESS_KEY_ID='
-          + process.env.TEST_SERVERLESS_AWS_ACCESS_KEY + os.EOL
-          + 'SERVERLESS_ADMIN_AWS_SECRET_ACCESS_KEY='
-          + process.env.TEST_SERVERLESS_AWS_SECRET_KEY + os.EOL;
+      let adminEnv = 'AWS_DEVELOPMENT_PROFILE='
+          + process.env.TEST_SERVERLESS_AWS_PROFILE_DEVELOPMENT + os.EOL
+          + 'AWS_PRODUCTION_PROFILE='
+          + process.env.TEST_SERVERLESS_AWS_PROFILE_PRODUCTION + os.EOL;
       fs.writeFileSync(path.join(tmpProjectPath, 'admin.env'), adminEnv);
 
       //Need to run npm install on the test project, they recommend NOT doing this programatically

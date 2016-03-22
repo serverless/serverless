@@ -19,7 +19,7 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-    assert.equal(true, typeof evt.options.path != 'undefined');
+    assert.equal(true, typeof evt.options.name != 'undefined');
     assert.equal(true, typeof evt.data.result.response != 'undefined');
     assert.equal(true, evt.data.result.status === 'success');
 };
@@ -29,21 +29,22 @@ describe('Test Action: Function Run', function() {
 
     before(function(done) {
         this.timeout(0);
-        testUtils.createTestProject(config, ['nodejscomponent'])
-            .then(projPath => {
+        testUtils.createTestProject(config, ['functions'])
+            .then(projectPath => {
 
                 this.timeout(0);
 
-                process.chdir(projPath);
+                process.chdir(projectPath);
 
-                serverless = new Serverless({
-                    interactive: true,
-                    awsAdminKeyId:     config.awsAdminKeyId,
-                    awsAdminSecretKey: config.awsAdminSecretKey,
-                    projectPath: projPath
-                });
 
-                return serverless.state.load()
+              serverless = new Serverless({
+                projectPath,
+                interactive: false,
+                awsAdminKeyId:     config.awsAdminKeyId,
+                awsAdminSecretKey: config.awsAdminSecretKey
+              });
+
+                return serverless.init()
                     .then(function() {
 
                         done();
@@ -60,7 +61,7 @@ describe('Test Action: Function Run', function() {
 
             this.timeout(0);
             let options = {
-                path: 'nodejscomponent/group1/function1'
+                name: 'function1'
             };
 
             serverless.actions.functionRun(options)
@@ -79,8 +80,9 @@ describe('Test Action: Function Run', function() {
 
             this.timeout(0);
             let options = {
-                path: 'nodejscomponent/group1/function1',
-                stage: 'development'
+                name: 'function1',
+                stage: 'development',
+                runDeployed: true
             };
 
             serverless.actions.functionRun(options)
@@ -93,5 +95,4 @@ describe('Test Action: Function Run', function() {
                 });
         });
     });
-
 });

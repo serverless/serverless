@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -34,7 +34,7 @@
     "serverless-run-python-handler": "./bin/serverless-run-python-handler"
   },
   "scripts": {
-    "test": "DEBUG=\"*\" mocha tests/all"
+    "test": "mocha tests/all"
   },
   "devDependencies": {
     "chai": "^3.2.0",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "async": "^1.5.2",
-    "aws-sdk": "^2.2.33",
+    "aws-sdk": "^2.2.40",
     "bluebird": "^3.2.1",
     "chalk": "^1.1.0",
     "cli-spinner": "^0.2.1",
@@ -50,10 +50,12 @@
     "dotenv": "^2.0.0",
     "download": "^4.2.0",
     "fs-extra": "^0.26.4",
+    "glob": "^7.0.0",
+    "https-proxy-agent": "^1.0.0",
+    "json-diff": "^0.3.1",
     "keypress": "^0.2.1",
     "lodash": "^4.2.1",
     "minimist": "^1.2.0",
-    "mkdirp-then": "^1.1.0",
     "moment": "^2.11.2",
     "node-uuid": "^1.4.2",
     "node-zip": "^1.1.0",

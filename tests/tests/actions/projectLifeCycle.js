@@ -14,52 +14,24 @@
 
 
 let Serverless  = require('../../../lib/Serverless'),
-  SError      = require('../../../lib/ServerlessError'),
-  path        = require('path'),
-  os          = require('os'),
-  uuid        = require('node-uuid'),
-  utils       = require('../../../lib/utils/index'),
-  assert      = require('chai').assert,
-  wrench    = require('wrench'),
-  shortid     = require('shortid'),
-  testUtils = require('../../test_utils'),
-  config      = require('../../config');
+  path          = require('path'),
+  os            = require('os'),
+  uuid          = require('node-uuid'),
+  utils         = require('../../../lib/utils/index'),
+  assert        = require('chai').assert,
+  wrench        = require('wrench'),
+  shortid       = require('shortid'),
+  testUtils     = require('../../test_utils'),
+  BbPromise     = require('bluebird'),
+  AWS           = require('aws-sdk'),
+  config        = require('../../config');
 
 
-let serverless = new Serverless({
+let serverless = new Serverless( undefined, {
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey
 });
-
-// Removes project S3 bucket
-let cleanup = function(evt) {
-  let Meta = serverless.state.getMeta();
-
-  // Project Create no longer creates a Project Bucket if noExeCf is set
-  if (evt.options.noExeCf) return;
-
-  let s3 = require('../../../lib/utils/aws/S3')({
-    region:          config.region,
-    accessKeyId:     config.awsAdminKeyId,
-    secretAccessKey: config.awsAdminSecretKey
-  });
-
-  // Delete Region Bucket
-  // Delete All Objects in Bucket first, this is required
-  s3.listObjectsPromised({Bucket: Meta.variables.projectBucket})
-    .then(function(data) {
-      let params = {
-        Bucket: Meta.variables.projectBucket,
-        Delete: {}
-      };
-
-      params.Delete.Objects = data.Contents.map((content) => ({Key: content.Key}));
-
-      return s3.deleteObjectsPromised(params);
-    })
-    .then(() => s3.deleteBucketPromised({Bucket: Meta.variables.projectBucket}))
-};
 
 /**
  * Tests
@@ -70,22 +42,25 @@ describe('Test: Project Live Cycle', function() {
 
   describe('Test action: Project Init', function() {
 
-    before(function() {
+    before(function(done) {
       process.chdir(os.tmpdir());
+
+      serverless.init().then(function(){
+        done();
+      });
     });
 
     describe('Project Init', function() {
-      it('should create a new private in temp directory', function() {
+      it('should create a new project in temp directory', function() {
 
         this.timeout(0);
 
         let name    = ('testprj-' + uuid.v4()).replace(/-/g, '');
-        let domain  = name + '.com';
+
         let evt   = {
           options: {
             name:               name,
-            domain:             domain,
-            notificationEmail:  config.notifyEmail,
+            profile:            config.profile_development,
             stage:              config.stage,
             region:             config.region,
             noExeCf:            config.noExecuteCf
@@ -99,8 +74,6 @@ describe('Test: Project Live Cycle', function() {
 
         let validateEvent = function(evt) {
           assert.equal(true, typeof evt.options.name !== 'undefined');
-          assert.equal(true, typeof evt.options.domain !== 'undefined');
-          assert.equal(true, typeof evt.options.notificationEmail !== 'undefined');
           assert.equal(true, typeof evt.options.region !== 'undefined');
           assert.equal(true, typeof evt.options.noExeCf !== 'undefined');
           assert.equal(true, typeof evt.options.stage !== 'undefined');
@@ -110,16 +83,17 @@ describe('Test: Project Live Cycle', function() {
         return serverless.actions.projectInit(evt)
           .then(function(evt) {
 
-            // Validate Meta
-            let Meta = serverless.state.getMeta();
-            assert.equal(true, typeof Meta.variables.project != 'undefined');
-            assert.equal(true, typeof Meta.variables.domain != 'undefined');
-            assert.equal(true, typeof Meta.variables.projectBucket != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.region != 'undefined');
+            let project = serverless.getProject();
+            let stage   = project.getStage(config.stage);
+            let region  = project.getRegion(config.stage, config.region);
+
+            assert.equal(true, typeof project.getVariables().project != 'undefined');
+            assert.equal(true, typeof stage.getVariables().stage != 'undefined');
+            assert.equal(true, typeof region.getVariables().region != 'undefined');
             if (!config.noExecuteCf) {
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.iamRoleArnLambda != 'undefined');
-              assert.equal(true, typeof Meta.stages[config.stage].regions[config.region].variables.resourcesStackName != 'undefined');
+              assert.equal(true, typeof region.getVariables().iamRoleArnLambda != 'undefined');
+              assert.equal(true, typeof region.getVariables().resourcesStackName != 'undefined');
+
             }
 
             // Validate Event
@@ -138,6 +112,7 @@ describe('Test: Project Live Cycle', function() {
           options: {
             stage:      config.stage2,
             region:     config.region,
+            profile:    config.profile_development,
             noExeCf:    config.noExecuteCf
           }
         };
@@ -151,9 +126,9 @@ describe('Test: Project Live Cycle', function() {
         return serverless.actions.stageCreate(evt)
           .then(function(evt) {
 
-            let Meta = serverless.state.meta;
-            assert.equal(true, typeof Meta.stages[config.stage2].variables.stage != 'undefined');
-            assert.equal(true, typeof Meta.stages[config.stage2].regions[config.region].variables.region != 'undefined');
+            let project = serverless.getProject();
+            assert.equal(project.getStage(config.stage2).getVariables().stage, config.stage2);
+            assert.equal(project.getRegion(config.stage2, config.region).getVariables().region, config.region);
 
             // Validate EVT
             validateEvent(evt);
@@ -184,8 +159,7 @@ describe('Test: Project Live Cycle', function() {
 
         return serverless.actions.regionCreate(evt)
           .then(function(evt) {
-            let Meta = serverless.state.meta;
-            assert.equal(true, typeof Meta.stages[config.stage2].regions[config.region2].variables.region != 'undefined');
+            assert.equal(true, typeof serverless.getProject().getRegion(config.stage2, config.region2).getVariables().region != 'undefined');
 
             // Validate Event
             validateEvent(evt);
@@ -299,7 +273,7 @@ describe('Test: Project Live Cycle', function() {
   describe('Test Action: Project Remove', function() {
 
     describe('Project Remove positive tests', function() {
-      it('should remove project', function() {
+      it('should remove project', function(done) {
         let evt = {
           options: {
             noExeCf:    config.noExecuteCf
@@ -314,7 +288,9 @@ describe('Test: Project Live Cycle', function() {
 
         return serverless.actions.projectRemove(evt)
           .then(validateEvent)
-          .then(cleanup)
+          .then(function() {
+            done();
+          });
       });
     });
   });

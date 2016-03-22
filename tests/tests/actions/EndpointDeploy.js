@@ -21,7 +21,7 @@ let serverless;
 let validateEvent = function(evt) {
     assert.equal(true, typeof evt.options.stage   != 'undefined');
     assert.equal(true, typeof evt.options.region  != 'undefined');
-    assert.equal(true, typeof evt.options.paths   != 'undefined');
+    assert.equal(true, typeof evt.options.names   != 'undefined');
     assert.equal(true, typeof evt.data.deployed   != 'undefined');
 
     if (evt.data.failed) {
@@ -44,18 +44,18 @@ describe('Test Action: Endpoint Deploy', function() {
         this.timeout(0);
 
         testUtils.createTestProject(config)
-            .then(projPath => {
+            .then(projectPath => {
 
-                process.chdir(projPath);
+                process.chdir(projectPath);
 
                 serverless = new Serverless({
+                    projectPath,
                     interactive: false,
                     awsAdminKeyId:     config.awsAdminKeyId,
-                    awsAdminSecretKey: config.awsAdminSecretKey,
-                    projectPath: projPath
+                    awsAdminSecretKey: config.awsAdminSecretKey
                 });
 
-                return serverless.state.load().then(function() {
+                return serverless.init().then(function() {
                     done();
                 });
             });
@@ -77,8 +77,8 @@ describe('Test Action: Endpoint Deploy', function() {
             let event = {
                 stage:      config.stage,
                 region:     config.region,
-                paths:      [
-                    'nodejscomponent/group1/function1@group1/function1~GET'
+                names:      [
+                    'group1/function1~GET'
                 ]
             };
 
@@ -105,8 +105,8 @@ describe('Test Action: Endpoint Deploy', function() {
             let event = {
                 stage:      config.stage,
                 region:     config.region,
-                paths:      [
-                    'nodejscomponent/group1/group2/function4@group2/function4~GET'
+                names:      [
+                    'group2/function4~GET'
                 ]
             };
 
@@ -121,24 +121,4 @@ describe('Test Action: Endpoint Deploy', function() {
         });
     });
 
-    //describe('Endpoint Deploy: Specify All Paths', function() {
-    //  it('should deploy endpoints', function(done) {
-    //    this.timeout(0);
-    //
-    //    let event = {
-    //      stage:      config.stage,
-    //      region:     config.region,
-    //      all:        true
-    //    };
-    //
-    //    serverless.actions.endpointDeploy(event)
-    //        .then(function(evt) {
-    //          validateEvent(evt);
-    //          done();
-    //        })
-    //        .catch(e => {
-    //          done(e);
-    //        });
-    //  });
-    //});
 });

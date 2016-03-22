@@ -1,0 +1,66 @@
+{
+  "name" : "function1",
+  "custom": {
+    "envVars": [],
+    "excludePatterns": []
+  },
+  "handler": "group1/function1/handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "runtime": "nodejs",
+  "events": [
+    {
+      "name": "dynamodb",
+      "type": "dynamoDBstream",
+      "config": {
+        "streamArn": "${streamArn}"
+      }
+    },
+    {
+      "name": "s3",
+      "type": "s3",
+      "config": {
+        "bucket": "${testEventBucket}",
+        "bucketEvents": ["s3:ObjectCreated:*"]
+      }
+    },
+    {
+      "name": "sns",
+      "type": "sns",
+      "config": {
+        "topicName": "test-event-source"
+      }
+    },
+    {
+      "name": "schedule",
+      "type": "schedule",
+      "config": {
+        "schedule": "rate(5 minutes)"
+      }
+    }
+  ],
+  "endpoints": [
+    {
+      "path": "group1/function1",
+      "method": "GET",
+      "authorizationType": "CUSTOM",
+      "authorizerFunction": "function4",
+      "apiKeyRequired": false,
+      "requestParameters": "$${endpointTemplate}",
+      "requestTemplates": "$${apiRequestTemplate}",
+      "responses": {
+        "default": {
+          "statusCode": "${statusCode}",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    }
+  ]
+}

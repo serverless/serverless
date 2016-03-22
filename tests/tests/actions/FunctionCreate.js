@@ -21,9 +21,7 @@ let serverless;
  */
 
 let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.options.sPath != 'undefined');
-  assert.equal(true, typeof evt.options.name != 'undefined');
-  assert.equal(true, typeof evt.data.sPath != 'undefined');
+  assert.equal(true, typeof evt.options.path != 'undefined');
 };
 
 describe('Test action: Function Create', function() {
@@ -31,16 +29,18 @@ describe('Test action: Function Create', function() {
   before(function(done) {
     this.timeout(0);
     testUtils.createTestProject(config)
-        .then(projPath => {
+        .then(projectPath => {
 
-          process.chdir(projPath);
+          process.chdir(projectPath);
 
           serverless = new Serverless({
+            projectPath,
             interactive: false,
-            projectPath: projPath
+            awsAdminKeyId:     config.awsAdminKeyId,
+            awsAdminSecretKey: config.awsAdminSecretKey
           });
 
-          return serverless.state.load().then(function() {
+          return serverless.init().then(function() {
             done();
           });
         });
@@ -52,21 +52,19 @@ describe('Test action: Function Create', function() {
 
   describe('Function Create positive tests', function() {
 
-    it('create a new Function inside the users Module', function(done) {
+    it('create a new Function inside the users Component', function(done) {
       this.timeout(0);
       let evt = {
         options: {
-          sPath: 'nodejscomponent/temp',
-          name:  'new'
+          path: 'functions/temp'
         }
       };
 
       serverless.actions.functionCreate(evt)
           .then(function(evt) {
             validateEvent(evt);
-            let functionJson = utils.readAndParseJsonSync(path.join(serverless.config.projectPath, 'nodejscomponent', 'group1', 'function1', 's-function.json'));
-            assert.equal(true, typeof functionJson.name != 'undefined');
-            assert.equal(true, functionJson.endpoints.length);
+            let functionJson = utils.readFileSync(serverless.getProject().getRootPath('functions', 'temp', 's-function.json'));
+            assert.equal(functionJson.name, 'temp');
             done();
           })
           .catch(e => {

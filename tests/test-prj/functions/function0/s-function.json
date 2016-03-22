@@ -1,0 +1,35 @@
+{
+  "name" : "function0",
+  "custom": {
+    "envVars": [],
+    "excludePatterns": []
+  },
+  "handler": "function0/handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "events": [],
+  "runtime": "nodejs",
+  "endpoints": [
+    {
+      "path": "function0",
+      "method": "GET",
+      "authorizationType": "none",
+      "apiKeyRequired": false,
+      "requestParameters": {},
+      "requestTemplates": {},
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    }
+  ]
+}

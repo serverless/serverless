@@ -1,0 +1,66 @@
+{
+  "name": "function4",
+  "customName": "${project}-${stage}-function4",
+  "customRole": false,
+  "custom": {
+    "envVars": [],
+    "excludePatterns": []
+  },
+  "handler": "group2/function4/handler.handler",
+  "timeout": 6,
+  "memorySize": 1024,
+  "runtime": "nodejs",
+  "authorizer": {
+    "type": "TOKEN",
+    "identitySource": "method.request.header.Authorization"
+  },
+  "events": [],
+  "endpoints": [
+    {
+      "path": "group2/function4",
+      "method": "GET",
+      "authorizationType": "none",
+      "apiKeyRequired": false,
+      "requestParameters": {},
+      "requestTemplates": {
+        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+      },
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    },
+    {
+      "path": "group2/function4",
+      "method": "POST",
+      "authorizationType": "none",
+      "apiKeyRequired": false,
+      "requestTemplates": {
+        "application/json": "{\"access_token\":\"$input.params('access_token')\",\"body\":\"$input.json('$')\"}"
+      },
+      "requestParameters": {},
+      "responses": {
+        "default": {
+          "statusCode": "200",
+          "responseParameters": {},
+          "responseModels": {},
+          "responseTemplates": {
+            "application/json": ""
+          }
+        },
+        "400": {
+          "statusCode": "400"
+        }
+      }
+    }
+  ]
+}
