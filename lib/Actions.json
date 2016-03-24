@@ -31,6 +31,8 @@
     "./actions/FunctionRemove.js",
     "./actions/EventRemove.js",
     "./actions/EndpointRemove.js",
-    "./actions/FunctionRollback.js"
+    "./actions/FunctionRollback.js",
+    "./actions/VariablesSet.js",
+    "./actions/VariablesUnset.js"
   ]
 }
