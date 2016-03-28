@@ -75,7 +75,7 @@ Serverless Projects are shareable and installable.  You can publish them to npm 
 
 ## Plugins
 Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
-* [Plugin Boilerplate](https://github.com/serverless/serverless-plugin-boilerplate) - Make a Serverless Plugin with this simple boilerplate.
+* [Meta Sync](https://github.com/serverless/serverless-meta-sync) - Securely sync your the variables in your project's `_meta/variables` across your team.
 * [Serve](https://github.com/Nopik/serverless-serve) - Simulate API Gateway locally, so all function calls can be run via localhost.
 * [Offline](https://github.com/dherault/serverless-offline) - An alternative to the Serve plugin.
 * [Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting) - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
