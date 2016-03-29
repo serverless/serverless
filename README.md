@@ -19,14 +19,16 @@ Also, we are hiring.  If you are a developer and these tools/ideologies appeal t
 * Auto-deploys your Lambda events
 * Support for multiple stages
 * Support for multiple regions within stages
-* Manage & deploy AWS CloudFormation resources
-* Project Variables & Module Templates reduce configuration settings
+* Support for separate credentials per stage
+* Manage & deploy AWS CloudFormation resources to each stage/region
+* Project Variables allow staged/regional values in config files
+* Project Templates reduce configuration
 * Environment variable support
 * Assign multiple endpoints and events to a function
-* Interactive dashboard to easily select and deploy functions and endpoints
+* Interactive CLI dashboard to easily select and deploy functions and endpoints
 * Optimize your Lambda functions for faster response times
-* Components allow for easy sharing of code across Lambda functions
-* Shareable project files and modules
+* Support for API Gateway custom authorizers
+* Project files can be published to npm
 * 100% Extensible - Extend or modify the Framework and its operations via Plugins
 * Powerful classes and methods for easy plugin development
 * AWS best practices and optimizations built in
@@ -78,7 +80,7 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Meta Sync](https://github.com/serverless/serverless-meta-sync) - Securely sync your the variables in your project's `_meta/variables` across your team.
 * [Serve](https://github.com/Nopik/serverless-serve) - Simulate API Gateway locally, so all function calls can be run via localhost.
 * [Offline](https://github.com/dherault/serverless-offline) - An alternative to the Serve plugin.
-* [Hook Scrips](https://github.com/kennu/serverless-plugin-hookscripts) - Easily create shell script hooks that are run whenever Serverless actions are executed.
+* [Hook Scripts](https://github.com/kennu/serverless-plugin-hookscripts) - Easily create shell script hooks that are run whenever Serverless actions are executed.
 * [Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting) - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
 * [Optimizer](https://github.com/serverless/serverless-optimizer-plugin) - Optimizes your code for performance in Lambda. Supports coffeeify, babelify and other transforms
 * [CORS](https://github.com/joostfarla/serverless-cors-plugin) - Adds support for CORS (Cross-origin resource sharing).
