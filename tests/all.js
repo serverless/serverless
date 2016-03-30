@@ -24,7 +24,7 @@ describe('All Tests', function() {
   require('./tests/actions/EndpointDeploy');
   require('./tests/actions/EventDeploy');
   require('./tests/actions/ProjectInit');
-  // require('./tests/actions/ProjectInstall'); // Broken until Serverless-Starter is fixed
+  require('./tests/actions/ProjectInstall'); // Broken until Serverless-Starter is fixed
   require('./tests/actions/ResourcesDiff');
   require('./tests/actions/PluginCreate');
   require('./tests/actions/FunctionRollback');

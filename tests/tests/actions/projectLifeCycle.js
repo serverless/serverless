@@ -27,7 +27,7 @@ let Serverless  = require('../../../lib/Serverless'),
   config        = require('../../config');
 
 
-let serverless = new Serverless( undefined, {
+let serverless = new Serverless({
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey
@@ -156,6 +156,7 @@ describe('Test: Project Live Cycle', function() {
           assert.equal(true, typeof evt.options.stage !== 'undefined');
           assert.equal(true, typeof evt.data !== 'undefined');
         };
+
 
         return serverless.actions.regionCreate(evt)
           .then(function(evt) {
