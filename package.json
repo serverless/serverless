@@ -53,6 +53,7 @@
     "fs-extra": "^0.26.4",
     "glob": "^7.0.0",
     "https-proxy-agent": "^1.0.0",
+    "js-yaml": "^3.5.5",
     "json-diff": "^0.3.1",
     "keypress": "^0.2.1",
     "lodash": "^4.2.1",
