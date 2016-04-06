@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "0.5.0",
+  "version": "0.5.2",
   "engines": {
     "node": ">=4.0"
   },
@@ -38,7 +38,9 @@
   },
   "devDependencies": {
     "chai": "^3.2.0",
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "node-uuid": "^1.4.2",
+    "rimraf": "^2.4.3"
   },
   "dependencies": {
     "async": "^1.5.2",
@@ -48,7 +50,6 @@
     "cli-spinner": "^0.2.1",
     "debug": "^2.2.0",
     "dotenv": "^2.0.0",
-    "download": "^4.2.0",
     "fs-extra": "^0.26.4",
     "glob": "^7.0.0",
     "https-proxy-agent": "^1.0.0",
@@ -57,16 +58,11 @@
     "lodash": "^4.2.1",
     "minimist": "^1.2.0",
     "moment": "^2.11.2",
-    "node-uuid": "^1.4.2",
     "node-zip": "^1.1.0",
     "prompt": "^0.3.0",
-    "readdirp": "^2.0.0",
     "replaceall": "^0.1.6",
-    "rimraf": "^2.4.3",
     "shelljs": "^0.6.0",
     "shortid": "^2.2.2",
-    "temp": "^0.8.3",
-    "traverse": "^0.6.6",
-    "wrench": "^1.5.8"
+    "traverse": "^0.6.6"
   }
 }
