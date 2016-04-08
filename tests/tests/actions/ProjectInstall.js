@@ -18,7 +18,7 @@ let Serverless  = require('../../../lib/Serverless'),
   config      = require('../../config');
 
 // Instantiate
-let serverless = new Serverless( undefined, {
+let serverless = new Serverless({
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey
@@ -43,9 +43,6 @@ let validateEvent = function(evt) {
  */
 
 let cleanup = function(project, cb) {
-
-  // Project Create no longer creates a Project Bucket if noExeCf is set
-  if (evt.options.noExeCf) return cb();
 
   AWS.config.update({
     region:          project.getVariables().projectBucketRegion,
@@ -117,7 +114,6 @@ describe('Test action: Project Install', function() {
       this.timeout(0);
 
       let name    = ('testprj-' + uuid.v4()).replace(/-/g, '');
-      let bucket  = name + '.com';
 
       let evt   = {
         options: {

@@ -1,8 +1,8 @@
 'use strict';
 
 let fs        = require('fs'),
+    fse       = require('fs-extra'),
     os        = require('os'),
-    wrench    = require('wrench'),
     path      = require('path'),
     rimraf    = require('rimraf'),
     Promise   = require('bluebird'),
@@ -37,8 +37,8 @@ module.exports.createTestProject = function(config, npmInstallDirs) {
 
   // Copy test private to temp directory
   fs.mkdirSync(tmpProjectPath);
-  wrench.copyDirSyncRecursive(path.join(__dirname, './test-prj'), tmpProjectPath, {
-    forceDelete: true
+  fse.copySync(path.join(__dirname, './test-prj'), tmpProjectPath, {
+    clobber: true
   });
 
   let projectJSON = SUtils.readFileSync(path.join(tmpProjectPath, 's-project.json'));

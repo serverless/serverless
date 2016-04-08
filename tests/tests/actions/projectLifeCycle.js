@@ -19,7 +19,6 @@ let Serverless  = require('../../../lib/Serverless'),
   uuid          = require('node-uuid'),
   utils         = require('../../../lib/utils/index'),
   assert        = require('chai').assert,
-  wrench        = require('wrench'),
   shortid       = require('shortid'),
   testUtils     = require('../../test_utils'),
   BbPromise     = require('bluebird'),
@@ -27,7 +26,7 @@ let Serverless  = require('../../../lib/Serverless'),
   config        = require('../../config');
 
 
-let serverless = new Serverless( undefined, {
+let serverless = new Serverless({
   interactive: false,
   awsAdminKeyId: config.awsAdminKeyId,
   awsAdminSecretKey: config.awsAdminSecretKey
@@ -156,6 +155,7 @@ describe('Test: Project Live Cycle', function() {
           assert.equal(true, typeof evt.options.stage !== 'undefined');
           assert.equal(true, typeof evt.data !== 'undefined');
         };
+
 
         return serverless.actions.regionCreate(evt)
           .then(function(evt) {

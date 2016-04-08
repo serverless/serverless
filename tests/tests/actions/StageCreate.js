@@ -70,7 +70,9 @@ describe('Test Action: Stage Create', function() {
 
           serverless = new Serverless({
             projectPath,
-            interactive: false
+            interactive: false,
+            awsAdminKeyId:     config.awsAdminKeyId,
+            awsAdminSecretKey: config.awsAdminSecretKey
           });
 
           return serverless.init().then(function() {
