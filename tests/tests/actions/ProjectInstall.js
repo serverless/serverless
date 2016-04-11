@@ -6,16 +6,13 @@
  * - Deletes the CF stack created by the private
  */
 
-let Serverless  = require('../../../lib/Serverless'),
-  SError      = require('../../../lib/Error'),
-  path        = require('path'),
-  os          = require('os'),
-  AWS         = require('aws-sdk'),
-  uuid        = require('node-uuid'),
-  utils       = require('../../../lib/utils/index'),
-  assert      = require('chai').assert,
-  shortid     = require('shortid'),
-  config      = require('../../config');
+const Serverless = require('../../../lib/Serverless'),
+  BbPromise = require('bluebird'),
+  os        = require('os'),
+  AWS       = require('aws-sdk'),
+  uuid      = require('node-uuid'),
+  assert    = require('chai').assert,
+  config    = require('../../config');
 
 // Instantiate
 let serverless = new Serverless({
@@ -30,11 +27,11 @@ let serverless = new Serverless({
  */
 
 let validateEvent = function(evt) {
-  assert.equal(true, typeof evt.options.name !== 'undefined');
-  assert.equal(true, typeof evt.options.region !== 'undefined');
-  assert.equal(true, typeof evt.options.noExeCf !== 'undefined');
-  assert.equal(true, typeof evt.options.stage !== 'undefined');
-  assert.equal(true, typeof evt.data !== 'undefined');
+  assert.isDefined(evt.options.name);
+  assert.isDefined(evt.options.region);
+  assert.isDefined(evt.options.noExeCf);
+  assert.isDefined(evt.options.stage);
+  assert.isDefined(evt.data);
 };
 
 /**
@@ -42,52 +39,22 @@ let validateEvent = function(evt) {
  * - Remove Stage CloudFormation Stack
  */
 
-let cleanup = function(project, cb) {
+const cleanup = () => {
+  if(config.noExecuteCf) return;
 
   AWS.config.update({
-    region:          project.getVariables().projectBucketRegion,
+    region:          config.region,
     accessKeyId:     config.awsAdminKeyId,
     secretAccessKey: config.awsAdminSecretKey
   });
 
-  // Delete Region Bucket
-  let s3 = new AWS.S3();
+  const cloudformation = new AWS.CloudFormation();
 
-  // Delete All Objects in Bucket first, this is required
-  s3.listObjects({
-    Bucket: project.getVariables().projectBucket
-  }, function(err, data) {
-    if (err) return console.log(err);
+  const StackName = serverless.getProject()
+    .getRegion(config.stage, config.region)
+    .getVariables().resourcesStackName;
 
-    let params = {
-      Bucket: project.getVariables().projectBucket
-    };
-    params.Delete = {};
-    params.Delete.Objects = [];
-
-    data.Contents.forEach(function(content) {
-      params.Delete.Objects.push({Key: content.Key});
-    });
-    s3.deleteObjects(params, function(err, data) {
-      if (err) return console.log(err);
-
-      // Delete Bucket
-      s3.deleteBucket({
-        Bucket: project.getVariables().projectBucket
-      }, function (err, data) {
-        if (err) console.log(err, err.stack); // an error occurred
-
-        // Delete CloudFormation Resources Stack
-        let cloudformation = new AWS.CloudFormation();
-        cloudformation.deleteStack({
-          StackName: project.getRegion(config.stage, config.region).getVariables().resourcesStackName
-        }, function (err, data) {
-          if (err) console.log(err, err.stack); // an error occurred
-          return cb();
-        });
-      });
-    });
-  });
+  return BbPromise.fromCallback(cb => cloudformation.deleteStack({StackName}, cb));
 };
 
 /**
@@ -95,65 +62,51 @@ let cleanup = function(project, cb) {
  */
 
 describe('Test action: Project Install', function() {
+  this.timeout(0);
 
-  before(function(done) {
+  before(() => {
     process.chdir(os.tmpdir());
-
-    serverless.init().then(function(){
-      done();
-    });
+    return serverless.init();
   });
 
-  after(function(done) {
-    done();
-  });
+  after(cleanup);
 
-  describe('Project Install', function() {
-    it('should install an existing project in temp directory', function(done) {
+  describe('Project Install', () => {
 
-      this.timeout(0);
+    it('should install an existing project in temp directory', () => {
 
-      let name    = ('testprj-' + uuid.v4()).replace(/-/g, '');
+      const name = ('testprj-' + uuid.v4()).replace(/-/g, '');
 
-      let evt   = {
+      const evt = {
         options: {
-          name:               name,
-          stage:              config.stage,
-          region:             config.region,
-          profile:            config.profile_development,
-          noExeCf:            config.noExecuteCf,
-          project:            'serverless-starter'
+          name:    name,
+          stage:   config.stage,
+          region:  config.region,
+          profile: config.profile_development,
+          noExeCf: config.noExecuteCf,
+          project: 'serverless-starter'
         }
       };
 
-      serverless.actions.projectInstall(evt)
-        .then(function(evt) {
+      return serverless.actions.projectInstall(evt)
+        .then((evt) => {
 
-          let project = serverless.getProject();
-          let stage   = project.getStage(config.stage);
-          let region  = project.getRegion(config.stage, config.region);
+          const project = serverless.getProject();
+          const stage   = project.getStage(config.stage);
+          const region  = project.getRegion(config.stage, config.region);
 
-          assert.equal(true, typeof project.getVariables().project != 'undefined');
+          assert.isDefined(project.getVariables().project);
 
-          assert.equal(true, typeof stage.getVariables().stage != 'undefined');
-          assert.equal(true, typeof region.getVariables().region != 'undefined');
+          assert.isDefined(stage.getVariables().stage);
+          assert.isDefined(region.getVariables().region);
+
           if (!config.noExecuteCf) {
-            assert.equal(true, typeof region.getVariables().iamRoleArnLambda != 'undefined');
-            assert.equal(true, typeof region.getVariables().resourcesStackName != 'undefined');
-
+            assert.isDefined(region.getVariables().iamRoleArnLambda);
+            assert.isDefined(region.getVariables().resourcesStackName);
           }
 
           // Validate Event
           validateEvent(evt);
-
-          evt.options.noExeCf ? done() : cleanup(serverless, done);
-
-        })
-        .catch(SError, function(e) {
-          done(e);
-        })
-        .error(function(e) {
-          done(e);
         });
     });
   });
