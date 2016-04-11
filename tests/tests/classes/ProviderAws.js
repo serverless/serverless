@@ -273,7 +273,7 @@ describe('Test Serverless ProviderAws Class', function() {
         credentialsFiles;
     this.timeout(0);
 
-    before(function() {
+    before(() => {
         environmentVars = JSON.stringify(process.env); // save for later - be sure not to disrupt existing environment
         credentialsFiles = prepareCredentialsFile();
         return testUtils.createTestProject(testConfig)
@@ -297,7 +297,7 @@ describe('Test Serverless ProviderAws Class', function() {
             process.env = JSON.parse(environmentVars);
         }
     });
-    
+
     describe('Configuration Credentials Tests', function() {
         it('Extracts credentials in AWS format from the project configuration', function() {
             credentials = {};
@@ -340,43 +340,65 @@ describe('Test Serverless ProviderAws Class', function() {
     });
     describe('Profile Credentials Tests', function() {
         for(let prefixIdx in environmentPrefixes) {
+
             let prefix = environmentPrefixes[prefixIdx].toUpperCase();
-            it('Loads the credentials of the profile extracted from the environment using variable prefix "' + prefix + '"', function() {
+
+            it('Loads the credentials of the profile extracted from the environment using variable prefix "' + prefix + '"', () => {
                 let expected = buildExpectedProfileCredentials(prefix, null);
                 credentials = {};
                 setProfileEnvironmentVariable(prefix, null);
-                provider.addProfileCredentials(credentials, prefix);
-                checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+
+                return provider.addProfileCredentials(credentials, prefix).then(() => {
+                  checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+                });
+
             });
+
             for(let stageIdx in stages) {
+
                 let stage = stages[stageIdx].toUpperCase();
+
                 it('Loads the credentials of the profile extracted from the environment using variable prefix "' + prefix + '" and the stage modifier "' + stage + '"', function() {
                     let expected = buildExpectedProfileCredentials(prefix, stage);
                     credentials = {};
+
                     setProfileEnvironmentVariable(prefix, stage);
-                    provider.addProfileCredentials(credentials, prefix + '_' + stage);
-                    checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+
+                    return provider.addProfileCredentials(credentials, prefix + '_' + stage).then(() => {
+                        checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+                    });
                 });
             }
         }
+
         setProfilePrefixEnvVariable(profilePrefixEnvValue);
+
         for(let prefixIdx in environmentPrefixes) {
+
             let prefix = environmentPrefixes[prefixIdx].toUpperCase();
+
             it('Loads the credentials of the "' + profilePrefixEnvValue + '" prefixed profile extracted from the environment using variable prefix "' + prefix + '"', function() {
                 let expected = buildExpectedProfileCredentials(prefix, null);
                 credentials = {};
                 setProfileEnvironmentVariable(prefix, null);
-                provider.addProfileCredentials(credentials, prefix);
-                checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+
+                return provider.addProfileCredentials(credentials, prefix).then(() => {
+                    checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+                });
             });
+
             for(let stageIdx in stages) {
+
                 let stage = stages[stageIdx].toUpperCase();
+
                 it('Loads the credentials of the "' + profilePrefixEnvValue + '" prefixed profile extracted from the environment using variable prefix "' + prefix + '" and the stage modifier "' + stage + '"', function() {
                     let expected = buildExpectedProfileCredentials(prefix, stage);
                     credentials = {};
                     setProfileEnvironmentVariable(prefix, stage);
-                    provider.addProfileCredentials(credentials, prefix + '_' + stage);
-                    checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+
+                    return provider.addProfileCredentials(credentials, prefix + '_' + stage).then(() => {
+                        checkResults(credentials, expected.accessKeyId, expected.secretAccessKey, expected.sessionToken);
+                    });
                 });
             }
         }
