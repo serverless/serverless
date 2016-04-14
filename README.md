@@ -118,3 +118,4 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Apiwise](http://www.apiwise.nl)
 * [Useful IO](http://useful.io) - and [Hail Messaging](http://hail.io)
 * [WhaleTech](https://whaletech.co/)
+* [CloudNative](http://cloudnative.io//)
