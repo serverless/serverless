@@ -34,10 +34,14 @@
     "serverless-run-python-handler": "./bin/serverless-run-python-handler"
   },
   "scripts": {
-    "test": "mocha tests/all"
+    "test": "mocha tests/all",
+    "lint": "eslint . || true"
   },
   "devDependencies": {
     "chai": "^3.2.0",
+    "eslint": "^2.8.0",
+    "eslint-config-airbnb": "^7.0.0",
+    "eslint-plugin-react": "^4.3.0",
     "mocha": "^2.2.5",
     "node-uuid": "^1.4.2",
     "rimraf": "^2.4.3"
