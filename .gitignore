@@ -38,3 +38,4 @@ node_modules
 #SERVERLESS STUFF
 admin.env
 .env
+tmp

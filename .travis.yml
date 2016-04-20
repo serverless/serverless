@@ -1,14 +1,12 @@
 language: node_js
 
 node_js:
-  - '4.2.3'
+  - '4'
 
 sudo: false
 
 install:
-  - travis_retry npm install jshint jscs
+  - travis_retry npm install
 
 script:
-  - ./node_modules/jshint/bin/jshint .
-  - ./node_modules/jscs/bin/jscs .
-
+  - ./scripts/eslint.sh
