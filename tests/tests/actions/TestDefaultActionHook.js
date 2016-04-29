@@ -108,7 +108,8 @@ describe('Test Default Action With Pre Hook', function() {
       this.timeout(0);
       let evt = {
         options: {
-          path:   'testFunction'
+          path:   'testFunction',
+          template: 'function'
         }
       };
 

@@ -56,7 +56,8 @@ describe('Test action: Function Create', function() {
       this.timeout(0);
       let evt = {
         options: {
-          path: 'functions/temp'
+          path: 'functions/temp',
+          template: 'function'
         }
       };
 
