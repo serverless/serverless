@@ -122,3 +122,4 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Useful IO](http://useful.io) - and [Hail Messaging](http://hail.io)
 * [WhaleTech](https://whaletech.co/)
 * [CloudNative](http://cloudnative.io//)
+* [Hop Labs](http://www.hoplabs.com)
