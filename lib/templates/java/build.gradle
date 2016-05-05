@@ -1,0 +1,17 @@
+buildscript {
+  repositories { jcenter() }
+  dependencies {
+    //Gradle shadow plugin
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+repositories { jcenter() }
+dependencies {
+    //AWS Lambda core library
+    compile 'com.amazonaws:aws-lambda-java-core:1.1.0'
+}
