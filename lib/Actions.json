@@ -12,6 +12,7 @@
     "./actions/EndpointBuildApiGateway.js",
     "./actions/EventDeploy.js",
     "./actions/EventLambdaStream.js",
+    "./actions/EventCWLogs.js",
     "./actions/EventLambdaS3.js",
     "./actions/EventIotRule.js",
     "./actions/EventLambdaSNS.js",
