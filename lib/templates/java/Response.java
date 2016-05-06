@@ -1,14 +1,14 @@
 package <%= package %>;
 
-public class <%= functionName %>Response {
+public class Response {
 
 	private String value;
 
-	public <%= functionName %>Response(String value) {
+	public Response(String value) {
 		this.value = value;
 	}
 
-	public <%= functionName %>Response() {
+	public Response() {
 	}
 
 	public String getValue() {

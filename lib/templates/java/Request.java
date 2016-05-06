@@ -1,14 +1,14 @@
 package <%= package %>;
 
-public class <%= functionName %>Request {
+public class Request {
 
 	private String input;
 
-	public <%= functionName %>Request(String input) {
+	public Request(String input) {
 		this.input = input;
 	}
 
-	public <%= functionName %>Request() {
+	public Request() {
 	}
 
 	public String getInput() {

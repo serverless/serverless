@@ -14,4 +14,5 @@ repositories { jcenter() }
 dependencies {
     //AWS Lambda core library
     compile 'com.amazonaws:aws-lambda-java-core:1.1.0'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.7.4'
 }
