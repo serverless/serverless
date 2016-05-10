@@ -39,3 +39,4 @@ node_modules
 admin.env
 .env
 tmp
+.coveralls.yml

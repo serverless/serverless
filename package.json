@@ -35,16 +35,18 @@
   },
   "scripts": {
     "test": "mocha tests/all",
-    "coverage": "istanbul cover _mocha tests/all && echo Open full report in browser: file://`pwd`/coverage/lcov-report/index.html",
+    "coverage": "istanbul cover _mocha tests/all --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "lint": "eslint . || true"
   },
   "devDependencies": {
     "chai": "^3.2.0",
+    "coveralls": "^2.11.9",
     "eslint": "^2.8.0",
     "eslint-config-airbnb": "^7.0.0",
     "eslint-plugin-react": "^4.3.0",
     "istanbul": "^0.4.3",
     "mocha": "^2.2.5",
+    "mocha-lcov-reporter": "^1.2.0",
     "node-uuid": "^1.4.2",
     "rimraf": "^2.4.3"
   },
