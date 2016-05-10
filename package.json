@@ -35,6 +35,7 @@
   },
   "scripts": {
     "test": "mocha tests/all",
+    "coverage": "istanbul cover _mocha tests/all && echo Open full report in browser: file://`pwd`/coverage/lcov-report/index.html",
     "lint": "eslint . || true"
   },
   "devDependencies": {
@@ -42,6 +43,7 @@
     "eslint": "^2.8.0",
     "eslint-config-airbnb": "^7.0.0",
     "eslint-plugin-react": "^4.3.0",
+    "istanbul": "^0.4.3",
     "mocha": "^2.2.5",
     "node-uuid": "^1.4.2",
     "rimraf": "^2.4.3"
