@@ -12,7 +12,7 @@ const Utils = require('../../../lib/classes/Utils')({});
 
 const SUtils = new Utils();
 
-describe('Utils class tests', () => {
+describe('Utils class', () => {
 
   after((done) => {
     done();
