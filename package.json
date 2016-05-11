@@ -34,8 +34,7 @@
     "serverless-run-python-handler": "./bin/serverless-run-python-handler"
   },
   "scripts": {
-    "test": "mocha tests/all",
-    "coverage": "istanbul cover _mocha tests/all --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "test": "istanbul cover _mocha tests/all -- -R spec",
     "lint": "eslint . || true"
   },
   "devDependencies": {
