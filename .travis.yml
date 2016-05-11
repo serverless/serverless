@@ -9,4 +9,5 @@ install:
   - travis_retry npm install
 
 script:
+  - npm run coverage
   - ./scripts/eslint.sh
