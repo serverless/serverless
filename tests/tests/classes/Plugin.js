@@ -124,7 +124,7 @@ describe('Plugin class', () => {
     });
 
     // this test adds an additional hook
-    it('should runs the specified action', () => {
+    it('should run the specified action', () => {
       return serverless.actions.actionMock({ baz: 'abc' }).then((evt) => {
         expect(evt).to.have.property('foo');
       });
