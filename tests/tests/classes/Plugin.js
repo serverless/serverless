@@ -23,6 +23,20 @@ describe('Plugin class', () => {
     expect(name).to.be.equal('Plugin');
   });
 
+  it('should register actions', () => {
+    const actions = SPlugin.registerActions();
+    return actions.then((result) => {
+      expect(result).to.equal(undefined);
+    });
+  });
+
+  it('should register hooks', () => {
+    const hooks = SPlugin.registerHooks();
+    return hooks.then((result) => {
+      expect(result).to.equal(undefined);
+    });
+  });
+
   describe('Add action', () => {
 
     before((done) => {
