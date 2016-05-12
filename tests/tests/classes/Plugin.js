@@ -16,7 +16,7 @@ const Plugin = require('../../../lib/classes/Plugin')(serverless);
 
 // action mocks
 const actionMock = () => { return { foo: 'bar' }; };
-const actionMockConfig = {
+const actionMockConfigWithOptions = {
   handler: 'actionMock',
   context: 'action',
   contextAction: 'mock',
@@ -35,10 +35,15 @@ const actionMockConfig = {
     },
   ],
 };
+const actionMockConfigWithoutOptions = {
+  handler: 'actionMock',
+  context: 'action',
+  contextAction: 'mock',
+};
 
 // hook mocks
-const hookMock = () => { return true; };
-const hookMockConfig = {
+const preHookMock = () => { return true; };
+const preHookMockConfig = {
   action: 'actionMock',
   event: 'pre',
 };
@@ -52,10 +57,31 @@ describe('Plugin class', () => {
     expect(name).to.be.equal('Plugin');
   });
 
-  describe('Add action', () => {
+  describe('Add action without an options array', () => {
 
     before((done) => {
-      SPlugin.addAction(actionMock, actionMockConfig);
+      SPlugin.addAction(actionMock, actionMockConfigWithoutOptions);
+      done();
+    });
+
+    after((done) => {
+      done();
+    });
+
+    it('should have an empty options property when adding an action', () => {
+      expect(serverless.commands.action.mock.options.length).to.equal(0);
+    });
+
+    it('should have an empty parameters property when adding an action', () => {
+      expect(serverless.commands.action.mock.parameters.length).to.equal(0);
+    });
+
+  });
+
+  describe('Add action with an options array', () => {
+
+    before((done) => {
+      SPlugin.addAction(actionMock, actionMockConfigWithOptions);
       done();
     });
 
@@ -125,17 +151,17 @@ describe('Plugin class', () => {
 
     // this test adds an additional hook
     it('should run the specified action', () => {
-      return serverless.actions.actionMock({ baz: 'abc' }).then((evt) => {
+      return serverless.actions.actionMock({ baz: 'qux' }).then((evt) => {
         expect(evt).to.have.property('foo');
       });
     });
 
   });
 
-  describe('Add a hook', () => {
+  describe('Add a pre hook', () => {
 
     before((done) => {
-      SPlugin.addHook(hookMock, hookMockConfig);
+      SPlugin.addHook(preHookMock, preHookMockConfig);
       done();
     });
 
