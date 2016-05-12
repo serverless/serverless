@@ -39,41 +39,34 @@ describe('Plugin class', () => {
 
   describe('Add action', () => {
 
-    before((done) => {
-      const actionMock = () => { return { foo: 'bar' }; };
-      const actionMockConfig = {
-        handler: 'actionMock',
-        context: 'action',
-        contextAction: 'mock',
-        options: [
-          {
-            option: 'mockOption',
-            shortcut: 'm',
-            description: 'Mock option',
-          },
-        ],
-        parameters: [
-          {
-            parameter: 'mockParam',
-            description: 'Mock param',
-            position: '0->',
-          },
-        ],
-      };
-      const actionMockConfigSimple = {
-        handler: 'actionMock',
-        context: 'action2',
-        contextAction: 'mock',
-      };
+    const actionMock = () => { return { foo: 'bar' }; };
+    const actionMockConfig = {
+      handler: 'actionMock',
+      context: 'action',
+      contextAction: 'mock',
+      options: [
+        {
+          option: 'mockOption',
+          shortcut: 'm',
+          description: 'Mock option',
+        },
+      ],
+      parameters: [
+        {
+          parameter: 'mockParam',
+          description: 'Mock param',
+          position: '0->',
+        },
+      ],
+    };
+    const actionMockConfigSimple = {
+      handler: 'actionMock',
+      context: 'action2',
+      contextAction: 'mock',
+    };
 
-      SPlugin.addAction(actionMock, actionMockConfig);
-      SPlugin.addAction(actionMock, actionMockConfigSimple);
-      done();
-    });
-
-    after((done) => {
-      done();
-    });
+    SPlugin.addAction(actionMock, actionMockConfig);
+    SPlugin.addAction(actionMock, actionMockConfigSimple);
 
     it('should have an empty options property when adding an action', () => {
       expect(serverless.commands.action2.mock.options.length).to.equal(0);
@@ -174,10 +167,6 @@ describe('Plugin class', () => {
       done();
     });
 
-    after((done) => {
-      done();
-    });
-
     it('should have a specified preHooks array when adding a pre hook', () => {
       expect(serverless.hooks.actionMockPre.length).to.equal(1);
     });
@@ -203,10 +192,6 @@ describe('Plugin class', () => {
 
       SPlugin.addHook(postHookMock, postHookMockConfig);
 
-      done();
-    });
-
-    after((done) => {
       done();
     });
 
