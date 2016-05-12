@@ -21,21 +21,23 @@ describe('Plugin class', () => {
     expect(name.length).to.be.at.least(1);
   });
 
-  it('should register actions', () => {
+  it('should register actions', (done) => {
     const actions = SPlugin.registerActions();
 
-    // note: use return when testing promises otherwise you'll have unhandled rejection errors
-    return actions.then((result) => {
-      expect(result).to.equal(undefined);
+    actions.then((result) => {
+      done();
+    }).catch((error) => {
+      done(new Error(error));
     });
   });
 
-  it('should register hooks', () => {
+  it('should register hooks', (done) => {
     const hooks = SPlugin.registerHooks();
 
-    // note: use return when testing promises otherwise you'll have unhandled rejection errors
-    return hooks.then((result) => {
-      expect(result).to.equal(undefined);
+    hooks.then((result) => {
+      done();
+    }).catch((error) => {
+      done(new Error(error));
     });
   });
 
