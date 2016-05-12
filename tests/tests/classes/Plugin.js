@@ -14,40 +14,6 @@ const serverless = new Serverless({
 
 const Plugin = require('../../../lib/classes/Plugin')(serverless);
 
-// action mocks
-const actionMock = () => { return { foo: 'bar' }; };
-const actionMockConfigWithOptions = {
-  handler: 'actionMock',
-  context: 'action',
-  contextAction: 'mock',
-  options: [
-    {
-      option: 'mockOption',
-      shortcut: 'm',
-      description: 'Mock option',
-    },
-  ],
-  parameters: [
-    {
-      parameter: 'mockParam',
-      description: 'Mock param',
-      position: '0->',
-    },
-  ],
-};
-const actionMockConfigWithoutOptions = {
-  handler: 'actionMock',
-  context: 'action',
-  contextAction: 'mock',
-};
-
-// hook mocks
-const preHookMock = () => { return true; };
-const preHookMockConfig = {
-  action: 'actionMock',
-  event: 'pre',
-};
-
 const SPlugin = new Plugin();
 
 describe('Plugin class', () => {
@@ -57,10 +23,37 @@ describe('Plugin class', () => {
     expect(name).to.be.equal('Plugin');
   });
 
-  describe('Add action without an options array', () => {
+  describe('Add action', () => {
 
     before((done) => {
-      SPlugin.addAction(actionMock, actionMockConfigWithoutOptions);
+      const actionMock = () => { return { foo: 'bar' }; };
+      const actionMockConfig = {
+        handler: 'actionMock',
+        context: 'action',
+        contextAction: 'mock',
+        options: [
+          {
+            option: 'mockOption',
+            shortcut: 'm',
+            description: 'Mock option',
+          },
+        ],
+        parameters: [
+          {
+            parameter: 'mockParam',
+            description: 'Mock param',
+            position: '0->',
+          },
+        ],
+      };
+      const actionMockConfigSimple = {
+        handler: 'actionMock',
+        context: 'action2',
+        contextAction: 'mock',
+      };
+
+      SPlugin.addAction(actionMock, actionMockConfig);
+      SPlugin.addAction(actionMock, actionMockConfigSimple);
       done();
     });
 
@@ -69,24 +62,11 @@ describe('Plugin class', () => {
     });
 
     it('should have an empty options property when adding an action', () => {
-      expect(serverless.commands.action.mock.options.length).to.equal(0);
+      expect(serverless.commands.action2.mock.options.length).to.equal(0);
     });
 
     it('should have an empty parameters property when adding an action', () => {
-      expect(serverless.commands.action.mock.parameters.length).to.equal(0);
-    });
-
-  });
-
-  describe('Add action with an options array', () => {
-
-    before((done) => {
-      SPlugin.addAction(actionMock, actionMockConfigWithOptions);
-      done();
-    });
-
-    after((done) => {
-      done();
+      expect(serverless.commands.action2.mock.parameters.length).to.equal(0);
     });
 
     it('should have an options property when adding an action', () => {
@@ -149,9 +129,17 @@ describe('Plugin class', () => {
       expect(serverless.commands.action.mock.parameters[0].position).to.equal('0->');
     });
 
-    // this test adds an additional hook
     it('should run the specified action', () => {
-      return serverless.actions.actionMock({ baz: 'qux' }).then((evt) => {
+      const actionRunMock = () => { return { foo: 'bar' }; };
+      const actionRunMockConfig = {
+        handler: 'actionRunMock',
+        context: 'actionrun',
+        contextAction: 'mock',
+      };
+
+      SPlugin.addAction(actionRunMock, actionRunMockConfig);
+
+      return serverless.actions.actionRunMock({ baz: 'qux' }).then((evt) => {
         expect(evt).to.have.property('foo');
       });
     });
@@ -161,7 +149,14 @@ describe('Plugin class', () => {
   describe('Add a pre hook', () => {
 
     before((done) => {
+      const preHookMock = () => { return true; };
+      const preHookMockConfig = {
+        action: 'actionMock',
+        event: 'pre',
+      };
+
       SPlugin.addHook(preHookMock, preHookMockConfig);
+
       done();
     });
 
@@ -170,15 +165,47 @@ describe('Plugin class', () => {
     });
 
     it('should have a specified preHooks array when adding a pre hook', () => {
-      expect(serverless.hooks.actionMockPre.length).to.equal(2);
+      expect(serverless.hooks.actionMockPre.length).to.equal(1);
     });
 
     it('should have an empty postHooks array when adding a pre hook', () => {
       expect(serverless.hooks.actionMockPost.length).to.equal(0);
     });
 
-    it('should have a function as a hook', () => {
+    it('should have a function as a pre hook', () => {
       expect(serverless.hooks.actionMockPre[0]).to.be.a('function');
+    });
+
+  });
+
+  describe('Add a post hook', () => {
+
+    before((done) => {
+      const postHookMock = () => { return true; };
+      const postHookMockConfig = {
+        action: 'actionMock',
+        event: 'post',
+      };
+
+      SPlugin.addHook(postHookMock, postHookMockConfig);
+
+      done();
+    });
+
+    after((done) => {
+      done();
+    });
+
+    it('should have a specified postHooks array when adding a post hook', () => {
+      expect(serverless.hooks.actionMockPost.length).to.equal(1);
+    });
+
+    it('should not remove the pre hook from the preHooks array when adding a post hook', () => {
+      expect(serverless.hooks.actionMockPre.length).to.equal(1);
+    });
+
+    it('should have a function as a post hook', () => {
+      expect(serverless.hooks.actionMockPost[0]).to.be.a('function');
     });
 
   });
