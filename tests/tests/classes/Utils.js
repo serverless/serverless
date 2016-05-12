@@ -94,4 +94,150 @@ describe('Utils class', () => {
     });
   });
 
+  describe('Populate method', () => {
+
+    const projectMock = {
+      validateStageExists: (stage) => { return true; },
+      validateRegionExists: (stage, region) => { return true; },
+      getVariablesObject: () => {
+        return {
+          variableMock: 'valueMock',
+        };
+      },
+    };
+
+    const dataMock = {
+      foo: '${variableMock}',
+    };
+
+    it('should populate data', () => {
+      const populatedData = SUtils.populate(projectMock, {}, dataMock);
+
+      expect(populatedData.foo).to.equal('valueMock');
+    });
+
+    it('should populate data with stage and region variables', () => {
+      const populatedData = SUtils.populate(projectMock, {}, dataMock, 'dev', 'us-east1');
+
+      expect(populatedData.foo).to.equal('valueMock');
+    });
+
+    it('should populate data with a custom variable syntax', () => {
+      const customSyntaxProject = {
+        getVariablesObject: () => {
+          return {
+            variableMock: 'valueMock',
+          };
+        },
+        variableSyntax: '\\${{([\\s\\S]+?)}}',
+      };
+
+      const customSyntaxDataMock = {
+        foo: '${{variableMock}}',
+      };
+
+      const populatedData = SUtils.populate(customSyntaxProject, {}, customSyntaxDataMock);
+
+      expect(populatedData.foo).to.equal('valueMock');
+    });
+
+    it('should populate data with a template syntax', () => {
+      const customSyntaxProject = {
+        getVariablesObject: () => {
+          return {
+            variableMock: 'valueMock',
+          };
+        },
+        templateSyntax: '\\${{([\\s\\S]+?)}}',
+      };
+
+      const templateMock = {
+        templateMock: 'valueMock',
+      };
+
+      const customSyntaxDataMock = {
+        foo: '${{templateMock}}',
+      };
+
+      const populatedData = SUtils.populate(customSyntaxProject, templateMock, customSyntaxDataMock);
+
+      expect(populatedData.foo).to.equal('valueMock');
+    });
+
+    it('should populate data with data type other than string', () => {
+      const dataTypeProjectMock = {
+        getVariablesObject: () => {
+          return {
+            variableMock: 42,
+          };
+        }
+      };
+
+      const dataTypeMock = {
+        foo: '${variableMock}'
+      };
+
+      const populatedData = SUtils.populate(dataTypeProjectMock, {}, dataTypeMock);
+
+      expect(populatedData.foo).to.equal(42);
+    });
+
+    it('should populate variables within a string', () => {
+      const nameProjectMock = {
+        getVariablesObject: () => {
+          return {
+            variableMock: 'John',
+          };
+        }
+      };
+
+      const nameDataMock = {
+        foo: 'Hello ${variableMock}',
+      };
+
+      const populatedData = SUtils.populate(nameProjectMock, {}, nameDataMock);
+
+      expect(populatedData.foo).to.equal('Hello John');
+    });
+
+  });
+
+  /*
+  it('should run npm install successfully inside a directory', () => {
+    const packageJson = {
+      name: 'foo',
+      version: '0.0.1',
+      description: 'Serverless component dependencies',
+      author: 'me',
+      license: 'MIT',
+      private: true,
+      repository: {
+        type: 'git',
+        url: 'git://github.com/',
+      },
+      dependencies: {
+        'serverless-helpers-js': '~0.1.0',
+      },
+    };
+
+    const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+
+    SUtils.writeFileSync(path.join(tmpDirPath, 'package.json'), JSON.stringify(packageJson));
+    SUtils.npmInstall(tmpDirPath);
+
+    expect(SUtils.dirExistsSync(path.join(tmpDirPath, 'node_modules'))).to.equal(true);
+  });
+  */
+
+  it('should find the service path', () => {
+    const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+
+    SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'));
+    SUtils.writeFileSync(path.join(tmpDirPath, 'test', 'fakeFile.json'));
+
+    const servicePath = SUtils.findServicePath(path.join(tmpDirPath, 'test'));
+
+    expect(SUtils.fileExistsSync(path.join(servicePath, 'serverless.yml'))).to.equal(true);
+  });
+
 });
