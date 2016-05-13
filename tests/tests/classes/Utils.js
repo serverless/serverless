@@ -121,7 +121,6 @@ describe('Utils class', () => {
     it('should parse a yaml file with JSON-REF to yaml', () => {
       let tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
 
-      //console.log(tmpDirPath)
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'ref.yaml'), { foo: 'bar' });
 
