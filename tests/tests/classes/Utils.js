@@ -44,23 +44,39 @@ describe('Utils', () => {
   });
 
   describe('#dirExistsSync()', () => {
-    it('should check if a directory exists synchronously', () => {
-      const dir = SUtils.dirExistsSync(__dirname);
-      const noDir = SUtils.dirExistsSync(path.join(__dirname, '..', 'XYZ'));
 
-      expect(dir).to.equal(true);
-      expect(noDir).to.equal(false);
+    describe('When reading a directory', () => {
+
+      it('should detect if a directory exists', () => {
+        const dir = SUtils.dirExistsSync(__dirname);
+        expect(dir).to.equal(true);
+      });
+
+      it('should detect if a directory doesn\'t exist', () => {
+        const noDir = SUtils.dirExistsSync(path.join(__dirname, '..', 'XYZ'));
+        expect(noDir).to.equal(false);
+      });
+
     });
+
   });
 
   describe('#fileExistsSync()', () => {
-    it('should check if a file exists synchronously', () => {
-      const file = SUtils.fileExistsSync(__filename);
-      const noFile = SUtils.fileExistsSync(path.join(__dirname, 'XYZ.json'));
 
-      expect(file).to.equal(true);
-      expect(noFile).to.equal(false);
+    describe('When reading a file', () => {
+
+      it('should detect if a file exists', () => {
+        const file = SUtils.fileExistsSync(__filename);
+        expect(file).to.equal(true);
+      });
+
+      it('should detect if a file doesn\'t exist', () => {
+        const noFile = SUtils.fileExistsSync(path.join(__dirname, 'XYZ.json'));
+        expect(noFile).to.equal(false);
+      });
+
     });
+
   });
 
   describe('#writeFileSync()', () => {
