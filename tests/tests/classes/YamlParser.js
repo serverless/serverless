@@ -16,14 +16,14 @@ const SYamlParser = new YamlParser();
 
 describe('YamlParser', () => {
 
-  describe('#parseYaml()', () => {
+  describe('#parse()', () => {
 
     it('should parse a simple yaml file', () => {
       const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'simple.yml');
 
       SUtils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
 
-      return SYamlParser.parseYaml(tmpFilePath).then((obj) => {
+      return SYamlParser.parse(tmpFilePath).then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
     });
@@ -41,7 +41,7 @@ describe('YamlParser', () => {
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'test.yaml'), testYaml);
 
-      return SYamlParser.parseYaml(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
+      return SYamlParser.parse(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
         expect(obj.main.foo).to.equal('bar');
       });
     });
@@ -59,7 +59,7 @@ describe('YamlParser', () => {
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'test.yaml'), testYaml);
 
-      return SYamlParser.parseYaml(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
+      return SYamlParser.parse(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
         expect(obj.main.foo).to.equal('bar');
       });
     });
@@ -85,7 +85,7 @@ describe('YamlParser', () => {
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'one.yaml'), oneYaml);
 
-      return SYamlParser.parseYaml(path.join(tmpDirPath, 'one.yaml')).then((obj) => {
+      return SYamlParser.parse(path.join(tmpDirPath, 'one.yaml')).then((obj) => {
         expect(obj.one.two.foo).to.equal('bar');
       });
     });

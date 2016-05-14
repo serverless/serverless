@@ -78,7 +78,7 @@ describe('Utils', () => {
 
       SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
-      return SYamlParser.parseYaml(tmpFilePath).then((obj) => {
+      return SYamlParser.parse(tmpFilePath).then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
     });
@@ -97,7 +97,7 @@ describe('Utils', () => {
     });
   });
 
-  describe('#readFileSyn()', () => {
+  describe('#readFileSync()', () => {
     it('should read a file synchronously', () => {
       const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
 
