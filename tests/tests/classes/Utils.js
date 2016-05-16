@@ -6,178 +6,133 @@
 
 const path = require('path');
 const os = require('os');
-const YAML = require('js-yaml');
-const assert = require('chai').assert;
 const expect = require('chai').expect;
 const Utils = require('../../../lib/classes/Utils')({});
+const YamlParser = require('../../../lib/classes/YamlParser')({});
 
 const SUtils = new Utils();
+const SYamlParser = new YamlParser();
 
-describe('Utils class', () => {
+describe('Utils', () => {
 
-  after((done) => {
-    done();
-  });
+  describe('#exportObject()', () => {
+    it('should export an object', () => {
+      const data = {
+        _class: 'SampleClass',
+        publicProp: 'somethingPublic',
+        functionProp: () => {
+        },
+      };
 
-  it('should export an object', () => {
-    const data = {
-      _class: 'SampleClass',
-      publicProp: 'somethingPublic',
-      functionProp: () => {
-      }
-    };
-
-    const Obj = SUtils.exportObject(data);
-    assert.equal(Obj.publicProp, 'somethingPublic');
-    assert.equal(typeof Obj._class, 'undefined');
-    assert.equal(typeof Obj.functionProp, 'undefined');
-  });
-
-  it('should generate a shortId', () => {
-    const id = SUtils.generateShortId(6);
-    assert.equal(typeof id, 'string');
-    assert.equal(id.length, 6);
-  });
-
-  it('should check if a directory exists synchronously', () => {
-    const dir = SUtils.dirExistsSync(__dirname);
-    const noDir = SUtils.dirExistsSync(path.join(__dirname, '..', 'XYZ'));
-
-    assert.equal(dir, true);
-    assert.equal(noDir, false);
-  });
-
-  it('should check if a file exists synchronously', () => {
-    const file = SUtils.fileExistsSync(__filename);
-    const noFile = SUtils.fileExistsSync(path.join(__dirname, 'XYZ.json'));
-
-    assert.equal(file, true);
-    assert.equal(noFile, false);
-  });
-
-  it('should write a file synchronously', () => {
-    let tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
-
-    SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
-    let obj = SUtils.readFileSync(tmpFilePath);
-
-    assert.equal(obj.foo, 'bar');
-  });
-
-  it('should write a yaml file synchronously', () => {
-    let tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yaml');
-
-    SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
-
-    return SUtils.parseYaml(tmpFilePath).then((obj) => {
-      expect(obj.foo).to.equal('bar');
+      const Obj = SUtils.exportObject(data);
+      expect(Obj.publicProp).to.equal('somethingPublic');
+      expect(Obj._class).to.be.an('undefined');
+      expect(Obj.functionProp).to.be.an('undefined');
     });
   });
 
-  it('should write a file asynchronously', () => {
-    let tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+  describe('#generateShortId()', () => {
+    it('should generate a shortId', () => {
+      const id = SUtils.generateShortId(6);
+      expect(id).to.be.a('string');
+    });
 
-    // note: use return when testing promises otherwise you'll have unhandled rejection errors
-    return SUtils.writeFile(tmpFilePath, { foo: 'bar' }).then(() => {
-      let obj = SUtils.readFileSync(tmpFilePath);
-
-      expect(obj.foo).to.equal('bar');
+    it('should generate a shortId for the given length', () => {
+      const id = SUtils.generateShortId(6);
+      expect(id.length).to.equal(6);
     });
   });
 
-  it('should read a file synchronously', () => {
-    let tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+  describe('#dirExistsSync()', () => {
 
-    SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
-    let obj = SUtils.readFileSync(tmpFilePath);
+    describe('When reading a directory', () => {
 
-    assert.equal(obj.foo, 'bar');
+      it('should detect if a directory exists', () => {
+        const dir = SUtils.dirExistsSync(__dirname);
+        expect(dir).to.equal(true);
+      });
+
+      it('should detect if a directory doesn\'t exist', () => {
+        const noDir = SUtils.dirExistsSync(path.join(__dirname, '..', 'XYZ'));
+        expect(noDir).to.equal(false);
+      });
+
+    });
+
   });
 
-  it('should read a file asynchronously', () => {
-    let tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+  describe('#fileExistsSync()', () => {
 
-    SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
+    describe('When reading a file', () => {
 
-    // note: use return when testing promises otherwise you'll have unhandled rejection errors
-    return SUtils.readFile(tmpFilePath).then((obj) => {
+      it('should detect if a file exists', () => {
+        const file = SUtils.fileExistsSync(__filename);
+        expect(file).to.equal(true);
+      });
+
+      it('should detect if a file doesn\'t exist', () => {
+        const noFile = SUtils.fileExistsSync(path.join(__dirname, 'XYZ.json'));
+        expect(noFile).to.equal(false);
+      });
+
+    });
+
+  });
+
+  describe('#writeFileSync()', () => {
+    it('should write a .json file synchronously', () => {
+      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+
+      SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = SUtils.readFileSync(tmpFilePath);
+
       expect(obj.foo).to.equal('bar');
     });
-  });
 
+    it('should write a .yaml file synchronously', () => {
+      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yaml');
 
-  describe('YAML Parser', () => {
+      SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
-    it('should parse a simple yaml file', () => {
-      let tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'simple.yml');
-
-      SUtils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
-
-      return SUtils.parseYaml(tmpFilePath).then((obj) => {
+      return SYamlParser.parse(tmpFilePath).then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
     });
+  });
 
-    it('should parse a yaml file with JSON-REF to yaml', () => {
-      let tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+  describe('#writeFile()', () => {
+    it('should write a file asynchronously', () => {
+      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
 
+      // note: use return when testing promises otherwise you'll have unhandled rejection errors
+      return SUtils.writeFile(tmpFilePath, { foo: 'bar' }).then(() => {
+        const obj = SUtils.readFileSync(tmpFilePath);
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'ref.yaml'), { foo: 'bar' });
-
-      let testYaml = {
-        main: {
-          $ref: './ref.yaml'
-        }
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'test.yaml'), testYaml);
-
-      return SUtils.parseYaml(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
-        expect(obj.main.foo).to.equal('bar');
+        expect(obj.foo).to.equal('bar');
       });
     });
+  });
 
-    it('should parse a yaml file with JSON-REF to json', () => {
-      let tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+  describe('#readFileSync()', () => {
+    it('should read a file synchronously', () => {
+      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'ref.json'), { foo: 'bar' });
+      SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = SUtils.readFileSync(tmpFilePath);
 
-      let testYaml = {
-        main: {
-          $ref: './ref.json'
-        }
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'test.yaml'), testYaml);
-
-      return SUtils.parseYaml(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
-        expect(obj.main.foo).to.equal('bar');
-      });
+      expect(obj.foo).to.equal('bar');
     });
+  });
 
-    it('should parse yaml file with recursive JSON-REF', () => {
-      let tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+  describe('#readFile()', () => {
+    it('should read a file asynchronously', () => {
+      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'three.yaml'), { foo: 'bar' });
+      SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
-      let twoYaml = {
-        two: {
-          $ref: './three.yaml'
-        }
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'two.yaml'), twoYaml);
-
-      let oneYaml = {
-        one: {
-          $ref: './two.yaml'
-        }
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'one.yaml'), oneYaml);
-
-      return SUtils.parseYaml(path.join(tmpDirPath, 'one.yaml')).then((obj) => {
-        expect(obj.one.two.foo).to.equal('bar');
+      // note: use return when testing promises otherwise you'll have unhandled rejection errors
+      return SUtils.readFile(tmpFilePath).then((obj) => {
+        expect(obj.foo).to.equal('bar');
       });
     });
   });

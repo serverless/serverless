@@ -8,6 +8,7 @@ describe('All Tests', function() {
   after(function() {});
 
   require('./tests/classes/Utils');
+  require('./tests/classes/YamlParser');
   //require('./tests/classes/Plugin');
   // require('./tests/classes/Project');
   // require('./tests/classes/ProviderAws');
