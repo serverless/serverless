@@ -2,8 +2,7 @@
 
 'use strict';
 
-let argv          = require('minimist')(process.argv.slice(2)),
-    ExamplePlugin = require('./plugins/example');
+let argv = require('minimist')(process.argv.slice(2));
 
 if (argv.debug) process.env.DEBUG = '*';
 
@@ -15,12 +14,6 @@ let S         = require('../lib/Serverless'),
     servicePath: SUtils.findServicePath(process.cwd()),
     interactive: typeof process.env.CI === 'undefined'
   });
-
-const plugins = [ExamplePlugin];
-
-serverless.addPlugins(plugins);
-serverless.loadCommands();
-serverless.runCommand(argv)
 
 // serverless.init()
 //   .then(function(){
