@@ -16,7 +16,7 @@ describe('Serverless', () => {
     });
   });
 
-  describe('addPlugin()', () => {
+  describe('#addPlugin()', () => {
     it('should add plugins', () => {
       class PluginMock {
         constructor() {
@@ -31,7 +31,7 @@ describe('Serverless', () => {
     });
   });
 
-  describe('loadCommands()', () => {
+  describe('#loadCommands()', () => {
     it('should load commands', () => {
       class PluginMock {
         constructor() {
@@ -39,7 +39,7 @@ describe('Serverless', () => {
             test: {
               usage: 'test usage',
             },
-          },
+          }
         }
       }
 
@@ -50,7 +50,7 @@ describe('Serverless', () => {
     });
   });
 
-  describe('runCommand()', () => {
+  describe('#runCommand()', () => {
     beforeEach(() => {
       const argv = {
         _: ['test'],
@@ -106,9 +106,9 @@ describe('Serverless', () => {
       expect(process.env.DEBUG).to.be.equal('*');
     });
 
-    it('should return version number', () => {
+    it('should return the version number', () => {
       return serverless.runCommand({ _: ['version'] }).then((version) => {
-        expect(version).to.be.equal('0.5.5');
+        expect(version).to.have.length.of.at.least(1);
       });
     });
   });
