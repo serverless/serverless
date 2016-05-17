@@ -1,5 +1,5 @@
 {
   "plugins": [
-    "./HelloWorld.js"
+    "./HelloWorld/HelloWorld.js"
   ]
 }
