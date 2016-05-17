@@ -9,67 +9,71 @@ const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
 const Service = require('../../../lib/classes/Service');
+const SError = require('../../../lib/classes/Error');
 const Utils = require('../../../lib/classes/Utils');
 const Serverless = require('../../../lib/Serverless');
 
 
 
-describe('Service class', () => {
+describe('Service', () => {
 
   after((done) => {
     done();
   });
 
-  const S = new Serverless();
-  
-  it('should construct with defaults', () => {
-    const serviceInstance = new Service(S);
+  describe('#constructor()', () => {
+    const S = new Serverless();
 
-    expect(serviceInstance.service).to.be.equal(null);
-    expect(serviceInstance.custom).to.deep.equal({});
-    expect(serviceInstance.plugins).to.deep.equal([]);
-    expect(serviceInstance.functions).to.deep.equal({});
-    expect(serviceInstance.environment).to.deep.equal({});
-    expect(serviceInstance.resources.aws).to.deep.equal({});
-    expect(serviceInstance.resources.azure).to.deep.equal({});
-    expect(serviceInstance.resources.google).to.deep.equal({});
 
-  });
+    it('should construct with defaults', () => {
+      const serviceInstance = new Service(S);
 
-  it('should construct with data', () => {
-    const data = {
-      service: 'testService',
-      custom: {
-        customProp: 'value'
-      },
-      plugins: ['testPlugin'],
-      functions: {
-        functionA: {}
-      },
-      resources: {
-        aws: {
-          resourcesProp: 'value'
+      expect(serviceInstance.service).to.be.equal(null);
+      expect(serviceInstance.custom).to.deep.equal({});
+      expect(serviceInstance.plugins).to.deep.equal([]);
+      expect(serviceInstance.functions).to.deep.equal({});
+      expect(serviceInstance.environment).to.deep.equal({});
+      expect(serviceInstance.resources.aws).to.deep.equal({});
+      expect(serviceInstance.resources.azure).to.deep.equal({});
+      expect(serviceInstance.resources.google).to.deep.equal({});
+
+    });
+
+    it('should construct with data', () => {
+      const data = {
+        service: 'testService',
+        custom: {
+          customProp: 'value'
         },
-        azure: {},
-        google: {}
-      }
-    };
+        plugins: ['testPlugin'],
+        functions: {
+          functionA: {}
+        },
+        resources: {
+          aws: {
+            resourcesProp: 'value'
+          },
+          azure: {},
+          google: {}
+        }
+      };
 
-    const serviceInstance = new Service(S, data);
+      const serviceInstance = new Service(S, data);
 
-    expect(serviceInstance.service).to.be.equal('testService');
-    expect(serviceInstance.custom).to.deep.equal({ customProp: 'value' });
-    expect(serviceInstance.plugins).to.deep.equal(['testPlugin']);
-    expect(serviceInstance.functions).to.deep.equal({ functionA: {} });
-    expect(serviceInstance.environment).to.deep.equal({});
-    expect(serviceInstance.resources.aws).to.deep.equal({ resourcesProp: 'value' });
-    expect(serviceInstance.resources.azure).to.deep.equal({});
-    expect(serviceInstance.resources.google).to.deep.equal({});
+      expect(serviceInstance.service).to.be.equal('testService');
+      expect(serviceInstance.custom).to.deep.equal({ customProp: 'value' });
+      expect(serviceInstance.plugins).to.deep.equal(['testPlugin']);
+      expect(serviceInstance.functions).to.deep.equal({ functionA: {} });
+      expect(serviceInstance.environment).to.deep.equal({});
+      expect(serviceInstance.resources.aws).to.deep.equal({ resourcesProp: 'value' });
+      expect(serviceInstance.resources.azure).to.deep.equal({});
+      expect(serviceInstance.resources.google).to.deep.equal({});
+    });
   });
 
-  let serviceInstance;
-  describe('load()', () => {
 
+  describe('#load()', () => {
+    let serviceInstance;
     before(() => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
@@ -137,12 +141,16 @@ describe('Service class', () => {
     });
 
     it('should throw error if servicePath not configured', () => {
+      const S = new Serverless();
+      serviceInstance = new Service(S);
+
+      expect(serviceInstance.load).to.throw(Error);
 
     });
 
   });
 
-  describe('save()', () => {
+  describe('#save()', () => {
 
     it('should save data', () => {
 
@@ -150,20 +158,107 @@ describe('Service class', () => {
 
   });
 
-  describe('toObject()', () => {
+  describe('#toObject()', () => {
 
     it('should convert service instance to object', () => {
+      const S = new Serverless();
+      const serviceInstance = new Service(S);
+      const serviceObj = serviceInstance.toObject();
 
+      expect(typeof serviceObj._class).to.be.equal('undefined');
     });
 
   });
 
   describe('toObjectPopulated()', () => {
 
-    it('should convert service instance to POPULATED object', () => {
+    const S = new Serverless();
+    const serviceInstance = new Service(S);
+    serviceInstance.
+
+    expect(typeof serviceObj._class).to.be.equal('undefined');
+
+    it('should populate common variables', () => {
 
     });
 
+    it('should populate stage variables', () => {
+
+    });
+
+    it('should populate region variables', () => {
+
+    });
+
+    it('should populate region variables before stage and common variables', () => {
+
+    });
+  });
+
+  describe('#fromObject()', () => {
+    it('should merge an object to the instance', () => {
+
+    });
+  });
+
+  describe('#getResources()', () => {
+    it('should throw an error if provider is not supported', () => {
+
+    });
+
+    it('should return resources based on provider', () => {
+
+    });
+  });
+
+  describe('#getStage()', () => {
+    it('should return stage object', () => {
+
+    });
+
+    it('should throw error if stage does not exist', () => {
+
+    });
+  });
+
+  describe('#getAllStages()', () => {
+    it('should return an array of stages in Service', () => {
+
+    });
+  });
+
+  describe('#getRegionInStage()', () => {
+    it('should return a region object based on provided stage', () => {
+
+    });
+
+    it('should throw error if stage does not exist in service', () => {
+
+    });
+
+    it('should throw error if region doesnt exist in stage', () => {
+
+    });
+  });
+
+  describe('#getAllRegionsInStage()', () => {
+    it('should return an array of regions in a specified stage', () => {
+
+    });
+  });
+
+  describe('#getVariables()', () => {
+    it('should return common variables if no stage/region provided', () => {
+
+    });
+
+    it('should return stage variables if no region provided', () => {
+
+    });
+
+    it('should return region variables if both stage and region provided', () => {
+
+    });
   });
 
 });
