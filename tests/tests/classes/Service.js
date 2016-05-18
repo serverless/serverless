@@ -122,6 +122,12 @@ describe('Service', () => {
       serviceInstance = new Service(S);
     });
 
+    /*
+     * Even though I wanna split this into multiple test cases
+     * that would mean loading from the filesystem on each test case (slow!!)
+     * and because the load() method returns a promise
+     * I can't put it in a before() block
+     */
     it('should load from filesystem', () => {
       return serviceInstance.load().then((serviceInstance) => {
         expect(serviceInstance.service).to.be.equal('testService');
@@ -153,7 +159,7 @@ describe('Service', () => {
 
   });
 
-  describe('toObjectPopulated()', () => {
+  describe('#toObjectPopulated()', () => {
 
     let serviceInstance;
     beforeEach(() => {
