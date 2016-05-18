@@ -7,10 +7,12 @@
 const expect = require('chai').expect;
 const PluginManager = require('../../../lib/classes/PluginManager');
 const Serverless = require('../../../lib/Serverless');
+const HelloWorld = require('../../../lib/plugins/HelloWorld/HelloWorld');
 
 describe('PluginManager', () => {
   let pluginManager;
-  let serverless;
+  let S;
+  let helloWorld;
 
   class ServicePluginMock1 {}
 
@@ -43,20 +45,20 @@ describe('PluginManager', () => {
       };
 
       // used to test if the function was executed correctly
-      this._deployedFunctions = 0;
-      this._deployedResources = 0;
+      this.deployedFunctions = 0;
+      this.deployedResources = 0;
     }
 
     functions() {
       return new Promise((resolve, reject) => {
-        this._deployedFunctions = this._deployedFunctions + 1;
+        this.deployedFunctions = this.deployedFunctions + 1;
         return resolve();
       });
     }
 
     resources() {
       return new Promise((resolve, reject) => {
-        this._deployedResources = this._deployedResources + 1;
+        this.deployedResources = this.deployedResources + 1;
         return resolve();
       });
     }
@@ -89,123 +91,139 @@ describe('PluginManager', () => {
       };
 
       // used to test if the function was executed correctly
-      this._deployedFunctions = 0;
-      this._deployedResources = 0;
+      this.deployedFunctions = 0;
+      this.deployedResources = 0;
     }
 
     functions() {
-      this._deployedFunctions = this._deployedFunctions + 1;
+      this.deployedFunctions = this.deployedFunctions + 1;
     }
 
     resources() {
-      this._deployedResources = this._deployedResources + 1;
+      this.deployedResources = this.deployedResources + 1;
     }
   }
 
   beforeEach(() => {
-    serverless = new Serverless({});
-    pluginManager = new PluginManager(serverless);
+    S = new Serverless({});
+    pluginManager = new PluginManager(S);
+    helloWorld = new HelloWorld();
   });
 
   describe('#constructor()', () => {
     it('should set the serverless instance', () => {
-      expect(pluginManager._serverless).to.deep.equal(serverless);
+      expect(pluginManager.S).to.deep.equal(S);
     });
 
-    it('should create an empty pluginInstances array', () => {
-      expect(pluginManager._pluginInstances.length).to.equal(0);
+    it('should create an empty plugins array', () => {
+      expect(pluginManager.plugins.length).to.equal(0);
     });
 
     it('should create an empty commandsList array', () => {
-      expect(pluginManager._commandsList.length).to.equal(0);
+      expect(pluginManager.commandsList.length).to.equal(0);
     });
 
     it('should create an empty commands object', () => {
-      expect(pluginManager._commands).to.deep.equal({});
+      expect(pluginManager.commands).to.deep.equal({});
     });
   });
 
   describe('#addPlugin()', () => {
-    it('should add a plugin instance to the pluginInstances array', () => {
-      pluginManager._addPlugin(SynchronousPluginMock);
+    it('should add a plugin instance to the plugins array', () => {
+      pluginManager.addPlugin(SynchronousPluginMock);
 
-      expect(pluginManager._pluginInstances[0]).to.be.an.instanceof(SynchronousPluginMock);
+      expect(pluginManager.plugins[0]).to.be.an.instanceof(SynchronousPluginMock);
     });
 
     it('should load the plugin commands', () => {
-      pluginManager._addPlugin(SynchronousPluginMock);
+      pluginManager.addPlugin(SynchronousPluginMock);
 
-      expect(pluginManager._commandsList[0]).to.have.property('deploy');
+      expect(pluginManager.commandsList[0]).to.have.property('deploy');
     });
   });
 
   describe('#loadAllPlugins()', () => {
-    describe('when loading all plugins', () => {
-      it('should load all plugins when no service plugins are given', () => {
-        pluginManager.loadAllPlugins();
+    it('should load only core plugins when no service plugins are given', () => {
+      // Note: We need the HelloWorld plugin for this test to pass
+      pluginManager.loadAllPlugins();
 
-        expect(pluginManager._pluginInstances.length).to.be.at.least(1);
-      });
+      expect(pluginManager.plugins).to.include(helloWorld);
+    });
 
-      it('should load all plugins when service plugins are given', () => {
-        const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
-        pluginManager.loadAllPlugins(servicePlugins);
+    it('should load all plugins when service plugins are given', () => {
+      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+      pluginManager.loadAllPlugins(servicePlugins);
 
-        // Note: We expect at least 3 because we have one core plugin and two service plugins
-        expect(pluginManager._pluginInstances.length).to.be.at.least(3);
-      });
+      const servicePluginMock1 = new ServicePluginMock1();
+      const servicePluginMock2 = new ServicePluginMock2();
+
+      expect(pluginManager.plugins).to.contain(servicePluginMock1);
+      expect(pluginManager.plugins).to.contain(servicePluginMock2);
+      expect(pluginManager.plugins).to.contain(helloWorld);
     });
   });
 
   describe('#loadCorePlugins()', () => {
     it('should load the Serverless core plugins', () => {
-      pluginManager._loadCorePlugins();
+      pluginManager.loadCorePlugins();
 
-      expect(pluginManager._pluginInstances.length).to.be.at.least(1);
+      expect(pluginManager.plugins).to.contain(helloWorld);
     });
   });
 
   describe('#loadServicePlugins()', () => {
     it('should load the service plugins', () => {
       const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
-      pluginManager._loadServicePlugins(servicePlugins);
+      pluginManager.loadServicePlugins(servicePlugins);
 
-      expect(pluginManager._pluginInstances.length).to.equal(2);
+      const servicePluginMock1 = new ServicePluginMock1();
+      const servicePluginMock2 = new ServicePluginMock2();
+
+      expect(pluginManager.plugins).to.contain(servicePluginMock1);
+      expect(pluginManager.plugins).to.contain(servicePluginMock2);
     });
   });
 
   describe('#loadCommands()', () => {
     it('should load the plugin commands', () => {
-      pluginManager._loadCommands(SynchronousPluginMock);
+      pluginManager.loadCommands(SynchronousPluginMock);
 
-      expect(pluginManager._commandsList[0]).to.have.property('deploy');
+      expect(pluginManager.commandsList[0]).to.have.property('deploy');
     });
   });
 
   describe('#getEvents()', () => {
     beforeEach(() => {
-      pluginManager._loadCommands(SynchronousPluginMock);
+      pluginManager.loadCommands(SynchronousPluginMock);
     });
 
     it('should get all the matching events for a root level command', () => {
-      const commandsArray = 'deploy'.split(' ');
-      const events = pluginManager._getEvents(commandsArray, pluginManager._commands);
+      const commandsArray = ['deploy'];
+      const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      // Note: We expect at least 3 because 3 events will be created for each lifeCycleEvent
-      expect(events.length).to.be.at.least(3);
+      expect(events).to.contain('deploy:beforeResources');
+      expect(events).to.contain('deploy:resources');
+      expect(events).to.contain('deploy:afterResources');
+      expect(events).to.contain('deploy:beforeFunctions');
+      expect(events).to.contain('deploy:functions');
+      expect(events).to.contain('deploy:afterFunctions');
     });
 
-    it('should get all the matching events for a nestec level command', () => {
-      const commandsArray = 'deploy onpremises'.split(' ');
-      const events = pluginManager._getEvents(commandsArray, pluginManager._commands);
+    it('should get all the matching events for a nested level command', () => {
+      const commandsArray = ['deploy', 'onpremises'];
+      const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      // Note: We expect at least 3 because 3 events will be created for each lifeCycleEvent
-      expect(events.length).to.be.at.least(3);
+      expect(events).to.contain('deploy:onpremises:beforeResources');
+      expect(events).to.contain('deploy:onpremises:resources');
+      expect(events).to.contain('deploy:onpremises:afterResources');
+      expect(events).to.contain('deploy:onpremises:beforeFunctions');
+      expect(events).to.contain('deploy:onpremises:functions');
+      expect(events).to.contain('deploy:onpremises:afterFunctions');
     });
 
     it('should return an empty events array when the command is not defined', () => {
-      const commandsArray = 'nonExistingCommand'.split(' ');
-      const events = pluginManager._getEvents(commandsArray, pluginManager._commands);
+      const commandsArray = ['foo'];
+      const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
       expect(events.length).to.equal(0);
     });
@@ -230,69 +248,67 @@ describe('PluginManager', () => {
           };
 
           // used to test if the function was executed correctly
-          this._deployedFunctions = 0;
+          this.deployedFunctions = 0;
         }
 
         functions() {
-          this._deployedFunctions = this._deployedFunctions + 1;
+          this.deployedFunctions = this.deployedFunctions + 1;
         }
       }
 
-      pluginManager._addPlugin(WrongCapitalizedHookPluginMock);
+      pluginManager.addPlugin(WrongCapitalizedHookPluginMock);
 
-      const command = 'deploy';
-      pluginManager.runCommand(command);
+      const commandsArray = ['deploy'];
+      pluginManager.runCommand(commandsArray);
 
-      expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
+      expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
     });
 
-    it('should do nothing when the given command is not available', () => {
-      pluginManager._addPlugin(SynchronousPluginMock);
+    it('should throw an error when the given command is not available', () => {
+      pluginManager.addPlugin(SynchronousPluginMock);
 
-      const command = 'foo';
-      pluginManager.runCommand(command);
+      const commandsArray = ['foo'];
 
-      expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(0);
-      expect(pluginManager._pluginInstances[0]._deployedResources).to.equal(0);
+      expect(() => { pluginManager.runCommand(commandsArray); }).to.throw(Error);
     });
 
     describe('when using a synchronous hook function', () => {
       beforeEach(() => {
-        pluginManager._addPlugin(SynchronousPluginMock);
+        pluginManager.addPlugin(SynchronousPluginMock);
       });
 
       it('should run a simple command', () => {
-        const command = 'deploy';
-        pluginManager.runCommand(command);
+        const commandsArray = ['deploy'];
+        pluginManager.runCommand(commandsArray);
 
-        expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
+        expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
       });
 
       it('should run a nested command', () => {
-        const command = 'deploy onpremises';
-        pluginManager.runCommand(command);
+        const commandsArray = ['deploy', 'onpremises'];
+        pluginManager.runCommand(commandsArray);
 
-        expect(pluginManager._pluginInstances[0]._deployedResources).to.equal(1);
+        expect(pluginManager.plugins[0].deployedResources).to.equal(1);
       });
     });
 
     describe('when using a promise based hook function', () => {
       beforeEach(() => {
-        pluginManager._addPlugin(PromisePluginMock);
+        pluginManager.addPlugin(PromisePluginMock);
       });
 
       it('should run a simple command', () => {
-        const command = 'deploy';
-        pluginManager.runCommand(command);
+        const commandsArray = ['deploy'];
+        pluginManager.runCommand(commandsArray);
 
-        expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
+        expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
       });
 
       it('should run a nested command', () => {
-        const command = 'deploy onpremises';
-        pluginManager.runCommand(command);
+        const commandsArray = ['deploy', 'onpremises'];
+        pluginManager.runCommand(commandsArray);
 
-        expect(pluginManager._pluginInstances[0]._deployedResources).to.equal(1);
+        expect(pluginManager.plugins[0].deployedResources).to.equal(1);
       });
     });
   });
