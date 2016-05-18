@@ -9,15 +9,10 @@ const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
 const Service = require('../../../lib/classes/Service');
-const SError = require('../../../lib/classes/Error');
 const Utils = require('../../../lib/classes/Utils');
 const Serverless = require('../../../lib/Serverless');
 
 describe('Service', () => {
-
-  after((done) => {
-    done();
-  });
 
   describe('#constructor()', () => {
     const S = new Serverless();
