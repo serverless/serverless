@@ -246,6 +246,16 @@ describe('PluginManager', () => {
       expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
     });
 
+    it('should do nothing when the given command is not available', () => {
+      pluginManager._addPlugin(SynchronousPluginMock);
+
+      const command = 'foo';
+      pluginManager.runCommand(command);
+
+      expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(0);
+      expect(pluginManager._pluginInstances[0]._deployedResources).to.equal(0);
+    });
+
     describe('when using a synchronous hook function', () => {
       beforeEach(() => {
         pluginManager._addPlugin(SynchronousPluginMock);
