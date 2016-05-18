@@ -38,20 +38,26 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions,
-        'deploy:onpremises:beforeFunctions': this.resources,
+        'deploy:functions': this.functions.bind(this),
+        'deploy:onpremises:beforeFunctions': this.resources.bind(this)
       };
+
+      // used to test if the function was executed correctly
+      this._deployedFunctions = 0;
+      this._deployedResources = 0;
     }
 
     functions() {
       return new Promise((resolve, reject) => {
-        return resolve('Deploying functions');
+        this._deployedFunctions = this._deployedFunctions + 1;
+        return resolve();
       });
     }
 
     resources() {
       return new Promise((resolve, reject) => {
-        return resolve('Deploying resources');
+        this._deployedResources = this._deployedResources + 1;
+        return resolve();
       });
     }
   }
@@ -78,17 +84,21 @@ describe('PluginManager', () => {
       };
 
       this.hooks = {
-        'deploy:functions': this.functions,
-        'deploy:onpremises:beforeFunctions': this.resources,
+        'deploy:functions': this.functions.bind(this),
+        'deploy:onpremises:beforeFunctions': this.resources.bind(this),
       };
+
+      // used to test if the function was executed correctly
+      this._deployedFunctions = 0;
+      this._deployedResources = 0;
     }
 
     functions() {
-      return 'Deploying functions';
+      this._deployedFunctions = this._deployedFunctions + 1;
     }
 
     resources() {
-      return 'Deploying resources';
+      this._deployedResources = this._deployedResources + 1;
     }
   }
 
@@ -210,14 +220,16 @@ describe('PluginManager', () => {
 
       it('should run a simple command', () => {
         const command = 'deploy';
-
         pluginManager.runCommand(command);
+
+        expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
       });
 
       it('should run a nested command', () => {
         const command = 'deploy onpremises';
-
         pluginManager.runCommand(command);
+
+        expect(pluginManager._pluginInstances[0]._deployedResources).to.equal(1);
       });
     });
 
@@ -228,14 +240,16 @@ describe('PluginManager', () => {
 
       it('should run a simple command', () => {
         const command = 'deploy';
-
         pluginManager.runCommand(command);
+
+        expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
       });
 
       it('should run a nested command', () => {
         const command = 'deploy onpremises';
-
         pluginManager.runCommand(command);
+
+        expect(pluginManager._pluginInstances[0]._deployedResources).to.equal(1);
       });
     });
 
@@ -253,20 +267,24 @@ describe('PluginManager', () => {
 
           this.hooks = {
             // should be "beforeFunctions" but the PluginManager should not bother
-            'deploy:beforefunctions': this.functions,
+            'deploy:beforefunctions': this.functions.bind(this)
           };
+
+          // used to test if the function was executed correctly
+          this._deployedFunctions = 0;
         }
 
         functions() {
-          return 'Deploying functions';
+          this._deployedFunctions = this._deployedFunctions + 1;
         }
       }
 
       pluginManager._addPlugin(WrongCapitalizedHookPluginMock);
 
       const command = 'deploy';
-
       pluginManager.runCommand(command);
+
+      expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
     });
   });
 });
