@@ -41,7 +41,7 @@ describe('PluginManager', () => {
 
       this.hooks = {
         'deploy:functions': this.functions.bind(this),
-        'deploy:onpremises:beforeFunctions': this.resources.bind(this)
+        'before:deploy:onpremises:functions': this.resources.bind(this)
       };
 
       // used to test if the function was executed correctly
@@ -87,7 +87,7 @@ describe('PluginManager', () => {
 
       this.hooks = {
         'deploy:functions': this.functions.bind(this),
-        'deploy:onpremises:beforeFunctions': this.resources.bind(this),
+        'before:deploy:onpremises:functions': this.resources.bind(this),
       };
 
       // used to test if the function was executed correctly
@@ -201,24 +201,24 @@ describe('PluginManager', () => {
       const commandsArray = ['deploy'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events).to.contain('deploy:beforeResources');
+      expect(events).to.contain('before:deploy:resources');
       expect(events).to.contain('deploy:resources');
-      expect(events).to.contain('deploy:afterResources');
-      expect(events).to.contain('deploy:beforeFunctions');
+      expect(events).to.contain('after:deploy:resources');
+      expect(events).to.contain('before:deploy:functions');
       expect(events).to.contain('deploy:functions');
-      expect(events).to.contain('deploy:afterFunctions');
+      expect(events).to.contain('after:deploy:functions');
     });
 
     it('should get all the matching events for a nested level command', () => {
       const commandsArray = ['deploy', 'onpremises'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events).to.contain('deploy:onpremises:beforeResources');
+      expect(events).to.contain('before:deploy:onpremises:resources');
       expect(events).to.contain('deploy:onpremises:resources');
-      expect(events).to.contain('deploy:onpremises:afterResources');
-      expect(events).to.contain('deploy:onpremises:beforeFunctions');
+      expect(events).to.contain('after:deploy:onpremises:resources');
+      expect(events).to.contain('before:deploy:onpremises:functions');
       expect(events).to.contain('deploy:onpremises:functions');
-      expect(events).to.contain('deploy:onpremises:afterFunctions');
+      expect(events).to.contain('after:deploy:onpremises:functions');
     });
 
     it('should return an empty events array when the command is not defined', () => {
@@ -230,40 +230,6 @@ describe('PluginManager', () => {
   });
 
   describe('#runCommand()', () => {
-    it('should not care about correct capitalization of function name inside a hook', () => {
-      class WrongCapitalizedHookPluginMock {
-        constructor() {
-          this.commands = {
-            deploy: {
-              usage: 'Deploy to the default infrastructure',
-              lifeCycleEvents: [
-                'functions',
-              ],
-            },
-          };
-
-          this.hooks = {
-            // should be "beforeFunctions" but the PluginManager should not bother
-            'deploy:beforefunctions': this.functions.bind(this)
-          };
-
-          // used to test if the function was executed correctly
-          this.deployedFunctions = 0;
-        }
-
-        functions() {
-          this.deployedFunctions = this.deployedFunctions + 1;
-        }
-      }
-
-      pluginManager.addPlugin(WrongCapitalizedHookPluginMock);
-
-      const commandsArray = ['deploy'];
-      pluginManager.runCommand(commandsArray);
-
-      expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
-    });
-
     it('should throw an error when the given command is not available', () => {
       pluginManager.addPlugin(SynchronousPluginMock);
 
