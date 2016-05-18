@@ -12,6 +12,10 @@ describe('PluginManager', () => {
   let pluginManager;
   let serverless;
 
+  class ServicePluginMock1 {}
+
+  class ServicePluginMock2 {}
+
   class PromisePluginMock {
     constructor() {
       this.commands = {
@@ -126,10 +130,20 @@ describe('PluginManager', () => {
   });
 
   describe('#loadAllPlugins()', () => {
-    it('should load all plugins', () => {
-      pluginManager.loadAllPlugins();
+    describe('when loading all plugins', () => {
+      it('should load all plugins when no service plugins are given', () => {
+        pluginManager.loadAllPlugins();
 
-      expect(pluginManager._pluginInstances.length).to.be.at.least(1);
+        expect(pluginManager._pluginInstances.length).to.be.at.least(1);
+      });
+
+      it('should load all plugins when service plugins are given', () => {
+        const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+        pluginManager.loadAllPlugins(servicePlugins);
+
+        // Note: We expect at least 3 because we have one core plugin and two service plugins
+        expect(pluginManager._pluginInstances.length).to.be.at.least(3);
+      });
     });
   });
 
@@ -142,9 +156,12 @@ describe('PluginManager', () => {
   });
 
   describe('#loadServicePlugins()', () => {
+    it('should load the service plugins', () => {
+      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+      pluginManager._loadServicePlugins(servicePlugins);
 
-    it('should load the service plugins');
-
+      expect(pluginManager._pluginInstances.length).to.equal(2);
+    });
   });
 
   describe('#loadCommands()', () => {
