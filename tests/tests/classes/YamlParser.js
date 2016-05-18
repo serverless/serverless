@@ -8,11 +8,13 @@ const expect = require('chai').expect;
 const YAML = require('js-yaml');
 const path = require('path');
 const os = require('os');
-const YamlParser = require('../../../lib/classes/YamlParser')({});
-const Utils = require('../../../lib/classes/Utils')({});
+const Serverless = require('../../../lib/Serverless');
+const YamlParser = require('../../../lib/classes/YamlParser');
+const Utils = require('../../../lib/classes/Utils');
 
+const S = new Serverless();
 const SUtils = new Utils();
-const SYamlParser = new YamlParser();
+const yamlParser = new YamlParser(S);
 
 describe('YamlParser', () => {
 
@@ -23,7 +25,7 @@ describe('YamlParser', () => {
 
       SUtils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
 
-      return SYamlParser.parse(tmpFilePath).then((obj) => {
+      return yamlParser.parse(tmpFilePath).then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
     });
@@ -41,7 +43,7 @@ describe('YamlParser', () => {
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'test.yaml'), testYaml);
 
-      return SYamlParser.parse(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
+      return yamlParser.parse(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
         expect(obj.main.foo).to.equal('bar');
       });
     });
@@ -59,7 +61,7 @@ describe('YamlParser', () => {
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'test.yaml'), testYaml);
 
-      return SYamlParser.parse(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
+      return yamlParser.parse(path.join(tmpDirPath, 'test.yaml')).then((obj) => {
         expect(obj.main.foo).to.equal('bar');
       });
     });
@@ -85,7 +87,7 @@ describe('YamlParser', () => {
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'one.yaml'), oneYaml);
 
-      return SYamlParser.parse(path.join(tmpDirPath, 'one.yaml')).then((obj) => {
+      return yamlParser.parse(path.join(tmpDirPath, 'one.yaml')).then((obj) => {
         expect(obj.one.two.foo).to.equal('bar');
       });
     });

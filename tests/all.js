@@ -8,11 +8,11 @@ describe('All Tests', function() {
   after(function() {});
 
   //require('./tests/classes/Config');
-  require('./tests/classes/Service');
+  // require('./tests/classes/Service');
   // require('./tests/classes/Serverless');
   // require('./tests/classes/Utils');
   // require('./tests/classes/Plugin');
-  // require('./tests/classes/YamlParser');
+  require('./tests/classes/YamlParser');
   // require('./tests/classes/Project');
   // require('./tests/classes/ProviderAws');
   // require('./tests/classes/Function');
