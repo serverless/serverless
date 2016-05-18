@@ -11,7 +11,7 @@ const HelloWorld = require('../../../lib/plugins/HelloWorld/HelloWorld');
 
 describe('PluginManager', () => {
   let pluginManager;
-  let S;
+  let serverless;
   let helloWorld;
 
   class ServicePluginMock1 {}
@@ -105,14 +105,14 @@ describe('PluginManager', () => {
   }
 
   beforeEach(() => {
-    S = new Serverless({});
-    pluginManager = new PluginManager(S);
+    serverless = new Serverless({});
+    pluginManager = new PluginManager(serverless);
     helloWorld = new HelloWorld();
   });
 
   describe('#constructor()', () => {
     it('should set the serverless instance', () => {
-      expect(pluginManager.S).to.deep.equal(S);
+      expect(pluginManager.serverless).to.deep.equal(serverless);
     });
 
     it('should create an empty plugins array', () => {
