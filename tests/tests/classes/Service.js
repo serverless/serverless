@@ -23,6 +23,11 @@ describe('Service', () => {
   describe('#constructor()', () => {
     const S = new Serverless();
 
+    it('should attach serverless instance', () => {
+      const serviceInstance = new Service(S);
+      expect(typeof serviceInstance.S._version).to.be.equal('string');
+    });
+
     it('should construct with defaults', () => {
       const serviceInstance = new Service(S);
 
@@ -110,6 +115,7 @@ describe('Service', () => {
           }
         }
       };
+
       SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'), YAML.dump(serverlessYaml));
       SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'), YAML.dump(serverlessEnvYaml));
 
