@@ -39,7 +39,7 @@ describe('PluginManager', () => {
 
       this.hooks = {
         'deploy:functions': this.functions,
-        'deploy:onpremises:functions': this.resources,
+        'deploy:onpremises:beforeFunctions': this.resources,
       };
     }
 
@@ -79,7 +79,7 @@ describe('PluginManager', () => {
 
       this.hooks = {
         'deploy:functions': this.functions,
-        'deploy:onpremises:functions': this.resources,
+        'deploy:onpremises:beforeFunctions': this.resources,
       };
     }
 
@@ -237,6 +237,36 @@ describe('PluginManager', () => {
 
         pluginManager.runCommand(command);
       });
+    });
+
+    it('should not care about correct capitalization of function name inside a hook', () => {
+      class WrongCapitalizedHookPluginMock {
+        constructor() {
+          this.commands = {
+            deploy: {
+              usage: 'Deploy to the default infrastructure',
+              lifeCycleEvents: [
+                'functions',
+              ],
+            },
+          };
+
+          this.hooks = {
+            // should be "beforeFunctions" but the PluginManager should not bother
+            'deploy:beforefunctions': this.functions,
+          };
+        }
+
+        functions() {
+          return 'Deploying functions';
+        }
+      }
+
+      pluginManager._addPlugin(WrongCapitalizedHookPluginMock);
+
+      const command = 'deploy';
+
+      pluginManager.runCommand(command);
     });
   });
 });
