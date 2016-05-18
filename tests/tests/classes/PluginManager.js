@@ -212,6 +212,39 @@ describe('PluginManager', () => {
   });
 
   describe('#runCommand()', () => {
+    it('should not care about correct capitalization of function name inside a hook', () => {
+      class WrongCapitalizedHookPluginMock {
+        constructor() {
+          this.commands = {
+            deploy: {
+              usage: 'Deploy to the default infrastructure',
+              lifeCycleEvents: [
+                'functions',
+              ],
+            },
+          };
+
+          this.hooks = {
+            // should be "beforeFunctions" but the PluginManager should not bother
+            'deploy:beforefunctions': this.functions.bind(this)
+          };
+
+          // used to test if the function was executed correctly
+          this._deployedFunctions = 0;
+        }
+
+        functions() {
+          this._deployedFunctions = this._deployedFunctions + 1;
+        }
+      }
+
+      pluginManager._addPlugin(WrongCapitalizedHookPluginMock);
+
+      const command = 'deploy';
+      pluginManager.runCommand(command);
+
+      expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
+    });
 
     describe('when using a synchronous hook function', () => {
       beforeEach(() => {
@@ -251,40 +284,6 @@ describe('PluginManager', () => {
 
         expect(pluginManager._pluginInstances[0]._deployedResources).to.equal(1);
       });
-    });
-
-    it('should not care about correct capitalization of function name inside a hook', () => {
-      class WrongCapitalizedHookPluginMock {
-        constructor() {
-          this.commands = {
-            deploy: {
-              usage: 'Deploy to the default infrastructure',
-              lifeCycleEvents: [
-                'functions',
-              ],
-            },
-          };
-
-          this.hooks = {
-            // should be "beforeFunctions" but the PluginManager should not bother
-            'deploy:beforefunctions': this.functions.bind(this)
-          };
-
-          // used to test if the function was executed correctly
-          this._deployedFunctions = 0;
-        }
-
-        functions() {
-          this._deployedFunctions = this._deployedFunctions + 1;
-        }
-      }
-
-      pluginManager._addPlugin(WrongCapitalizedHookPluginMock);
-
-      const command = 'deploy';
-      pluginManager.runCommand(command);
-
-      expect(pluginManager._pluginInstances[0]._deployedFunctions).to.equal(1);
     });
   });
 });
