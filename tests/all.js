@@ -7,7 +7,7 @@ describe('All Tests', function() {
   before(function() {});
   after(function() {});
 
-  require('./tests/classes/Config');
+  //require('./tests/classes/Config');
   require('./tests/classes/Service');
   // require('./tests/classes/Serverless');
   // require('./tests/classes/Utils');

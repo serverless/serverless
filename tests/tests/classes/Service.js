@@ -9,10 +9,9 @@ const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
 const Service = require('../../../lib/classes/Service');
+const SError = require('../../../lib/classes/Error');
 const Utils = require('../../../lib/classes/Utils');
 const Serverless = require('../../../lib/Serverless');
-
-
 
 describe('Service', () => {
 
@@ -139,7 +138,7 @@ describe('Service', () => {
     it('should throw error if servicePath not configured', () => {
       const S = new Serverless();
       serviceInstance = new Service(S);
-      expect(serviceInstance.load).to.throw(Error);
+      expect(() =>{serviceInstance.load()}).to.throw(Error);
     });
   });
 
@@ -250,7 +249,7 @@ describe('Service', () => {
     });
 
     it('should throw error if stage does not exist', () => {
-      expect(serviceInstance.getStage).to.throw(Error);
+      expect(()=> { serviceInstance.getStage('prod') }).to.throw(Error);
     });
   });
 
