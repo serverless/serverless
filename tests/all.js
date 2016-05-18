@@ -8,7 +8,7 @@ describe('All Tests', function() {
   after(function() {});
 
   // require('./tests/classes/Serverless');
-  require('./tests/classes/PluginManagement');
+  require('./tests/classes/PluginManager');
   // require('./tests/classes/Utils');
   // require('./tests/classes/Plugin');
   // require('./tests/classes/YamlParser');

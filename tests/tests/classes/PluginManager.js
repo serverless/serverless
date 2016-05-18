@@ -1,15 +1,15 @@
 'use strict';
 
 /**
- * Test: PluginManagement Class
+ * Test: PluginManager Class
  */
 
 const expect = require('chai').expect;
-const PluginManagement = require('../../../lib/classes/PluginManagement');
+const PluginManager = require('../../../lib/classes/PluginManager');
 const Serverless = require('../../../lib/Serverless');
 
-describe('PluginManagement', () => {
-  let pluginManagement;
+describe('PluginManager', () => {
+  let pluginManager;
   let serverless;
 
   class PromisePluginMock {
@@ -90,54 +90,54 @@ describe('PluginManagement', () => {
 
   beforeEach(() => {
     serverless = new Serverless({});
-    pluginManagement = new PluginManagement(serverless);
+    pluginManager = new PluginManager(serverless);
   });
 
   describe('#constructor()', () => {
     it('should set the serverless instance', () => {
-      expect(pluginManagement._serverless).to.deep.equal(serverless);
+      expect(pluginManager._serverless).to.deep.equal(serverless);
     });
 
     it('should create an empty pluginInstances array', () => {
-      expect(pluginManagement._pluginInstances.length).to.equal(0);
+      expect(pluginManager._pluginInstances.length).to.equal(0);
     });
 
     it('should create an empty commandsList array', () => {
-      expect(pluginManagement._commandsList.length).to.equal(0);
+      expect(pluginManager._commandsList.length).to.equal(0);
     });
 
     it('should create an empty commands object', () => {
-      expect(pluginManagement._commands).to.deep.equal({});
+      expect(pluginManager._commands).to.deep.equal({});
     });
   });
 
   describe('#addPlugin()', () => {
     it('should add a plugin instance to the pluginInstances array', () => {
-      pluginManagement._addPlugin(SynchronousPluginMock);
+      pluginManager._addPlugin(SynchronousPluginMock);
 
-      expect(pluginManagement._pluginInstances[0]).to.be.an.instanceof(SynchronousPluginMock);
+      expect(pluginManager._pluginInstances[0]).to.be.an.instanceof(SynchronousPluginMock);
     });
 
     it('should load the plugin commands', () => {
-      pluginManagement._addPlugin(SynchronousPluginMock);
+      pluginManager._addPlugin(SynchronousPluginMock);
 
-      expect(pluginManagement._commandsList[0]).to.have.property('deploy');
+      expect(pluginManager._commandsList[0]).to.have.property('deploy');
     });
   });
 
   describe('#loadAllPlugins()', () => {
     it('should load all plugins', () => {
-      pluginManagement.loadAllPlugins();
+      pluginManager.loadAllPlugins();
 
-      expect(pluginManagement._pluginInstances.length).to.be.at.least(1);
+      expect(pluginManager._pluginInstances.length).to.be.at.least(1);
     });
   });
 
   describe('#loadCorePlugins()', () => {
     it('should load the Serverless core plugins', () => {
-      pluginManagement._loadCorePlugins();
+      pluginManager._loadCorePlugins();
 
-      expect(pluginManagement._pluginInstances.length).to.be.at.least(1);
+      expect(pluginManager._pluginInstances.length).to.be.at.least(1);
     });
   });
 
@@ -149,20 +149,20 @@ describe('PluginManagement', () => {
 
   describe('#loadCommands()', () => {
     it('should load the plugin commands', () => {
-      pluginManagement._loadCommands(SynchronousPluginMock);
+      pluginManager._loadCommands(SynchronousPluginMock);
 
-      expect(pluginManagement._commandsList[0]).to.have.property('deploy');
+      expect(pluginManager._commandsList[0]).to.have.property('deploy');
     });
   });
 
   describe('#getEvents()', () => {
     beforeEach(() => {
-      pluginManagement._loadCommands(SynchronousPluginMock);
+      pluginManager._loadCommands(SynchronousPluginMock);
     });
 
     it('should get all the matching events for a root level command', () => {
       const commandsArray = 'deploy'.split(' ');
-      const events = pluginManagement._getEvents(commandsArray, pluginManagement._commands);
+      const events = pluginManager._getEvents(commandsArray, pluginManager._commands);
 
       // Note: We expect at least 3 because 3 events will be created for each lifeCycleEvent
       expect(events.length).to.be.at.least(3);
@@ -170,7 +170,7 @@ describe('PluginManagement', () => {
 
     it('should get all the matching events for a nestec level command', () => {
       const commandsArray = 'deploy onpremises'.split(' ');
-      const events = pluginManagement._getEvents(commandsArray, pluginManagement._commands);
+      const events = pluginManager._getEvents(commandsArray, pluginManager._commands);
 
       // Note: We expect at least 3 because 3 events will be created for each lifeCycleEvent
       expect(events.length).to.be.at.least(3);
@@ -178,7 +178,7 @@ describe('PluginManagement', () => {
 
     it('should return an empty events array when the command is not defined', () => {
       const commandsArray = 'nonExistingCommand'.split(' ');
-      const events = pluginManagement._getEvents(commandsArray, pluginManagement._commands);
+      const events = pluginManager._getEvents(commandsArray, pluginManager._commands);
 
       expect(events.length).to.equal(0);
     });
@@ -188,37 +188,37 @@ describe('PluginManagement', () => {
 
     describe('when using a synchronous hook function', () => {
       beforeEach(() => {
-        pluginManagement._addPlugin(SynchronousPluginMock);
+        pluginManager._addPlugin(SynchronousPluginMock);
       });
 
       it('should run a simple command', () => {
         const command = 'deploy';
 
-        pluginManagement.runCommand(command);
+        pluginManager.runCommand(command);
       });
 
       it('should run a nested command', () => {
         const command = 'deploy onpremises';
 
-        pluginManagement.runCommand(command);
+        pluginManager.runCommand(command);
       });
     });
 
     describe('when using a promise based hook function', () => {
       beforeEach(() => {
-        pluginManagement._addPlugin(PromisePluginMock);
+        pluginManager._addPlugin(PromisePluginMock);
       });
 
       it('should run a simple command', () => {
         const command = 'deploy';
 
-        pluginManagement.runCommand(command);
+        pluginManager.runCommand(command);
       });
 
       it('should run a nested command', () => {
         const command = 'deploy onpremises';
 
-        pluginManagement.runCommand(command);
+        pluginManager.runCommand(command);
       });
     });
   });
