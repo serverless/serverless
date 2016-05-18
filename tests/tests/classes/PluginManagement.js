@@ -12,7 +12,7 @@ describe('PluginManagement', () => {
   let pluginManagement;
   let serverless;
 
-  class MockPlugin {
+  class PromisePluginMock {
     constructor() {
       this.commands = {
         deploy: {
@@ -22,7 +22,7 @@ describe('PluginManagement', () => {
             'functions'
           ],
           commands: {
-            onpremise: {
+            onpremises: {
               usage: 'Deploy to your On-Premises infrastructure',
               lifeCycleEvents: [
                 'resources',
@@ -35,7 +35,47 @@ describe('PluginManagement', () => {
 
       this.hooks = {
         'deploy:functions': this.functions,
-        'deploy:onpremise:functions': this.resources,
+        'deploy:onpremises:functions': this.resources,
+      };
+    }
+
+    functions() {
+      return new Promise((resolve, reject) => {
+        return resolve('Deploying functions');
+      });
+    }
+
+    resources() {
+      return new Promise((resolve, reject) => {
+        return resolve('Deploying resources');
+      });
+    }
+  }
+
+  class SynchronousPluginMock {
+    constructor() {
+      this.commands = {
+        deploy: {
+          usage: 'Deploy to the default infrastructure',
+          lifeCycleEvents: [
+            'resources',
+            'functions'
+          ],
+          commands: {
+            onpremises: {
+              usage: 'Deploy to your On-Premises infrastructure',
+              lifeCycleEvents: [
+                'resources',
+                'functions'
+              ],
+            },
+          },
+        },
+      };
+
+      this.hooks = {
+        'deploy:functions': this.functions,
+        'deploy:onpremises:functions': this.resources,
       };
     }
 
@@ -73,13 +113,13 @@ describe('PluginManagement', () => {
 
   describe('#addPlugin()', () => {
     it('should add a plugin instance to the pluginInstances array', () => {
-      pluginManagement._addPlugin(MockPlugin);
+      pluginManagement._addPlugin(SynchronousPluginMock);
 
-      expect(pluginManagement._pluginInstances[0]).to.be.an.instanceof(MockPlugin);
+      expect(pluginManagement._pluginInstances[0]).to.be.an.instanceof(SynchronousPluginMock);
     });
 
     it('should load the plugin commands', () => {
-      pluginManagement._addPlugin(MockPlugin);
+      pluginManagement._addPlugin(SynchronousPluginMock);
 
       expect(pluginManagement._commandsList[0]).to.have.property('deploy');
     });
@@ -109,7 +149,7 @@ describe('PluginManagement', () => {
 
   describe('#loadCommands()', () => {
     it('should load the plugin commands', () => {
-      pluginManagement._loadCommands(MockPlugin);
+      pluginManagement._loadCommands(SynchronousPluginMock);
 
       expect(pluginManagement._commandsList[0]).to.have.property('deploy');
     });
@@ -117,7 +157,7 @@ describe('PluginManagement', () => {
 
   describe('#getEvents()', () => {
     beforeEach(() => {
-      pluginManagement._loadCommands(MockPlugin);
+      pluginManagement._loadCommands(SynchronousPluginMock);
     });
 
     it('should get all the matching events for a root level command', () => {
@@ -129,7 +169,7 @@ describe('PluginManagement', () => {
     });
 
     it('should get all the matching events for a nestec level command', () => {
-      const commandsArray = 'deploy onpremise'.split(' ');
+      const commandsArray = 'deploy onpremises'.split(' ');
       const events = pluginManagement._getEvents(commandsArray, pluginManagement._commands);
 
       // Note: We expect at least 3 because 3 events will be created for each lifeCycleEvent
@@ -145,20 +185,41 @@ describe('PluginManagement', () => {
   });
 
   describe('#runCommand()', () => {
-    beforeEach(() => {
-      pluginManagement._addPlugin(MockPlugin);
+
+    describe('when using a synchronous hook function', () => {
+      beforeEach(() => {
+        pluginManagement._addPlugin(SynchronousPluginMock);
+      });
+
+      it('should run a simple command', () => {
+        const command = 'deploy';
+
+        pluginManagement.runCommand(command);
+      });
+
+      it('should run a nested command', () => {
+        const command = 'deploy onpremises';
+
+        pluginManagement.runCommand(command);
+      });
     });
 
-    it('should run a simple command', () => {
-      const command = 'deploy';
+    describe('when using a promise based hook function', () => {
+      beforeEach(() => {
+        pluginManagement._addPlugin(PromisePluginMock);
+      });
 
-      pluginManagement.runCommand(command);
-    });
+      it('should run a simple command', () => {
+        const command = 'deploy';
 
-    it('should run a nested command', () => {
-      const command = 'deploy onpremise';
+        pluginManagement.runCommand(command);
+      });
 
-      pluginManagement.runCommand(command);
+      it('should run a nested command', () => {
+        const command = 'deploy onpremises';
+
+        pluginManagement.runCommand(command);
+      });
     });
   });
 });
