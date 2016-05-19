@@ -30,9 +30,7 @@ describe('Service', () => {
       expect(serviceInstance.plugins).to.deep.equal([]);
       expect(serviceInstance.functions).to.deep.equal({});
       expect(serviceInstance.environment).to.deep.equal({});
-      expect(serviceInstance.resources.aws).to.deep.equal({});
-      expect(serviceInstance.resources.azure).to.deep.equal({});
-      expect(serviceInstance.resources.google).to.deep.equal({});
+      expect(serviceInstance.resources).to.deep.equal({});
 
     });
 
@@ -204,6 +202,13 @@ describe('Service', () => {
       const populatedObj = serviceInstance.toObjectPopulated(options);
       expect(populatedObj.service).to.be.equal('regionVar');
     });
+
+    // it('should populate with custom variable syntax', () => {
+    //   serviceInstance.service = '${{testVar}}';
+    //   serviceInstance.variableSyntax = '${{([\s\S]+?)}}';
+    //   const populatedObj = serviceInstance.toObjectPopulated();
+    //   expect(populatedObj.service).to.be.equal('commonVar');
+    // });
   });
 
   describe('#fromObject()', () => {
