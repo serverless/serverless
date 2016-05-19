@@ -161,6 +161,25 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins).to.contain(servicePluginMock2);
       expect(pluginManager.plugins).to.contain(helloWorld);
     });
+
+    it('should load all plugins in the correct order', () => {
+      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+
+      // we need to mock it so that tests won't break when more core plugins are added later on
+      // because we access the plugins array with an index which will change every time a new core
+      // plugin will be added
+      const loadCorePluginsMock = () => {
+        pluginManager.addPlugin(HelloWorld);
+      };
+
+      // This is the exact same functionality like loadCorePlugins()
+      loadCorePluginsMock();
+      pluginManager.loadServicePlugins(servicePlugins);
+
+      expect(pluginManager.plugins[0]).to.be.instanceof(HelloWorld);
+      expect(pluginManager.plugins[1]).to.be.instanceof(ServicePluginMock1);
+      expect(pluginManager.plugins[2]).to.be.instanceof(ServicePluginMock2);
+    });
   });
 
   describe('#loadCorePlugins()', () => {
@@ -197,28 +216,28 @@ describe('PluginManager', () => {
       pluginManager.loadCommands(SynchronousPluginMock);
     });
 
-    it('should get all the matching events for a root level command', () => {
+    it('should get all the matching events for a root level command in the correct order', () => {
       const commandsArray = ['deploy'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events).to.contain('before:deploy:resources');
-      expect(events).to.contain('deploy:resources');
-      expect(events).to.contain('after:deploy:resources');
-      expect(events).to.contain('before:deploy:functions');
-      expect(events).to.contain('deploy:functions');
-      expect(events).to.contain('after:deploy:functions');
+      expect(events[0]).to.equal('before:deploy:resources');
+      expect(events[1]).to.equal('deploy:resources');
+      expect(events[2]).to.equal('after:deploy:resources');
+      expect(events[3]).to.equal('before:deploy:functions');
+      expect(events[4]).to.equal('deploy:functions');
+      expect(events[5]).to.equal('after:deploy:functions');
     });
 
-    it('should get all the matching events for a nested level command', () => {
+    it('should get all the matching events for a nested level command in the correct order', () => {
       const commandsArray = ['deploy', 'onpremises'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events).to.contain('before:deploy:onpremises:resources');
-      expect(events).to.contain('deploy:onpremises:resources');
-      expect(events).to.contain('after:deploy:onpremises:resources');
-      expect(events).to.contain('before:deploy:onpremises:functions');
-      expect(events).to.contain('deploy:onpremises:functions');
-      expect(events).to.contain('after:deploy:onpremises:functions');
+      expect(events[0]).to.equal('before:deploy:onpremises:resources');
+      expect(events[1]).to.equal('deploy:onpremises:resources');
+      expect(events[2]).to.equal('after:deploy:onpremises:resources');
+      expect(events[3]).to.equal('before:deploy:onpremises:functions');
+      expect(events[4]).to.equal('deploy:onpremises:functions');
+      expect(events[5]).to.equal('after:deploy:onpremises:functions');
     });
 
     it('should return an empty events array when the command is not defined', () => {
@@ -236,6 +255,52 @@ describe('PluginManager', () => {
       const commandsArray = ['foo'];
 
       expect(() => { pluginManager.runCommand(commandsArray); }).to.throw(Error);
+    });
+
+    it('should run the hooks in the correct order', () => {
+      class CorrectHookOrderPluginMock {
+        constructor() {
+          this.commands = {
+            run: {
+              usage: 'Pushes the current hook status on the hookStatus array',
+              lifeCycleEvents: [
+                'beforeHookStatus',
+                'midHookStatus',
+                'afterHookStatus'
+              ],
+            },
+          };
+
+          this.hooks = {
+            'before:run:beforeHookStatus': this.beforeHookStatus.bind(this),
+            'run:midHookStatus': this.midHookStatus.bind(this),
+            'after:run:afterHookStatus': this.afterHookStatus.bind(this),
+          };
+
+          // used to test if the hooks were run in the correct order
+          this.hookStatus = [];
+        }
+
+        beforeHookStatus() {
+          this.hookStatus.push('before');
+        }
+
+        midHookStatus() {
+          this.hookStatus.push('mid');
+        }
+
+        afterHookStatus() {
+          this.hookStatus.push('after');
+        }
+      }
+
+      pluginManager.addPlugin(CorrectHookOrderPluginMock);
+      const commandsArray = ['run'];
+      pluginManager.runCommand(commandsArray);
+
+      expect(pluginManager.plugins[0].hookStatus[0]).to.equal('before');
+      expect(pluginManager.plugins[0].hookStatus[1]).to.equal('mid');
+      expect(pluginManager.plugins[0].hookStatus[2]).to.equal('after');
     });
 
     describe('when using a synchronous hook function', () => {
