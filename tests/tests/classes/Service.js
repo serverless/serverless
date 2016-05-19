@@ -203,12 +203,13 @@ describe('Service', () => {
       expect(populatedObj.service).to.be.equal('regionVar');
     });
 
-    // it('should populate with custom variable syntax', () => {
-    //   serviceInstance.service = '${{testVar}}';
-    //   serviceInstance.variableSyntax = '${{([\s\S]+?)}}';
-    //   const populatedObj = serviceInstance.toObjectPopulated();
-    //   expect(populatedObj.service).to.be.equal('commonVar');
-    // });
+    it('should populate with custom variable syntax', () => {
+      serviceInstance.service = '${{testVar}}';
+      serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
+      const populatedObj = serviceInstance.toObjectPopulated();
+      expect(populatedObj.service).to.be.equal('commonVar');
+      delete serviceInstance.variableSyntax;
+    });
   });
 
   describe('#fromObject()', () => {

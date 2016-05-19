@@ -194,6 +194,15 @@ describe('Utils', () => {
       expect(populatedObj.service).to.be.equal('regionVar');
     });
 
+
+    it('should populate with custom variable syntax', () => {
+      serviceInstance.service = '${{testVar}}';
+      serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
+      const populatedObj = SUtils.populate(serviceInstance, serviceInstance.toObject());
+      expect(populatedObj.service).to.be.equal('commonVar');
+      delete serviceInstance.variableSyntax;
+    });
+
     it('should populate non string variables', () => {
       serviceInstance.environment.vars.testVar = 10;
       const populatedObj = SUtils.populate(serviceInstance, serviceInstance.toObject());
