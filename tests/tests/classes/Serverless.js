@@ -13,7 +13,7 @@ describe('Serverless', () => {
 
     it('should get the correct serverless version', () => {
       const serverless = new Serverless();
-      expect(serverless.getVersion()).to.be.equal('0.5.5');
+      expect(serverless.getVersion()).to.match(/^(\d+\.)?(\d+\.)?(\*|\d+)$/);
     });
 
   });
