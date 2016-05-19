@@ -277,7 +277,7 @@ describe('Service', () => {
       };
     });
 
-    it('should return a region object based on provided stage', () => {
+    it('should return an event object based on provided function', () => {
       expect(serviceInstance.getEventInFunction('schedule', 'create')).to.be.equal('rate(5 minutes)');
     });
 
