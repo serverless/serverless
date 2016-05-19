@@ -12,10 +12,6 @@ const S = new Serverless();
 
 describe('Config', () => {
 
-  after((done) => {
-    done();
-  });
-
   describe('#constructor()', () => {
 
     it('should attach serverless instance', () => {
