@@ -7,11 +7,14 @@
 const path = require('path');
 const os = require('os');
 const expect = require('chai').expect;
-const Utils = require('../../../lib/classes/Utils')({});
-const YamlParser = require('../../../lib/classes/YamlParser')({});
+const Serverless = require('../../../lib/Serverless');
+const Utils = require('../../../lib/classes/Utils');
+const YamlParser = require('../../../lib/classes/YamlParser');
+const Service = require('../../../lib/classes/Service');
 
-const SUtils = new Utils();
-const SYamlParser = new YamlParser();
+const S = new Serverless();
+const SUtils = new Utils(S);
+const yamlParser = new YamlParser(S);
 
 describe('Utils', () => {
 
@@ -94,9 +97,13 @@ describe('Utils', () => {
 
       SUtils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
-      return SYamlParser.parse(tmpFilePath).then((obj) => {
+      return yamlParser.parse(tmpFilePath).then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
+    });
+
+    it('should throw error if invalid path is provided', () => {
+      expect(() => { SUtils.writeFileSync(null) }).to.throw(Error);
     });
   });
 
@@ -134,6 +141,80 @@ describe('Utils', () => {
       return SUtils.readFile(tmpFilePath).then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
+    });
+  });
+
+  describe('#populate()', () => {
+
+    let serviceInstance;
+    beforeEach(() => {
+      serviceInstance = new Service(S);
+
+      serviceInstance.service = '${testVar}';
+      serviceInstance.environment = {
+        vars: {
+          testVar: 'commonVar'
+        },
+        stages: {
+          dev: {
+            vars: {
+              testVar: 'stageVar'
+            },
+            regions: {
+              aws_useast1: {
+                vars: {
+                  testVar: 'regionVar'
+                }
+              }
+            }
+          }
+        }
+      };
+    });
+
+    it('should populate common variables', () => {
+      const populatedObj = SUtils.populate(serviceInstance, serviceInstance.toObject());
+      expect(populatedObj.service).to.be.equal('commonVar');
+    });
+
+    it('should populate stage variables', () => {
+      const options = {
+        stage: 'dev'
+      };
+      const populatedObj = SUtils.populate(serviceInstance, serviceInstance.toObject(), options);
+      expect(populatedObj.service).to.be.equal('stageVar');
+    });
+
+    it('should populate region variables', () => {
+      const options = {
+        stage: 'dev',
+        region: 'aws_useast1'
+      };
+      const populatedObj = SUtils.populate(serviceInstance, serviceInstance.toObject(), options);
+      expect(populatedObj.service).to.be.equal('regionVar');
+    });
+
+
+    it('should populate with custom variable syntax', () => {
+      serviceInstance.service = '${{testVar}}';
+      serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
+      const populatedObj = SUtils.populate(serviceInstance, serviceInstance.toObject());
+      expect(populatedObj.service).to.be.equal('commonVar');
+      delete serviceInstance.variableSyntax;
+    });
+
+    it('should populate non string variables', () => {
+      serviceInstance.environment.vars.testVar = 10;
+      const populatedObj = SUtils.populate(serviceInstance, serviceInstance.toObject());
+      expect(populatedObj.service).to.be.equal(10);
+    });
+
+    it('should throw error if service is not provided', () => {
+      expect(() => { SUtils.populate(null, serviceInstance.toObject()) }).to.throw(Error);
+    });
+
+    it('should throw error if data is not provided', () => {
+      expect(() => { SUtils.populate(serviceInstance, null) }).to.throw(Error);
     });
   });
 
