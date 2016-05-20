@@ -12,7 +12,8 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
   * Configuration information can be specified for multiple IaaS providers
   * Contains no author-specific information
   * Can be shared publicly and installed by anyone
-  * 
+ 
+
 * **serverless.meta.yml**
   * Contains author-specific information not intended for version control
   * Defines stages for this service
