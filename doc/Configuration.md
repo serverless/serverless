@@ -71,12 +71,12 @@ Here is the corresponding codebase:
 
 ```
 users
-  lib // Contains logic 
+  lib // contains logic 
   node_modules
   package.json
   serverless.yml
   serverless.meta.yml
-  users.js // Simple handler file
+  users.js // single handler file
 ```
 
 ### Deployment
