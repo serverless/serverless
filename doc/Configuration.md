@@ -34,7 +34,6 @@ functions:
      - http_endpoint_aws:
         path: users/create
         method: post
-        cors: true
 
 defaults: &defaults
   name_template: ${service}-${stage}-${function}
