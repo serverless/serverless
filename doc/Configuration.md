@@ -18,6 +18,7 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
   * Defines stages for this service
   * Defines service-wide, and stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
   * Details separate profiles used for each stage in this service
+  * The following variables are reserved: `service`, `function`, `stage` and `region`
 
 ## Examples
 
