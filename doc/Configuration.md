@@ -7,8 +7,6 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
 
 ## serverless.yml
 
-### Qualities
-
 * Declares a serverless service
 * Defines one or multiple functions in the service
 * Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
@@ -19,9 +17,29 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
 * Contains no author-specific information
 * Can be shared publicly and installed by anyone
 
-### Examples
+## serverless.meta.yml
 
-#### AWS Example
+* Contains author-specific information not intended for version control
+* Defines stages for this service
+* Defines service-wide, and stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
+* Details separate profiles used for each stage in this service
+
+## Examples
+
+### AWS Example
+
+#### Codebase
+
+```
+users
+  lib // contains logic 
+  node_modules
+  package.json
+  serverless.yml
+  serverless.meta.yml
+  users.js // single handler file, requires lib
+```
+#### serverless.yml
 
 ```
 service: users
@@ -48,7 +66,6 @@ defaults: &defaults
   exclude:
    - .git
   aws_lambda_function:
-    handler: users.create
     runtime: nodejs4.3
     timeout: 6
     memory_size: 1024
@@ -67,19 +84,30 @@ plugins:
   - additional_plugin
 ```
 
-Here is the corresponding codebase:
+#### serverless.meta.yml
 
 ```
-users
-  lib // contains logic 
-  node_modules
-  package.json
-  serverless.yml
-  serverless.meta.yml
-  users.js // single handler file, requires lib
+stages:
+  dev:
+    creds:
+      awsProfile: # stage specific credentials
+    vars:
+      <<: *defaults
+      stageVariable: helloworld
+    regions:
+      aws_useast1:
+        creds:
+          awsProfile: # optional, stage+region specific credentials
+        vars:
+          <<: *defaults
+          regionVariable: helloworld
+
+defaults: &defaults
+  team: ops-team-1
+  
 ```
 
-### Deployment
+## Deployment
 
 Here are the general deployment steps that always occur first:
 
@@ -88,7 +116,7 @@ Here are the general deployment steps that always occur first:
 * If they contain references to other files, load them and populate the main configuration objects.
 * Loop through the `resources` property and collect resources for the default provider (if only 1 provider exists in configuration) or for the targeted provider.
 
-#### Deployment On AWS
+### Deployment On AWS
 
 If the targeted provider is AWS, and the `serverless.yml` contains AWS resources, these additional steps occur:
 
