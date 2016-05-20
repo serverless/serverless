@@ -1,5 +1,5 @@
-# Hello world
-This plugin is a simple "Hello World" plugin which shows how the plugin system works.
+# Tests
+This plugin is used to test the functionality of Serverless (e.g. run integration tests).
 Should be removed when running in production.
 
 ## Setup
