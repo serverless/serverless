@@ -102,7 +102,7 @@ defaults: &defaults
 
 ## Deployment
 
-Here are the general deployment steps that always occur first:
+These general deployment steps always occur first:
 
 * The `serverless.yml` and `serverless.meta.yml` files are loaded into two objects in memory (e.g., `service`, `meta`)
 * If YAML is used, it's converted to JSON.
