@@ -133,7 +133,7 @@ describe('Service', () => {
         const commonVars = {
           testVar: 'commonVar',
           testDigit: 10,
-          testSubstring: 'Sorld',
+          testSubstring: 'World',
         };
         expect(loadedService.environment.vars).to.deep.equal(commonVars);
         expect(serviceInstance.environment.stages.dev.regions.aws_useast1.vars.testVar)
