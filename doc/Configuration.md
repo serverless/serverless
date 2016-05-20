@@ -71,7 +71,7 @@ Here are the general deployment steps that always occur first:
 * If they contain references to other files, load them and populate the main configuration objects.
 * Loop through the `resources` property and check for a single provider (the default provider) or collect resources for the targeted provider.
 
-#### AWS Deployment
+#### Deployment On AWS
 
 If the targeted provider is AWS, and the `serverless.yml` contains AWS resources, these additional steps occur:
 
