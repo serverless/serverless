@@ -5,38 +5,27 @@
  */
 
 const expect = require('chai').expect;
-const suppose = require('suppose');
-const fs = require('fs');
+const exec = require('child_process').exec;
 const path = require('path');
+const TestsPlugin = require('../../lib/plugins/Tests/Tests');
 
 describe('Serverless integration tests', () => {
   it('should successfully run the "serverless test integration" command', (done) => {
-    suppose(`${process.env.PWD}/bin/serverless`, ['test', 'integration'])
-      .on('error', (error) => {
-        throw new Error(error.message);
-      })
-      .end((code) => {
-        if (code === 0) {
-          const filePath = path.join(process.env.PWD,
-            'lib', 'plugins', 'Tests', '.integration-test');
-          expect(fs.statSync(filePath).isFile()).to.equal(true);
-          done();
-        } else {
-          throw new Error('Test failed');
-        }
-      });
-  });
+    const testsPlugin = new TestsPlugin();
 
-  // clean up
-  after((done) => {
-    const filePath = path.join(process.env.PWD, 'lib', 'plugins', 'Tests', '.integration-test');
-    try {
-      if (fs.statSync(filePath).isFile()) {
-        fs.unlinkSync(filePath);
-        done();
-      }
-    } catch (exception) {
-      throw new Error(exception);
-    }
+    const execute = (command, callback) => {
+      exec(command, (error, stdout, stderr) => {
+        if (stderr) {
+          throw new Error(stderr);
+        }
+        callback(stdout);
+      });
+    };
+
+    execute(`${path.join(process.env.PWD, 'bin', 'serverless')} test integration`, (consoleOutput) => {
+      const commands = JSON.parse(consoleOutput);
+      expect(commands).to.deep.equal(testsPlugin.commands);
+      done();
+    });
   });
 });
