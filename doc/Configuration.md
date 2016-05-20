@@ -32,13 +32,19 @@ functions:
    <<: *defaults
    events:
      - http_endpoint_aws:
-        path: users/create
+        path: users
         method: post
+  delete:
+   <<: *defaults
+   events:
+     - http_endpoint_aws:
+        path: users
+        method: delete
 
 defaults: &defaults
   name_template: ${service}-${stage}-${function}
   include:
-   - lib
+   - ../parent/data.json
   exclude:
    - .git
   aws_lambda_function:
@@ -59,6 +65,18 @@ resources:
 plugins:
   - plugin
   - additional_plugin
+```
+
+Here is the corresponding codebase:
+
+```
+users
+  lib // Contains logic 
+  node_modules
+  package.json
+  serverless.yml
+  serverless.meta.yml
+  users.js // Simple handler file
 ```
 
 ### Deployment
