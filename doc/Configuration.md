@@ -2,7 +2,7 @@
 
 Serverless Framework V1 deals with one serverless service at a time.  Each serverless service must contain two configuration files which declare and describe it:
 
-* **serverless.yml**
+**serverless.yml**
   * Declares a serverless service
   * Defines one or multiple functions in the service
   * Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
@@ -13,8 +13,7 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
   * Contains no author-specific information
   * Can be shared publicly and installed by anyone
  
-
-* **serverless.meta.yml**
+**serverless.meta.yml**
   * Contains author-specific information not intended for version control
   * Defines stages for this service
   * Defines service-wide, and stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
