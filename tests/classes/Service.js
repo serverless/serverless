@@ -127,14 +127,14 @@ describe('Service', () => {
      * I can't put it in a before() block
      */
     it('should load and populate from filesystem', () => {
-      serviceInstance.load().then((loadedService) => {
+      const commonVars = {
+        testVar: 'commonVar',
+        testDigit: 10,
+        testSubstring: 'World',
+      };
+      return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('commonVar');
         expect(loadedService.plugins).to.deep.equal(['testPlugin']);
-        const commonVars = {
-          testVar: 'commonVar',
-          testDigit: 10,
-          testSubstring: 'World',
-        };
         expect(loadedService.environment.vars).to.deep.equal(commonVars);
         expect(serviceInstance.environment.stages.dev.regions.aws_useast1.vars.testVar)
           .to.be.equal('regionVar');
@@ -148,7 +148,7 @@ describe('Service', () => {
       const options = {
         stage: 'dev',
       };
-      serviceInstance.load(options).then((loadedService) => {
+      return serviceInstance.load(options).then((loadedService) => {
         expect(loadedService.service).to.be.equal('stageVar');
       });
     });
@@ -158,19 +158,19 @@ describe('Service', () => {
         stage: 'dev',
         region: 'aws_useast1',
       };
-      serviceInstance.load(options).then((loadedService) => {
+      return serviceInstance.load(options).then((loadedService) => {
         expect(loadedService.service).to.be.equal('regionVar');
       });
     });
 
     it('should load and populate non string variables', () => {
-      serviceInstance.load().then((loadedService) => {
+      return serviceInstance.load().then((loadedService) => {
         expect(loadedService.custom.digit).to.be.equal(10);
       });
     });
 
     it('should load and populate substring variables', () => {
-      serviceInstance.load().then((loadedService) => {
+      return serviceInstance.load().then((loadedService) => {
         expect(loadedService.custom.substring).to.be.equal('Hello World');
       });
     });
@@ -178,10 +178,10 @@ describe('Service', () => {
     it('should load and populate with custom variable syntax', () => {
       serviceInstance.service = '${{testVar}}';
       serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
-      serviceInstance.load().then((loadedService) => {
+      return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('commonVar');
+        delete serviceInstance.variableSyntax;
       });
-      delete serviceInstance.variableSyntax;
     });
   });
 
