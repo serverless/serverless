@@ -1,6 +1,6 @@
 # Configuration
 
-Serverless Framework V1 deals with one serverless service at a time.  Each *serverless service* must contain two configuration files which declare and describe it:
+Serverless Framework V1 deals with one serverless service at a time.  Each serverless service must contain two configuration files which declare and describe it:
 
 * **serverless.yml** - Defines a serverless service and the resources it requires.  Can be shared publicly.
 * **serverless.meta.yml** - Defines author-specific information, like stages, env vars, and all sensitive info.  Must be kept private.
