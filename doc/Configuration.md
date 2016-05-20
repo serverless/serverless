@@ -24,7 +24,7 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
 
 ### AWS Example
 
-#### Codebase
+#### Service Structure
 
 In this example, the entire `users` folder is zipped and uploaded to both Lambda functions defined in `serverless.yml`.  This behavior can be changed by modifying the `handler` property.
 
