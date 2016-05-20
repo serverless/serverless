@@ -9,9 +9,9 @@ Serverless Framework V1 deals with one service at a time.  These are known as *s
 
 ### Qualities
 
-* Defines a serverless service
-* Declares one or multiple functions in the service
-* Declares one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
+* Declares a serverless service
+* Defines one or multiple functions in the service
+* Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
 * Everything that can trigger the functions to execute (even HTTP requests) is considered an "event" and must be added in the `events` array.
 * Events listed in the `events` array will automatically create the resources required for the event upon deployment
 * Designed to be developed and operated completely independently
