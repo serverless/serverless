@@ -163,17 +163,23 @@ describe('Service', () => {
       });
     });
 
-    it('should load and populate non string variables', () => {
-      return serviceInstance.load().then((loadedService) => {
+    it('should load and populate non string variables', () => serviceInstance.load()
+      .then((loadedService) => {
         expect(loadedService.custom.digit).to.be.equal(10);
-      });
-    });
+      })
+    );
 
-    it('should load and populate substring variables', () => {
-      return serviceInstance.load().then((loadedService) => {
+    it('should load and populate substring variables', () => serviceInstance.load()
+      .then((loadedService) => {
         expect(loadedService.custom.substring).to.be.equal('Hello World');
-      });
-    });
+      })
+    );
+
+    // it('should load and populate substring variables', () => {
+    //   return serviceInstance.load().then((loadedService) => {
+    //     expect(loadedService.custom.substring).to.be.equal('Hello World');
+    //   });
+    // });
 
     it('should load and populate with custom variable syntax', () => {
       serviceInstance.service = '${{testVar}}';
