@@ -69,7 +69,7 @@ resources:
   - aws_name: ${service}-${stage}-resources
   - aws_description: The resources for the "${service}" service in the "${stage}" stage.
   - aws_dynamodb_table:
-      resource_name: ${service}-${stage}-users
+      name: ${service}-${stage}-users
       table_name: ${service}-${stage}-users
       provisioned_throughput: 1
       key_schema: id
