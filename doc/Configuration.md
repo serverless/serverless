@@ -76,7 +76,7 @@ users
   package.json
   serverless.yml
   serverless.meta.yml
-  users.js // single handler file
+  users.js // single handler file, requires lib
 ```
 
 ### Deployment
