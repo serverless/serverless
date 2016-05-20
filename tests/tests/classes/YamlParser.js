@@ -17,9 +17,7 @@ const SUtils = new Utils();
 const yamlParser = new YamlParser(S);
 
 describe('YamlParser', () => {
-
   describe('#parse()', () => {
-
     it('should parse a simple yaml file', () => {
       const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'simple.yml');
 
@@ -92,5 +90,5 @@ describe('YamlParser', () => {
       });
     });
   });
-
 });
+

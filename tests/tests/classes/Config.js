@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Test: Config Class
- */
-
 const expect = require('chai').expect;
 const Config = require('../../../lib/classes/Config');
 const Serverless = require('../../../lib/Serverless');
@@ -11,12 +7,10 @@ const Serverless = require('../../../lib/Serverless');
 const S = new Serverless();
 
 describe('Config', () => {
-
   describe('#constructor()', () => {
-
     it('should attach serverless instance', () => {
       const configInstance = new Config(S);
-      expect(typeof configInstance.S._version).to.be.equal('string');
+      expect(typeof configInstance.S.version).to.be.equal('string');
     });
 
     it('should add config if provided', () => {
@@ -26,7 +20,6 @@ describe('Config', () => {
   });
 
   describe('#update()', () => {
-
     it('should update config', () => {
       const configInstance = new Config(S, { servicePath: 'config1' });
       expect(configInstance.servicePath).to.be.equal('config1');
