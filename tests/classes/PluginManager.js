@@ -1,9 +1,9 @@
 'use strict';
 
 const expect = require('chai').expect;
-const PluginManager = require('../../../lib/classes/PluginManager');
-const Serverless = require('../../../lib/Serverless');
-const HelloWorld = require('../../../lib/plugins/HelloWorld/HelloWorld');
+const PluginManager = require('../../lib/classes/PluginManager');
+const Serverless = require('../../lib/Serverless');
+const HelloWorld = require('../../lib/plugins/HelloWorld/HelloWorld');
 
 describe('PluginManager', () => {
   let pluginManager;

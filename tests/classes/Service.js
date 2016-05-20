@@ -4,9 +4,9 @@ const path = require('path');
 const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
-const Service = require('../../../lib/classes/Service');
-const Utils = require('../../../lib/classes/Utils');
-const Serverless = require('../../../lib/Serverless');
+const Service = require('../../lib/classes/Service');
+const Utils = require('../../lib/classes/Utils');
+const Serverless = require('../../lib/Serverless');
 
 describe('Service', () => {
   describe('#constructor()', () => {

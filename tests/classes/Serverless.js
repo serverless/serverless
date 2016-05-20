@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const Serverless = require('../../../lib/Serverless');
+const Serverless = require('../../lib/Serverless');
 
 describe('Serverless', () => {
   describe('#getVersion()', () => {

@@ -3,9 +3,9 @@
 const path = require('path');
 const os = require('os');
 const expect = require('chai').expect;
-const Serverless = require('../../../lib/Serverless');
-const Utils = require('../../../lib/classes/Utils');
-const YamlParser = require('../../../lib/classes/YamlParser');
+const Serverless = require('../../lib/Serverless');
+const Utils = require('../../lib/classes/Utils');
+const YamlParser = require('../../lib/classes/YamlParser');
 
 const S = new Serverless();
 const SUtils = new Utils(S);
