@@ -111,7 +111,7 @@ Here are the general deployment steps that always occur first:
 * If they contain references to other files, load them and populate the main configuration objects.
 * Loop through the `resources` property and collect resources for the default provider (if only 1 provider exists in configuration) or for the targeted provider.
 
-### Deployment On AWS
+### Deployment On Amazon Web Services
 
 If the targeted provider is AWS, and the `serverless.yml` contains AWS resources, these additional steps occur:
 
@@ -119,6 +119,10 @@ If the targeted provider is AWS, and the `serverless.yml` contains AWS resources
 * All of the resources in the `resources` property are added to that template.
 * The compute resources found in the `functions` are added to that template (e.g., AWS Lambda Functions).
 * Each event in the `functions.yourFunction.events` property is processed.  If it requires resources, these are also added to the template.
+
+### Deployment On Microsoft Azure
+
+### Deployment On Google Cloud Platform
 
 *To be continued...*
 
