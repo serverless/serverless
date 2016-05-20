@@ -22,11 +22,12 @@ describe('Serverless integration tests', () => {
       });
     };
 
-    execute(`${path.join(process.env.PWD, 'bin', 'serverless')} test integration --test`,
-      (consoleOutput) => {
-        const commands = JSON.parse(consoleOutput);
-        expect(commands).to.deep.equal(testsPlugin.commands);
-        done();
-      });
+    execute(`${path.join
+      (process.env.PWD, 'bin', 'serverless')} test integration --serverless-integration-test`,
+        (consoleOutput) => {
+          const commands = JSON.parse(consoleOutput);
+          expect(commands).to.deep.equal(testsPlugin.commands);
+          done();
+        });
   });
 });

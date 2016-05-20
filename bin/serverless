@@ -17,7 +17,7 @@ const serverless = new Serverless({
 });
 
 // check if it's a test (e.g. an integration test) and modify the serverless instance accordingly
-if (process.argv.indexOf('--test') > -1) {
+if (process.argv.indexOf('--serverless-integration-test') > -1) {
   serverless.instances.pluginManager.addPlugin(TestsPlugin);
 }
 
