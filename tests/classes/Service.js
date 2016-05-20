@@ -66,9 +66,10 @@ describe('Service', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYaml = {
-        service: 'testService',
+        service: '${testVar}',
         custom: {
-          customProp: 'value',
+          digit: '${testDigit}',
+          substring: 'Hello ${testSubstring}',
         },
         plugins: ['testPlugin'],
         functions: {
@@ -84,70 +85,9 @@ describe('Service', () => {
       };
       const serverlessEnvYaml = {
         vars: {
-          varA: 'varA',
-        },
-        stages: {
-          dev: {
-            vars: {
-              varB: 'varB',
-            },
-            regions: {
-              aws_useast1: {
-                vars: {
-                  varC: 'varC',
-                },
-              },
-            },
-          },
-        },
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
-        YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
-        YAML.dump(serverlessEnvYaml));
-
-      const S = new Serverless({ servicePath: tmpDirPath });
-      serviceInstance = new Service(S);
-    });
-
-    /*
-     * Even though I wanna split this into multiple test cases
-     * that would mean loading from the filesystem on each test case (slow!!)
-     * and because the load() method returns a promise
-     * I can't put it in a before() block
-     */
-    it('should load from filesystem', () => {
-      serviceInstance.load().then((loadedService) => {
-        expect(loadedService.service).to.be.equal('testService');
-        expect(loadedService.custom).to.deep.equal({ customProp: 'value' });
-        expect(loadedService.plugins).to.deep.equal(['testPlugin']);
-        expect(loadedService.environment.vars).to.deep.equal({ varA: 'varA' });
-        expect(serviceInstance.environment.stages.dev.regions.aws_useast1.vars.varC)
-          .to.be.equal('varC');
-        expect(loadedService.resources.aws).to.deep.equal({ resourcesProp: 'value' });
-        expect(loadedService.resources.azure).to.deep.equal({});
-        expect(loadedService.resources.google).to.deep.equal({});
-      });
-    });
-
-    it('should throw error if servicePath not configured', () => {
-      const S = new Serverless();
-      serviceInstance = new Service(S);
-      expect(() => { serviceInstance.load(); }).to.throw(Error);
-    });
-  });
-
-  describe('#getPopulated()', () => {
-    let serviceInstance;
-    beforeEach(() => {
-      const S = new Serverless();
-      serviceInstance = new Service(S);
-
-      serviceInstance.service = '${testVar}';
-      serviceInstance.environment = {
-        vars: {
           testVar: 'commonVar',
+          testDigit: 10,
+          testSubstring: 'World',
         },
         stages: {
           dev: {
@@ -164,42 +104,84 @@ describe('Service', () => {
           },
         },
       };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const S = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(S);
     });
 
-    it('should populate common variables', () => {
-      const populatedService = serviceInstance.getPopulated();
-      expect(populatedService.service).to.be.equal('commonVar');
+    it('should throw error if servicePath not configured', () => {
+      const S = new Serverless();
+      const invalidService = new Service(S);
+      expect(() => invalidService.load()).to.throw(Error);
     });
 
-    it('should populate stage variables', () => {
+    /*
+     * Even though I wanna split this into multiple test cases
+     * that would mean loading from the filesystem on each test case (slow!!)
+     * and because the load() method returns a promise
+     * I can't put it in a before() block
+     */
+    it('should load and populate from filesystem', () => {
+      serviceInstance.load().then((loadedService) => {
+        expect(loadedService.service).to.be.equal('commonVar');
+        expect(loadedService.plugins).to.deep.equal(['testPlugin']);
+        const commonVars = {
+          testVar: 'commonVar',
+          testDigit: 10,
+          testSubstring: 'Sorld',
+        };
+        expect(loadedService.environment.vars).to.deep.equal(commonVars);
+        expect(serviceInstance.environment.stages.dev.regions.aws_useast1.vars.testVar)
+          .to.be.equal('regionVar');
+        expect(loadedService.resources.aws).to.deep.equal({ resourcesProp: 'value' });
+        expect(loadedService.resources.azure).to.deep.equal({});
+        expect(loadedService.resources.google).to.deep.equal({});
+      });
+    });
+
+    it('should load and populate stage vars', () => {
       const options = {
         stage: 'dev',
       };
-      const populatedService = serviceInstance.getPopulated(options);
-      expect(populatedService.service).to.be.equal('stageVar');
+      serviceInstance.load(options).then((loadedService) => {
+        expect(loadedService.service).to.be.equal('stageVar');
+      });
     });
 
-    it('should populate region variables', () => {
+    it('should load and populate region vars', () => {
       const options = {
         stage: 'dev',
         region: 'aws_useast1',
       };
-      const populatedService = serviceInstance.getPopulated(options);
-      expect(populatedService.service).to.be.equal('regionVar');
+      serviceInstance.load(options).then((loadedService) => {
+        expect(loadedService.service).to.be.equal('regionVar');
+      });
     });
 
-    it('should populate with custom variable syntax', () => {
+    it('should load and populate non string variables', () => {
+      serviceInstance.load().then((loadedService) => {
+        expect(loadedService.custom.digit).to.be.equal(10);
+      });
+    });
+
+    it('should load and populate substring variables', () => {
+      serviceInstance.load().then((loadedService) => {
+        expect(loadedService.custom.substring).to.be.equal('Hello World');
+      });
+    });
+
+    it('should load and populate with custom variable syntax', () => {
       serviceInstance.service = '${{testVar}}';
       serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
-      const populatedService = serviceInstance.getPopulated();
-      expect(populatedService.service).to.be.equal('commonVar');
+      serviceInstance.load().then((loadedService) => {
+        expect(loadedService.service).to.be.equal('commonVar');
+      });
       delete serviceInstance.variableSyntax;
-    });
-
-    it('should populate non string variables', () => {
-      serviceInstance.environment.vars.testVar = 10;
-      const populatedService = serviceInstance.getPopulated();
-      expect(populatedService.service).to.be.equal(10);
     });
   });
 
