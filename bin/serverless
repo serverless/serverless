@@ -2,6 +2,9 @@
 
 'use strict';
 
+// Note: TestsPlugin is only used for tests
+const TestsPlugin = require('../lib/plugins/Tests/Tests');
+
 let SUtils = require('../lib/classes/Utils');
 SUtils = new SUtils();
 
@@ -12,5 +15,10 @@ const serverless = new Serverless({
   // servicePath: SUtils.findServicePath(process.cwd()),
   interactive: typeof process.env.CI === 'undefined',
 });
+
+// check if it's a test (e.g. an integration test) and modify the serverless instance accordingly
+if (process.argv.indexOf('--test') > -1) {
+  serverless.instances.pluginManager.addPlugin(TestsPlugin);
+}
 
 serverless.runCommand();
