@@ -49,7 +49,8 @@
     "mocha": "^2.2.5",
     "mocha-lcov-reporter": "^1.2.0",
     "node-uuid": "^1.4.2",
-    "rimraf": "^2.4.3"
+    "rimraf": "^2.4.3",
+    "suppose": "^0.5.2"
   },
   "dependencies": {
     "async": "^1.5.2",

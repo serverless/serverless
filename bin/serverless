@@ -2,20 +2,15 @@
 
 'use strict';
 
-let argv = require('minimist')(process.argv.slice(2));
-
-if (argv.debug) process.env.DEBUG = '*';
-
 let SUtils = require('../lib/classes/Utils');
 SUtils = new SUtils();
 
-let S         = require('../lib/Serverless'),
-  serverless  = new S({
-    servicePath: SUtils.findServicePath(process.cwd()),
-    interactive: typeof process.env.CI === 'undefined'
-  });
+const Serverless = require('../lib/Serverless');
 
-// serverless.init()
-//   .then(function(){
-//     serverless.runCommand(argv);
-//   });
+const serverless = new Serverless({
+  // TODO: update config accordingly
+  // servicePath: SUtils.findServicePath(process.cwd()),
+  interactive: typeof process.env.CI === 'undefined',
+});
+
+serverless.runCommand();
