@@ -13,7 +13,7 @@ The Serverless Framework deals with one service at a time, and it uses two confi
 * Declares one or multiple functions in the service
 * Declares one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
 * Everything that can trigger the functions to execute (even HTTP requests) is considered an "event" and must be added in the `events` array.
-* Events listed in the `events` array will automatically create the resources required for the event upon deployment.
+* Events listed in the `events` array will automatically create the resources required for the event upon deployment
 * Designed to be developed and operated completely independently
 * Configuration information can be specified for multiple IaaS providers
 * Contains no author-specific information
@@ -23,7 +23,7 @@ The Serverless Framework deals with one service at a time, and it uses two confi
 
 #### AWS Example
 
-This simple service is for creating users.
+This simple service is for creating users:
 
 ```
 service: users
@@ -67,8 +67,8 @@ plugins:
 
 Here are the general deployment steps that always occur first:
 
-* The `serverless.yml` and `serverless.meta.yml` files are loaded into two objects in memory (e.g., `service`, `serviceMeta`)
-* If YAML is used, convert to JSON.
+* The `serverless.yml` and `serverless.meta.yml` files are loaded into two objects in memory (e.g., `service`, `meta`)
+* If YAML is used, it's converted to JSON.
 * If they contain references to other files, load them and populate the main configuration objects.
 * Loop through the `resources` property and check for a single provider (the default provider) or collect resources for the targeted provider.
 
