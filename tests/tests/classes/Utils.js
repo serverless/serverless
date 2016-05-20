@@ -14,13 +14,13 @@ const yamlParser = new YamlParser(S);
 describe('Utils', () => {
   describe('#generateShortId()', () => {
     it('should generate a shortId', () => {
-      const id = SUtils.generateShortId(6);
+      const id = SUtils.generateShortId();
       expect(id).to.be.a('string');
     });
 
     it('should generate a shortId for the given length', () => {
       const id = SUtils.generateShortId(6);
-      expect(id.length).to.equal(6);
+      expect(id.length).to.be.equal(6);
     });
   });
 

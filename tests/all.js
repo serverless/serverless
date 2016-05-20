@@ -9,3 +9,4 @@ require('./tests/classes/Utils');
 require('./tests/classes/Config');
 require('./tests/classes/Service');
 require('./tests/classes/YamlParser');
+

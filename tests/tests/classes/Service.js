@@ -213,6 +213,91 @@ describe('Service', () => {
     });
   });
 
+  describe('#getFunction()', () => {
+
+    let serviceInstance;
+    before(() => {
+      const S = new Serverless();
+      serviceInstance = new Service(S);
+      serviceInstance.functions = {
+        create: {
+          handler: 'users.create'
+        }
+      };
+    });
+
+    it('should return function object', () => {
+      expect(serviceInstance.getFunction('create')).to.deep.equal({ handler: 'users.create' });
+    });
+
+    it('should throw error if function does not exist', () => {
+      expect(()=> { serviceInstance.getFunction('random') }).to.throw(Error);
+    });
+  });
+
+  describe('#getAllFunctions()', () => {
+
+    it('should return an array of function names in Service', () => {
+      const S = new Serverless();
+      const serviceInstance = new Service(S);
+      serviceInstance.functions = {
+        create: {
+          handler: 'users.create'
+        },
+        list: {
+          handler: 'users.list'
+        }
+      };
+
+      expect(serviceInstance.getAllFunctions()).to.deep.equal(['create', 'list']);
+    });
+  });
+
+  describe('#getEventInFunction()', () => {
+
+    let serviceInstance;
+    before(() => {
+      const S = new Serverless();
+      serviceInstance = new Service(S);
+      serviceInstance.functions = {
+        create: {
+          events: {
+            schedule: 'rate(5 minutes)'
+          }
+        }
+      };
+    });
+
+    it('should return an event object based on provided function', () => {
+      expect(serviceInstance.getEventInFunction('schedule', 'create')).to.be.equal('rate(5 minutes)');
+    });
+
+    it('should throw error if function does not exist in service', () => {
+      expect(() => {serviceInstance.getEventInFunction(null, 'list')}).to.throw(Error);
+    });
+
+    it('should throw error if event doesnt exist in function', () => {
+      expect(() => {serviceInstance.getEventInFunction('randomEvent', 'create')}).to.throw(Error);
+    });
+  });
+
+  describe('#getAllEventsInFunction()', () => {
+    it('should return an array of events in a specified function', () => {
+      const S = new Serverless();
+      const serviceInstance = new Service(S);
+      serviceInstance.functions = {
+        create: {
+          events: {
+            schedule: 'rate(5 minutes)',
+            bucket: 'my_bucket'
+          }
+        }
+      };
+
+      expect(serviceInstance.getAllEventsInFunction('create')).to.deep.equal(['schedule', 'bucket']);
+    });
+  });
+
   describe('#getStage()', () => {
     let serviceInstance;
     before(() => {
@@ -271,6 +356,7 @@ describe('Service', () => {
       expect(serviceInstance.getAllStages()).to.deep.equal(['dev']);
     });
   });
+
 
   describe('#getRegionInStage()', () => {
     let serviceInstance;
