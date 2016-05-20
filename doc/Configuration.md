@@ -25,6 +25,8 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
 
 #### Codebase
 
+In this example, the entire `users` folder is zipped and uploaded to both Lambda functions defined in `serverless.yml`.  This behavior can be changed by modifying the `handler` property.
+
 ```
 users
   lib // contains logic 
@@ -43,12 +45,14 @@ description: ${description}
 functions:
   create:
    <<: *defaults
+   handler: users.create
    events:
      - http_endpoint_aws:
         path: users
         method: post
   delete:
    <<: *defaults
+   handler: users.delete
    events:
      - http_endpoint_aws:
         path: users
