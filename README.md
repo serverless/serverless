@@ -80,7 +80,6 @@ Serverless Projects are shareable and installable.  You can publish them to npm 
 * [serverless-authentication-boilerplate](https://github.com/laardee/serverless-authentication-boilerplate) - A generic authentication boilerplate for Serverless framework 
 * [sc5-serverless-boilerplate](https://github.com/SC5/sc5-serverless-boilerplate) - A boilerplate for test driven development of REST endpoints
 * [MoonMail] (https://github.com/microapps/MoonMail) - Build your own email marketing infrastructure using Lambda + SES
-* [serverless-elasticommerce-search-service](https://github.com/amimoto-ami/serverless-elasticommerce-search-service) - A backend API that visualizing to the relation between products search and sales in Ecommerce site. Using API Gateway + Lamdba + DynamoDB
     
 ## Plugins
 Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
