@@ -23,10 +23,9 @@ Serverless Framework V1 deals with one service at a time.  These are known as "s
 
 #### AWS Example
 
-This simple service is for creating users:
-
 ```
 service: users
+description: This simple service is for creating users
 
 functions:
   create:
