@@ -25,7 +25,7 @@ Serverless Framework V1 deals with one service at a time.  These are known as *s
 
 ```
 service: users
-description: This simple service is for creating users
+description: A simple service for creating users
 
 functions:
   create:
