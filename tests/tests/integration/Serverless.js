@@ -11,7 +11,7 @@ const path = require('path');
 
 describe('Serverless integration tests', () => {
   it('should successfully run the "serverless test integration" command', (done) => {
-    suppose('serverless', ['test', 'integration'])
+    suppose(`${process.env.PWD}/bin/serverless`, ['test', 'integration'])
       .on('error', (error) => {
         throw new Error(error.message);
       })
