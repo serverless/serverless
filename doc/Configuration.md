@@ -25,7 +25,7 @@ Serverless Framework V1 deals with one serverless service at a time.  Each serve
 
 ```
 service: users
-description: A simple service for creating users
+description: A simple service for creating & deleting users
 
 functions:
   create:
@@ -51,7 +51,7 @@ defaults: &defaults
     handler: users.create
     runtime: nodejs4.3
     timeout: 6
-    memorySize: 1024
+    memory_size: 1024
 
 resources:
   - aws_name: ${service}-${stage}-resources
