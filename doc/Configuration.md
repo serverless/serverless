@@ -2,27 +2,22 @@
 
 Serverless Framework V1 deals with one serverless service at a time.  Each serverless service must contain two configuration files which declare and describe it:
 
-* **serverless.yml** - Defines a serverless service and the resources it requires.  Can be shared publicly.
-* **serverless.meta.yml** - Defines author-specific information, like stages, env vars, and all sensitive info.  Must be kept private.
-
-## serverless.yml
-
-* Declares a serverless service
-* Defines one or multiple functions in the service
-* Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
-* Everything that can trigger the functions to execute (even HTTP requests) is considered an "event" and must be added in the `events` array.
-* Events listed in the `events` array will automatically create the resources required for the event upon deployment
-* Designed to be developed and operated completely independently
-* Configuration information can be specified for multiple IaaS providers
-* Contains no author-specific information
-* Can be shared publicly and installed by anyone
-
-## serverless.meta.yml
-
-* Contains author-specific information not intended for version control
-* Defines stages for this service
-* Defines service-wide, and stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
-* Details separate profiles used for each stage in this service
+* **serverless.yml**
+  * Declares a serverless service
+  * Defines one or multiple functions in the service
+  * Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
+  * Everything that can trigger the functions to execute (even HTTP requests) is considered an "event" and must be added in the `events` array.
+  * Events listed in the `events` array will automatically create the resources required for the event upon deployment
+  * Designed to be developed and operated completely independently
+  * Configuration information can be specified for multiple IaaS providers
+  * Contains no author-specific information
+  * Can be shared publicly and installed by anyone
+  * 
+* **serverless.meta.yml**
+  * Contains author-specific information not intended for version control
+  * Defines stages for this service
+  * Defines service-wide, and stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
+  * Details separate profiles used for each stage in this service
 
 ## Examples
 
