@@ -214,15 +214,14 @@ describe('Service', () => {
   });
 
   describe('#getFunction()', () => {
-
     let serviceInstance;
     before(() => {
       const S = new Serverless();
       serviceInstance = new Service(S);
       serviceInstance.functions = {
         create: {
-          handler: 'users.create'
-        }
+          handler: 'users.create',
+        },
       };
     });
 
@@ -231,30 +230,27 @@ describe('Service', () => {
     });
 
     it('should throw error if function does not exist', () => {
-      expect(()=> { serviceInstance.getFunction('random') }).to.throw(Error);
+      expect(() => { serviceInstance.getFunction('random'); }).to.throw(Error);
     });
   });
 
   describe('#getAllFunctions()', () => {
-
     it('should return an array of function names in Service', () => {
       const S = new Serverless();
       const serviceInstance = new Service(S);
       serviceInstance.functions = {
         create: {
-          handler: 'users.create'
+          handler: 'users.create',
         },
         list: {
-          handler: 'users.list'
-        }
+          handler: 'users.list',
+        },
       };
-
       expect(serviceInstance.getAllFunctions()).to.deep.equal(['create', 'list']);
     });
   });
 
   describe('#getEventInFunction()', () => {
-
     let serviceInstance;
     before(() => {
       const S = new Serverless();
@@ -262,22 +258,24 @@ describe('Service', () => {
       serviceInstance.functions = {
         create: {
           events: {
-            schedule: 'rate(5 minutes)'
-          }
-        }
+            schedule: 'rate(5 minutes)',
+          },
+        },
       };
     });
 
     it('should return an event object based on provided function', () => {
-      expect(serviceInstance.getEventInFunction('schedule', 'create')).to.be.equal('rate(5 minutes)');
+      expect(serviceInstance.getEventInFunction('schedule', 'create'))
+        .to.be.equal('rate(5 minutes)');
     });
 
     it('should throw error if function does not exist in service', () => {
-      expect(() => {serviceInstance.getEventInFunction(null, 'list')}).to.throw(Error);
+      expect(() => { serviceInstance.getEventInFunction(null, 'list'); }).to.throw(Error);
     });
 
     it('should throw error if event doesnt exist in function', () => {
-      expect(() => {serviceInstance.getEventInFunction('randomEvent', 'create')}).to.throw(Error);
+      expect(() => { serviceInstance.getEventInFunction('randomEvent', 'create'); })
+        .to.throw(Error);
     });
   });
 
@@ -289,12 +287,13 @@ describe('Service', () => {
         create: {
           events: {
             schedule: 'rate(5 minutes)',
-            bucket: 'my_bucket'
-          }
-        }
+            bucket: 'my_bucket',
+          },
+        },
       };
 
-      expect(serviceInstance.getAllEventsInFunction('create')).to.deep.equal(['schedule', 'bucket']);
+      expect(serviceInstance.getAllEventsInFunction('create'))
+        .to.deep.equal(['schedule', 'bucket']);
     });
   });
 
