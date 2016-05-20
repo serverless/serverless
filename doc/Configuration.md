@@ -38,7 +38,7 @@ users
 
 ```
 service: users
-description: A simple service for creating & deleting users
+description: ${description}
 
 functions:
   create:
@@ -67,7 +67,7 @@ defaults: &defaults
 
 resources:
   - aws_name: ${service}-${stage}-resources
-  - aws_description: The resources for the "${service}" service in the "${stage}" stage.
+  - aws_description: ${description}
   - aws_dynamodb_table:
       name: ${service}-${stage}-users
       table_name: ${service}-${stage}-users
@@ -94,12 +94,10 @@ stages:
         creds:
           awsProfile: # optional, stage+region specific credentials
         vars:
-          <<: *defaults
           regionVariable: helloworld3
 
 defaults: &defaults
-  serviceVariable: helloworld1
-  
+  description: A simple service for creating & deleting users
 ```
 
 ## Deployment
