@@ -88,17 +88,17 @@ stages:
       awsProfile: # stage specific credentials
     vars:
       <<: *defaults
-      stageVariable: helloworld
+      stageVariable: helloworld2
     regions:
       aws_useast1:
         creds:
           awsProfile: # optional, stage+region specific credentials
         vars:
           <<: *defaults
-          regionVariable: helloworld
+          regionVariable: helloworld3
 
 defaults: &defaults
-  team: ops-team-1
+  serviceVariable: helloworld1
   
 ```
 
