@@ -175,12 +175,6 @@ describe('Service', () => {
       })
     );
 
-    // it('should load and populate substring variables', () => {
-    //   return serviceInstance.load().then((loadedService) => {
-    //     expect(loadedService.custom.substring).to.be.equal('Hello World');
-    //   });
-    // });
-
     it('should load and populate with custom variable syntax', () => {
       serviceInstance.service = '${{testVar}}';
       serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
