@@ -69,7 +69,7 @@ Here are the general deployment steps that always occur first:
 * The `serverless.yml` and `serverless.meta.yml` files are loaded into two objects in memory (e.g., `service`, `meta`)
 * If YAML is used, it's converted to JSON.
 * If they contain references to other files, load them and populate the main configuration objects.
-* Loop through the `resources` property and check for a single provider (the default provider) or collect resources for the targeted provider.
+* Loop through the `resources` property and collect resources for the default provider (if only 1 provider exists in configuration) or for the targeted provider.
 
 #### Deployment On AWS
 
