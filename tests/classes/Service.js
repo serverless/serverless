@@ -1,25 +1,20 @@
 'use strict';
 
-/**
- * Test: Service Class
- */
-
 const path = require('path');
 const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
-const Service = require('../../../lib/classes/Service');
-const Utils = require('../../../lib/classes/Utils');
-const Serverless = require('../../../lib/Serverless');
+const Service = require('../../lib/classes/Service');
+const Utils = require('../../lib/classes/Utils');
+const Serverless = require('../../lib/Serverless');
 
 describe('Service', () => {
-
   describe('#constructor()', () => {
     const S = new Serverless();
 
     it('should attach serverless instance', () => {
       const serviceInstance = new Service(S);
-      expect(typeof serviceInstance.S._version).to.be.equal('string');
+      expect(typeof serviceInstance.S.version).to.be.equal('string');
     });
 
     it('should construct with defaults', () => {
@@ -31,26 +26,25 @@ describe('Service', () => {
       expect(serviceInstance.functions).to.deep.equal({});
       expect(serviceInstance.environment).to.deep.equal({});
       expect(serviceInstance.resources).to.deep.equal({});
-
     });
 
     it('should construct with data', () => {
       const data = {
         service: 'testService',
         custom: {
-          customProp: 'value'
+          customProp: 'value',
         },
         plugins: ['testPlugin'],
         functions: {
-          functionA: {}
+          functionA: {},
         },
         resources: {
           aws: {
-            resourcesProp: 'value'
+            resourcesProp: 'value',
           },
           azure: {},
-          google: {}
-        }
+          google: {},
+        },
       };
 
       const serviceInstance = new Service(S, data);
@@ -74,44 +68,46 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'testService',
         custom: {
-          customProp: 'value'
+          customProp: 'value',
         },
         plugins: ['testPlugin'],
         functions: {
-          functionA: {}
+          functionA: {},
         },
         resources: {
           aws: {
-            resourcesProp: 'value'
+            resourcesProp: 'value',
           },
           azure: {},
-          google: {}
-        }
+          google: {},
+        },
       };
       const serverlessEnvYaml = {
         vars: {
-          varA: 'varA'
+          varA: 'varA',
         },
         stages: {
           dev: {
             vars: {
-              varB: 'varB'
+              varB: 'varB',
             },
             regions: {
               aws_useast1: {
                 vars: {
-                  varC: 'varC'
-                }
-              }
-            }
-          }
-        }
+                  varC: 'varC',
+                },
+              },
+            },
+          },
+        },
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'), YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'), YAML.dump(serverlessEnvYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
 
-      const S = new Serverless({ servicePath: tmpDirPath })
+      const S = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(S);
     });
 
@@ -122,38 +118,27 @@ describe('Service', () => {
      * I can't put it in a before() block
      */
     it('should load from filesystem', () => {
-      return serviceInstance.load().then((serviceInstance) => {
-        expect(serviceInstance.service).to.be.equal('testService');
-        expect(serviceInstance.custom).to.deep.equal({ customProp: 'value' });
-        expect(serviceInstance.plugins).to.deep.equal(['testPlugin']);
-        expect(serviceInstance.environment.vars).to.deep.equal({ varA: 'varA' });
-        expect(serviceInstance.environment.stages.dev.regions.aws_useast1.vars.varC).to.be.equal('varC');
-        expect(serviceInstance.resources.aws).to.deep.equal({ resourcesProp: 'value' });
-        expect(serviceInstance.resources.azure).to.deep.equal({});
-        expect(serviceInstance.resources.google).to.deep.equal({});
+      serviceInstance.load().then((loadedService) => {
+        expect(loadedService.service).to.be.equal('testService');
+        expect(loadedService.custom).to.deep.equal({ customProp: 'value' });
+        expect(loadedService.plugins).to.deep.equal(['testPlugin']);
+        expect(loadedService.environment.vars).to.deep.equal({ varA: 'varA' });
+        expect(serviceInstance.environment.stages.dev.regions.aws_useast1.vars.varC)
+          .to.be.equal('varC');
+        expect(loadedService.resources.aws).to.deep.equal({ resourcesProp: 'value' });
+        expect(loadedService.resources.azure).to.deep.equal({});
+        expect(loadedService.resources.google).to.deep.equal({});
       });
     });
 
     it('should throw error if servicePath not configured', () => {
       const S = new Serverless();
       serviceInstance = new Service(S);
-      expect(() =>{serviceInstance.load()}).to.throw(Error);
+      expect(() => { serviceInstance.load(); }).to.throw(Error);
     });
   });
 
-  describe('#toObject()', () => {
-    it('should convert service instance to object', () => {
-      const S = new Serverless();
-      const serviceInstance = new Service(S);
-      const serviceObj = serviceInstance.toObject();
-
-      expect(typeof serviceObj._class).to.be.equal('undefined');
-    });
-
-  });
-
-  describe('#toObjectPopulated()', () => {
-
+  describe('#getPopulated()', () => {
     let serviceInstance;
     beforeEach(() => {
       const S = new Serverless();
@@ -162,76 +147,81 @@ describe('Service', () => {
       serviceInstance.service = '${testVar}';
       serviceInstance.environment = {
         vars: {
-          testVar: 'commonVar'
+          testVar: 'commonVar',
         },
         stages: {
           dev: {
             vars: {
-              testVar: 'stageVar'
+              testVar: 'stageVar',
             },
             regions: {
               aws_useast1: {
                 vars: {
-                  testVar: 'regionVar'
-                }
-              }
-            }
-          }
-        }
+                  testVar: 'regionVar',
+                },
+              },
+            },
+          },
+        },
       };
     });
 
     it('should populate common variables', () => {
-      const populatedObj = serviceInstance.toObjectPopulated();
-      expect(populatedObj.service).to.be.equal('commonVar');
+      const populatedService = serviceInstance.getPopulated();
+      expect(populatedService.service).to.be.equal('commonVar');
     });
 
     it('should populate stage variables', () => {
       const options = {
-        stage: 'dev'
+        stage: 'dev',
       };
-      const populatedObj = serviceInstance.toObjectPopulated(options);
-      expect(populatedObj.service).to.be.equal('stageVar');
+      const populatedService = serviceInstance.getPopulated(options);
+      expect(populatedService.service).to.be.equal('stageVar');
     });
 
     it('should populate region variables', () => {
       const options = {
         stage: 'dev',
-        region: 'aws_useast1'
+        region: 'aws_useast1',
       };
-      const populatedObj = serviceInstance.toObjectPopulated(options);
-      expect(populatedObj.service).to.be.equal('regionVar');
+      const populatedService = serviceInstance.getPopulated(options);
+      expect(populatedService.service).to.be.equal('regionVar');
     });
 
     it('should populate with custom variable syntax', () => {
       serviceInstance.service = '${{testVar}}';
       serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
-      const populatedObj = serviceInstance.toObjectPopulated();
-      expect(populatedObj.service).to.be.equal('commonVar');
+      const populatedService = serviceInstance.getPopulated();
+      expect(populatedService.service).to.be.equal('commonVar');
       delete serviceInstance.variableSyntax;
+    });
+
+    it('should populate non string variables', () => {
+      serviceInstance.environment.vars.testVar = 10;
+      const populatedService = serviceInstance.getPopulated();
+      expect(populatedService.service).to.be.equal(10);
     });
   });
 
-  describe('#fromObject()', () => {
-    it('should merge an object to the instance', () => {
+  describe('#update()', () => {
+    it('should update service instance data', () => {
       const S = new Serverless();
       const serviceInstance = new Service(S);
       const newData = { service: 'newName' };
-      const newInstance = serviceInstance.fromObject(newData);
-      expect(newInstance.service).to.be.equal('newName');
+      const updatedInstance = serviceInstance.update(newData);
+      expect(updatedInstance.service).to.be.equal('newName');
     });
   });
 
   describe('#getFunction()', () => {
-
     let serviceInstance;
     before(() => {
       const S = new Serverless();
       serviceInstance = new Service(S);
       serviceInstance.functions = {
         create: {
-          handler: 'users.create'
-        }
+          handler: 'users.create',
+        },
       };
     });
 
@@ -240,30 +230,27 @@ describe('Service', () => {
     });
 
     it('should throw error if function does not exist', () => {
-      expect(()=> { serviceInstance.getFunction('random') }).to.throw(Error);
+      expect(() => { serviceInstance.getFunction('random'); }).to.throw(Error);
     });
   });
 
   describe('#getAllFunctions()', () => {
-
     it('should return an array of function names in Service', () => {
       const S = new Serverless();
       const serviceInstance = new Service(S);
       serviceInstance.functions = {
         create: {
-          handler: 'users.create'
+          handler: 'users.create',
         },
         list: {
-          handler: 'users.list'
-        }
+          handler: 'users.list',
+        },
       };
-
       expect(serviceInstance.getAllFunctions()).to.deep.equal(['create', 'list']);
     });
   });
 
   describe('#getEventInFunction()', () => {
-
     let serviceInstance;
     before(() => {
       const S = new Serverless();
@@ -271,22 +258,24 @@ describe('Service', () => {
       serviceInstance.functions = {
         create: {
           events: {
-            schedule: 'rate(5 minutes)'
-          }
-        }
+            schedule: 'rate(5 minutes)',
+          },
+        },
       };
     });
 
     it('should return an event object based on provided function', () => {
-      expect(serviceInstance.getEventInFunction('schedule', 'create')).to.be.equal('rate(5 minutes)');
+      expect(serviceInstance.getEventInFunction('schedule', 'create'))
+        .to.be.equal('rate(5 minutes)');
     });
 
     it('should throw error if function does not exist in service', () => {
-      expect(() => {serviceInstance.getEventInFunction(null, 'list')}).to.throw(Error);
+      expect(() => { serviceInstance.getEventInFunction(null, 'list'); }).to.throw(Error);
     });
 
     it('should throw error if event doesnt exist in function', () => {
-      expect(() => {serviceInstance.getEventInFunction('randomEvent', 'create')}).to.throw(Error);
+      expect(() => { serviceInstance.getEventInFunction('randomEvent', 'create'); })
+        .to.throw(Error);
     });
   });
 
@@ -298,17 +287,17 @@ describe('Service', () => {
         create: {
           events: {
             schedule: 'rate(5 minutes)',
-            bucket: 'my_bucket'
-          }
-        }
+            bucket: 'my_bucket',
+          },
+        },
       };
 
-      expect(serviceInstance.getAllEventsInFunction('create')).to.deep.equal(['schedule', 'bucket']);
+      expect(serviceInstance.getAllEventsInFunction('create'))
+        .to.deep.equal(['schedule', 'bucket']);
     });
   });
 
   describe('#getStage()', () => {
-
     let serviceInstance;
     before(() => {
       const S = new Serverless();
@@ -320,11 +309,11 @@ describe('Service', () => {
             vars: {},
             regions: {
               aws_useast1: {
-                vars: {}
-              }
-            }
-          }
-        }
+                vars: {},
+              },
+            },
+          },
+        },
       };
     });
 
@@ -333,20 +322,19 @@ describe('Service', () => {
         vars: {},
         regions: {
           aws_useast1: {
-            vars: {}
-          }
-        }
+            vars: {},
+          },
+        },
       };
       expect(serviceInstance.getStage('dev')).to.deep.equal(expectedStageObj);
     });
 
     it('should throw error if stage does not exist', () => {
-      expect(()=> { serviceInstance.getStage('prod') }).to.throw(Error);
+      expect(() => { serviceInstance.getStage('prod'); }).to.throw(Error);
     });
   });
 
   describe('#getAllStages()', () => {
-
     it('should return an array of stage names in Service', () => {
       const S = new Serverless();
       const serviceInstance = new Service(S);
@@ -357,11 +345,11 @@ describe('Service', () => {
             vars: {},
             regions: {
               aws_useast1: {
-                vars: {}
-              }
-            }
-          }
-        }
+                vars: {},
+              },
+            },
+          },
+        },
       };
 
       expect(serviceInstance.getAllStages()).to.deep.equal(['dev']);
@@ -370,7 +358,6 @@ describe('Service', () => {
 
 
   describe('#getRegionInStage()', () => {
-
     let serviceInstance;
     before(() => {
       const S = new Serverless();
@@ -383,25 +370,26 @@ describe('Service', () => {
             regions: {
               aws_useast1: {
                 vars: {
-                  regionVar: 'regionValue'
-                }
-              }
-            }
-          }
-        }
+                  regionVar: 'regionValue',
+                },
+              },
+            },
+          },
+        },
       };
     });
 
     it('should return a region object based on provided stage', () => {
-      expect(serviceInstance.getRegionInStage('dev', 'aws_useast1').vars.regionVar).to.be.equal('regionValue');
+      expect(serviceInstance.getRegionInStage('dev', 'aws_useast1')
+        .vars.regionVar).to.be.equal('regionValue');
     });
 
     it('should throw error if stage does not exist in service', () => {
-      expect(() => {serviceInstance.getRegionInStage('prod')}).to.throw(Error);
+      expect(() => { serviceInstance.getRegionInStage('prod'); }).to.throw(Error);
     });
 
     it('should throw error if region doesnt exist in stage', () => {
-      expect(() => {serviceInstance.getRegionInStage('dev', 'aws_uswest2')}).to.throw(Error);
+      expect(() => { serviceInstance.getRegionInStage('dev', 'aws_uswest2'); }).to.throw(Error);
     });
   });
 
@@ -417,20 +405,21 @@ describe('Service', () => {
             regions: {
               aws_useast1: {
                 vars: {
-                  regionVar: 'regionValue'
-                }
+                  regionVar: 'regionValue',
+                },
               },
               aws_uswest2: {
                 vars: {
-                  regionVar: 'regionValue2'
-                }
-              }
-            }
-          }
-        }
+                  regionVar: 'regionValue2',
+                },
+              },
+            },
+          },
+        },
       };
 
-      expect(serviceInstance.getAllRegionsInStage('dev')).to.deep.equal(['aws_useast1', 'aws_uswest2']);
+      expect(serviceInstance.getAllRegionsInStage('dev'))
+        .to.deep.equal(['aws_useast1', 'aws_uswest2']);
     });
   });
 
@@ -441,22 +430,22 @@ describe('Service', () => {
       serviceInstance = new Service(S);
       serviceInstance.environment = {
         vars: {
-          commonVar: 'commonValue'
+          commonVar: 'commonValue',
         },
         stages: {
           dev: {
             vars: {
-              stageVar: 'stageValue'
+              stageVar: 'stageValue',
             },
             regions: {
               aws_useast1: {
                 vars: {
-                  regionVar: 'regionValue'
-                }
-              }
-            }
-          }
-        }
+                  regionVar: 'regionValue',
+                },
+              },
+            },
+          },
+        },
       };
     });
 

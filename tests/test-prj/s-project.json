@@ -1,9 +1,0 @@
-{
-  "name": "s-test-prj",
-  "version": "0.0.1",
-  "location": "https://github.com/...",
-  "author": "",
-  "description": "A Slick New Serverless Project",
-  "custom": {},
-  "plugins": []
-}

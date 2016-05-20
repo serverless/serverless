@@ -1,13 +1,9 @@
 'use strict';
 
-/**
- * Test: PluginManager Class
- */
-
 const expect = require('chai').expect;
-const PluginManager = require('../../../lib/classes/PluginManager');
-const Serverless = require('../../../lib/Serverless');
-const HelloWorld = require('../../../lib/plugins/HelloWorld/HelloWorld');
+const PluginManager = require('../../lib/classes/PluginManager');
+const Serverless = require('../../lib/Serverless');
+const HelloWorld = require('../../lib/plugins/HelloWorld/HelloWorld');
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -25,14 +21,14 @@ describe('PluginManager', () => {
           usage: 'Deploy to the default infrastructure',
           lifeCycleEvents: [
             'resources',
-            'functions'
+            'functions',
           ],
           commands: {
             onpremises: {
               usage: 'Deploy to your On-Premises infrastructure',
               lifeCycleEvents: [
                 'resources',
-                'functions'
+                'functions',
               ],
             },
           },
@@ -41,7 +37,7 @@ describe('PluginManager', () => {
 
       this.hooks = {
         'deploy:functions': this.functions.bind(this),
-        'before:deploy:onpremises:functions': this.resources.bind(this)
+        'before:deploy:onpremises:functions': this.resources.bind(this),
       };
 
       // used to test if the function was executed correctly
@@ -50,14 +46,14 @@ describe('PluginManager', () => {
     }
 
     functions() {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         this.deployedFunctions = this.deployedFunctions + 1;
         return resolve();
       });
     }
 
     resources() {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         this.deployedResources = this.deployedResources + 1;
         return resolve();
       });
@@ -71,14 +67,14 @@ describe('PluginManager', () => {
           usage: 'Deploy to the default infrastructure',
           lifeCycleEvents: [
             'resources',
-            'functions'
+            'functions',
           ],
           commands: {
             onpremises: {
               usage: 'Deploy to your On-Premises infrastructure',
               lifeCycleEvents: [
                 'resources',
-                'functions'
+                'functions',
               ],
             },
           },
@@ -266,7 +262,7 @@ describe('PluginManager', () => {
               lifeCycleEvents: [
                 'beforeHookStatus',
                 'midHookStatus',
-                'afterHookStatus'
+                'afterHookStatus',
               ],
             },
           };

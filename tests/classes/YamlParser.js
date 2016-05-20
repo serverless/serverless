@@ -8,18 +8,16 @@ const expect = require('chai').expect;
 const YAML = require('js-yaml');
 const path = require('path');
 const os = require('os');
-const Serverless = require('../../../lib/Serverless');
-const YamlParser = require('../../../lib/classes/YamlParser');
-const Utils = require('../../../lib/classes/Utils');
+const Serverless = require('../../lib/Serverless');
+const YamlParser = require('../../lib/classes/YamlParser');
+const Utils = require('../../lib/classes/Utils');
 
 const S = new Serverless();
 const SUtils = new Utils();
 const yamlParser = new YamlParser(S);
 
 describe('YamlParser', () => {
-
   describe('#parse()', () => {
-
     it('should parse a simple yaml file', () => {
       const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'simple.yml');
 
@@ -92,5 +90,5 @@ describe('YamlParser', () => {
       });
     });
   });
-
 });
+
