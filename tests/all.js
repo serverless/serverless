@@ -9,6 +9,6 @@ require('./classes/Utils');
 require('./classes/Config');
 require('./classes/Service');
 require('./classes/YamlParser');
-require('./tests/classes/CLI');
+require('./classes/CLI');
 
-require('./tests/integration/Serverless');
+require('./integration/Serverless');

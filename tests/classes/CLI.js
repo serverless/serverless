@@ -5,8 +5,8 @@
  */
 
 const expect = require('chai').expect;
-const CLI = require('../../../lib/classes/CLI');
-const Serverless = require('../../../lib/Serverless');
+const CLI = require('../../lib/classes/CLI');
+const Serverless = require('../../lib/Serverless');
 
 describe('CLI', () => {
   let cli;
