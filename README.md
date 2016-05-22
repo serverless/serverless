@@ -11,9 +11,9 @@ Serverless Framework V.1 (BETA)
 
 Serverless is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services, like [AWS Lambda](https://aws.amazon.com/lambda/), [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more. 
 
-It's a command line interface that provides scaffolding, automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
+The Framework is a command line interface that provides scaffolding, automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-The Framework and its related tools are maintained by a dedicated, full-time team. For updates, join our Mailing List. We work on this live in our Gitter Chatroom. Please join us, everyone is welcome :)
+This is maintained by a dedicated, venture-backed team. For updates, join our [Mailing List](http://github.us11.list-manage1.com/subscribe?u=b4fad36768cab222f88338995&id=5f8407dded). We work on this live in our [Gitter Chatroom](https://gitter.im/serverless/serverless). Join us.  Everyone is welcome :)
 
 Also, [we're hiring](mailto:jobs@serverless.com)!
 
