@@ -30,3 +30,11 @@ Also, [we're hiring](mailto:jobs@serverless.com)!
 * 100% Extensible: Extend or modify the Framework and its operations via Plugins
 * An ecosystem of serverless services and plugins
 * A fantastic and welcoming community!
+
+## Installation
+
+Install Node.js v4 or greater, then install via npm:
+
+```
+npm i serverless -g
+```
