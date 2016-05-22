@@ -19,14 +19,14 @@ Also, [we're hiring](mailto:jobs@serverless.com)!
 
 ## Features
 
-* Manage the lifecycle of your serverless architecture (develop, deploy, update, delete)
+* Manage the lifecycle of your serverless architecture (build, deploy, update, delete)
 * Group functions into services for easy management of code, resources & processes across large projects and teams
-* Multi-provider support (AWS Lambda, Azure Functions, Google CloudFunctions and more)
+* Support for AWS Lambda, Azure Functions, Google CloudFunctions & more
 * Safely, easily deploy functions, events and their required resources
 * Minimal configuration and scaffolding
 * Built-in support for multiple stages
 * Optimized for CI/CD workflows
 * Loaded with automation, optimization and best practices
-* Build serverless services that are easy to re-use and share
 * 100% Extensible: Extend or modify the Framework and its operations via Plugins
+* An ecosystem of serverless services and plugins
 * A fantastic and welcoming community!
