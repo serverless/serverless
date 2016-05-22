@@ -16,3 +16,17 @@ It's a command line interface that provides scaffolding, automation and best pra
 The Framework and its related tools are maintained by a dedicated, full-time team. For updates, join our Mailing List. We work on this live in our Gitter Chatroom. Please join us, everyone is welcome :)
 
 Also, [we're hiring](mailto:jobs@serverless.com)!
+
+## Features
+
+* Manage the lifecycle of your serverless architecture (develop, deploy, update, delete)
+* Group functions into services for easy management of code, resources & processes across large projects and teams
+* Multi-provider support (AWS Lambda, Azure Functions, Google CloudFunctions and more)
+* Safely, easily deploy functions, events and their required resources
+* Minimal configuration and scaffolding
+* Built-in support for multiple stages
+* Optimized for CI/CD workflows
+* Loaded with automation, optimization and best practices
+* Build serverless services that are easy to re-use and share
+* 100% Extensible: Extend or modify the Framework and its operations via Plugins
+* A fantastic and welcoming community!
