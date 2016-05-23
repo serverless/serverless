@@ -43,7 +43,7 @@ users
 
 ```
 service: users
-description: A simple service for creating and deleting users
+description: A simple service for creating users
 
 functions:
   create:
@@ -53,13 +53,6 @@ functions:
      - http_endpoint_aws:
         path: users
         method: post
-  delete:
-   extend: $${defaults}
-   handler: users.delete
-   events:
-     - http_endpoint_aws:
-        path: users
-        method: delete
 
 defaults:
   name_template: ${service}-${stage}-${function}
@@ -103,7 +96,7 @@ stages:
         vars:
           regionVariable: helloworld2
 
-defaults: &defaults
+defaults:
   project: myApp
 ```
 
