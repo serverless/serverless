@@ -28,8 +28,6 @@ Each service contains two configuration files which describe it:
 
 #### Service Structure
 
-In this example, the entire `users` folder is zipped and uploaded to both Lambda functions defined in `serverless.yml`.  This behavior can be changed by modifying the `handler` property.
-
 ```
 users
   lib // contains logic 
@@ -92,7 +90,7 @@ stages:
     regions:
       aws_useast1:
         creds:
-          awsProfile: # optional, stage+region specific credentials
+          awsProfile: # optional, stage + region specific credentials
         vars:
           regionVariable: helloworld2
 
