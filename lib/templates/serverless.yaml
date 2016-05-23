@@ -13,9 +13,9 @@ default_providers: &default_providers
 
 functions: # if this gets too big, you can always use JSON-REF
     name_template: ${stage}-${service}-${name}  # "name" references the function name, service the whole service name
-    create:
+    hello:
         name_template: ${stage}-${service}-${name}  # "name" references the function name, service the whole service name
-        handler: users.create
+        handler: handler.hello
         # only the following paths will be included in the resulting artefact uploaded to Lambda. Without specific include everything in the current folder will be included
         include:
           - lib
