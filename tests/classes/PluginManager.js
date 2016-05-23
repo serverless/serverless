@@ -23,7 +23,7 @@ describe('PluginManager', () => {
             'resources',
             'functions',
           ],
-          arguments: {
+          options: {
             resource: {
               usage: 'The resource you want to deploy (e.g. --resource db)',
             },
@@ -38,7 +38,7 @@ describe('PluginManager', () => {
                 'resources',
                 'functions',
               ],
-              arguments: {
+              options: {
                 resource: {
                   usage: 'The resource you want to deploy (e.g. --resource db)',
                 },
@@ -63,18 +63,18 @@ describe('PluginManager', () => {
       this.resourceName = null;
     }
 
-    functions(args) {
+    functions(options) {
       return new Promise((resolve) => {
         this.deployedFunctions = this.deployedFunctions + 1;
-        if (args) this.functionName = args.function;
+        if (options) this.functionName = options.function;
         return resolve();
       });
     }
 
-    resources(args) {
+    resources(options) {
       return new Promise((resolve) => {
         this.deployedResources = this.deployedResources + 1;
-        if (args) this.resourceName = args.resource;
+        if (options) this.resourceName = options.resource;
         return resolve();
       });
     }
@@ -89,7 +89,7 @@ describe('PluginManager', () => {
             'resources',
             'functions',
           ],
-          arguments: {
+          options: {
             resource: {
               usage: 'The resource you want to deploy (e.g. --resource db)',
             },
@@ -104,7 +104,7 @@ describe('PluginManager', () => {
                 'resources',
                 'functions',
               ],
-              arguments: {
+              options: {
                 resource: {
                   usage: 'The resource you want to deploy (e.g. --resource db)',
                 },
@@ -129,14 +129,14 @@ describe('PluginManager', () => {
       this.resourceName = null;
     }
 
-    functions(args) {
+    functions(options) {
       this.deployedFunctions = this.deployedFunctions + 1;
-      if (args) this.functionName = args.function;
+      if (options) this.functionName = options.function;
     }
 
-    resources(args) {
+    resources(options) {
       this.deployedResources = this.deployedResources + 1;
-      if (args) this.resourceName = args.resource;
+      if (options) this.resourceName = options.resource;
     }
   }
 
@@ -352,12 +352,12 @@ describe('PluginManager', () => {
           expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         });
 
-        it('should process the arguments when given', () => {
+        it('should process the options when given', () => {
           const commandsArray = ['deploy'];
-          const argumentsObject = { function: 'function1' };
-          pluginManager.run(commandsArray, argumentsObject);
+          const optionsObject = { function: 'function1' };
+          pluginManager.run(commandsArray, optionsObject);
 
-          expect(pluginManager.plugins[0].functionName).to.equal(argumentsObject.function);
+          expect(pluginManager.plugins[0].functionName).to.equal(optionsObject.function);
         });
       });
 
@@ -369,12 +369,12 @@ describe('PluginManager', () => {
           expect(pluginManager.plugins[0].deployedResources).to.equal(1);
         });
 
-        it('should process the arguments when given', () => {
+        it('should process the options when given', () => {
           const commandsArray = ['deploy', 'onpremises'];
-          const argumentsObject = { resource: 'resource1' };
-          pluginManager.run(commandsArray, argumentsObject);
+          const optionsObject = { resource: 'resource1' };
+          pluginManager.run(commandsArray, optionsObject);
 
-          expect(pluginManager.plugins[0].resourceName).to.equal(argumentsObject.resource);
+          expect(pluginManager.plugins[0].resourceName).to.equal(optionsObject.resource);
         });
       });
     });
@@ -392,12 +392,12 @@ describe('PluginManager', () => {
           expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
         });
 
-        it('should process the arguments when given', () => {
+        it('should process the options when given', () => {
           const commandsArray = ['deploy'];
-          const argumentsObject = { function: 'function1' };
-          pluginManager.run(commandsArray, argumentsObject);
+          const optionsObject = { function: 'function1' };
+          pluginManager.run(commandsArray, optionsObject);
 
-          expect(pluginManager.plugins[0].functionName).to.equal(argumentsObject.function);
+          expect(pluginManager.plugins[0].functionName).to.equal(optionsObject.function);
         });
       });
 
@@ -409,12 +409,12 @@ describe('PluginManager', () => {
           expect(pluginManager.plugins[0].deployedResources).to.equal(1);
         });
 
-        it('should process the arguments when given', () => {
+        it('should process the options when given', () => {
           const commandsArray = ['deploy', 'onpremises'];
-          const argumentsObject = { resource: 'resource1' };
-          pluginManager.run(commandsArray, argumentsObject);
+          const optionsObject = { resource: 'resource1' };
+          pluginManager.run(commandsArray, optionsObject);
 
-          expect(pluginManager.plugins[0].resourceName).to.equal(argumentsObject.resource);
+          expect(pluginManager.plugins[0].resourceName).to.equal(optionsObject.resource);
         });
       });
     });
