@@ -79,7 +79,7 @@ constructor() {
 };
 ```
 
-## Hook
+### Hook
 Hooks allow to connect specific lifecycle events to functions in a Plugin. In the constructor of your class you define a *hooks* variable that the Plugin System will use once a specific command is running. Any hook can bind to any lifecycle event from any command, not just from commands that the same plugin provides.
 
 This allows to extend any command with additional functionality.
@@ -118,13 +118,48 @@ class Deploy {
   }
 }
 
-module.exports = HelloWorld;
+module.exports = Deploy;
 ```
+
+### Options
+Each (sub)command can have multiple options. Options are passed with a single dash (`-`) or a double dash (`--`) like this: `serverless function deploy --function functionName` or `serverless resource deploy -r resourceName`.
+The `options` object will be passed in as the first parameter to your hook function where you can access it.
+
+```javascript
+'use strict';
+
+class Deploy {
+  constructor() {
+    this.commands = {
+      deploy: {
+        lifecycleEvents: [
+          'functions'
+        ],
+        options: {
+          function: {
+            usage: 'Specify the function you want to deploy (e.g. "--function myFunction")'
+          }
+        }
+      },
+    };
+
+    this.hooks = {
+      'deploy:functions': this.deployFunction
+    }
+  }
+
+  deployFunction(options) {
+    console.log('Deploying function: ', options.function);
+  }
+}
+```
+
+Options can be accessed with the help of the `options` object which will be automatically passed as the first parameter of the corresponding hook function.
 
 # Registering plugins for hooks and commands
 A user has to define the plugins they want to use in the serverless.yml. We do not auto-detect plugins from installed dependencies so users do not run into any surprises and we cut down on the startup time of the tool. Through JSON-REF users can share configuration for used plugins between serverless.yml files in one repository.
 
-After the serverless.yml configuration file is loaded the plugin system will load all the commands and plugins and initialise the plugin system.
+After the serverless.yml configuration file is loaded the plugin system will load all the commands and plugins and initialize the plugin system.
 
 # Plugin Order
 Plugins are registered in the order they are defined through our system and the serverless.yml file. By default we will load our plugins first, then we will load all plugins according to the order given in the serverless.yml file.
