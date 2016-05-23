@@ -79,22 +79,25 @@ plugins:
 #### serverless.meta.yml
 
 ```
-stages:
+ stages:
   dev:
-    creds:
-      awsProfile: # stage specific credentials
-    vars:
-      extend: $${defaults}
-      stageVariable: helloworld1
-    regions:
-      aws_useast1:
-        creds:
-          awsProfile: # optional, stage + region specific credentials
-        vars:
-          regionVariable: helloworld2
+   extend: $${defaults}
+   creds:
+    awsProfile: # stage specific profile
+   vars:
+    stageVariable: helloworld1
+   regions:
+    aws_useast1:
+     creds:
+      awsProfile: # optional, stage + region specific credentials
+     vars:
+      regionVariable: helloworld2
 
 defaults:
-  project: myApp
+  creds:
+   awsProfile: default-profile
+  vars:
+   project: myApp
 ```
 
 ## Deployment
