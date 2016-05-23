@@ -5,10 +5,10 @@ Before you open a PR, please make sure you open an issue for it to discuss your 
 
 If your PR solves a specific open bug on our issue tracker or a feature request that we've decided to support, in that case opening a new issue is unnecessary. We just want to make sure we're aware of any work you'll be doing in advance so that we can help you along the way. Regardless of what you do, we appreciate you for just being in our community.
 
-Once you start working on a PR, please follow our Testing and Code Style guidelines bellow. We can't accept your PR if it fails in any of these two critical areas. Whenever you make or update a PR, 3 checks fire on this PR from Travis-CI and Coveralls. If the builds fail, we can't accept your PR.
+Once you start working on a PR, please follow our Testing and Code Style guidelines below. We can't accept your PR if it fails in any of these two critical areas. Whenever you make or update a PR, 3 checks fire on this PR from Travis-CI and Coveralls. If the builds fail, we can't accept your PR.
 
 ### Testing Guidelines
-We're crazy about testing! we testing everything and we aim for 100% test coverage. For test coverage, we use Istanbul locally, and coveralls on our main repo.
+We're crazy about testing! we test everything and we aim for 100% test coverage. For test coverage, we use Istanbul locally, and coveralls on our main repo.
 
 During development, please make sure your tests cover every single piece of code you write, you can easily check this coverage by opening the `index.html` file inside the `coverage` directory after you run the tests with `npm test`.
 
@@ -40,5 +40,8 @@ This simplest thing you can do to help us move forward and make an impact on our
 
 ## Improving Documentation
 Maintaining and updating the docs on a regular basis is a hard task. The more eyeballs on the docs the higher quality it'll get and the less chances there will be for typos and confusion. We keep our docs in our `serverless-docs` repo. If you see any issues with our docs, simply open an issue or a PR.
+
+## Our Code of Conduct
+Finally, to make sure you have a pleasant experience while being in our welcoming community, please read our [code of conduct](code_of_conduct.md). It outlines our core values and believes and will make working together a happier experience.
 
 Thank you for being a part of our loving community!
