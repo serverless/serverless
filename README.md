@@ -9,7 +9,7 @@ Serverless Framework V.1 (BETA)
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-Serverless is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services, like [AWS Lambda](https://aws.amazon.com/lambda/), [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more. 
+The Serverless Framework is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services, like [AWS Lambda](https://aws.amazon.com/lambda/), [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more. 
 
 The Framework is a command line interface that provides scaffolding, automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
