@@ -1,6 +1,8 @@
 # Services
 
-A serverless service is the unit of organization the Framework targets its operations on.  Each service contains two configuration files which describe it:
+A *serverless service* is a group of one or multiple functions and any resources they require.  By grouping related functions together, it's easier to share code and and resources between those functions.  Services are also designed to be completely independent, which helps teams develop more quickly, without waiting for others.
+
+Each *serverless service* contains two configuration files which describe it:
 
 * **serverless.yml**
   * Declares a serverless service
