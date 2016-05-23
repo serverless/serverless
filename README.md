@@ -34,3 +34,10 @@ Serverless Framework V.1 is currently under construction and not yet ready.
 * 100% Extensible: Extend or modify the Framework and its operations via Plugins
 * An ecosystem of serverless services and plugins
 * A fantastic and welcoming community!
+
+## Concepts
+
+Learn about the upcoming concepts in V.1:
+
+* [Services](/doc/services.md)
+* [Plugins](/doc/plugins.md)
