@@ -1,13 +1,15 @@
-# Configuration
+# Services
 
-Serverless Framework V1 deals with one serverless service at a time.  Each serverless service must contain two configuration files which declare and describe it:
+A serverless service is the unit of organization the Framework performs operations on.  
+
+Each service contains two configuration files which describe it:
 
 * **serverless.yml**
   * Declares a serverless service
   * Defines one or multiple functions in the service
   * Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
-  * Everything that triggers a function to execute (e.g., HTTP requests) is considered an "event" and must be added in the `events` array.
-  * Events listed in the `events` array will automatically create the resources required for the event upon deployment
+  * Defines events that trigger each function to execute (e.g., HTTP requests)
+  * Events listed in the `events` array may automatically create the resources required for the event upon deployment
   * Designed to be developed and operated completely independently
   * Configuration information can be specified for multiple IaaS providers
   * Contains no author-specific information
@@ -45,21 +47,21 @@ description: A simple service for creating and deleting users
 
 functions:
   create:
-   <<: *defaults
+   extend: $${defaults}
    handler: users.create
    events:
      - http_endpoint_aws:
         path: users
         method: post
   delete:
-   <<: *defaults
+   extend: $${defaults}
    handler: users.delete
    events:
      - http_endpoint_aws:
         path: users
         method: delete
 
-defaults: &defaults
+defaults:
   name_template: ${service}-${stage}-${function}
   include:
    - ../parent/data.json
@@ -92,7 +94,7 @@ stages:
     creds:
       awsProfile: # stage specific credentials
     vars:
-      <<: *defaults
+      extend: $${defaults}
       stageVariable: helloworld1
     regions:
       aws_useast1:
