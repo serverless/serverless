@@ -1,26 +1,23 @@
 # Services
 
-A serverless service is the unit of organization the Framework performs operations on.  
-
-Each service contains two configuration files which describe it:
+A serverless service is the unit of organization the Framework targets its operations on.  Each service contains two configuration files which describe it:
 
 * **serverless.yml**
   * Declares a serverless service
   * Defines one or multiple functions in the service
-  * Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
   * Defines events that trigger each function to execute (e.g., HTTP requests)
+  * Defines one set of resources (e.g., 1 AWS CloudFormation stack) required by the functions in this service
   * Events listed in the `events` array may automatically create the resources required for the event upon deployment
-  * Designed to be developed and operated completely independently
-  * Configuration information can be specified for multiple IaaS providers
+  * Config can be specified for one or more IaaS providers
+  * Re-usable and publicly shareable
   * Contains no author-specific information
-  * Can be shared publicly and installed by anyone
  
 * **serverless.meta.yml**
-  * Contains author-specific information not intended for version control
+  * Contains author-specific information (not intended for version control)
   * Defines stages for this service
-  * Defines service-wide, and stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
-  * Details separate profiles used for each stage in this service
+  * Defines stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
   * The following variables are reserved: `service`, `function`, `stage` and `region`
+  * Specifies profiles or credentials to use per stage
 
 ## Examples
 
@@ -100,12 +97,12 @@ defaults:
 
 ## Deployment
 
-These general deployment steps always occur first:
+These deployment steps always occur first:
 
 * The `serverless.yml` and `serverless.meta.yml` files are loaded into two objects in memory (e.g., `service`, `meta`)
-* If YAML is used, it's converted to JSON.
-* If they contain references to other files, load them and populate the main configuration objects.
-* Loop through the `resources` property and collect resources for the default provider (if only 1 provider exists in configuration) or for the targeted provider.
+* If YAML is used, it's converted to JSON
+* References using Serverless variable syntax `${}` or Serverless template syntax `$${}` are loaded
+* Loop through the `resources` property and collect resources for the targeted provider
 
 ### Deployment On Amazon Web Services
 
