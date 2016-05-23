@@ -1,9 +1,8 @@
 
-Before submitting a PR, please note the following:
+Before submitting a PR, please:
 
-[] Make sure that there's an issue opened that discuss this fix/feature. This is not required for simple PRs (ie. fixing a typo in README), but we just want to make sure you don't waste your time on a feature that we don't intend to support/maintain.
-[] Make sure that you've tested your changes thoroughly.
-[] If there are some side effects to your changes (whether positive or negative), please mention them in your PR so that we can discuss how to avoid them.
+- [ ] Check if there's an issue opened for this fix/feature to ensure it's something we intend to support and maintain (issues are not required for minor fixes)
+- [ ] Test your changes thoroughly
+- [ ] If there are some side effects to your changes (positive or negative), please mention them in your PR
 
-
-Above all, we thank you so much for your contribution! :)
+Above all, we thank you for your contribution! :)
