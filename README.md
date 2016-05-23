@@ -13,9 +13,9 @@ The Serverless Framework is the application framework for building web, mobile a
 
 The Framework is a command line interface that provides scaffolding, automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-This is maintained by a full-time, venture-backed team. For updates, join our [mailing list](http://github.us11.list-manage1.com/subscribe?u=b4fad36768cab222f88338995&id=5f8407dded).  For help, join our [Gitter Chatroom](https://gitter.im/serverless/serverless).  Everyone is welcome!
+This is maintained by a full-time, venture-backed team. For updates, join our [mailing list](http://github.us11.list-manage1.com/subscribe?u=b4fad36768cab222f88338995&id=5f8407dded).  For help, join our [gitter chatroom](https://gitter.im/serverless/serverless).  Everyone is welcome!
 
-Also, [we're hiring](mailto:jobs@serverless.com)!
+Also, [we're hiring](mailto:jobs@serverless.com) :)
 
 ## Status
 
