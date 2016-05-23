@@ -39,5 +39,5 @@ Serverless Framework V.1 is currently under construction and not yet ready.
 
 Learn about the upcoming concepts in V.1:
 
-* [Services](/doc/services.md)
-* [Plugins](/doc/plugins.md)
+* [Services](/docs/services.md)
+* [Plugins](/docs/plugins.md)
