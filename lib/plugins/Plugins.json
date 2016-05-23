@@ -1,5 +1,6 @@
 {
   "plugins": [
-    "./create/create.js"
+    "./create/create.js",
+    "./HelloWorld/HelloWorld.js"
   ]
 }
