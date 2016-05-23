@@ -19,17 +19,33 @@ describe('PluginManager', () => {
       this.commands = {
         deploy: {
           usage: 'Deploy to the default infrastructure',
-          lifeCycleEvents: [
+          lifecycleEvents: [
             'resources',
             'functions',
           ],
+          arguments: {
+            resource: {
+              usage: 'The resource you want to deploy (e.g. --resource db)',
+            },
+            function: {
+              usage: 'The function you want to deploy (e.g. --function create)',
+            },
+          },
           commands: {
             onpremises: {
               usage: 'Deploy to your On-Premises infrastructure',
-              lifeCycleEvents: [
+              lifecycleEvents: [
                 'resources',
                 'functions',
               ],
+              arguments: {
+                resource: {
+                  usage: 'The resource you want to deploy (e.g. --resource db)',
+                },
+                function: {
+                  usage: 'The function you want to deploy (e.g. --function create)',
+                },
+              },
             },
           },
         },
@@ -43,18 +59,22 @@ describe('PluginManager', () => {
       // used to test if the function was executed correctly
       this.deployedFunctions = 0;
       this.deployedResources = 0;
+      this.functionName = null;
+      this.resourceName = null;
     }
 
-    functions() {
+    functions(args) {
       return new Promise((resolve) => {
         this.deployedFunctions = this.deployedFunctions + 1;
+        if (args) this.functionName = args.function;
         return resolve();
       });
     }
 
-    resources() {
+    resources(args) {
       return new Promise((resolve) => {
         this.deployedResources = this.deployedResources + 1;
+        if (args) this.resourceName = args.resource;
         return resolve();
       });
     }
@@ -65,17 +85,33 @@ describe('PluginManager', () => {
       this.commands = {
         deploy: {
           usage: 'Deploy to the default infrastructure',
-          lifeCycleEvents: [
+          lifecycleEvents: [
             'resources',
             'functions',
           ],
+          arguments: {
+            resource: {
+              usage: 'The resource you want to deploy (e.g. --resource db)',
+            },
+            function: {
+              usage: 'The function you want to deploy (e.g. --function create)',
+            },
+          },
           commands: {
             onpremises: {
               usage: 'Deploy to your On-Premises infrastructure',
-              lifeCycleEvents: [
+              lifecycleEvents: [
                 'resources',
                 'functions',
               ],
+              arguments: {
+                resource: {
+                  usage: 'The resource you want to deploy (e.g. --resource db)',
+                },
+                function: {
+                  usage: 'The function you want to deploy (e.g. --function create)',
+                },
+              },
             },
           },
         },
@@ -89,14 +125,18 @@ describe('PluginManager', () => {
       // used to test if the function was executed correctly
       this.deployedFunctions = 0;
       this.deployedResources = 0;
+      this.functionName = null;
+      this.resourceName = null;
     }
 
-    functions() {
+    functions(args) {
       this.deployedFunctions = this.deployedFunctions + 1;
+      if (args) this.functionName = args.function;
     }
 
-    resources() {
+    resources(args) {
       this.deployedResources = this.deployedResources + 1;
+      if (args) this.resourceName = args.resource;
     }
   }
 
@@ -244,13 +284,13 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('#runCommand()', () => {
+  describe('#run()', () => {
     it('should throw an error when the given command is not available', () => {
       pluginManager.addPlugin(SynchronousPluginMock);
 
       const commandsArray = ['foo'];
 
-      expect(() => { pluginManager.runCommand(commandsArray); }).to.throw(Error);
+      expect(() => { pluginManager.run(commandsArray); }).to.throw(Error);
     });
 
     it('should run the hooks in the correct order', () => {
@@ -259,7 +299,7 @@ describe('PluginManager', () => {
           this.commands = {
             run: {
               usage: 'Pushes the current hook status on the hookStatus array',
-              lifeCycleEvents: [
+              lifecycleEvents: [
                 'beforeHookStatus',
                 'midHookStatus',
                 'afterHookStatus',
@@ -292,7 +332,7 @@ describe('PluginManager', () => {
 
       pluginManager.addPlugin(CorrectHookOrderPluginMock);
       const commandsArray = ['run'];
-      pluginManager.runCommand(commandsArray);
+      pluginManager.run(commandsArray);
 
       expect(pluginManager.plugins[0].hookStatus[0]).to.equal('before');
       expect(pluginManager.plugins[0].hookStatus[1]).to.equal('mid');
@@ -304,18 +344,38 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
-      it('should run a simple command', () => {
-        const commandsArray = ['deploy'];
-        pluginManager.runCommand(commandsArray);
+      describe('when running a simple command', () => {
+        it('should run a simple command', () => {
+          const commandsArray = ['deploy'];
+          pluginManager.run(commandsArray);
 
-        expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+        });
+
+        it('should process the arguments when given', () => {
+          const commandsArray = ['deploy'];
+          const argumentsObject = { function: 'function1' };
+          pluginManager.run(commandsArray, argumentsObject);
+
+          expect(pluginManager.plugins[0].functionName).to.equal(argumentsObject.function);
+        });
       });
 
-      it('should run a nested command', () => {
-        const commandsArray = ['deploy', 'onpremises'];
-        pluginManager.runCommand(commandsArray);
+      describe('when running a nested command', () => {
+        it('should run the nested command', () => {
+          const commandsArray = ['deploy', 'onpremises'];
+          pluginManager.run(commandsArray);
 
-        expect(pluginManager.plugins[0].deployedResources).to.equal(1);
+          expect(pluginManager.plugins[0].deployedResources).to.equal(1);
+        });
+
+        it('should process the arguments when given', () => {
+          const commandsArray = ['deploy', 'onpremises'];
+          const argumentsObject = { resource: 'resource1' };
+          pluginManager.run(commandsArray, argumentsObject);
+
+          expect(pluginManager.plugins[0].resourceName).to.equal(argumentsObject.resource);
+        });
       });
     });
 
@@ -324,18 +384,38 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(PromisePluginMock);
       });
 
-      it('should run a simple command', () => {
-        const commandsArray = ['deploy'];
-        pluginManager.runCommand(commandsArray);
+      describe('when running a simple command', () => {
+        it('should run the simple command', () => {
+          const commandsArray = ['deploy'];
+          pluginManager.run(commandsArray);
 
-        expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+        });
+
+        it('should process the arguments when given', () => {
+          const commandsArray = ['deploy'];
+          const argumentsObject = { function: 'function1' };
+          pluginManager.run(commandsArray, argumentsObject);
+
+          expect(pluginManager.plugins[0].functionName).to.equal(argumentsObject.function);
+        });
       });
 
-      it('should run a nested command', () => {
-        const commandsArray = ['deploy', 'onpremises'];
-        pluginManager.runCommand(commandsArray);
+      describe('when running a nested command', () => {
+        it('should run the nested command', () => {
+          const commandsArray = ['deploy', 'onpremises'];
+          pluginManager.run(commandsArray);
 
-        expect(pluginManager.plugins[0].deployedResources).to.equal(1);
+          expect(pluginManager.plugins[0].deployedResources).to.equal(1);
+        });
+
+        it('should process the arguments when given', () => {
+          const commandsArray = ['deploy', 'onpremises'];
+          const argumentsObject = { resource: 'resource1' };
+          pluginManager.run(commandsArray, argumentsObject);
+
+          expect(pluginManager.plugins[0].resourceName).to.equal(argumentsObject.resource);
+        });
       });
     });
   });

@@ -25,7 +25,7 @@ class HelloWorld {
   constructor() {
     this.commands = {
       deploy: {
-        lifeCycleEvents: [
+        lifecycleEvents: [
           'resources',
           'functions'
         ]
@@ -63,13 +63,13 @@ You can also nest commands, e.g. if you want to provide a command ```serverless 
 constructor() {
   this.commands = {
   deploy: {
-    lifeCycleEvents: [
+    lifecycleEvents: [
       'resources',
       'functions'
     ],
     commands: {
       single: {
-        lifeCycleEvents: [
+        lifecycleEvents: [
           'resources',
           'functions'
         ],
@@ -91,7 +91,7 @@ class Deploy {
   constructor() {
     this.commands = {
       deploy: {
-        lifeCycleEvents: [
+        lifecycleEvents: [
           'resources',
           'functions'
         ]
