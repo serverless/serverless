@@ -39,7 +39,7 @@ If your issue is a bug report, please make sure you include an accurate/detailed
 This simplest thing you can do to help us move forward and make an impact on our progress is to simply provide support to other people having some difficulties with their Serverless project. You can do that by replying to issues on Github, or simply chatting with other community members on Gitter. Your very presence is enough to make us happy.
 
 ## Improving Documentation
-Maintaining and updating the docs on a regular basis is a hard task. The more eyeballs on the docs the higher quality it'll get and the less chances there will be for typos and confusion. We keep our docs in our `serverless-docs` repo. If you see any issues with our docs, simply open an issue or a PR.
+Maintaining and updating the docs on a regular basis is a hard task. The more eyeballs on the docs the higher quality it'll get and the less chances there will be for typos and confusion. We keep our docs in the `docs` folder in our main repo. If you see any issues with our docs, simply open an issue or a PR.
 
 ## Our Code of Conduct
 Finally, to make sure you have a pleasant experience while being in our welcoming community, please read our [code of conduct](code_of_conduct.md). It outlines our core values and believes and will make working together a happier experience.
