@@ -28,68 +28,91 @@ describe('CLI', () => {
       expect(cli.isInteractive).to.equal(isInteractive);
     });
 
-    it('should set an empty argumentsArray when none is provided', () => {
+    it('should set an empty inputArray when none is provided', () => {
       cli = new CLI(serverless, isInteractive);
-      expect(cli.argumentsArray.length).to.equal(0);
+      expect(cli.inputArray.length).to.equal(0);
     });
 
-    it('should set the argumentsArray when provided', () => {
-      const cliWithArguments = new CLI(serverless, isInteractive, ['foo', 'bar']);
+    it('should set the inputObject when provided', () => {
+      const cli = new CLI(serverless, isInteractive, ['foo', 'bar', '--baz', '-qux']);
 
-      expect(cliWithArguments.argumentsArray[0]).to.equal('foo');
-      expect(cliWithArguments.argumentsArray[1]).to.equal('bar');
+      expect(cli.inputArray[0]).to.equal('foo');
+      expect(cli.inputArray[1]).to.equal('bar');
+      expect(cli.inputArray[2]).to.equal('--baz');
+      expect(cli.inputArray[3]).to.equal('-qux');
     });
   });
 
-  describe('#processCommands()', () => {
-    it('should return an empty array when the "help" parameter is given', () => {
-      const cliWithExternalArguments = new CLI(serverless, isInteractive, ['help']);
-      const commandsToBeProcessed = cliWithExternalArguments.processCommands();
+  describe('#processInput()', () => {
+    it('should return an empty object when the "help" parameter is given', () => {
+      const cli = new CLI(serverless, isInteractive, ['help']);
+      const inputToBeProcessed = cli.processInput();
 
-      expect(commandsToBeProcessed.length).to.equal(0);
+      expect(inputToBeProcessed).to.deep.equal({});
     });
 
-    it('should return an empty array when the "--help" parameter is given', () => {
-      const cliWithExternalArguments = new CLI(serverless, isInteractive, ['--help']);
-      const commandsToBeProcessed = cliWithExternalArguments.processCommands();
+    it('should return an empty object when the "--help" parameter is given', () => {
+      const cli = new CLI(serverless, isInteractive, ['--help']);
+      const inputToBeProcessed = cli.processInput();
 
-      expect(commandsToBeProcessed.length).to.equal(0);
+      expect(inputToBeProcessed).to.deep.equal({});
     });
 
-    it('should return an empty array when the "--h" parameter is given', () => {
-      const cliWithExternalArguments = new CLI(serverless, isInteractive, ['--h']);
-      const commandsToBeProcessed = cliWithExternalArguments.processCommands();
+    it('should return an empty object when the "--h" parameter is given', () => {
+      const cli = new CLI(serverless, isInteractive, ['--h']);
+      const inputToBeProcessed = cli.processInput();
 
-      expect(commandsToBeProcessed.length).to.equal(0);
+      expect(inputToBeProcessed).to.deep.equal({});
     });
 
-    it('should return an empty array when the "version" parameter is given', () => {
-      const cliWithExternalArguments = new CLI(serverless, isInteractive, ['version']);
-      const commandsToBeProcessed = cliWithExternalArguments.processCommands();
+    it('should return an empty object when the "version" parameter is given', () => {
+      const cli = new CLI(serverless, isInteractive, ['version']);
+      const inputToBeProcessed = cli.processInput();
 
-      expect(commandsToBeProcessed.length).to.equal(0);
+      expect(inputToBeProcessed).to.deep.equal({});
     });
 
-    it('should return an empty array when the "--version" parameter is given', () => {
-      const cliWithExternalArguments = new CLI(serverless, isInteractive, ['--version']);
-      const commandsToBeProcessed = cliWithExternalArguments.processCommands();
+    it('should return an empty object when the "--version" parameter is given', () => {
+      const cli = new CLI(serverless, isInteractive, ['--version']);
+      const inputToBeProcessed = cli.processInput();
 
-      expect(commandsToBeProcessed.length).to.equal(0);
+      expect(inputToBeProcessed).to.deep.equal({});
     });
 
-    it('should return an empty array when the "--v" parameter is given', () => {
-      const cliWithExternalArguments = new CLI(serverless, isInteractive, ['--v']);
-      const commandsToBeProcessed = cliWithExternalArguments.processCommands();
+    it('should return an empty object when the "--v" parameter is given', () => {
+      const cli = new CLI(serverless, isInteractive, ['--v']);
+      const inputToBeProcessed = cli.processInput();
 
-      expect(commandsToBeProcessed.length).to.equal(0);
+      expect(inputToBeProcessed).to.deep.equal({});
     });
 
-    it('should return the passed arguments as an array of commands', () => {
-      const cliWithExternalArguments = new CLI(serverless, isInteractive, ['deploy', 'functions']);
-      const commandsToBeProcessed = cliWithExternalArguments.processCommands();
+    it('should only return the commands when only commands are given', () => {
+      const cli = new CLI(serverless, isInteractive, ['deploy', 'functions']);
+      const inputToBeProcessed = cli.processInput();
 
-      expect(commandsToBeProcessed[0]).to.equal('deploy');
-      expect(commandsToBeProcessed[1]).to.equal('functions');
+      const expectedObject = { commands: ['deploy', 'functions'], options: {} };
+
+      expect(inputToBeProcessed).to.deep.equal(expectedObject);
+    });
+
+    it('should only return the options when only options are given', () => {
+      const cli = new CLI(serverless, isInteractive,
+        ['-f', 'function1', '-r', 'resource1']);
+      const inputToBeProcessed = cli.processInput();
+
+      const expectedObject = { commands: [], options: { f: 'function1', r: 'resource1' } };
+
+      expect(inputToBeProcessed).to.deep.equal(expectedObject);
+    });
+
+    it('should return commands and options when both are given', () => {
+      const cli = new CLI(serverless, isInteractive,
+        ['deploy', 'functions', '-f', 'function1']);
+      const inputToBeProcessed = cli.processInput();
+
+      const expectedObject = { commands: ['deploy', 'functions'], options: { f: 'function1' } };
+
+      expect(inputToBeProcessed).to.deep.equal(expectedObject);
     });
   });
 });

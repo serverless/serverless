@@ -21,4 +21,4 @@ if (process.argv.indexOf('--serverless-integration-test') > -1) {
   serverless.instances.pluginManager.addPlugin(TestsPlugin);
 }
 
-serverless.runCommand();
+serverless.run();
