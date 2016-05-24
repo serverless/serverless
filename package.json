@@ -56,6 +56,7 @@
     "aws-sdk": "^2.2.40",
     "bluebird": "^3.2.1",
     "chalk": "^1.1.0",
+    "cli-spinner": "^0.2.5",
     "debug": "^2.2.0",
     "dotenv": "^2.0.0",
     "fs-extra": "^0.26.4",
