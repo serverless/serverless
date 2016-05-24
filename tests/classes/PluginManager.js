@@ -284,6 +284,16 @@ describe('PluginManager', () => {
     });
   });
 
+  describe('#getPlugins()', () => {
+    it('should return all loaded plugins', () => {
+      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+      pluginManager.loadServicePlugins(servicePlugins);
+
+      expect(pluginManager.getPlugins()[0]).to.be.instanceof(ServicePluginMock1);
+      expect(pluginManager.getPlugins()[1]).to.be.instanceof(ServicePluginMock2);
+    });
+  });
+
   describe('#run()', () => {
     it('should throw an error when the given command is not available', () => {
       pluginManager.addPlugin(SynchronousPluginMock);
