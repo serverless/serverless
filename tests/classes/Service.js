@@ -10,15 +10,15 @@ const Serverless = require('../../lib/Serverless');
 
 describe('Service', () => {
   describe('#constructor()', () => {
-    const S = new Serverless();
+    const serverless = new Serverless();
 
     it('should attach serverless instance', () => {
-      const serviceInstance = new Service(S);
-      expect(typeof serviceInstance.S.version).to.be.equal('string');
+      const serviceInstance = new Service(serverless);
+      expect(typeof serviceInstance.serverless.version).to.be.equal('string');
     });
 
     it('should construct with defaults', () => {
-      const serviceInstance = new Service(S);
+      const serviceInstance = new Service(serverless);
 
       expect(serviceInstance.service).to.be.equal(null);
       expect(serviceInstance.custom).to.deep.equal({});
@@ -47,7 +47,7 @@ describe('Service', () => {
         },
       };
 
-      const serviceInstance = new Service(S, data);
+      const serviceInstance = new Service(serverless, data);
 
       expect(serviceInstance.service).to.be.equal('testService');
       expect(serviceInstance.custom).to.deep.equal({ customProp: 'value' });
@@ -110,13 +110,13 @@ describe('Service', () => {
       SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
         YAML.dump(serverlessEnvYaml));
 
-      const S = new Serverless({ servicePath: tmpDirPath });
-      serviceInstance = new Service(S);
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
     });
 
     it('should throw error if servicePath not configured', () => {
-      const S = new Serverless();
-      const invalidService = new Service(S);
+      const serverless = new Serverless();
+      const invalidService = new Service(serverless);
       expect(() => invalidService.load()).to.throw(Error);
     });
 
@@ -187,8 +187,8 @@ describe('Service', () => {
 
   describe('#update()', () => {
     it('should update service instance data', () => {
-      const S = new Serverless();
-      const serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      const serviceInstance = new Service(serverless);
       const newData = { service: 'newName' };
       const updatedInstance = serviceInstance.update(newData);
       expect(updatedInstance.service).to.be.equal('newName');
@@ -198,8 +198,8 @@ describe('Service', () => {
   describe('#getFunction()', () => {
     let serviceInstance;
     before(() => {
-      const S = new Serverless();
-      serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      serviceInstance = new Service(serverless);
       serviceInstance.functions = {
         create: {
           handler: 'users.create',
@@ -218,8 +218,8 @@ describe('Service', () => {
 
   describe('#getAllFunctions()', () => {
     it('should return an array of function names in Service', () => {
-      const S = new Serverless();
-      const serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      const serviceInstance = new Service(serverless);
       serviceInstance.functions = {
         create: {
           handler: 'users.create',
@@ -235,8 +235,8 @@ describe('Service', () => {
   describe('#getEventInFunction()', () => {
     let serviceInstance;
     before(() => {
-      const S = new Serverless();
-      serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      serviceInstance = new Service(serverless);
       serviceInstance.functions = {
         create: {
           events: {
@@ -263,8 +263,8 @@ describe('Service', () => {
 
   describe('#getAllEventsInFunction()', () => {
     it('should return an array of events in a specified function', () => {
-      const S = new Serverless();
-      const serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      const serviceInstance = new Service(serverless);
       serviceInstance.functions = {
         create: {
           events: {
@@ -282,8 +282,8 @@ describe('Service', () => {
   describe('#getStage()', () => {
     let serviceInstance;
     before(() => {
-      const S = new Serverless();
-      serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      serviceInstance = new Service(serverless);
       serviceInstance.environment = {
         vars: {},
         stages: {
@@ -318,8 +318,8 @@ describe('Service', () => {
 
   describe('#getAllStages()', () => {
     it('should return an array of stage names in Service', () => {
-      const S = new Serverless();
-      const serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      const serviceInstance = new Service(serverless);
       serviceInstance.environment = {
         vars: {},
         stages: {
@@ -342,8 +342,8 @@ describe('Service', () => {
   describe('#getRegionInStage()', () => {
     let serviceInstance;
     before(() => {
-      const S = new Serverless();
-      serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      serviceInstance = new Service(serverless);
       serviceInstance.environment = {
         vars: {},
         stages: {
@@ -377,8 +377,8 @@ describe('Service', () => {
 
   describe('#getAllRegionsInStage()', () => {
     it('should return an array of regions in a specified stage', () => {
-      const S = new Serverless();
-      const serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      const serviceInstance = new Service(serverless);
       serviceInstance.environment = {
         vars: {},
         stages: {
@@ -408,8 +408,8 @@ describe('Service', () => {
   describe('#getVariables()', () => {
     let serviceInstance;
     before(() => {
-      const S = new Serverless();
-      serviceInstance = new Service(S);
+      const serverless = new Serverless();
+      serviceInstance = new Service(serverless);
       serviceInstance.environment = {
         vars: {
           commonVar: 'commonValue',
