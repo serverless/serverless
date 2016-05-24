@@ -74,6 +74,7 @@
     "replaceall": "^0.1.6",
     "shelljs": "^0.6.0",
     "shortid": "^2.2.2",
-    "traverse": "^0.6.6"
+    "traverse": "^0.6.6",
+    "sinon": "^1.17.4"
   }
 }

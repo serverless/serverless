@@ -12,3 +12,6 @@ require('./classes/YamlParser');
 require('./classes/CLI');
 
 require('./integration/Serverless');
+
+require('../lib/plugins/create/tests/create');
+require('../lib/plugins/deploy/tests/deploy');

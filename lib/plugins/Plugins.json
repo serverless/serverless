@@ -1,5 +1,6 @@
 {
   "plugins": [
+    "./deploy/deploy.js",
     "./create/create.js",
     "./HelloWorld/HelloWorld.js"
   ]
