@@ -1,7 +1,7 @@
 {
   "name": "",
   "version": "0.0.1",
-  "description": "Serverless component dependencies",
+  "description": "Serverless service dependencies",
   "author": "me",
   "license": "MIT",
   "private": true,
@@ -11,7 +11,5 @@
   },
   "keywords": [],
   "devDependencies": {},
-  "dependencies": {
-    "serverless-helpers-js": "~0.1.0"
-  }
+  "dependencies": {}
 }
