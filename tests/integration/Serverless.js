@@ -7,7 +7,7 @@
 const expect = require('chai').expect;
 const exec = require('child_process').exec;
 const path = require('path');
-const TestsPlugin = require('../../lib/plugins/Tests/Tests');
+const TestsPlugin = require('../../lib/plugins/tests/tests');
 
 describe('Serverless integration tests', () => {
   it('should successfully run the "serverless test integration" command', (done) => {
