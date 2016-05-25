@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const PluginManager = require('../../lib/classes/PluginManager');
 const Serverless = require('../../lib/Serverless');
-const HelloWorld = require('../../lib/plugins/HelloWorld/HelloWorld');
+const HelloWorld = require('../../lib/plugins/helloWorld/helloWorld');
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -180,7 +180,7 @@ describe('PluginManager', () => {
 
   describe('#loadAllPlugins()', () => {
     it('should load only core plugins when no service plugins are given', () => {
-      // Note: We need the HelloWorld plugin for this test to pass
+      // Note: We need the helloWorld plugin for this test to pass
       pluginManager.loadAllPlugins();
 
       expect(pluginManager.plugins).to.include(helloWorld);

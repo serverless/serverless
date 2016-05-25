@@ -3,7 +3,7 @@
 'use strict';
 
 // Note: TestsPlugin is only used for tests
-const TestsPlugin = require('../lib/plugins/Tests/Tests');
+const TestsPlugin = require('../lib/plugins/tests/tests');
 
 let SUtils = require('../lib/classes/Utils');
 SUtils = new SUtils();
