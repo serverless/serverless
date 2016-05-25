@@ -3,7 +3,7 @@
 Serverless Framework V.1 (BETA)
 =================================
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
-[![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
+<!--- [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless) --->
 [![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=dev)](https://coveralls.io/github/serverless/serverless?branch=dev)
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
