@@ -1,0 +1,13 @@
+{
+  "name": "serverless-plugin-aws-compile-functions-to-resources",
+  "version": "0.0.1",
+  "description": "",
+  "license": "MIT",
+  "scripts": {
+    "test": "node_modules/.bin/mocha ./tests/awsCompileFunctionsToResources.js"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5"
+  }
+}
