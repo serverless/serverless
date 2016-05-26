@@ -11,7 +11,7 @@ const Serverless = require('../../lib/Serverless');
 describe('CLI', () => {
   let cli;
   let serverless;
-  const isInteractive = false;
+  const interactive = false;
   const emptyObject = { commands: [], options: {} };
 
   beforeEach(() => {
@@ -20,17 +20,17 @@ describe('CLI', () => {
 
   describe('#construtor()', () => {
     it('should set the serverless instance', () => {
-      cli = new CLI(serverless, isInteractive);
+      cli = new CLI(serverless, interactive);
       expect(cli.serverless).to.deep.equal(serverless);
     });
 
     it('should set the isInteractive option', () => {
-      cli = new CLI(serverless, isInteractive);
-      expect(cli.isInteractive).to.equal(isInteractive);
+      cli = new CLI(serverless, interactive);
+      expect(cli.interactive).to.equal(interactive);
     });
 
     it('should set an empty loadedPlugins array when none is provided', () => {
-      cli = new CLI(serverless, isInteractive);
+      cli = new CLI(serverless, interactive);
       expect(cli.loadedPlugins.length).to.equal(0);
     });
 
@@ -40,17 +40,17 @@ describe('CLI', () => {
       const pluginMock = new PluginMock();
       const plugins = [pluginMock];
 
-      cli = new CLI(serverless, isInteractive, plugins);
+      cli = new CLI(serverless, interactive, plugins);
       expect(cli.loadedPlugins[0]).to.equal(pluginMock);
     });
 
     it('should set an empty inputArray when none is provided', () => {
-      cli = new CLI(serverless, isInteractive);
+      cli = new CLI(serverless, interactive);
       expect(cli.inputArray.length).to.equal(0);
     });
 
     it('should set the inputObject when provided', () => {
-      cli = new CLI(serverless, isInteractive, [], ['foo', 'bar', '--baz', '-qux']);
+      cli = new CLI(serverless, interactive, [], ['foo', 'bar', '--baz', '-qux']);
 
       expect(cli.inputArray[0]).to.equal('foo');
       expect(cli.inputArray[1]).to.equal('bar');
@@ -61,49 +61,49 @@ describe('CLI', () => {
 
   describe('#processInput()', () => {
     it('should return an "empty" object when the "help" parameter is given', () => {
-      cli = new CLI(serverless, isInteractive, [], ['help']);
+      cli = new CLI(serverless, interactive, [], ['help']);
       const inputToBeProcessed = cli.processInput();
 
       expect(inputToBeProcessed).to.deep.equal({ commands: [], options: {} });
     });
 
     it('should return an "empty" object when the "--help" parameter is given', () => {
-      cli = new CLI(serverless, isInteractive, [], ['--help']);
+      cli = new CLI(serverless, interactive, [], ['--help']);
       const inputToBeProcessed = cli.processInput();
 
       expect(inputToBeProcessed).to.deep.equal(emptyObject);
     });
 
     it('should return an "empty" object when the "--h" parameter is given', () => {
-      cli = new CLI(serverless, isInteractive, [], ['--h']);
+      cli = new CLI(serverless, interactive, [], ['--h']);
       const inputToBeProcessed = cli.processInput();
 
       expect(inputToBeProcessed).to.deep.equal(emptyObject);
     });
 
     it('should return an "empty" object when the "version" parameter is given', () => {
-      cli = new CLI(serverless, isInteractive, [], ['version']);
+      cli = new CLI(serverless, interactive, [], ['version']);
       const inputToBeProcessed = cli.processInput();
 
       expect(inputToBeProcessed).to.deep.equal(emptyObject);
     });
 
     it('should return an "empty" object when the "--version" parameter is given', () => {
-      cli = new CLI(serverless, isInteractive, [], ['--version']);
+      cli = new CLI(serverless, interactive, [], ['--version']);
       const inputToBeProcessed = cli.processInput();
 
       expect(inputToBeProcessed).to.deep.equal(emptyObject);
     });
 
     it('should return an "empty" object when the "--v" parameter is given', () => {
-      cli = new CLI(serverless, isInteractive, [], ['--v']);
+      cli = new CLI(serverless, interactive, [], ['--v']);
       const inputToBeProcessed = cli.processInput();
 
       expect(inputToBeProcessed).to.deep.equal(emptyObject);
     });
 
     it('should only return the commands when only commands are given', () => {
-      cli = new CLI(serverless, isInteractive, [], ['deploy', 'functions']);
+      cli = new CLI(serverless, interactive, [], ['deploy', 'functions']);
       const inputToBeProcessed = cli.processInput();
 
       const expectedObject = { commands: ['deploy', 'functions'], options: {} };
@@ -112,7 +112,7 @@ describe('CLI', () => {
     });
 
     it('should only return the options when only options are given', () => {
-      cli = new CLI(serverless, isInteractive,
+      cli = new CLI(serverless, interactive,
         [], ['-f', 'function1', '-r', 'resource1']);
       const inputToBeProcessed = cli.processInput();
 
@@ -122,7 +122,7 @@ describe('CLI', () => {
     });
 
     it('should return commands and options when both are given', () => {
-      cli = new CLI(serverless, isInteractive,
+      cli = new CLI(serverless, interactive,
         [], ['deploy', 'functions', '-f', 'function1']);
       const inputToBeProcessed = cli.processInput();
 
