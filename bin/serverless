@@ -5,14 +5,9 @@
 // Note: TestsPlugin is only used for tests
 const TestsPlugin = require('../lib/plugins/tests/tests');
 
-let SUtils = require('../lib/classes/Utils');
-SUtils = new SUtils();
-
 const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless({
-  // TODO: update config accordingly
-  // servicePath: SUtils.findServicePath(process.cwd()),
   interactive: typeof process.env.CI === 'undefined',
 });
 
@@ -21,4 +16,4 @@ if (process.argv.indexOf('--serverless-integration-test') > -1) {
   serverless.pluginManager.addPlugin(TestsPlugin);
 }
 
-serverless.run();
+serverless.init().then(() => serverless.run());

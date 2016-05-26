@@ -109,5 +109,39 @@ describe('Utils', () => {
       });
     });
   });
+
+  describe('#findServicePath()', () => {
+    const testDir = process.cwd();
+
+    it('should detect if the CWD is a service directory', () => {
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpFilePath = path.join(tmpDirPath, 'serverless.yaml');
+
+      serverless.utils.writeFileSync(tmpFilePath, 'foo');
+      process.chdir(tmpDirPath);
+
+      const servicePath = serverless.utils.findServicePath();
+
+      expect(servicePath).to.not.equal(null);
+    });
+
+    it('should detect if the CWD is not a service directory', () => {
+      // just use the root of the tmpdir because findServicePath will
+      // also check parent directories (and may find matching tmp dirs
+      // from old tests)
+      const tmpDirPath = os.tmpdir();
+      process.chdir(tmpDirPath);
+
+      const servicePath = serverless.utils.findServicePath();
+
+      expect(servicePath).to.equal(null);
+    });
+
+    afterEach(() => {
+      // always switch back to the test directory
+      // so that we have a clean state
+      process.chdir(testDir);
+    });
+  });
 });
 

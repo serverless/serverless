@@ -49,7 +49,8 @@
     "mocha": "^2.2.5",
     "mocha-lcov-reporter": "^1.2.0",
     "node-uuid": "^1.4.2",
-    "rimraf": "^2.4.3"
+    "rimraf": "^2.4.3",
+    "sinon": "^1.17.4"
   },
   "dependencies": {
     "async": "^1.5.2",
@@ -72,7 +73,6 @@
     "replaceall": "^0.1.6",
     "shelljs": "^0.6.0",
     "shortid": "^2.2.2",
-    "traverse": "^0.6.6",
-    "sinon": "^1.17.4"
+    "traverse": "^0.6.6"
   }
 }

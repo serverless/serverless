@@ -114,10 +114,11 @@ describe('Service', () => {
       serviceInstance = new Service(serverless);
     });
 
-    it('should throw error if servicePath not configured', () => {
+    it('should resolve if no servicePath is found', (done) => {
       const serverless = new Serverless();
-      const invalidService = new Service(serverless);
-      expect(() => invalidService.load()).to.throw(Error);
+      const noService = new Service(serverless);
+
+      return noService.load().then(() => done());
     });
 
     /*
