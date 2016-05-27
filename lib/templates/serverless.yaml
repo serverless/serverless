@@ -45,4 +45,4 @@ resources:
     azure_functions:
         $ref: ../azure_resources.json # you can use JSON-REF to ref other JSON files
     google:
-        $ref: ../google_resources.yml # you can use JSON-REF to ref other YAML files
+        $ref: ../google_resources.yaml # you can use JSON-REF to ref other YAML files
