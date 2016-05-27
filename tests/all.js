@@ -3,7 +3,7 @@
 process.env.DEBUG = '*';
 require('./config');
 
-// Serverless Core
+// Serverless Core Tests
 require('./classes/Serverless');
 require('./classes/PluginManager');
 require('./classes/Utils');
