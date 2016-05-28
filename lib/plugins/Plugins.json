@@ -2,6 +2,7 @@
   "plugins": [
     "./deploy/deploy.js",
     "./create/create.js",
-    "./helloWorld/helloWorld.js"
+    "./helloWorld/helloWorld.js",
+    "./awsCompileFunctionsToResources/awsCompileFunctionsToResources.js"
   ]
 }
