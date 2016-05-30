@@ -4,10 +4,14 @@
   "description": "",
   "license": "MIT",
   "scripts": {
-    "test": "node_modules/.bin/mocha ./tests/deploy.js"
+    "test": "node_modules/.bin/mocha ./tests/all.js"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^2.4.5"
+  },
+  "dependencies": {
+    "bluebird": "^3.4.0",
+    "lodash": "^4.13.1"
   }
 }
