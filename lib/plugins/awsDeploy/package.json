@@ -11,7 +11,9 @@
     "mocha": "^2.4.5"
   },
   "dependencies": {
+    "aws-sdk": "^2.3.16",
     "bluebird": "^3.4.0",
-    "lodash": "^4.13.1"
+    "lodash": "^4.13.1",
+    "node-zip": "^1.1.1"
   }
 }
