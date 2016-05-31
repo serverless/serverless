@@ -1,6 +1,7 @@
 {
   "plugins": [
     "./deploy/deploy.js",
+    "./awsDeploy/awsDeploy.js",
     "./create/create.js",
     "./helloWorld/helloWorld.js",
     "./awsCompileFunctionsToResources/awsCompileFunctionsToResources.js"
