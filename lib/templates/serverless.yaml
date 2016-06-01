@@ -5,14 +5,14 @@ plugins:
 custom: # for plugin authors to collect custom config
 
 default_providers: &default_providers
-  aws_lambda: # aws specific config
+  aws: # aws specific config
       timeout: 6
       memorySize: 1024
-  azure_functions: # azure specific config
+      runtime: nodejs4.3
+  azure: # azure specific config
       disabled: false
 
 functions: # if this gets too big, you can always use JSON-REF
-    name_template: ${stage}-${service}-${name}  # "name" references the function name, service the whole service name
     hello:
         name_template: ${stage}-${service}-${name}  # "name" references the function name, service the whole service name
         handler: handler.hello

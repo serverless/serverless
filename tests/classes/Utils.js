@@ -8,18 +8,6 @@ const Serverless = require('../../lib/Serverless');
 const serverless = new Serverless();
 
 describe('Utils', () => {
-  describe('#generateShortId()', () => {
-    it('should generate a shortId', () => {
-      const id = serverless.utils.generateShortId();
-      expect(id).to.be.a('string');
-    });
-
-    it('should generate a shortId for the given length', () => {
-      const id = serverless.utils.generateShortId(6);
-      expect(id.length).to.be.equal(6);
-    });
-  });
-
   describe('#dirExistsSync()', () => {
     describe('When reading a directory', () => {
       it('should detect if a directory exists', () => {
@@ -107,6 +95,42 @@ describe('Utils', () => {
       return serverless.utils.readFile(tmpFilePath).then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
+    });
+  });
+
+  describe('#walkDirSync()', () => {
+    it('should return an array with corresponding paths to the found files', () => {
+      const tmpDirPath = path.join(os.tmpDir(), (new Date).getTime().toString());
+
+      const nestedDir1 = path.join(tmpDirPath, 'foo');
+      const nestedDir2 = path.join(tmpDirPath, 'foo', 'bar');
+      const nestedDir3 = path.join(tmpDirPath, 'baz');
+
+      const tmpFilePath1 = path.join(nestedDir1, 'foo.js');
+      const tmpFilePath2 = path.join(nestedDir2, 'bar.js');
+      const tmpFilePath3 = path.join(nestedDir3, 'baz.js');
+
+      serverless.utils.writeFileSync(tmpFilePath1, 'foo');
+      serverless.utils.writeFileSync(tmpFilePath2, 'bar');
+      serverless.utils.writeFileSync(tmpFilePath3, 'baz');
+
+      const filePaths = serverless.utils.walkDirSync(tmpDirPath);
+
+      expect(filePaths).to.include(tmpFilePath1);
+      expect(filePaths).to.include(tmpFilePath2);
+      expect(filePaths).to.include(tmpFilePath3);
+    });
+  });
+
+  describe('#generateShortId()', () => {
+    it('should generate a shortId', () => {
+      const id = serverless.utils.generateShortId();
+      expect(id).to.be.a('string');
+    });
+
+    it('should generate a shortId for the given length', () => {
+      const id = serverless.utils.generateShortId(6);
+      expect(id.length).to.be.equal(6);
     });
   });
 

@@ -18,5 +18,4 @@ require('./integration/Serverless');
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
 require('../lib/plugins/deploy/tests/deploy');
-require('../lib/plugins/awsResourcesDeploy/tests/awsResourcesDeploy');
-require('../lib/plugins/awsCompileFunctionsToResources/tests/awsCompileFunctionsToResources');
+require('../lib/plugins/awsDeploy/tests/all');
