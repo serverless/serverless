@@ -19,3 +19,4 @@ require('./integration/Serverless');
 require('../lib/plugins/create/tests/create');
 require('../lib/plugins/deploy/tests/deploy');
 require('../lib/plugins/awsDeploy/tests/all');
+
