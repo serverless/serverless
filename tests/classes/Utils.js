@@ -116,9 +116,9 @@ describe('Utils', () => {
 
       const filePaths = serverless.utils.walkDirSync(tmpDirPath);
 
-      expect(filePaths[2]).to.equal(tmpFilePath1);
-      expect(filePaths[1]).to.equal(tmpFilePath2);
-      expect(filePaths[0]).to.equal(tmpFilePath3);
+      expect(filePaths).to.include(tmpFilePath1);
+      expect(filePaths).to.include(tmpFilePath2);
+      expect(filePaths).to.include(tmpFilePath3);
     });
   });
 
