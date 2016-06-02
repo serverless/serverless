@@ -3,6 +3,7 @@
     "./deploy/deploy.js",
     "./awsDeploy/awsDeploy.js",
     "./create/create.js",
+    "./removeResources/removeResources.js",
     "./helloWorld/helloWorld.js"
   ]
 }
