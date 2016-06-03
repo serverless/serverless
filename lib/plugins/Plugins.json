@@ -4,6 +4,7 @@
     "./awsDeploy/awsDeploy.js",
     "./create/create.js",
     "./remove/remove.js",
+    "./awsRemoveResources/awsRemoveResources.js",
     "./invoke/invoke.js",
     "./invokeAws/invokeAws.js",
     "./helloWorld/helloWorld.js"
