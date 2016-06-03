@@ -1,4 +1,4 @@
-## Deploy
+# Deploy
 
 ```
 serverless deploy --stage dev --region us-east-1
@@ -6,11 +6,11 @@ serverless deploy --stage dev --region us-east-1
 
 Deploys your service to AWS.
 
-### Options
+## Options
 - `--stage` The stage in your service that you want to deploy to. **Required**.
 - `--region` The region in that stage that you want to deploy to. **Required**.
 
-### Examples
+## Examples
 
 ```
 serverless deploy --stage dev --region us-east-1

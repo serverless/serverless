@@ -1,4 +1,4 @@
-## Create
+# Create
 
 ```
 serverless create --name serviceName --stage dev --region us-east-1
@@ -6,12 +6,12 @@ serverless create --name serviceName --stage dev --region us-east-1
 
 Creates a new service in the current working directory.
 
-### Options
+## Options
 - `--name` The name of your new service. **Required**.
 - `--stage` The name of your first stage in service. **Required**.
 - `--region` The name of your first region in stage. **Required**.
 
-### Examples
+## Examples
 
 ```
 serverless create --name serviceName --stage dev --region us-east-1

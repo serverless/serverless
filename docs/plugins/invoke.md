@@ -1,4 +1,4 @@
-## Invoke
+# Invoke
 
 ```
 serverless invoke --function functionName --stage dev --region us-east-1
@@ -6,7 +6,7 @@ serverless invoke --function functionName --stage dev --region us-east-1
 
 Invokes your deployed function and outputs the results.
 
-### Options
+## Options
 - `--function` The name of the function in your service that you want to invoke. **Required**.
 - `--stage` The stage in your service you want to invoke your function in. **Required**.
 - `--region` The region in your stage that you want to invoke your function in. **Required**.
@@ -14,7 +14,7 @@ Invokes your deployed function and outputs the results.
 - `--type` The type of invocation. Either `RequestResponse`, `Event` or `DryRun`. Default is `RequestResponse`.
 - `--log` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation. Default is `false`.
 
-### Examples
+## Examples
 
 ```
 serverless invoke --function functionName --stage dev --region us-east-1
