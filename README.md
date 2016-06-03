@@ -41,7 +41,7 @@ Take a look at our [documentation](/docs) to understand how Serverless works.
 
 ## Concepts
 
-Learn about the upcoming concepts in V1.0:
+Learn about the upcoming concepts in v1.0:
 
 * [Services](/docs/concepts/services.md)
 * [Plugins](/docs/concepts/plugins.md)
