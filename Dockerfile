@@ -1,7 +1,4 @@
-FROM node:4
+FROM node:5.11.1
 
 RUN mkdir /app
 WORKDIR /app
-
-COPY package.json ./
-RUN npm install

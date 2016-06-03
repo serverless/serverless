@@ -4,3 +4,4 @@ services:
     build: .
     volumes:
       - .:/app
+      - ~/.aws/:/root/.aws
