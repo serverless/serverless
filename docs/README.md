@@ -17,3 +17,4 @@ Serverless provides (such as service creation, deployment, removal, function inv
   - [create](/docs/plugins/create.md) - Creates a new Serverless service
   - [deploy](/docs/plugins/deploy.md) - Deploy your resources to your provider
   - [invoke](/docs/plugins/invoke.md) - Invoke your function
+  - [remove](/docs/plugins/remove.md) - Remove a deployed service
