@@ -6,7 +6,7 @@
     "./remove/remove.js",
     "./awsRemoveResources/awsRemoveResources.js",
     "./invoke/invoke.js",
-    "./invokeAws/invokeAws.js",
+    "./awsInvoke/awsInvoke.js",
     "./helloWorld/helloWorld.js"
   ]
 }
