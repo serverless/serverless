@@ -142,17 +142,47 @@ class Deploy {
 module.exports = Deploy;
 ```
 
+### Serverless instance
+
+The serverless instance which enables access to the whole Serverless setup during runtime is passed as the first
+parameter of the plugin constructor.
+
+class MyPlugin {
+  constructor(serverless) {
+    this.serverless = serverless;
+
+    this.commands = {
+      log: {
+        lifecycleEvents: [
+          'serverless'
+        ],
+      },
+    };
+
+    this.hooks = {
+      'log:serverless': this.logServerless
+    }
+  }
+
+  deployFunction() {
+    console.log('Serverless instance: ', this.serverless);
+  }
+}
+```
+
+
 ### Options
 
 Each (sub)command can have multiple options. Options are passed with a single dash (`-`) or a double dash (`--`) like
 this: `serverless function deploy --function functionName` or `serverless resource deploy -r resourceName`.
-The `options` object will be passed in as the first parameter to your hook function where you can access it.
+The `options` object will be passed in as the second parameter to the constructor of your plugin.
 
 ```javascript
 'use strict';
 
 class Deploy {
-  constructor() {
+  constructor(serverless, options) {
+    this.options = options;
     this.commands = {
       deploy: {
         lifecycleEvents: [
@@ -171,14 +201,11 @@ class Deploy {
     }
   }
 
-  deployFunction(options) {
-    console.log('Deploying function: ', options.function);
+  deployFunction() {
+    console.log('Deploying function: ', this.options.function);
   }
 }
 ```
-
-Options can be accessed with the help of the `options` object which will be automatically passed as the first parameter
-of the corresponding hook function.
 
 ## Registering plugins for hooks and commands
 
