@@ -22,4 +22,4 @@ require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/awsDeploy/tests/all');
 require('../lib/plugins/awsRemoveResources/tests/all');
 require('../lib/plugins/invoke/tests/invoke');
-require('../lib/plugins/invokeAws/tests/invokeAws');
+require('../lib/plugins/awsInvoke/tests/awsInvoke');
