@@ -311,6 +311,42 @@ describe('PluginManager', () => {
     });
   });
 
+  describe('#validateOptions()', () => {
+    it('should throw an error if a required option is not set in a plain commands object', () => {
+      pluginManager.commands = {
+        foo: {
+          options: {
+            bar: {
+              required: true,
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+    });
+
+    it('should throw an error if a required option is not set in a nested commands object', () => {
+      pluginManager.commands = {
+        foo: {
+          commands: {
+            bar: {
+              options: {
+                baz: {
+                  required: true,
+                },
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo', 'bar'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+    });
+  });
+
   describe('#run()', () => {
     it('should throw an error when the given command is not available', () => {
       pluginManager.addPlugin(SynchronousPluginMock);

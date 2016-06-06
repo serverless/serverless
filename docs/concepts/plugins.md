@@ -207,6 +207,40 @@ class Deploy {
 }
 ```
 
+Options can be marked as required. This way the plugin manager will automatically raise an error if a required option
+is not passed in via the CLI. You can mark options as required with the help of `required: true` inside the commands object:
+
+```javascript
+'use strict';
+
+class Deploy {
+  constructor(serverless, options) {
+    this.options = options;
+    this.commands = {
+      deploy: {
+        lifecycleEvents: [
+          'functions'
+        ],
+        options: {
+          function: {
+            required: true,
+            usage: 'Specify the function you want to deploy (e.g. "--function myFunction")'
+          }
+        }
+      },
+    };
+
+    this.hooks = {
+      'deploy:functions': this.deployFunction
+    }
+  }
+
+  deployFunction() {
+    console.log('Deploying function: ', this.options.function);
+  }
+}
+```
+
 ## Registering plugins for hooks and commands
 
 A user has to define the plugins they want to use in the root level of the serverless.yaml file:
