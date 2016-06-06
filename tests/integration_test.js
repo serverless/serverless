@@ -20,6 +20,9 @@ const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
 fse.mkdirSync(tmpDir);
 process.chdir(tmpDir);
 
+const CF = new AWS.CloudFormation({ region: regionName });
+BbPromise.promisifyAll(CF, { suffix: 'Promised' });
+
 describe('Service Lifecyle Integration Test', () => {
   it('should create service in tmp directory', () => {
     execSync(`${serverlessExec} create --name ${
@@ -48,6 +51,9 @@ describe('Service Lifecyle Integration Test', () => {
       } --region ${
       regionName
       }`);
+
+    return CF.describeStacksPromised({ StackName: `${serviceName}-${stageName}` })
+      .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE'));
   });
 
   it('should invoke function from aws', function () {
@@ -99,10 +105,11 @@ describe('Service Lifecyle Integration Test', () => {
       regionName
       }`);
 
-    const CF = new AWS.CloudFormation({ region: regionName });
-    BbPromise.promisifyAll(CF, { suffix: 'Promised' });
-
     return CF.describeStacksPromised({ StackName: `${serviceName}-${stageName}` })
-      .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('DELETE_IN_PROGRESS'));
+      .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('DELETE_COMPLETE'))
+      .catch(e => {
+        if (e.message.indexOf('does not exist') > -1) return BbPromise.resolve();
+        throw new serverless.classes.Error(e);
+      });
   });
 });
