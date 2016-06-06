@@ -64,49 +64,57 @@ describe('CLI', () => {
     });
   });
 
-  describe('#processInput()', () => {
-    it('should return an "empty" object when the "help" parameter is given', () => {
+  describe('#displayHelp()', () => {
+    it('should return true when the "help" parameter is given', () => {
       cli = new CLI(serverless, interactive, ['help']);
-      const inputToBeProcessed = cli.processInput();
+      const processedInput = cli.processInput();
+      const helpDisplayed = cli.displayHelp(processedInput);
 
-      expect(inputToBeProcessed).to.deep.equal({ commands: [], options: {} });
+      expect(helpDisplayed).to.equal(true);
     });
 
-    it('should return an "empty" object when the "--help" parameter is given', () => {
+    it('should return true when the "--help" parameter is given', () => {
       cli = new CLI(serverless, interactive, ['--help']);
-      const inputToBeProcessed = cli.processInput();
+      const processedInput = cli.processInput();
+      const helpDisplayed = cli.displayHelp(processedInput);
 
-      expect(inputToBeProcessed).to.deep.equal(emptyObject);
+      expect(helpDisplayed).to.equal(true);
     });
 
-    it('should return an "empty" object when the "--h" parameter is given', () => {
+    it('should return truewhen the "--h" parameter is given', () => {
       cli = new CLI(serverless, interactive, ['--h']);
-      const inputToBeProcessed = cli.processInput();
+      const processedInput = cli.processInput();
+      const helpDisplayed = cli.displayHelp(processedInput);
 
-      expect(inputToBeProcessed).to.deep.equal(emptyObject);
+      expect(helpDisplayed).to.equal(true);
     });
 
-    it('should return an "empty" object when the "version" parameter is given', () => {
+    it('should return true when the "version" parameter is given', () => {
       cli = new CLI(serverless, interactive, ['version']);
-      const inputToBeProcessed = cli.processInput();
+      const processedInput = cli.processInput();
+      const helpDisplayed = cli.displayHelp(processedInput);
 
-      expect(inputToBeProcessed).to.deep.equal(emptyObject);
+      expect(helpDisplayed).to.equal(true);
     });
 
-    it('should return an "empty" object when the "--version" parameter is given', () => {
+    it('should return true when the "--version" parameter is given', () => {
       cli = new CLI(serverless, interactive, ['--version']);
-      const inputToBeProcessed = cli.processInput();
+      const processedInput = cli.processInput();
+      const helpDisplayed = cli.displayHelp(processedInput);
 
-      expect(inputToBeProcessed).to.deep.equal(emptyObject);
+      expect(helpDisplayed).to.equal(true);
     });
 
-    it('should return an "empty" object when the "--v" parameter is given', () => {
+    it('should return true when the "--v" parameter is given', () => {
       cli = new CLI(serverless, interactive, ['--v']);
-      const inputToBeProcessed = cli.processInput();
+      const processedInput = cli.processInput();
+      const helpDisplayed = cli.displayHelp(processedInput);
 
-      expect(inputToBeProcessed).to.deep.equal(emptyObject);
+      expect(helpDisplayed).to.equal(true);
     });
+  });
 
+  describe('#processInput()', () => {
     it('should only return the commands when only commands are given', () => {
       cli = new CLI(serverless, interactive, ['deploy', 'functions']);
       const inputToBeProcessed = cli.processInput();
