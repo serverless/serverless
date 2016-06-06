@@ -14,6 +14,7 @@ require('./classes/CLI');
 
 // Integration Tests
 require('./integration/Serverless');
+require('./integration/serviceLifecycle');
 
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
