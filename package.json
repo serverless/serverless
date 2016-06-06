@@ -35,7 +35,8 @@
   },
   "scripts": {
     "test": "istanbul cover _mocha tests/all -- -R spec --recursive",
-    "lint": "eslint . || true"
+    "lint": "eslint . || true",
+    "integration-test": "mocha tests/integration_test"
   },
   "devDependencies": {
     "chai": "^3.2.0",

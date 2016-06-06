@@ -12,6 +12,7 @@ install:
 
 script:
   - npm test
+  - npm run integration-test
   - ./scripts/eslint.sh
 
 after_success:
