@@ -1,8 +1,5 @@
 'use strict';
 
-process.env.DEBUG = '*';
-require('./config');
-
 // Serverless Core Tests
 require('./classes/Serverless');
 require('./classes/PluginManager');
@@ -14,7 +11,6 @@ require('./classes/CLI');
 
 // Integration Tests
 require('./integration/Serverless');
-require('./integration/serviceLifecycle');
 
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
