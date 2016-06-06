@@ -1,10 +1,12 @@
 # Services
 
-A *serverless service* is a group of one or multiple functions and any resources they require.  By grouping related functions together, it's easier to share code and and resources between those functions.  Services are also designed to be completely independent, which helps teams develop more quickly, without waiting for others.
+A *serverless service* is a group of one or multiple functions and any resources they require.  By grouping related
+functions together, it's easier to share code and and resources between those functions.  Services are also designed to
+be completely independent, which helps teams develop more quickly, without waiting for others.
 
 Each *serverless service* contains two configuration files which describe it:
 
-* **serverless.yml**
+* **serverless.yaml**
   * Declares a serverless service
   * Defines one or multiple functions in the service
   * Defines events that trigger each function to execute (e.g., HTTP requests)
@@ -14,10 +16,11 @@ Each *serverless service* contains two configuration files which describe it:
   * Re-usable and publicly shareable
   * Contains no author-specific information
  
-* **serverless.meta.yml**
+* **serverless.meta.yaml**
   * Contains author-specific information (not intended for version control)
   * Defines stages for this service
-  * Defines stage-specific variables, which allows adding dynamic values to `serverless.yml`, and helps keep out sensitive information
+  * Defines stage-specific variables, which allows adding dynamic values to `serverless.yaml`, and helps keep out
+  sensitive information
   * The following variables are reserved: `service`, `function`, `stage` and `region`
   * Specifies profiles or credentials to use per stage
 
@@ -32,11 +35,12 @@ users
   lib // contains logic 
   node_modules
   package.json
-  serverless.yml
-  serverless.meta.yml
+  serverless.yaml
+  serverless.meta.yaml
   users.js // single handler file, requires lib
 ```
-#### serverless.yml
+
+#### serverless.yaml
 
 ```
 service: users
@@ -76,7 +80,7 @@ plugins:
   - additional_plugin
 ```
 
-#### serverless.meta.yml
+#### serverless.meta.yaml
 
 ```
  stages:
@@ -104,19 +108,20 @@ defaults:
 
 These deployment steps always occur first:
 
-* The `serverless.yml` and `serverless.meta.yml` files are loaded into two objects in memory (e.g., `service`, `meta`)
+* The `serverless.yaml` and `serverless.meta.yaml` files are loaded into two objects in memory (e.g., `service`, `meta`)
 * If YAML is used, it's converted to JSON
 * References using Serverless variable syntax `${}` or Serverless template syntax `$${}` are loaded
 * Loop through the `resources` property and collect resources for the targeted provider
 
 ### Deployment On Amazon Web Services
 
-If the targeted provider is AWS, and the `serverless.yml` contains AWS resources, these additional steps occur:
+If the targeted provider is AWS, and the `serverless.yaml` contains AWS resources, these additional steps occur:
 
 * A default AWS CloudFormation template is loaded.
 * All of the resources in the `resources` property are added to that template.
 * The compute resources found in the `functions` are added to that template (e.g., AWS Lambda Functions).
-* Each event in the `functions.yourFunction.events` property is processed.  If it requires resources, these are also added to the template.
+* Each event in the `functions.yourFunction.events` property is processed.  If it requires resources, these are also
+added to the template.
 
 ### Deployment On Microsoft Azure
 
