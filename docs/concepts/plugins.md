@@ -182,9 +182,17 @@ of the corresponding hook function.
 
 ## Registering plugins for hooks and commands
 
-A user has to define the plugins they want to use in the serverless.yaml. We do not auto-detect plugins from installed
-dependencies so users do not run into any surprises and we cut down on the startup time of the tool. Through JSON-REF
-users can share configuration for used plugins between serverless.yaml files in one repository.
+A user has to define the plugins they want to use in the root level of the serverless.yaml file:
+
+```yaml
+plugins:
+  - custom_plugin_1
+  - custom_plugin_2
+```
+
+We do not auto-detect plugins from installed dependencies so users do not run into any surprises and we cut down on the
+startup time of the tool. Through JSON-REF users can share configuration for used plugins between serverless.yaml files
+in one repository.
 
 After the serverless.yaml configuration file is loaded the plugin system will load all the commands and plugins and
 initialize the plugin system.
