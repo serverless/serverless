@@ -114,7 +114,6 @@ We love our contributors! If you'd like to contribute to the project, feel free 
 
 ## Consultants
 These consultants use the Serverless Framework and can help you build your serverless projects.
-* [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
 * [Trek10](https://www.trek10.com/)
 * [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
 * [Just Serverless](http://justserverless.com)
@@ -127,4 +126,4 @@ These consultants use the Serverless Framework and can help you build your serve
 * [CloudNative](http://cloudnative.io//)
 * [Hop Labs](http://www.hoplabs.com)
 * [Webscale](https://webscale.fi/briefly-in-english/)
-
+* [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
