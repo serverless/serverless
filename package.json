@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -40,8 +40,10 @@
   "devDependencies": {
     "chai": "^3.2.0",
     "eslint": "^2.8.0",
-    "eslint-config-airbnb": "^7.0.0",
-    "eslint-plugin-react": "^4.3.0",
+    "eslint-config-airbnb": "^8.0.0",
+    "eslint-plugin-import": "^1.6.1",
+    "eslint-plugin-jsx-a11y": "^1.0.4",
+    "eslint-plugin-react": "^5.0.1",
     "mocha": "^2.2.5",
     "node-uuid": "^1.4.2",
     "rimraf": "^2.4.3"
