@@ -342,11 +342,12 @@ describe('PluginManager', () => {
 
       pluginManager.addPlugin(CorrectHookOrderPluginMock);
       const commandsArray = ['run'];
-      pluginManager.run(commandsArray);
-
-      expect(pluginManager.plugins[0].hookStatus[0]).to.equal('before');
-      expect(pluginManager.plugins[0].hookStatus[1]).to.equal('mid');
-      expect(pluginManager.plugins[0].hookStatus[2]).to.equal('after');
+      return pluginManager.run(commandsArray)
+        .then(() => {
+          expect(pluginManager.plugins[0].hookStatus[0]).to.equal('before');
+          expect(pluginManager.plugins[0].hookStatus[1]).to.equal('mid');
+          expect(pluginManager.plugins[0].hookStatus[2]).to.equal('after');
+        });
     });
 
     describe('when using a synchronous hook function', () => {
@@ -357,34 +358,34 @@ describe('PluginManager', () => {
       describe('when running a simple command', () => {
         it('should run a simple command', () => {
           const commandsArray = ['deploy'];
-          pluginManager.run(commandsArray);
-
-          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+          return pluginManager.run(commandsArray)
+            .then(() => expect(pluginManager.plugins[0].deployedFunctions)
+              .to.equal(1));
         });
 
         it('should process the options when given', () => {
           const commandsArray = ['deploy'];
           const optionsObject = { function: 'function1' };
-          pluginManager.run(commandsArray, optionsObject);
-
-          expect(pluginManager.plugins[0].functionName).to.equal(optionsObject.function);
+          return pluginManager.run(commandsArray, optionsObject)
+            .then(() => expect(pluginManager.plugins[0].functionName)
+              .to.equal(optionsObject.function));
         });
       });
 
       describe('when running a nested command', () => {
         it('should run the nested command', () => {
           const commandsArray = ['deploy', 'onpremises'];
-          pluginManager.run(commandsArray);
-
-          expect(pluginManager.plugins[0].deployedResources).to.equal(1);
+          return pluginManager.run(commandsArray)
+            .then(() => expect(pluginManager.plugins[0].deployedResources)
+              .to.equal(1));
         });
 
         it('should process the options when given', () => {
           const commandsArray = ['deploy', 'onpremises'];
           const optionsObject = { resource: 'resource1' };
-          pluginManager.run(commandsArray, optionsObject);
-
-          expect(pluginManager.plugins[0].resourceName).to.equal(optionsObject.resource);
+          pluginManager.run(commandsArray, optionsObject)
+            .then(() => expect(pluginManager.plugins[0].resourceName)
+              .to.equal(optionsObject.resource));
         });
       });
     });
@@ -397,34 +398,34 @@ describe('PluginManager', () => {
       describe('when running a simple command', () => {
         it('should run the simple command', () => {
           const commandsArray = ['deploy'];
-          pluginManager.run(commandsArray);
-
-          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+          return pluginManager.run(commandsArray)
+            .then(() => expect(pluginManager.plugins[0].deployedFunctions)
+              .to.equal(1));
         });
 
         it('should process the options when given', () => {
           const commandsArray = ['deploy'];
           const optionsObject = { function: 'function1' };
-          pluginManager.run(commandsArray, optionsObject);
-
-          expect(pluginManager.plugins[0].functionName).to.equal(optionsObject.function);
+          return pluginManager.run(commandsArray, optionsObject)
+            .then(() => expect(pluginManager.plugins[0].functionName)
+              .to.equal(optionsObject.function));
         });
       });
 
       describe('when running a nested command', () => {
         it('should run the nested command', () => {
           const commandsArray = ['deploy', 'onpremises'];
-          pluginManager.run(commandsArray);
-
-          expect(pluginManager.plugins[0].deployedResources).to.equal(1);
+          pluginManager.run(commandsArray)
+            .then(() => expect(pluginManager.plugins[0].deployedResources)
+              .to.equal(1));
         });
 
         it('should process the options when given', () => {
           const commandsArray = ['deploy', 'onpremises'];
           const optionsObject = { resource: 'resource1' };
-          pluginManager.run(commandsArray, optionsObject);
-
-          expect(pluginManager.plugins[0].resourceName).to.equal(optionsObject.resource);
+          pluginManager.run(commandsArray, optionsObject)
+            .then(() => expect(pluginManager.plugins[0].resourceName)
+              .to.equal(optionsObject.resource));
         });
       });
     });

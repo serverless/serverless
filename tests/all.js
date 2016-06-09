@@ -15,8 +15,9 @@ require('./integration/Serverless');
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
 require('../lib/plugins/deploy/tests/deploy');
+require('../lib/plugins/invoke/tests/invoke');
 require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/awsDeploy/tests/all');
 require('../lib/plugins/awsRemoveResources/tests/all');
-require('../lib/plugins/invoke/tests/invoke');
 require('../lib/plugins/awsInvoke/tests/awsInvoke');
+require('../lib/plugins/awsCompileFunctions/tests/awsCompileFunctions');
