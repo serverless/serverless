@@ -21,3 +21,4 @@ require('../lib/plugins/awsDeploy/tests/all');
 require('../lib/plugins/awsRemoveResources/tests/all');
 require('../lib/plugins/awsInvoke/tests/awsInvoke');
 require('../lib/plugins/awsCompileFunctions/tests/awsCompileFunctions');
+require('../lib/plugins/awsCompileS3Events/tests/awsCompileS3Events');

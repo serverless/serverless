@@ -27,13 +27,16 @@ functions: # if this gets too big, you can always use JSON-REF
         provider:
           <<: *default_providers
         events:
-            - aws_s3: first_bucket
-            - aws_http_endpoint:
-                  post: users/create
-            - aws_scheduled: 5 * * * *
-            - azure_http_endpoint:
-                direction: in
-                name: req
+            aws:
+                s3:
+                    - first-bucket
+                http_endpoint:
+                    post: users/create
+                scheduled: 5 * * * *
+            azure:
+                http_endpoint:
+                  direction: in
+                  name: req
 
 resources:
     aws_name_template: ${stage}-${service}-${name}  # "name" references the resource name, service the whole service name
