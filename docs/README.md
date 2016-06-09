@@ -14,9 +14,11 @@ Serverless provides (such as service creation, deployment, removal, function inv
   - [plugins](/docs/concepts/plugins.md) - How plugins work
   - [services](/docs/concepts/services.md) - Understanding Serverless services
 - Plugins
-  - [create](/docs/plugins/create.md) - Creates a new Serverless service
-  - [deploy](/docs/plugins/deploy.md) - Deploy your resources to your provider
-  - [invoke](/docs/plugins/invoke.md) - Invoke your function
-  - [remove](/docs/plugins/remove.md) - Remove a deployed service
-- AWS Plugins
-  - [awsCompileFunctions](/docs/plugins/aws/awsCompileFunctions.md) - Compiles the functions to CloudFormation resources
+  - Core plugins
+    - [create](/docs/plugins/core/create.md) - Creates a new Serverless service
+    - [deploy](/docs/plugins/core/deploy.md) - Deploy your resources to your provider
+    - [invoke](/docs/plugins/core/invoke.md) - Invoke your function
+    - [remove](/docs/plugins/core/remove.md) - Remove a deployed service
+  - AWS plugins
+    - [awsCompileFunctions](/docs/plugins/aws/awsCompileFunctions.md) - Compiles the functions to CloudFormation resources
+    - [awsCompileS3Events](/docs/plugins/aws/awsCompileS3Events.md) - Compiles the S3 events to CloudFormation resources
