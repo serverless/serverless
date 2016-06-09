@@ -148,8 +148,9 @@ The serverless instance which enables access to the whole Serverless setup durin
 parameter of the plugin constructor.
 
 class MyPlugin {
-  constructor(serverless) {
+  constructor(serverless, options) {
     this.serverless = serverless;
+    this.options = options;
 
     this.commands = {
       log: {
@@ -182,7 +183,9 @@ The `options` object will be passed in as the second parameter to the constructo
 
 class Deploy {
   constructor(serverless, options) {
+    this.serverless = serverless;
     this.options = options;
+
     this.commands = {
       deploy: {
         lifecycleEvents: [
@@ -216,6 +219,7 @@ is not passed in via the CLI. You can mark options as required with the help of 
 class Deploy {
   constructor(serverless, options) {
     this.options = options;
+
     this.commands = {
       deploy: {
         lifecycleEvents: [
