@@ -28,8 +28,8 @@ functions: # if this gets too big, you can always use JSON-REF
           <<: *default_providers
         events:
             aws:
-                s3:
-                    - first-bucket
+                # s3:
+                #     - first-bucket
                 http_endpoint:
                     post: users/create
                 scheduled: 5 * * * *
