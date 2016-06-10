@@ -27,7 +27,7 @@ Serverless provides (such as service creation, deployment, removal, function inv
   - AWS plugins
     - [awsCompileFunctions](/docs/plugins/aws/awsCompileFunctions.md) - Compiles the functions to CloudFormation resources
     - [awsCompileS3Events](/docs/plugins/aws/awsCompileS3Events.md) - Compiles the S3 events to CloudFormation resources
-    - [awsCompileS3Events](/docs/plugins/aws/awsCompileScheduledEvents.md) - Compiles the Scheduled events to
+    - [awsCompileScheduledEvents](/docs/plugins/aws/awsCompileScheduledEvents.md) - Compiles the Scheduled events to
     CloudFormation resources
     - [awsDeploy](/docs/plugins/aws/awsDeploy.md) - Deploys the Serverless service to AWS
     - [awsInvoke](/docs/plugins/aws/awsInvoke.md) - Invokes a AWS lambda function
