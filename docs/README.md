@@ -2,14 +2,19 @@
 
 This docs section will include documentation relevant to understand how Serverless works.
 
-You may want to start with the [concepts](/docs/concepts) of Serverless to understand the how Serverless is architected and works behind
-the scenes.
+You may want to start with the ["Your first service"](/docs/tutorials/your-first-service.md) tutorial to create, deploy,
+invoke and remove your very first Serverless service!
+
+If you're interested to take a look behind the scenes you might take a look at the [concepts](/docs/concepts) of
+Serverless to understand the how Serverless is architected and works.
 
 After that you should take a look at the different [plugins](/docs/plugins) which are used to deliver the functionality
 Serverless provides (such as service creation, deployment, removal, function invocation etc.).
 
 ## Table of contents
 
+- Tutorials
+  - [Your first service](/docs/tutorials/your-first-service.md) - Create, deploy, invoke and remove your first service
 - Concepts
   - [plugins](/docs/concepts/plugins.md) - How plugins work
   - [services](/docs/concepts/services.md) - Understanding Serverless services
