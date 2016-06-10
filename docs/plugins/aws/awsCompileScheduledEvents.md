@@ -1,4 +1,4 @@
-# awsCompileS3Events
+# awsCompileScheduledEvents
 
 This plugins compiles the function schedule event to to a CloudFormation resource.
 
