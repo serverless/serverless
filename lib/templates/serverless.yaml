@@ -32,7 +32,7 @@ functions: # if this gets too big, you can always use JSON-REF
                 #     - first-bucket
                 http_endpoint:
                     post: users/create
-                schedule: rate(10 minutes)
+                # schedule: rate(10 minutes)
             azure:
                 http_endpoint:
                   direction: in
