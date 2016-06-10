@@ -6,6 +6,7 @@
     "./remove/remove.js",
     "./awsCompileFunctions/awsCompileFunctions.js",
     "./awsCompileS3Events/awsCompileS3Events.js",
+    "./awsCompileScheduledEvents/awsCompileScheduledEvents.js",
     "./awsDeploy/awsDeploy.js",
     "./awsInvoke/awsInvoke.js",
     "./awsRemove/awsRemove.js",
