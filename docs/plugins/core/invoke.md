@@ -14,6 +14,9 @@ Invokes your deployed function and outputs the results.
 - `--type` The type of invocation. Either `RequestResponse`, `Event` or `DryRun`. Default is `RequestResponse`.
 - `--log` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation. Default is `false`.
 
+## Provided lifecycle events
+- `invoke:invoke`
+
 ## Examples
 
 ```

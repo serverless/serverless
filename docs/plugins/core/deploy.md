@@ -4,11 +4,18 @@
 serverless deploy --stage dev --region us-east-1
 ```
 
-Deploys your service to AWS.
+Deploys your service.
 
 ## Options
 - `--stage` The stage in your service that you want to deploy to. **Required**.
 - `--region` The region in that stage that you want to deploy to. **Required**.
+
+## Provided lifecycle events
+- `deploy:initializeResources`
+- `deploy:createProviderStacks`
+- `deploy:compileFunctions`
+- `deploy:compileEvents`
+- `deploy:deploy`
 
 ## Packaging
 Note that you can define which files / folders should be excluded or included into your deployment with the help of
@@ -32,4 +39,5 @@ The default files / folder which are exlucded are the following:
 serverless deploy --stage dev --region us-east-1
 ```
 
-This example will deploy your service to the `us-east-1` region in the `dev` stage. Will throw an error if this stage/region pair does not exist.
+This example will deploy your service to the `us-east-1` region in the `dev` stage. Will throw an error if this
+stage / region pair does not exist.
