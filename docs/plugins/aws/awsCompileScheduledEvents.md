@@ -4,7 +4,7 @@ This plugins compiles the function schedule event to to a CloudFormation resourc
 
 ## How it works
 
-`awsCompileScheduleEvents` hooks into the `compileEvents` hook of the [deploy](/docs/plugins/core/deploy.md) plugin.
+`awsCompileScheduledEvents` hooks into the [`deploy:compileEvents`](/docs/plugins/core/deploy.md) hook.
 
 It loops over all functions which are defined in `serverless.yaml`. For each function that has a schedule event defined, a CloudWatch schedule event rule will be created with a status of "enabled" and targeting the lambda function the event is defined within.
 
