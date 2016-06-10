@@ -22,3 +22,4 @@ require('../lib/plugins/awsRemove/tests/all');
 require('../lib/plugins/awsInvoke/tests/awsInvoke');
 require('../lib/plugins/awsCompileFunctions/tests/awsCompileFunctions');
 require('../lib/plugins/awsCompileS3Events/tests/awsCompileS3Events');
+require('../lib/plugins/awsCompileScheduledEvents/tests/awsCompileScheduledEvents');

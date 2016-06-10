@@ -31,7 +31,7 @@ describe('Service Lifecyle Integration Test', () => {
       stageName
       } --region ${
       regionName
-      }`);
+      }`, { stdio: 'inherit' });
 
     process.chdir(path.join(tmpDir, serviceName));
     expect(serverless.utils
@@ -50,7 +50,7 @@ describe('Service Lifecyle Integration Test', () => {
       stageName
       } --region ${
       regionName
-      }`);
+      }`, { stdio: 'inherit' });
 
     return CF.describeStacksPromised({ StackName: `${serviceName}-${stageName}` })
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE'));
@@ -83,7 +83,7 @@ describe('Service Lifecyle Integration Test', () => {
       stageName
       } --region ${
       regionName
-      }`);
+      }`, { stdio: 'inherit' });
   });
 
   it('should invoke updated function from aws', function () {
@@ -103,7 +103,7 @@ describe('Service Lifecyle Integration Test', () => {
       stageName
       } --region ${
       regionName
-      }`);
+      }`, { stdio: 'inherit' });
 
     return CF.describeStacksPromised({ StackName: `${serviceName}-${stageName}` })
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('DELETE_COMPLETE'))
