@@ -11,6 +11,9 @@ Creates a new service in the current working directory.
 - `--stage` The name of your first stage in service. **Required**.
 - `--region` The name of your first region in stage. **Required**.
 
+## Provided lifecycle events
+- `create:create`
+
 ## Examples
 
 ```
