@@ -8,7 +8,7 @@
     "./awsCompileS3Events/awsCompileS3Events.js",
     "./awsDeploy/awsDeploy.js",
     "./awsInvoke/awsInvoke.js",
-    "./awsRemoveResources/awsRemoveResources.js",
+    "./awsRemove/awsRemove.js",
     "./helloWorld/helloWorld.js"
   ]
 }

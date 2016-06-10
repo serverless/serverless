@@ -18,7 +18,7 @@ require('../lib/plugins/deploy/tests/deploy');
 require('../lib/plugins/invoke/tests/invoke');
 require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/awsDeploy/tests/all');
-require('../lib/plugins/awsRemoveResources/tests/all');
+require('../lib/plugins/awsRemove/tests/all');
 require('../lib/plugins/awsInvoke/tests/awsInvoke');
 require('../lib/plugins/awsCompileFunctions/tests/awsCompileFunctions');
 require('../lib/plugins/awsCompileS3Events/tests/awsCompileS3Events');
