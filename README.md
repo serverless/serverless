@@ -126,4 +126,4 @@ These consultants use the Serverless Framework and can help you build your serve
 * [CloudNative](http://cloudnative.io//)
 * [Hop Labs](http://www.hoplabs.com)
 * [Webscale](https://webscale.fi/briefly-in-english/)
-
+* [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
