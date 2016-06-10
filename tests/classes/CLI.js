@@ -12,7 +12,6 @@ describe('CLI', () => {
   let cli;
   let serverless;
   const interactive = false;
-  const emptyObject = { commands: [], options: {} };
 
   beforeEach(() => {
     serverless = new Serverless({});

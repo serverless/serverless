@@ -7,7 +7,7 @@ mkdir -p tmp
 npm run lint | tee tmp/lint-output
 
 problems=`cat tmp/lint-output | grep -oE '[0-9]* problems' | grep -o "[0-9]*"`
-ratchet="15000"
+ratchet="100"
 
 echo "Problems found in current linting: $problems"
 
