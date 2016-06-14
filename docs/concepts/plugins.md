@@ -5,15 +5,15 @@ can build them, how easily testable they are and how approachable they are for o
 
 The main goals for our plugin system are:
 
-* Separation of CLI configuration and Plugin logic
-  * We want any plugin author to be able to easily create new commands within the serverless framework and extend
+- Separation of CLI configuration and Plugin logic
+  - We want any plugin author to be able to easily create new commands within the serverless framework and extend
   existing commands. To achieve this we need to create a strong separation between CLI and Plugins that has clear
   interfaces between each other.
-* Separation between logic of different plugins
-  * Different plugins need to have an easy way to run independently and after each other without defining dependencies
+- Separation between logic of different plugins
+  - Different plugins need to have an easy way to run independently and after each other without defining dependencies
   between each other.
-* Greater Extensibility
-  * Plugins need to be able to easily integrate into the lifecycle of a command independent of other Plugins that are
+- Greater Extensibility
+  - Plugins need to be able to easily integrate into the lifecycle of a command independent of other Plugins that are
   running and can extend the functionality of Serverless easily.
 
 ## Concepts
@@ -53,22 +53,22 @@ class HelloWorld {
 We automatically put the name of the command in front of lifecycle events when they are used for hooks.
 So in a hook the following syntax needs to be used.
 
-* ***CommandName:LifecycleEventName***
+- ***CommandName:LifecycleEventName***
 
 Which would be ***deploy:resources*** in a hook definition (which we will show in more detail below).
 
 In addition to the lifecycle events defined here we will create 2 additional events for each:
-* ***before:CommandName:LifecycleEventName***
-* ***after:CommandName:LifecycleEventName***
+- ***before:CommandName:LifecycleEventName***
+- ***after:CommandName:LifecycleEventName***
 
 Following the above example we’ll have these lifecycle events:
 
-* ***before:deploy:resources***
-* ***deploy:resources***
-* ***after:deploy:resources***
-* ***before:deploy:functions***
-* ***deploy:functions***
-* ***after:deploy:functions***
+- ***before:deploy:resources***
+- ***deploy:resources***
+- ***after:deploy:resources***
+- ***before:deploy:functions***
+- ***deploy:functions***
+- ***after:deploy:functions***
 
 These names will be used as hooks to include plugin logic. This allows to set up lifecycle events with generic names,
 but still make sure they are only executed for specific commands.
