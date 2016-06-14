@@ -90,15 +90,14 @@ resources:
 #### serverless.env.yaml
 
 ```yaml
- vars: {}
- stages:
-   dev:
-     vars: {}
-     regions:
-       aws_useast1:
-         vars:
-           iamRoleArnLambda: 'arn:aws:iam::12345678:role/crud-users-dev-IamRoleLambda-DJSKASD143'
-
+vars: {}
+stages:
+  dev:
+    vars: {}
+    regions:
+      aws_useast1:
+        vars:
+          iamRoleArnLambda: 'arn:aws:iam::12345678:role/crud-users-dev-IamRoleLambda-DJSKASD143'
 ```
 
 ## Deployment
