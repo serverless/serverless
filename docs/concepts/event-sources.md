@@ -93,3 +93,29 @@ functions:
       aws:
         schedule: rate(10 minutes)
 ```
+
+#### HTTP endpoint
+
+Adds HTTP endpoints to the function.
+
+Examples:
+
+```yaml
+functions:
+  create:
+    handler: posts.create
+    events:
+      aws:
+        http_endpoint:
+          post: posts/create
+```
+
+```yaml
+functions:
+  index:
+    handler: users.index
+    events:
+      aws:
+        http_endpoint:
+          get: users
+```

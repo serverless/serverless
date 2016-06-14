@@ -21,7 +21,7 @@ Those two resources are then merged into the `serverless.service.resources.aws.R
 
 You can define one or more S3 buckets as an event source inside the `events` section of the `serverless.yaml` file:
 
-```
+```yaml
 functions:
   user:
     handler: user.update
