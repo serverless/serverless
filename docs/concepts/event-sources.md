@@ -19,13 +19,13 @@ functions:
   users:
     handler: users.handler
     events:
-        aws:
-          s3:
-            - photos
-        azure:
-          http_endpoint:
-            direction: in
-            name: req
+      aws:
+        s3:
+          - photos
+      azure:
+        http_endpoint:
+          direction: in
+          name: req
 ```
 
 Let's pretend we deploy this function to AWS.
@@ -54,9 +54,9 @@ functions:
   resize:
     handler: resize
     events:
-        aws:
-          s3:
-            - photos
+      aws:
+        s3:
+          - photos
 ```
 
 ```yaml
@@ -64,10 +64,10 @@ functions:
   users:
     handler: users.handler
     events:
-        aws:
-          s3:
-            - photos
-            - personal-files
+      aws:
+        s3:
+          - photos
+          - personal-files
 ```
 
 #### Schedule
@@ -81,8 +81,8 @@ functions:
   crawl:
     handler: crawl
     events:
-        aws:
-          schedule: rate(2 hours)
+      aws:
+        schedule: rate(2 hours)
 ```
 
 ```yaml
@@ -90,6 +90,6 @@ functions:
   aggregate:
     handler: statistics.handler
     events:
-        aws:
-          schedule: rate(10 minutes)
+      aws:
+        schedule: rate(10 minutes)
 ```

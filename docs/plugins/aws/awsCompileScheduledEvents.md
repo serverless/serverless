@@ -11,3 +11,17 @@ It loops over all functions which are defined in `serverless.yaml`. For each fun
 Furthermore a lambda permission for the current function is created which makes is possible to invoke the function at the specified schedule.
 
 Those two resources are then merged into the `serverless.service.resources.aws.Resources` section.
+
+## Event syntax
+
+To schedule a function you can add the `schedule` event source to the `events` section of the `serverless.yaml` file:
+
+```
+functions:
+  greet:
+    handler: handler.hello
+    events:
+      aws:
+        schedule: rate(10 minutes)
+```
+
