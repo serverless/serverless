@@ -13,14 +13,16 @@ Serverless provides (such as service creation, deployment, removal, function inv
 
 ## Table of contents
 
+- Concepts
+  - [services](/docs/concepts/services.md) - Understanding Serverless services
+  - [serverless.yaml](/docs/concepts/serverless-yaml.md) - A look at the `serverless.yaml` file
+  - [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md) - A look at the `serverless.env.yaml` file
+  - [event sources](/docs/concepts/event-sources.md) - Understanding different types of event sources
+  - [plugins](/docs/concepts/plugins.md) - How plugins work
 - Tutorials
   - [Your first service](/docs/tutorials/your-first-service.md) - Create, deploy, invoke and remove your first service
   - [Event sources](/docs/tutorials/event-sources.md) - Learn how you can extend your services functionality with event
   sources
-- Concepts
-  - [services](/docs/concepts/services.md) - Understanding Serverless services
-  - [event sources](/docs/concepts/event-sources.md) - Understanding different types of event sources
-  - [plugins](/docs/concepts/plugins.md) - How plugins work
 - Plugins
   - Core plugins
     - [create](/docs/plugins/core/create.md) - Creates a new Serverless service
