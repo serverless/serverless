@@ -78,8 +78,6 @@ resources:
   aws_name_template: ${stage}-${service}-${name}
   azure_name_template:
   aws:
-    AWSTemplateFormatVersion: 2010-09-09
-    Description: CloudFormation Resources
     Resources:
   azure:
     $ref: ../azure_resources.json
