@@ -37,3 +37,30 @@ Serverless provides (such as service creation, deployment, removal, function inv
     - [awsDeploy](/docs/plugins/aws/awsDeploy.md) - Deploys the Serverless service to AWS
     - [awsInvoke](/docs/plugins/aws/awsInvoke.md) - Invokes a AWS lambda function
     - [awsRemove](/docs/plugins/aws/awsRemove.md) - Removes the service with all it's resources from AWS
+
+## FAQ
+
+> Where do I start when I want to write apps with Serverless?
+
+You should take a look at the [tutorials](/docs/tutorials) where you will find different guides which will help you
+with your first application (there's also a ["Your first service"](/docs/tutorials/your-first-service.md) tutorial).
+
+> I want to integrate provider X. How does this work?
+
+You can implement your provider of choice with he help of plugins. Start by reading the [plugin concept](/docs/concepts/plugins.md)
+to get an overview how plugins work. After that you might want to take a look at the [awsDeploy](/docs/plugins/aws/awsDeploy.md)
+plugin which will explain to you how the AWS provider is implemented / works.
+
+We'd recommend to take a look at the different sources of the [plugins](/lib/plugins) as they show implementation
+details and best practices which will help you integrate your provider easily.
+
+> How does Serverless work?
+
+The [concepts](/docs/concepts) folder in the docs will help you understand how Serverless works.
+You might want to read it in this order:
+
+1. [Services](/docs/concepts/services.md)
+2. [serverless.yaml](/docs/concepts/serverless-yaml.md)
+3. [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md)
+4. [Event Sources](/docs/concepts/event-sources.md)
+5. [Plugins](/docs/concepts/plugins.md)
