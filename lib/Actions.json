@@ -13,6 +13,7 @@
     "./actions/EventDeploy.js",
     "./actions/EventLambdaStream.js",
     "./actions/EventLambdaS3.js",
+    "./actions/EventIotRule.js",
     "./actions/EventLambdaSNS.js",
     "./actions/EventLambdaSchedule.js",
     "./actions/DashDeploy.js",
