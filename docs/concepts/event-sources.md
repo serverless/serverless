@@ -23,7 +23,7 @@ functions:
         s3:
           - photos
       azure:
-        http_endpoint:
+        http_endpoints:
           direction: in
           name: req
 ```
@@ -106,7 +106,7 @@ functions:
     handler: posts.create
     events:
       aws:
-        http_endpoint:
+        http_endpoints:
           post: posts/create
 ```
 
@@ -116,6 +116,6 @@ functions:
     handler: users.index
     events:
       aws:
-        http_endpoint:
+        http_endpoints:
           get: users
 ```

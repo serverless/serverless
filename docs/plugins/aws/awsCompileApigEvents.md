@@ -6,7 +6,7 @@ This plugins compiles the functions HTTP endpoint definitions to valid API Gatew
 
 `awsCompileApigEvents` hooks into the [`deploy:compileEvents`](/docs/plugins/core/deploy.md) hook.
 
-It loops over all functions which are defined in `serverless.yaml`. For each function that has a `http_endpoint` event
+It loops over all functions which are defined in `serverless.yaml`. For each function that has a `http_endpoints` event
 defined, an API Gateway REST API will be created.
 
 Furthermore a lambda permission for the current function is created which makes is possible to invoke the function when
@@ -16,7 +16,7 @@ Those two resources are then merged into the `serverless.service.resources.aws.R
 
 ## Event syntax
 
-To define a HTTP endpoint you need to add a `http_endpoint` event source to the `events` section of the `serverless.yaml`
+To define a HTTP endpoint you need to add a `http_endpoints` event source to the `events` section of the `serverless.yaml`
 file:
 
 ```yaml
@@ -25,6 +25,6 @@ functions:
     handler: posts.create
     events:
       aws:
-        http_endpoint:
+        http_endpoints:
           post: posts/create
 ```
