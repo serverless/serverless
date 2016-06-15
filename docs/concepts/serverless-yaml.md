@@ -55,9 +55,7 @@ functions: # if this gets too big, you can always use JSON-REF
 resources:
   aws_name_template: ${stage}-${service}-${name}  # "name" references the resource name, service the whole service name
   azure_name_template: # Resource naming template for Azure functions
-  aws_lambda: # you can embed resources directly with the provider specific syntax
-    AWSTemplateFormatVersion: 2010-09-09
-    Description: CloudFormation Resources
+  aws: # you can embed resources directly with the provider specific syntax
     Resources:
   azure_functions:
     $ref: ../azure_resources.json # you can use JSON-REF to ref other JSON files
@@ -171,9 +169,7 @@ Take a look at the [event sources doc](/docs/concepts/event-sources.md) to learn
 resources:
   aws_name_template: ${stage}-${service}-${name}
   azure_name_template:
-  aws_lambda:
-    AWSTemplateFormatVersion: 2010-09-09
-    Description: CloudFormation Resources
+  aws:
     Resources:
   azure_functions:
     $ref: ../azure_resources.json
