@@ -48,11 +48,11 @@ plugins:
 
 default_providers: &default_providers
   aws:
-      timeout: 6
-      memorySize: 1024
-      runtime: nodejs4.3
+    timeout: 6
+    memorySize: 1024
+    runtime: nodejs4.3
   azure:
-      disabled: false
+    disabled: false
 
 functions:
   create:
@@ -65,26 +65,26 @@ functions:
       - .git
       - tmp
     events:
-       aws:
-         s3:
-           - firstbucket
-           - secondbucket
-       azure:
-          http_endpoint:
-            direction: in
-            name: req
+      aws:
+        s3:
+          - firstbucket
+          - secondbucket
+      azure:
+        http_endpoint:
+          direction: in
+          name: req
 
 resources:
   aws_name_template: ${stage}-${service}-${name}
   azure_name_template:
-  aws_lambda:
-      AWSTemplateFormatVersion: 2010-09-09
-      Description: CloudFormation Resources
-      Resources:
-  azure_functions:
-      $ref: ../azure_resources.json
+  aws:
+    AWSTemplateFormatVersion: 2010-09-09
+    Description: CloudFormation Resources
+    Resources:
+  azure:
+    $ref: ../azure_resources.json
   google:
-      $ref: ../google_resources.yaml
+    $ref: ../google_resources.yaml
 ```
 
 #### serverless.env.yaml
@@ -123,6 +123,6 @@ added to the template.
 
 ### Deployment On Google Cloud Platform
 
-*To be continued...*
+* To be continued... *
 
 
