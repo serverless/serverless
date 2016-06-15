@@ -42,8 +42,6 @@ resources:
   aws_name_template: ${stage}-${service}-${name}  # "name" references the resource name, service the whole service name
   azure_name_template: # Resource naming template for Azure functions
   aws: # you can embed resources directly with the provider specific syntax
-    AWSTemplateFormatVersion: 2010-09-09
-    Description: CloudFormation Resources
     Resources:
   azure:
     $ref: ../azure_resources.json # you can use JSON-REF to ref other JSON files
