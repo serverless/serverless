@@ -2,11 +2,11 @@
   "$schema":"http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion":"1.0.0.0",
   "variables": {
+    "location": "westus",
+    "siteName": "serverless",
     "storageAccountName": "[toLower(variables('siteName'))]",
     "storageAccountType": "Standard_LRS",
-    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-    "location": "westus",
-    "siteName": "feriese-serverless"
+    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
   },
   "resources":[
     {
