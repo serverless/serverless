@@ -104,6 +104,7 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Function-Package](https://github.com/HyperBrain/serverless-package-plugin) - Package your lambdas without deploying to AWS.
 * [Sentry](https://github.com/arabold/serverless-sentry-plugin) - Automatically send errors and exceptions to [Sentry](https://getsentry.com).
 * [Auto-Prune](https://github.com/arabold/serverless-autoprune-plugin) - Delete old AWS Lambda versions.
+* [CommandLine Event Args](https://github.com/horike37/serverless-command-line-event-args) - Pass `event JSON` to Lambda function using command line arguments.
 
 ## Contributing
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
