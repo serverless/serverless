@@ -81,6 +81,7 @@ Serverless Projects are shareable and installable.  You can publish them to npm 
 * [serverless-authentication-boilerplate](https://github.com/laardee/serverless-authentication-boilerplate) - A generic authentication boilerplate for Serverless framework 
 * [sc5-serverless-boilerplate](https://github.com/SC5/sc5-serverless-boilerplate) - A boilerplate for test driven development of REST endpoints
 * [MoonMail] (https://github.com/microapps/MoonMail) - Build your own email marketing infrastructure using Lambda + SES
+* [serverless-elasticommerce-search-service](https://github.com/amimoto-ami/serverless-elasticommerce-search-service) - A backend API that visualizing to the relation between products search and sales in Ecommerce site. Using API Gateway + Lamdba + DynamoDB
     
 ## Plugins
 Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
@@ -104,6 +105,7 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Function-Package](https://github.com/HyperBrain/serverless-package-plugin) - Package your lambdas without deploying to AWS.
 * [Sentry](https://github.com/arabold/serverless-sentry-plugin) - Automatically send errors and exceptions to [Sentry](https://getsentry.com).
 * [Auto-Prune](https://github.com/arabold/serverless-autoprune-plugin) - Delete old AWS Lambda versions.
+* [CommandLine Event Args](https://github.com/horike37/serverless-command-line-event-args) - Pass `event JSON` to Lambda function using command line arguments.
 
 ## Contributing
 We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
