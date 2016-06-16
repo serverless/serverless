@@ -39,3 +39,6 @@ node_modules
 admin.env
 .env
 tmp
+
+# VS Code
+.vscode
