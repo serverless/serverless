@@ -9,9 +9,6 @@ require('./classes/Service');
 require('./classes/YamlParser');
 require('./classes/CLI');
 
-// Integration Tests
-require('./integration/Serverless');
-
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
 require('../lib/plugins/deploy/tests/deploy');
@@ -26,4 +23,7 @@ require('../lib/plugins/aws/deploy/compile/functions/tests');
 require('../lib/plugins/aws/deploy/compile/events/s3/tests');
 require('../lib/plugins/aws/deploy/compile/events/schedule/tests');
 require('../lib/plugins/aws/deploy/compile/events/apiGateway/tests/all');
+
+
+
 

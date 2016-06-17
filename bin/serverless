@@ -2,18 +2,10 @@
 
 'use strict';
 
-// Note: TestsPlugin is only used for tests
-const TestsPlugin = require('../lib/plugins/tests/tests');
-
 const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless({
   interactive: typeof process.env.CI === 'undefined',
 });
-
-// check if it's a test (e.g. an integration test) and modify the serverless instance accordingly
-if (process.argv.indexOf('--serverless-integration-test') > -1) {
-  serverless.pluginManager.addPlugin(TestsPlugin);
-}
 
 serverless.init().then(() => serverless.run());
