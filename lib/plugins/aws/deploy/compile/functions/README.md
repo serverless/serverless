@@ -4,7 +4,7 @@ This plugins compiles the functions in `serverless.yaml` to CloudFormation resou
 
 ## How it works
 
-`awsCompileFunctions` hooks into the [`deploy:compileFunctions`](/docs/plugins/core/deploy.md).
+`awsCompileFunctions` hooks into the [`deploy:compileFunctions`](/lib/plugins/deploy).
 
 It loops over all functions which are defined in `serverless.yaml`.
 

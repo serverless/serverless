@@ -4,7 +4,7 @@ This plugin removes the service from AWS.
 
 ## How it works
 
-`awsRemove` hooks into the [`remove:remove`](/docs/plugins/core/remove.md) lifecycle. The first thing the plugin does
+`awsRemove` hooks into the [`remove:remove`](/lib/plugins/remove) lifecycle. The first thing the plugin does
 is that it removes all the content in the core S3 bucket (which is used to e.g. store the zipped code of the
 lambda functions) so that the removal won't fail due to still available data in the bucket.
 

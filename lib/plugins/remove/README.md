@@ -19,4 +19,5 @@ Removes the deployed service which is defined in your current working directory 
 serverless remove --stage dev --region us-east-1
 ```
 
-This example will remove the deployed service of your current working directory with the stage `dev` and the region `us-east-1`.
+This example will remove the deployed service of your current working directory with the stage `dev` and the region
+`us-east-1`.

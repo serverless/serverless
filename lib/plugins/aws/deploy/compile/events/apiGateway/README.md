@@ -4,7 +4,7 @@ This plugins compiles the functions HTTP endpoint definitions to valid API Gatew
 
 ## How it works
 
-`awsCompileApigEvents` hooks into the [`deploy:compileEvents`](/docs/plugins/core/deploy.md) hook.
+`awsCompileApigEvents` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) hook.
 
 It loops over all functions which are defined in `serverless.yaml`. For each function that has a `http_endpoints` event
 defined, an API Gateway REST API will be created.

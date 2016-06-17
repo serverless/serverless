@@ -4,7 +4,7 @@ This plugins compiles the function related S3 events in `serverless.yaml` to Clo
 
 ## How it works
 
-`awsCompileS3Events` hooks into the [`deploy:compileEvents`](/docs/plugins/core/deploy.md) hook.
+`awsCompileS3Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) hook.
 
 It loops over all functions which are defined in `serverless.yaml`.
 
