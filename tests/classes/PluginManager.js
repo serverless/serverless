@@ -459,8 +459,7 @@ describe('PluginManager', () => {
     const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
       '..', 'bin', 'serverless');
     const serviceName = `cli-integration-${(new Date).getTime().toString()}`;
-    const stageName = 'dev';
-    const regionName = 'us-east-1';
+    const providerName = 'aws';
     const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();
@@ -468,10 +467,8 @@ describe('PluginManager', () => {
 
     execSync(`${serverlessExec} create --name ${
       serviceName
-      } --stage ${
-      stageName
-      } --region ${
-      regionName
+      } --provider ${
+      providerName
       }`);
 
     process.chdir(path.join(tmpDir, serviceName));

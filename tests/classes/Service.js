@@ -62,11 +62,150 @@ describe('Service', () => {
 
   describe('#load()', () => {
     let serviceInstance;
-    before(() => {
+
+    it('should resolve if no servicePath is found', (done) => {
+      const serverless = new Serverless();
+      const noService = new Service(serverless);
+
+      return noService.load().then(() => done());
+    });
+
+    it('should throw error if service property is missing', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        provider: 'aws',
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      /*
+       * We want to assert that load() will return a promise rejection
+       * but since .catch will not detect non-rejections
+       * we add .then() and make sure we make an assertion error
+       * to mark that no error/rejection happened
+       */
+      return serviceInstance.load().then(loadedService => {
+        expect(loadedService.service).to.equal(true);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
+    it('should throw error if service property is missing', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      /*
+       * We want to assert that load() will return a promise rejection
+       * but since .catch will not detect non-rejections
+       * we add .then() and make sure we make an assertion error
+       * to mark that no error/rejection happened
+       */
+      return serviceInstance.load().then(loadedService => {
+        expect(loadedService.provider).to.equal(true);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
+    it('should throw error if service property is missing', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+      };
+      const serverlessEnvYaml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      /*
+       * We want to assert that load() will return a promise rejection
+       * but since .catch will not detect non-rejections
+       * we add .then() and make sure we make an assertion error
+       * to mark that no error/rejection happened
+       */
+      return serviceInstance.load().then(loadedService => {
+        expect(loadedService.functions).to.equal(true);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
+    it('should load and populate from filesystem', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYaml = {
         service: '${testVar}',
+        provider: 'aws',
+        defaults: {
+          stage: 'dev',
+          region: 'us-east-1',
+        },
         custom: {
           digit: '${testDigit}',
           substring: 'Hello ${testSubstring}',
@@ -94,14 +233,14 @@ describe('Service', () => {
             vars: {
               testVar: 'stageVar',
             },
-            regions: {
-              aws_useast1: {
-                vars: {
-                  testVar: 'regionVar',
-                },
-              },
-            },
+            regions: {},
           },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {
+          testVar: 'regionVar',
         },
       };
 
@@ -112,22 +251,7 @@ describe('Service', () => {
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(serverless);
-    });
 
-    it('should resolve if no servicePath is found', (done) => {
-      const serverless = new Serverless();
-      const noService = new Service(serverless);
-
-      return noService.load().then(() => done());
-    });
-
-    /*
-     * Even though I wanna split this into multiple test cases
-     * that would mean loading from the filesystem on each test case (slow!!)
-     * and because the load() method returns a promise
-     * I can't put it in a before() block
-     */
-    it('should load and populate from filesystem', () => {
       const commonVars = {
         testVar: 'commonVar',
         testDigit: 10,
@@ -137,7 +261,7 @@ describe('Service', () => {
         expect(loadedService.service).to.be.equal('commonVar');
         expect(loadedService.plugins).to.deep.equal(['testPlugin']);
         expect(loadedService.environment.vars).to.deep.equal(commonVars);
-        expect(serviceInstance.environment.stages.dev.regions.aws_useast1.vars.testVar)
+        expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars.testVar)
           .to.be.equal('regionVar');
         expect(loadedService.resources.aws).to.deep.equal({ resourcesProp: 'value' });
         expect(loadedService.resources.azure).to.deep.equal({});
@@ -146,6 +270,40 @@ describe('Service', () => {
     });
 
     it('should load and populate stage vars', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: '${testVar}',
+        provider: 'aws',
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testVar: 'commonVar',
+        },
+        stages: {
+          dev: {
+            vars: {
+              testVar: 'stageVar',
+            },
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {
+          testVar: 'regionVar',
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
       const options = {
         stage: 'dev',
       };
@@ -155,30 +313,165 @@ describe('Service', () => {
     });
 
     it('should load and populate region vars', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: '${testVar}',
+        provider: 'aws',
+        plugins: ['testPlugin'],
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testVar: 'commonVar',
+        },
+        stages: {
+          dev: {
+            vars: {
+              testVar: 'stageVar',
+            },
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {
+          testVar: 'regionVar',
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
       const options = {
         stage: 'dev',
-        region: 'aws_useast1',
+        region: 'us-east-1',
       };
       return serviceInstance.load(options).then((loadedService) => {
         expect(loadedService.service).to.be.equal('regionVar');
       });
     });
 
-    it('should load and populate non string variables', () => serviceInstance.load()
-      .then((loadedService) => {
-        expect(loadedService.custom.digit).to.be.equal(10);
-      })
-    );
+    it('should load and populate non string variables', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          digit: '${testDigit}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testDigit: 10,
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
 
-    it('should load and populate substring variables', () => serviceInstance.load()
-      .then((loadedService) => {
-        expect(loadedService.custom.substring).to.be.equal('Hello World');
-      })
-    );
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load()
+        .then((loadedService) => {
+          expect(loadedService.custom.digit).to.be.equal(10);
+        });
+    });
+
+    it('should load and populate substring variables', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          substring: 'Hello ${testSubstring}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testSubstring: 'World',
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+      return serviceInstance.load()
+        .then((loadedService) => {
+          expect(loadedService.custom.substring).to.be.equal('Hello World');
+        });
+    });
 
     it('should load and populate with custom variable syntax', () => {
-      serviceInstance.service = '${{testVar}}';
-      serviceInstance.variableSyntax = '\\${{([\\s\\S]+?)}}';
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: '${{testVar}}',
+        variableSyntax: '\\${{([\\s\\S]+?)}}',
+        provider: 'aws',
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testVar: 'commonVar',
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
       return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('commonVar');
         delete serviceInstance.variableSyntax;
@@ -213,7 +506,9 @@ describe('Service', () => {
     });
 
     it('should throw error if function does not exist', () => {
-      expect(() => { serviceInstance.getFunction('random'); }).to.throw(Error);
+      expect(() => {
+        serviceInstance.getFunction('random');
+      }).to.throw(Error);
     });
   });
 
@@ -253,11 +548,15 @@ describe('Service', () => {
     });
 
     it('should throw error if function does not exist in service', () => {
-      expect(() => { serviceInstance.getEventInFunction(null, 'list'); }).to.throw(Error);
+      expect(() => {
+        serviceInstance.getEventInFunction(null, 'list');
+      }).to.throw(Error);
     });
 
     it('should throw error if event doesnt exist in function', () => {
-      expect(() => { serviceInstance.getEventInFunction('randomEvent', 'create'); })
+      expect(() => {
+        serviceInstance.getEventInFunction('randomEvent', 'create');
+      })
         .to.throw(Error);
     });
   });
@@ -290,30 +589,31 @@ describe('Service', () => {
         stages: {
           dev: {
             vars: {},
-            regions: {
-              aws_useast1: {
-                vars: {},
-              },
-            },
+            regions: {},
           },
         },
+      };
+
+      serviceInstance.environment.stages.dev.regions['us-east-1'] = {
+        vars: {},
       };
     });
 
     it('should return stage object', () => {
       const expectedStageObj = {
         vars: {},
-        regions: {
-          aws_useast1: {
-            vars: {},
-          },
-        },
+        regions: {},
+      };
+      expectedStageObj.regions['us-east-1'] = {
+        vars: {},
       };
       expect(serviceInstance.getStage('dev')).to.deep.equal(expectedStageObj);
     });
 
     it('should throw error if stage does not exist', () => {
-      expect(() => { serviceInstance.getStage('prod'); }).to.throw(Error);
+      expect(() => {
+        serviceInstance.getStage('prod');
+      }).to.throw(Error);
     });
   });
 
@@ -326,13 +626,13 @@ describe('Service', () => {
         stages: {
           dev: {
             vars: {},
-            regions: {
-              aws_useast1: {
-                vars: {},
-              },
-            },
+            regions: {},
           },
         },
+      };
+
+      serviceInstance.environment.stages.dev.regions['us-east-1'] = {
+        vars: {},
       };
 
       expect(serviceInstance.getAllStages()).to.deep.equal(['dev']);
@@ -350,29 +650,33 @@ describe('Service', () => {
         stages: {
           dev: {
             vars: {},
-            regions: {
-              aws_useast1: {
-                vars: {
-                  regionVar: 'regionValue',
-                },
-              },
-            },
+            regions: {},
           },
+        },
+      };
+
+      serviceInstance.environment.stages.dev.regions['us-east-1'] = {
+        vars: {
+          regionVar: 'regionValue',
         },
       };
     });
 
     it('should return a region object based on provided stage', () => {
-      expect(serviceInstance.getRegionInStage('dev', 'aws_useast1')
+      expect(serviceInstance.getRegionInStage('dev', 'us-east-1')
         .vars.regionVar).to.be.equal('regionValue');
     });
 
     it('should throw error if stage does not exist in service', () => {
-      expect(() => { serviceInstance.getRegionInStage('prod'); }).to.throw(Error);
+      expect(() => {
+        serviceInstance.getRegionInStage('prod');
+      }).to.throw(Error);
     });
 
     it('should throw error if region doesnt exist in stage', () => {
-      expect(() => { serviceInstance.getRegionInStage('dev', 'aws_uswest2'); }).to.throw(Error);
+      expect(() => {
+        serviceInstance.getRegionInStage('dev', 'aws_uswest2');
+      }).to.throw(Error);
     });
   });
 
@@ -385,24 +689,25 @@ describe('Service', () => {
         stages: {
           dev: {
             vars: {},
-            regions: {
-              aws_useast1: {
-                vars: {
-                  regionVar: 'regionValue',
-                },
-              },
-              aws_uswest2: {
-                vars: {
-                  regionVar: 'regionValue2',
-                },
-              },
-            },
+            regions: {},
           },
         },
       };
 
+      serviceInstance.environment.stages.dev.regions['us-east-1'] = {
+        vars: {
+          regionVar: 'regionValue',
+        },
+      };
+
+      serviceInstance.environment.stages.dev.regions['us-west-2'] = {
+        vars: {
+          regionVar: 'regionValue',
+        },
+      };
+
       expect(serviceInstance.getAllRegionsInStage('dev'))
-        .to.deep.equal(['aws_useast1', 'aws_uswest2']);
+        .to.deep.equal(['us-east-1', 'us-west-2']);
     });
   });
 
@@ -420,14 +725,14 @@ describe('Service', () => {
             vars: {
               stageVar: 'stageValue',
             },
-            regions: {
-              aws_useast1: {
-                vars: {
-                  regionVar: 'regionValue',
-                },
-              },
-            },
+            regions: {},
           },
+        },
+      };
+
+      serviceInstance.environment.stages.dev.regions['us-east-1'] = {
+        vars: {
+          regionVar: 'regionValue',
         },
       };
     });
@@ -441,7 +746,7 @@ describe('Service', () => {
     });
 
     it('should return region variables if both stage and region provided', () => {
-      expect(serviceInstance.getVariables('dev', 'aws_useast1').regionVar)
+      expect(serviceInstance.getVariables('dev', 'us-east-1').regionVar)
         .to.be.equal('regionValue');
     });
   });
