@@ -1,4 +1,4 @@
-# awsRemove
+# Remove
 
 This plugin removes the service from AWS.
 

@@ -1,10 +1,10 @@
-# awsCompileS3Events
+# Compile S3 Events
 
 This plugins compiles the function related S3 events in `serverless.yaml` to CloudFormation resources.
 
 ## How it works
 
-`awsCompileS3Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) hook.
+`Compile S3 Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) hook.
 
 It loops over all functions which are defined in `serverless.yaml`.
 

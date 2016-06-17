@@ -30,17 +30,17 @@ Serverless provides (such as service creation, deployment, removal, function inv
     - [invoke](/lib/plugins/invoke) - Invoke your function
     - [remove](/lib/plugins/remove) - Remove a deployed service
   - AWS plugins
-    - [awsCompileFunctions](/lib/plugins/aws/deploy/compile/functions) - Compiles the functions to
+    - [Compile Functions](/lib/plugins/aws/deploy/compile/functions) - Compiles the functions to
     CloudFormation resources
-    - [awsCompileS3Events](/lib/plugins/aws/deploy/compile/events/s3) - Compiles the S3 events to
+    - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3) - Compiles the S3 events to
     CloudFormation resources
-    - [awsCompileScheduledEvents](/lib/plugins/aws/deploy/compile/events/schedule) - Compiles the Scheduled
+    - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule) - Compiles the Scheduled
     events to CloudFormation resources
-    - [awsCompileApigEvents](/lib/plugins/aws/deploy/compile/apiGateway) - Compiles API Gateway events
+    - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/apiGateway) - Compiles API Gateway events
     to CloudFormation resources
-    - [awsDeploy](/lib/plugins/aws/deploy) - Deploys the Serverless service to AWS
-    - [awsInvoke](/lib/plugins/aws/invoke) - Invokes a AWS lambda function
-    - [awsRemove](/lib/plugins/aws/remove) - Removes the service with all it's resources from AWS
+    - [Deploy](/lib/plugins/aws/deploy) - Deploys the Serverless service to AWS
+    - [Invoke](/lib/plugins/aws/invoke) - Invokes a AWS lambda function
+    - [Remove](/lib/plugins/aws/remove) - Removes the service with all it's resources from AWS
 
 ## FAQ
 
@@ -52,7 +52,7 @@ with your first application (there's also a ["Your first service"](/docs/tutoria
 > I want to integrate provider X. How does this work?
 
 You can implement your provider of choice with he help of plugins. Start by reading the [plugin concept](/docs/concepts/plugins.md)
-to get an overview how plugins work. After that you might want to take a look at the [awsDeploy](/lib/plugins/aws/deploy)
+to get an overview how plugins work. After that you might want to take a look at the [AWS Deploy](/lib/plugins/aws/deploy)
 plugin which will explain to you how the AWS provider is implemented / works.
 
 We'd recommend to take a look at the different sources of the [plugins](/lib/plugins) as they show implementation
