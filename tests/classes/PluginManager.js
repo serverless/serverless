@@ -3,7 +3,8 @@
 const expect = require('chai').expect;
 const PluginManager = require('../../lib/classes/PluginManager');
 const Serverless = require('../../lib/Serverless');
-const HelloWorld = require('../../lib/plugins/helloWorld/helloWorld');
+const Create = require('../../lib/plugins/create/create');
+
 const path = require('path');
 const os = require('os');
 const fse = require('fs-extra');
@@ -12,7 +13,6 @@ const execSync = require('child_process').execSync;
 describe('PluginManager', () => {
   let pluginManager;
   let serverless;
-  let helloWorld;
 
   class ServicePluginMock1 {}
 
@@ -145,7 +145,6 @@ describe('PluginManager', () => {
   beforeEach(() => {
     serverless = new Serverless();
     pluginManager = new PluginManager(serverless);
-    helloWorld = new HelloWorld();
   });
 
   describe('#constructor()', () => {
@@ -195,10 +194,10 @@ describe('PluginManager', () => {
 
   describe('#loadAllPlugins()', () => {
     it('should load only core plugins when no service plugins are given', () => {
-      // Note: We need the helloWorld plugin for this test to pass
+      // Note: We need the Create plugin for this test to pass
       pluginManager.loadAllPlugins();
 
-      // note: this test will be refactored as the HelloWorld plugin will be moved
+      // note: this test will be refactored as the Create plugin will be moved
       // to another directory
       expect(pluginManager.plugins.length).to.be.above(0);
     });
@@ -212,7 +211,7 @@ describe('PluginManager', () => {
 
       expect(pluginManager.plugins).to.contain(servicePluginMock1);
       expect(pluginManager.plugins).to.contain(servicePluginMock2);
-      // note: this test will be refactored as the HelloWorld plugin will be moved
+      // note: this test will be refactored as the Create plugin will be moved
       // to another directory
       expect(pluginManager.plugins.length).to.be.above(2);
     });
@@ -224,14 +223,14 @@ describe('PluginManager', () => {
       // because we access the plugins array with an index which will change every time a new core
       // plugin will be added
       const loadCorePluginsMock = () => {
-        pluginManager.addPlugin(HelloWorld);
+        pluginManager.addPlugin(Create);
       };
 
       // This is the exact same functionality like loadCorePlugins()
       loadCorePluginsMock();
       pluginManager.loadServicePlugins(servicePlugins);
 
-      expect(pluginManager.plugins[0]).to.be.instanceof(HelloWorld);
+      expect(pluginManager.plugins[0]).to.be.instanceof(Create);
       expect(pluginManager.plugins[1]).to.be.instanceof(ServicePluginMock1);
       expect(pluginManager.plugins[2]).to.be.instanceof(ServicePluginMock2);
     });
@@ -241,8 +240,6 @@ describe('PluginManager', () => {
     it('should load the Serverless core plugins', () => {
       pluginManager.loadCorePlugins();
 
-      // note: this test will be refactored as the HelloWorld plugin will be moved
-      // to another directory
       expect(pluginManager.plugins.length).to.be.above(0);
     });
   });
@@ -459,7 +456,8 @@ describe('PluginManager', () => {
   describe('Plugin/CLI integration', () => {
     const serverlessInstance = new Serverless();
     serverlessInstance.init();
-    const serverlessExec = path.join(serverlessInstance.config.serverlessPath, '..', 'bin', 'serverless');
+    const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
+      '..', 'bin', 'serverless');
     const serviceName = `cli-integration-${(new Date).getTime().toString()}`;
     const stageName = 'dev';
     const regionName = 'us-east-1';
