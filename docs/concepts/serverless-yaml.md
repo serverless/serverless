@@ -44,11 +44,11 @@ functions: # if this gets too big, you can always use JSON-REF
       aws:
         s3:
           - first-bucket
-        http_endpoint:
+        http_endpoints:
           post: users/create
         schedule: rate(10 minutes)
       azure:
-        http_endpoint:
+        http_endpoints:
           direction: in
           name: req
 
@@ -129,11 +129,11 @@ functions:
       aws:
         s3:
           - first-bucket
-        http_endpoint:
+        http_endpoints:
           post: users/create
         schedule: rate(10 minutes)
       azure:
-        http_endpoint:
+        http_endpoints:
           direction: in
           name: req
 ```

@@ -30,13 +30,13 @@ functions: # if this gets too big, you can always use JSON-REF
       aws:
         # s3:
         #     - first-bucket
-        http_endpoint:
-          post: users/create
+        # http_endpoints:
+        #   post: users/create
         # schedule: rate(10 minutes)
-      azure:
-        http_endpoint:
-          direction: in
-          name: req
+        azure:
+          http_endpoints:
+            direction: in
+            name: req
 
 resources:
   aws_name_template: ${stage}-${service}-${name}  # "name" references the resource name, service the whole service name

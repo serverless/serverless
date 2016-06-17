@@ -23,7 +23,7 @@ functions:
         s3:
           - photos
       azure:
-        http_endpoint:
+        http_endpoints:
           direction: in
           name: req
 ```
@@ -92,4 +92,30 @@ functions:
     events:
       aws:
         schedule: rate(10 minutes)
+```
+
+#### HTTP endpoint
+
+Adds HTTP endpoints to the function.
+
+Examples:
+
+```yaml
+functions:
+  create:
+    handler: posts.create
+    events:
+      aws:
+        http_endpoints:
+          post: posts/create
+```
+
+```yaml
+functions:
+  index:
+    handler: users.index
+    events:
+      aws:
+        http_endpoints:
+          get: users
 ```

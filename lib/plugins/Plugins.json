@@ -4,12 +4,13 @@
     "./deploy/deploy.js",
     "./invoke/invoke.js",
     "./remove/remove.js",
-    "./awsCompileFunctions/awsCompileFunctions.js",
-    "./awsCompileS3Events/awsCompileS3Events.js",
-    "./awsCompileScheduledEvents/awsCompileScheduledEvents.js",
-    "./awsDeploy/awsDeploy.js",
-    "./awsInvoke/awsInvoke.js",
-    "./awsRemove/awsRemove.js",
+    "./aws/deploy/index.js",
+    "./aws/invoke/index.js",
+    "./aws/remove/index.js",
+    "./aws/deploy/compile/functions/index.js",
+    "./aws/deploy/compile/events/schedule/index.js",
+    "./aws/deploy/compile/events/s3/index.js",
+    "./aws/deploy/compile/events/apiGateway/index.js",
     "./helloWorld/helloWorld.js"
   ]
 }

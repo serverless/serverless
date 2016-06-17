@@ -70,7 +70,7 @@ functions:
           - firstbucket
           - secondbucket
       azure:
-        http_endpoint:
+        http_endpoints:
           direction: in
           name: req
 
