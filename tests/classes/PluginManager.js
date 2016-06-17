@@ -4,6 +4,10 @@ const expect = require('chai').expect;
 const PluginManager = require('../../lib/classes/PluginManager');
 const Serverless = require('../../lib/Serverless');
 const HelloWorld = require('../../lib/plugins/helloWorld/helloWorld');
+const path = require('path');
+const os = require('os');
+const fse = require('fs-extra');
+const execSync = require('child_process').execSync;
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -450,5 +454,39 @@ describe('PluginManager', () => {
         });
       });
     });
+  });
+
+  describe('Plugin/CLI integration', () => {
+    const serverlessInstance = new Serverless();
+    serverlessInstance.init();
+    const serverlessExec = path.join(serverlessInstance.config.serverlessPath, '..', 'bin', 'serverless');
+    const serviceName = `cli-integration-${(new Date).getTime().toString()}`;
+    const stageName = 'dev';
+    const regionName = 'us-east-1';
+    const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
+    fse.mkdirSync(tmpDir);
+    const cwd = process.cwd();
+    process.chdir(tmpDir);
+
+    execSync(`${serverlessExec} create --name ${
+      serviceName
+      } --stage ${
+      stageName
+      } --region ${
+      regionName
+      }`);
+
+    process.chdir(path.join(tmpDir, serviceName));
+
+    expect(serverlessInstance.utils
+      .fileExistsSync(path.join(tmpDir, serviceName, 'serverless.yaml'))).to.equal(true);
+    expect(serverlessInstance.utils
+      .fileExistsSync(path.join(tmpDir, serviceName, 'serverless.env.yaml'))).to.equal(true);
+    expect(serverlessInstance.utils
+      .fileExistsSync(path.join(tmpDir, serviceName, 'handler.js'))).to.equal(true);
+    expect(serverlessInstance.utils
+      .fileExistsSync(path.join(tmpDir, serviceName, 'package.json'))).to.equal(true);
+
+    process.chdir(cwd);
   });
 });

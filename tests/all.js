@@ -9,9 +9,6 @@ require('./classes/Service');
 require('./classes/YamlParser');
 require('./classes/CLI');
 
-// Integration Tests
-require('./integration/Serverless');
-
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
 require('../lib/plugins/deploy/tests/deploy');
