@@ -230,18 +230,14 @@ describe('Service', () => {
         },
         stages: {
           dev: {
-            vars: {
-              testVar: 'stageVar',
-            },
+            vars: {},
             regions: {},
           },
         },
       };
 
       serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
-        vars: {
-          testVar: 'regionVar',
-        },
+        vars: {},
       };
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
@@ -261,8 +257,8 @@ describe('Service', () => {
         expect(loadedService.service).to.be.equal('commonVar');
         expect(loadedService.plugins).to.deep.equal(['testPlugin']);
         expect(loadedService.environment.vars).to.deep.equal(commonVars);
-        expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars.testVar)
-          .to.be.equal('regionVar');
+        expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars)
+          .to.deep.equal({});
         expect(loadedService.resources.aws).to.deep.equal({ resourcesProp: 'value' });
         expect(loadedService.resources.azure).to.deep.equal({});
         expect(loadedService.resources.google).to.deep.equal({});
@@ -292,9 +288,7 @@ describe('Service', () => {
       };
 
       serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
-        vars: {
-          testVar: 'regionVar',
-        },
+        vars: {},
       };
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
@@ -304,10 +298,7 @@ describe('Service', () => {
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(serverless);
-      const options = {
-        stage: 'dev',
-      };
-      return serviceInstance.load(options).then((loadedService) => {
+      return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('stageVar');
       });
     });
@@ -349,11 +340,7 @@ describe('Service', () => {
       const serverless = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(serverless);
 
-      const options = {
-        stage: 'dev',
-        region: 'us-east-1',
-      };
-      return serviceInstance.load(options).then((loadedService) => {
+      return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('regionVar');
       });
     });
