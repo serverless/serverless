@@ -479,8 +479,6 @@ describe('PluginManager', () => {
       .fileExistsSync(path.join(tmpDir, serviceName, 'serverless.env.yaml'))).to.equal(true);
     expect(serverlessInstance.utils
       .fileExistsSync(path.join(tmpDir, serviceName, 'handler.js'))).to.equal(true);
-    expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, serviceName, 'package.json'))).to.equal(true);
 
     process.chdir(cwd);
   });
