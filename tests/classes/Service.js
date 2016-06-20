@@ -99,14 +99,10 @@ describe('Service', () => {
       const serverless = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(serverless);
 
-      /*
-       * We want to assert that load() will return a promise rejection
-       * but since .catch will not detect non-rejections
-       * we add .then() and make sure we make an assertion error
-       * to mark that no error/rejection happened
-       */
       return serviceInstance.load().then(loadedService => {
-        expect(loadedService.service).to.equal(true);
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
       }).catch(e => {
         expect(e.name).to.be.equal('ServerlessError');
       });
@@ -141,14 +137,10 @@ describe('Service', () => {
       const serverless = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(serverless);
 
-      /*
-       * We want to assert that load() will return a promise rejection
-       * but since .catch will not detect non-rejections
-       * we add .then() and make sure we make an assertion error
-       * to mark that no error/rejection happened
-       */
       return serviceInstance.load().then(loadedService => {
-        expect(loadedService.provider).to.equal(true);
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
       }).catch(e => {
         expect(e.name).to.be.equal('ServerlessError');
       });
@@ -183,12 +175,6 @@ describe('Service', () => {
       const serverless = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(serverless);
 
-      /*
-       * We want to assert that load() will return a promise rejection
-       * but since .catch will not detect non-rejections
-       * we add .then() and make sure we make an assertion error
-       * to mark that no error/rejection happened
-       */
       return serviceInstance.load().then(loadedService => {
         expect(loadedService.functions).to.equal(true);
       }).catch(e => {
@@ -384,6 +370,270 @@ describe('Service', () => {
         .then((loadedService) => {
           expect(loadedService.custom.digit).to.be.equal(10);
         });
+    });
+
+    it('should load and populate object variables', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          object: '${testObject}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testObject: {
+            subProperty: 'test',
+          },
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load()
+        .then((loadedService) => {
+          expect(loadedService.custom.object).to.deep.equal({ subProperty: 'test' });
+        });
+    });
+
+    it('should load and populate object variables deep sub properties', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          object: '${testObject.subProperty.deepSubProperty}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testObject: {
+            subProperty: {
+              deepSubProperty: 'test',
+            },
+          },
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load()
+        .then((loadedService) => {
+          expect(loadedService.custom.object).to.be.equal('test');
+        });
+    });
+
+    it('should throw error if variable does not exist', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          object: '${testVar}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
+    it('should throw error if we try to access sub property of string variable', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          testVar: '${testVar.subProperty}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testVar: 'test',
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
+    it('should throw error if we try to access sub property of non-object variable', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          testVar: '${testVar.subProperty}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testVar: 10,
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
+    it('should throw error if sub property does not exist in object at any level', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          testObject: '${testObject.subProperty.deepSubProperty}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testObject: {
+            subProperty: 'string',
+          },
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
     });
 
     it('should load and populate substring variables', () => {
