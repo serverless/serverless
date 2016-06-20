@@ -636,6 +636,54 @@ describe('Service', () => {
       });
     });
 
+    it('should throw error if trying to populate non string vars into string', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          testObject: '${testObject.subProperty} String',
+        },
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {
+          testObject: {
+            subProperty: {
+              deepSubProperty: 'string',
+            },
+          },
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
     it('should load and populate substring variables', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
@@ -643,13 +691,17 @@ describe('Service', () => {
         service: 'service-name',
         provider: 'aws',
         custom: {
-          substring: 'Hello ${testSubstring}',
+          substring: 'Hello ${testSubstring.subProperty.deepSubProperty}',
         },
         functions: {},
       };
       const serverlessEnvYaml = {
         vars: {
-          testSubstring: 'World',
+          testSubstring: {
+            subProperty: {
+              deepSubProperty: 'World',
+            },
+          },
         },
         stages: {
           dev: {
