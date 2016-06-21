@@ -1008,7 +1008,7 @@ describe('Service', () => {
 
     it('should throw error if region doesnt exist in stage', () => {
       expect(() => {
-        serviceInstance.getRegionInStage('dev', 'aws_uswest2');
+        serviceInstance.getRegionInStage('dev', 'us-west-2');
       }).to.throw(Error);
     });
   });
