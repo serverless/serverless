@@ -19,10 +19,7 @@ describe('PluginManager', () => {
   class ServicePluginMock2 {}
 
   class PromisePluginMock {
-    constructor(serverless, options) {
-      this.serverless = serverless;
-      this.options = options;
-
+    constructor() {
       this.commands = {
         deploy: {
           usage: 'Deploy to the default infrastructure',
@@ -84,10 +81,7 @@ describe('PluginManager', () => {
   }
 
   class SynchronousPluginMock {
-    constructor(serverless, options) {
-      this.serverless = serverless;
-      this.options = options;
-
+    constructor() {
       this.commands = {
         deploy: {
           usage: 'Deploy to the default infrastructure',
