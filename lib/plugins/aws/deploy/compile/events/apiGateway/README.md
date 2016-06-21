@@ -12,7 +12,7 @@ defined, an API Gateway REST API will be created.
 Furthermore a lambda permission for the current function is created which makes is possible to invoke the function when
 the endpoint is accessed.
 
-Those resources are then merged into the `serverless.service.resources.aws.Resources` section.
+Those resources are then merged into the `serverless.service.resources.Resources` section.
 
 ## Universal JSON request template
 
