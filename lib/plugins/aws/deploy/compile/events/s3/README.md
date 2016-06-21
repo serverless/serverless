@@ -15,7 +15,7 @@ events.
 Furthermore a lambda permission for the current function is created which makes is possible to call the function
 when the `s3:objectCreated:*` event is fired.
 
-Those two resources are then merged into the `serverless.service.resources.aws.Resources` section.
+Those two resources are then merged into the `serverless.service.resources.Resources` section.
 
 ## Event syntax
 

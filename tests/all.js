@@ -16,6 +16,7 @@ require('../lib/plugins/invoke/tests/invoke');
 require('../lib/plugins/remove/tests/remove');
 
 // AWS Plugins Tests
+require('../lib/plugins/aws/tests');
 require('../lib/plugins/aws/invoke/tests');
 require('../lib/plugins/aws/remove/tests/all');
 require('../lib/plugins/aws/deploy/tests/all');

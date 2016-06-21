@@ -13,7 +13,7 @@ is defined within.
 Furthermore a lambda permission for the current function is created which makes is possible to invoke the function at
 the specified schedule.
 
-Those two resources are then merged into the `serverless.service.resources.aws.Resources` section.
+Those two resources are then merged into the `serverless.service.resources.Resources` section.
 
 ## Event syntax
 

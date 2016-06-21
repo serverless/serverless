@@ -19,10 +19,7 @@ describe('PluginManager', () => {
   class ServicePluginMock2 {}
 
   class PromisePluginMock {
-    constructor(serverless, options) {
-      this.serverless = serverless;
-      this.options = options;
-
+    constructor() {
       this.commands = {
         deploy: {
           usage: 'Deploy to the default infrastructure',
@@ -84,10 +81,7 @@ describe('PluginManager', () => {
   }
 
   class SynchronousPluginMock {
-    constructor(serverless, options) {
-      this.serverless = serverless;
-      this.options = options;
-
+    constructor() {
       this.commands = {
         deploy: {
           usage: 'Deploy to the default infrastructure',
@@ -459,8 +453,7 @@ describe('PluginManager', () => {
     const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
       '..', 'bin', 'serverless');
     const serviceName = `cli-integration-${(new Date).getTime().toString()}`;
-    const stageName = 'dev';
-    const regionName = 'us-east-1';
+    const providerName = 'aws';
     const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();
@@ -468,10 +461,8 @@ describe('PluginManager', () => {
 
     execSync(`${serverlessExec} create --name ${
       serviceName
-      } --stage ${
-      stageName
-      } --region ${
-      regionName
+      } --provider ${
+      providerName
       }`);
 
     process.chdir(path.join(tmpDir, serviceName));
@@ -482,8 +473,6 @@ describe('PluginManager', () => {
       .fileExistsSync(path.join(tmpDir, serviceName, 'serverless.env.yaml'))).to.equal(true);
     expect(serverlessInstance.utils
       .fileExistsSync(path.join(tmpDir, serviceName, 'handler.js'))).to.equal(true);
-    expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, serviceName, 'package.json'))).to.equal(true);
 
     process.chdir(cwd);
   });
