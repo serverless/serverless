@@ -3,18 +3,17 @@
 'use strict';
 
 const BbPromise = require('bluebird');
-const SCLI = require('../lib/classes/CLI');
-const scli = new SCLI();
+const logError = require('../lib/classes/Error').logError;
 
-process.on('unhandledRejection', (e) => scli.printError(e));
+process.on('unhandledRejection', (e) => logError(e));
 
 (() => BbPromise.resolve().then(() => {
   // requiring here so that if anything went wrong,
   // during require, it will be caught.
-  const Serverless = require('../lib/Serverless');
+  const Serverless = require('../lib/Serverless'); // eslint-disable-line global-require
   const serverless = new Serverless({
     interactive: typeof process.env.CI === 'undefined',
   });
 
   return serverless.init().then(() => serverless.run());
-}).catch(e => scli.printError(e)))();
+}).catch(e => logError(e)))();
