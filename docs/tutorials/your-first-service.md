@@ -3,10 +3,7 @@
 In this tutorial we'll create and use our very first Serverless service.
 We'll create a new service, deploy it, invoke the first function and remove the whole service afterwards.
 
-Our provider we use throughout the tutorial will be Amazon web services (AWS). Make sure that you have created an AWS
-account and setup a user who has administrator privileges as the
-[`default` account](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files) on
-your machine.
+Our provider we use throughout the tutorial will be Amazon web services (AWS).
 
 We'll assume that you have Serverless v1.0 or greater installed on your machine.
 
