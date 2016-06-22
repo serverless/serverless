@@ -1,45 +1,52 @@
 # Documentation
 
-This docs section will include documentation relevant to understand how Serverless works.
+Welcome to the Serverless v1.0 documentation.
 
-You may want to start with the ["Your first service"](/docs/tutorials/your-first-service.md) tutorial to create, deploy,
-invoke and remove your very first Serverless service!
+Here you'll find all the necessary information you need to learn and understand Serverless.
+You'll find documentation on how to build next generation Serverless applications. Furthermore we'll deep dive into the
+internals of Serverless so that you know how it works and how you can extend and modify it!
 
-If you're interested to take a look behind the scenes you might take a look at the [concepts](/docs/concepts) of
-Serverless to understand the how Serverless is architected and works.
+## Quick start
 
-After that you should take a look at the different [plugins](/docs/plugins) which are used to deliver the functionality
-Serverless provides (such as service creation, deployment, removal, function invocation etc.).
+Follow these simple steps to install the alpha, create and deploy your first service, run your function and remove the
+service afterwards.
 
-## Table of contents
+1. `npm install npm install serverless@1.0.0-alpha.1`
+2. `serverless create --name first-service --provider aws`
+3. `serverless deploy`
+4. `serverless invoke --function hello --stage dev --region us-east-1`
+5. `serverless remove --stage dev --region us-east-1`
 
-- Concepts
+## In depth
+
+- [Concepts](/docs/concepts)
   - [services](/docs/concepts/services.md) - Understanding Serverless services
   - [serverless.yaml](/docs/concepts/serverless-yaml.md) - A look at the `serverless.yaml` file
   - [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md) - A look at the `serverless.env.yaml` file
   - [event sources](/docs/concepts/event-sources.md) - Understanding different types of event sources
   - [plugins](/docs/concepts/plugins.md) - How plugins work
-- Tutorials
+- [Guide](/docs/guide)
+- [Tutorials](/docs/tutorials)
   - [Your first service](/docs/tutorials/your-first-service.md) - Create, deploy, invoke and remove your first service
   - [Event sources](/docs/tutorials/event-sources.md) - Learn how you can extend your services functionality with event
   sources
 - Plugins
-  - Core plugins
+  - [Core plugins](/lib/plugins)
     - [create](/lib/plugins/create) - Creates a new Serverless service
     - [deploy](/lib/plugins/deploy) - Deploy your resources to your provider
     - [invoke](/lib/plugins/invoke) - Invoke your function
     - [remove](/lib/plugins/remove) - Remove a deployed service
-  - AWS plugins
-    - [Compile Functions](/lib/plugins/aws/deploy/compile/functions) - Compiles the functions to
+  - [AWS plugins](/lib/plugins/aws)
+    - [Compile Functions](/lib/plugins/aws/deploy/compile/functions) - Compiles functions to
     CloudFormation resources
-    - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3) - Compiles the S3 events to
+    - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3) - Compiles S3 events to
     CloudFormation resources
-    - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule) - Compiles the Scheduled
+    - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule) - Compiles scheduled
     events to CloudFormation resources
-    - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/apiGateway) - Compiles API Gateway events
+    - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/apiGateway) - Compiles http events
     to CloudFormation resources
-    - [Deploy](/lib/plugins/aws/deploy) - Deploys the Serverless service to AWS
-    - [Invoke](/lib/plugins/aws/invoke) - Invokes a AWS lambda function
+    - [Deploy](/lib/plugins/aws/deploy) - Deploys the service to AWS
+    - [Invoke](/lib/plugins/aws/invoke) - Invokes an AWS lambda function
     - [Remove](/lib/plugins/aws/remove) - Removes the service with all it's resources from AWS
 
 ## FAQ
@@ -61,10 +68,11 @@ details and best practices which will help you integrate your provider easily.
 > How does Serverless work?
 
 The [concepts](/docs/concepts) folder in the docs will help you understand how Serverless works.
-You might want to read it in this order:
 
-1. [Services](/docs/concepts/services.md)
-2. [serverless.yaml](/docs/concepts/serverless-yaml.md)
-3. [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md)
-4. [Event Sources](/docs/concepts/event-sources.md)
-5. [Plugins](/docs/concepts/plugins.md)
+> I've found a bug / encountered a strange error
+
+Please take a look at our [issues](https://github.com/serverless/serverless/issues) to see if someone else has faced
+the same problem.
+
+Contributions are always welcomed! Just open up a new issue to start the discussion or submit a pull request
+which fixes the bug.
