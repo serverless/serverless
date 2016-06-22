@@ -23,13 +23,13 @@ service afterwards.
   - [Services](/docs/concepts/services.md) - Understanding Serverless services
   - [serverless.yaml](/docs/concepts/serverless-yaml.md) - A look at the `serverless.yaml` file
   - [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md) - A look at the `serverless.env.yaml` file
-  - [Event sources](/docs/concepts/event-sources.md) - Understanding different types of event sources
   - [Plugins](/docs/concepts/plugins.md) - How plugins work
 - [Guide](/docs/guide)
+  - [Event sources](/docs/concepts/event-sources.md) - Understand and use event sources
 - [Tutorials](/docs/tutorials)
   - [Your first service](/docs/tutorials/your-first-service.md) - Create, deploy, invoke and remove your first service
-  - [Event sources](/docs/tutorials/event-sources.md) - Learn how you can extend your services functionality with event
-  sources
+  - [Adding event sources](/docs/tutorials/adding-event-sources.md) - Learn how you can extend your services functionality
+  with event sources
 - Plugins
   - [Core plugins](/lib/plugins)
     - [Create](/lib/plugins/create) - Creates a new Serverless service

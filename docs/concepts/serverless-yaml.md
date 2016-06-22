@@ -161,7 +161,7 @@ In our example the function will have 3 AWS events (one S3 event, a HTTP endpoin
 Azure event (One HTTP endpoint).
 The events property is an abstraction layer which makes it easy for you to setup provider specific events.
 However you can always use custom [`resources`](#resources) if you want to define more granular how your event should work.
-Take a look at the [event sources doc](/docs/concepts/event-sources.md) to learn more about the different event sources.
+Take a look at the [event sources document](/docs/guide/event-sources.md) to learn more about the different event sources.
 
 ### Resources
 
