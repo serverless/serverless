@@ -1,5 +1,5 @@
 service: myService
 provider: aws
 functions:
-  hello:
-    handler: handler.hello
+    hello:
+        handler: handler.hello
