@@ -2,10 +2,19 @@
 
 'use strict';
 
-const Serverless = require('../lib/Serverless');
+const BbPromise = require('bluebird');
+const SCLI = require('../lib/classes/CLI');
+const scli = new SCLI();
 
-const serverless = new Serverless({
-  interactive: typeof process.env.CI === 'undefined',
-});
+process.on('unhandledRejection', (e) => scli.printError(e));
 
-serverless.init().then(() => serverless.run());
+(() => BbPromise.resolve().then(() => {
+  // requiring here so that if anything went wrong,
+  // during require, it will be caught.
+  const Serverless = require('../lib/Serverless');
+  const serverless = new Serverless({
+    interactive: typeof process.env.CI === 'undefined',
+  });
+
+  return serverless.init().then(() => serverless.run());
+}).catch(e => scli.printError(e)))();
