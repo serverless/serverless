@@ -69,7 +69,7 @@ details and best practices which will help you integrate your provider easily.
 
 The [concepts](/docs/concepts) folder in the docs will help you understand how Serverless works.
 
-> I've found a bug / encountered a strange error
+> I found a bug / encountered a strange error
 
 Please take a look at our [issues](https://github.com/serverless/serverless/issues) to see if someone else has faced
 the same problem.
