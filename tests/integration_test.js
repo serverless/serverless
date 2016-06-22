@@ -49,7 +49,7 @@ describe('Service Lifecyle Integration Test', () => {
 
   it('should invoke function from aws', function () {
     this.timeout(0);
-    const invoked = execSync(`${serverlessExec} invoke --function hello`);
+    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
     const result = JSON.parse(new Buffer(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   });
@@ -71,7 +71,7 @@ describe('Service Lifecyle Integration Test', () => {
 
   it('should invoke updated function from aws', function () {
     this.timeout(0);
-    const invoked = execSync(`${serverlessExec} invoke --function hello`);
+    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
     const result = JSON.parse(new Buffer(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Service Update Succeeded');
   });
