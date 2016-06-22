@@ -20,11 +20,11 @@ service afterwards.
 ## In depth
 
 - [Concepts](/docs/concepts)
-  - [services](/docs/concepts/services.md) - Understanding Serverless services
+  - [Services](/docs/concepts/services.md) - Understanding Serverless services
   - [serverless.yaml](/docs/concepts/serverless-yaml.md) - A look at the `serverless.yaml` file
   - [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md) - A look at the `serverless.env.yaml` file
-  - [event sources](/docs/concepts/event-sources.md) - Understanding different types of event sources
-  - [plugins](/docs/concepts/plugins.md) - How plugins work
+  - [Event sources](/docs/concepts/event-sources.md) - Understanding different types of event sources
+  - [Plugins](/docs/concepts/plugins.md) - How plugins work
 - [Guide](/docs/guide)
 - [Tutorials](/docs/tutorials)
   - [Your first service](/docs/tutorials/your-first-service.md) - Create, deploy, invoke and remove your first service
@@ -32,10 +32,10 @@ service afterwards.
   sources
 - Plugins
   - [Core plugins](/lib/plugins)
-    - [create](/lib/plugins/create) - Creates a new Serverless service
-    - [deploy](/lib/plugins/deploy) - Deploy your resources to your provider
-    - [invoke](/lib/plugins/invoke) - Invoke your function
-    - [remove](/lib/plugins/remove) - Remove a deployed service
+    - [Create](/lib/plugins/create) - Creates a new Serverless service
+    - [Deploy](/lib/plugins/deploy) - Deploy your resources to your provider
+    - [Invoke](/lib/plugins/invoke) - Invoke your function
+    - [Remove](/lib/plugins/remove) - Remove a deployed service
   - [AWS plugins](/lib/plugins/aws)
     - [Compile Functions](/lib/plugins/aws/deploy/compile/functions) - Compiles functions to
     CloudFormation resources
