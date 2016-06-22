@@ -4,13 +4,15 @@ This plugins compiles the functions HTTP endpoint definitions to valid API Gatew
 
 ## How it works
 
-`Compile Api Gateway Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) hook.
+`Compile Api Gateway Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) lifecycle.
 
-It loops over all functions which are defined in `serverless.yaml`. For each function that has a `http_endpoints` event
+It loops over all functions which are defined in `serverless.yaml`. For each function that has a `http` event
 defined, an API Gateway REST API will be created.
 
 Furthermore a lambda permission for the current function is created which makes is possible to invoke the function when
 the endpoint is accessed.
+
+Take a look at the [Event syntax examples](#event-syntax-examples) below to see how you can setup HTTP events.
 
 Those resources are then merged into the `serverless.service.resources.Resources` section.
 
@@ -20,17 +22,19 @@ The API Gateway plugin implements a request template which provides `{body, meth
 stageVariables} = event` as JavaScript objects. This way you don't have to define the template on your own but can use
 this default template to access the necessary variables in your code.
 
-## Event syntax
+## Event syntax examples
 
-To define a HTTP endpoint you need to add a `http_endpoints` event source to the `events` section of the `serverless.yaml`
-file:
+### Http setup with extended event options
+
+Here we've defined an POST endpoint for the path `posts/create`.
 
 ```yaml
+# serverless.yaml
 functions:
-  create:
-    handler: posts.create
-    events:
-      aws:
-        http_endpoints:
-          post: posts/create
+    create:
+        handler: posts.create
+        events:
+            http:
+                path: posts/create
+                method: post
 ```

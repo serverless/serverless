@@ -21,6 +21,8 @@ Default is `false`.
 
 ## Examples
 
+### Simple function invocation
+
 ```
 serverless invoke --function functionName --stage dev --region us-east-1
 ```
@@ -28,11 +30,15 @@ serverless invoke --function functionName --stage dev --region us-east-1
 This example will invoke your deployed function named `functionName` in region `us-east-1` in stage `dev`. This will
 output the result of the invocation in your terminal.
 
+### Function invocation with logging
+
 ```
 serverless invoke --function functionName --stage dev --region us-east-1 --log
 ```
 
 Just like the first example, but will also outputs logging information about your invocation.
+
+### Function invocation with data passing
 
 ```
 serverless invoke --function functionName --stage dev --region us-east-1 --path lib/data.json

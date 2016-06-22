@@ -1,30 +1,54 @@
 # Compile Scheduled Events
 
-This plugins compiles the function schedule event to to a CloudFormation resource.
+This plugins compiles the function schedule event to a CloudFormation resource.
 
 ## How it works
 
-`Compile Scheduled Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) hook.
+`Compile Scheduled Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) lifecycle.
 
 It loops over all functions which are defined in `serverless.yaml`. For each function that has a schedule event defined,
-a CloudWatch schedule event rule will be created with a status of "enabled" and targeting the lambda function the event
-is defined within.
+a CloudWatch schedule event rule will be created.
 
-Furthermore a lambda permission for the current function is created which makes is possible to invoke the function at
-the specified schedule.
+You have two options to define the schedule event:
+
+The first one is to use a simple string which defines the rate the function will be executed.
+
+The second option is to define the schedule event more granular (e.g. the rate or if it's enabled) with the help of
+key value pairs.
+
+Take a look at the [Event syntax examples](#event-syntax-examples) below to see how you can setup a schedule event.
+
+A corresponding lambda permission resource is create for the schedule event.
 
 Those two resources are then merged into the `serverless.service.resources.Resources` section.
 
-## Event syntax
+## Event syntax examples
 
-To schedule a function you can add the `schedule` event source to the `events` section of the `serverless.yaml` file:
+### Simple schedule setup
+
+This setup specifies that the `greet` function should be run every 10 minutes.
 
 ```yaml
+# serverless.yaml
 functions:
-  greet:
-    handler: handler.hello
-    events:
-      aws:
-        schedule: rate(10 minutes)
+    greet:
+        handler: handler.hello
+        events:
+            - schedule: rate(10 minutes)
 ```
 
+### Schedule setup with extended event options
+
+This configuration sets up a disabled schedule event for the `report` function which will run every 2 minutes once
+enabled.
+
+```yaml
+# serverless.yaml
+functions:
+    report:
+        handler: handler.error
+        events:
+            - schedule:
+                rate: rate(2 minutes)
+                enabled: false
+```
