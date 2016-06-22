@@ -25,7 +25,7 @@ service afterwards.
   - [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md) - A look at the `serverless.env.yaml` file
   - [Plugins](/docs/concepts/plugins.md) - How plugins work
 - [Guide](/docs/guide)
-  - [Event sources](/docs/concepts/event-sources.md) - Understand and use event sources
+  - [Event sources](/docs/guide/event-sources.md) - Understand and use event sources
 - [Tutorials](/docs/tutorials)
   - [Your first service](/docs/tutorials/your-first-service.md) - Create, deploy, invoke and remove your first service
   - [Adding event sources](/docs/tutorials/adding-event-sources.md) - Learn how you can extend your services functionality
