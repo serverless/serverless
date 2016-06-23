@@ -35,17 +35,6 @@ Serverless Framework V.1 is currently under construction and not yet ready.
 * An ecosystem of serverless services and plugins
 * A fantastic and welcoming community!
 
-## Tutorials
+## [Documentation](/docs)
 
-Want to build your own Serverless services? Read our [tutorials](/docs/tutorials) to get started today!
-
-## Documentation
-
-Take a look at our [documentation](/docs) to understand how Serverless works.
-
-## Concepts
-
-Learn about the upcoming concepts in v1.0:
-
-* [Services](/docs/concepts/services.md)
-* [Plugins](/docs/concepts/plugins.md)
+Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.

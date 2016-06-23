@@ -15,6 +15,8 @@ Removes the deployed service which is defined in your current working directory 
 
 ## Examples
 
+### Removal of service in specific stage and region
+
 ```
 serverless remove --stage dev --region us-east-1
 ```
