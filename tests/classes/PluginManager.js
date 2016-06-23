@@ -306,6 +306,17 @@ describe('PluginManager', () => {
     });
   });
 
+  describe('#validateCommands()', () => {
+    it('should throw an error if a first level command is not found in the commands object', () => {
+      pluginManager.commands = {
+        foo: {},
+      };
+      const commandsArray = ['bar'];
+
+      expect(() => { pluginManager.validateCommands(commandsArray); }).to.throw(Error);
+    });
+  });
+
   describe('#validateOptions()', () => {
     it('should throw an error if a required option is not set in a plain commands object', () => {
       pluginManager.commands = {

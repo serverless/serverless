@@ -14,7 +14,7 @@ script:
   - npm test
   # Only Run Integration Tests and ESLINT for the first job in the whole build to make the build faster
   - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 ]]; then npm run integration-test; fi
-  - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 ]]; then ./scripts/eslint.sh; fi
+  - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 ]]; then npm run lint; fi
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
