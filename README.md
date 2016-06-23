@@ -1,6 +1,6 @@
 ![Serverless Application Framework AWS Lambda API Gateway](other/img/readme_serverless_framework_v1.gif)
 
-Serverless Framework V.1 (BETA)
+Serverless Framework v.1.0
 =================================
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 <!--- [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless) --->
@@ -19,7 +19,7 @@ Also, [we're hiring](mailto:jobs@serverless.com) :)
 
 ## Status
 
-Serverless Framework V.1 is currently under construction and not yet ready.
+Serverless Framework v.1.0 is currently under construction and not yet ready.
 
 ## Features
 

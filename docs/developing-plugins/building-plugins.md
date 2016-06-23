@@ -1,4 +1,4 @@
-# Plugin System and Lifecycle Management
+# Building plugins
 
 The Serverless Plugin System is at the core of our Framework. It supports any feature we build, it decides how fast we
 can build them, how easily testable they are and how approachable they are for our users.
@@ -251,8 +251,8 @@ A user has to define the plugins they want to use in the root level of the serve
 
 ```yaml
 plugins:
-  - custom_plugin_1
-  - custom_plugin_2
+    - custom_plugin_1
+    - custom_plugin_2
 ```
 
 We do not auto-detect plugins from installed dependencies so users do not run into any surprises and we cut down on the
@@ -295,11 +295,10 @@ E.g. we defined the following event for a function:
 
 ```yaml
 events:
-  aws:
-    S3: bucket_name
+    - s3: bucket_name
 ```
 
-The SimpleS3Event plugin could now bind to the configureEvent Lifecycle Event, read this configuration and add
+The S3 event plugin could now bind to the configureEvent Lifecycle Event, read this configuration and add
 appropriate resources to the CloudFormation configuration. Then once the AWSResourceDeployment plugin converts the
 CloudFormation syntax we’ve stored in the object into an actual CloudFormation stack file it will include all of the
 configuration necessary to create the Bucket and set it up to trigger the Lambda function we’re also deploying.

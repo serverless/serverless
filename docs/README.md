@@ -17,62 +17,46 @@ service afterwards.
 4. `serverless invoke --function hello --stage dev --region us-east-1`
 5. `serverless remove --stage dev --region us-east-1`
 
-## In depth
+## How to contribute to Serverless
 
-- [Concepts](/docs/concepts)
-  - [Services](/docs/concepts/services.md) - Understanding Serverless services
-  - [serverless.yaml](/docs/concepts/serverless-yaml.md) - A look at the `serverless.yaml` file
-  - [serverless.env.yaml](/docs/concepts/serverless-env-yaml.md) - A look at the `serverless.env.yaml` file
-  - [Plugins](/docs/concepts/plugins.md) - How plugins work
-- [Guide](/docs/guide)
-  - [Event sources](/docs/guide/event-sources.md) - Understand and use event sources
-- [Tutorials](/docs/tutorials)
-  - [Your first service](/docs/tutorials/your-first-service.md) - Create, deploy, invoke and remove your first service
-  - [Adding event sources](/docs/tutorials/adding-event-sources.md) - Learn how you can extend your services functionality
-  with event sources
-- Plugins
-  - [Core plugins](/lib/plugins)
-    - [Create](/lib/plugins/create) - Creates a new Serverless service
-    - [Deploy](/lib/plugins/deploy) - Deploy your resources to your provider
-    - [Invoke](/lib/plugins/invoke) - Invoke your function
-    - [Remove](/lib/plugins/remove) - Remove a deployed service
-  - [AWS plugins](/lib/plugins/aws)
-    - [Compile Functions](/lib/plugins/aws/deploy/compile/functions) - Compiles functions to
-    CloudFormation resources
-    - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3) - Compiles S3 events to
-    CloudFormation resources
-    - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule) - Compiles scheduled
-    events to CloudFormation resources
-    - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/apiGateway) - Compiles http events
-    to CloudFormation resources
-    - [Deploy](/lib/plugins/aws/deploy) - Deploys the service to AWS
-    - [Invoke](/lib/plugins/aws/invoke) - Invokes an AWS lambda function
-    - [Remove](/lib/plugins/aws/remove) - Removes the service with all it's resources from AWS
+We love our community! Contributions are always welcomed!
+Jump right into our [issues](https://github.com/serverless/serverless/issues) to join existing discussions or open up
+new ones if you have a bug or want to improve Serverless.
 
-## FAQ
+Also feel free to open up [pull request](https://github.com/serverless/serverless/pulls) which resolves issues!
 
-> Where do I start when I want to write apps with Serverless?
+You may also take a look at our [contributing guidelines](/CONTRIBUTING.md).
 
-You should take a look at the [tutorials](/docs/tutorials) where you will find different guides which will help you
-with your first application (there's also a ["Your first service"](/docs/tutorials/your-first-service.md) tutorial).
+## User documentation
 
-> I want to integrate provider X. How does this work?
-
-You can implement your provider of choice with he help of plugins. Start by reading the [plugin concept](/docs/concepts/plugins.md)
-to get an overview how plugins work. After that you might want to take a look at the [AWS Deploy](/lib/plugins/aws/deploy)
-plugin which will explain to you how the AWS provider is implemented / works.
-
-We'd recommend to take a look at the different sources of the [plugins](/lib/plugins) as they show implementation
-details and best practices which will help you integrate your provider easily.
-
-> How does Serverless work?
-
-The [concepts](/docs/concepts) folder in the docs will help you understand how Serverless works.
-
-> I found a bug / encountered a strange error
-
-Please take a look at our [issues](https://github.com/serverless/serverless/issues) to see if someone else has faced
-the same problem.
-
-Contributions are always welcomed! Just open up a new issue to start the discussion or submit a pull request
-which fixes the bug.
+- [Understanding Serverless and its configuration files](understanding-serverless)
+  - [Serverless services and functions](understanding-serverless/services-and-functions.md)
+  - [serverless.yaml](understanding-serverless/serverless-yaml.md)
+  - [serverless.env.yaml](understanding-serverless/serverless-env-yaml.md)
+- [How to build your Serverless services](guide)
+  - [Installing Serverless](guide/installation.md)
+  - [Creating a service](guide/creating-a-service.md)
+  - [Deploying your service](guide/deploying-a-service.md)
+  - [Invoking your functions](guide/invoking-a-function.md)
+  - [Adding additional event sources](guide/event-sources.md)
+  - [Managing custom provider resources](guide/custom-provider-resources.md)
+  - [Removing your service](guide/removing-a-service.md)
+- [Using plugins](using-plugins)
+  - [How to use additional plugins in your service](using-plugins/adding-custom-plugins.md)
+  - Plugins provided by Serverless
+    - Core plugins
+      - [Create](/lib/plugins/create)
+      - [Deploy](/lib/plugins/deploy)
+      - [Invoke](/lib/plugins/invoke)
+      - [Remove](/lib/plugins/remove)
+    - Amazon Web Services
+      - [Compile Functions](/lib/plugins/aws/deploy/compile/functions)
+      - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3)
+      - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule)
+      - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/apiGateway)
+      - [Deploy](/lib/plugins/aws/deploy)
+      - [Invoke](/lib/plugins/aws/invoke)
+      - [Remove](/lib/plugins/aws/remove)
+- [Building plugins](developing-plugins)
+  - [How to build your own plugin](developing-plugins/building-plugins.md)
+  - [How to build provider integration with your plugin](developing-plugins/building-provider-integrations.md)
