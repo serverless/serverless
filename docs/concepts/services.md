@@ -81,12 +81,12 @@ will be added to the template
 
 ### Deployment on Microsoft Azure
 
-* Work in progress *
+*Work in progress*
 
 ### Deployment on Google Cloud Platform
 
-* Work in progress *
+*Work in progress*
 
 ### Deployment on IBM OpenWhisk
 
-* Work in progress *
+*Work in progress*

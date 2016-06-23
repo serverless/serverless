@@ -108,7 +108,7 @@ functions:
 
 ##### Simple event definition
 
-***Will be implemented soon!***
+*Work in progress!*
 
 ##### Extended event definition
 
