@@ -87,7 +87,7 @@ functions:
             - http:
                 path: users/create
                 method: post
-            - schedule
+            - schedule:
                 rate: rate(10 minutes)
                 enabled: false
 ```
