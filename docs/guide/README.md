@@ -16,5 +16,6 @@ This guide is Amazon web service specific but can be applied to any other provid
 - [Deploying a service](deploying-a-service.md)
 - [Invoking a function](invoking-a-function.md)
 - [Event sources](event-sources.md)
+- [Overview of available event sources](overview-of-event-sources.md)
 - [Custom provider resources](custom-provider-resources.md)
 - [Removing a service](removing-a-service.md)

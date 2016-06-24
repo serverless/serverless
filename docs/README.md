@@ -41,6 +41,7 @@ You may also take a look at our [contributing guidelines](/CONTRIBUTING.md).
   - [Deploying your service](guide/deploying-a-service.md)
   - [Invoking your functions](guide/invoking-a-function.md)
   - [Adding additional event sources](guide/event-sources.md)
+  - [Overview of available event source](guide/overview-of-event-sources.md)
   - [Managing custom provider resources](guide/custom-provider-resources.md)
   - [Removing your service](guide/removing-a-service.md)
 - [Using plugins](using-plugins)
