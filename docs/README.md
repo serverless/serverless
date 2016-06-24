@@ -11,7 +11,7 @@ internals of Serverless so that you know how it works and how you can extend and
 Follow these simple steps to install the alpha, create and deploy your first service, run your function and remove the
 service afterwards.
 
-1. `npm install serverless@1.0.0-alpha.1`
+1. `npm install -g serverless@1.0.0-alpha.1`
 2. `serverless create --name first-service --provider aws`
 3. `cd first-service`
 4. `serverless deploy`
@@ -36,10 +36,12 @@ You may also take a look at our [contributing guidelines](/CONTRIBUTING.md).
   - [serverless.env.yaml](understanding-serverless/serverless-env-yaml.md)
 - [How to build your Serverless services](guide)
   - [Installing Serverless](guide/installation.md)
+  - [Provider account setup](guide/provider-account-setup.md)
   - [Creating a service](guide/creating-a-service.md)
   - [Deploying your service](guide/deploying-a-service.md)
   - [Invoking your functions](guide/invoking-a-function.md)
   - [Adding additional event sources](guide/event-sources.md)
+  - [Overview of available event source](guide/overview-of-event-sources.md)
   - [Managing custom provider resources](guide/custom-provider-resources.md)
   - [Removing your service](guide/removing-a-service.md)
 - [Using plugins](using-plugins)
