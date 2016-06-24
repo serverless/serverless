@@ -18,10 +18,11 @@ You can use this place to add custom provider resources by writing the resource 
 ```yaml
 # serverless.yaml
 resources:
-    CustomProviderResource
-        Type: ResourceType
-        Properties:
-            Key: Value
+    Resources:
+        CustomProviderResource
+            Type: ResourceType
+            Properties:
+                Key: Value
 ```
 
 On deployment Serverless will load the base stack template and merge the custom resources you've defined in the `resources`
