@@ -9,7 +9,7 @@ Let's invoke this function to see if the service was deployed successfully.
 
 ## Invoking the `hello` function
 
-Run `serverless invoke --function hello --stage dev --region us-east-1` in the service directory to tell Serverless
+Run `serverless invoke --function hello` in the service directory to tell Serverless
 that you want to run the function on the providers infrastructure.
 
 The function will be invoked and returns the result back to Serverless which will print it out on the terminal.
