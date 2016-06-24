@@ -8,7 +8,7 @@ Make sure that you're still in the service directory.
 
 Run `serverless deploy` to start the deployment process.
 
-Serverless will now deploy the whole service (with all it's functions and events (we'll add some events soon)) to the
+Serverless will now deploy the whole service (with all it's functions and events which we'll add soon) to the
 services cloud provider. It will use the default `stage` and `region` settings which are defined in `serverless.env.yaml`.
 
 The default stage is `dev` and default region is `us-east-1`.
