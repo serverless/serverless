@@ -13,9 +13,10 @@ service afterwards.
 
 1. `npm install serverless@1.0.0-alpha.1`
 2. `serverless create --name first-service --provider aws`
-3. `serverless deploy`
-4. `serverless invoke --function hello --stage dev --region us-east-1`
-5. `serverless remove --stage dev --region us-east-1`
+3. `cd first-service`
+4. `serverless deploy`
+5. `serverless invoke --function hello --stage dev --region us-east-1`
+6. `serverless remove --stage dev --region us-east-1`
 
 ## How to contribute to Serverless
 
