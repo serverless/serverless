@@ -15,8 +15,8 @@ service afterwards.
 2. `serverless create --name first-service --provider aws`
 3. `cd first-service`
 4. `serverless deploy`
-5. `serverless invoke --function hello --stage dev --region us-east-1`
-6. `serverless remove --stage dev --region us-east-1`
+5. `serverless invoke --function hello`
+6. `serverless remove`
 
 ## How to contribute to Serverless
 
