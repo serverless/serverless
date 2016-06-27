@@ -5,7 +5,7 @@
     "node": ">=4.0"
   },
   "preferGlobal": true,
-  "description": "The Serverless Application Framework - Powered By Amazon Web Services - http://www.serverless.com",
+  "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "author": "serverless.com",
   "license": "MIT",
   "repository": {
@@ -23,7 +23,12 @@
     "aws lambda",
     "amazon",
     "amazon web services",
-    "dynamodb",
+    "azure",
+    "azure functions",
+    "google cloud functions",
+    "ibm open whisk",
+    "iot",
+    "internet of things",
     "serverless.com"
   ],
   "main": "lib/Serverless.js",
@@ -50,7 +55,6 @@
     "mocha": "^2.2.5",
     "mocha-lcov-reporter": "^1.2.0",
     "node-uuid": "^1.4.2",
-    "rimraf": "^2.4.3",
     "sinon": "^1.17.4"
   },
   "dependencies": {
@@ -58,14 +62,9 @@
     "aws-sdk": "^2.2.40",
     "bluebird": "^3.2.1",
     "chalk": "^1.1.0",
-    "cli-spinner": "^0.2.5",
-    "debug": "^2.2.0",
-    "dotenv": "^2.0.0",
     "fs-extra": "^0.26.4",
-    "glob": "^7.0.0",
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.5.5",
-    "json-diff": "^0.3.1",
     "json-refs": "^2.0.3",
     "lodash": "^4.2.1",
     "minimist": "^1.2.0",
@@ -73,7 +72,6 @@
     "node-zip": "^1.1.0",
     "replaceall": "^0.1.6",
     "shelljs": "^0.6.0",
-    "shortid": "^2.2.2",
     "traverse": "^0.6.6"
   }
 }
