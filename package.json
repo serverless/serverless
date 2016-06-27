@@ -58,19 +58,19 @@
   },
   "dependencies": {
     "async": "^1.5.2",
-    "aws-sdk": "^2.4.2",
-    "bluebird": "^3.4.1",
+    "aws-sdk": "^2.3.17",
+    "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
-    "fs-extra": "^0.30.0",
+    "fs-extra": "^0.26.7",
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.6.1",
-    "json-refs": "^2.1.6",
+    "json-refs": "^2.1.5",
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
     "node-zip": "^1.1.1",
     "replaceall": "^0.1.6",
-    "shelljs": "^0.7.0",
+    "shelljs": "^0.6.0",
     "traverse": "^0.6.6"
   }
 }
