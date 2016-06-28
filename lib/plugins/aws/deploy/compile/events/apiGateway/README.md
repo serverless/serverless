@@ -24,6 +24,20 @@ this default template to access the necessary variables in your code.
 
 ## Event syntax examples
 
+### Simple http setup
+
+This setup specifies that the `index` function should be run when someone accesses the API gateway at `users/index` via
+a `GET` request.
+
+```yaml
+# serverless.yaml
+functions:
+    index:
+        handler: users.index
+        events:
+            - http: GET users/index
+```
+
 ### Http setup with extended event options
 
 Here we've defined an POST endpoint for the path `posts/create`.
@@ -34,7 +48,7 @@ functions:
     create:
         handler: posts.create
         events:
-            http:
+            - http:
                 path: posts/create
                 method: post
 ```
