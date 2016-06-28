@@ -7,8 +7,8 @@ Let's create our first Serverless service!
 `cd` into a directory of your choice and run `serverless create --name my-service --provider aws` to create a service
 skeleton with the service name `my-service` on your local machine.
 
-Services are provider specific. The `--provider aws` tells Serverless to create an Amazon Web Services (AWS) dependent
-service.
+Services are provider specific. The `--provider aws` option tells Serverless to create an Amazon Web Services (AWS)
+dependent service.
 
 Type `cd my-service` to navigate into the previously created directory.
 

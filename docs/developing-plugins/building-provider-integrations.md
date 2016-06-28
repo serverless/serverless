@@ -1,6 +1,6 @@
 # Building provider integrations
 
-Integrating different Infrastructure providers happens through the standard plugin setup. Infrastructure provider
+Integrating different infrastructure providers happens through the standard plugin setup. Infrastructure provider
 plugins should bind to specific lifecycle events of the `deploy` command to compile the function and their events
 to provider specific resources.
 
@@ -8,7 +8,7 @@ to provider specific resources.
 
 Let's take a look at the [core `deploy` plugin](/lib/plugins/deploy) and the different lifecycle hooks it provides.
 
-The following lifecycles events are run in order once the user types `serverless deploy` and hits enter:
+The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
 
 - `deploy:initializeResources`
 - `deploy:createProviderStacks`
@@ -30,7 +30,7 @@ template skeleton such as a CloudFormation template).
 
 The purpose of the `deploy:createProviderStacks` lifecycle is to take the basic resource template which was created in
 the previous lifecycle and deploy the rough skeleton on the cloud providers infrastructure (without any functions
-or events).
+or events) for the first time.
 
 ### `deploy:compileFunctions`
 
@@ -50,7 +50,7 @@ event resources to the providers infrastructure.
 ## Amazon Web Services provider integration
 
 Curious how this works for the Amazon Web Services (AWS) provider integration?
-Here are the steps in detail the AWS plugins take to compile and deploy the service on the AWS infrastructure.
+Here are the steps the AWS plugins take to compile and deploy the service on the AWS infrastructure in detail.
 
 ### The steps in detail
 
@@ -61,7 +61,7 @@ Here are the steps in detail the AWS plugins take to compile and deploy the serv
 (`deploy:compileFunctions`)
 5. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
 6. The compiled function and event resources are attached to the core CloudFormation template and the updated
-CloudFormation template get's redeployed (`deploy:deploy`)
+CloudFormation template gets redeployed (`deploy:deploy`)
 
 ### The code
 

@@ -1,6 +1,6 @@
 # Overview of event sources
 
-Here's a list of all available event sources by provider.
+Here's a list of all available event sources grouped by provider.
 
 The examples will show you how you can use the different event definitions.
 

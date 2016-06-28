@@ -3,7 +3,7 @@
 The `serverless.yaml` file is the core for each service as it defines the whole configuration of your functions, their
 corresponding events, the used plugins, custom resources, and other service configuration.
 
-Here's an example `serverless.yaml` that touches on all the config details.
+Here's an example `serverless.yaml` file that touches on all the config details.
 
 ```yaml
 service: first_service
@@ -26,11 +26,11 @@ functions:
         # You have to provide that variable in serverless.env.yaml
         name: ${prefix}-lambdaName
         handler: handler.hello
-        # only the following paths will be included in the resulting artefact uploaded to Lambda. Without specific include everything in the current folder will be included
+        # only the following paths will be included in the resulting artefact which will be uploaded. Without specific include everything in the current folder will be included
         include:
             - lib
             - functions
-        # The following paths will be excluded from the resulting artefact. If both include and exclude are defined we first apply the include, then the exclude so files are guaranteed to be excluded.
+        # The following paths will be excluded from the resulting artefact. If both include and exclude are defined we first apply the include, then the exclude so files are guaranteed to be excluded
         exclude:
             - tmp
             - .git
@@ -42,6 +42,6 @@ functions:
                 method: get
 
 resources:
-  Resources:
-    $ref: ../custom_resources.json # you can use JSON-REF to ref other JSON files
+    Resources:
+        $ref: ../custom_resources.json # you can use JSON-REF to ref other JSON files
 ```

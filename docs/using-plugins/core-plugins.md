@@ -12,7 +12,7 @@ see the corresponding source code.
   - [Compile Functions](/lib/plugins/aws/deploy/compile/functions)
   - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3)
   - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule)
-  - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/apiGateway)
+  - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/events/apiGateway)
   - [Deploy](/lib/plugins/aws/deploy)
   - [Invoke](/lib/plugins/aws/invoke)
   - [Remove](/lib/plugins/aws/remove)
