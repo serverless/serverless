@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha.1",
   "dependencies": {
     "abbrev": {
       "version": "1.0.7",
@@ -427,11 +427,6 @@
       "version": "0.2.0",
       "from": "https://registry.npmjs.org/eslint-import-resolver-node/-/eslint-import-resolver-node-0.2.0.tgz",
       "resolved": "https://registry.npmjs.org/eslint-import-resolver-node/-/eslint-import-resolver-node-0.2.0.tgz"
-    },
-    "espree": {
-      "version": "3.1.4",
-      "from": "https://registry.npmjs.org/espree/-/espree-3.1.4.tgz",
-      "resolved": "https://registry.npmjs.org/espree/-/espree-3.1.4.tgz"
     },
     "esprima": {
       "version": "2.7.2",
@@ -1232,6 +1227,11 @@
       "version": "5.0.3",
       "from": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
       "resolved": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz"
+    },
+    "semver-regex": {
+      "version": "1.0.0",
+      "from": "semver-regex@latest",
+      "resolved": "https://registry.npmjs.org/semver-regex/-/semver-regex-1.0.0.tgz"
     },
     "shelljs": {
       "version": "0.6.0",
