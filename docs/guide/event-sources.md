@@ -54,9 +54,9 @@ Click on the API for the service and navigate to the `resources` section on the 
 You should now see the `greet` resource which is accessible through the `/greet` path and wired up to a `GET` HTTP method.
 Click on `GET` to open up the API endpoint. Next up click on the lightning icon with the label `test`.
 
-In the next window click on the blue `test` button again and see the result on the right hand side.
+In the next window click on the blue `test` button and see the result on the right hand side.
 
-You've successfully executed the function through a HTTP endpoint.
+You've successfully executed the function through the HTTP endpoint!
 
 ## [More event sources](overview-of-event-sources.md)
 

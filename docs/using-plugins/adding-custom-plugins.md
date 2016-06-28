@@ -5,15 +5,17 @@ to extend their functionality.
 
 Serverless provides [core plugins](core-plugins.md) out of the box but what if you want to add a 3rd party plugin?
 
-## Installing and adding a plugin
+Let's take a look into this now.
+
+## Installing a plugin
 
 Custom plugins are added on a per service base.
 
 At first we need to install the corresponding plugin in the services root directory with the help of npm:
 
-`npm install custom-serverless-plugin --save`.
+`npm install --save custom-serverless-plugin`.
 
-## Adding it to the service
+## Adding the plugin to the service
 
 Next up we need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name
 of the plugin to the `plugins` section in the `serverless.yaml` file:
@@ -23,9 +25,9 @@ plugins:
     - custom-serverless-plugin
 ```
 
-Plugins might want to add extra information which should be accessible for Serverless. The `custom` section in the
-`serverless.yaml` file is the place where you can add necessary configurations for your plugins (the plugins
-author / documentation will tell you if you need to add anything there):
+Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the
+[`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file is the place where you can add necessary
+configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
 
 ```yaml
 plugins:

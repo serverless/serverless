@@ -19,7 +19,7 @@ A success message will tell you once everything is deployed and ready to use!
 ## Deploying to a different stage and region
 
 Although the default stage and region is sufficient for our guide here you might want to deploy to different stages and
-regions later on. You could accomplish this easily by providing options to the `deploy` command.
+regions later on. You could accomplish this easily by providing corresponding options to the `deploy` command.
 
 If you e.g. want to deploy to the `production` stage in the `eu-central-1` region your `deploy` command will look like
 this: `serverless deploy --stage production --region eu-central-1`.

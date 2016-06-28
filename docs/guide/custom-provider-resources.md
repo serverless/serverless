@@ -2,7 +2,8 @@
 
 Sometimes you want to add custom, provider related resources to your service to use provider specific functionality
 which is not yet available through events or plugins. Serverless has you covered and enables you a convenient way to add
-those resources with the help of `resources` section in the `serverless.yaml` file.
+those resources with the help of `resources` section in the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md)
+file.
 
 ## Adding custom provider resources
 
@@ -19,20 +20,22 @@ You can use this place to add custom provider resources by writing the resource 
 # serverless.yaml
 resources:
     Resources:
-        CustomProviderResource
+        CustomProviderResource:
             Type: ResourceType
             Properties:
                 Key: Value
 ```
 
 On deployment Serverless will load the base stack template and merge the custom resources you've defined in the `resources`
-section of the service alongside the compiled function and corresponding event resources.
+section of the service alongside the compiled function and corresponding event resources into it.
+
+After that the template (with all merged resources) will be deployed on the providers infrastructure.
 
 ## Conclusion
 
-The `resources` section inside the `serverless.yaml` file is a place where you can add custom, provider specific resource
-definitions which should be created on service deployment. It gives you access to the whole feature set your provider
-offers and makes Serverless even more extensible.
+The `resources` section inside the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file is a place
+where you can add custom, provider specific resource definitions which should be created on service deployment.
+It gives you access to the whole feature set your provider offers and makes Serverless even more extensible.
 
 The last thing we need to learn is how we can remove our service. Let's take a look at this now.
 
