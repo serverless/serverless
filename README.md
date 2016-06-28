@@ -14,6 +14,18 @@ The Framework and its related tools are maintained by a dedicated, full-time tea
 
 Also, we are hiring.  If you are a developer and these tools/ideologies appeal to you and you want to work on these all day long, [please send us a message](mailto:team@serverless.com).
 
+# Serverless V.1 Alpha Now Available
+We're currently working hard on releasing v1.0 of the Serverless Framework in the [v1.0 branch](https://github.com/serverless/serverless/tree/v1.0), which will include support for other providers like Azure Functions, Google Functions and IBM Open Whisk. **We already made an alpha release for v1.0**. You can install it with:
+
+```
+npm install -g serverless@alpha
+```
+
+To get started experimenting with v1.0, [read the v1.0 tutorial on our blog](http://blog.serverless.com/serverless-v1-0-alpha1-announcement/), then feel free to jump on the [v1.0 docs](https://github.com/serverless/serverless/tree/v1.0/docs) to dig deeper.
+
+
+# Serverless v0.5.6
+
 ## Features
 
 * Run/test AWS Lambda functions locally, or remotely
