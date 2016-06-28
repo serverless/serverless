@@ -12,7 +12,8 @@ let assert      = require('chai').assert,
         'us-west-2',      // Oregon
         'eu-central-1',   // Frankfurt
         'eu-west-1',      // Ireland
-        'ap-northeast-1'  // Tokyo
+        'ap-northeast-1', // Tokyo
+        'ap-southeast-2'  // Sydney
     ],
     stages = [
         'dev',
@@ -240,7 +241,7 @@ let assert      = require('chai').assert,
     // VERIFICATION
     DOES_NOT_EXIST = null,
     /**
-     * Check the credentials object for having the given expected values.  Use [null] to indicate that an attribute is 
+     * Check the credentials object for having the given expected values.  Use [null] to indicate that an attribute is
      * expected to not exist and [undefined] to indicate an attribute is expected to have been explicitly set to undefined
      * @param credentials The credentials object to test
      * @param accessKeyId The expected accessKeyId value or null if it should not exist.
