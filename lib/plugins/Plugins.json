@@ -11,8 +11,8 @@
     "./aws/deploy/compile/functions/index.js",
     "./aws/deploy/compile/events/schedule/index.js",
     "./aws/deploy/compile/events/s3/index.js",
-    "./aws/deploy/compile/events/apiGateway/index.js",
     "./aws/deploy/compile/events/sns/index.js",
+    "./aws/deploy/compile/events/apiGateway/index.js"
     "./azure/compile/index.js",
     "./azure/deploy/index.js",
     "./azure/invoke/index.js",
