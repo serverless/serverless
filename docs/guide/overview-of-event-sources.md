@@ -67,7 +67,16 @@ functions:
 
 #### Simple event definition
 
-*Work in progress!*
+This will create a new HTTP endpoint which is accessible at `users/show` via a `GET` request. `show` will be called
+whenever the endpoint is accessed.
+
+```yaml
+functions:
+    show:
+        handler: users.show
+        events:
+            - http: GET users/show
+```
 
 #### Extended event definition
 
