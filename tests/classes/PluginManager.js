@@ -158,17 +158,90 @@ describe('PluginManager', () => {
       expect(pluginManager.commands).to.deep.equal({});
     });
 
-    it('should create an empty options object', () => {
-      expect(pluginManager.options).to.deep.equal({});
+    it('should create an empty cliOptions object', () => {
+      expect(pluginManager.cliOptions).to.deep.equal({});
+    });
+
+    it('should create an emoty cliCommands array', () => {
+      expect(pluginManager.cliCommands.length).to.equal(0);
     });
   });
 
-  describe('#setOptions()', () => {
-    it('should set the options object', () => {
+  describe('#setCliOptions()', () => {
+    it('should set the cliOptions object', () => {
       const options = { foo: 'bar' };
-      pluginManager.setOptions(options);
+      pluginManager.setCliOptions(options);
 
-      expect(pluginManager.options).to.deep.equal(options);
+      expect(pluginManager.cliOptions).to.deep.equal(options);
+    });
+  });
+
+  describe('#setCliCOmmands()', () => {
+    it('should set the cliCommands array', () => {
+      const commands = ['foo', 'bar'];
+      pluginManager.setCliCommands(commands);
+
+      expect(pluginManager.cliCommands).to.equal(commands);
+    });
+  });
+
+  describe('#convertShortcutsIntoOptions()', () => {
+    it('should convert shortcuts into options when the command matches', () => {
+      const cliOptionsMock = { r: 'eu-central-1', region: 'us-east-1' };
+      const cliCommandsMock = ['deploy'];
+      const commandsMock = {
+        deploy: {
+          options: {
+            region: {
+              shortcut: 'r',
+            },
+          },
+        },
+      };
+      pluginManager.setCliCommands(cliCommandsMock);
+      pluginManager.setCliOptions(cliOptionsMock);
+
+      pluginManager.convertShortcutsIntoOptions(cliOptionsMock, commandsMock);
+
+      expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.r);
+    });
+
+    it('should not convert shortcuts into options when the command does not match', () => {
+      const cliOptionsMock = { r: 'eu-central-1', region: 'us-east-1' };
+      const cliCommandsMock = ['foo'];
+      const commandsMock = {
+        deploy: {
+          options: {
+            region: {
+              shortcut: 'r',
+            },
+          },
+        },
+      };
+      pluginManager.setCliCommands(cliCommandsMock);
+      pluginManager.setCliOptions(cliOptionsMock);
+
+      pluginManager.convertShortcutsIntoOptions(cliOptionsMock, commandsMock);
+
+      expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.region);
+    });
+
+    it('should not convert shortcuts into options when the shortcut is not given', () => {
+      const cliOptionsMock = { r: 'eu-central-1', region: 'us-east-1' };
+      const cliCommandsMock = ['deploy'];
+      const commandsMock = {
+        deploy: {
+          options: {
+            region: {},
+          },
+        },
+      };
+      pluginManager.setCliCommands(cliCommandsMock);
+      pluginManager.setCliOptions(cliOptionsMock);
+
+      pluginManager.convertShortcutsIntoOptions(cliOptionsMock, commandsMock);
+
+      expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.region);
     });
   });
 
