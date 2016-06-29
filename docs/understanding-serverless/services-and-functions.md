@@ -36,7 +36,7 @@ users
   |__ package.json
 ```
 
-### [`serverless.yaml`](../understanding-serverless/serverless-yaml.md)
+### [`serverless.yaml`](../serverless-yaml.md)
 
 ```yaml
 service: users
@@ -48,7 +48,7 @@ functions:
         handler: users.create
 ```
 
-### [`serverless.env.yaml`](../understanding-serverless/serverless-env-yaml.md)
+### [`serverless.env.yaml`](../serverless-env-yaml.md)
 
 ```yaml
 vars:
