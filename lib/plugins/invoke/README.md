@@ -1,15 +1,15 @@
 # Invoke
 
 ```
-serverless invoke --function functionName --stage dev --region us-east-1
+serverless invoke --function functionName
 ```
 
 Invokes your deployed function and outputs the results.
 
 ## Options
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
-- `--stage` or `-s` The stage in your service you want to invoke your function in. **Required**.
-- `--region` or `-r` The region in your stage that you want to invoke your function in. **Required**.
+- `--stage` or `-s` The stage in your service you want to invoke your function in.
+- `--region` or `-r` The region in your stage that you want to invoke your function in.
 - `--path` or `-p` The path to a json file holding input data to be passed to the invoked function. This path is relative to the
 root directory of the service.
 - `--type` or `-t` The type of invocation. Either `RequestResponse`, `Event` or `DryRun`. Default is `RequestResponse`.

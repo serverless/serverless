@@ -1,14 +1,14 @@
 # Remove
 
 ```
-serverless remove --stage dev --region us-east-1
+serverless remove
 ```
 
 Removes the deployed service which is defined in your current working directory according to the stage and region.
 
 ## Options
-- `--stage` or `-s` The name of the stage in service. **Required**.
-- `--region` or `-r` The name of the region in stage. **Required**.
+- `--stage` or `-s` The name of the stage in service.
+- `--region` or `-r` The name of the region in stage.
 
 ## Provided lifecycle events
 - `remove:remove`
