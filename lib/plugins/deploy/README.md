@@ -7,8 +7,8 @@ serverless deploy --stage dev --region us-east-1
 Deploys your service.
 
 ## Options
-- `--stage` The stage in your service that you want to deploy to.
-- `--region` The region in that stage that you want to deploy to.
+- `--stage` or `-s` The stage in your service that you want to deploy to.
+- `--region` or `-r` The region in that stage that you want to deploy to.
 
 ## Provided lifecycle events
 - `deploy:initializeResources`

@@ -7,8 +7,8 @@ serverless create --name serviceName --provider providerName
 Creates a new service in the current working directory.
 
 ## Options
-- `--name` The name of your new service. **Required**.
-- `--provider` The provider you want your service to deploy to. **Required**.
+- `--name` or `-n` The name of your new service. **Required**.
+- `--provider` or `-p` The provider you want your service to deploy to. **Required**.
 
 ## Provided lifecycle events
 - `create:create`
