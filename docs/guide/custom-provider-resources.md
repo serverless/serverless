@@ -10,7 +10,8 @@ file.
 Serverless uses the services `resources` object as a place to store all the provider specific resources like compiled
 functions or events.
 
-After initialization, Serverless will try to load the `resources` object from the `serverless.yaml` file into memory.
+After initialization, Serverless will try to load the `resources` object from the
+[`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file into memory.
 It will create an own, empty one if it doesn't exist.
 
 You can use this place to add custom provider resources by writing the resource definition in YAML syntax inside the

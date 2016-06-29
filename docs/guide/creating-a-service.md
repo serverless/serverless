@@ -27,8 +27,8 @@ You'll see the following files:
 This is our core service file. You can see the name of our service, the provider and the first function inside the
 `functions` definition which points to the `handler.js` file.
 
-If you want to learn more about the `serverless.yaml` file you might want check out our
-[in depth guide](../understanding-serverless/serverless-yaml.md) about it.
+If you want to learn more about the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file you might
+want check out our [in depth guide](../understanding-serverless/serverless-yaml.md) about it.
 
 ### [`serverless.env.yaml`](../understanding-serverless/serverless-env-yaml.md)
 
@@ -36,8 +36,8 @@ This file includes all the environment variables Serverless uses. It automatical
 default stage called `dev` and a default region called `us-east-1`. Those variables will be referenced and used as a
 default later on for deployment.
 
-If you want to learn more about the `serverless.env.yaml` file you might want check out our
-[in depth guide](../understanding-serverless/serverless-env-yaml.md) about it.
+If you want to learn more about the [`serverless.env.yaml`](../understanding-serverless/serverless-env-yaml.md) file you
+might want check out our [in depth guide](../understanding-serverless/serverless-env-yaml.md) about it.
 
 ### `handler.js`
 
