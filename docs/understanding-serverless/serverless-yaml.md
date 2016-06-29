@@ -42,6 +42,6 @@ functions:
                 method: get
 
 resources:
-    Resources:
+    resources:
         $ref: ../custom_resources.json # you can use JSON-REF to ref other JSON files
 ```
