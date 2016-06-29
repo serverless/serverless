@@ -18,7 +18,7 @@ At first we need to install the corresponding plugin in the services root direct
 ## Adding the plugin to the service
 
 Next up we need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name
-of the plugin to the `plugins` section in the `serverless.yaml` file:
+of the plugin to the `plugins` section in the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file:
 
 ```yaml
 plugins:

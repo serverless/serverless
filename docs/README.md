@@ -11,7 +11,7 @@ internals of Serverless so that you know how it works and how you can extend and
 Follow these simple steps to install the alpha, create and deploy your first service, run your function and remove the
 service afterwards.
 
-1. `npm install -g serverless@1.0.0-alpha.1`
+1. `npm install -g serverless@alpha`
 2. `serverless create --name first-service --provider aws`
 3. `cd first-service`
 4. `serverless deploy`

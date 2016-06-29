@@ -20,7 +20,7 @@ corresponding Node version number printed out.
 Great! Now we've got everything in place to install Serverless. Serverless can be easily installed via
 [npm](https://npmjs.org) which was installed alongside Node.js.
 
-Open up a terminal and type `npm install -g serverless@1.0.0-alpha.1` to install the alpha version of Serverless.
+Open up a terminal and type `npm install -g serverless@alpha` to install the alpha version of Serverless.
 
 Once the installation process is done you can verify that Serverless is installed successfully by running
 `serverless --version`. You should see version 1.0.0 printed out on the terminal!

@@ -2,6 +2,9 @@
 
 Here's a list of all available event sources grouped by provider.
 
+**Note:** This list will be updated constantly as we're adding more and more event sources in the future.
+Just open up an [issue](https://github.com/serverless/serverless/issues) if you have any wishes regarding event support.
+
 The examples will show you how you can use the different event definitions.
 
 ## Amazon Web Services (AWS)
