@@ -1,7 +1,7 @@
 # Deploy
 
 ```
-serverless deploy --stage dev --region us-east-1
+serverless deploy
 ```
 
 Deploys your service.
