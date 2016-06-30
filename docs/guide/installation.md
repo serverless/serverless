@@ -25,6 +25,14 @@ Open up a terminal and type `npm install -g serverless@alpha` to install the alp
 Once the installation process is done you can verify that Serverless is installed successfully by running
 `serverless --version`. You should see version 1.0.0 printed out on the terminal!
 
+**Note:** The Serverless CLI provides additional shortcuts so you don't have to type in `serverless` all the time.
+
+Here's a list of all available commands you can use:
+
+1. `serverless`
+2. `sls`
+3. `slss`
+
 ## Conclusion
 
 We've just installed Node.js and Serverless on our local machine! The next step is to configure our cloud provider
