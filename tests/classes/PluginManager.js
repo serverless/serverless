@@ -18,6 +18,56 @@ describe('PluginManager', () => {
 
   class ServicePluginMock2 {}
 
+  class Provider1PluginMock {
+    constructor() {
+      this.provider = 'provider1';
+
+      this.commands = {
+        deploy: {
+          lifecycleEvents: [
+            'resources',
+          ],
+        },
+      };
+
+      this.hooks = {
+        'deploy:functions': this.functions.bind(this),
+      };
+
+      // used to test if the function was executed correctly
+      this.deployedFunctions = 0;
+    }
+
+    functions() {
+      this.deployedFunctions = this.deployedFunctions + 1;
+    }
+  }
+
+  class Provider2PluginMock {
+    constructor() {
+      this.provider = 'provider2';
+
+      this.commands = {
+        deploy: {
+          lifecycleEvents: [
+            'resources',
+          ],
+        },
+      };
+
+      this.hooks = {
+        'deploy:functions': this.functions.bind(this),
+      };
+
+      // used to test if the function was executed correctly
+      this.deployedFunctions = 0;
+    }
+
+    functions() {
+      this.deployedFunctions = this.deployedFunctions + 1;
+    }
+  }
+
   class PromisePluginMock {
     constructor() {
       this.commands = {
@@ -146,6 +196,18 @@ describe('PluginManager', () => {
       expect(pluginManager.serverless).to.deep.equal(serverless);
     });
 
+    it('should create a nullified provider variable', () => {
+      expect(pluginManager.provider).to.equal(null);
+    });
+
+    it('should create an empty cliOptions object', () => {
+      expect(pluginManager.cliOptions).to.deep.equal({});
+    });
+
+    it('should create an empty cliCommands array', () => {
+      expect(pluginManager.cliCommands.length).to.equal(0);
+    });
+
     it('should create an empty plugins array', () => {
       expect(pluginManager.plugins.length).to.equal(0);
     });
@@ -157,13 +219,14 @@ describe('PluginManager', () => {
     it('should create an empty commands object', () => {
       expect(pluginManager.commands).to.deep.equal({});
     });
+  });
 
-    it('should create an empty cliOptions object', () => {
-      expect(pluginManager.cliOptions).to.deep.equal({});
-    });
+  describe('#setProvider()', () => {
+    it('should set the provider variable', () => {
+      const provider = 'provider1';
+      pluginManager.setProvider(provider);
 
-    it('should create an emoty cliCommands array', () => {
-      expect(pluginManager.cliCommands.length).to.equal(0);
+      expect(pluginManager.provider).to.equal(provider);
     });
   });
 
@@ -526,6 +589,29 @@ describe('PluginManager', () => {
           pluginManager.run(commandsArray)
             .then(() => expect(pluginManager.plugins[0].deployedResources)
               .to.equal(1));
+        });
+      });
+    });
+
+    describe('when using provider specific plugins', () => {
+      beforeEach(() => {
+        pluginManager.setProvider('provider1');
+
+        pluginManager.addPlugin(Provider1PluginMock);
+        pluginManager.addPlugin(Provider2PluginMock);
+
+        // this plugin should be run each and every time as it doesn't specify any provider
+        pluginManager.addPlugin(SynchronousPluginMock);
+      });
+
+      it('should run only the providers plugins (if the provider is specified)', () => {
+        const commandsArray = ['deploy'];
+        pluginManager.run(commandsArray).then(() => {
+          expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
+          expect(pluginManager.plugins[1].deployedFunctions).to.equal(0);
+
+          // other, provider independent plugins should also be run
+          expect(pluginManager.plugins[2].deployedFunctions).to.equal(1);
         });
       });
     });
