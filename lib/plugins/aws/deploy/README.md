@@ -23,9 +23,10 @@ merging them in.
 Next up it hooks into the [`deploy:createProviderStacks`](/lib/plugins/deploy) lifecycle and deploys the
 previously created CloudFormation template to AWS.
 
-At the end it hooks into [`deploy:deploy`](/lib/plugins/deploy) lifecycle to zip the lambda function and
-uploads it to the core S3 bucket (which is defined in the core CloudFormation template). Furthermore it updates the
-stack with all the Resources which are defined in `serverless.service.resources.Resources`.
+In the end it hooks into [`deploy:deploy`](/lib/plugins/deploy) lifecycle. At first it removes the old function .zip files
+in the services S3 bucket. After that it zips the lambda functions and uploads them to the S3 bucket (which is defined in
+the core CloudFormation template). Furthermore it updates the stack with all the Resources which are defined in
+`serverless.service.resources.Resources`.
 
 The stack status is checked every 5 seconds with the help of the CloudFormation API. It will return a success message if
 the stack status is `CREATE_COMPLETE` or `UPDATE_COMPLETE` (depends if you deploy your service for the first time or

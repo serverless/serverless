@@ -6,7 +6,7 @@ be completely independent, which helps teams develop more quickly without waitin
 
 Each *Serverless service* contains two configuration files:
 
-### [`serverless.yaml`](/docs/understanding-serverless/serverless-yaml.md)
+### [`serverless.yaml`](./serverless-yaml.md)
   - Declares a Serverless service
   - Defines one or multiple functions in the service
   - Defines the provider the service will be deployed to
@@ -15,7 +15,7 @@ Each *Serverless service* contains two configuration files:
   - Defines one set of resources (e.g. 1 AWS CloudFormation stack) required by the functions in this service
   - Events listed in the `events` section may automatically create the resources required for the event upon deployment
  
-### [`serverless.env.yaml`](/docs/understanding-serverless/serverless-env-yaml.md)
+### [`serverless.env.yaml`](./serverless-env-yaml.md)
   - Defines stages for this service
   - Defines regions for each stage
   - Defines Serverless variables
@@ -36,7 +36,7 @@ users
   |__ package.json
 ```
 
-### [`serverless.yaml`](../serverless-yaml.md)
+### [`serverless.yaml`](./serverless-yaml.md)
 
 ```yaml
 service: users
@@ -48,7 +48,7 @@ functions:
         handler: users.create
 ```
 
-### [`serverless.env.yaml`](../serverless-env-yaml.md)
+### [`serverless.env.yaml`](./serverless-env-yaml.md)
 
 ```yaml
 vars:
