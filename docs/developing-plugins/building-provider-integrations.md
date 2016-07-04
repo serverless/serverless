@@ -66,11 +66,13 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 1. The [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) and
 [`serverless.env.yaml`](../understanding-serverless/serverless-env-yaml.md) files are loaded into memory
 2. A default AWS CloudFormation template is loaded (`deploy:initializeResources`)
-3. The CloudFormation template is deployed to AWS (`deploy:createProviderStacks`)
+3. The CloudFormation template is deployed to AWS (A S3 bucket for the service gets created) (`deploy:createProviderStacks`)
 4. The functions of the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file are compiled to lambda
 resources and stored into memory (`deploy:compileFunctions`)
 5. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
-6. The compiled function and event resources are attached to the core CloudFormation template and the updated
+6. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
+7. The function code gets zipped up and is uploaded to S3 (`deploy:deploy`)
+8. The compiled function and event resources are attached to the core CloudFormation template and the updated
 CloudFormation template gets redeployed (`deploy:deploy`)
 
 #### The code
