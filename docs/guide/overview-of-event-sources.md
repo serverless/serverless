@@ -95,3 +95,34 @@ functions:
                 path: posts/create
                 method: POST
 ```
+
+### SNS
+
+#### Simple event definition
+
+Here we create a new SNS topic with the name `dispatch` which is bound to the `dispatcher` function. The function will be
+called every time a message is sent to the `dispatch` topic.
+
+```yaml
+functions:
+    dispatcher:
+        handler: dispatcher.dispatch
+        events:
+            - sns: dispatch
+```
+
+#### Extended event definition
+
+This event definition ensures that the `aggregator` function get's called every time a message is sent to the
+`aggregate` topic. `Data aggregation pipeline` will be shown in the AWS console so that the user can understand what the
+SNS topic is used for.
+
+```yaml
+functions:
+    aggregator:
+        handler: aggregator.handler
+        events:
+            - sns:
+                topic_name: aggregate
+                display_name: Data aggregation pipeline
+```
