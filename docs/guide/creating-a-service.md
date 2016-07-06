@@ -4,8 +4,9 @@ Let's create our first Serverless service!
 
 ## Creating our service
 
-`cd` into a directory of your choice and run `serverless create --name my-service --provider aws` to create a service
-skeleton with the service name `my-service` on your local machine.
+`cd` into a directory of your choice and run `serverless create --name unique-service-name --provider aws` to create a service
+skeleton with the service name `unique-service-name` on your local machine. A unique service name is required to use S3 without conflicting
+with other buckets in the same region with the same name.
 
 Services are provider specific. The `--provider aws` option tells Serverless to create an Amazon Web Services (AWS)
 dependent service.
