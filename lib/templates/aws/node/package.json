@@ -1,0 +1,16 @@
+{
+  "name": "",
+  "version": "0.0.1",
+  "description": "Serverless service dependencies",
+  "author": "me",
+  "license": "MIT",
+  "private": true,
+  "main": "handler.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/"
+  },
+  "keywords": [],
+  "devDependencies": {},
+  "dependencies": {}
+}
