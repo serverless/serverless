@@ -46,7 +46,7 @@ describe('Service', () => {
           azure: {},
           google: {},
         },
-        packge: {
+        package: {
           include: ['include-me.js'],
           exclude: ['exclude-me.js'],
           artifact: 'some/path/foo.zip',
@@ -64,7 +64,7 @@ describe('Service', () => {
       expect(serviceInstance.resources.azure).to.deep.equal({});
       expect(serviceInstance.resources.google).to.deep.equal({});
       expect(serviceInstance.package.include[0]).to.equal('include-me.js');
-      expect(serviceInstance.package.exclude[0]).to.equal('exlucde-me.js');
+      expect(serviceInstance.package.exclude[0]).to.equal('exclude-me.js');
       expect(serviceInstance.package.artifact).to.equal('some/path/foo.zip');
     });
   });
@@ -153,7 +153,7 @@ describe('Service', () => {
         expect(loadedService.package.include.length).to.equal(1);
         expect(loadedService.package.include[0]).to.equal('include-me.js');
         expect(loadedService.package.exclude.length).to.equal(1);
-        expect(loadedService.package.exclude[0]).to.equal('excude-me.js');
+        expect(loadedService.package.exclude[0]).to.equal('exclude-me.js');
         expect(loadedService.package.artifact).to.equal('some/path/foo.zip');
       });
     });
