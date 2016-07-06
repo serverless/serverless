@@ -23,6 +23,7 @@ The following lifecycle events are run in order once the user types `serverless 
 - `deploy:createProviderStacks`
 - `deploy:compileFunctions`
 - `deploy:compileEvents`
+- `deploy:createDeploymentPackage`
 - `deploy:deploy`
 
 You, as a plugin developer can hook into those lifecycles to compile and deploy functions and events on your providers
@@ -50,6 +51,11 @@ compiled to provider specific resources and stored into memory.
 
 After that the events which are defined in the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md)
 file on a per function basis should be compiled to provider specific resources and also stored into memory.
+
+#### `deploy:createDeploymentPackage`
+
+The whole service get's zipped up into one .zip file. Serverless will automatically apply exclude rules based on the
+used programming languages (you can always include previously excluded files and folders if you want to).
 
 #### `deploy:deploy`
 

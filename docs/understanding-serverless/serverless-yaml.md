@@ -19,21 +19,23 @@ defaults: # overwrite defaults
     region: us-east-1
     memory: 512
     timeout: 3
-  
+
+package:
+    # only the following paths will be included in the resulting artifact which will be uploaded. Without specific include everything in the current folder will be included
+    include:
+        - lib
+        - functions
+    # The following paths will be excluded from the resulting artifact. If both include and exclude are defined we first apply the include, then the exclude so files are guaranteed to be excluded
+    exclude:
+        - tmp
+        - .git
+    artifact: path/to/my-artifact.zip # You can specify your own zip file for your service. Serverless won't zip your service if this is set
+
 functions:
     hello:
         # Deployed Lambda name with a prefix
-        # You have to provide that variable in serverless.env.yaml
-        name: ${prefix}-lambdaName
+        name: ${prefix}-lambdaName # You have to provide that variable in serverless.env.yaml
         handler: handler.hello
-        # only the following paths will be included in the resulting artefact which will be uploaded. Without specific include everything in the current folder will be included
-        include:
-            - lib
-            - functions
-        # The following paths will be excluded from the resulting artefact. If both include and exclude are defined we first apply the include, then the exclude so files are guaranteed to be excluded
-        exclude:
-            - tmp
-            - .git
         events:
             - s3: bucketName
             - schedule: rate(10 minutes)

@@ -1,6 +1,7 @@
 {
   "plugins": [
     "./create/create.js",
+    "./package/package.js",
     "./deploy/deploy.js",
     "./invoke/invoke.js",
     "./remove/remove.js",
