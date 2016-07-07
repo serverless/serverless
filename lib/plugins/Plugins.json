@@ -10,6 +10,8 @@
     "./aws/deploy/compile/functions/index.js",
     "./aws/deploy/compile/events/schedule/index.js",
     "./aws/deploy/compile/events/s3/index.js",
-    "./aws/deploy/compile/events/apiGateway/index.js"
+    "./aws/deploy/compile/events/apiGateway/index.js",
+    "./openwhisk/deploy/index.js",
+    "./openwhisk/compile/index.js"
   ]
 }
