@@ -77,7 +77,7 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 resources and stored into memory (`deploy:compileFunctions`)
 5. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
 6. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
-7. The function code gets zipped up and is uploaded to S3 (`deploy:deploy`)
+7. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentPackage` and `deploy:deploy`)
 8. The compiled function and event resources are attached to the core CloudFormation template and the updated
 CloudFormation template gets redeployed (`deploy:deploy`)
 
