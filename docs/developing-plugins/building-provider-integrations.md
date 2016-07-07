@@ -42,6 +42,11 @@ The purpose of the `deploy:createProviderStacks` lifecycle is to take the basic 
 the previous lifecycle and deploy the rough skeleton on the cloud providers infrastructure (without any functions
 or events) for the first time.
 
+#### `deploy:createDeploymentPackage`
+
+The whole service get's zipped up into one .zip file. Serverless will automatically apply exclude rules based on the
+used programming languages (you can always include previously excluded files and folders if you want to).
+
 #### `deploy:compileFunctions`
 
 Next up the functions inside the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file should be
@@ -51,11 +56,6 @@ compiled to provider specific resources and stored into memory.
 
 After that the events which are defined in the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md)
 file on a per function basis should be compiled to provider specific resources and also stored into memory.
-
-#### `deploy:createDeploymentPackage`
-
-The whole service get's zipped up into one .zip file. Serverless will automatically apply exclude rules based on the
-used programming languages (you can always include previously excluded files and folders if you want to).
 
 #### `deploy:deploy`
 

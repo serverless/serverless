@@ -13,9 +13,9 @@ Deploys your service.
 ## Provided lifecycle events
 - `deploy:initializeResources`
 - `deploy:createProviderStacks`
+- `deploy:createDeploymentPackage`
 - `deploy:compileFunctions`
 - `deploy:compileEvents`
-- `deploy:createDeploymentPackage`
 - `deploy:deploy`
 
 ## Examples
