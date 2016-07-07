@@ -313,6 +313,56 @@ class Deploy {
 module.exports = Deploy;
 ```
 
+## Provider specific plugins
+
+Plugins can be provider specific which means that they are bound to a provider.
+
+**Note:** Binding a plugin to a provider is optional. Serverless will always consider your plugin if you don't specify
+a `provider`.
+
+The provider definition should be added inside the plugins constructor:
+
+```javascript
+'use strict';
+
+class ProviderDeploy {
+  constructor(serverless, options) {
+    this.serverless = serverless;
+    this.options = options;
+
+    // set the providers name here
+    this.provider = 'providerName';
+
+    this.commands = {
+      deploy: {
+        lifecycleEvents: [
+          'functions'
+        ],
+        options: {
+          function: {
+            usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
+            required: true
+          }
+        }
+      },
+    };
+
+    this.hooks = {
+      'deploy:functions': this.deployFunction
+    }
+  }
+
+  deployFunction() {
+    console.log('Deploying function: ', this.options.function);
+  }
+}
+
+module.exports = ProviderDeploy;
+```
+
+The plugins functionality will now only be executed when the Serverless services provider matches the provider name which
+is defined inside the plugins constructor.
+
 ## Plugin registration process
 
 A user has to define the plugins they want to use in the root level of the

@@ -27,6 +27,26 @@ resources:
                 Key: Value
 ```
 
+## Referencing an external `.json` file
+
+Sometimes it's hard to translate the provider specific resources into valid YAML syntax. Furthermore the resource code
+might be verbose and make the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file bloated.
+
+You can always use JSON-Ref to reference external `.json` files. This way you can organize your resource related code
+into an own `.json` file and reference it from within [`serverless.yaml`](../understanding-serverless/serverless-yaml.md)
+like this:
+
+```yaml
+resources:
+    Resources:
+        $ref: ./cloudformation-resources.json
+```
+
+The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded
+into the `Resources` section.
+
+## How custom provider resources are added
+
 On deployment Serverless will load the base stack template and merge the custom resources you've defined in the `resources`
 section of the service alongside the compiled function and corresponding event resources into it.
 

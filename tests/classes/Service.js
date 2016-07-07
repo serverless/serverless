@@ -507,6 +507,45 @@ describe('Service', () => {
       });
     });
 
+    it('should throw error if provider property is invalid', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'service-name',
+        provider: 'invalid',
+        functions: {},
+      };
+      const serverlessEnvYaml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
     it('should throw error if functions property is missing', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
