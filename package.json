@@ -54,6 +54,7 @@
     "istanbul": "^0.4.4",
     "mocha": "^2.5.3",
     "mocha-lcov-reporter": "^1.2.0",
+    "mock-require": "^1.3.0",
     "sinon": "^1.17.4"
   },
   "dependencies": {
