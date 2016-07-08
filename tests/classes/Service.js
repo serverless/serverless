@@ -26,6 +26,7 @@ describe('Service', () => {
       expect(serviceInstance.functions).to.deep.equal({});
       expect(serviceInstance.environment).to.deep.equal({});
       expect(serviceInstance.resources).to.deep.equal({});
+      expect(serviceInstance.package).to.deep.equal({});
     });
 
     it('should construct with data', () => {
@@ -45,6 +46,11 @@ describe('Service', () => {
           azure: {},
           google: {},
         },
+        package: {
+          include: ['include-me.js'],
+          exclude: ['exclude-me.js'],
+          artifact: 'some/path/foo.zip',
+        },
       };
 
       const serviceInstance = new Service(serverless, data);
@@ -57,6 +63,9 @@ describe('Service', () => {
       expect(serviceInstance.resources.aws).to.deep.equal({ resourcesProp: 'value' });
       expect(serviceInstance.resources.azure).to.deep.equal({});
       expect(serviceInstance.resources.google).to.deep.equal({});
+      expect(serviceInstance.package.include[0]).to.equal('include-me.js');
+      expect(serviceInstance.package.exclude[0]).to.equal('exclude-me.js');
+      expect(serviceInstance.package.artifact).to.equal('some/path/foo.zip');
     });
   });
 
@@ -94,6 +103,11 @@ describe('Service', () => {
           },
           azure: {},
           google: {},
+        },
+        package: {
+          include: ['include-me.js'],
+          exclude: ['exclude-me.js'],
+          artifact: 'some/path/foo.zip',
         },
       };
       const serverlessEnvYaml = {
@@ -136,6 +150,11 @@ describe('Service', () => {
         expect(loadedService.resources.aws).to.deep.equal({ resourcesProp: 'value' });
         expect(loadedService.resources.azure).to.deep.equal({});
         expect(loadedService.resources.google).to.deep.equal({});
+        expect(loadedService.package.include.length).to.equal(1);
+        expect(loadedService.package.include[0]).to.equal('include-me.js');
+        expect(loadedService.package.exclude.length).to.equal(1);
+        expect(loadedService.package.exclude[0]).to.equal('exclude-me.js');
+        expect(loadedService.package.artifact).to.equal('some/path/foo.zip');
       });
     });
 

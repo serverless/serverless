@@ -8,6 +8,7 @@ see the corresponding source code.
   - [Deploy](/lib/plugins/deploy)
   - [Invoke](/lib/plugins/invoke)
   - [Remove](/lib/plugins/remove)
+  - [Package](/lib/plugins/package)
 - Amazon Web Services
   - [Compile Functions](/lib/plugins/aws/deploy/compile/functions)
   - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3)
