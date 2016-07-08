@@ -13,6 +13,7 @@
     "./aws/deploy/compile/events/apiGateway/index.js",
     "./aws/deploy/compile/events/sns/index.js",
     "./openwhisk/deploy/index.js",
-    "./openwhisk/compile/index.js"
+    "./openwhisk/compile/index.js",
+    "./openwhisk/invoke/index.js"
   ]
 }
