@@ -4,6 +4,8 @@
 
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
+const Spinner = require('cli-spinner').Spinner;
+const spinner = new Spinner();
 
 process.on('unhandledRejection', (e) => logError(e));
 
@@ -15,5 +17,6 @@ process.on('unhandledRejection', (e) => logError(e));
     interactive: typeof process.env.CI === 'undefined',
   });
 
-  return serverless.init().then(() => serverless.run());
-}).catch(e => logError(e)))();
+  return serverless.init(spinner)
+    .then(() => serverless.run());
+}).catch(e => logError(e, spinner)))();

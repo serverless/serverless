@@ -188,6 +188,7 @@ describe('PluginManager', () => {
 
   beforeEach(() => {
     serverless = new Serverless();
+    serverless.cli = new serverless.classes.CLI();
     pluginManager = new PluginManager(serverless);
   });
 
