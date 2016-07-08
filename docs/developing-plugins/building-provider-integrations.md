@@ -44,8 +44,16 @@ or events) for the first time.
 
 #### `deploy:createDeploymentPackage`
 
-The whole service get's zipped up into one .zip file. Serverless will automatically apply exclude rules based on the
-used programming languages (you can always include previously excluded files and folders if you want to).
+The whole service get's zipped up into one .zip file.
+Serverless will automatically exclude the following files / folders to reduce the size of the .zip file:
+- .git
+- .gitignore
+- .serverless
+- serverless.yaml
+- serverless.env.yaml
+- .DS_Store
+
+You can always include previously excluded files and folders if you want to.
 
 #### `deploy:compileFunctions`
 
