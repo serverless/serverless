@@ -5,14 +5,14 @@
     "./deploy/deploy.js",
     "./invoke/invoke.js",
     "./remove/remove.js",
-    "./aws/provider/index.js",
-    "./aws/deploy/index.js",
-    "./aws/invoke/index.js",
-    "./aws/remove/index.js",
-    "./aws/deploy/compile/functions/index.js",
-    "./aws/deploy/compile/events/schedule/index.js",
-    "./aws/deploy/compile/events/s3/index.js",
-    "./aws/deploy/compile/events/apiGateway/index.js",
-    "./aws/deploy/compile/events/sns/index.js"
+    "./awsProvider/index.js",
+    "./awsDeploy/index.js",
+    "./awsInvoke/index.js",
+    "./awsRemove/index.js",
+    "./awsDeploy/compile/functions/index.js",
+    "./awsDeploy/compile/events/schedule/index.js",
+    "./awsDeploy/compile/events/s3/index.js",
+    "./awsDeploy/compile/events/apiGateway/index.js",
+    "./awsDeploy/compile/events/sns/index.js"
   ]
 }

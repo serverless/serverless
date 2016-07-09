@@ -39,7 +39,7 @@ describe('Service Lifecyle Integration Test', () => {
       .fileExistsSync(path.join(tmpDir, serviceName, 'handler.js'))).to.be.equal(true);
   });
 
-  it('should deploy service to aws', function () {
+  it('should awsDeploy service to aws', function () {
     this.timeout(0);
     execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
 
@@ -47,14 +47,14 @@ describe('Service Lifecyle Integration Test', () => {
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE'));
   });
 
-  it('should invoke function from aws', function () {
+  it('should awsInvoke function from aws', function () {
     this.timeout(0);
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
     const result = JSON.parse(new Buffer(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   });
 
-  it('should deploy updated service to aws', function () {
+  it('should awsDeploy updated service to aws', function () {
     const newHandler =
       `
         'use strict';
@@ -69,14 +69,14 @@ describe('Service Lifecyle Integration Test', () => {
     execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
   });
 
-  it('should invoke updated function from aws', function () {
+  it('should awsInvoke updated function from aws', function () {
     this.timeout(0);
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
     const result = JSON.parse(new Buffer(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Service Update Succeeded');
   });
 
-  it('should remove service from aws', function () {
+  it('should awsRemove service from aws', function () {
     this.timeout(0);
     execSync(`${serverlessExec} remove`, { stdio: 'inherit' });
 

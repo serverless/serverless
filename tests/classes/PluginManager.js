@@ -79,10 +79,10 @@ describe('PluginManager', () => {
           ],
           options: {
             resource: {
-              usage: 'The resource you want to deploy (e.g. --resource db)',
+              usage: 'The resource you want to awsDeploy (e.g. --resource db)',
             },
             function: {
-              usage: 'The function you want to deploy (e.g. --function create)',
+              usage: 'The function you want to awsDeploy (e.g. --function create)',
             },
           },
           commands: {
@@ -94,10 +94,10 @@ describe('PluginManager', () => {
               ],
               options: {
                 resource: {
-                  usage: 'The resource you want to deploy (e.g. --resource db)',
+                  usage: 'The resource you want to awsDeploy (e.g. --resource db)',
                 },
                 function: {
-                  usage: 'The function you want to deploy (e.g. --function create)',
+                  usage: 'The function you want to awsDeploy (e.g. --function create)',
                 },
               },
             },
@@ -141,10 +141,10 @@ describe('PluginManager', () => {
           ],
           options: {
             resource: {
-              usage: 'The resource you want to deploy (e.g. --resource db)',
+              usage: 'The resource you want to awsDeploy (e.g. --resource db)',
             },
             function: {
-              usage: 'The function you want to deploy (e.g. --function create)',
+              usage: 'The function you want to awsDeploy (e.g. --function create)',
             },
           },
           commands: {
@@ -156,10 +156,10 @@ describe('PluginManager', () => {
               ],
               options: {
                 resource: {
-                  usage: 'The resource you want to deploy (e.g. --resource db)',
+                  usage: 'The resource you want to awsDeploy (e.g. --resource db)',
                 },
                 function: {
-                  usage: 'The function you want to deploy (e.g. --function create)',
+                  usage: 'The function you want to awsDeploy (e.g. --function create)',
                 },
               },
             },
@@ -404,24 +404,24 @@ describe('PluginManager', () => {
       const commandsArray = ['deploy'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events[0]).to.equal('before:deploy:resources');
-      expect(events[1]).to.equal('deploy:resources');
-      expect(events[2]).to.equal('after:deploy:resources');
-      expect(events[3]).to.equal('before:deploy:functions');
+      expect(events[0]).to.equal('before:awsDeploy:resources');
+      expect(events[1]).to.equal('awsDeploy:resources');
+      expect(events[2]).to.equal('after:awsDeploy:resources');
+      expect(events[3]).to.equal('before:awsDeploy:functions');
       expect(events[4]).to.equal('deploy:functions');
-      expect(events[5]).to.equal('after:deploy:functions');
+      expect(events[5]).to.equal('after:awsDeploy:functions');
     });
 
     it('should get all the matching events for a nested level command in the correct order', () => {
       const commandsArray = ['deploy', 'onpremises'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events[0]).to.equal('before:deploy:onpremises:resources');
-      expect(events[1]).to.equal('deploy:onpremises:resources');
-      expect(events[2]).to.equal('after:deploy:onpremises:resources');
+      expect(events[0]).to.equal('before:awsDeploy:onpremises:resources');
+      expect(events[1]).to.equal('awsDeploy:onpremises:resources');
+      expect(events[2]).to.equal('after:awsDeploy:onpremises:resources');
       expect(events[3]).to.equal('before:deploy:onpremises:functions');
-      expect(events[4]).to.equal('deploy:onpremises:functions');
-      expect(events[5]).to.equal('after:deploy:onpremises:functions');
+      expect(events[4]).to.equal('awsDeploy:onpremises:functions');
+      expect(events[5]).to.equal('after:awsDeploy:onpremises:functions');
     });
 
     it('should return an empty events array when the command is not defined', () => {
@@ -600,7 +600,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(Provider1PluginMock);
         pluginManager.addPlugin(Provider2PluginMock);
 
-        // this plugin should be run each and every time as it doesn't specify any provider
+        // this plugin should be run each and every time as it doesn't specify any awsProvider
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
@@ -610,7 +610,7 @@ describe('PluginManager', () => {
           expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
           expect(pluginManager.plugins[1].deployedFunctions).to.equal(0);
 
-          // other, provider independent plugins should also be run
+          // other, awsProvider independent plugins should also be run
           expect(pluginManager.plugins[2].deployedFunctions).to.equal(1);
         });
       });
