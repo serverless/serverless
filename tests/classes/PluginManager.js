@@ -404,24 +404,24 @@ describe('PluginManager', () => {
       const commandsArray = ['deploy'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events[0]).to.equal('before:awsDeploy:resources');
-      expect(events[1]).to.equal('awsDeploy:resources');
-      expect(events[2]).to.equal('after:awsDeploy:resources');
-      expect(events[3]).to.equal('before:awsDeploy:functions');
+      expect(events[0]).to.equal('before:deploy:resources');
+      expect(events[1]).to.equal('deploy:resources');
+      expect(events[2]).to.equal('after:deploy:resources');
+      expect(events[3]).to.equal('before:deploy:functions');
       expect(events[4]).to.equal('deploy:functions');
-      expect(events[5]).to.equal('after:awsDeploy:functions');
+      expect(events[5]).to.equal('after:deploy:functions');
     });
 
     it('should get all the matching events for a nested level command in the correct order', () => {
       const commandsArray = ['deploy', 'onpremises'];
       const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
 
-      expect(events[0]).to.equal('before:awsDeploy:onpremises:resources');
-      expect(events[1]).to.equal('awsDeploy:onpremises:resources');
-      expect(events[2]).to.equal('after:awsDeploy:onpremises:resources');
+      expect(events[0]).to.equal('before:deploy:onpremises:resources');
+      expect(events[1]).to.equal('deploy:onpremises:resources');
+      expect(events[2]).to.equal('after:deploy:onpremises:resources');
       expect(events[3]).to.equal('before:deploy:onpremises:functions');
-      expect(events[4]).to.equal('awsDeploy:onpremises:functions');
-      expect(events[5]).to.equal('after:awsDeploy:onpremises:functions');
+      expect(events[4]).to.equal('deploy:onpremises:functions');
+      expect(events[5]).to.equal('after:deploy:onpremises:functions');
     });
 
     it('should return an empty events array when the command is not defined', () => {
