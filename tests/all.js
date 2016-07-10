@@ -17,11 +17,11 @@ require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/package/tests/all');
 
 // AWS Plugins Tests
-require('../lib/plugins/aws/tests');
-require('./tests');
-require('./tests/all');
-require('./tests/all');
-require('./compile/functions/tests');
-require('./compile/events/s3/tests');
-require('./compile/events/schedule/tests');
-require('./compile/events/apiGateway/tests/all');
+require('../lib/plugins/awsProvider/tests');
+require('../lib/plugins/awsInvoke/tests');
+require('../lib/plugins/awsRemove/tests/all');
+require('../lib/plugins/awsDeploy/tests/all');
+require('../lib/plugins/awsDeploy/compile/functions/tests');
+require('../lib/plugins/awsDeploy/compile/events/s3/tests');
+require('../lib/plugins/awsDeploy/compile/events/schedule/tests');
+require('../lib/plugins/awsDeploy/compile/events/apiGateway/tests/all');
