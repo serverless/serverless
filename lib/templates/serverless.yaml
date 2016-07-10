@@ -39,6 +39,7 @@ functions:
 #           - s3: ${bucket}
 #           - schedule: rate(10 minutes)
 #           - sns: greeter-topic
+#           - ask # Alexa Skills Kit
 
 # you can add CloudFormation resource templates here
 #resources:

@@ -126,3 +126,16 @@ functions:
                 topic_name: aggregate
                 display_name: Data aggregation pipeline
 ```
+
+### Alexa Skills Kit
+
+This will create a permission to allow the function to be invoke the
+function when the skill is spoken
+
+```yaml
+functions:
+    resize:
+        handler: quiz.handler
+        events:
+            - ask
+```

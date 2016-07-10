@@ -43,6 +43,7 @@ functions:
                 path: users/create
                 method: get
             - sns: topic-name
+            - ask # Alexa Skills Kit
 
 resources:
     Resources:
