@@ -1,5 +1,5 @@
 Pull Request Template ------------------------
-* Check out our Pull Request Guidelines here: https://github.com/serverless/serverless/blob/v1.0/CONTRIBUTING.md
+* Check out our Pull Request Guidelines here: https://github.com/serverless/serverless/blob/v1.0/.github/CONTRIBUTING.md
 
 ##### Status:
 
