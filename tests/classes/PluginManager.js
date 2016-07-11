@@ -79,10 +79,10 @@ describe('PluginManager', () => {
           ],
           options: {
             resource: {
-              usage: 'The resource you want to awsDeploy (e.g. --resource db)',
+              usage: 'The resource you want to deploy (e.g. --resource db)',
             },
             function: {
-              usage: 'The function you want to awsDeploy (e.g. --function create)',
+              usage: 'The function you want to deploy (e.g. --function create)',
             },
           },
           commands: {
@@ -94,10 +94,10 @@ describe('PluginManager', () => {
               ],
               options: {
                 resource: {
-                  usage: 'The resource you want to awsDeploy (e.g. --resource db)',
+                  usage: 'The resource you want to deploy (e.g. --resource db)',
                 },
                 function: {
-                  usage: 'The function you want to awsDeploy (e.g. --function create)',
+                  usage: 'The function you want to deploy (e.g. --function create)',
                 },
               },
             },
@@ -141,10 +141,10 @@ describe('PluginManager', () => {
           ],
           options: {
             resource: {
-              usage: 'The resource you want to awsDeploy (e.g. --resource db)',
+              usage: 'The resource you want to deploy (e.g. --resource db)',
             },
             function: {
-              usage: 'The function you want to awsDeploy (e.g. --function create)',
+              usage: 'The function you want to deploy (e.g. --function create)',
             },
           },
           commands: {
@@ -156,10 +156,10 @@ describe('PluginManager', () => {
               ],
               options: {
                 resource: {
-                  usage: 'The resource you want to awsDeploy (e.g. --resource db)',
+                  usage: 'The resource you want to deploy (e.g. --resource db)',
                 },
                 function: {
-                  usage: 'The function you want to awsDeploy (e.g. --function create)',
+                  usage: 'The function you want to deploy (e.g. --function create)',
                 },
               },
             },
@@ -600,7 +600,7 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(Provider1PluginMock);
         pluginManager.addPlugin(Provider2PluginMock);
 
-        // this plugin should be run each and every time as it doesn't specify any awsProvider
+        // this plugin should be run each and every time as it doesn't specify any provider
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
@@ -610,7 +610,7 @@ describe('PluginManager', () => {
           expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
           expect(pluginManager.plugins[1].deployedFunctions).to.equal(0);
 
-          // other, awsProvider independent plugins should also be run
+          // other, provider independent plugins should also be run
           expect(pluginManager.plugins[2].deployedFunctions).to.equal(1);
         });
       });
