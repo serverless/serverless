@@ -565,7 +565,7 @@ describe('Service', () => {
       });
     });
 
-    it('should throw error if functions property is missing', () => {
+    it('should throw error if awsCompileFunctions property is missing', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYaml = {
