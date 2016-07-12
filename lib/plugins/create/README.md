@@ -1,28 +1,29 @@
 # Create
 
 ```
-serverless create --name serviceName --provider providerName
+serverless create --template aws-nodejs
 ```
 
-Creates a new service in the current working directory.
+Creates a new service in the current working directory based on the provided template.
 
 ## Options
-- `--name` or `-n` The name of your new service. **Required**.
-- `--provider` or `-p` The provider you want your service to deploy to. **Required**.
+- `--template` or `-t` The name of your new service. **Required**.
 
 ## Provided lifecycle events
 - `create:create`
+
+## Available Templates
+- aws-nodejs
 
 ## Examples
 
 ### Creating a new service
 
 ```
-serverless create --name myNewService --provider aws
+serverless create --template aws-nodejs
 ```
 
-This example will create a new service called `myNewService`. A new directory with the name `myNewService` will be created
-in your current working directory. It contains the boilerplate necessary to operate your new service.
+This example will generate scaffolding for a service with `AWS` as a provider and `nodejs` as runtime. The scaffolding will be generated in the current working directory.
 
 Your new service will have a default stage called `dev` and a default region inside that stage called `us-east-1`.
 The provider which is used for deployment later on is AWS (Amazon web services).

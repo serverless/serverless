@@ -12,8 +12,7 @@ Follow these simple steps to install the alpha, create and deploy your first ser
 service afterwards.
 
 1. `npm install -g serverless@alpha`
-2. `serverless create --name first-service --provider aws`
-3. `cd first-service`
+2. `serverless create --template aws-nodejs`
 4. `serverless deploy`
 5. `serverless invoke --function hello`
 6. `serverless remove`

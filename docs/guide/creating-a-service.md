@@ -4,13 +4,13 @@ Let's create our first Serverless service!
 
 ## Creating our service
 
-`cd` into a directory of your choice and run `serverless create --name my-service --provider aws` to create a service
-skeleton with the service name `my-service` on your local machine.
+You can create a service based on a specific template that specifies which provider and runtime to use. To create a service with `nodejs` runtime running on `aws` just pass the `aws-nodejs` template to the create command:
 
-Services are provider specific. The `--provider aws` option tells Serverless to create an Amazon Web Services (AWS)
-dependent service.
+```
+serverless create --template aws-nodejs
+```
 
-Type `cd my-service` to navigate into the previously created directory.
+This will create a service and generate `serverless.yaml`, `serverless.env.yaml` and `handler.js` files in the cwd.
 
 ## Open the service inside your editor
 
