@@ -23,6 +23,7 @@ The following lifecycle events are run in order once the user types `serverless 
 - `deploy:createProviderStacks`
 - `deploy:compileFunctions`
 - `deploy:compileEvents`
+- `deploy:createDeploymentPackage`
 - `deploy:deploy`
 
 You, as a plugin developer can hook into those lifecycles to compile and deploy functions and events on your providers
@@ -40,6 +41,19 @@ template skeleton such as a CloudFormation template).
 The purpose of the `deploy:createProviderStacks` lifecycle is to take the basic resource template which was created in
 the previous lifecycle and deploy the rough skeleton on the cloud providers infrastructure (without any functions
 or events) for the first time.
+
+#### `deploy:createDeploymentPackage`
+
+The whole service get's zipped up into one .zip file.
+Serverless will automatically exclude the following files / folders to reduce the size of the .zip file:
+- .git
+- .gitignore
+- .serverless
+- serverless.yaml
+- serverless.env.yaml
+- .DS_Store
+
+You can always include previously excluded files and folders if you want to.
 
 #### `deploy:compileFunctions`
 
@@ -71,7 +85,7 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 resources and stored into memory (`deploy:compileFunctions`)
 5. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
 6. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
-7. The function code gets zipped up and is uploaded to S3 (`deploy:deploy`)
+7. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentPackage` and `deploy:deploy`)
 8. The compiled function and event resources are attached to the core CloudFormation template and the updated
 CloudFormation template gets redeployed (`deploy:deploy`)
 

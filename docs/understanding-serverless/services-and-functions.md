@@ -42,7 +42,7 @@ users
 service: users
 provider: aws
 defaults: # overwrite defaults
-    memory: ${memoryVariable} # reference a Serverless variable
+    memory: ${memoryVar} # reference a Serverless variable
 functions:
     create:
         handler: users.create
