@@ -78,7 +78,7 @@ functions:
     show:
         handler: users.show
         events:
-            - http: GET users/show
+            - http: get users/show
 ```
 
 #### Extended event definition
@@ -93,7 +93,7 @@ functions:
         events:
             - http:
                 path: posts/create
-                method: POST
+                method: post
 ```
 
 ### SNS
