@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: myService
+service: aws-nodejs
 provider: aws
 
 # you can overwrite defaults here
