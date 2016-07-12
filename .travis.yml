@@ -13,7 +13,8 @@ install:
 script:
   - npm test
   # Only Run Integration Tests and ESLINT for the first job in the whole build to make the build faster
-  - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 ]]; then npm run integration-test; fi
+  # Only Run Integration Test when an AWS ACCESS KEY ID is available so the build doesn't fail for PR's from forks
+  - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 && ! -z ${AWS_ACCESS_KEY_ID+x} ]]; then npm run integration-test; fi
   - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 ]]; then npm run lint; fi
 
 after_success:
