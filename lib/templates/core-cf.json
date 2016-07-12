@@ -3,10 +3,7 @@
   "Description": "The AWS CloudFormation template for this Serverless application's resources outside of Lambdas and Api Gateway",
   "Resources": {
     "coreBucket": {
-      "Type" : "AWS::S3::Bucket",
-      "Properties": {
-        "BucketName": ""
-      }
+      "Type" : "AWS::S3::Bucket"
     },
     "IamRoleLambda": {
       "Type": "AWS::IAM::Role",
@@ -64,6 +61,11 @@
           "IamRoleLambda",
           "Arn"
         ]
+      }
+    },
+    "CoreBucketName": {
+      "Value": {
+        "Ref": "coreBucket"
       }
     }
   }
