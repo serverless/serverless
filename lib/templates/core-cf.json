@@ -54,6 +54,12 @@
     }
   },
   "Outputs": {
+    "AccountId": {
+      "Description": "Outputs AWS AccountId as variable. This is used by Serverless to build resource ARNs when required. It should not be deleted.",
+      "Value": {
+        "Ref": "AWS::AccountId"
+      }
+    },
     "IamRoleArnLambda": {
       "Description": "ARN of the lambda IAM role",
       "Value": {
