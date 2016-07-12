@@ -25,3 +25,8 @@ require('../lib/plugins/aws/deploy/compile/functions/tests');
 require('../lib/plugins/aws/deploy/compile/events/s3/tests');
 require('../lib/plugins/aws/deploy/compile/events/schedule/tests');
 require('../lib/plugins/aws/deploy/compile/events/apiGateway/tests/all');
+
+// Azure Plugin Tests
+require('../lib/plugins/azure/compile/tests');
+require('../lib/plugins/azure/deploy/tests');
+require('../lib/plugins/azure/utils/tests');
