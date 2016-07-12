@@ -15,6 +15,7 @@ see the corresponding source code.
   - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule)
   - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/events/apiGateway)
   - [Compile SNS Events](lib/plugins/aws/deploy/compile/events/sns)
+  - [Compile Alexa Skills Kit Events](lib/plugins/aws/deploy/compile/events/alexaSkillsKit)
   - [Deploy](/lib/plugins/aws/deploy)
   - [Invoke](/lib/plugins/aws/invoke)
   - [Remove](/lib/plugins/aws/remove)

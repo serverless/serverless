@@ -24,4 +24,5 @@ require('../lib/plugins/aws/deploy/tests/all');
 require('../lib/plugins/aws/deploy/compile/functions/tests');
 require('../lib/plugins/aws/deploy/compile/events/s3/tests');
 require('../lib/plugins/aws/deploy/compile/events/schedule/tests');
+require('../lib/plugins/aws/deploy/compile/events/alexaSkillsKit/tests');
 require('../lib/plugins/aws/deploy/compile/events/apiGateway/tests/all');
