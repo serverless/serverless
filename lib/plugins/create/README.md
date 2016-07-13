@@ -14,6 +14,7 @@ Creates a new service in the current working directory based on the provided tem
 
 ## Available Templates
 - aws-nodejs
+- aws-python
 
 ## Examples
 
@@ -23,7 +24,8 @@ Creates a new service in the current working directory based on the provided tem
 serverless create --template aws-nodejs
 ```
 
-This example will generate scaffolding for a service with `AWS` as a provider and `nodejs` as runtime. The scaffolding will be generated in the current working directory.
+This example will generate scaffolding for a service with `AWS` as a provider and `nodejs` as runtime. The scaffolding
+will be generated in the current working directory.
 
 Your new service will have a default stage called `dev` and a default region inside that stage called `us-east-1`.
 The provider which is used for deployment later on is AWS (Amazon web services).
