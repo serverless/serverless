@@ -14,7 +14,7 @@ see the corresponding source code.
   - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3)
   - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule)
   - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/events/apiGateway)
-  - [Compile SNS Events](lib/plugins/aws/deploy/compile/events/sns)
+  - [Compile SNS Events](/lib/plugins/aws/deploy/compile/events/sns)
   - [Deploy](/lib/plugins/aws/deploy)
   - [Invoke](/lib/plugins/aws/invoke)
   - [Remove](/lib/plugins/aws/remove)
