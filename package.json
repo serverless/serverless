@@ -58,6 +58,7 @@
     "sinon": "^1.17.4"
   },
   "dependencies": {
+    "analytics-node": "^2.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.3.17",
     "bluebird": "^3.4.0",
