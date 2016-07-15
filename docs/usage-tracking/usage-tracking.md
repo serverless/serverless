@@ -10,13 +10,13 @@ the project you're working on is / looks like.
 
 Here's a list about all the information we track:
 - Entered command(s)
-- Entered options(s)
 - Operating system
 - Loaded plugins
 - Serverless version
-- Functions count inside a service
+- Number of functions inside your service
+- Total number of events inside your service
 - Provider of your service
-- If the command was run inside a service
+- If the command was executed inside a service
 
 ## How tracking is implemented
 
