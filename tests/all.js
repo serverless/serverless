@@ -32,3 +32,4 @@ require('../lib/plugins/openwhisk/compile/tests');
 require('../lib/plugins/openwhisk/deploy/tests');
 require('../lib/plugins/openwhisk/invoke/tests');
 require('../lib/plugins/openwhisk/remove/tests');
+require('../lib/plugins/openwhisk/util/tests');
