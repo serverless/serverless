@@ -4,8 +4,10 @@ Let's create our first Serverless service!
 
 ## Creating our service
 
-You can create a service based on a specific template that specifies which provider and runtime to use. To create a
-service with a `nodejs` runtime running on `aws` just pass the `aws-nodejs` template to the create command:
+You can create a service based on a specific template that specifies which provider and runtime to use (take a look
+[here](../service-templates) to learn more about templates).
+
+To create a service with a `nodejs` runtime running on `aws` just pass the `aws-nodejs` template to the create command:
 
 ```
 serverless create --template aws-nodejs
