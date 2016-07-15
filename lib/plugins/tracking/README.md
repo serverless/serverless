@@ -3,13 +3,14 @@
 This plugin implements a way to toggle the [framework usage tracking](/docs/usage-tracking) functionality.
 
 ```
-serverless tracking --enabled yes
+serverless tracking --enable
 ```
 
 Enable / disable the usage tracking functionality.
 
 ## Options
-- `--enabled` or `-e` "yes" or "no". **Required**.
+- `--enable` or `-e`.
+- `--disable` or `-d`
 
 ## Provided lifecycle events
 - `tracking:tracking`
@@ -19,7 +20,7 @@ Enable / disable the usage tracking functionality.
 ### Disable tracking
 
 ```
-serverless tracking --enabled no
+serverless tracking --disable
 ```
 
 This example will disable usage tracking.
