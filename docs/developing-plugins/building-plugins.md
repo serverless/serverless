@@ -85,20 +85,21 @@ them from their parents.
 class MyPlugin {
   constructor() {
     this.commands = {
-    deploy: {
-      lifecycleEvents: [
-        'resources',
-        'functions'
-      ],
-      commands: {
-        single: {
-          lifecycleEvents: [
-            'resources',
-            'functions'
-          ],
+      deploy: {
+        lifecycleEvents: [
+          'resources',
+          'functions'
+        ],
+        commands: {
+          single: {
+            lifecycleEvents: [
+              'resources',
+              'functions'
+            ],
+          },
         },
       },
-    },
+    }
   }
 }
 
