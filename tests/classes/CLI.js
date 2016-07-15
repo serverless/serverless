@@ -27,10 +27,8 @@ describe('CLI', () => {
       expect(cli.loadedPlugins.length).to.equal(0);
     });
 
-    it('should set an empty inputArray when none is provided', () => {
-      cli = new CLI(serverless);
-      expect(cli.inputArray.length).to.equal(0);
-    });
+    it('should set a null inputArray when none is provided', () =>
+        expect(new CLI(serverless).inputArray).to.be.null);
 
     it('should set the inputObject when provided', () => {
       cli = new CLI(serverless, ['foo', 'bar', '--baz', '-qux']);
@@ -58,6 +56,14 @@ describe('CLI', () => {
   });
 
   describe('#displayHelp()', () => {
+    it('should return true when no command is given', () => {
+      cli = new CLI(serverless, []);
+      const processedInput = cli.processInput();
+      const helpDisplayed = cli.displayHelp(processedInput);
+
+      expect(helpDisplayed).to.equal(true);
+    });
+
     it('should return true when the "help" parameter is given', () => {
       cli = new CLI(serverless, ['help']);
       const processedInput = cli.processInput();
