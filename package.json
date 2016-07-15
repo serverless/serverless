@@ -58,7 +58,6 @@
     "sinon": "^1.17.4"
   },
   "dependencies": {
-    "analytics-node": "^2.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.3.17",
     "bluebird": "^3.4.0",
@@ -70,6 +69,7 @@
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
+    "node-fetch": "^1.5.3",
     "node-zip": "^1.1.1",
     "replaceall": "^0.1.6",
     "semver-regex": "^1.0.0",
