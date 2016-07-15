@@ -9,6 +9,7 @@ see the corresponding source code.
   - [Invoke](/lib/plugins/invoke)
   - [Remove](/lib/plugins/remove)
   - [Package](/lib/plugins/package)
+  - [Tracking](/lib/plugins/tracking)
 - Amazon Web Services
   - [Compile Functions](/lib/plugins/aws/deploy/compile/functions)
   - [Compile S3 Events](/lib/plugins/aws/deploy/compile/events/s3)
