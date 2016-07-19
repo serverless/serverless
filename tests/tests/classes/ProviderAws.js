@@ -12,7 +12,8 @@ let assert      = require('chai').assert,
         'us-west-2',      // Oregon
         'eu-central-1',   // Frankfurt
         'eu-west-1',      // Ireland
-        'ap-northeast-1'  // Tokyo
+        'ap-northeast-1', // Tokyo
+        'ap-southeast-2'  // Sydney
     ],
     stages = [
         'dev',
