@@ -29,6 +29,7 @@ require('../lib/plugins/aws/deploy/compile/events/sns/tests');
 
 // OpenWhisk Plugins Tests
 require('../lib/plugins/openwhisk/compile/tests');
+require('../lib/plugins/openwhisk/compile/events/tests');
 require('../lib/plugins/openwhisk/deploy/tests');
 require('../lib/plugins/openwhisk/invoke/tests');
 require('../lib/plugins/openwhisk/remove/tests');
