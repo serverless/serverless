@@ -51,3 +51,5 @@ You may also take a look at our [code of conduct](/code_of_conduct.md).
   - [How to build your own plugin](developing-plugins/building-plugins.md)
   - [How to build provider integration with your plugin](developing-plugins/building-provider-integrations.md)
 - [Service templates](service-templates)
+- [Usage tracking](usage-tracking)
+  - [Detailed information regarding usage tracking](usage-tracking.md)
