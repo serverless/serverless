@@ -76,7 +76,7 @@ Refer to our [documentation](http://docs.serverless.com) for more info.  Enjoy!
 * [Documentation](http://docs.serverless.com)
 * [Road Map](https://github.com/serverless/serverless/milestones)
 * [Changelog](https://github.com/serverless/serverless/releases)
-* [Email Updates](http://eepurl.com/bvz5Nj)
+* [Email Updates](http://eepurl.com/b8dv4P)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless) - We are in here all day long!
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
