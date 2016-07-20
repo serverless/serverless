@@ -2,6 +2,12 @@
 
 Welcome, and thanks in advance for your help!  Please follow these simple guidelines :)
 
+# How to contribute to Serverless
+
+* Please make sure there is an open issue discussing your Contribution.
+* If there isn't, please open an issue so we can talk about it before you invest time into the Implementation.
+* When creating an issue follow the guide that Github shows so we have enough information about your proposal.
+
 ## Pull Requests
 Please follow these Pull Request guidelines when creating Pull Requests:
 * If an Issue exists, mention in there that you are working on a solution.
@@ -15,14 +21,14 @@ Please follow these Pull Request guidelines when creating Pull Requests:
 ## Issues
 Please follow these Issue guidelines for opening Issues:
 * Make sure your Issue is not a duplicate.
-* Make sure your Issue is for a *feature request*, *bug report*, or *a discussion about a relevant topic*.  For everything else, please use StackOverflow with the `serverless` tag.
+* Make sure your Issue is for a *feature request*, *bug report*, or *a discussion about a relevant topic*.  For everything else, please use our [Discourse Forum](http://forum.serverless.com)
 * Add the relevant Issue Label(s) and together we will keep them updated.
 
 ### Code Style
-We aim for clean, consistent code style.  We're using ESlint to check for codestyle issues using the Airbnb preset. 
+We aim for clean, consistent code style.  We're using ESlint to check for codestyle issues using the Airbnb preset. If ESlint issues are found our build will fail and we can't merge the PR.
 
 Please follow these Code Style guidelines when writing your unit tests:
-* In the root of our repo, use this command to check for styling issues: `./node_modules/eslint/bin/eslint.js filename.js`
+* In the root of our repo, use this command to check for styling issues: `npm run lint`
 * There are likely ESlint plugins for your favorite code editor that will make this easier too!
 
 ### Testing
@@ -36,7 +42,7 @@ Please follow these Testing guidelines when writing your unit tests:
 *  For reference and inspiration, please check our `tests` directory.
 
 ## Providing Support
-The easiest thing you can do to help us move forward and make an impact on our progress is to simply provide support to other people having difficulties with their Serverless project. You can do that by replying to issues on Github, or simply chatting with other community members on Gitter. Your very presence is enough to make us happy.
+The easiest thing you can do to help us move forward and make an impact on our progress is to simply provide support to other people having difficulties with their Serverless projects. You can do that by replying to [issues on Github](https://github.com/serverless/serverless/issues), chatting with other community members in [our Chat](http://chat.serverless.com) or helping with questions in [our Forum](http://forum.serverless.com).
 
 ## Improving Documentation
 Maintaining and updating the docs on a regular basis is a hard task. The more eyeballs on the docs the higher quality it'll get and the less chances there will be for typos and confusion. We keep our docs in the `docs` folder in our main repo. If you see any issues with our docs, simply open an issue or a PR.

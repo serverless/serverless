@@ -9,6 +9,7 @@ const path = require('path');
 const os = require('os');
 const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
+const mockRequire = require('mock-require');
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -323,6 +324,11 @@ describe('PluginManager', () => {
   });
 
   describe('#loadAllPlugins()', () => {
+    beforeEach(() => {
+      mockRequire('ServicePluginMock1', ServicePluginMock1);
+      mockRequire('ServicePluginMock2', ServicePluginMock2);
+    });
+
     it('should load only core plugins when no service plugins are given', () => {
       // Note: We need the Create plugin for this test to pass
       pluginManager.loadAllPlugins();
@@ -333,7 +339,7 @@ describe('PluginManager', () => {
     });
 
     it('should load all plugins when service plugins are given', () => {
-      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+      const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
       pluginManager.loadAllPlugins(servicePlugins);
 
       const servicePluginMock1 = new ServicePluginMock1();
@@ -347,7 +353,7 @@ describe('PluginManager', () => {
     });
 
     it('should load all plugins in the correct order', () => {
-      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+      const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
 
       // we need to mock it so that tests won't break when more core plugins are added later on
       // because we access the plugins array with an index which will change every time a new core
@@ -364,6 +370,11 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins[1]).to.be.instanceof(ServicePluginMock1);
       expect(pluginManager.plugins[2]).to.be.instanceof(ServicePluginMock2);
     });
+
+    afterEach(() => {
+      mockRequire.stop('ServicePluginMock1');
+      mockRequire.stop('ServicePluginMock2');
+    });
   });
 
   describe('#loadCorePlugins()', () => {
@@ -375,8 +386,13 @@ describe('PluginManager', () => {
   });
 
   describe('#loadServicePlugins()', () => {
+    beforeEach(() => {
+      mockRequire('ServicePluginMock1', ServicePluginMock1);
+      mockRequire('ServicePluginMock2', ServicePluginMock2);
+    });
+
     it('should load the service plugins', () => {
-      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+      const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
       pluginManager.loadServicePlugins(servicePlugins);
 
       const servicePluginMock1 = new ServicePluginMock1();
@@ -384,6 +400,11 @@ describe('PluginManager', () => {
 
       expect(pluginManager.plugins).to.contain(servicePluginMock1);
       expect(pluginManager.plugins).to.contain(servicePluginMock2);
+    });
+
+    afterEach(() => {
+      mockRequire.stop('ServicePluginMock1');
+      mockRequire.stop('ServicePluginMock2');
     });
   });
 
@@ -433,12 +454,22 @@ describe('PluginManager', () => {
   });
 
   describe('#getPlugins()', () => {
+    beforeEach(() => {
+      mockRequire('ServicePluginMock1', ServicePluginMock1);
+      mockRequire('ServicePluginMock2', ServicePluginMock2);
+    });
+
     it('should return all loaded plugins', () => {
-      const servicePlugins = [ServicePluginMock1, ServicePluginMock2];
+      const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
       pluginManager.loadServicePlugins(servicePlugins);
 
       expect(pluginManager.getPlugins()[0]).to.be.instanceof(ServicePluginMock1);
       expect(pluginManager.getPlugins()[1]).to.be.instanceof(ServicePluginMock2);
+    });
+
+    afterEach(() => {
+      mockRequire.stop('ServicePluginMock1');
+      mockRequire.stop('ServicePluginMock2');
     });
   });
 
@@ -622,27 +653,19 @@ describe('PluginManager', () => {
     serverlessInstance.init();
     const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
       '..', 'bin', 'serverless');
-    const serviceName = `cli-integration-${(new Date).getTime().toString()}`;
-    const providerName = 'aws';
     const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();
     process.chdir(tmpDir);
 
-    execSync(`${serverlessExec} create --name ${
-      serviceName
-      } --provider ${
-      providerName
-      }`);
-
-    process.chdir(path.join(tmpDir, serviceName));
+    execSync(`${serverlessExec} create --template aws-nodejs`);
 
     expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, serviceName, 'serverless.yaml'))).to.equal(true);
+      .fileExistsSync(path.join(tmpDir, 'serverless.yaml'))).to.equal(true);
     expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, serviceName, 'serverless.env.yaml'))).to.equal(true);
+      .fileExistsSync(path.join(tmpDir, 'serverless.env.yaml'))).to.equal(true);
     expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, serviceName, 'handler.js'))).to.equal(true);
+      .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.equal(true);
 
     process.chdir(cwd);
   });

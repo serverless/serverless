@@ -5,6 +5,7 @@
     "./deploy/deploy.js",
     "./invoke/invoke.js",
     "./remove/remove.js",
+    "./tracking/tracking.js",
     "./aws/deploy/index.js",
     "./aws/invoke/index.js",
     "./aws/remove/index.js",

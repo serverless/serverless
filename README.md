@@ -9,7 +9,7 @@ Serverless Framework v.1.0
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-The Serverless Framework is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services, like [AWS Lambda](https://aws.amazon.com/lambda/), [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more. 
+The Serverless Framework is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services, like [AWS Lambda](https://aws.amazon.com/lambda/), [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more.
 
 The Framework is a command line interface that provides scaffolding, automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
@@ -19,7 +19,8 @@ Also, [we're hiring](mailto:jobs@serverless.com) :)
 
 ## Status
 
-Serverless Framework v.1.0 is currently under construction and not yet ready.
+The Serverless Framework v.1.0 is currently under construction. While the Alpha releases have high code quality and the implemented features can be used we don't have 100% feature parity with 0.5 yet. If you're starting a new project we
+advise to start with 1.0 right away.
 
 ## Features
 
@@ -38,3 +39,7 @@ Serverless Framework v.1.0 is currently under construction and not yet ready.
 ## [Documentation](/docs)
 
 Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.
+
+## Contribute
+
+Please read our [Contributing Document](CONTRIBUTING.md) to learn more how you can start working on the Framework yourself.

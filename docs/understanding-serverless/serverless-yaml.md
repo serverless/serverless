@@ -10,6 +10,8 @@ service: first_service
 
 provider: aws
 
+runtime: nodejs4.3
+
 plugins:
     - additional_plugin
     - another_plugin

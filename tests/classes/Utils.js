@@ -122,6 +122,31 @@ describe('Utils', () => {
     });
   });
 
+  describe('#copyDirContentsSync()', () => {
+    it('recursively copy directory files', () => {
+      const tmpSrcDirPath = path.join(process.cwd(), 'testSrc');
+      const tmpDestDirPath = path.join(process.cwd(), 'testDest');
+
+      const srcFile1 = path.join(tmpSrcDirPath, 'file1.txt');
+      const srcFile2 = path.join(tmpSrcDirPath, 'folder', 'file2.txt');
+      const srcFile3 = path.join(tmpSrcDirPath, 'folder', 'folder', 'file3.txt');
+
+      const destFile1 = path.join(tmpDestDirPath, 'file1.txt');
+      const destFile2 = path.join(tmpDestDirPath, 'folder', 'file2.txt');
+      const destFile3 = path.join(tmpDestDirPath, 'folder', 'folder', 'file3.txt');
+
+      serverless.utils.writeFileSync(srcFile1, 'foo');
+      serverless.utils.writeFileSync(srcFile2, 'foo');
+      serverless.utils.writeFileSync(srcFile3, 'foo');
+
+      serverless.utils.copyDirContentsSync(tmpSrcDirPath, tmpDestDirPath);
+
+      expect(serverless.utils.fileExistsSync(destFile1)).to.equal(true);
+      expect(serverless.utils.fileExistsSync(destFile2)).to.equal(true);
+      expect(serverless.utils.fileExistsSync(destFile3)).to.equal(true);
+    });
+  });
+
   describe('#generateShortId()', () => {
     it('should generate a shortId', () => {
       const id = serverless.utils.generateShortId();
