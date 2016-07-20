@@ -15,6 +15,7 @@
     "./aws/deploy/compile/events/sns/index.js",
     "./openwhisk/deploy/index.js",
     "./openwhisk/compile/index.js",
+    "./openwhisk/compile/events/index.js",
     "./openwhisk/invoke/index.js",
     "./openwhisk/remove/index.js"
   ]
