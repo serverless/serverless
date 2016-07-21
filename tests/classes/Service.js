@@ -21,7 +21,7 @@ describe('Service', () => {
       const serviceInstance = new Service(serverless);
 
       expect(serviceInstance.service).to.be.equal(null);
-      expect(serviceInstance.provider).to.be.equal(null);
+      expect(serviceInstance.provider).to.deep.equal({});
       expect(serviceInstance.runtime).to.be.equal(null);
       expect(serviceInstance.variableSyntax).to.be.equal(null);
       expect(serviceInstance.custom).to.deep.equal({});
@@ -151,7 +151,7 @@ describe('Service', () => {
       };
       return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('commonVar');
-        expect(loadedService.provider).to.be.equal('aws');
+        expect(loadedService.provider).to.deep.equal({ name: 'aws' });
         expect(loadedService.runtime).to.be.equal('nodejs4.3');
         expect(loadedService.plugins).to.deep.equal(['testPlugin']);
         expect(loadedService.environment.vars).to.deep.equal(commonVars);
