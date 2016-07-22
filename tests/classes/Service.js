@@ -467,6 +467,43 @@ describe('Service', () => {
       });
     });
 
+    it('should load and add events property if no events provided', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'testService',
+        provider: 'aws',
+        runtime: 'nodejs4.3',
+        functions: {
+          functionA: {},
+        },
+      };
+      const serverlessEnvYaml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+      return serviceInstance.load().then((loadedService) => {
+        expect(loadedService.functions).to.be.deep.equal({ functionA: { events: [] } });
+      });
+    });
+
     it('should throw error if service property is missing', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
