@@ -52,3 +52,40 @@ functions:
                 path: posts/create
                 method: post
 ```
+
+### Http setup with custom authorizer
+You can enable custom authorizers for your HTTP endpoint with the following config:
+
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer: authorizerFunc
+    authorizerFunc:
+        handler: handlers.authorizerFunc
+```
+Or, if you want to config the authorizer, you can do:
+
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer:
+                    name: authorizerFunc
+                    resultTtlInSeconds: 0
+                    identitySource: method.request.header.Auth
+                    identityValidationExpression: someRegex
+    authorizerFunc:
+        handler: handlers.authorizerFunc
+```
+Note: `authorizerFunc` must actually exist in your service `serverless.yaml` and is pointing to a valid handler.
