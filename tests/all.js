@@ -29,8 +29,8 @@ require('../lib/plugins/aws/deploy/compile/events/apiGateway/tests/all');
 require('../lib/plugins/aws/deploy/compile/events/sns/tests');
 
 // OpenWhisk Plugins Tests
-require('../lib/plugins/openwhisk/compile/tests');
-require('../lib/plugins/openwhisk/compile/events/tests');
+require('../lib/plugins/openwhisk/compile/triggers/tests');
+require('../lib/plugins/openwhisk/compile/functions/tests');
 require('../lib/plugins/openwhisk/deploy/tests');
 require('../lib/plugins/openwhisk/deploy/tests/all');
 require('../lib/plugins/openwhisk/invoke/tests');
