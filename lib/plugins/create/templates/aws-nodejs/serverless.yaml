@@ -17,37 +17,34 @@ runtime: nodejs4.3
 
 # you can overwrite defaults here
 #defaults:
-#    stage: dev
-#    region: us-east-1
+#  stage: dev
+#  region: us-east-1
 
 # you can add packaging information here
 #package:
-#    include:
-#        - include-me.js
-#    exclude:
-#        - exclude-me.js
-#    artifact: my-service-code.zip
+#  include:
+#    - include-me.js
+#  exclude:
+#    - exclude-me.js
+#  artifact: my-service-code.zip
 
 functions:
-    hello:
-        handler: handler.hello
+  hello:
+    handler: handler.hello
 
-#       you can add any of the following events
-#       events:
-#           - http:
-#               path: users/create
-#               method: get
-#           - s3: ${bucket}
-#           - schedule: rate(10 minutes)
-#           - sns: greeter-topic
+#   you can add any of the following events
+#   events:
+#     - http:
+#       path: users/create
+#       method: get
+#     - s3: ${bucket}
+#     - schedule: rate(10 minutes)
+#     - sns: greeter-topic
 
 # you can add CloudFormation resource templates here
 #resources:
-#    Resources:
-#      newResource:
-#        Type: AWS::S3::Bucket
-#        Properties:
-#          BucketName: newBucket
-
-
-
+#  Resources:
+#    newResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: newBucket

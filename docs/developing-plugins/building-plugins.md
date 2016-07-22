@@ -371,8 +371,8 @@ A user has to define the plugins they want to use in the root level of the
 
 ```yaml
 plugins:
-    - custom-plugin-1
-    - custom-plugin-2
+  - custom-plugin-1
+  - custom-plugin-2
 ```
 
 We do not auto-detect plugins from installed dependencies so users do not run into any surprises and we cut down on the
@@ -389,10 +389,10 @@ file provides the `custom` section where you can add options your plugin can use
 
 ```yaml
 plugins:
-    - my-greet-plugin
+  - my-greet-plugin
 
 custom:
-    greeting: hello
+  greeting: hello
 ```
 
 ## Plugin Order
