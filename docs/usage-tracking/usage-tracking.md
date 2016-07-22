@@ -15,6 +15,7 @@ Here's a list about all the information we track:
 - Serverless version
 - Number of functions inside your service
 - Total number of events inside your service
+- Event types and how often they were defined
 - Provider of your service
 - If the command was executed inside a service
 
