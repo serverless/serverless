@@ -14,9 +14,9 @@ function will have events attached:
 
 ```yaml
 functions:
-    hello:
-        handler: handler.hello
-        events:
+  hello:
+    handler: handler.hello
+    events:
 ```
 
 This `events` property is used to store all the event definitions for the function.
@@ -26,12 +26,12 @@ Let's add a `http` event with a path of `greet` and a method of `get`:
 
 ```yaml
 functions:
-    hello:
-        handler: handler.hello
-        events:
-            - http:
-                path: greet
-                method: get
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+        path: greet
+        method: get
 ```
 
 That's it. There's nothing more to do to setup a `http` event. Let's (re)deploy our service so that Serverless will

@@ -44,21 +44,21 @@ service: users
 provider: aws
 runtime: nodejs4.3
 defaults: # overwrite defaults
-    memory: ${memoryVar} # reference a Serverless variable
+  memory: ${memoryVar} # reference a Serverless variable
 functions:
-    create:
-        handler: users.create
+  create:
+    handler: users.create
 ```
 
 ### [`serverless.env.yaml`](./serverless-env-yaml.md)
 
 ```yaml
 vars:
-    memoryVar: 512
+  memoryVar: 512
 stages:
-    dev:
+  dev:
+    vars:
+    regions:
+      us-east-1:
         vars:
-        regions:
-            us-east-1:
-                vars:
 ```

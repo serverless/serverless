@@ -10,15 +10,15 @@ regions. It also manages variables at 3 levels ordered by priority:
 
 ```yaml
 vars:
-    someVar: 1
+  someVar: 1
 stages:
-    dev:
+  dev:
+    vars:
+      someVar: 2
+    regions:
+      us-east-1:
         vars:
-            someVar: 2
-        regions:
-            us-east-1:
-                vars:
-                  someVar: 3
+          someVar: 3
 ```
 
 Notice that you have the same variable defined in as common, stage and region variable. In that case the region variable
