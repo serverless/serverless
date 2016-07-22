@@ -72,7 +72,7 @@
     "moment": "^2.13.0",
     "node-fetch": "^1.5.3",
     "node-zip": "^1.1.1",
-    "openwhisk": "^2.1.0",
+    "openwhisk": "^2.1.1",
     "replaceall": "^0.1.6",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
