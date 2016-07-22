@@ -41,8 +41,8 @@ users
 ```yaml
 service: users
 provider:
-    name: aws
-    runtime: nodejs4.3
+  name: aws
+  runtime: nodejs4.3
 defaults: # overwrite defaults
   memory: ${memoryVar} # reference a Serverless variable
 functions:

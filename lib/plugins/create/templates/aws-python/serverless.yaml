@@ -13,8 +13,8 @@
 
 service: aws-python
 provider:
-    name: aws
-    runtime: python2.7
+  name: aws
+  runtime: python2.7
 
 # you can overwrite defaults here
 #defaults:

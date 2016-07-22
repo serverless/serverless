@@ -13,8 +13,8 @@
 
 service: aws-nodejs
 provider:
-    name: aws
-    runtime: nodejs4.3
+  name: aws
+  runtime: nodejs4.3
 
 # you can overwrite defaults here
 #defaults:
