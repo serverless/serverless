@@ -13,10 +13,11 @@ service afterwards.
 
 1. `npm install -g serverless@alpha`
 2. `mkdir my-first-service && cd my-first-service`
-3. `serverless create --template aws-nodejs`
-4. `serverless deploy`
-5. `serverless invoke --function hello`
-6. `serverless remove`
+3. `serverless create --template --name aws-nodejs --provider aws`
+4. `cd aws-nodejs`
+5. `serverless deploy`
+6. `serverless invoke --function hello`
+7. `serverless remove`
 
 ## How to contribute to Serverless
 
