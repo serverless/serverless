@@ -27,7 +27,7 @@ package:
 #    - include-me.java
 #  exclude:
 #    - exclude-me.java
-  artifact: target/hello-0.0.1-SNAPSHOT.jar
+  artifact: target/hello-dev.jar
 
 functions:
   hello:

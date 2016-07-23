@@ -4,7 +4,7 @@
   <groupId>com</groupId>
   <artifactId>hello</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>dev</version>
   <name>hello</name>
 
   <dependencies>
@@ -19,6 +19,15 @@
 
   <build>
     <plugins>
+      <!--
+        Using the Apache Maven Shade plugin to package the jar
+
+        "This plugin provides the capability to package the artifact
+        in an uber-jar, including its dependencies and to shade - i.e. rename -
+        the packages of some of the dependencies."
+
+        Link: https://maven.apache.org/plugins/maven-shade-plugin/
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
