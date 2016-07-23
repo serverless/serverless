@@ -12,8 +12,9 @@
 # Happy Coding!
 
 service: aws-java-maven
-provider: aws
-runtime: java8
+provider:
+  name: aws
+  runtime: java8
 
 # you can overwrite defaults here
 #defaults:
@@ -26,7 +27,7 @@ package:
 #    - include-me.java
 #  exclude:
 #    - exclude-me.java
- artifact: target/hello-0.0.1-SNAPSHOT.jar
+  artifact: target/hello-0.0.1-SNAPSHOT.jar
 
 functions:
   hello:

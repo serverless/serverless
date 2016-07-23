@@ -12,8 +12,4 @@ public class Handler implements RequestHandler<Request, Response> {
 		return new Response("Go Serverless v1.0! Your function executed successfully!", input);
 	}
 
-	// public static void main (String[] arg) {
-	// 	System.out.println(arg[0]);
-  // }
-
 }
