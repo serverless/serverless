@@ -12,8 +12,9 @@
 # Happy Coding!
 
 service: aws-java-gradle
-provider: aws
-runtime: java8
+provider:
+  name: aws
+  runtime: java8
 
 # you can overwrite defaults here
 #defaults:
@@ -26,7 +27,7 @@ package:
 #    - include-me.java
 #  exclude:
 #    - exclude-me.java
- artifact: build/distributions/hello.zip
+  artifact: build/distributions/hello.zip
 
 functions:
   hello:

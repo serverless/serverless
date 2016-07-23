@@ -1,12 +1,6 @@
 package hello;
 
 public class Request {
-  // Test Event: Hello World
-  // {
-  //   "key3": "value3",
-  //   "key2": "value2",
-  //   "key1": "value1"
-  // }
 
 	private String key1;
 	private String key2;
