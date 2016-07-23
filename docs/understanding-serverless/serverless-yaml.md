@@ -8,9 +8,9 @@ Here's an example `serverless.yaml` file that touches on all the config details.
 ```yaml
 service: first_service
 
-provider: aws
-
-runtime: nodejs4.3
+provider:
+  name: aws
+  runtime: nodejs4.3
 
 plugins:
   - additional_plugin

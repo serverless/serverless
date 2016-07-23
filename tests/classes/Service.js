@@ -22,7 +22,6 @@ describe('Service', () => {
 
       expect(serviceInstance.service).to.be.equal(null);
       expect(serviceInstance.provider).to.deep.equal({});
-      expect(serviceInstance.runtime).to.be.equal(null);
       expect(serviceInstance.variableSyntax).to.be.equal(null);
       expect(serviceInstance.custom).to.deep.equal({});
       expect(serviceInstance.plugins).to.deep.equal([]);
@@ -36,7 +35,6 @@ describe('Service', () => {
       const data = {
         service: 'testService',
         provider: 'testProvider',
-        runtime: 'testRuntime',
         custom: {
           customProp: 'value',
         },
@@ -62,7 +60,6 @@ describe('Service', () => {
 
       expect(serviceInstance.service).to.be.equal('testService');
       expect(serviceInstance.provider).to.be.equal('testProvider');
-      expect(serviceInstance.runtime).to.be.equal('testRuntime');
       expect(serviceInstance.custom).to.deep.equal({ customProp: 'value' });
       expect(serviceInstance.plugins).to.deep.equal(['testPlugin']);
       expect(serviceInstance.functions).to.deep.equal({ functionA: {} });
@@ -73,6 +70,30 @@ describe('Service', () => {
       expect(serviceInstance.package.include[0]).to.equal('include-me.js');
       expect(serviceInstance.package.exclude[0]).to.equal('exclude-me.js');
       expect(serviceInstance.package.artifact).to.equal('some/path/foo.zip');
+    });
+
+    it('should support string based provider config', () => {
+      const data = {
+        provider: 'testProvider',
+      };
+
+      const serviceInstance = new Service(serverless, data);
+
+      expect(serviceInstance.provider).to.be.equal('testProvider');
+    });
+
+    it('should support object based provider config', () => {
+      const data = {
+        provider: {
+          name: 'testProvider',
+          runtime: 'nodejs4.3',
+        },
+      };
+
+      const serviceInstance = new Service(serverless, data);
+
+      expect(serviceInstance.provider.name).to.be.equal('testProvider');
+      expect(serviceInstance.provider.runtime).to.be.equal('nodejs4.3');
     });
   });
 
@@ -92,7 +113,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: '${testVar}',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         defaults: {
           stage: 'dev',
           region: 'us-east-1',
@@ -152,7 +172,6 @@ describe('Service', () => {
       return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('commonVar');
         expect(loadedService.provider).to.deep.equal({ name: 'aws' });
-        expect(loadedService.runtime).to.be.equal('nodejs4.3');
         expect(loadedService.plugins).to.deep.equal(['testPlugin']);
         expect(loadedService.environment.vars).to.deep.equal(commonVars);
         expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars)
@@ -174,7 +193,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: '${testVar}',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         functions: {},
       };
       const serverlessEnvYaml = {
@@ -213,7 +231,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: '${testVar}',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         plugins: ['testPlugin'],
         functions: {},
       };
@@ -256,7 +273,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           digit: '${testDigit}',
         },
@@ -298,7 +314,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           object: '${testObject}',
         },
@@ -342,7 +357,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           object: '${testObject.subProperty.deepSubProperty}',
         },
@@ -388,7 +402,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           substring: 'Hello ${testSubstring.subProperty.deepSubProperty}',
         },
@@ -434,7 +447,6 @@ describe('Service', () => {
         service: '${{testVar}}',
         variableSyntax: '\\${{([\\s\\S]+?)}}',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         functions: {},
       };
       const serverlessEnvYaml = {
@@ -509,7 +521,6 @@ describe('Service', () => {
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYaml = {
         provider: 'aws',
-        runtime: 'nodejs4.3',
         functions: {},
       };
       const serverlessEnvYaml = {
@@ -548,7 +559,6 @@ describe('Service', () => {
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYaml = {
         service: 'service-name',
-        runtime: 'nodejs4.3',
         functions: {},
       };
       const serverlessEnvYaml = {
@@ -588,46 +598,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'invalid',
-        runtime: 'nodejs4.3',
-        functions: {},
-      };
-      const serverlessEnvYaml = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {},
-            regions: {},
-          },
-        },
-      };
-
-      serverlessEnvYaml.stages.dev.regions['us-east-1'] = {
-        vars: {},
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
-        YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
-        YAML.dump(serverlessEnvYaml));
-
-      const serverless = new Serverless({ servicePath: tmpDirPath });
-      serviceInstance = new Service(serverless);
-
-      return serviceInstance.load().then(() => {
-        // if we reach this, then no error was thrown as expected
-        // so make assertion fail intentionally to let us know something is wrong
-        expect(1).to.equal(2);
-      }).catch(e => {
-        expect(e.name).to.be.equal('ServerlessError');
-      });
-    });
-
-    it('should throw error if runtime property is missing', () => {
-      const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
-      const serverlessYaml = {
-        service: 'service-name',
-        provider: 'aws',
         functions: {},
       };
       const serverlessEnvYaml = {
@@ -666,7 +636,6 @@ describe('Service', () => {
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYaml = {
         service: 'service-name',
-        runtime: 'nodejs4.3',
         provider: 'aws',
       };
       const serverlessEnvYaml = {
@@ -704,7 +673,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           object: '${testVar}',
         },
@@ -747,7 +715,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           testVar: '${testVar.subProperty}',
         },
@@ -792,7 +759,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           testVar: '${testVar.subProperty}',
         },
@@ -837,7 +803,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           testObject: '${testObject.subProperty.deepSubProperty}',
         },
@@ -884,7 +849,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           testVar: '${testVar} String',
         },
@@ -929,7 +893,6 @@ describe('Service', () => {
       const serverlessYaml = {
         service: 'service-name',
         provider: 'aws',
-        runtime: 'nodejs4.3',
         custom: {
           testObject: '${testObject.subProperty} String',
         },

@@ -9,8 +9,7 @@ Each *Serverless service* contains two configuration files:
 ### [`serverless.yaml`](./serverless-yaml.md)
   - Declares a Serverless service
   - Defines one or multiple functions in the service
-  - Defines the provider the service will be deployed to
-  - Defines the runtime of the whole service
+  - Defines the provider the service will be deployed to (and the runtime if provided)
   - Defines custom plugins to be used
   - Defines events that trigger each function to execute (e.g. HTTP requests)
   - Defines one set of resources (e.g. 1 AWS CloudFormation stack) required by the functions in this service
@@ -41,8 +40,9 @@ users
 
 ```yaml
 service: users
-provider: aws
-runtime: nodejs4.3
+provider:
+  name: aws
+  runtime: nodejs4.3
 defaults: # overwrite defaults
   memory: ${memoryVar} # reference a Serverless variable
 functions:
