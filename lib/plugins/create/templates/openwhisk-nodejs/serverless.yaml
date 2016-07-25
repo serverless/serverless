@@ -1,0 +1,82 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    v1.docs.serverless.com
+#
+# Happy Coding!
+
+service: my-service
+provider:
+  name: openwhisk
+  runtime: nodejs
+
+functions:
+  hello:
+    handler: handler.main
+
+#   you customise the following properties (default values shown)...
+#   
+#   overwrite: false
+#   ^^ allow overwriting on existing functions
+#
+#   parameters: 
+#     someParam: someValue 
+#   ^^ define default parameter values for functions
+#
+#   name: ${serviceName_functionName} 
+#   ^^ define deployment id for function
+#
+#   namespace: ${userNamespace}
+#   ^^ define deployment namespace for function
+#
+#   memory: 256
+#   ^^ runtime memory for function
+#
+#   timeout: 60
+#   ^^ execution timeout for function
+#
+#   runtime: nodejs
+#   ^^ customise runtime environment for function
+#
+#   ...as well as binding functions to triggers using rules
+#
+#   events:
+#       myRuleName: myTriggerName 
+
+
+#   you can define triggers using the resources section:
+#
+# resources:
+#     triggers:
+#         myTriggerName: ... 
+#
+#   triggers can be empty...
+#
+# resources:
+#     triggers:
+#         myTriggerName: {}
+#
+#   ... or contain the following properties
+#
+#   namespace: ${userNamespace}
+#   ^^ define deployment namespace for trigger 
+#
+#   overwrite: false
+#   ^^ allow overwriting existing trigger
+#
+#   parameters: 
+#     someParam: someValue 
+#   ^^ define default parameter values for triggers 
+#
+#   feed: feedIdentifier
+#   ^^ bind trigger to feed
+#
+#   feed_parameters:
+#     someParam: someValue
+#   ^^ define default parameter values for feed
