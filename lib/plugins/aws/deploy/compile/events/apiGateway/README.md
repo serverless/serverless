@@ -54,7 +54,7 @@ functions:
 ```
 
 ### Http setup with custom authorizer
-You can enable custom authorizers for your HTTP endpoint with the following config:
+You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function in the same service, as shown in the following example
 
 ```yml
 # serverless.yaml
@@ -69,7 +69,7 @@ functions:
     authorizerFunc:
         handler: handlers.authorizerFunc
 ```
-Or, if you want to config the authorizer, you can do:
+Or, if you want to configure the authorizer with more options, you can do:
 
 ```yml
 # serverless.yaml
@@ -88,4 +88,34 @@ functions:
     authorizerFunc:
         handler: handlers.authorizerFunc
 ```
-Note: `authorizerFunc` must actually exist in your service `serverless.yaml` and is pointing to a valid handler.
+
+### Http setup with custom authorizer (via ARN)
+If the authorizer function does not exist in your service but exists in AWS, you can provide the ARN of the Lambda function instead of the function name, as shown in the following example:
+
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer: xxx:xxx:Lambda-Name
+```
+Or, if you want to configure the authorizer with more options, you can do:
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer:
+                    arn: xxx:xxx:Lambda-Name
+                    resultTtlInSeconds: 0
+                    identitySource: method.request.header.Auth
+                    identityValidationExpression: someRegex
+```
