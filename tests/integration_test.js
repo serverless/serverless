@@ -25,9 +25,10 @@ const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
 describe('Service Lifecyle Integration Test', () => {
-  it('should create service in tmp directory', () => {
+  it('should create service in tmp directory', function () {
+    this.timeout(10000);
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
-    execSync(`sed -i '' "s/${templateName}/${newServiceName}/g" serverless.yaml`);
+    execSync(`sed -i.bak s/${templateName}/${newServiceName}/g serverless.yaml`);
     expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'serverless.yaml'))).to.be.equal(true);
     expect(serverless.utils
