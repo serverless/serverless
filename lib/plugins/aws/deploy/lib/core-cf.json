@@ -54,15 +54,6 @@
     }
   },
   "Outputs": {
-    "IamRoleArnLambda": {
-      "Description": "ARN of the lambda IAM role",
-      "Value": {
-        "Fn::GetAtt": [
-          "IamRoleLambda",
-          "Arn"
-        ]
-      }
-    },
     "ServerlessDeploymentBucketName": {
       "Value": {
         "Ref": "ServerlessDeploymentBucket"
