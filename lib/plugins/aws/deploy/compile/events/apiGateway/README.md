@@ -69,7 +69,7 @@ functions:
     authorizerFunc:
         handler: handlers.authorizerFunc
 ```
-Or, if you want to configure the authorizer with more options, you can do:
+Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as shown in the following example:
 
 ```yml
 # serverless.yaml
@@ -103,7 +103,7 @@ functions:
                 method: post
                 authorizer: xxx:xxx:Lambda-Name
 ```
-Or, if you want to configure the authorizer with more options, you can do:
+Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as shown in the following example:
 ```yml
 # serverless.yaml
 functions:
