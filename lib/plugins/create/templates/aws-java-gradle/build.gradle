@@ -11,6 +11,7 @@ dependencies {
     )
 }
 
+// Task for building the zip file for upload
 task buildZip(type: Zip) {
     // Using the Zip API from gradle to build a zip file of all the dependencies
     //
