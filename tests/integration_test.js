@@ -24,7 +24,7 @@ BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 describe('Service Lifecyle Integration Test', () => {
   it('should create service in tmp directory', () => {
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
-    execSync(`sed -i s/${templateName}/$RANDOM/g serverless.yaml`);
+    execSync(`sed -i "s/${templateName}/$RANDOM/g" serverless.yaml`);
     expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'serverless.yaml'))).to.be.equal(true);
     expect(serverless.utils
