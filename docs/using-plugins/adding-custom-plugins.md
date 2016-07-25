@@ -22,7 +22,7 @@ of the plugin to the `plugins` section in the [`serverless.yaml`](../understandi
 
 ```yaml
 plugins:
-    - custom-serverless-plugin
+  - custom-serverless-plugin
 ```
 
 Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the
@@ -31,10 +31,10 @@ configurations for your plugins (the plugins author / documentation will tell yo
 
 ```yaml
 plugins:
-    - custom-serverless-plugin
+  - custom-serverless-plugin
 
 custom:
-    customkey: customvalue
+  customkey: customvalue
 ```
 
 ## Load order
@@ -44,8 +44,8 @@ plugins](core-plugins.md) and then the custom plugins in the order you've define
 
 ```yaml
 plugins:
-    - plugin1
-    - plugin2
+  - plugin1
+  - plugin2
 ```
 
 In this case `plugin1` is loaded before `plugin2`.

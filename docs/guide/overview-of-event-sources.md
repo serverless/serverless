@@ -17,10 +17,10 @@ This will create a `photos` bucket which fires the `resize` function when an obj
 
 ```yaml
 functions:
-    resize:
-        handler: resize
-        events:
-            - s3: photos
+  resize:
+    handler: resize
+    events:
+      - s3: photos
 ```
 
 #### Extended event definition
@@ -29,12 +29,12 @@ This will create a bucket `photos`. The `users` function is called whenever an o
 
 ```yaml
 functions:
-    users:
-        handler: users.handler
-        events:
-            - s3:
-                bucket: photos
-                event: s3:ObjectRemoved:*
+  users:
+    handler: users.handler
+    events:
+      - s3:
+        bucket: photos
+        event: s3:ObjectRemoved:*
 ```
 
 ### Schedule
@@ -45,10 +45,10 @@ This will attach a schedule event and causes the function `crawl` to be called e
 
 ```yaml
 functions:
-    crawl:
-        handler: crawl
-        events:
-            - schedule: rate(2 hours)
+  crawl:
+    handler: crawl
+    events:
+      - schedule: rate(2 hours)
 ```
 
 #### Extended event definition
@@ -58,12 +58,12 @@ the `aggregate` function every 10 minutes.
 
 ```yaml
 functions:
-    aggregate:
-        handler: statistics.handler
-        events:
-            - schedule:
-                rate: rate(10 minutes)
-                enabled: false
+  aggregate:
+    handler: statistics.handler
+    events:
+      - schedule:
+        rate: rate(10 minutes)
+        enabled: false
 ```
 
 ### HTTP endpoint
@@ -75,10 +75,10 @@ whenever the endpoint is accessed.
 
 ```yaml
 functions:
-    show:
-        handler: users.show
-        events:
-            - http: GET users/show
+  show:
+    handler: users.show
+    events:
+      - http: GET users/show
 ```
 
 #### Extended event definition
@@ -88,12 +88,12 @@ The function `create` is called every time someone visits this endpoint.
 
 ```yaml
 functions:
-    create:
-        handler: posts.create
-        events:
-            - http:
-                path: posts/create
-                method: POST
+  create:
+    handler: posts.create
+    events:
+      - http:
+        path: posts/create
+        method: POST
 ```
 
 ### SNS
@@ -105,10 +105,10 @@ called every time a message is sent to the `dispatch` topic.
 
 ```yaml
 functions:
-    dispatcher:
-        handler: dispatcher.dispatch
-        events:
-            - sns: dispatch
+  dispatcher:
+    handler: dispatcher.dispatch
+    events:
+      - sns: dispatch
 ```
 
 #### Extended event definition
@@ -119,10 +119,10 @@ SNS topic is used for.
 
 ```yaml
 functions:
-    aggregator:
-        handler: aggregator.handler
-        events:
-            - sns:
-                topic_name: aggregate
-                display_name: Data aggregation pipeline
+  aggregator:
+    handler: aggregator.handler
+    events:
+      - sns:
+        topic_name: aggregate
+        display_name: Data aggregation pipeline
 ```

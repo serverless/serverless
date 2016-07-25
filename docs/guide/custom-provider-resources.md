@@ -20,11 +20,11 @@ You can use this place to add custom provider resources by writing the resource 
 ```yaml
 # serverless.yaml
 resources:
-    Resources:
-        CustomProviderResource:
-            Type: ResourceType
-            Properties:
-                Key: Value
+  Resources:
+    CustomProviderResource:
+      Type: ResourceType
+      Properties:
+        Key: Value
 ```
 
 ## Referencing an external `.json` file
@@ -38,8 +38,8 @@ like this:
 
 ```yaml
 resources:
-    Resources:
-        $ref: ./cloudformation-resources.json
+  Resources:
+    $ref: ./cloudformation-resources.json
 ```
 
 The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded
