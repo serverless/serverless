@@ -18,11 +18,13 @@ fse.mkdirSync(tmpDir);
 process.chdir(tmpDir);
 
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
+const templateName = 'aws-nodejs';
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
 describe('Service Lifecyle Integration Test', () => {
   it('should create service in tmp directory', () => {
-    execSync(`${serverlessExec} create --template aws-nodejs`, { stdio: 'inherit' });
+    execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
+    execSync(`sed -i s/${templateName}/$RANDOM/g serverless.yaml`);
     expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'serverless.yaml'))).to.be.equal(true);
     expect(serverless.utils
@@ -50,7 +52,7 @@ describe('Service Lifecyle Integration Test', () => {
     const newHandler =
       `
         'use strict';
-        
+
         module.exports.hello = (event, context, cb) => cb(null,
           { message: 'Service Update Succeeded' }
         );
