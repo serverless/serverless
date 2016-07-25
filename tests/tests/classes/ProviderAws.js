@@ -13,6 +13,7 @@ let assert      = require('chai').assert,
         'eu-central-1',   // Frankfurt
         'eu-west-1',      // Ireland
         'ap-northeast-1'  // Tokyo
+        'ap-southeast-2'  // Sydney
     ],
     stages = [
         'dev',
