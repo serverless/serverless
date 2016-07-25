@@ -33,6 +33,9 @@ Here's a list of all available commands you can use:
 2. `sls`
 3. `slss`
 
+**Note:** If you want to run multiple Serverless versions on your machine you might want to check out
+[this issue](https://github.com/serverless/serverless/issues/1572).
+
 ## Conclusion
 
 We've just installed Node.js and Serverless on our local machine! The next step is to configure our cloud provider
