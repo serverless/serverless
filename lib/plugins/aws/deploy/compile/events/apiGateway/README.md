@@ -119,3 +119,6 @@ functions:
                     identitySource: method.request.header.Auth
                     identityValidationExpression: someRegex
 ```
+
+### Setting an HTTP proxy on API Gateway
+Setting an API Gateway proxy can easily be done by adding two custom CloudFormation resource templates to your `serverless.yaml` file. [Check this guide for more info on how to set up a proxy using custom CloudFormation resources in `serverless.yaml`](https://github.com/serverless/serverless/blob/v1.0/docs/guide/custom-provider-resources.md).
