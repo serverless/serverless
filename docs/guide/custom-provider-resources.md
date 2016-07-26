@@ -28,7 +28,7 @@ resources:
 ```
 
 ### Example custom resources - HTTP Proxy
-As a practical example for adding a custom resource to your service, we're going to demonstrate how you can create an API Gateway HTTP proxy using Cloud Formation templates/resources.
+As a practical example for adding a custom resource to your service, we're going to demonstrate how you can create an API Gateway HTTP proxy using CloudFormation templates/resources.
 
 To set up an HTTP proxy, you'll need two CloudFormation templates, one for the endpoint (known as resource in CF), and one for method. These two templates will work together to construct your proxy. So if you want to set `your-app.com/serverless` as a proxy for `serverless.com`, you'll need the following two templates in your `serverless.yaml`:
 
@@ -39,6 +39,7 @@ service: service-name
 provider: aws
 functions:
   ...
+
 resources:
   Resources:
     ProxyResource:
@@ -76,7 +77,6 @@ resources:
             ResponseParameters: {}
             ResponseTemplates:
               application/json: ""
-
 ```
 
 There's a lot going on in these two templates, but all you need to know to set up a simple proxy is setting the method & endpoint of your proxy, and the URI you want to set a proxy to.
