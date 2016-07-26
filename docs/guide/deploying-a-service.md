@@ -12,9 +12,18 @@ Serverless will now deploy the whole service (with all it's functions and events
 services cloud provider. It will use the default `stage` and `region` settings which are defined in
 [`serverless.env.yaml`](../understanding-serverless/serverless-env-yaml.md).
 
-The default stage is `dev` and default region is `us-east-1`.
+The default stage is `dev` and default region is `us-east-1`. You can change the default stage and region in your `serverless.yaml` file by setting the `stage` and `region` properties inside a `default` object as the following example shows:
 
-You should see the progress of the deployment process in your terminal.
+```yaml
+# serverless.yaml
+
+service: service-name
+default:
+  stage: beta
+  region: us-west-2
+```
+
+After running `serverless deploy` you should see the progress of the deployment process in your terminal.
 A success message will tell you once everything is deployed and ready to use!
 
 **Note:** We keep the last 5 versions of your deployed code in the corresponding storage.
