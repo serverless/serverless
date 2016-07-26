@@ -120,5 +120,28 @@ functions:
                     identityValidationExpression: someRegex
 ```
 
+### Setting API keys for your Rest API
+You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the `provider` object in `serverless.yaml`. You'll also need to explicitly specify which endpoints are `private` and require one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you want to set as private.
+
+Here's an example configuration for setting API keys for your service Rest API:
+
+```yaml
+service: my-service
+provider:
+  name: aws
+  apiKeys:
+    - myFirstKey
+    - ${mySecondSecretKey} # you can hide it in a serverless variable
+functions:
+  hello:
+  events:
+    - http:
+        path: user/create
+        method: get
+        private: true
+```
+
+Clients connecting to this Rest API will then need to set any of these API keys in the `x-api-key` header of their request. That wouldn't be required if you hadn't set the `private` property to `true`.
+
 ### Setting an HTTP proxy on API Gateway
 Setting an API Gateway proxy can easily be done by adding two custom CloudFormation resource templates to your `serverless.yaml` file. [Check this guide for more info on how to set up a proxy using custom CloudFormation resources in `serverless.yaml`](https://github.com/serverless/serverless/blob/v1.0/docs/guide/custom-provider-resources.md).
