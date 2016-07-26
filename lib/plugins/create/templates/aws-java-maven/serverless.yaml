@@ -1,0 +1,51 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    v1.docs.serverless.com
+#
+# Happy Coding!
+
+service: aws-java-maven
+provider:
+  name: aws
+  runtime: java8
+
+# you can overwrite defaults here
+#defaults:
+#  stage: dev
+#  region: us-east-1
+
+# you can add packaging information here
+package:
+#  include:
+#    - include-me.java
+#  exclude:
+#    - exclude-me.java
+  artifact: target/hello-dev.jar
+
+functions:
+  hello:
+    handler: hello.Handler
+
+#   you can add any of the following events
+#   events:
+#     - http:
+#       path: users/create
+#       method: get
+#     - s3: ${bucket}
+#     - schedule: rate(10 minutes)
+#     - sns: greeter-topic
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    newResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: newBucket
