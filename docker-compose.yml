@@ -1,7 +1,24 @@
 version: '2'
 services:
-  node:
-    build: .
+  serverless-node:
+    image: node:5.11.1
+    working_dir: /app
     volumes:
       - .:/app
       - ~/.aws/:/root/.aws
+  aws-nodejs:
+    image: node:5.11.1
+    volumes:
+      - ./tmp/serverless-integration-test-aws-nodejs:/app
+  aws-python:
+    image: python:2.7
+    volumes:
+      - ./tmp/serverless-integration-test-aws-python:/app
+  aws-java-maven:
+    image: maven:3-jdk-8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-java-maven:/app
+  aws-java-gradle:
+    image: qlik/gradle
+    volumes:
+      - ./tmp/serverless-integration-test-aws-java-gradle:/app

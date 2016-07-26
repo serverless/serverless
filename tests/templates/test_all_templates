@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+function integration-test {
+  $DIR/integration-test-template $@
+}
+
+integration-test aws-java-gradle build
+integration-test aws-java-maven mvn package
+integration-test aws-nodejs
+integration-test aws-python
