@@ -17,6 +17,8 @@ The default stage is `dev` and default region is `us-east-1`.
 You should see the progress of the deployment process in your terminal.
 A success message will tell you once everything is deployed and ready to use!
 
+**Note:** We keep the last 5 versions of your deployed code in the corresponding storage.
+
 ## Deploying to a different stage and region
 
 Although the default stage and region is sufficient for our guide here you might want to deploy to different stages and
