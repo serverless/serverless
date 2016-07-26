@@ -11,7 +11,8 @@
 #
 # Happy Coding!
 
-service: aws-java-maven
+service: aws-java-maven # NOTE: update this with your service name
+
 provider:
   name: aws
   runtime: java8
