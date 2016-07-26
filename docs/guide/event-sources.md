@@ -30,8 +30,8 @@ functions:
     handler: handler.hello
     events:
       - http:
-        path: greet
-        method: get
+          path: greet
+          method: get
 ```
 
 That's it. There's nothing more to do to setup a `http` event. Let's (re)deploy our service so that Serverless will

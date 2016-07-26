@@ -31,10 +31,10 @@ This setup specifies that the `greet` function should be run every 10 minutes.
 ```yaml
 # serverless.yaml
 functions:
-    greet:
-        handler: handler.hello
-        events:
-            - schedule: rate(10 minutes)
+  greet:
+    handler: handler.hello
+    events:
+      - schedule: rate(10 minutes)
 ```
 
 ### Schedule setup with extended event options
@@ -45,10 +45,10 @@ enabled.
 ```yaml
 # serverless.yaml
 functions:
-    report:
-        handler: handler.error
-        events:
-            - schedule:
-                rate: rate(2 minutes)
-                enabled: false
+  report:
+    handler: handler.error
+    events:
+      - schedule:
+          rate: rate(2 minutes)
+          enabled: false
 ```
