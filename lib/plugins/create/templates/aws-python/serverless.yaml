@@ -11,7 +11,8 @@
 #
 # Happy Coding!
 
-service: aws-python
+service: aws-python # NOTE: update this with your service name
+
 provider:
   name: aws
   runtime: python2.7
