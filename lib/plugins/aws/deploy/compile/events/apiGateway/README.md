@@ -52,3 +52,70 @@ functions:
                 path: posts/create
                 method: post
 ```
+
+### Http setup with custom authorizer
+You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function in the same service, as shown in the following example
+
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer: authorizerFunc
+    authorizerFunc:
+        handler: handlers.authorizerFunc
+```
+Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as shown in the following example:
+
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer:
+                    name: authorizerFunc
+                    resultTtlInSeconds: 0
+                    identitySource: method.request.header.Auth
+                    identityValidationExpression: someRegex
+    authorizerFunc:
+        handler: handlers.authorizerFunc
+```
+
+### Http setup with custom authorizer (via ARN)
+If the authorizer function does not exist in your service but exists in AWS, you can provide the ARN of the Lambda function instead of the function name, as shown in the following example:
+
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer: xxx:xxx:Lambda-Name
+```
+Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as shown in the following example:
+```yml
+# serverless.yaml
+functions:
+    create:
+        handler: posts.create
+        events:
+            - http:
+                path: posts/create
+                method: post
+                authorizer:
+                    arn: xxx:xxx:Lambda-Name
+                    resultTtlInSeconds: 0
+                    identitySource: method.request.header.Auth
+                    identityValidationExpression: someRegex
+```
