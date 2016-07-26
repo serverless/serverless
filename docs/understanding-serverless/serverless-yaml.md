@@ -19,8 +19,6 @@ plugins:
 defaults: # overwrite defaults
   stage: dev
   region: us-east-1
-  memory: 512
-  timeout: 3
 
 package:
   # only the following paths will be included in the resulting artifact which will be uploaded. Without specific include everything in the current folder will be included

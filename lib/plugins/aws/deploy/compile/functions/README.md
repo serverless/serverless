@@ -14,7 +14,7 @@ Inside the function loop it creates corresponding CloudFormation lambda function
 The function will be called `<serviceName>-<stage>-<functionName>` by default but you can specify an alternative name
 with the help of the functions `name` property.
 
-The functions `MemorySize` is set to `1024` and `Timeout to `6`. You can overwrite those defaults by setting
-corresponding entries in the services `defaults` property.
+The functions `MemorySize` is set to `1024` and `Timeout` to `6`. You can overwrite those defaults by setting
+corresponding entries in the services `provider` or function property.
 
 At the end all CloudFormation function resources are merged inside the `serverless.service.resources.Resources` section.
