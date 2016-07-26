@@ -128,17 +128,17 @@ Here's an example configuration for setting API keys for your service Rest API:
 ```yaml
 service: my-service
 provider:
-    name: aws
-    apiKeys:
-            - myFirstKey
-            - ${mySecondSecretKey} # you can hide it in a serverless variable
+  name: aws
+  apiKeys:
+    - myFirstKey
+    - ${mySecondSecretKey} # you can hide it in a serverless variable
 functions:
-    hello:
-    events:
-        - http:
-            path: user/create
-            method: get
-            private: true
+  hello:
+  events:
+    - http:
+        path: user/create
+        method: get
+        private: true
 ```
 
 Clients connecting to this Rest API will then need to set any of these API keys in the `x-api-key` header of their request. That wouldn't be required if you hadn't set the `private` property to `true`.
