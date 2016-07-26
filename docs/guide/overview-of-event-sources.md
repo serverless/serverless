@@ -96,6 +96,19 @@ functions:
         method: POST
 ```
 
+**Note:** Serverless supports a built in, universal velocity request template which makes the following parameters available
+in the `event` object:
+
+- body
+- method
+- headers
+- query
+- path
+- identity
+- stageVariables
+
+To e.g. access the `body` parameter you can simply write `event.body`.
+
 ### SNS
 
 #### Simple event definition
