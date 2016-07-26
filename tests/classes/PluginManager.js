@@ -410,7 +410,8 @@ describe('PluginManager', () => {
 
   describe('#loadCommands()', () => {
     it('should load the plugin commands', () => {
-      pluginManager.loadCommands(SynchronousPluginMock);
+      const synchronousPluginMockInstance = new SynchronousPluginMock();
+      pluginManager.loadCommands(synchronousPluginMockInstance);
 
       expect(pluginManager.commandsList[0]).to.have.property('deploy');
     });
@@ -418,7 +419,8 @@ describe('PluginManager', () => {
 
   describe('#getEvents()', () => {
     beforeEach(() => {
-      pluginManager.loadCommands(SynchronousPluginMock);
+      const synchronousPluginMockInstance = new SynchronousPluginMock();
+      pluginManager.loadCommands(synchronousPluginMockInstance);
     });
 
     it('should get all the matching events for a root level command in the correct order', () => {
