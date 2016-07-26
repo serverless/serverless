@@ -40,8 +40,8 @@ functions:
       - s3: bucketName
       - schedule: rate(10 minutes)
       - http:
-        path: users/create
-        method: get
+          path: users/create
+          method: get
       - sns: topic-name
 
 resources:

@@ -36,10 +36,10 @@ whenever something is uploaded or updated in the bucket.
 ```yaml
 # serverless.yaml
 functions:
-    user:
-        handler: user.update
-        events:
-            - s3: profile-pictures
+  user:
+    handler: user.update
+    events:
+      - s3: profile-pictures
 ```
 
 ### Bucket setup with extended event options
@@ -51,10 +51,10 @@ the bucket.
 ```yaml
 # serverless.yaml
 functions:
-    mail:
-        handler: mail.removal
-        events:
-            - s3:
-                bucket: confidential-information
-                event: s3:ObjectRemoved:*
+  mail:
+    handler: mail.removal
+    events:
+      - s3:
+          bucket: confidential-information
+          event: s3:ObjectRemoved:*
 ```

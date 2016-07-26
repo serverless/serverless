@@ -32,10 +32,10 @@ a `GET` request.
 ```yaml
 # serverless.yaml
 functions:
-    index:
-        handler: users.index
-        events:
-            - http: GET users/index
+  index:
+    handler: users.index
+    events:
+      - http: GET users/index
 ```
 
 ### Http setup with extended event options
@@ -45,83 +45,92 @@ Here we've defined an POST endpoint for the path `posts/create`.
 ```yaml
 # serverless.yaml
 functions:
-    create:
-        handler: posts.create
-        events:
-            - http:
-                path: posts/create
-                method: post
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
 ```
 
 ### Http setup with custom authorizer
-You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function in the same service, as shown in the following example
+You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function
+in the same service, as shown in the following example
 
-```yml
+```yaml
 # serverless.yaml
 functions:
-    create:
-        handler: posts.create
-        events:
-            - http:
-                path: posts/create
-                method: post
-                authorizer: authorizerFunc
-    authorizerFunc:
-        handler: handlers.authorizerFunc
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer: authorizerFunc
+  authorizerFunc:
+    handler: handlers.authorizerFunc
 ```
-Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as shown in the following example:
+Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as
+shown in the following example:
 
-```yml
+```yaml
 # serverless.yaml
 functions:
-    create:
-        handler: posts.create
-        events:
-            - http:
-                path: posts/create
-                method: post
-                authorizer:
-                    name: authorizerFunc
-                    resultTtlInSeconds: 0
-                    identitySource: method.request.header.Auth
-                    identityValidationExpression: someRegex
-    authorizerFunc:
-        handler: handlers.authorizerFunc
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            name: authorizerFunc
+            resultTtlInSeconds: 0
+            identitySource: method.request.header.Auth
+            identityValidationExpression: someRegex
+  authorizerFunc:
+    handler: handlers.authorizerFunc
 ```
 
 ### Http setup with custom authorizer (via ARN)
-If the authorizer function does not exist in your service but exists in AWS, you can provide the ARN of the Lambda function instead of the function name, as shown in the following example:
+If the authorizer function does not exist in your service but exists in AWS, you can provide the ARN of the Lambda
+function instead of the function name, as shown in the following example:
 
-```yml
+```yaml
 # serverless.yaml
 functions:
-    create:
-        handler: posts.create
-        events:
-            - http:
-                path: posts/create
-                method: post
-                authorizer: xxx:xxx:Lambda-Name
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer: xxx:xxx:Lambda-Name
 ```
-Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as shown in the following example:
-```yml
+
+Or, if you want to configure the authorizer with more options, you can turn the `authorizer` property into an object as
+shown in the following example:
+
+```yaml
 # serverless.yaml
 functions:
-    create:
-        handler: posts.create
-        events:
-            - http:
-                path: posts/create
-                method: post
-                authorizer:
-                    arn: xxx:xxx:Lambda-Name
-                    resultTtlInSeconds: 0
-                    identitySource: method.request.header.Auth
-                    identityValidationExpression: someRegex
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            arn: xxx:xxx:Lambda-Name
+            resultTtlInSeconds: 0
+            identitySource: method.request.header.Auth
+            identityValidationExpression: someRegex
 ```
 
 ### Setting API keys for your Rest API
-You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the `provider` object in `serverless.yaml`. You'll also need to explicitly specify which endpoints are `private` and require one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you want to set as private.
+You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
+`provider` object in `serverless.yaml`. You'll also need to explicitly specify which endpoints are `private` and require
+one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you
+want to set as private.
 
 Here's an example configuration for setting API keys for your service Rest API:
 
@@ -141,7 +150,10 @@ functions:
         private: true
 ```
 
-Clients connecting to this Rest API will then need to set any of these API keys in the `x-api-key` header of their request. That wouldn't be required if you hadn't set the `private` property to `true`.
+Clients connecting to this Rest API will then need to set any of these API keys in the `x-api-key` header of their request.
+That wouldn't be required if you hadn't set the `private` property to `true`.
 
 ### Setting an HTTP proxy on API Gateway
-Setting an API Gateway proxy can easily be done by adding two custom CloudFormation resource templates to your `serverless.yaml` file. [Check this guide for more info on how to set up a proxy using custom CloudFormation resources in `serverless.yaml`](https://github.com/serverless/serverless/blob/v1.0/docs/guide/custom-provider-resources.md).
+Setting an API Gateway proxy can easily be done by adding two custom CloudFormation resource templates to your
+`serverless.yaml` file. Check [this guide](https://github.com/serverless/serverless/blob/v1.0/docs/guide/custom-provider-resources.md)
+for more info on how to set up a proxy using custom CloudFormation resources in `serverless.yaml`.

@@ -33,8 +33,8 @@ functions:
     handler: users.handler
     events:
       - s3:
-        bucket: photos
-        event: s3:ObjectRemoved:*
+          bucket: photos
+          event: s3:ObjectRemoved:*
 ```
 
 ### Schedule
@@ -62,8 +62,8 @@ functions:
     handler: statistics.handler
     events:
       - schedule:
-        rate: rate(10 minutes)
-        enabled: false
+          rate: rate(10 minutes)
+          enabled: false
 ```
 
 ### HTTP endpoint
@@ -92,8 +92,8 @@ functions:
     handler: posts.create
     events:
       - http:
-        path: posts/create
-        method: POST
+          path: posts/create
+          method: POST
 ```
 
 **Note:** Serverless supports a built in, universal velocity request template which makes the following parameters available
@@ -136,6 +136,6 @@ functions:
     handler: aggregator.handler
     events:
       - sns:
-        topic_name: aggregate
-        display_name: Data aggregation pipeline
+          topic_name: aggregate
+          display_name: Data aggregation pipeline
 ```
