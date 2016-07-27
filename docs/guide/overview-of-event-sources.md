@@ -101,6 +101,7 @@ in the `event` object:
 
 - body
 - method
+- principalId
 - headers
 - query
 - path
