@@ -39,13 +39,13 @@ describe('YamlParser', () => {
 
       serverless.utils.writeFileSync(path.join(tmpDirPath, 'ref.yml'), { foo: 'bar' });
 
-      const testYaml = {
+      const testYml = {
         main: {
           $ref: './ref.yml',
         },
       };
 
-      serverless.utils.writeFileSync(path.join(tmpDirPath, 'test.yml'), testYaml);
+      serverless.utils.writeFileSync(path.join(tmpDirPath, 'test.yml'), testYml);
 
       return serverless.yamlParser.parse(path.join(tmpDirPath, 'test.yml')).then((obj) => {
         expect(obj.main.foo).to.equal('bar');
@@ -57,13 +57,13 @@ describe('YamlParser', () => {
 
       serverless.utils.writeFileSync(path.join(tmpDirPath, 'ref.json'), { foo: 'bar' });
 
-      const testYaml = {
+      const testYml = {
         main: {
           $ref: './ref.json',
         },
       };
 
-      serverless.utils.writeFileSync(path.join(tmpDirPath, 'test.yml'), testYaml);
+      serverless.utils.writeFileSync(path.join(tmpDirPath, 'test.yml'), testYml);
 
       return serverless.yamlParser.parse(path.join(tmpDirPath, 'test.yml')).then((obj) => {
         expect(obj.main.foo).to.equal('bar');
@@ -75,21 +75,21 @@ describe('YamlParser', () => {
 
       serverless.utils.writeFileSync(path.join(tmpDirPath, 'three.yml'), { foo: 'bar' });
 
-      const twoYaml = {
+      const twoYml = {
         two: {
           $ref: './three.yml',
         },
       };
 
-      serverless.utils.writeFileSync(path.join(tmpDirPath, 'two.yml'), twoYaml);
+      serverless.utils.writeFileSync(path.join(tmpDirPath, 'two.yml'), twoYml);
 
-      const oneYaml = {
+      const oneYml = {
         one: {
           $ref: './two.yml',
         },
       };
 
-      serverless.utils.writeFileSync(path.join(tmpDirPath, 'one.yml'), oneYaml);
+      serverless.utils.writeFileSync(path.join(tmpDirPath, 'one.yml'), oneYml);
 
       return serverless.yamlParser.parse(path.join(tmpDirPath, 'one.yml')).then((obj) => {
         expect(obj.one.two.foo).to.equal('bar');
