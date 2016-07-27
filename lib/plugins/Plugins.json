@@ -14,9 +14,9 @@
     "./aws/deploy/compile/events/s3/index.js",
     "./aws/deploy/compile/events/apiGateway/index.js",
     "./aws/deploy/compile/events/sns/index.js",
-    "./openwhisk/deploy/index.js",
     "./openwhisk/compile/functions/index.js",
     "./openwhisk/compile/triggers/index.js",
+    "./openwhisk/deploy/index.js",
     "./openwhisk/invoke/index.js",
     "./openwhisk/remove/index.js"
   ]

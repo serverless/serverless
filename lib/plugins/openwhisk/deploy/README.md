@@ -1,32 +1,42 @@
 # Deploy
 
-This plugin (re)deploys the service to AWS.
+This plugin (re)deploys the service to OpenWhisk.
 
 ## How it works
 
-`Deploy` starts by hooking into the [`deploy:initializeResources`](/lib/plugins/deploy) lifecycle.
-It fetches the basic CloudFormation template from `lib/templates` and replaces the necessary names and definitions
-with the one it gets from the `serverless.yaml` file.
+`Deploy` starts by hooking into the
+[`deploy:initializeResources`](/lib/plugins/deploy) lifecycle.  It fetches the
+user credentials for the OpenWhisk service being used, storing them under
+`serverless.service.defaults`. 
 
-Furthermore the `resources` section of the `serverless.yaml` file is parsed and merged into the core CloudFormation
-template (this makes sure that custom resources the user has defined inside the `serverless.yaml` file are added correctly).
+### User Credentials 
 
-The parsed resources are attached to the `Service` class. You can access them like this:
-```
-serverless.service.resources.Resources
-```
+The plugin attempts to parse configuration settings from the `.wskprops` file in the user's home directory. These
+settings can be set manually using the following environment parameters.
 
-**Note:**
-Other plugins (e.g. the `Compile Functions` plugin) use this `Resources` property to add the compiled resources by
-merging them in.
+- **OW_AUTH** - Authentication key for OpenWhisk provider.
+- **OW_APIHOST** - API endpoint for OpenWhisk provider.
+- **OW_NAMESPACE** - User namespace for OpenWhisk resources.
 
-Next up it hooks into the [`deploy:createProviderStacks`](/lib/plugins/deploy) lifecycle and deploys the
-previously created CloudFormation template to AWS.
+If both the properties file and environment parameters are missing one of these
+values, an error will be thrown. 
 
-At the end it hooks into [`deploy:deploy`](/lib/plugins/deploy) lifecycle to zip the lambda function and
-uploads it to the core S3 bucket (which is defined in the core CloudFormation template). Furthermore it updates the
-stack with all the Resources which are defined in `serverless.service.resources.Resources`.
+**Note:** Other plugins (e.g. the `Compile Functions` plugin) use these
+`defaults` property when compiling resource definitions and using the OpenWhisk
+APIs.
 
-The stack status is checked every 5 seconds with the help of the CloudFormation API. It will return a success message if
-the stack status is `CREATE_COMPLETE` or `UPDATE_COMPLETE` (depends if you deploy your service for the first time or
-redeploy it after making some changes).
+### Deploying Functions, Triggers, Rules and Feeds
+
+Next up it hooks into the [`deploy:deploy`](/lib/plugins/deploy) lifecycle and deploys the
+previously created resource definitions for Actions, Triggers, Feeds and Rules
+using the OpenWhisk APIs.
+
+Resources are deployed in the following order:
+
+- **Actions**
+- **Triggers**
+- **Feeds**
+- **Rules**
+
+Failure to deploy a single resource at any stage will cause the entire
+deployment to halt with the error message from the failed deployment.
