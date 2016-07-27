@@ -28,11 +28,11 @@ describe('Service Lifecyle Integration Test', () => {
   it('should create service in tmp directory', function () {
     this.timeout(10000);
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
-    execSync(`sed -i.bak s/${templateName}/${newServiceName}/g serverless.yaml`);
+    execSync(`sed -i.bak s/${templateName}/${newServiceName}/g serverless.yml`);
     expect(serverless.utils
-      .fileExistsSync(path.join(tmpDir, 'serverless.yaml'))).to.be.equal(true);
+      .fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(serverless.utils
-      .fileExistsSync(path.join(tmpDir, 'serverless.env.yaml'))).to.be.equal(true);
+      .fileExistsSync(path.join(tmpDir, 'serverless.env.yml'))).to.be.equal(true);
     expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });

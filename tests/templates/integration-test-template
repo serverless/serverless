@@ -17,7 +17,7 @@ echo "Creating Application"
 serverless create --template $template
 
 echo "Overwriting Service Name"
-sed -i.bak s/${template}/sls-test-$template-$RANDOM/g $template_folder/serverless.yaml
+sed -i.bak s/${template}/sls-test-$template-$RANDOM/g $template_folder/serverless.yml
 
 echo "Running Compose build for Teamplate"
 docker-compose build $template

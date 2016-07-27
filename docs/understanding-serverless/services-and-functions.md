@@ -6,7 +6,7 @@ be completely independent, which helps teams develop more quickly without waitin
 
 Each *Serverless service* contains two configuration files:
 
-### [`serverless.yaml`](./serverless-yaml.md)
+### [`serverless.yml`](./serverless-yml.md)
   - Declares a Serverless service
   - Defines one or multiple functions in the service
   - Defines the provider the service will be deployed to (and the runtime if provided)
@@ -15,7 +15,7 @@ Each *Serverless service* contains two configuration files:
   - Defines one set of resources (e.g. 1 AWS CloudFormation stack) required by the functions in this service
   - Events listed in the `events` section may automatically create the resources required for the event upon deployment
  
-### [`serverless.env.yaml`](./serverless-env-yaml.md)
+### [`serverless.env.yml`](./serverless-env-yml.md)
   - Defines stages for this service
   - Defines regions for each stage
   - Defines Serverless variables
@@ -30,15 +30,15 @@ Let's take a look at a service example to see how everything works together.
 users
   |__ lib                   // contains logic
   |__ users.js              // single handler file, requires lib
-  |__ serverless.yaml
-  |__ serverless.env.yaml
+  |__ serverless.yml
+  |__ serverless.env.yml
   |__ node_modules
   |__ package.json
 ```
 
-### [`serverless.yaml`](./serverless-yaml.md)
+### [`serverless.yml`](./serverless-yml.md)
 
-```yaml
+```yml
 service: users
 provider:
   name: aws
@@ -49,9 +49,9 @@ functions:
     handler: users.create
 ```
 
-### [`serverless.env.yaml`](./serverless-env-yaml.md)
+### [`serverless.env.yml`](./serverless-env-yml.md)
 
-```yaml
+```yml
 vars:
   memoryVar: 512
 stages:

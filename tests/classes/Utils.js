@@ -46,6 +46,16 @@ describe('Utils', () => {
       expect(obj.foo).to.equal('bar');
     });
 
+    it('should write a .yml file synchronously', () => {
+      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+
+      return serverless.yamlParser.parse(tmpFilePath).then((obj) => {
+        expect(obj.foo).to.equal('bar');
+      });
+    });
+
     it('should write a .yaml file synchronously', () => {
       const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yaml');
 
@@ -162,9 +172,21 @@ describe('Utils', () => {
   describe('#findServicePath()', () => {
     const testDir = process.cwd();
 
-    it('should detect if the CWD is a service directory', () => {
+    it('should detect if the CWD is a service directory when using Serverless .yaml files', () => {
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const tmpFilePath = path.join(tmpDirPath, 'serverless.yaml');
+
+      serverless.utils.writeFileSync(tmpFilePath, 'foo');
+      process.chdir(tmpDirPath);
+
+      const servicePath = serverless.utils.findServicePath();
+
+      expect(servicePath).to.not.equal(null);
+    });
+
+    it('should detect if the CWD is a service directory when using Serverless .yml files', () => {
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpFilePath = path.join(tmpDirPath, 'serverless.yml');
 
       serverless.utils.writeFileSync(tmpFilePath, 'foo');
       process.chdir(tmpDirPath);

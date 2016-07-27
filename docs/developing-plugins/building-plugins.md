@@ -367,9 +367,9 @@ is defined inside the plugins constructor.
 ## Plugin registration process
 
 A user has to define the plugins they want to use in the root level of the
-[`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file:
+[`serverless.yml`](../understanding-serverless/serverless-yml.md) file:
 
-```yaml
+```yml
 plugins:
   - custom-plugin-1
   - custom-plugin-2
@@ -377,17 +377,17 @@ plugins:
 
 We do not auto-detect plugins from installed dependencies so users do not run into any surprises and we cut down on the
 startup time of the tool. Through JSON-REF users can share configuration for used plugins between
-[`serverless.yaml`](../understanding-serverless/serverless-yaml.md) files in one repository.
+[`serverless.yml`](../understanding-serverless/serverless-yml.md) files in one repository.
 
-After the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) configuration file is loaded the plugin
+After the [`serverless.yml`](../understanding-serverless/serverless-yml.md) configuration file is loaded the plugin
 system will load all the commands and plugins and initialize the plugin system.
 
 ## Plugin options
 
-Sometimes your plugin needs to setup some custom options. The [`serverless.yaml`](../understanding-serverless/serverless-yaml.md)
+Sometimes your plugin needs to setup some custom options. The [`serverless.yml`](../understanding-serverless/serverless-yml.md)
 file provides the `custom` section where you can add options your plugin can use.
 
-```yaml
+```yml
 plugins:
   - my-greet-plugin
 
@@ -398,9 +398,9 @@ custom:
 ## Plugin Order
 
 Plugins are registered in the order they are defined through our system and the
-[`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file. By default we will load the
+[`serverless.yml`](../understanding-serverless/serverless-yml.md) file. By default we will load the
 [core plugins](../using-plugins/core-plugins.md) first, then we will load all plugins according to the order given in the
-[`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file.
+[`serverless.yml`](../understanding-serverless/serverless-yml.md) file.
 
 This means the Serverless core plugins will always be executed first for every lifecycle event before 3rd party plugins.
 If external plugins should be running before our plugins they should generally be able to hook into an earlier lifecycle
