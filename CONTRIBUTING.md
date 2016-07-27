@@ -41,6 +41,30 @@ Please follow these Testing guidelines when writing your unit tests:
 *  As you write tests, check the code coverage and make sure all lines of code are covered.  If not, just add more test cases until everything is covered.
 *  For reference and inspiration, please check our `tests` directory.
 
+#### Testing templates
+If you add a new template or want to test a template after changing it you can run the template integration tests. Make sure you have `docker` and `docker-compose` installed as they are required. The `docker` containers we're using through compose are automatically including your `$HOME/.aws` folder so you can deploy to AWS.
+
+To run all integration tests run:
+
+```
+./tests/templates/test_all_templates
+```
+
+To run only a specific integration test run:
+
+```
+tests/templates/integration-test-template TEMPLATE_NAME BUILD_COMMAND
+```
+
+so for example:
+
+```
+tests/templates/integration-test-template aws-java-maven mvn package
+```
+
+If you add a new template make sure to add it to the `test_all_templates` file and configure the `docker-compose.yml` file for your template.
+
+
 ## Providing Support
 The easiest thing you can do to help us move forward and make an impact on our progress is to simply provide support to other people having difficulties with their Serverless projects. You can do that by replying to [issues on Github](https://github.com/serverless/serverless/issues), chatting with other community members in [our Chat](http://chat.serverless.com) or helping with questions in [our Forum](http://forum.serverless.com).
 

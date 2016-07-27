@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -e
+
+docker-compose build serverless-node
+
+template=$1
+template_folder="tmp/serverless-integration-test-$template"
+
+rm -fr $template_folder
+mkdir -p $template_folder
+
+function serverless {
+    docker-compose run -w /app/$template_folder serverless-node /app/bin/serverless $@
+}
+echo "Creating Application"
+serverless create --template $template
+
+echo "Overwriting Service Name"
+sed -i.bak s/${template}/sls-test-$template-$RANDOM/g $template_folder/serverless.yaml
+
+echo "Running Compose build for Teamplate"
+docker-compose build $template
+
+if [ ! -z "$2" ]
+then
+  echo "Running Build command for $template"
+  docker-compose run -w /app $template ${@:2}
+else
+  echo "No Language build commands specified, skipping building"
+fi
+
+echo "Deploying Service"
+serverless deploy
+
+echo "Invoking Service"
+serverless invoke --function hello --path event.json
+
+echo "Removing Service"
+serverless remove

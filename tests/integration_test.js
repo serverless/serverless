@@ -17,12 +17,18 @@ const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
 fse.mkdirSync(tmpDir);
 process.chdir(tmpDir);
 
+const templateName = 'aws-nodejs';
+const newServiceName = `service-${(new Date).getTime().toString()}`;
+const stackName = `${newServiceName}-dev`;
+
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
 describe('Service Lifecyle Integration Test', () => {
-  it('should create service in tmp directory', () => {
-    execSync(`${serverlessExec} create --template aws-nodejs`, { stdio: 'inherit' });
+  it('should create service in tmp directory', function () {
+    this.timeout(10000);
+    execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
+    execSync(`sed -i.bak s/${templateName}/${newServiceName}/g serverless.yaml`);
     expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'serverless.yaml'))).to.be.equal(true);
     expect(serverless.utils
@@ -35,7 +41,7 @@ describe('Service Lifecyle Integration Test', () => {
     this.timeout(0);
     execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
 
-    return CF.describeStacksPromised({ StackName: 'aws-nodejs-dev' })
+    return CF.describeStacksPromised({ StackName: stackName })
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE'));
   });
 
@@ -50,7 +56,7 @@ describe('Service Lifecyle Integration Test', () => {
     const newHandler =
       `
         'use strict';
-        
+
         module.exports.hello = (event, context, cb) => cb(null,
           { message: 'Service Update Succeeded' }
         );
@@ -72,7 +78,7 @@ describe('Service Lifecyle Integration Test', () => {
     this.timeout(0);
     execSync(`${serverlessExec} remove`, { stdio: 'inherit' });
 
-    return CF.describeStacksPromised({ StackName: 'aws-nodejs-dev' })
+    return CF.describeStacksPromised({ StackName: stackName })
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('DELETE_COMPLETE'))
       .catch(e => {
         if (e.message.indexOf('does not exist') > -1) return BbPromise.resolve();

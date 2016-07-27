@@ -32,10 +32,10 @@ This setup specifies that the `forward` function should be run every time a mess
 ```yaml
 # serverless.yaml
 functions:
-    forward:
-        handler: message.forward
-        events:
-            - sns: messages
+  forward:
+    handler: message.forward
+    events:
+      - sns: messages
 ```
 
 ### SNS setup with extended event options
@@ -46,10 +46,10 @@ lambda functions".  The `run` function is executed every time a message is sent 
 ```yaml
 # serverless.yaml
 functions:
-    run:
-        handler: event.run
-        events:
-            - sns:
-                topic_name: lambda-caller
-                display_name: Used to chain lambda functions
+  run:
+    handler: event.run
+    events:
+      - sns:
+          topic_name: lambda-caller
+          display_name: Used to chain lambda functions
 ```

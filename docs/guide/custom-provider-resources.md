@@ -27,6 +27,62 @@ resources:
         Key: Value
 ```
 
+### Example custom resources - HTTP Proxy
+As a practical example for adding a custom resource to your service, we're going to demonstrate how you can create an API Gateway HTTP proxy using CloudFormation templates/resources.
+
+To set up an HTTP proxy, you'll need two CloudFormation templates, one for the endpoint (known as resource in CF), and one for method. These two templates will work together to construct your proxy. So if you want to set `your-app.com/serverless` as a proxy for `serverless.com`, you'll need the following two templates in your `serverless.yaml`:
+
+
+```yaml
+# serverless.yaml
+service: service-name
+provider: aws
+functions:
+  ...
+
+resources:
+  Resources:
+    ProxyResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId:
+          Fn::GetAtt:
+            - RestApiApigEvent # our default Rest API logical ID
+            - RootResourceId
+        PathPart: serverless # the endpoint in your API that is set as proxy
+        RestApiId:
+          Ref: RestApiApigEvent
+    ProxyMethod:
+      ResourceId:
+        Ref: ProxyResource
+      RestApiId:
+        Ref: RestApiApigEvent
+      Type: AWS::ApiGateway::Method
+      Properties:
+        AuthorizationType: NONE
+        HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
+        MethodResponses:
+          - ResponseModels: {}
+            ResponseParameters: {}
+            StatusCode: 200
+        RequestParameters: {}
+        Integration:
+          IntegrationHttpMethod: POST
+          Type: HTTP
+          Uri: http://serverless.com # the URL you want to set a proxy to
+          RequestTemplates:
+            application/json: ""
+          IntegrationResponses:
+            StatusCode: 200
+            ResponseParameters: {}
+            ResponseTemplates:
+              application/json: ""
+```
+
+There's a lot going on in these two templates, but all you need to know to set up a simple proxy is setting the method & endpoint of your proxy, and the URI you want to set a proxy to.
+
+Now that you have these two CloudFormation templates defined in your `serverless.yaml` file, you can simply run `serverless deploy` and that will deploy these custom resources for you along with your service and set up a proxy on your Rest API.
+
 ## Referencing an external `.json` file
 
 Sometimes it's hard to translate the provider specific resources into valid YAML syntax. Furthermore the resource code

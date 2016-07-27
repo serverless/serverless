@@ -43,8 +43,7 @@ service: users
 provider:
   name: aws
   runtime: nodejs4.3
-defaults: # overwrite defaults
-  memory: ${memoryVar} # reference a Serverless variable
+  memorySize: ${memoryVar} # reference a Serverless variable
 functions:
   create:
     handler: users.create
