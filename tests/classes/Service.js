@@ -107,6 +107,88 @@ describe('Service', () => {
       return noService.load().then(() => done());
     });
 
+    it('should support Serverless files with a .yaml extension', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYaml = {
+        service: 'my-service',
+        provider: 'aws',
+        functions: {
+          functionA: {},
+        },
+      };
+      const serverlessEnvYaml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {
+              'us-east-1': {
+                vars: {},
+              },
+            },
+          },
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+        YAML.dump(serverlessEnvYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then((loadedService) => {
+        expect(loadedService.service).to.be.equal('my-service');
+        expect(loadedService.provider).to.deep.equal({ name: 'aws' });
+        expect(loadedService.functions).to.deep.equal({ functionA: { events: [] } });
+        expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars)
+          .to.deep.equal({});
+      });
+    });
+
+    it('should support Serverless files with a .yml extension', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYml = {
+        service: 'my-service',
+        provider: 'aws',
+        functions: {
+          functionA: {},
+        },
+      };
+      const serverlessEnvYml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {
+              'us-east-1': {
+                vars: {},
+              },
+            },
+          },
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
+        YAML.dump(serverlessEnvYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then((loadedService) => {
+        expect(loadedService.service).to.be.equal('my-service');
+        expect(loadedService.provider).to.deep.equal({ name: 'aws' });
+        expect(loadedService.functions).to.deep.equal({ functionA: { events: [] } });
+        expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars)
+          .to.deep.equal({});
+      });
+    });
+
     it('should load and populate from filesystem', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());

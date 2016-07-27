@@ -172,9 +172,21 @@ describe('Utils', () => {
   describe('#findServicePath()', () => {
     const testDir = process.cwd();
 
-    it('should detect if the CWD is a service directory', () => {
+    it('should detect if the CWD is a service directory when using Serverless .yaml files', () => {
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const tmpFilePath = path.join(tmpDirPath, 'serverless.yaml');
+
+      serverless.utils.writeFileSync(tmpFilePath, 'foo');
+      process.chdir(tmpDirPath);
+
+      const servicePath = serverless.utils.findServicePath();
+
+      expect(servicePath).to.not.equal(null);
+    });
+
+    it('should detect if the CWD is a service directory when using Serverless .yml files', () => {
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpFilePath = path.join(tmpDirPath, 'serverless.yml');
 
       serverless.utils.writeFileSync(tmpFilePath, 'foo');
       process.chdir(tmpDirPath);
