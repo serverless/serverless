@@ -16,11 +16,28 @@ Take a look at the [Event syntax examples](#event-syntax-examples) below to see 
 
 Those resources are then merged into the `serverless.service.resources.Resources` section.
 
+## User specified request templates
+
+It is possible to define request templates in serverless.yml. The templates must exist in the project
+templates subdirectory {project/templates/...}.
+
+```yml
+#serverless.yml
+functions:
+  index:
+    handler: users.index
+    events:
+      - http: GET users/index
+        requestMappings:
+          - application/json: indexJson.tmpl
+          - application/x-www-form-urlencoded: indexUrlEncoded.tmpl
+```
+
 ## Universal JSON request template
 
 The API Gateway plugin implements a request template which provides `{body, method, headers, query, path, identity,
-stageVariables} = event` as JavaScript objects. This way you don't have to define the template on your own but can use
-this default template to access the necessary variables in your code.
+stageVariables} = event` as JavaScript objects. This way you don't have to define the template on your own but can use the default template. To use the default template enter - application/json: default under
+requestMappings
 
 ## Event syntax examples
 
