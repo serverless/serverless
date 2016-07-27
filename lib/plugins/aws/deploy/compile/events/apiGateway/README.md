@@ -18,7 +18,7 @@ Those resources are then merged into the `serverless.service.resources.Resources
 
 ## Universal JSON request template
 
-The API Gateway plugin implements a request template which provides `{body, method, headers, query, path, identity,
+The API Gateway plugin implements a request template which provides `{body, method, principalId, headers, query, path, identity,
 stageVariables} = event` as JavaScript objects. This way you don't have to define the template on your own but can use
 this default template to access the necessary variables in your code.
 
