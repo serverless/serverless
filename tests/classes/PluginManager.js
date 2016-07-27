@@ -663,9 +663,9 @@ describe('PluginManager', () => {
     execSync(`${serverlessExec} create --template aws-nodejs`);
 
     expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, 'serverless.yaml'))).to.equal(true);
+      .fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.equal(true);
     expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, 'serverless.env.yaml'))).to.equal(true);
+      .fileExistsSync(path.join(tmpDir, 'serverless.env.yml'))).to.equal(true);
     expect(serverlessInstance.utils
       .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.equal(true);
 

@@ -15,7 +15,7 @@ The examples will show you how you can use the different event definitions.
 
 This will create a `photos` bucket which fires the `resize` function when an object is added or modified inside the bucket.
 
-```yaml
+```yml
 functions:
   resize:
     handler: resize
@@ -27,7 +27,7 @@ functions:
 
 This will create a bucket `photos`. The `users` function is called whenever an object is removed from the bucket.
 
-```yaml
+```yml
 functions:
   users:
     handler: users.handler
@@ -43,7 +43,7 @@ functions:
 
 This will attach a schedule event and causes the function `crawl` to be called every 2 hours.
 
-```yaml
+```yml
 functions:
   crawl:
     handler: crawl
@@ -56,7 +56,7 @@ functions:
 This will create and attach a schedule event for the `aggregate` function which is disabled. If enabled it will call
 the `aggregate` function every 10 minutes.
 
-```yaml
+```yml
 functions:
   aggregate:
     handler: statistics.handler
@@ -73,7 +73,7 @@ functions:
 This will create a new HTTP endpoint which is accessible at `users/show` via a `GET` request. `show` will be called
 whenever the endpoint is accessed.
 
-```yaml
+```yml
 functions:
   show:
     handler: users.show
@@ -86,7 +86,7 @@ functions:
 This will create a new HTTP endpoint which is accessible at `posts/create` with the help of the HTTP `POST` method.
 The function `create` is called every time someone visits this endpoint.
 
-```yaml
+```yml
 functions:
   create:
     handler: posts.create
@@ -116,7 +116,7 @@ To e.g. access the `body` parameter you can simply write `event.body`.
 Here we create a new SNS topic with the name `dispatch` which is bound to the `dispatcher` function. The function will be
 called every time a message is sent to the `dispatch` topic.
 
-```yaml
+```yml
 functions:
   dispatcher:
     handler: dispatcher.dispatch
@@ -130,7 +130,7 @@ This event definition ensures that the `aggregator` function get's called every 
 `aggregate` topic. `Data aggregation pipeline` will be shown in the AWS console so that the user can understand what the
 SNS topic is used for.
 
-```yaml
+```yml
 functions:
   aggregator:
     handler: aggregator.handler

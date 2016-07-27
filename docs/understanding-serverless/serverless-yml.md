@@ -1,11 +1,11 @@
-# serverless.yaml
+# serverless.yml
 
-The `serverless.yaml` file is the core for each service as it defines the whole configuration of your functions, their
+The `serverless.yml` file is the core for each service as it defines the whole configuration of your functions, their
 corresponding events, the used plugins, custom resources, and other service configuration.
 
-Here's an example `serverless.yaml` file that touches on all the config details.
+Here's an example `serverless.yml` file that touches on all the config details.
 
-```yaml
+```yml
 service: first_service
 
 provider:
@@ -34,7 +34,7 @@ package:
 functions:
   hello:
     # Deployed Lambda name with a prefix
-    name: ${prefix}-lambdaName # You have to provide that variable in serverless.env.yaml
+    name: ${prefix}-lambdaName # You have to provide that variable in serverless.env.yml
     handler: handler.hello
     events:
       - s3: bucketName

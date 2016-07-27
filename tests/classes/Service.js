@@ -156,9 +156,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -213,9 +213,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -254,9 +254,9 @@ describe('Service', () => {
         },
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -294,9 +294,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -337,9 +337,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -382,9 +382,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -427,9 +427,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -465,9 +465,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -504,9 +504,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -537,9 +537,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -575,9 +575,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -614,9 +614,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -652,9 +652,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -692,9 +692,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -736,9 +736,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -780,9 +780,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -826,9 +826,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -870,9 +870,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });
@@ -918,9 +918,9 @@ describe('Service', () => {
         vars: {},
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
         YAML.dump(serverlessYaml));
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yaml'),
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
         YAML.dump(serverlessEnvYaml));
 
       const serverless = new Serverless({ servicePath: tmpDirPath });

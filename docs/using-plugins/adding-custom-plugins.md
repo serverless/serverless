@@ -18,18 +18,18 @@ At first we need to install the corresponding plugin in the services root direct
 ## Adding the plugin to the service
 
 Next up we need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name
-of the plugin to the `plugins` section in the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file:
+of the plugin to the `plugins` section in the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file:
 
-```yaml
+```yml
 plugins:
   - custom-serverless-plugin
 ```
 
 Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the
-[`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file is the place where you can add necessary
+[`serverless.yml`](../understanding-serverless/serverless-yml.md) file is the place where you can add necessary
 configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
 
-```yaml
+```yml
 plugins:
   - custom-serverless-plugin
 
@@ -42,7 +42,7 @@ custom:
 Keep in mind that the order in which you define the plugins matter! At first Serverless loads all the [core
 plugins](core-plugins.md) and then the custom plugins in the order you've defined them.
 
-```yaml
+```yml
 plugins:
   - plugin1
   - plugin2

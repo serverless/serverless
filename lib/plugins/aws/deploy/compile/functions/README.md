@@ -1,15 +1,15 @@
 # Compile Functions
 
-This plugins compiles the functions in `serverless.yaml` to corresponding lambda CloudFormation resources.
+This plugins compiles the functions in `serverless.yml` to corresponding lambda CloudFormation resources.
 
 ## How it works
 
 `Compile Functions` hooks into the [`deploy:compileFunctions`](/lib/plugins/deploy) lifecycle.
 
-It loops over all functions which are defined in `serverless.yaml`.
+It loops over all functions which are defined in `serverless.yml`.
 
 Inside the function loop it creates corresponding CloudFormation lambda function resources based on the settings
-(e.g. function `name` property or service `defaults`) which are provided in the `serverless.yaml` file.
+(e.g. function `name` property or service `defaults`) which are provided in the `serverless.yml` file.
 
 The function will be called `<serviceName>-<stage>-<functionName>` by default but you can specify an alternative name
 with the help of the functions `name` property.

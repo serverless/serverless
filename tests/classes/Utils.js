@@ -46,6 +46,16 @@ describe('Utils', () => {
       expect(obj.foo).to.equal('bar');
     });
 
+    it('should write a .yml file synchronously', () => {
+      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+
+      return serverless.yamlParser.parse(tmpFilePath).then((obj) => {
+        expect(obj.foo).to.equal('bar');
+      });
+    });
+
     it('should write a .yaml file synchronously', () => {
       const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yaml');
 
