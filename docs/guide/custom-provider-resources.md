@@ -81,24 +81,15 @@ resources:
         Ref: RestApiApigEvent
       Type: AWS::ApiGateway::Method
       Properties:
-        AuthorizationType: NONE
         HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
         MethodResponses:
-          - ResponseModels: {}
-            ResponseParameters: {}
-            StatusCode: 200
-        RequestParameters: {}
+          - StatusCode: 200
         Integration:
           IntegrationHttpMethod: POST
           Type: HTTP
           Uri: http://serverless.com # the URL you want to set a proxy to
-          RequestTemplates:
-            application/json: ""
           IntegrationResponses:
-            StatusCode: 200
-            ResponseParameters: {}
-            ResponseTemplates:
-              application/json: ""
+            - StatusCode: 200
 ```
 
 There's a lot going on in these two templates, but all you need to know to set up a simple proxy is setting the method &
