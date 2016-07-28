@@ -49,20 +49,20 @@ Serverless will automatically exclude the following files / folders to reduce th
 - .git
 - .gitignore
 - .serverless
-- serverless.yaml
-- serverless.env.yaml
+- serverless.yml
+- serverless.env.yml
 - .DS_Store
 
 You can always include previously excluded files and folders if you want to.
 
 #### `deploy:compileFunctions`
 
-Next up the functions inside the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file should be
+Next up the functions inside the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file should be
 compiled to provider specific resources and stored into memory.
 
 #### `deploy:compileEvents`
 
-After that the events which are defined in the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md)
+After that the events which are defined in the [`serverless.yml`](../understanding-serverless/serverless-yml.md)
 file on a per function basis should be compiled to provider specific resources and also stored into memory.
 
 #### `deploy:deploy`
@@ -77,11 +77,11 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 #### The steps in detail
 
-1. The [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) and
-[`serverless.env.yaml`](../understanding-serverless/serverless-env-yaml.md) files are loaded into memory
+1. The [`serverless.yml`](../understanding-serverless/serverless-yml.md) and
+[`serverless.env.yml`](../understanding-serverless/serverless-env-yml.md) files are loaded into memory
 2. A default AWS CloudFormation template is loaded (`deploy:initializeResources`)
 3. The CloudFormation template is deployed to AWS (A S3 bucket for the service gets created) (`deploy:createProviderStacks`)
-4. The functions of the [`serverless.yaml`](../understanding-serverless/serverless-yaml.md) file are compiled to lambda
+4. The functions of the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file are compiled to lambda
 resources and stored into memory (`deploy:compileFunctions`)
 5. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
 6. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)

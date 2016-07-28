@@ -6,7 +6,7 @@ This plugins compiles the function SNS event to a CloudFormation resource.
 
 `Compile SNS Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) lifecycle.
 
-It loops over all functions which are defined in `serverless.yaml`. For each function that has a SNS event defined,
+It loops over all functions which are defined in `serverless.yml`. For each function that has a SNS event defined,
 a corresponding SNS topic will be created.
 
 You have two options to define the SNS event:
@@ -29,8 +29,8 @@ Those two resources are then merged into the `serverless.service.resources.Resou
 
 This setup specifies that the `forward` function should be run every time a message is sent to the "messages" SNS topic.
 
-```yaml
-# serverless.yaml
+```yml
+# serverless.yml
 functions:
   forward:
     handler: message.forward
@@ -43,8 +43,8 @@ functions:
 This configuration sets up a SNS topic with the name "lambda-caller". The "Display name" of the topic is "Used to chain
 lambda functions".  The `run` function is executed every time a message is sent to the "lambda-caller" SNS topic.
 
-```yaml
-# serverless.yaml
+```yml
+# serverless.yml
 functions:
   run:
     handler: event.run

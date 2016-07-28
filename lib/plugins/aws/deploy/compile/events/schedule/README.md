@@ -6,7 +6,7 @@ This plugins compiles the function schedule event to a CloudFormation resource.
 
 `Compile Scheduled Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) lifecycle.
 
-It loops over all functions which are defined in `serverless.yaml`. For each function that has a schedule event defined,
+It loops over all functions which are defined in `serverless.yml`. For each function that has a schedule event defined,
 a CloudWatch schedule event rule will be created.
 
 You have two options to define the schedule event:
@@ -28,8 +28,8 @@ Those two resources are then merged into the `serverless.service.resources.Resou
 
 This setup specifies that the `greet` function should be run every 10 minutes.
 
-```yaml
-# serverless.yaml
+```yml
+# serverless.yml
 functions:
   greet:
     handler: handler.hello
@@ -42,8 +42,8 @@ functions:
 This configuration sets up a disabled schedule event for the `report` function which will run every 2 minutes once
 enabled.
 
-```yaml
-# serverless.yaml
+```yml
+# serverless.yml
 functions:
   report:
     handler: handler.error

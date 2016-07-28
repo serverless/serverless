@@ -32,8 +32,8 @@ You may also take a look at our [code of conduct](/code_of_conduct.md).
 
 - [Understanding Serverless and its configuration files](understanding-serverless)
   - [Serverless services and functions](understanding-serverless/services-and-functions.md)
-  - [serverless.yaml](understanding-serverless/serverless-yaml.md)
-  - [serverless.env.yaml](understanding-serverless/serverless-env-yaml.md)
+  - [serverless.yml](understanding-serverless/serverless-yml.md)
+  - [serverless.env.yml](understanding-serverless/serverless-env-yml.md)
 - [How to build your Serverless services](guide)
   - [Installing Serverless](guide/installation.md)
   - [Provider account setup](guide/provider-account-setup.md)
