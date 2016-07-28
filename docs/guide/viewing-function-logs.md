@@ -21,7 +21,7 @@ We've just invoked a function through the Serverless CLI on the providers infras
 was printed on the console.
 
 A service with functions alone is just the beginning. Event sources provide a really easy and great way to empower your
-service an perform automatic function calls based upon incoming events (e.g. an incoming HTTP request).
+service and perform automatic function calls based upon incoming events (e.g. an incoming HTTP request).
 
 Let's take a closer look at how we can use different event sources and attach them to our function.
 

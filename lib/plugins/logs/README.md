@@ -1,48 +1,36 @@
-# Invoke
+# Logs
 
-```
-serverless invoke --function functionName
-```
+This plugin returns the CloudWatch logs of a lambda function. You can simply run `serverless logs -f hello` to test it out.
 
-Invokes your deployed function and outputs the results.
+## Logs Options
 
-## Options
-- `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
-- `--stage` or `-s` The stage in your service you want to invoke your function in.
-- `--region` or `-r` The region in your stage that you want to invoke your function in.
-- `--path` or `-p` The path to a json file holding input data to be passed to the invoked function. This path is relative to the
-root directory of the service.
-- `--type` or `-t` The type of invocation. Either `RequestResponse`, `Event` or `DryRun`. Default is `RequestResponse`.
-- `--log` or `-l` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation.
-Default is `false`.
+The logs plugin only requires the function name you want to fetch the logs for. Other than that there are other options that you can add for extra control. Here's the full options list:
 
-## Provided lifecycle events
-- `invoke:invoke`
+- `--function` or `-t` The function you want to fetch the logs for. **Required**
+- `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
+- `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
+- `--startTime` A specific unit in time to start fetching logs from. You can use standard date/time (ie: `2010-10-20` or `1469705761`), or simply a "since string" like `30m` (30 minutes), `2h` (2 hours), `3d` (3 days) and so on. We'll just fetch the logs that happened since then.
+- `--filter` You can specify a filter string to filter the log output. This is useful if you want to to get the `error` logs for example.
+- `--tail` or `-t` You can optionally tail the logs and keep listening for new logs in your terminal session by passing this option.
+- `--interval` or `-i` If you choose to tail the output, you can control the interval at which the framework polls the logs with this option. The default is `1000`ms.
 
 ## Examples
-
-### Simple function invocation
+```
+serverless logs -f hello --startTime 5h
+```
+This will fetch the logs that happened in the past 5 hours.
 
 ```
-serverless invoke --function functionName --stage dev --region us-east-1
+serverless logs -f hello --startTime 1469694264
 ```
-
-This example will invoke your deployed function named `functionName` in region `us-east-1` in stage `dev`. This will
-output the result of the invocation in your terminal.
-
-### Function invocation with logging
+This will fetch the logs that happened starting at epoch `1469694264`.
 
 ```
-serverless invoke --function functionName --stage dev --region us-east-1 --log
+serverless logs -f hello -t
 ```
-
-Just like the first example, but will also outputs logging information about your invocation.
-
-### Function invocation with data passing
+This will keep the terminal session listening for logs and display them as they happen.
 
 ```
-serverless invoke --function functionName --stage dev --region us-east-1 --path lib/data.json
+serverless logs -f hello --filter serverless
 ```
-
-This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking
-the specified/deployed function.
+This will fetch only the logs that contain the string `serverless`

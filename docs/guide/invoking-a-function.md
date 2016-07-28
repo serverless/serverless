@@ -28,4 +28,4 @@ The invoke command provides different options you can use. Please take a look at
 We've just invoked a function through the Serverless CLI on the providers infrastructure and got a message back which
 was printed on the console. Now lets take a look at how to view the logs of a function after our first invoke.
 
-[Next step > Vewing Function Logs](viewing-function-logs.md)
+[Next step > Viewing Function Logs](viewing-function-logs.md)
