@@ -26,11 +26,6 @@ The invoke command provides different options you can use. Please take a look at
 ## Conclusion
 
 We've just invoked a function through the Serverless CLI on the providers infrastructure and got a message back which
-was printed on the console.
+was printed on the console. Now lets take a look at how to view the logs of a function after our first invoke.
 
-A service with functions alone is just the beginning. Event sources provide a really easy and great way to empower your
-service an perform automatic function calls based upon incoming events (e.g. an incoming HTTP request).
-
-Let's take a closer look at how we can use different event sources and attach them to our function.
-
-[Next step > Event sources](event-sources.md)
+[Next step > Vewing Function Logs](viewing-function-logs.md)
