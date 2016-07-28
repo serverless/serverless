@@ -1,6 +1,6 @@
 # Deploy Function
 
-**Note:** This plugin should be used with caution. It will directly upload the lambda function code and bypasses
+**Note:** This plugin should be used with caution. It will directly upload the lambda function code and bypass
 the steps of updating the CloudFormation stack or the zip-File in S3. Never use this plugin if you're working on a
 production system. Use this plugin only for development to test how your code behaves on AWS.
 
