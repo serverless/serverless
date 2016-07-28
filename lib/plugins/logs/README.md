@@ -6,7 +6,7 @@ This plugin returns the CloudWatch logs of a lambda function. You can simply run
 
 The logs plugin only requires the function name you want to fetch the logs for. Other than that there are other options that you can add for extra control. Here's the full options list:
 
-- `--function` or `-t` The function you want to fetch the logs for. **Required**
+- `--function` or `-f` The function you want to fetch the logs for. **Required**
 - `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
 - `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
 - `--startTime` A specific unit in time to start fetching logs from. You can use standard date/time (ie: `2010-10-20` or `1469705761`), or simply a "since string" like `30m` (30 minutes), `2h` (2 hours), `3d` (3 days) and so on. We'll just fetch the logs that happened since then.
