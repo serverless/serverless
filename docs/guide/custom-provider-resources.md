@@ -15,7 +15,7 @@ After initialization, Serverless will try to load the `resources` object from th
 It will create an own, empty one if it doesn't exist.
 
 You can use this place to add custom provider resources by writing the resource definition in YAML syntax inside the
-`resources` object.
+`resources` object. You can also use your variables from `serverless.env.yml` in the Values
 
 ```yml
 # serverless.yml
@@ -25,6 +25,26 @@ resources:
       Type: ResourceType
       Properties:
         Key: Value
+```
+
+### Example custom resources - S3 bucket
+Sometimes you need an extra S3 bucket to store some data in (say, thumbnails). This works by adding an extra S3 Bucket Resource to your `serverless.yml`:
+
+```yml
+service: lambda-screenshots
+provider: aws
+functions:
+  ...
+
+resources:
+  Resources:
+    ThumbnailsBucket:
+      Type: AWS::S3::Bucket
+       Properties:
+         # You can also set properties for the resource, based on the CloudFormation properties
+         BucketName: my-awesome-thumbnails
+         # Or you could use a variable from your serverless.env.yml
+         # BucketName: ${bucketname}
 ```
 
 ### Example custom resources - HTTP Proxy
