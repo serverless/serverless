@@ -15,7 +15,7 @@ After initialization, Serverless will try to load the `resources` object from th
 It will create an own, empty one if it doesn't exist.
 
 You can use this place to add custom provider resources by writing the resource definition in YAML syntax inside the
-`resources` object.
+`resources` object. You can also use your variables from `serverless.env.yml` in the Values
 
 ```yml
 # serverless.yml
@@ -25,6 +25,26 @@ resources:
       Type: ResourceType
       Properties:
         Key: Value
+```
+
+### Example custom resources - S3 bucket
+Sometimes you need an extra S3 bucket to store some data in (say, thumbnails). This works by adding an extra S3 Bucket Resource to your `serverless.yml`:
+
+```yml
+service: lambda-screenshots
+provider: aws
+functions:
+  ...
+
+resources:
+  Resources:
+    ThumbnailsBucket:
+      Type: AWS::S3::Bucket
+       Properties:
+         # You can also set properties for the resource, based on the CloudFormation properties
+         BucketName: my-awesome-thumbnails
+         # Or you could use a variable from your serverless.env.yml
+         # BucketName: ${bucketname}
 ```
 
 ### Example custom resources - HTTP Proxy
@@ -61,24 +81,15 @@ resources:
         Ref: RestApiApigEvent
       Type: AWS::ApiGateway::Method
       Properties:
-        AuthorizationType: NONE
         HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
         MethodResponses:
-          - ResponseModels: {}
-            ResponseParameters: {}
-            StatusCode: 200
-        RequestParameters: {}
+          - StatusCode: 200
         Integration:
           IntegrationHttpMethod: POST
           Type: HTTP
           Uri: http://serverless.com # the URL you want to set a proxy to
-          RequestTemplates:
-            application/json: ""
           IntegrationResponses:
-            StatusCode: 200
-            ResponseParameters: {}
-            ResponseTemplates:
-              application/json: ""
+            - StatusCode: 200
 ```
 
 There's a lot going on in these two templates, but all you need to know to set up a simple proxy is setting the method &
