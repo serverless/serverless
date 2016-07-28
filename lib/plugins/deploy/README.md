@@ -1,12 +1,14 @@
 # Deploy
 
 ```
-serverless deploy
+serverless deploy [function]
 ```
 
 Deploys your service.
 
 ## Options
+- `--function` or `-f` The name of the function which should be deployed (**Note:** only available when running
+`serverless deploy function`)
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 
@@ -17,6 +19,7 @@ Deploys your service.
 - `deploy:compileFunctions`
 - `deploy:compileEvents`
 - `deploy:deploy`
+- `deploy:function:deploy`
 
 ## Examples
 
@@ -37,3 +40,19 @@ serverless deploy --stage production --region eu-central-1
 
 With this example we've defined that we want our service to be deployed to the `production` stage in the region
 `eu-central-1`.
+
+### Deployment of a single function
+
+This command deploy the function `func` in the default stage (`dev`) of the default region (`us-east-1`).
+
+```
+serverless deploy function --function func
+```
+
+### Deployment of a single function with stage and region
+
+The function `func` will be deployed in the `production` stage of the `eu-central-1` region.
+
+```
+serverless deploy function --function func --stage production --region eu-central-1
+```
