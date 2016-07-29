@@ -439,9 +439,13 @@ describe('Service', () => {
       const serverlessYml = {
         service: 'service-name',
         provider: 'aws',
+        runtime: 'nodejs4.3',
         custom: {
           stage: '${stage}',
           region: '${region}',
+          service: '${service}',
+          provider: '${provider}',
+          runtime: '${runtime}',
         },
         functions: {},
       };
@@ -453,7 +457,9 @@ describe('Service', () => {
         },
         stages: {
           dev: {
-            vars: {},
+            vars: {
+              service: 'service-name-custom',
+            },
             regions: {},
           },
         },
@@ -475,6 +481,9 @@ describe('Service', () => {
         .then((loadedService) => {
           expect(loadedService.custom.stage).to.deep.equal('dev');
           expect(loadedService.custom.region).to.deep.equal('us-east-1');
+          expect(loadedService.custom.service).to.deep.equal('service-name-custom');
+          expect(loadedService.custom.provider).to.deep.equal('aws');
+          expect(loadedService.custom.runtime).to.deep.equal('nodejs4.3');
         });
     });
 
