@@ -433,6 +433,51 @@ describe('Service', () => {
         });
     });
 
+    it('should load and populate options for variables', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          stage: '${stage}',
+          region: '${region}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYml = {
+        vars: {
+          testObject: {
+            subProperty: 'test',
+          },
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
+        YAML.dump(serverlessEnvYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load()
+        .then((loadedService) => {
+          expect(loadedService.custom.stage).to.deep.equal('dev');
+          expect(loadedService.custom.region).to.deep.equal('us-east-1');
+        });
+    });
+
     it('should load and populate object variables deep sub properties', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
