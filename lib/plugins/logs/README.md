@@ -2,6 +2,8 @@
 
 This plugin returns the CloudWatch logs of a lambda function. You can simply run `serverless logs -f hello` to test it out.
 
+**Note:** There's a small lag between invoking the function and actually having the log event registered in CloudWatch. So it takes a few seconds for the logs to show up right after invoking the function.
+
 ## Logs Options
 
 The logs plugin only requires the function name you want to fetch the logs for. Other than that there are other options that you can add for extra control. Here's the full options list:
