@@ -36,6 +36,31 @@ regions later on. You could accomplish this easily by providing corresponding op
 If you e.g. want to deploy to the `production` stage in the `eu-central-1` region your `deploy` command will look like
 this: `serverless deploy --stage production --region eu-central-1`.
 
+## Deploying VPC configuration for Lambda
+
+You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Here's an example configuration:
+
+```
+# serverless.yml
+service: service-name
+default:
+  stage: beta
+  region: us-west-2
+
+functions:
+  hello:
+    handler: handler.hello
+    vpc:
+      securityGroupIds:
+        - securityGroupId1
+        - securityGroupId2
+      subnetIds: 
+        - subnetId1
+        - subnetId2
+```
+
+Then, when you run `serverless deploy`, this configuration will be deployed along with your lambda function.
+
 ## Conclusion
 
 We've just deployed our service! Let's invoke the services function in the next step.
