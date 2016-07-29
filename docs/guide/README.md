@@ -15,6 +15,7 @@ This guide is Amazon web service specific but can be applied to any other provid
 - [Creating a service](creating-a-service.md)
 - [Deploying a service](deploying-a-service.md)
 - [Invoking a function](invoking-a-function.md)
+- [Viewing function logs](viewing-function-logs.md)
 - [Event sources](event-sources.md)
 - [Overview of available event sources](overview-of-event-sources.md)
 - [Custom provider resources](custom-provider-resources.md)
