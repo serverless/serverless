@@ -41,6 +41,7 @@
     "chai": "^3.2.0",
     "eslint": "^2.8.0",
     "eslint-config-airbnb": "^7.0.0",
+    "eslint-plugin-jsx-a11y": "^0.6.2",
     "eslint-plugin-react": "^4.3.0",
     "mocha": "^2.2.5",
     "node-uuid": "^1.4.2",
