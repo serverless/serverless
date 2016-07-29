@@ -11,3 +11,6 @@ This plugin deploys a single function through the AWS SDK.
 `Deploy Function` hooks into the [`deploy:function:deploy`](/lib/plugins/deploy) lifecycle.
 It checks if the function exists in the service. After that it checks if the function was already deployed to AWS.
 Next up it zips the function and uploads the new function code directly to the corresponding lambda function.
+
+The `Deploy Function` plugin reuses the [Package plugin](/lib/plugins/package) under the hood to create the exact same
+deployment artifact which is also created when you run `serverless deploy`.
