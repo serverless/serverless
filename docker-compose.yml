@@ -22,3 +22,7 @@ services:
     image: qlik/gradle
     volumes:
       - ./tmp/serverless-integration-test-aws-java-gradle:/app
+  aws-golang:
+    image: jamesgroat/golang-nodejs
+    volumes:
+      - ./tmp/serverless-integration-test-aws-golang:/app
