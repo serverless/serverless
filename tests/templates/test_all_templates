@@ -8,6 +8,7 @@ function integration-test {
   $DIR/integration-test-template $@
 }
 
+integration-test aws-golang go build -o hello hello.go
 integration-test aws-java-gradle build
 integration-test aws-java-maven mvn package
 integration-test aws-nodejs
