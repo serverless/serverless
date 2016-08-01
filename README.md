@@ -1,5 +1,4 @@
 ![Serverless Application Framework AWS Lambda API Gateway](other/img/readme_serverless_framework_v1.gif)
-[![All Contributors](https://img.shields.io/badge/all_contributors-67-orange.svg?style=flat-square)](#contributors)
 
 Serverless Framework v.1.0
 =================================
@@ -10,13 +9,19 @@ Serverless Framework v.1.0
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-The Serverless Framework is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services, like [AWS Lambda](https://aws.amazon.com/lambda/), [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more.
+Serverless computing is quickly becoming a defacto way to build highly scalable fault tolerant systems.
 
-The Framework is a command line interface that provides scaffolding, automation and best practices for developing and deploying your serverless architecture.
+The Serverless Framework is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services.
 
-It's also completely extensible via plugins.
+We currently support [AWS Lambda](https://aws.amazon.com/lambda/) and are adding support for [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more.
 
-This is maintained by a full-time, venture-backed team. For updates, join our [mailing list](http://github.us11.list-manage1.com/subscribe?u=b4fad36768cab222f88338995&id=5f8407dded).
+The Serverless command line interface provides scaffolding, automation and best practices for developing and deploying your serverless architecture.
+
+Designed from the ground up to be extendable via plugins, It's easy to extend functionality to fit your unique needs.
+
+This project is maintained by a full-time, venture-backed team.
+
+For updates, join our [mailing list](http://github.us11.list-manage1.com/subscribe?u=b4fad36768cab222f88338995&id=5f8407dded).
 
 For help, join our [gitter chatroom](https://gitter.im/serverless/serverless).
 
@@ -28,11 +33,13 @@ Follow these simple steps to install serverless.
 
 Create and deploy your first service in under 5 minutes.
 
-1. `npm install -g serverless@beta # Install Serverless CLI`
-2. `mkdir my-first-service && cd my-first-service # Create the project directory`
-3. `serverless create --template aws-nodejs # Create an AWS node lamdba function`
-4. `serverless deploy # Deploy to live AWS account`
-5. `serverless invoke --function hello # run the live API endpoint`
+| **Step** | **Command** |**Description**|
+|----------|-------|---|
+|  1.  | `npm install -g serverless@beta` | Install Serverless CLI  |
+|  2.  | ``mkdir my-first-service && cd my-first-service` | Create the project directory |
+|  3.  | `serverless create --template aws-nodejs` | Create an AWS node lamdba function  |
+|  4.  | `serverless deploy` | Deploy to live AWS account  |
+|  5.  | ``serverless invoke --function hello` | run the live API endpoint  |
 
 Run `serverless remove` to clean up this function from your account.
 
@@ -75,13 +82,37 @@ We love our contributors! If you'd like to contribute to the project, feel free 
 
 Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.
 
-*** Links to documentation sections here ***
+- [Understanding Serverless and its configuration files](understanding-serverless)
+  - [Serverless services and functions](docs/understanding-serverless/services-and-functions.md)
+  - [serverless.yml](docs/understanding-serverless/serverless-yml.md)
+  - [serverless.env.yml](docs/understanding-serverless/serverless-env-yml.md)
+- [How to build your Serverless services](docs/guide)
+  - [Installing Serverless](docs/guide/installation.md)
+  - [Provider account setup](docs/guide/provider-account-setup.md)
+  - [Creating a service](docs/guide/creating-a-service.md)
+  - [Deploying your service](docs/guide/deploying-a-service.md)
+  - [Invoking your functions](docs/guide/invoking-a-function.md)
+  - [Adding additional event sources](docs/guide/event-sources.md)
+  - [Overview of available event sources](docs/guide/overview-of-event-sources.md)
+  - [Managing custom provider resources](docs/guide/custom-provider-resources.md)
+  - [Removing your service](docs/guide/removing-a-service.md)
+- [Using plugins](docs/using-plugins)
+  - [How to use additional plugins in your service](docs/using-plugins/adding-custom-plugins.md)
+  - [Plugins provided by Serverless](docs/using-plugins/core-plugins.md)
+- [Building plugins](docs/developing-plugins)
+  - [How to build your own plugin](docs/developing-plugins/building-plugins.md)
+  - [How to build provider integration with your plugin](docs/developing-plugins/building-provider-integrations.md)
+- [Service templates](docs/service-templates)
+- [Usage tracking](docs/usage-tracking)
+  - [Detailed information regarding usage tracking](docs/usage-tracking/usage-tracking.md)
 
 ## Contribute
 
 Please read our [Contributing Document](CONTRIBUTING.md) to learn more how you can start working on the Framework yourself.
 
 ## Community
+
+Some of the awesome people who contribute to Serverless. [Join the community](CONTRIBUTING.md)
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 | [<img src="https://avatars.githubusercontent.com/u/2752551?v=3" width="75px;"/><br /><sub>Austen </sub>](http://www.serverless.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/1036546?v=3" width="75px;"/><br /><sub>Ryan Pendergast</sub>](http://rynop.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/2312463?v=3" width="75px;"/><br /><sub>Eslam λ Hefnawy</sub>](http://eahefnawy.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/439309?v=3" width="75px;"/><br /><sub>Egor Kislitsyn</sub>](https://github.com/minibikini)<br /> | [<img src="https://avatars.githubusercontent.com/u/554841?v=3" width="75px;"/><br /><sub>Kamil Burzynski</sub>](http://www.nopik.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/636610?v=3" width="75px;"/><br /><sub>Ryan Brown</sub>](http://rsb.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/571200?v=3" width="75px;"/><br /><sub>Erik Erikson</sub>](https://github.com/erikerikson)<br /> |
