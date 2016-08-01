@@ -1,5 +1,5 @@
 ![Serverless Application Framework AWS Lambda API Gateway](other/img/readme_serverless_framework_v1.gif)
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-67-orange.svg?style=flat-square)](#contributors)
 
 Serverless Framework v.1.0
 =================================
@@ -71,6 +71,33 @@ We love our contributors! If you'd like to contribute to the project, feel free 
 * Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework).
 * You can also contribute by writing. Feel free to let us know if you want to publish a useful original guide in our docs (attributed to you, thank you!) that you feel will help the community.
 
+## [Documentation](/docs)
+
+Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.
+
+*** Links to documentation sections here ***
+
+## Contribute
+
+Please read our [Contributing Document](CONTRIBUTING.md) to learn more how you can start working on the Framework yourself.
+
+## Community
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+| [<img src="https://avatars.githubusercontent.com/u/2752551?v=3" width="75px;"/><br /><sub>Austen </sub>](http://www.serverless.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/1036546?v=3" width="75px;"/><br /><sub>Ryan Pendergast</sub>](http://rynop.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/2312463?v=3" width="75px;"/><br /><sub>Eslam λ Hefnawy</sub>](http://eahefnawy.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/439309?v=3" width="75px;"/><br /><sub>Egor Kislitsyn</sub>](https://github.com/minibikini)<br /> | [<img src="https://avatars.githubusercontent.com/u/554841?v=3" width="75px;"/><br /><sub>Kamil Burzynski</sub>](http://www.nopik.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/636610?v=3" width="75px;"/><br /><sub>Ryan Brown</sub>](http://rsb.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/571200?v=3" width="75px;"/><br /><sub>Erik Erikson</sub>](https://github.com/erikerikson)<br /> |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| [<img src="https://avatars.githubusercontent.com/u/851863?v=3" width="75px;"/><br /><sub>Joost Farla</sub>](http://www.apiwise.nl)<br /> | [<img src="https://avatars.githubusercontent.com/u/532272?v=3" width="75px;"/><br /><sub>David Wells</sub>](http://davidwells.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/5524702?v=3" width="75px;"/><br /><sub>Frank Schmid</sub>](https://github.com/HyperBrain)<br /> | [<img src="https://avatars.githubusercontent.com/u/27389?v=3" width="75px;"/><br /><sub>Jacob Evans</sub>](www.dekz.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/1606004?v=3" width="75px;"/><br /><sub>Philipp Muens</sub>](http://serverless.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/1689118?v=3" width="75px;"/><br /><sub>Jared Short</sub>](http://jaredshort.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/37931?v=3" width="75px;"/><br /><sub>Jordan Mack</sub>](http://www.glitchbot.com/)<br /> |
+| [<img src="https://avatars.githubusercontent.com/u/479049?v=3" width="75px;"/><br /><sub>stevecaldwell77</sub>](https://github.com/stevecaldwell77)<br /> | [<img src="https://avatars.githubusercontent.com/u/101239?v=3" width="75px;"/><br /><sub>Aaron Boushley</sub>](blog.boushley.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/3111541?v=3" width="75px;"/><br /><sub>Michael Haselton</sub>](https://github.com/icereval)<br /> | [<img src="https://avatars.githubusercontent.com/u/4904741?v=3" width="75px;"/><br /><sub>visualasparagus</sub>](https://github.com/visualasparagus)<br /> | [<img src="https://avatars.githubusercontent.com/u/239624?v=3" width="75px;"/><br /><sub>Alexandre Saiz Verdaguer</sub>](http://www.alexsaiz.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/132653?v=3" width="75px;"/><br /><sub>Florian Motlik</sub>](https://github.com/flomotlik)<br /> | [<img src="https://avatars.githubusercontent.com/u/13944?v=3" width="75px;"/><br /><sub>Kenneth Falck</sub>](http://kfalck.net)<br /> |
+| [<img src="https://avatars.githubusercontent.com/u/509798?v=3" width="75px;"/><br /><sub>akalra</sub>](https://github.com/akalra)<br /> | [<img src="https://avatars.githubusercontent.com/u/14071524?v=3" width="75px;"/><br /><sub>Martin Lindenberg</sub>](https://github.com/martinlindenberg)<br /> | [<img src="https://avatars.githubusercontent.com/u/26691?v=3" width="75px;"/><br /><sub>Tom Milewski</sub>](http://carrot.is/tom)<br /> | [<img src="https://avatars.githubusercontent.com/u/195210?v=3" width="75px;"/><br /><sub>Antti Ahti</sub>](https://twitter.com/apaatsio)<br /> | [<img src="https://avatars.githubusercontent.com/u/476010?v=3" width="75px;"/><br /><sub>Dan</sub>](https://github.com/BlueBlock)<br /> | [<img src="https://avatars.githubusercontent.com/u/8393068?v=3" width="75px;"/><br /><sub>Mikael Puittinen</sub>](https://github.com/mpuittinen)<br /> | [<img src="https://avatars.githubusercontent.com/u/4513907?v=3" width="75px;"/><br /><sub>Jeremy Wallace</sub>](https://github.com/jerwallace)<br /> |
+| [<img src="https://avatars.githubusercontent.com/u/265395?v=3" width="75px;"/><br /><sub>Jonathan Nuñez</sub>](https://twitter.com/jonathan_naguin)<br /> | [<img src="https://avatars.githubusercontent.com/u/195404?v=3" width="75px;"/><br /><sub>Nick den Engelsman</sub>](http://www.codedrops.nl)<br /> | [<img src="https://avatars.githubusercontent.com/u/116057?v=3" width="75px;"/><br /><sub>Kazato Sugimoto</sub>](https://twitter.com/uiureo)<br /> | [<img src="https://avatars.githubusercontent.com/u/1551510?v=3" width="75px;"/><br /><sub>Matthew Chase Whittemore</sub>](https://github.com/mcwhittemore)<br /> | [<img src="https://avatars.githubusercontent.com/u/280997?v=3" width="75px;"/><br /><sub>Joe Turgeon</sub>](https://github.com/arithmetric)<br /> | [<img src="https://avatars.githubusercontent.com/u/4154003?v=3" width="75px;"/><br /><sub>David Hérault</sub>](https://github.com/dherault)<br /> | [<img src="https://avatars.githubusercontent.com/u/1114054?v=3" width="75px;"/><br /><sub>Austin Rivas</sub>](https://github.com/austinrivas)<br /> |
+| [<img src="https://avatars.githubusercontent.com/u/15729112?v=3" width="75px;"/><br /><sub>Tomasz Szajna</sub>](https://github.com/tszajna0)<br /> | [<img src="https://avatars.githubusercontent.com/u/446405?v=3" width="75px;"/><br /><sub>Daniel Johnston</sub>](https://github.com/affablebloke)<br /> | [<img src="https://avatars.githubusercontent.com/u/950078?v=3" width="75px;"/><br /><sub>Michael Wittig</sub>](https://michaelwittig.info/)<br /> | [<img src="" width="75px;"/><br /><sub>pwagener</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>ianserlin</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>nishantjain91</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>michaelorionmcmanus</sub>]()<br /> |
+| [<img src="" width="75px;"/><br /><sub>rma4ok</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>laurisvan</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>MrRio</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>rajington</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>weitzman</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>kpotehin</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>brentax</sub>]()<br /> |
+| [<img src="" width="75px;"/><br /><sub>ryutamaki</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>picsoung</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>colinramsay</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>kevinold</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>forevermatt</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>maclennann</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>InvertedAcceleration</sub>]()<br /> |
+| [<img src="" width="75px;"/><br /><sub>Ninir</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>mparramont</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>hmeltaus</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>thomasv314</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>fuyu</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>alexcasalboni</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>markogresak</sub>]()<br /> |
+| [<img src="" width="75px;"/><br /><sub>derekvanvliet</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>friism</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>stevecrozz</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>worldsoup</sub>]()<br /> |
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+
 ## Consultants
 These consultants use the Serverless Framework and can help you build your serverless projects.
 * [Trek10](https://www.trek10.com/)
@@ -87,21 +114,6 @@ These consultants use the Serverless Framework and can help you build your serve
 * [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
 * [Branded Crate](https://www.brandedcrate.com/)
 * [cloudonaut](https://cloudonaut.io/serverless-consulting/)
-
-## [Documentation](/docs)
-
-Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.
-
-## Contribute
-
-Please read our [Contributing Document](CONTRIBUTING.md) to learn more how you can start working on the Framework yourself.
-
-## Community
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-| [<img src="https://avatars.githubusercontent.com/u/532272?v=3" width="75px;"/><br /><sub>David Wells</sub>](http://davidwells.io)<br /> |
-| :---: |
-<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ----
 
