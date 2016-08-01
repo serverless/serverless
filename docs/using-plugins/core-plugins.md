@@ -19,3 +19,4 @@ see the corresponding source code.
   - [Deploy](/lib/plugins/aws/deploy)
   - [Invoke](/lib/plugins/aws/invoke)
   - [Remove](/lib/plugins/aws/remove)
+  - [Deploy function](/lib/plugins/aws/deployFunction)
