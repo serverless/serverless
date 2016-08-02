@@ -1,14 +1,5 @@
 ![Serverless Application Framework AWS Lambda API Gateway](https://cloud.githubusercontent.com/assets/532272/17313761/61af7166-5813-11e6-84af-c296c19ead9b.gif)
 
-Serverless Framework v.1.0
-=================================
-[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
-[![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
-[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=v1.0)](https://coveralls.io/github/serverless/serverless?branch=dev)
-[![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
-[![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
-[![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
-
 The Serverless Framework gives users the ability to scaffold, deploy, and manage serverless architectures.
 
 Serverless computing is quickly becoming a defacto way to build highly scalable fault tolerant systems. With the pay-per-execution pricing model, zero administration, and automatic scaling it's easy to see why.
@@ -140,6 +131,15 @@ These consultants use the Serverless Framework and can help you build your serve
 * [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
 * [Branded Crate](https://www.brandedcrate.com/)
 * [cloudonaut](https://cloudonaut.io/serverless-consulting/)
+
+## Badges
+
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
+[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=v1.0)](https://coveralls.io/github/serverless/serverless?branch=dev)
+[![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
+[![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
+[![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
 ----
 
