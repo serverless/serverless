@@ -9,7 +9,7 @@ Serverless Framework v.1.0
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-The Serverless Framework gives users the ability to scaffold, deploy, and management serverless infrastructures.
+The Serverless Framework gives users the ability to scaffold, deploy, and manage serverless architectures.
 
 Serverless computing is quickly becoming a defacto way to build highly scalable fault tolerant systems. With the pay-per-execution pricing model, zero administration, and automatic scaling it's easy to see why.
 
@@ -19,11 +19,19 @@ The Serverless Framework is a command line interface for building web, mobile an
 
 The CLI provides scaffolding, automation and best practices for developing and deploying your serverless architecture.
 
-Designed from the ground up to be extendable via plugins, It's easy to extend functionality to fit specific project requirements.
-
-# About the project
+Designed from the ground up to be [extendable via plugins](docs/using-plugins), It's easy to [extend functionality](docs/developing-plugins) to fit specific project requirements.
 
 Serverless is an MIT open source project and is actively maintained by a full-time, venture-backed team.
+
+## Links
+
+* [Quick Start](#Quick-start)
+* [Features](#Features)
+* [Documentation v.1](/docs) / [v.0](http://docs.serverless.com/)
+* [Road Map](https://github.com/serverless/serverless/milestones)
+* [Contributing](#Contributing)
+* [Community](#Community)
+* [Changelog](https://github.com/serverless/serverless/releases)
 
 ## Quick start
 
@@ -42,15 +50,6 @@ Create and deploy your first service in under 5 minutes.
 
 Run `serverless remove` to clean up this function from your account.
 
-## Links
-
-* [Features](#Features)
-* [Documentation v.1](/docs) / [v.0](http://docs.serverless.com/)
-* [Road Map](https://github.com/serverless/serverless/milestones)
-* [Contributing](#Contributing)
-* [Community](#Community)
-* [Changelog](https://github.com/serverless/serverless/releases)
-
 ## Features
 
 * Manage the lifecycle of your serverless architecture (build, deploy, update, delete)
@@ -65,7 +64,7 @@ Run `serverless remove` to clean up this function from your account.
 * An ecosystem of serverless services and plugins
 * A fantastic and welcoming community!
 
-## [Documentation](/docs)
+## Documentation
 
 Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.
 
