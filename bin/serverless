@@ -4,7 +4,7 @@
 
 let argv   = require('minimist')(process.argv.slice(2));
 
-if (argv.debug) process.env.DEBUG = '*';
+if (argv.debug || typeof v8debug === 'object') process.env.DEBUG = '*';
 
 let S         = require('../lib/Serverless'),
   SUtils      = require('../lib/utils'),
@@ -13,6 +13,7 @@ let S         = require('../lib/Serverless'),
     projectPath: SUtils.findProjectPath(process.cwd()),
     interactive: typeof process.env.CI === 'undefined'
   });
+
 
 serverless.init()
   .then(function(){
