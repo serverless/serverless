@@ -9,31 +9,21 @@ Serverless Framework v.1.0
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-Serverless computing is quickly becoming a defacto way to build highly scalable fault tolerant systems.
+The Serverless Framework gives users the ability to scaffold, deploy, and management serverless infrastructures.
 
-With the pay-per-execution pricing model, zero administration
+Serverless computing is quickly becoming a defacto way to build highly scalable fault tolerant systems. With the pay-per-execution pricing model, zero administration, and automatic scaling it's easy to see why.
 
-The Serverless Framework is the application framework for building web, mobile and IoT applications on serverless, event-driven compute services.
+This new level of operational abstraction has it's benefits but also introduces some additional complexities, thus the serverless framework was born.
 
-We currently support [AWS Lambda](https://aws.amazon.com/lambda/) and are adding support for [Google CloudFunctions](https://cloud.google.com/functions/), [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) and more.
+The Serverless Framework is a command line interface for building web, mobile and IoT applications on serverless, event-driven compute services.
 
-The Serverless command line interface provides scaffolding, automation and best practices for developing and deploying your serverless architecture.
+The CLI provides scaffolding, automation and best practices for developing and deploying your serverless architecture.
 
-Designed from the ground up to be extendable via plugins, It's easy to extend functionality to fit your unique needs.
+Designed from the ground up to be extendable via plugins, It's easy to extend functionality to fit specific project requirements.
 
 # About the project
 
-While AWS Lambda offers a powerful new way of developing/running applications, when we began building our first project based entirely on AWS Lambda, we realized structure was badly needed.
-
-Managing all of the containers that Lambda introduces is a difficult task. Add to that multi-developer teams, multi-stage and multi-region support and you will quickly get into a messy situation.
-
-Thus, the Serverless Framework was born. The first and most powerful framework for building applications exclusively on AWS Lambda.
-
 Serverless is an MIT open source project and is actively maintained by a full-time, venture-backed team.
-
-For updates, join our [mailing list](http://github.us11.list-manage1.com/subscribe?u=b4fad36768cab222f88338995&id=5f8407dded).
-
-For help, join our [gitter chatroom](https://gitter.im/serverless/serverless).
 
 ## Quick start
 
@@ -54,16 +44,12 @@ Run `serverless remove` to clean up this function from your account.
 
 ## Links
 
-* [Documentation v1.0](/docs)
+* [Features](#Features)
+* [Documentation v.1](/docs) / [v.0](http://docs.serverless.com/)
 * [Road Map](https://github.com/serverless/serverless/milestones)
+* [Contributing](#Contributing)
+* [Community](#Community)
 * [Changelog](https://github.com/serverless/serverless/releases)
-* [Email Updates](http://eepurl.com/b8dv4P)
-* [Gitter Chatroom](https://gitter.im/serverless/serverless) - We are in here all day long!
-* [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
-* [Facebook](https://www.facebook.com/serverless)
-* [Twitter](https://twitter.com/goserverless)
-* [Serverless Meetups](http://www.meetup.com/serverless/)
-* [Contact Us](mailto:team@serverless.com)
 
 ## Features
 
@@ -115,6 +101,14 @@ Please read our [Contributing Document](CONTRIBUTING.md) to learn more how you c
 ## Community
 
 Some of the awesome people who contribute to Serverless. [Join the community](CONTRIBUTING.md)
+
+* [Email Updates](http://eepurl.com/b8dv4P)
+* [Gitter Chatroom](https://gitter.im/serverless/serverless) - We are in here all day long!
+* [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
+* [Facebook](https://www.facebook.com/serverless)
+* [Twitter](https://twitter.com/goserverless)
+* [Serverless Meetups](http://www.meetup.com/serverless/)
+* [Contact Us](mailto:team@serverless.com)
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 | [<img src="https://avatars.githubusercontent.com/u/2752551?v=3" width="75px;"/><br /><sub>Austen </sub>](http://www.serverless.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/1036546?v=3" width="75px;"/><br /><sub>Ryan Pendergast</sub>](http://rynop.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/2312463?v=3" width="75px;"/><br /><sub>Eslam λ Hefnawy</sub>](http://eahefnawy.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/439309?v=3" width="75px;"/><br /><sub>Egor Kislitsyn</sub>](https://github.com/minibikini)<br /> | [<img src="https://avatars.githubusercontent.com/u/554841?v=3" width="75px;"/><br /><sub>Kamil Burzynski</sub>](http://www.nopik.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/636610?v=3" width="75px;"/><br /><sub>Ryan Brown</sub>](http://rsb.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/571200?v=3" width="75px;"/><br /><sub>Erik Erikson</sub>](https://github.com/erikerikson)<br /> |
