@@ -1,0 +1,54 @@
+#!/usr/bin/env node
+
+'use strict';
+
+/*
+Prequisites exists. Please install the following:
+    Google Chrome browser
+    node-inspector package installed globally (npm install -g node-inspector)
+You can start a debug session by using sls-debug command in place of serverless command, e.g.
+    sls-debug create --template aws-nodejs
+*/
+
+console.log('starting serverless in debug mode\n\nplease end the debug-session by CLOSING the browser window\n');
+
+const path = require('path');
+const spawn = require('child_process').spawn;
+const isWin = /^win/.test(process.platform);
+
+let myArgv  = process.argv.slice(2);
+let myPath = path.join(__dirname,'serverless');
+let command = 'cmd.exe';
+
+//windows requires different spawn arguments fron 'nix platforms
+if (isWin === true) {    
+    myArgv.unshift(myPath);
+    myArgv.unshift('node-debug');
+    myArgv.unshift('/c');
+    myArgv.unshift('/s');
+} else {
+    command='node-debug';
+    myArgv.unshift(myPath);        
+}
+
+
+// spawn the command line for node debug
+const child = spawn(command, myArgv, {env:process.env, stdio: 'inherit'});
+const sNodeInspectorMissing = 'PLEASE INSTALL NODE INSPECTOR FIRST: npm install -g node-inspector';
+
+child.on('error', function(data) {
+    //console.error(data);
+    if ('code' in data && data.code === 'ENOENT') {
+        console.log(sNodeInspectorMissing);
+    } else {
+       console.error(data); 
+    }    
+});
+
+child.on('close', function(code) {
+    if (code === 1 && isWin) {
+	   console.log(sNodeInspectorMissing);
+    } else {
+        console.log('shutting down debug session: ' + code);
+    }
+});
