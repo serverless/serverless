@@ -1,4 +1,4 @@
-![Serverless Application Framework AWS Lambda API Gateway](other/img/readme_serverless_framework_v1.gif)
+![Serverless Application Framework AWS Lambda API Gateway](https://cloud.githubusercontent.com/assets/532272/17313761/61af7166-5813-11e6-84af-c296c19ead9b.gif)
 
 Serverless Framework v.1.0
 =================================
