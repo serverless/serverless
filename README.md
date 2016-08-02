@@ -37,9 +37,10 @@ Create and deploy your first service in under 5 minutes.
 |---|-------|------|
 |  1.  | `npm install -g serverless@beta` | Install Serverless CLI  |
 |  2.  | `mkdir my-first-service && cd my-first-service` | Create the project directory |
-|  3.  | `serverless create --template aws-nodejs` | Create an AWS node lamdba function  |
-|  4.  | `serverless deploy` | Deploy to live AWS account  |
-|  5.  | `serverless invoke --function hello` | run the live API endpoint  |
+|  3.  | [Input your provider credentials](/docs/guide/provider-account-setup.md#amazon-web-services) | Connect Serverless with your provider |
+|  4.  | `serverless create --template aws-nodejs` | Create an AWS node lamdba function  |
+|  5.  | `serverless deploy` | Deploy to live AWS account  |
+|  6.  | `serverless invoke --function hello` | run the live API endpoint  |
 
 Run `serverless remove` to clean up this function from your account.
 
@@ -70,14 +71,6 @@ Run `serverless remove` to clean up this function from your account.
 * An ecosystem of serverless services and plugins
 * A fantastic and welcoming community!
 
-## Contributing
-We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
-
-* Propose your changes before you start working on a PR. You can reach us by submitting a Github issue, or discuss it in the [Gitter Chatroom](https://gitter.im/serverless/serverless). This is just to make sure that no one else is working on the same change, and to figure out the best way to solve the issue.
-* If you're out of ideas, but still want to contribute, check out our [Road Map](https://github.com/serverless/serverless/milestones). There's a lot we want to get done, and we'd love your help!
-* Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework).
-* You can also contribute by writing. Feel free to let us know if you want to publish a useful original guide in our docs (attributed to you, thank you!) that you feel will help the community.
-
 ## [Documentation](/docs)
 
 Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.
@@ -106,7 +99,8 @@ Take a look at our [documentation](/docs) to get started with Serverless and und
 - [Usage tracking](docs/usage-tracking)
   - [Detailed information regarding usage tracking](docs/usage-tracking/usage-tracking.md)
 
-## Contribute
+## Contributing
+We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
 
 Please read our [Contributing Document](CONTRIBUTING.md) to learn more how you can start working on the Framework yourself.
 
@@ -121,9 +115,9 @@ Some of the awesome people who contribute to Serverless. [Join the community](CO
 | [<img src="https://avatars.githubusercontent.com/u/479049?v=3" width="75px;"/><br /><sub>stevecaldwell77</sub>](https://github.com/stevecaldwell77)<br /> | [<img src="https://avatars.githubusercontent.com/u/101239?v=3" width="75px;"/><br /><sub>Aaron Boushley</sub>](blog.boushley.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/3111541?v=3" width="75px;"/><br /><sub>Michael Haselton</sub>](https://github.com/icereval)<br /> | [<img src="https://avatars.githubusercontent.com/u/4904741?v=3" width="75px;"/><br /><sub>visualasparagus</sub>](https://github.com/visualasparagus)<br /> | [<img src="https://avatars.githubusercontent.com/u/239624?v=3" width="75px;"/><br /><sub>Alexandre Saiz Verdaguer</sub>](http://www.alexsaiz.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/132653?v=3" width="75px;"/><br /><sub>Florian Motlik</sub>](https://github.com/flomotlik)<br /> | [<img src="https://avatars.githubusercontent.com/u/13944?v=3" width="75px;"/><br /><sub>Kenneth Falck</sub>](http://kfalck.net)<br /> |
 | [<img src="https://avatars.githubusercontent.com/u/509798?v=3" width="75px;"/><br /><sub>akalra</sub>](https://github.com/akalra)<br /> | [<img src="https://avatars.githubusercontent.com/u/14071524?v=3" width="75px;"/><br /><sub>Martin Lindenberg</sub>](https://github.com/martinlindenberg)<br /> | [<img src="https://avatars.githubusercontent.com/u/26691?v=3" width="75px;"/><br /><sub>Tom Milewski</sub>](http://carrot.is/tom)<br /> | [<img src="https://avatars.githubusercontent.com/u/195210?v=3" width="75px;"/><br /><sub>Antti Ahti</sub>](https://twitter.com/apaatsio)<br /> | [<img src="https://avatars.githubusercontent.com/u/476010?v=3" width="75px;"/><br /><sub>Dan</sub>](https://github.com/BlueBlock)<br /> | [<img src="https://avatars.githubusercontent.com/u/8393068?v=3" width="75px;"/><br /><sub>Mikael Puittinen</sub>](https://github.com/mpuittinen)<br /> | [<img src="https://avatars.githubusercontent.com/u/4513907?v=3" width="75px;"/><br /><sub>Jeremy Wallace</sub>](https://github.com/jerwallace)<br /> |
 | [<img src="https://avatars.githubusercontent.com/u/265395?v=3" width="75px;"/><br /><sub>Jonathan Nuñez</sub>](https://twitter.com/jonathan_naguin)<br /> | [<img src="https://avatars.githubusercontent.com/u/195404?v=3" width="75px;"/><br /><sub>Nick den Engelsman</sub>](http://www.codedrops.nl)<br /> | [<img src="https://avatars.githubusercontent.com/u/116057?v=3" width="75px;"/><br /><sub>Kazato Sugimoto</sub>](https://twitter.com/uiureo)<br /> | [<img src="https://avatars.githubusercontent.com/u/1551510?v=3" width="75px;"/><br /><sub>Matthew Chase Whittemore</sub>](https://github.com/mcwhittemore)<br /> | [<img src="https://avatars.githubusercontent.com/u/280997?v=3" width="75px;"/><br /><sub>Joe Turgeon</sub>](https://github.com/arithmetric)<br /> | [<img src="https://avatars.githubusercontent.com/u/4154003?v=3" width="75px;"/><br /><sub>David Hérault</sub>](https://github.com/dherault)<br /> | [<img src="https://avatars.githubusercontent.com/u/1114054?v=3" width="75px;"/><br /><sub>Austin Rivas</sub>](https://github.com/austinrivas)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/15729112?v=3" width="75px;"/><br /><sub>Tomasz Szajna</sub>](https://github.com/tszajna0)<br /> | [<img src="https://avatars.githubusercontent.com/u/446405?v=3" width="75px;"/><br /><sub>Daniel Johnston</sub>](https://github.com/affablebloke)<br /> | [<img src="https://avatars.githubusercontent.com/u/950078?v=3" width="75px;"/><br /><sub>Michael Wittig</sub>](https://michaelwittig.info/)<br /> | [<img src="" width="75px;"/><br /><sub>pwagener</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>ianserlin</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>nishantjain91</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>michaelorionmcmanus</sub>]()<br /> |
+| [<img src="https://avatars.githubusercontent.com/u/15729112?v=3" width="75px;"/><br /><sub>Tomasz Szajna</sub>](https://github.com/tszajna0)<br /> | [<img src="https://avatars.githubusercontent.com/u/446405?v=3" width="75px;"/><br /><sub>Daniel Johnston</sub>](https://github.com/affablebloke)<br /> | [<img src="https://avatars.githubusercontent.com/u/950078?v=3" width="75px;"/><br /><sub>Michael Wittig</sub>](https://michaelwittig.info/)<br /> | [<img src="https://avatars.githubusercontent.com/u/1091399?v=3" width="75px;"/><br /><sub>pwagener</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>ianserlin</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>nishantjain91</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>michaelorionmcmanus</sub>]()<br /> |
 | [<img src="" width="75px;"/><br /><sub>rma4ok</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>laurisvan</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>MrRio</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>rajington</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>weitzman</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>kpotehin</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>brentax</sub>]()<br /> |
-| [<img src="" width="75px;"/><br /><sub>ryutamaki</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>picsoung</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>colinramsay</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>kevinold</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>forevermatt</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>maclennann</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>InvertedAcceleration</sub>]()<br /> |
+| [<img src="https://avatars.githubusercontent.com/u/762414?v=3" width="75px;"/><br /><sub>ryutamaki</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>picsoung</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>colinramsay</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>kevinold</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>forevermatt</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>maclennann</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>InvertedAcceleration</sub>]()<br /> |
 | [<img src="" width="75px;"/><br /><sub>Ninir</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>mparramont</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>hmeltaus</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>thomasv314</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>fuyu</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>alexcasalboni</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>markogresak</sub>]()<br /> |
 | [<img src="" width="75px;"/><br /><sub>derekvanvliet</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>friism</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>stevecrozz</sub>]()<br /> | [<img src="" width="75px;"/><br /><sub>worldsoup</sub>]()<br /> |
 <!-- ALL-CONTRIBUTORS-LIST:END -->
@@ -148,7 +142,7 @@ These consultants use the Serverless Framework and can help you build your serve
 
 ----
 
-# Version 0.5.x
+# Previous Serverless Version 0.5.x
 
 Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them.
 
