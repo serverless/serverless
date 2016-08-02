@@ -33,13 +33,13 @@ Follow these simple steps to install serverless.
 
 Create and deploy your first service in under 5 minutes.
 
-| **Command** | **Description** |
-|---|-------|
-|  1. `npm install -g serverless@beta` | Install Serverless CLI  |
-|  2. `mkdir my-first-service && cd my-first-service` | Create the project directory |
-|  3. `serverless create --template aws-nodejs` | Create an AWS node lamdba function  |
-|  4. `serverless deploy` | Deploy to live AWS account  |
-|  5. `serverless invoke --function hello` | run the live API endpoint  |
+| **Step** | **Command** |**Description**|
+|-|-------|------|
+|  1.  | `npm install -g serverless@beta` | Install Serverless CLI  |
+|  2.  | `mkdir my-first-service && cd my-first-service` | Create the project directory |
+|  3.  | `serverless create --template aws-nodejs` | Create an AWS node lamdba function  |
+|  4.  | `serverless deploy` | Deploy to live AWS account  |
+|  5.  | `serverless invoke --function hello` | run the live API endpoint  |
 
 Run `serverless remove` to clean up this function from your account.
 
