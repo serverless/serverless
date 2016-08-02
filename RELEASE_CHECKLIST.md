@@ -2,7 +2,7 @@
 
 This checklist should be worked through when releasing a new Serverless version.
 
-1. Update Segment.io key
+1. Update Segment.io key (never push the change to GitHub)
 2. Look through all open issues and PRs (if any) and close them / move them to another Milestone
 3. Look through all closed PRs and Issues to see what has changed
 4. Create a Serverless service (with some events), deploy and test it intensively
