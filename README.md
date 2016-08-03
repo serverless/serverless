@@ -82,6 +82,7 @@ We love our contributors! Please read our [Contributing Document](CONTRIBUTING.m
 ## <a name="community"></a>Community
 
 * [Email Updates](http://eepurl.com/b8dv4P)
+* [Serverless Forum](http://forum.serverless.com)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
