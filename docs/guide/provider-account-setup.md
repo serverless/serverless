@@ -18,17 +18,24 @@ needs. In the interim, ensure that your AWS API Keys are kept in a safe, private
 
 1. Create or login to your Amazon Web Services Account and go the the Identity & Access Management (IAM) Page
 2. Click on **Users** and then **Create New Users**. Enter `serverless-admin` in the first field and click **Create**
-3. View and copy the security credentials/API Keys in a safe place
+3. **View and copy the API Key & Secret. You'll need it in the next step**
 4. In the User record in the AWS IAM Dashboard, look for **Managed Policies** on the **Permissions** tab and click
 **Attach Policy**
 5. In the next screen, search for and select **AdministratorAccess** then click **Attach**
 
-### Setting a default AWS profile
+### Setting the AWS API Keys
 
-We'd recommend to create a `default` AWS profile on your local machine as Serverless uses this as a default which makes
-developing a lot faster and easier. Follow
-[these steps](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
-to setup your AWS account through the AWS CLI.
+To start using Serverless and access the AWS API. You need to set the AWS API Key & Secret in your local machine. Just copy the following command (if you're on Mac or Linux), **but make sure you replace the "<key>" & "<secret>" with your actual key & secret before running it**:
+
+```
+echo "export AWS_ACCESS_KEY_ID=<key>" >> ~/.bash_profile && echo "export AWS_SECRET_ACCESS_KEY=<secret>" >> ~/.bash_profile && source ~/.bash_profile
+```
+To test that you've correctly set the AWS API Key & Secret, run the following command:
+
+```
+printenv AWS_ACCESS_KEY_ID && printenv AWS_SECRET_ACCESS_KEY
+```
+You should see your AWS API Key & Secret printed for you. You're now ready to start using Serverless!
 
 ## Conclusion
 
