@@ -1,34 +1,28 @@
 ![Serverless Application Framework AWS Lambda API Gateway](https://cloud.githubusercontent.com/assets/532272/17313761/61af7166-5813-11e6-84af-c296c19ead9b.gif)
 
->Serverless computing is quickly becoming a defacto way to build highly scalable fault tolerant systems. With the pay-per-execution pricing model, zero administration, and automatic scaling it's easy to see why.
+**The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run.  This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
->This new level of operational abstraction has it's benefits but also introduces some additional complexities, thus the serverless framework was born.
+The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-The Serverless Framework gives users the ability to scaffold, deploy, and manage serverless architectures.
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
-The Framework is a command line interface for building web, mobile and IoT applications on serverless, event-driven compute services.
+Enjoy! - Serverless, Inc.
 
-The CLI provides scaffolding, automation and best practices for developing and deploying your serverless architecture.
-
-Designed from the ground up to be [extendable via plugins](docs/using-plugins), It's easy to [extend functionality](docs/developing-plugins) to fit specific project requirements.
-
-Serverless is an MIT open source project and is actively maintained by a full-time, venture-backed team.
+[Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:team@serverless.com)
 
 ## Links
 
-* [Quick Start](#Quick-start)
-* [Features](#Features)
-* [Documentation v.1](/docs) / [v.0](http://docs.serverless.com/)
+* [Quick Start](#quick-start)
+* [Features](#features)
+* [Documentation v.1](#documentation) / [v.0](http://docs.serverless.com/)
 * [Road Map](https://github.com/serverless/serverless/milestones)
-* [Contributing](#Contributing)
-* [Community](#Community)
+* [Contributing](#contributing)
+* [Community](#community)
 * [Changelog](https://github.com/serverless/serverless/releases)
 
-## Quick start
+## <a name="quick-start"></a>Quick Start
 
-Follow these simple steps to install serverless.
-
-Create and deploy your first service in under 5 minutes.
+Create and deploy your first serverless microservice in minutes.
 
 | **Step** | **Command** |**Description**|
 |---|-------|------|
@@ -41,29 +35,28 @@ Create and deploy your first service in under 5 minutes.
 
 Run `serverless remove` to clean up this function from your account.
 
-## Features
+## <a name="features"></a>Features
 
-* Manage the lifecycle of your serverless architecture (build, deploy, update, delete)
-* Group functions into services for easy management of code, resources & processes across large projects and teams
-* Support for AWS Lambda, Azure Functions, Google CloudFunctions & more
-* Safely, easily deploy functions, events and their required resources
+* Supports Node.js, Python & Java
+* Manages the lifecycle of your serverless architecture (build, deploy, update, delete)
+* Deploys to AWS Lambda, Azure Functions (WIP), Google CloudFunctions (WIP), IBM OpenWhisk (WIP) & more
+* Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation)
+* Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams
 * Minimal configuration and scaffolding
 * Built-in support for multiple stages
 * Optimized for CI/CD workflows
 * Loaded with automation, optimization and best practices
 * 100% Extensible: Extend or modify the Framework and its operations via Plugins
 * An ecosystem of serverless services and plugins
-* A fantastic and welcoming community!
+* A passionate and welcoming community!
 
-## Documentation
+## <a name="documentation"></a>Documentation
 
-Take a look at our [documentation](/docs) to get started with Serverless and understand how it works behind the scenes.
-
-- [Understanding Serverless and its configuration files](understanding-serverless)
+- **[Understanding Serverless and its configuration files](understanding-serverless)**
   - [Serverless services and functions](docs/understanding-serverless/services-and-functions.md)
   - [serverless.yml](docs/understanding-serverless/serverless-yml.md)
   - [serverless.env.yml](docs/understanding-serverless/serverless-env-yml.md)
-- [How to build your Serverless services](docs/guide)
+- **[How to build your Serverless services](docs/guide)**
   - [Installing Serverless](docs/guide/installation.md)
   - [Provider account setup](docs/guide/provider-account-setup.md)
   - [Creating a service](docs/guide/creating-a-service.md)
@@ -73,27 +66,23 @@ Take a look at our [documentation](/docs) to get started with Serverless and und
   - [Overview of available event sources](docs/guide/overview-of-event-sources.md)
   - [Managing custom provider resources](docs/guide/custom-provider-resources.md)
   - [Removing your service](docs/guide/removing-a-service.md)
-- [Using plugins](docs/using-plugins)
+- **[Using plugins](docs/using-plugins)**
   - [How to use additional plugins in your service](docs/using-plugins/adding-custom-plugins.md)
   - [Plugins provided by Serverless](docs/using-plugins/core-plugins.md)
-- [Building plugins](docs/developing-plugins)
+- **[Building plugins](docs/developing-plugins)**
   - [How to build your own plugin](docs/developing-plugins/building-plugins.md)
   - [How to build provider integration with your plugin](docs/developing-plugins/building-provider-integrations.md)
-- [Service templates](docs/service-templates)
-- [Usage tracking](docs/usage-tracking)
+- **[Service templates](docs/service-templates)**
+- **[Usage tracking](docs/usage-tracking)**
   - [Detailed information regarding usage tracking](docs/usage-tracking/usage-tracking.md)
 
-## Contributing
-We love our contributors! If you'd like to contribute to the project, feel free to submit a PR. But please keep in mind the following guidelines:
+## <a name="contributing"></a>Contributing
+We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
 
-Please read our [Contributing Document](CONTRIBUTING.md) to learn more how you can start working on the Framework yourself.
-
-## Community
-
-Some of the awesome people who contribute to Serverless. [Join the community](CONTRIBUTING.md)
+## <a name="community"></a>Community
 
 * [Email Updates](http://eepurl.com/b8dv4P)
-* [Gitter Chatroom](https://gitter.im/serverless/serverless) - We are in here all day long!
+* [Gitter Chatroom](https://gitter.im/serverless/serverless)
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
