@@ -22,9 +22,7 @@ Enjoy! - Serverless, Inc.
 
 ## <a name="quick-start"></a>Quick Start
 
-**[Watch the video guide here](https://www.youtube.com/watch?v=jfDSc4qq440)**.
-
-Create and deploy your first serverless microservice in minutes.
+[Watch the video guide here](https://www.youtube.com/watch?v=jfDSc4qq440) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
 | **Step** | **Command** |**Description**|
 |---|-------|------|
