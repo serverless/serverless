@@ -84,10 +84,10 @@ We love our contributors! Please read our [Contributing Document](CONTRIBUTING.m
 * [Email Updates](http://eepurl.com/b8dv4P)
 * [Serverless Forum](http://forum.serverless.com)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
+* [Serverless Meetups](http://www.meetup.com/serverless/)
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
-* [Serverless Meetups](http://www.meetup.com/serverless/)
 * [Contact Us](mailto:team@serverless.com)
 
 ## Contributors
