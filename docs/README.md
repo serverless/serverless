@@ -53,3 +53,10 @@ You may also take a look at our [code of conduct](/code_of_conduct.md).
 - [Service templates](service-templates)
 - [Usage tracking](usage-tracking)
   - [Detailed information regarding usage tracking](usage-tracking/usage-tracking.md)
+
+## Running in DEBUG mode
+If you run into issues/errors while working with Serverless, we print a user-friendly error. However, when reporting bugs, it's often useful to output the stack trace and other important information. To set debug mode, make sure you set the environment variable `SLS_DEBUG` with the following command (if you're in Unix based system):
+
+```
+export SLS_DEBUG=*
+```
