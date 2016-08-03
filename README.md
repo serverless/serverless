@@ -1,14 +1,14 @@
 ![Serverless Application Framework AWS Lambda API Gateway](https://cloud.githubusercontent.com/assets/532272/17313761/61af7166-5813-11e6-84af-c296c19ead9b.gif)
 
+[Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups (7+)](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:team@serverless.com)
+
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run.  This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by [watching the video guide here](https://www.youtube.com/watch?v=jfDSc4qq440).
 
 Enjoy! - Serverless, Inc.
-
-[Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:team@serverless.com)
 
 ## Links
 
@@ -21,6 +21,8 @@ Enjoy! - Serverless, Inc.
 * [Changelog](https://github.com/serverless/serverless/releases)
 
 ## <a name="quick-start"></a>Quick Start
+
+**[Watch the video guide here](https://www.youtube.com/watch?v=jfDSc4qq440)**.
 
 Create and deploy your first serverless microservice in minutes.
 
@@ -37,17 +39,17 @@ Run `serverless remove` to clean up this function from your account.
 
 ## <a name="features"></a>Features
 
-* Supports Node.js, Python & Java
-* Manages the lifecycle of your serverless architecture (build, deploy, update, delete)
-* Deploys to AWS Lambda, Azure Functions (WIP), Google CloudFunctions (WIP), IBM OpenWhisk (WIP) & more
-* Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation)
-* Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams
-* Minimal configuration and scaffolding
-* Built-in support for multiple stages
-* Optimized for CI/CD workflows
-* Loaded with automation, optimization and best practices
-* 100% Extensible: Extend or modify the Framework and its operations via Plugins
-* An ecosystem of serverless services and plugins
+* Supports Node.js, Python & Java.
+* Manages the lifecycle of your serverless architecture (build, deploy, update, delete).
+* Deploys to AWS Lambda, Azure Functions (WIP), Google CloudFunctions (WIP), IBM OpenWhisk (WIP) & more.
+* Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation).
+* Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams.
+* Minimal configuration and scaffolding.
+* Built-in support for multiple stages.
+* Optimized for CI/CD workflows.
+* Loaded with automation, optimization and best practices.
+* 100% Extensible: Extend or modify the Framework and its operations via Plugins.
+* An ecosystem of serverless services and plugins.
 * A passionate and welcoming community!
 
 ## <a name="documentation"></a>Documentation
