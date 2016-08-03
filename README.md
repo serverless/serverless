@@ -6,7 +6,7 @@
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by [watching the video guide here](https://www.youtube.com/watch?v=jfDSc4qq440).
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by [watching the video guide here](https://youtu.be/weOsx5rLWX0).
 
 Enjoy! - Serverless, Inc.
 
@@ -22,14 +22,14 @@ Enjoy! - Serverless, Inc.
 
 ## <a name="quick-start"></a>Quick Start
 
-[Watch the video guide here](https://www.youtube.com/watch?v=jfDSc4qq440) or follow the steps below to create and deploy your first serverless microservice in minutes.
+[Watch the video guide here](https://youtu.be/weOsx5rLWX0) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
 | **Step** | **Command** |**Description**|
 |---|-------|------|
 |  1.  | `npm install -g serverless@beta` | Install Serverless CLI  |
 |  2.  | `mkdir my-first-service && cd my-first-service` | Create the project directory |
-|  3.  | [Input your provider credentials](/docs/guide/provider-account-setup.md#amazon-web-services) | Connect Serverless with your provider |
-|  4.  | `serverless create --template aws-nodejs` | Create an AWS node lamdba function  |
+|  3.  | [Create a default AWS profile, if you don't have one set locally](/docs/guide/provider-account-setup.md#amazon-web-services) | Connect Serverless with your provider |
+|  4.  | `serverless create --template aws-nodejs` | Create an AWS Lamdba function in Node.js |
 |  5.  | `serverless deploy` | Deploy to live AWS account  |
 |  6.  | `serverless invoke --function hello` | run the live API endpoint  |
 
@@ -111,7 +111,6 @@ We love our contributors! Please read our [Contributing Document](CONTRIBUTING.m
 These consultants use the Serverless Framework and can help you build your serverless projects.
 * [Trek10](https://www.trek10.com/)
 * [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
-* [Just Serverless](http://justserverless.com)
 * [SC5 Online](https://sc5.io)
 * [Carrot Creative](https://carrot.is)
 * [microapps](http://microapps.com)
@@ -128,7 +127,7 @@ These consultants use the Serverless Framework and can help you build your serve
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
-[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=v1.0)](https://coveralls.io/github/serverless/serverless?branch=dev)
+[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=master)](https://coveralls.io/github/serverless/serverless?branch=master)
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
