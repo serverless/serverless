@@ -11,5 +11,5 @@ milestone
 6. Run "npm test"
 7. Run "npm run integration-test"
 8. Close milestone
-9. Create a new release in GitHub
+9. Create a new release in GitHub (with corresponding changelog)
 10. Publish new version on npm
