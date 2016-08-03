@@ -23,7 +23,7 @@ needs. In the interim, ensure that your AWS API Keys are kept in a safe, private
 **Attach Policy**
 5. In the next screen, search for and select **AdministratorAccess** then click **Attach**
 
-### Setting the AWS API Keys
+### Setting the AWS API Key & Secret
 
 To start using Serverless and access the AWS API. You need to set the AWS API Key & Secret in your local machine. Just copy the following command (if you're on Mac or Linux), **but make sure you replace the "<key>" & "<secret>" with your actual key & secret before running it**:
 
