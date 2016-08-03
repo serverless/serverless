@@ -44,6 +44,7 @@
     "integration-test": "mocha tests/integration_test"
   },
   "devDependencies": {
+    "all-contributors-cli": "^3.0.6",
     "chai": "^3.5.0",
     "coveralls": "^2.11.9",
     "eslint": "^2.13.1",
