@@ -117,7 +117,7 @@ The corresponding resources which are defined inside the `cloudformation-resourc
 into the `Resources` section.
 
 ## Adding custom IAM role statements
-If you want to give permission to your functions to access certain resources on your AWS account, you can add custom IAM role statements to your service by adding the statements in the `iamRoleStatements` array in the `provider` object. Here's an example: 
+If you want to give permission to your functions to access certain resources on your AWS account, you can add custom IAM role statements to your service by adding the statements in the `iamRoleStatements` array in the `provider` object. As those statements will be merged into the CloudFormation template you can use Join, Ref or any other CloudFormation method or feature. Here's an example:
 
 ```yml
 # serverless.yml
@@ -129,7 +129,7 @@ provider:
       -  Effect: "Allow"
          Action:
            - "s3:ListBucket"
-         Resource: "arn:aws:s3:::someBucket/*"
+         Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket"} ] ] }
 ```
 
 On deployment, all these statements will be added to the IAM role that is assumed by your lambda functions.
