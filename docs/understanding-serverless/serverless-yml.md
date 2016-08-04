@@ -19,6 +19,7 @@ plugins:
 defaults: # overwrite defaults
   stage: dev
   region: us-east-1
+  variableSyntax: '\${{([\s\S]+?)}}' # change variable syntax to ${{foo}}
 
 package:
   # only the following paths will be included in the resulting artifact which will be uploaded. Without specific include everything in the current folder will be included

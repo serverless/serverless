@@ -22,7 +22,11 @@ describe('Service', () => {
 
       expect(serviceInstance.service).to.be.equal(null);
       expect(serviceInstance.provider).to.deep.equal({});
-      expect(serviceInstance.variableSyntax).to.be.equal(null);
+      expect(serviceInstance.defaults).to.deep.equal({
+        stage: 'dev',
+        region: 'us-east-1',
+        variableSyntax: null,
+      });
       expect(serviceInstance.custom).to.deep.equal({});
       expect(serviceInstance.plugins).to.deep.equal([]);
       expect(serviceInstance.functions).to.deep.equal({});
@@ -527,7 +531,9 @@ describe('Service', () => {
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYml = {
         service: '${{testVar}}',
-        variableSyntax: '\\${{([\\s\\S]+?)}}',
+        defaults: {
+          variableSyntax: '\\${{([\\s\\S]+?)}}',
+        },
         provider: 'aws',
         functions: {},
       };
@@ -557,7 +563,7 @@ describe('Service', () => {
 
       return serviceInstance.load().then((loadedService) => {
         expect(loadedService.service).to.be.equal('commonVar');
-        delete serviceInstance.variableSyntax;
+        delete serviceInstance.defaults.variableSyntax;
       });
     });
 
