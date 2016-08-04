@@ -15,6 +15,9 @@ section in your [`serverless.yml`](/docs/understanding-serverless/serverless-yml
 Add the following code to your [`serverless.yml`](/docs/understanding-serverless/serverless-yml.md) file to setup
 Kinesis Stream support.
 
+**Note:** You can also create the stream in the `resources.Resources` section and use `Fn::GetAtt` to reference the `Arn`
+in the mappings `EventSourceArn` definition.
+
 ```yml
 # serverless.yml
 

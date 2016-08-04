@@ -151,7 +151,10 @@ functions:
 ### Kinesis Streams
 
 Currently there's no native support for Kinesis Streams ([we need your feedback](https://github.com/serverless/serverless/issues/1608))
-but you can use custom provider resources to setup the mapping:
+but you can use custom provider resources to setup the mapping.
+
+**Note:** You can also create the stream in the `resources.Resources` section and use `Fn::GetAtt` to reference the `Arn`
+in the mappings `EventSourceArn` definition.
 
 ```yml
 # serverless.yml
@@ -173,7 +176,10 @@ resources
 ### DynamoDB Streams
 
 Currently there's no native support for DynamoDB Streams ([we need your feedback](https://github.com/serverless/serverless/issues/1441))
-but you can use custom provider resources to setup the mapping:
+but you can use custom provider resources to setup the mapping.
+
+**Note:** You can also create the table in the `resources.Resources` section and use `Fn::GetAtt` to reference the `StreamArn`
+in the mappings `EventSourceArn` definition.
 
 ```yml
 # serverless.yml
