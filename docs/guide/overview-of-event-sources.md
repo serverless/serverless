@@ -140,3 +140,15 @@ functions:
           topic_name: aggregate
           display_name: Data aggregation pipeline
 ```
+
+### Kinesis Streams
+
+We [need your feedback](https://github.com/serverless/serverless/issues/1608) for the exact implementation. In the
+meantime you should take a look at the [plugin README](/lib/plugins/aws/deploy/compile/events/kinesis) to see how you
+can easily setup this feature by hand.
+
+### DynamoDB Streams
+
+We [need your feedback](https://github.com/serverless/serverless/issues/1441) for the exact implementation. In the
+meantime you should take a look at the [plugin README](/lib/plugins/aws/deploy/compile/events/dynamodb) to see how you
+can easily setup this feature by hand.
