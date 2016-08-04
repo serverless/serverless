@@ -36,6 +36,8 @@ functions:
     # Deployed Lambda name with a prefix
     name: ${prefix}-lambdaName # You have to provide that variable in serverless.env.yml
     handler: handler.hello
+    memorySize: 512 # optional, default is 1024
+    timeout: 10 # optional, default is 6
     events:
       - s3: bucketName
       - schedule: rate(10 minutes)
