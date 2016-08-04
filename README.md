@@ -52,7 +52,7 @@ Run `serverless remove` to clean up this function from your account.
 
 ## <a name="documentation"></a>Documentation
 
-- **[Understanding Serverless and its configuration files](understanding-serverless)**
+- **[Understanding Serverless and its configuration files](docs/understanding-serverless)**
   - [Serverless services and functions](docs/understanding-serverless/services-and-functions.md)
   - [serverless.yml](docs/understanding-serverless/serverless-yml.md)
   - [serverless.env.yml](docs/understanding-serverless/serverless-env-yml.md)
