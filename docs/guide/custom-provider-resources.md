@@ -126,14 +126,10 @@ service: new-service
 provider:
   name: aws
   iamRoleStatements:
-    - "Effect": "Allow",
-       "Action": 
-          - "something:SomethingElse"
-       "Resource": "arn:aws:logs:xxx:*:*"
-    - "Effect": "Allow",
-       "Action": 
-          - "different:VeryDifferent"
-       "Resource": "arn:aws:logs:xxx:*:*"
+      -  Effect: "Allow"
+         Action:
+           - "s3:ListBucket"
+         Resource: "arn:aws:s3:::someBucket/*"
 ```
 
 On deployment, all these statements will be added to the IAM role that is assumed by your lambda functions.
