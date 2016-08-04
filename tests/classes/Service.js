@@ -140,9 +140,15 @@ describe('Service', () => {
       serviceInstance = new Service(serverless);
 
       return serviceInstance.load().then((loadedService) => {
+        const expectedFunc = {
+          functionA: {
+            name: 'my-service-dev-functionA',
+            events: [],
+          },
+        };
         expect(loadedService.service).to.be.equal('my-service');
         expect(loadedService.provider).to.deep.equal({ name: 'aws' });
-        expect(loadedService.functions).to.deep.equal({ functionA: { events: [] } });
+        expect(loadedService.functions).to.deep.equal(expectedFunc);
         expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars)
           .to.deep.equal({});
       });
@@ -181,9 +187,15 @@ describe('Service', () => {
       serviceInstance = new Service(serverless);
 
       return serviceInstance.load().then((loadedService) => {
+        const expectedFunc = {
+          functionA: {
+            name: 'my-service-dev-functionA',
+            events: [],
+          },
+        };
         expect(loadedService.service).to.be.equal('my-service');
         expect(loadedService.provider).to.deep.equal({ name: 'aws' });
-        expect(loadedService.functions).to.deep.equal({ functionA: { events: [] } });
+        expect(loadedService.functions).to.deep.equal(expectedFunc);
         expect(serviceInstance.environment.stages.dev.regions['us-east-1'].vars)
           .to.deep.equal({});
       });
@@ -561,7 +573,7 @@ describe('Service', () => {
       });
     });
 
-    xit('should load custom function names if provided', () => {
+    it('should load custom function names if provided', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
       const serverlessYml = {
@@ -632,7 +644,13 @@ describe('Service', () => {
       const serverless = new Serverless({ servicePath: tmpDirPath });
       serviceInstance = new Service(serverless);
       return serviceInstance.load().then((loadedService) => {
-        expect(loadedService.functions).to.be.deep.equal({ functionA: { events: [] } });
+        const expectedFunc = {
+          functionA: {
+            name: 'testService-dev-functionA',
+            events: [],
+          },
+        };
+        expect(loadedService.functions).to.be.deep.equal(expectedFunc);
       });
     });
 
