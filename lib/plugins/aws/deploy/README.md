@@ -31,3 +31,23 @@ Furthermore it updates the stack with all the Resources which are defined in `se
 The stack status is checked every 5 seconds with the help of the CloudFormation API. It will return a success message if
 the stack status is `CREATE_COMPLETE` or `UPDATE_COMPLETE` (depends if you deploy your service for the first time or
 redeploy it after making some changes).
+
+### Custom outputs
+
+```yml
+resources:
+  Resources:
+    ExampleBucket:
+      Type: AWS::S3::Bucket
+      Outputs:
+        ExampleBucketName:
+          Description: Name of the ExampleBucket
+          Value:
+            Ref: ExampleBucket
+        ExampleBucketEndpoint:
+          Description: Endpoint for the ExampleBucket
+          Value:
+            Fn::GetAtt:
+              - ExampleBucket
+              - DomainName
+```
