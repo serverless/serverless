@@ -561,6 +561,44 @@ describe('Service', () => {
       });
     });
 
+    xit('should load custom function names if provided', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYml = {
+        service: 'testService',
+        provider: 'aws',
+        functions: {
+          functionA: {
+            name: 'customName',
+          },
+        },
+      };
+      const serverlessEnvYml = {
+        vars: {},
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
+        YAML.dump(serverlessEnvYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+      return serviceInstance.load().then((loadedService) => {
+        expect(loadedService.functions.functionA.name).to.equal('customName');
+      });
+    });
+
     it('should load and add events property if no events provided', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
