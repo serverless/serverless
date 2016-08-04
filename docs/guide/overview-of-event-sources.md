@@ -7,6 +7,13 @@ Just open up an [issue](https://github.com/serverless/serverless/issues) if you 
 
 The examples will show you how you can use the different event definitions.
 
+- [S3](#s3)
+- [Schedule](#schedule)
+- [HTTP endpoint](#http-endpoint)
+- [SNS](#sns)
+- [Kinesis Streams](#kinesis-streams)
+- [DynamoDB Streams](#dynamodb-streams)
+
 ## Amazon Web Services (AWS)
 
 ### S3
@@ -143,12 +150,44 @@ functions:
 
 ### Kinesis Streams
 
-We [need your feedback](https://github.com/serverless/serverless/issues/1608) for the exact implementation. In the
-meantime you should take a look at the [plugin README](/lib/plugins/aws/deploy/compile/events/kinesis) to see how you
-can easily setup this feature by hand.
+Currently there's no native support for Kinesis Streams ([we need your feedback](https://github.com/serverless/serverless/issues/1608))
+but you can use custom provider resources to setup the mapping:
+
+```yml
+# serverless.yml
+
+resources
+  Resources:
+    mapping:
+      Type: AWS::Lambda::EventSourceMapping
+      Properties:
+        BatchSize: 10
+        EventSourceArn: "arn:aws:kinesis:<region>:<aws-account-id>:stream/<stream-name>"
+        FunctionName:
+          Fn::GetAtt:
+            - "<function-name>"
+            - "Arn"
+        StartingPosition: "TRIM_HORIZON"
+```
 
 ### DynamoDB Streams
 
-We [need your feedback](https://github.com/serverless/serverless/issues/1441) for the exact implementation. In the
-meantime you should take a look at the [plugin README](/lib/plugins/aws/deploy/compile/events/dynamodb) to see how you
-can easily setup this feature by hand.
+Currently there's no native support for DynamoDB Streams ([we need your feedback](https://github.com/serverless/serverless/issues/1441))
+but you can use custom provider resources to setup the mapping:
+
+```yml
+# serverless.yml
+
+resources
+  Resources:
+    mapping:
+      Type: AWS::Lambda::EventSourceMapping
+      Properties:
+        BatchSize: 10
+        EventSourceArn: "arn:aws:dynamodb:<region>:<aws-account-id>:table/<table-name>/stream/<stream-name>"
+        FunctionName:
+          Fn::GetAtt:
+            - "<function-name>"
+            - "Arn"
+        StartingPosition: "TRIM_HORIZON"
+```
