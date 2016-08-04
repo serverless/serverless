@@ -30,7 +30,7 @@
     "IamPolicyLambda": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
-        "PolicyName": "${stage}-${project}-lambda",
+        "PolicyName": "",
         "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
@@ -41,7 +41,7 @@
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
               ],
-              "Resource": "arn:aws:logs:${region}:*:*"
+              "Resource": ""
             }
           ]
         },
