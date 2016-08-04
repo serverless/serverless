@@ -116,6 +116,28 @@ resources:
 The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded
 into the `Resources` section.
 
+## Adding custom IAM role statements
+If you want to give permission to your functions to access certain resources on your AWS account, you can add custom IAM role statements to your service by adding the statements in the `iamRoleStatements` array in the `provider` object. Here's an example: 
+
+```yml
+# serverless.yml
+
+service: new-service
+provider:
+  name: aws
+  iamRoleStatements:
+    - "Effect": "Allow",
+       "Action": 
+          - "something:SomethingElse"
+       "Resource": "arn:aws:logs:xxx:*:*"
+    - "Effect": "Allow",
+       "Action": 
+          - "different:VeryDifferent"
+       "Resource": "arn:aws:logs:xxx:*:*"
+```
+
+On deployment, all these statements will be added to the IAM role that is assumed by your lambda functions.
+
 ## How custom provider resources are added
 
 On deployment Serverless will load the base stack template and merge the custom resources you've defined in the `resources`
