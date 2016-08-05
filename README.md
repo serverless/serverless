@@ -79,6 +79,8 @@ Run `serverless remove` to clean up this function from your account.
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
 
+Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.
+
 ## <a name="community"></a>Community
 
 * [Email Updates](http://eepurl.com/b8dv4P)
