@@ -16,6 +16,8 @@ see the corresponding source code.
   - [Compile Scheduled Events](/lib/plugins/aws/deploy/compile/events/schedule)
   - [Compile Api Gateway Events](/lib/plugins/aws/deploy/compile/events/apiGateway)
   - [Compile SNS Events](/lib/plugins/aws/deploy/compile/events/sns)
+  - [Compile DynamoDB Stream Events](/lib/plugins/aws/deploy/compile/events/dynamodb)
+  - [Compile Kinesis Stream Events](/lib/plugins/aws/deploy/compile/events/kinesis)
   - [Deploy](/lib/plugins/aws/deploy)
   - [Invoke](/lib/plugins/aws/invoke)
   - [Remove](/lib/plugins/aws/remove)

@@ -7,6 +7,13 @@ Just open up an [issue](https://github.com/serverless/serverless/issues) if you 
 
 The examples will show you how you can use the different event definitions.
 
+- [S3](#s3)
+- [Schedule](#schedule)
+- [HTTP endpoint](#http-endpoint)
+- [SNS](#sns)
+- [Kinesis Streams](#kinesis-streams)
+- [DynamoDB Streams](#dynamodb-streams)
+
 ## Amazon Web Services (AWS)
 
 ### S3
@@ -139,4 +146,54 @@ functions:
       - sns:
           topic_name: aggregate
           display_name: Data aggregation pipeline
+```
+
+### Kinesis Streams
+
+Currently there's no native support for Kinesis Streams ([we need your feedback](https://github.com/serverless/serverless/issues/1608))
+but you can use custom provider resources to setup the mapping.
+
+**Note:** You can also create the stream in the `resources.Resources` section and use `Fn::GetAtt` to reference the `Arn`
+in the mappings `EventSourceArn` definition.
+
+```yml
+# serverless.yml
+
+resources
+  Resources:
+    mapping:
+      Type: AWS::Lambda::EventSourceMapping
+      Properties:
+        BatchSize: 10
+        EventSourceArn: "arn:aws:kinesis:<region>:<aws-account-id>:stream/<stream-name>"
+        FunctionName:
+          Fn::GetAtt:
+            - "<function-name>"
+            - "Arn"
+        StartingPosition: "TRIM_HORIZON"
+```
+
+### DynamoDB Streams
+
+Currently there's no native support for DynamoDB Streams ([we need your feedback](https://github.com/serverless/serverless/issues/1441))
+but you can use custom provider resources to setup the mapping.
+
+**Note:** You can also create the table in the `resources.Resources` section and use `Fn::GetAtt` to reference the `StreamArn`
+in the mappings `EventSourceArn` definition.
+
+```yml
+# serverless.yml
+
+resources
+  Resources:
+    mapping:
+      Type: AWS::Lambda::EventSourceMapping
+      Properties:
+        BatchSize: 10
+        EventSourceArn: "arn:aws:dynamodb:<region>:<aws-account-id>:table/<table-name>/stream/<stream-name>"
+        FunctionName:
+          Fn::GetAtt:
+            - "<function-name>"
+            - "Arn"
+        StartingPosition: "TRIM_HORIZON"
 ```
