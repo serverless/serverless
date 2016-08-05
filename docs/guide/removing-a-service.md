@@ -42,7 +42,7 @@ delete) you could create a single function which talks to a database (e.g. Dynam
 
 ### News delivered to your inbox
 
-Want to be up do date but have not time to waste on news sites? What about getting a summary of news delivered to your
+Want to be up to date, but do not have time to waste on news sites? What about getting a summary of news delivered to your
 inbox on a daily basis? You could create a function with a [schedule event](overview-of-event-sources.md) which will
 call the function once a day. The function can then grab the latest news from an external API and send an E-Mail
 (e.g. with Amazon SES) to your inbox.
