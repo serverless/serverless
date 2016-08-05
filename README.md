@@ -171,3 +171,5 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Sentry](https://github.com/arabold/serverless-sentry-plugin) - Automatically send errors and exceptions to [Sentry](https://getsentry.com).
 * [Auto-Prune](https://github.com/arabold/serverless-autoprune-plugin) - Delete old AWS Lambda versions.
 * [Serverless Secrets](https://github.com/trek10inc/serverless-secrets) - Easily encrypt and decrypt secrets in your Serverless projects
+* [Serverless DynamoDB Local](https://github.com/99xt/serverless-dynamodb-local) - Simiulate DynamoDB instance locally.
+* [Serverless Dependency Install](https://github.com/99xt/serverless-dependency-install) - Manage node, serverless dependencies easily within the project.
