@@ -4,6 +4,13 @@ Welcome, and thanks in advance for your help!  Please follow these simple guidel
 
 # How to contribute to Serverless
 
+## When you want to start on something we need
+
+Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.
+
+In there you will find different issues that we think are important and need some help with. If you're just starting to contribute to Serverless you might want to check out the `help-wanted-easy` label first, but as an experienced developer the `help-wanted` should be fine as well. The difference is mostly in how much time the tasks will take to implement. Thanks for helping us with those, we really appreciate it.
+
+## When you want to propose a new feature or bug fix
 * Please make sure there is an open issue discussing your Contribution.
 * If there isn't, please open an issue so we can talk about it before you invest time into the Implementation.
 * When creating an issue follow the guide that Github shows so we have enough information about your proposal.
