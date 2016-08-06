@@ -1,6 +1,13 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The AWS CloudFormation template for this Serverless application's resources outside of Lambdas and Api Gateway",
+  "Parameters": {
+    "stage" : {
+      "Type" : "String",
+      "Default" : "dev",
+      "Description" : "Used to create other resources in correct environment eg dynamodb tables"
+    }
+  },
   "Resources": {
     "ServerlessDeploymentBucket": {
       "Type" : "AWS::S3::Bucket"
