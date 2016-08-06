@@ -18,7 +18,7 @@ The default stage is `dev` and default region is `us-east-1`. You can change the
 # serverless.yml
 
 service: service-name
-default:
+defaults:
   stage: beta
   region: us-west-2
 ```
