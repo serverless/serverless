@@ -449,6 +449,50 @@ describe('Service', () => {
         });
     });
 
+    it('should load and populate boolean and 0 variables', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYml = {
+        service: 'service-name',
+        provider: 'aws',
+        custom: {
+          boolean: '${booleanValue}',
+          zero: '${zeroValue}',
+        },
+        functions: {},
+      };
+      const serverlessEnvYml = {
+        vars: {
+          booleanValue: false,
+          zeroValue: 0
+        },
+        stages: {
+          dev: {
+            vars: {},
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYml.stages.dev.regions['us-east-1'] = {
+        vars: {},
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
+        YAML.dump(serverlessEnvYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load()
+        .then((loadedService) => {
+          expect(loadedService.custom.boolean).to.equal(false);
+          expect(loadedService.custom.zero).to.equal(0);
+        });
+    });
+
     it('should load and populate object variables deep sub properties', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
