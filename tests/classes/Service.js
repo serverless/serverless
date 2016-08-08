@@ -457,7 +457,7 @@ describe('Service', () => {
         provider: 'aws',
         custom: {
           boolean: '${booleanValue}',
-          zero: '${zeroValue}',
+          zero: '${zeroValue}'
         },
         functions: {},
       };
