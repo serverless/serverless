@@ -457,14 +457,14 @@ describe('Service', () => {
         provider: 'aws',
         custom: {
           boolean: '${booleanValue}',
-          zero: '${zeroValue}'
+          zero: '${zeroValue}',
         },
         functions: {},
       };
       const serverlessEnvYml = {
         vars: {
           booleanValue: false,
-          zeroValue: 0
+          zeroValue: 0,
         },
         stages: {
           dev: {
