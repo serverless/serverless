@@ -78,4 +78,4 @@ functions:
       - sns: some:arn:xxx
 ```
 
-This framework will detect that you've provided an ARN and will hook this function to the topic arn you provided.
+The framework will detect that you've provided an ARN and will give permission to SNS to invoke that function. **You need to make sure you subscribe your function to that pre-existing topic manually**, as there's no way to add subscriptions to an existing topic ARN via CloudFormation.
