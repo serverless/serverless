@@ -1,16 +1,16 @@
 {
-  "name": "serverless",
-  "version": "0.5.6",
+  "name": "serverless-z",
+  "version": "0.6.0",
   "engines": {
     "node": ">=4.0"
   },
   "preferGlobal": true,
-  "description": "The Serverless Application Framework - Powered By Amazon Web Services - http://www.serverless.com",
+  "description": "Inofficial Fork of the Serverless Application Framework - Powered By Amazon Web Services - http://www.serverless.com",
   "author": "serverless.com",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/serverless/serverless"
+    "url": "https://github.com/stashimi/serverless"
   },
   "keywords": [
     "serverless",
@@ -24,7 +24,9 @@
     "amazon",
     "amazon web services",
     "dynamodb",
-    "serverless.com"
+    "serverless.com",
+    "legacy",
+    "classic"
   ],
   "main": "lib/Serverless.js",
   "bin": {
