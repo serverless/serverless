@@ -26,6 +26,16 @@ needs. In the interim, ensure that your AWS API Keys are kept in a safe, private
 
 To start using Serverless and access the AWS API you need to set the AWS API Access Key & Secret. 
 
+#### Quick Setup
+
+As a quick setup to get started you can export them as environment variables so they would be accessible to Serverless and the AWS SDK in your shell:		
+
+```		
+export AWS_ACCESS_KEY_ID=<key>		
+export AWS_SECRET_ACCESS_KEY=<secret>		
+serverless deploy		
+```
+
 #### Advanced & Longer Term Setup
 
 For a more permanent solution you can also set up credentials through the `aws-cli`, or by configuring the credentials file of the `aws-cli` directly. To set them up through the `aws-cli` [install it first](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) the run `aws configure` [to configure the aws-cli and credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html). Serverless will automatically use those credentials. You can even set up a different profiles for different accounts, which can be used by Serverless as well.
