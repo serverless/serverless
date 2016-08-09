@@ -42,6 +42,17 @@ translate this event definition to provider specific syntax and sets it up for u
 We can redeploy our updated service by simply running `serverless deploy` again.
 Serverless will show the progress on the terminal and tell you once the service is updated.
 
+##Creating a new API Gateway on AWS
+
+Open up the AWS console and navigate to the `API Gateway` section. At this point you'll need to create a new API to call the Lambda resource you just deployed, the function `aws-nodejs-dev-hello`. In the process, you'll need to:
+- Name the API
+- Create a method from the Resource Actions selection
+- Choose `GET` and verify
+- Choose the `Lambda Function` integration
+- Select the appropriate region as defined in your `serverless.env.yaml` file
+- Search the name of the Lambda function, e.g. `aws-nodejs-dev-hello`
+- Save and test
+
 ## Calling our HTTP endpoint
 
 Let's test our deployed HTTP endpoint.
