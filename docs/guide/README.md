@@ -10,7 +10,7 @@ This guide is Amazon web service specific but can be applied to any other provid
 
 ## Table of contents
 
-- [Installation](installation.md)
+- [Installing Serverless](installation.md)
 - [Provider account setup](provider-account-setup.md)
 - [Creating a service](creating-a-service.md)
 - [Deploying a service](deploying-a-service.md)
