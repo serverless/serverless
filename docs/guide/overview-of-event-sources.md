@@ -141,6 +141,8 @@ functions:
       - sns: topic:arn:xxx
 ```
 
+Just make sure your topic is already subscribed to the function, as there's no way to add subscriptions to pre-existing topics in CF. The framework will just give permission to SNS to invoke the function.
+
 #### Extended event definition
 
 This event definition ensures that the `aggregator` function get's called every time a message is sent to the
