@@ -152,7 +152,8 @@ describe('Serverless', () => {
 
       // we expect that an error is returned because the PluginManager will check if
       // there's a plugin which will fail but our command is forwarded to the PluginManager
-      expect(() => serverless.run()).to.throw(Error);
+      // and the PluginManager reports back that the command was not found (therefore the RegExp)
+      expect(() => serverless.run()).to.throw(Error, /someNotAvailableCommand/);
     });
 
     it('should resolve if help is displayed or no commands are entered', (done) => {
