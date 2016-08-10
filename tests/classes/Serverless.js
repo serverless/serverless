@@ -3,11 +3,166 @@
 const expect = require('chai').expect;
 const Serverless = require('../../lib/Serverless');
 const semverRegex = require('semver-regex');
+const fs = require('fs');
+const fse = require('fs-extra');
+const path = require('path');
+const os = require('os');
+
+const YamlParser = require('../../lib/classes/YamlParser');
+const PluginManager = require('../../lib/classes/PluginManager');
+const Utils = require('../../lib/classes/Utils');
+const Service = require('../../lib/classes/Service');
+const CLI = require('../../lib/classes/CLI');
+const Error = require('../../lib/classes/Error').SError;
 
 describe('Serverless', () => {
+  let serverless;
+
+  beforeEach(() => {
+    serverless = new Serverless();
+  });
+
+  describe('#constructor()', () => {
+    it('should set the correct config if a config object is passed', () => {
+      const configObj = { some: 'config' };
+      const serverlessWithConfig = new Serverless(configObj);
+
+      expect(serverlessWithConfig.config.some).to.equal('config');
+    });
+
+    it('should set an empty config object if no config object passed', () => {
+      // we're only expecting to have "serverless", "serverlessPath" and "servicePath"
+      expect(Object.keys(serverless.config).length).to.equal(3);
+      expect(Object.keys(serverless.config)).to.include('serverless');
+      expect(Object.keys(serverless.config)).to.include('serverlessPath');
+      expect(Object.keys(serverless.config)).to.include('servicePath');
+    });
+
+    it('should set the Serverless version', () => {
+      expect(serverless.version.length).to.be.at.least(1);
+    });
+
+    it('should set the YamlParser class instance', () => {
+      expect(serverless.yamlParser).to.be.instanceof(YamlParser);
+    });
+
+    it('should set the PluginManager class instance', () => {
+      expect(serverless.pluginManager).to.be.instanceof(PluginManager);
+    });
+
+    it('should set the Utils class instance', () => {
+      expect(serverless.utils).to.be.instanceof(Utils);
+    });
+
+    it('should set the Service class instance', () => {
+      expect(serverless.service).to.be.instanceof(Service);
+    });
+
+    it('should set the servicePath property if it was set in the config object', () => {
+      const configObj = { servicePath: 'some/path' };
+      const serverlessWithConfig = new Serverless(configObj);
+
+      expect(serverlessWithConfig.config.servicePath).to.equal('some/path');
+    });
+
+    // note: we only test if the property is there
+    // the test if the correct servicePath is set is done in the Utils class test file
+    it('should set the servicePath property if no config object is given', () => {
+      expect(serverless.config.servicePath).to.not.equal(undefined);
+    });
+
+    it('should have a config object', () => {
+      expect(serverless.config).to.not.equal(undefined);
+    });
+
+    it('should have a classes object', () => {
+      expect(serverless.classes).to.not.equal(undefined);
+    });
+
+    it('should store the CLI class inside the classes object', () => {
+      expect(serverless.classes.CLI).to.deep.equal(CLI);
+    });
+
+    it('should store the YamlParser class inside the classes object', () => {
+      expect(serverless.classes.YamlParser).to.deep.equal(YamlParser);
+    });
+
+    it('should store the PluginManager class inside the classes object', () => {
+      expect(serverless.classes.PluginManager).to.deep.equal(PluginManager);
+    });
+
+    it('should store the Utils class inside the classes object', () => {
+      expect(serverless.classes.Utils).to.deep.equal(Utils);
+    });
+
+    it('should store the Service class inside the classes object', () => {
+      expect(serverless.classes.Service).to.deep.equal(Service);
+    });
+
+    it('should store the Error class inside the classes object', () => {
+      expect(serverless.classes.Error).to.deep.equal(Error);
+    });
+  });
+
+  describe('#init()', () => {
+    it('should create a new CLI instance', () => {
+      serverless.init();
+      expect(serverless.cli).to.be.instanceOf(CLI);
+    });
+
+    // note: we just test that the processedInput variable is set (not the content of it)
+    // the test for the correct input is done in the CLI class test file
+    it('should receive the processed input form the CLI instance', () => {
+      serverless.init();
+      expect(serverless.processedInput).to.not.deep.equal({});
+    });
+
+    it('should resolve after loading the service', (done) => {
+      serverless.init().then(() => done());
+    });
+  });
+
+  describe('#run()', () => {
+    beforeEach(() => {
+      serverless.init();
+      serverless.processedInput = { commands: [], options: {} };
+    });
+
+    it('should track if tracking is enabled', (done) => {
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      fse.mkdirsSync(tmpDirPath);
+
+      serverless.config.serverlessPath = tmpDirPath;
+
+      serverless.run().then(() => done());
+    });
+
+    it('should track if tracking is enabled', (done) => {
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      fse.mkdirsSync(tmpDirPath);
+      fs.writeFileSync(path.join(tmpDirPath, 'do-not-track'), 'some-content');
+
+      serverless.config.serverlessPath = tmpDirPath;
+
+      serverless.run().then(() => done());
+    });
+
+    it('should forward the entered command to the PluginManager class', () => {
+      serverless.processedInput.commands = ['someNotAvailableCommand'];
+
+      // we expect that an error is returned because the PluginManager will check if
+      // there's a plugin which will fail but our command is forwarded to the PluginManager
+      expect(() => serverless.run()).to.throw(Error);
+    });
+
+    it('should resolve if help is displayed or no commands are entered', (done) => {
+      serverless.processedInput.commands = ['help'];
+      serverless.run().then(() => done());
+    });
+  });
+
   describe('#getVersion()', () => {
-    it('should get the correct serverless version', () => {
-      const serverless = new Serverless();
+    it('should get the correct Serverless version', () => {
       expect(semverRegex().test(serverless.getVersion())).to.equal(true);
     });
   });
