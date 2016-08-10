@@ -155,8 +155,8 @@ functions:
     handler: aggregator.handler
     events:
       - sns:
-          topic_name: aggregate
-          display_name: Data aggregation pipeline
+          topicName: aggregate
+          displayName: Data aggregation pipeline
 ```
 
 ### Kinesis Streams

@@ -50,12 +50,12 @@ functions:
     handler: event.run
     events:
       - sns:
-          topic_name: lambda-caller
-          display_name: Used to chain lambda functions
+          topicName: lambda-caller
+          displayName: Used to chain lambda functions
 ```
 
 ### SNS setup with pre-existing topic ARN
-If you already have a topic that you've created manually, you can simply just provide the topic arn instead of the topic name using the `topic_arn` property. Here's an example:
+If you already have a topic that you've created manually, you can simply just provide the topic arn instead of the topic name using the `topicArn` property. Here's an example:
 
 ```yml
 # serverless.yml
@@ -64,7 +64,7 @@ functions:
     handler: event.run
     events:
       - sns:
-          topic_arn: some:arn:xxx
+          topicArn: some:arn:xxx
 ```
 
 Or as a shortcut you can provide it as a string value to the `sns` key:
