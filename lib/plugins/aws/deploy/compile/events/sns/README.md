@@ -53,3 +53,29 @@ functions:
           topic_name: lambda-caller
           display_name: Used to chain lambda functions
 ```
+
+### SNS setup with pre-existing topic ARN
+If you already have a topic that you've created manually, you can simply just provide the topic arn instead of the topic name using the `topic_arn` property. Here's an example:
+
+```yml
+# serverless.yml
+functions:
+  run:
+    handler: event.run
+    events:
+      - sns:
+          topic_arn: some:arn:xxx
+```
+
+Or as a shortcut you can provide it as a string value to the `sns` key:
+
+```yml
+# serverless.yml
+functions:
+  run:
+    handler: event.run
+    events:
+      - sns: some:arn:xxx
+```
+
+The framework will detect that you've provided an ARN and will give permission to SNS to invoke that function. **You need to make sure you subscribe your function to that pre-existing topic manually**, as there's no way to add subscriptions to an existing topic ARN via CloudFormation.

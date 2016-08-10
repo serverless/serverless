@@ -131,6 +131,17 @@ functions:
     events:
       - sns: dispatch
 ```
+Or if you have a pre-existing topic ARN, you can just provide the topic ARN instead:
+
+```yml
+functions:
+  dispatcher:
+    handler: dispatcher.dispatch
+    events:
+      - sns: topic:arn:xxx
+```
+
+Just make sure your topic is already subscribed to the function, as there's no way to add subscriptions to pre-existing topics in CF. The framework will just give permission to SNS to invoke the function.
 
 #### Extended event definition
 
