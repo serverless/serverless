@@ -365,6 +365,54 @@ describe('Service', () => {
       });
     });
 
+    it('should load and populate region vars when region is provided as shortcut', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const serverlessYml = {
+        service: '${testVar}',
+        provider: 'aws',
+        plugins: ['testPlugin'],
+        functions: {},
+      };
+      const serverlessEnvYml = {
+        vars: {
+          testVar: 'commonVar',
+        },
+        stages: {
+          dev: {
+            vars: {
+              testVar: 'stageVar',
+            },
+            regions: {},
+          },
+        },
+      };
+
+      serverlessEnvYml.stages.dev.regions['us-west-2'] = {
+        vars: {
+          testVar: 'westRegionVar',
+        },
+      };
+
+      serverlessEnvYml.stages.dev.regions['us-east-1'] = {
+        vars: {
+          testVar: 'eastRegionVar',
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.env.yml'),
+        YAML.dump(serverlessEnvYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load({ r: 'us-west-2' }).then((loadedService) => {
+        expect(loadedService.service).to.be.equal('westRegionVar');
+      });
+    });
+
     it('should load and populate non string variables', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
