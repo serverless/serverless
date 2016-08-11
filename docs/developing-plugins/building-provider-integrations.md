@@ -19,11 +19,11 @@ Let's take a look at the [core `deploy` plugin](/lib/plugins/deploy) and the dif
 
 The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
 
-- `deploy:initializeResources`
-- `deploy:createProviderStacks`
+- `deploy:initialize`
+- `deploy:setupProviderConfiguration`
 - `deploy:compileFunctions`
 - `deploy:compileEvents`
-- `deploy:createDeploymentPackage`
+- `deploy:createDeploymentArtifacts`
 - `deploy:deploy`
 
 You, as a plugin developer can hook into those lifecycles to compile and deploy functions and events on your providers
@@ -31,18 +31,18 @@ infrastructure.
 
 Let's take a closer look at each lifecycle event to understand what its purpose is and what it should be used for.
 
-#### `deploy:initializeResources`
+#### `deploy:initialize`
 
 This lifecycle should be used to load the basic resources the provider needs into memory (e.g. parse a basic resource
 template skeleton such as a CloudFormation template).
 
-#### `deploy:createProviderStacks`
+#### `deploy:setupProviderConfiguration`
 
-The purpose of the `deploy:createProviderStacks` lifecycle is to take the basic resource template which was created in
+The purpose of the `deploy:setupProviderConfiguration` lifecycle is to take the basic resource template which was created in
 the previous lifecycle and deploy the rough skeleton on the cloud providers infrastructure (without any functions
 or events) for the first time.
 
-#### `deploy:createDeploymentPackage`
+#### `deploy:createDeploymentArtifacts`
 
 The whole service get's zipped up into one .zip file.
 Serverless will automatically exclude the following files / folders to reduce the size of the .zip file:
@@ -79,13 +79,13 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 1. The [`serverless.yml`](../understanding-serverless/serverless-yml.md) and
 [`serverless.env.yml`](../understanding-serverless/serverless-env-yml.md) files are loaded into memory
-2. A default AWS CloudFormation template is loaded (`deploy:initializeResources`)
-3. The CloudFormation template is deployed to AWS (A S3 bucket for the service gets created) (`deploy:createProviderStacks`)
+2. A default AWS CloudFormation template is loaded (`deploy:initialize`)
+3. The CloudFormation template is deployed to AWS (A S3 bucket for the service gets created) (`deploy:setupProviderConfiguration`)
 4. The functions of the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file are compiled to lambda
 resources and stored into memory (`deploy:compileFunctions`)
 5. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
 6. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
-7. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentPackage` and `deploy:deploy`)
+7. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentArtifacts` and `deploy:deploy`)
 8. The compiled function and event resources are attached to the core CloudFormation template and the updated
 CloudFormation template gets redeployed (`deploy:deploy`)
 
