@@ -4,7 +4,7 @@ This plugin (re)deploys the service to AWS.
 
 ## How it works
 
-`Deploy` starts by hooking into the [`deploy:initializeResources`](/lib/plugins/deploy) lifecycle.
+`Deploy` starts by hooking into the [`deploy:initialize`](/lib/plugins/deploy) lifecycle.
 It fetches the basic CloudFormation template from `lib/templates` and replaces the necessary names and definitions
 with the one it gets from the `serverless.yml` file.
 
@@ -20,7 +20,7 @@ serverless.service.resources.Resources
 Other plugins (e.g. the `Compile Functions` plugin) use this `Resources` property to add the compiled resources by
 merging them in.
 
-Next up it hooks into the [`deploy:createProviderStacks`](/lib/plugins/deploy) lifecycle and deploys the
+Next up it hooks into the [`deploy:setupProviderConfiguration`](/lib/plugins/deploy) lifecycle and deploys the
 previously created CloudFormation template to AWS.
 
 In the end it hooks into [`deploy:deploy`](/lib/plugins/deploy) lifecycle. At first it removes old service .zip files
