@@ -4,12 +4,11 @@ This plugin (re)deploys the service to AWS.
 
 ## How it works
 
-`Deploy` starts by hooking into the [`deploy:initialize`](/lib/plugins/deploy) lifecycle.
+`Deploy` starts by hooking into the [`deploy:setupProviderConfiguration`](/lib/plugins/deploy) lifecycle.
 It fetches the basic CloudFormation template from `lib/templates` and replaces the necessary names and definitions
 with the one it gets from the `serverless.yml` file.
 
-Next up it hooks into the [`deploy:setupProviderConfiguration`](/lib/plugins/deploy) lifecycle and deploys the
-previously created CloudFormation template (which only includes the Serverless S3 deployment bucket) to AWS.
+Next up it deploys the CloudFormation template (which only includes the Serverless S3 deployment bucket) to AWS.
 
 In the end it hooks into [`deploy:deploy`](/lib/plugins/deploy) lifecycle to update the previously created stack.
 
