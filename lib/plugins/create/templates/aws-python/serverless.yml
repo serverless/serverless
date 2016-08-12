@@ -49,13 +49,13 @@ functions:
     handler: handler.hello
 
 #   you can add any of the following events
-#   events:
-#     - http:
-#         path: users/create
-#         method: get
-#     - s3: ${bucket}
-#     - schedule: rate(10 minutes)
-#     - sns: greeter-topic
+#    events:
+#      - http:
+#          path: users/create
+#          method: get
+#      - s3: ${env.BUCKET}
+#      - schedule: rate(10 minutes)
+#      - sns: greeter-topic
 
 # you can add CloudFormation resource templates here
 #resources:
