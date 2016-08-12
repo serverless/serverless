@@ -88,8 +88,8 @@ resources and stored into memory (`deploy:compileFunctions`)
 5. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
 6. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
 7. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentArtifacts` and `deploy:deploy`)
-8. The compiled function and event resources are attached to the core CloudFormation template and the updated
-CloudFormation template gets redeployed (`deploy:deploy`)
+8. The compiled functions, event resources and custom provider resources are attached to the core CloudFormation template
+and the updated CloudFormation template gets redeployed (`deploy:deploy`)
 
 #### The code
 
