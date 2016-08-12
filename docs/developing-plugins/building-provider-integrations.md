@@ -49,7 +49,9 @@ Serverless will automatically exclude the following files / folders to reduce th
 - .git
 - .gitignore
 - .serverless
+- serverless.yaml
 - serverless.yml
+- serverless.env.yaml
 - serverless.env.yml
 - .DS_Store
 
