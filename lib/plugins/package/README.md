@@ -4,7 +4,7 @@ This plugin creates a deployment package on a per service basis (it will zip up 
 
 ## How it works
 
-`Package` starts by hooking into the [`deploy:createDeploymentPackage`](/lib/plugins/deploy) lifecycle.
+`Package` starts by hooking into the [`deploy:createDeploymentArtifacts`](/lib/plugins/deploy) lifecycle.
 
 It will zip the whole service directory. The artifact will be stored in the `.serverless` directory which will be created
 upon zipping the service. The resulting path to the artifact will be appended to the `service.package.artifact` property.

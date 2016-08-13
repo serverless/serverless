@@ -5,6 +5,9 @@ which is not yet available through events or plugins. Serverless has you covered
 those resources with the help of `resources` section in the [`serverless.yml`](../understanding-serverless/serverless-yml.md)
 file.
 
+**Note:** Your custom resources are merged into the template after the stack is deployed / before the stack will be updated.
+This gives you the power to overwrite existing resources easily.
+
 ## Adding custom provider resources
 
 Serverless uses the services `resources` object as a place to store all the provider specific resources like compiled

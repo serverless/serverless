@@ -13,9 +13,9 @@ Deploys your service.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 
 ## Provided lifecycle events
-- `deploy:initializeResources`
-- `deploy:createProviderStacks`
-- `deploy:createDeploymentPackage`
+- `deploy:initialize`
+- `deploy:setupProviderConfiguration`
+- `deploy:createDeploymentArtifacts`
 - `deploy:compileFunctions`
 - `deploy:compileEvents`
 - `deploy:deploy`
