@@ -37,7 +37,7 @@ serverless deploy
 ```
 #### Advanced & Longer Term Setup
 
-For a more permanent solution you can also set up credentials through the `aws-cli`, or by configuring the credentials file of the `aws-cli` directly. To set them up through the `aws-cli` [install it first](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) the run `aws configure` [to configure the aws-cli and credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html). Serverless will automatically use those credentials. You can even set up a different profiles for different accounts, which can be used by Serverless as well.
+For a more permanent solution you can also set up credentials through the `aws-cli`, or by configuring the credentials file of the `aws-cli` directly. To set them up through the `aws-cli` [install it first](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) then run `aws configure` [to configure the aws-cli and credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html). Serverless will automatically use those credentials. You can even set up a different profiles for different accounts, which can be used by Serverless as well.
 
 ```
 $ aws configure
