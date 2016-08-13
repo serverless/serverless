@@ -157,3 +157,40 @@ That wouldn't be required if you hadn't set the `private` property to `true`.
 Setting an API Gateway proxy can easily be done by adding two custom CloudFormation resource templates to your
 `serverless.yml` file. Check [this guide](https://github.com/serverless/serverless/blob/v1.0/docs/guide/custom-provider-resources.md)
 for more info on how to set up a proxy using custom CloudFormation resources in `serverless.yml`.
+
+### Enabling CORS for your endpoints
+To set CORS configurations for your HTTP endpoints, simply modify your event configurations as follows:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: user/create
+          method: get
+          cors: true
+```
+
+You can equally set your own attributes:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: user/create
+          method: get
+          cors:
+            origins:
+              - '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+```
+
+This example is the default setting and is exactly the same as the previous example. The `Access-Control-Allow-Methods` header is set automatically, based on the endpoints specified in your service configuration with CORS enabled.
