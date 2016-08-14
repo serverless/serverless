@@ -20,6 +20,10 @@ It will create an own, empty one if it doesn't exist.
 You can use this place to add custom provider resources by writing the resource definition in YAML syntax inside the
 `resources` object. You can also use your variables from `serverless.env.yml` in the Values
 
+**Note:** You'll have the whole flexibility to overwrite / attach any kind of resource to your CloudFormation stack so
+it's no problem to add some new `Resources`, `Outputs` or even overwrite the `Description`. Please be cautious as overwriting
+existing parts of your CloudFormation stack might introduce unexpected behavior.
+
 ```yml
 # serverless.yml
 resources:
@@ -28,6 +32,9 @@ resources:
       Type: ResourceType
       Properties:
         Key: Value
+  Outputs:
+    CustomOutput:
+      Value: "My Custom Output"
 ```
 
 ### Example custom resources - S3 bucket
