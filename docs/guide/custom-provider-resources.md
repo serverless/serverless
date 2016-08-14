@@ -34,6 +34,7 @@ resources:
         Key: Value
   Outputs:
     CustomOutput:
+      Description: "Description for my output"
       Value: "My Custom Output"
 ```
 
