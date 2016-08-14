@@ -127,3 +127,25 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Hop Labs](http://www.hoplabs.com)
 * [Webscale](https://webscale.fi/briefly-in-english/)
 * [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
+
+
+## Release History
+
+* Changed the way Serverless sets up scheduled events: Instead of creating one rule per function
+  it is now possible to create a single rule that triggers up to 5 Lambdas simultaneously. Simply
+  reuse the schedule name between your Lambda functions to make use of this feature.
+* Due to some internal changes on how triggers are deployed, we recommend to delete your Lambda 
+  stages and re-deploy everything after upgrading to this version.
+
+### 0.6.0
+* Plugins are automatically loaded from `node_modules` folder. No more need to update `s-project.json`
+* Support `passthroughBehavior` configuration in APIG endpoints
+* Deprecated the use of `requestParameters` in APIG endpoints. Use `methodRequestParameters` and
+  `integrationRequestParameters` instead. This enables support of optional request parameters and
+  more flexibility in mapping integration request parameters to fixed values.
+* Fixed creation of CloudWatch Events for scheduled Lambdas
+* Added support for `ap-southeast-2` region
+* Merged various minor bug fixes from the official Serverless repo
+
+### 0.5.6
+* Last and final official version
