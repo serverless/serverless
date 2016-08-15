@@ -109,6 +109,7 @@ in the `event` object:
 - body
 - method
 - principalId
+- stage
 - headers
 - query
 - path
