@@ -124,6 +124,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
 * [Branded Crate](https://www.brandedcrate.com/)
 * [cloudonaut](https://cloudonaut.io/serverless-consulting/)
+* [PromptWorks](https://www.promptworks.com/serverless/)
 
 ## Badges
 
