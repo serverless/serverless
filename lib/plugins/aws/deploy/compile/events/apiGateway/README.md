@@ -14,7 +14,7 @@ the endpoint is accessed.
 
 Take a look at the [Event syntax examples](#event-syntax-examples) below to see how you can setup HTTP events.
 
-Those resources are then merged into the `serverless.service.resources.Resources` section.
+Those resources are then merged into the compiled CloudFormation template.
 
 ## Universal JSON request template
 
