@@ -63,3 +63,4 @@ functions:
 ```
 
 In the previous example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
+

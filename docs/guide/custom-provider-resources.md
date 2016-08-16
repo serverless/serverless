@@ -18,7 +18,7 @@ After initialization, Serverless will try to load the `resources` object from th
 It will create an own, empty one if it doesn't exist.
 
 You can use this place to add custom provider resources by writing the resource definition in YAML syntax inside the
-`resources` object. You can also use your variables from `serverless.env.yml` in the Values
+`resources` object. You can also use Serverless Variables for sensitive data or reusable configuration in your resources templates.
 
 **Note:** You'll have the whole flexibility to overwrite / attach any kind of resource to your CloudFormation stack so
 it's no problem to add some new `Resources`, `Outputs` or even overwrite the `Description`. Please be cautious as overwriting
@@ -54,8 +54,8 @@ resources:
        Properties:
          # You can also set properties for the resource, based on the CloudFormation properties
          BucketName: my-awesome-thumbnails
-         # Or you could use a variable from your serverless.env.yml
-         # BucketName: ${bucketname}
+         # Or you could reference an environment variable
+         # BucketName: ${env.BUCKET_NAME}
 ```
 
 ### Example custom resources - HTTP Proxy
