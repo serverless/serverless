@@ -9,15 +9,16 @@ Make sure that you're still in the service directory.
 Run `serverless deploy` to start the deployment process.
 
 Serverless will now deploy the whole service (with all it's functions and events which we'll add soon) to the
-services cloud provider. It will use the default `stage` and `region` settings.
+services cloud provider. It will use the default `dev` stage and `us-east-1` region.
 
-The default stage is `dev` and default region is `us-east-1`. You can change the default stage and region in your `serverless.yml` file by setting the `stage` and `region` properties inside a `default` object as the following example shows:
+You can change the default stage and region in your `serverless.yml` file by setting the `stage` and `region` properties inside a `provider` object as the following example shows:
 
 ```yml
 # serverless.yml
 
 service: service-name
-defaults:
+provider:
+  name: aws
   stage: beta
   region: us-west-2
 ```

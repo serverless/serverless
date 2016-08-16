@@ -39,10 +39,10 @@ functions:
   
 ```
 
-In the previous example you're dynamically adding a prefix to the function names by referencing the `stage` option that you pass in the CLI. So when you deploy, the function name will always include the stage you're deploying to.
+In the previous example you're dynamically adding a prefix to the function names by referencing the `stage` option that you pass in the CLI when you run `serverless deploy --stage dev`. So when you deploy, the function name will always include the stage you're deploying to.
 
-## Referencing CLI Options
-To reference CLI options that you passed, you'll need to use the `${opt.some_option}` syntax in your `serverless.yml` configuration file. Here's an example:
+## Recursively Self-Reference serverless.yml Properties
+To self-reference properties in `serverless.yml`, you'll need to use the `${self.someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in the object tree as you want. Here's an example:
 
 ```yml
 service: new-service
@@ -52,12 +52,10 @@ custom:
     
 functions:
   hello:
-      name: ${opt.stage}-hello
       handler: handler.hello
       events:
         - schedule: ${self.custom.globalSchedule}
   world:
-      name: ${opt.stage}-world
       handler: handler.world
       events:
         - schedule: ${self.custom.globalSchedule}
