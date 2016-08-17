@@ -52,7 +52,7 @@
     "eslint-config-airbnb-base" : "^5.0.2",
     "eslint-plugin-import": "^1.13.0",
     "eslint-plugin-jsx-a11y": "^2.1.0",
-    "eslint-plugin-react": "^5.2.2",
+    "eslint-plugin-react": "^6.1.1",
     "istanbul": "^0.4.4",
     "mocha": "^2.5.3",
     "mocha-lcov-reporter": "^1.2.0",
