@@ -367,7 +367,7 @@ describe('Service', () => {
 
     it('should load and populate region vars when region is provided as shortcut', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         service: '${testVar}',
         provider: 'aws',
