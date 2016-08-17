@@ -47,7 +47,7 @@
     "all-contributors-cli": "^3.0.6",
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
-    "eslint": "^2.13.1",
+    "eslint": "^3.3.1",
     "eslint-config-airbnb": "^9.0.1",
     "eslint-config-airbnb-base" : "^5.0.2",
     "eslint-plugin-import": "^1.9.2",
