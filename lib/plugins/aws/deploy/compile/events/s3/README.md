@@ -23,7 +23,7 @@ Take a look at the [Event syntax examples](#event-syntax-examples) below to see 
 
 A corresponding lambda permission resource is created for each S3 event.
 
-The created CloudFormation resources are merged into the `serverless.service.resources.Resources` section after looping
+The created CloudFormation resources are merged into the compiled CloudFormation template after looping
 over all functions has finished.
 
 ## Event syntax examples

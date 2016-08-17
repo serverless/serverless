@@ -17,4 +17,4 @@ with the help of the functions `name` property.
 The functions `MemorySize` is set to `1024` and `Timeout` to `6`. You can overwrite those defaults by setting
 corresponding entries in the services `provider` or function property.
 
-At the end all CloudFormation function resources are merged inside the `serverless.service.resources.Resources` section.
+At the end all CloudFormation function resources are merged inside the compiled CloudFormation template.

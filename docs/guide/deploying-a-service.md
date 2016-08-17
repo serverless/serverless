@@ -26,7 +26,7 @@ defaults:
 After running `serverless deploy` you should see the progress of the deployment process in your terminal.
 A success message will tell you once everything is deployed and ready to use!
 
-**Note:** We keep the last 5 versions of your deployed code in the corresponding storage.
+**Note:** We keep the last 5 versions of your deployed code in the corresponding storage in the S3 bucket for your AWS account.
 
 ## Deploying to a different stage and region
 

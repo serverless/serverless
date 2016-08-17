@@ -5,6 +5,9 @@ which is not yet available through events or plugins. Serverless has you covered
 those resources with the help of `resources` section in the [`serverless.yml`](../understanding-serverless/serverless-yml.md)
 file.
 
+**Note:** Your custom resources are merged into the template after the stack is deployed / before the stack will be updated.
+This gives you the power to overwrite existing resources easily.
+
 ## Adding custom provider resources
 
 Serverless uses the services `resources` object as a place to store all the provider specific resources like compiled
@@ -17,6 +20,10 @@ It will create an own, empty one if it doesn't exist.
 You can use this place to add custom provider resources by writing the resource definition in YAML syntax inside the
 `resources` object. You can also use your variables from `serverless.env.yml` in the Values
 
+**Note:** You'll have the whole flexibility to overwrite / attach any kind of resource to your CloudFormation stack so
+it's no problem to add some new `Resources`, `Outputs` or even overwrite the `Description`. Please be cautious as overwriting
+existing parts of your CloudFormation stack might introduce unexpected behavior.
+
 ```yml
 # serverless.yml
 resources:
@@ -25,6 +32,10 @@ resources:
       Type: ResourceType
       Properties:
         Key: Value
+  Outputs:
+    CustomOutput:
+      Description: "Description for my output"
+      Value: "My Custom Output"
 ```
 
 ### Example custom resources - S3 bucket
