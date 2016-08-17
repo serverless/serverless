@@ -679,7 +679,7 @@ describe('PluginManager', () => {
     serverlessInstance.init();
     const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
       '..', 'bin', 'serverless');
-    const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
+    const tmpDir = path.join(os.tmpdir(), (new Date()).getTime().toString());
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();
     process.chdir(tmpDir);
