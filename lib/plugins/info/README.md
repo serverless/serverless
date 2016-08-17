@@ -22,10 +22,5 @@ $ serverless info
 service: my-service
 stage: dev
 region: us-east-1
-accountId: 12345678
-endpoints:
-  GET - https://..../dev/hello
-functions:
-  my-service-dev-hello:  arn:aws:lambda:us-east-1:12345678:function:my-service-dev-hello
 
 ```

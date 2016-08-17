@@ -173,7 +173,7 @@ class MyPlugin {
     };
 
     this.hooks = {
-      'log:serverless': this.logServerless
+      'log:serverless': this.logServerless.bind(this)
     }
   }
 
@@ -217,7 +217,7 @@ class Deploy {
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction
+      'deploy:functions': this.deployFunction.bind(this)
     }
   }
 
@@ -257,7 +257,7 @@ class Deploy {
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction
+      'deploy:functions': this.deployFunction.bind(this)
     }
   }
 
@@ -302,7 +302,7 @@ class Deploy {
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction
+      'deploy:functions': this.deployFunction.bind(this)
     }
   }
 
@@ -349,7 +349,7 @@ class ProviderDeploy {
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction
+      'deploy:functions': this.deployFunction.bind(this)
     }
   }
 

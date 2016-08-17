@@ -19,9 +19,10 @@ milestone if still open
 - [ ] Create a git tag with the version (`git tag <VersionName>`)
 - [ ] Push the git tag (`git push origin <VersionName>`)
 - [ ] Check package.json Version config to make sure it fits what we want to release. *DO THIS, DON'T SKIP, DON'T BE LAZY!!!*
-- [ ] Update Segment.io key (never push the key to GitHub and revert afterwards with `git checkout .`)
+- [ ] Update Segment.io key in Utils.js (never push the key to GitHub and revert afterwards with `git checkout .`)
 - [ ] Log into npm (`npm login`)
 - [ ] Publish to NPM (`npm publish —-tag <TagForInstall>`, e.g. `npm publish --tag beta` or `npm publish` to release latest production framework)
+- [ ] Update Alpha/Beta accordingly so they point to the latest release. If its an Alpha Release the Beta tag should point to the latest stable release. This way Alpha/Beta always either point to something stable or the highest priority release in Alpha/Beta stage (`npm dist-tag add serverless@<VERSION> alpha`, `npm dist-tag add serverless@<VERSION> beta`)
 - [ ] Validate NPM install works (`npm install -g serverless@<TagForInstall>` or `npm install -g serverless` if latest is released)
 - [ ] Close milestone on Github
 - [ ] Create a new release in GitHub for Release Notes
