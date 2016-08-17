@@ -108,7 +108,7 @@ describe('Service', () => {
       const serverless = new Serverless();
       const noService = new Service(serverless);
 
-      return noService.load().then(() => done());
+      noService.load().then(() => done());
     });
 
     it('should support Serverless files with a .yaml extension', () => {
