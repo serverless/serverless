@@ -1,38 +1,35 @@
 'use strict';
-process.env.DEBUG = '*';
-require('./config');  // Init config
 
-describe('All Tests', function() {
+// Serverless Core Tests
+require('./classes/Serverless');
+require('./classes/PluginManager');
+require('./classes/Utils');
+require('./classes/Config');
+require('./classes/Service');
+require('./classes/YamlParser');
+require('./classes/CLI');
 
-  before(function(done) {
-    this.timeout(0);  // Don't timeout anything
-    done();
-  });
+// Core Plugins Tests
+require('../lib/plugins/create/tests/create');
+require('../lib/plugins/deploy/tests/deploy');
+require('../lib/plugins/info/tests/info');
+require('../lib/plugins/invoke/tests/invoke');
+require('../lib/plugins/logs/tests/logs');
+require('../lib/plugins/remove/tests/remove');
+require('../lib/plugins/package/tests/all');
+require('../lib/plugins/tracking/tests/tracking');
 
-  after(function() {});
-  require('./tests/classes/ServerlessEndpointTest');
-  require('./tests/classes/ServerlessFunctionTest');
-  require('./tests/classes/ServerlessModuleTest');
-  require('./tests/classes/ServerlessComponentTest');
-  require('./tests/classes/ServerlessProjectTest');
-  require('./tests/classes/ServerlessStateTest');
-  require('./tests/actions/TestPluginCustom');
-  require('./tests/actions/TestDefaultActionHook');
-  require('./tests/actions/StageCreate');
-  require('./tests/actions/RegionCreate');
-  require('./tests/actions/ComponentCreate');
-  require('./tests/actions/ModuleCreate');
-  require('./tests/actions/FunctionCreate');
-  require('./tests/actions/EnvList');
-  require('./tests/actions/EnvGet');
-  require('./tests/actions/EnvSetUnset');
-  require('./tests/actions/ResourcesDeploy');
-  require('./tests/actions/FunctionRun');
-  require('./tests/actions/FunctionDeploy');
-  require('./tests/actions/EndpointDeploy');
-  require('./tests/actions/ProjectInit');
-  require('./tests/actions/ProjectInstall');
-  require('./tests/actions/ProjectLifeCycle.js');
-  require('./tests/actions/FunctionInvoke.js');
-  require('./tests/actions/FunctionLogs.js');
-});
+// AWS Plugins Tests
+require('../lib/plugins/aws/tests');
+require('../lib/plugins/aws/tests/validate');
+require('../lib/plugins/aws/info/tests');
+require('../lib/plugins/aws/invoke/tests');
+require('../lib/plugins/aws/logs/tests');
+require('../lib/plugins/aws/remove/tests/all');
+require('../lib/plugins/aws/deploy/tests/all');
+require('../lib/plugins/aws/deploy/compile/functions/tests');
+require('../lib/plugins/aws/deploy/compile/events/s3/tests');
+require('../lib/plugins/aws/deploy/compile/events/schedule/tests');
+require('../lib/plugins/aws/deploy/compile/events/apiGateway/tests/all');
+require('../lib/plugins/aws/deploy/compile/events/sns/tests');
+require('../lib/plugins/aws/deployFunction/tests/index');

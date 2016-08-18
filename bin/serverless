@@ -2,15 +2,18 @@
 
 'use strict';
 
-let argv = require('minimist')(process.argv.slice(2));
+const BbPromise = require('bluebird');
+const logError = require('../lib/classes/Error').logError;
 
-if (argv.debug) process.env.DEBUG = '*';
+process.on('unhandledRejection', (e) => logError(e));
 
-let S           = require('../lib/Serverless'),
-    SUtils      = require('../lib/utils/index'),
-    serverless  = new S({
-      interactive: typeof process.env.CI !== 'undefined' ? false : true,
-      projectPath: SUtils.getProjectPath(process.cwd())
-    });
+(() => BbPromise.resolve().then(() => {
+  // requiring here so that if anything went wrong,
+  // during require, it will be caught.
+  const Serverless = require('../lib/Serverless'); // eslint-disable-line global-require
+  const serverless = new Serverless({
+    interactive: typeof process.env.CI === 'undefined',
+  });
 
-serverless.command(argv);
+  return serverless.init().then(() => serverless.run());
+}).catch(e => logError(e)))();
