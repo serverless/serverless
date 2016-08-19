@@ -4,6 +4,7 @@ The Serverless framework provides a powerful variable system to give your `serve
 - Reference & load variables from environment variables
 - Reference & load variables from CLI options
 - Recursively reference properties of any type from the same `serverless.yml` file
+- Recursively reference properties of any type from other YAML/JSON files
 - Recursively nest variable references within each other for ultimate flexibility 
 
 ## Referencing Environment Variables
@@ -64,6 +65,37 @@ functions:
 ```
 
 In the previous example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
+
+## Recursively Reference Variables in Other Files
+To reference variables in other YAML or JSON file , you'll need to use the `${file(./myFile.yml).someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
+
+```yml
+
+# myCustomFile.yml
+
+globalSchedule: rate(10 minutes)
+
+```
+
+
+```yml
+# serverless.yml
+service: new-service
+provider: aws
+custom: ${file(./myCustomFile.yml)} # You can reference the entire file
+functions:
+  hello:
+      handler: handler.hello
+      events:
+        - schedule: ${file(./myCustomFile.yml).globalSchedule} # Or you can reference a specific property
+  world:
+      handler: handler.world
+      events:
+        - schedule: ${self.custom.globalSchedule} # This would also work in this case
+  
+```
+
+In the previous example you're referencing the entire `myCustomFile.yml` file in the `custom` property. You just need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
 
 ## Nesting Variable References
 The Serverless variable system allows you to nest variable references within each other for ultimate flexibility. So you can reference certain variables based on other variables. Here's an example:
