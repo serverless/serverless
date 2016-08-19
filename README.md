@@ -141,6 +141,8 @@ These consultants use the Serverless Framework and can help you build your serve
 
 Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](docs/developing-plugins)
 
+You can read the v0.5.x documentation at [readme.io](https://serverless.readme.io/v0.5.0/docs).
+
 ## v0.5.x Projects
 Serverless Projects are shareable and installable.  You can publish them to npm and install them via the Serverless Framework CLI by using `$ serverless project install <project-name>`
 * [serverless-graphql](https://github.com/serverless/serverless-graphql) - Official Serverless boilerplate to kick start your project
