@@ -23,6 +23,14 @@ needs. In the interim, ensure that your AWS API Keys are kept in a safe, private
 **Attach Policy**
 5. In the next screen, search for and select **AdministratorAccess** then click **Attach**
 
+### Signing up for an AWS Subscription
+
+Most AWS services require you to have a credit card set up, otherwise you can't deploy your resources and the following error message will appear:
+
+`AWS Access Key Id needs a subscription for the service`
+
+If you created a new AWS account make sure that a credit card is set up for the account.
+
 ### Setting the AWS API Key & Secret
 
 To start using Serverless and access the AWS API you need to set the AWS API Access Key & Secret. 
