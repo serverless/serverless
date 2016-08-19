@@ -129,7 +129,7 @@ describe('Serverless', () => {
     });
 
     it('should track if tracking is enabled', (done) => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       fse.mkdirsSync(tmpDirPath);
 
       serverless.config.serverlessPath = tmpDirPath;
@@ -138,7 +138,7 @@ describe('Serverless', () => {
     });
 
     it('should not track if tracking is disabled', (done) => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       fse.mkdirsSync(tmpDirPath);
       fs.writeFileSync(path.join(tmpDirPath, 'do-not-track'), 'some-content');
 

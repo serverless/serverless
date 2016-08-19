@@ -13,12 +13,12 @@ const serverless = new Serverless();
 serverless.init();
 const serverlessExec = path.join(serverless.config.serverlessPath, '..', 'bin', 'serverless');
 
-const tmpDir = path.join(os.tmpdir(), (new Date).getTime().toString());
+const tmpDir = path.join(os.tmpdir(), (new Date()).getTime().toString());
 fse.mkdirSync(tmpDir);
 process.chdir(tmpDir);
 
 const templateName = 'aws-nodejs';
-const newServiceName = `service-${(new Date).getTime().toString()}`;
+const newServiceName = `service-${(new Date()).getTime().toString()}`;
 const stackName = `${newServiceName}-dev`;
 
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });

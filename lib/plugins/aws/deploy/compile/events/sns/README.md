@@ -21,7 +21,7 @@ Take a look at the [Event syntax examples](#event-syntax-examples) below to see 
 
 A corresponding lambda permission resource is created for the SNS event.
 
-Those two resources are then merged into the `serverless.service.resources.Resources` section.
+Those two resources are then merged into the compiled CloudFormation template.
 
 ## Event syntax examples
 

@@ -14,11 +14,11 @@ the endpoint is accessed.
 
 Take a look at the [Event syntax examples](#event-syntax-examples) below to see how you can setup HTTP events.
 
-Those resources are then merged into the `serverless.service.resources.Resources` section.
+Those resources are then merged into the compiled CloudFormation template.
 
 ## Universal JSON request template
 
-The API Gateway plugin implements a request template which provides `{body, method, principalId, headers, query, path, identity,
+The API Gateway plugin implements a request template which provides `{body, method, principalId, stage, headers, query, path, identity,
 stageVariables} = event` as JavaScript objects. This way you don't have to define the template on your own but can use
 this default template to access the necessary variables in your code.
 

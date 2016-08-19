@@ -12,8 +12,10 @@ Next up it deploys the CloudFormation template (which only includes the Serverle
 
 In the end it hooks into [`deploy:deploy`](/lib/plugins/deploy) lifecycle to update the previously created stack.
 
-The `resources` section of the `serverless.yml` file is parsed and merged into the CloudFormation template
-(this makes sure that custom resources the user has defined inside the `serverless.yml` file are added correctly).
+The `resources` section of the `serverless.yml` file is parsed and merged into the CloudFormation template.
+This makes sure that custom resources the user has defined inside the `serverless.yml` file are added correctly.
+
+**Note:** Empty, but defined `Resources` or `Outputs` sections are set to an empty object before being merged.
 
 Next up it removes old service .zip files in the services S3 bucket. After that it uploads the services
 .zip file (which is available via `serverless.service.package.artifact`) to the S3 bucket (which is defined in the core
