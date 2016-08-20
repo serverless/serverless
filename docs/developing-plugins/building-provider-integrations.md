@@ -19,6 +19,7 @@ Let's take a look at the [core `deploy` plugin](/lib/plugins/deploy) and the dif
 
 The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
 
+- `deploy:cleanup`
 - `deploy:initialize`
 - `deploy:setupProviderConfiguration`
 - `deploy:compileFunctions`
@@ -30,6 +31,11 @@ You, as a plugin developer can hook into those lifecycles to compile and deploy 
 infrastructure.
 
 Let's take a closer look at each lifecycle event to understand what its purpose is and what it should be used for.
+
+#### `deploy:cleanup`
+
+Remove the `.serverless` directory which stores all the artifacts which were previously deployed to make sure that the
+new artifacts can be stored in the `.serverless` directory and won't conflict with the old ones.
 
 #### `deploy:initialize`
 
@@ -86,10 +92,12 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 3. The functions of the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file are compiled to lambda
 resources and stored into memory (`deploy:compileFunctions`)
 4. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
-5. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
-6. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentArtifacts` and `deploy:deploy`)
+5. Old artifacts (if available) are removed from the S3 bucket (`deploy:deploy`)
+6. The service gets zipped up (`deploy:createDeploymentArtifacts` and `deploy:deploy`)
 7. The compiled functions, event resources and custom provider resources are attached to the core CloudFormation template
-and the updated CloudFormation template gets redeployed (`deploy:deploy`)
+(`deploy:deploy`)
+8. The zipped service and CloudFormation template are uploaded to S3 (`deploy:deploy`)
+9. The stack will be updated with the help of the recently uploaded artifacts (`deploy:deploy`)
 
 #### The code
 

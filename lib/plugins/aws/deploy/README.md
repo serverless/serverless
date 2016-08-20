@@ -17,9 +17,9 @@ This makes sure that custom resources the user has defined inside the `serverles
 
 **Note:** Empty, but defined `Resources` or `Outputs` sections are set to an empty object before being merged.
 
-Next up it removes old service .zip files in the services S3 bucket. After that it uploads the services
-.zip file (which is available via `serverless.service.package.artifact`) to the S3 bucket (which is defined in the core
-CloudFormation template). Furthermore it updates the stack with all the Resources which are defined in
+Next up it removes old service directories (with its files) in the services S3 bucket. After that it creates a new directory
+with the current time as the directory name in S3 and uploads the services artifacts (e.g. the .zip file and the CloudFormation
+file) in this directory. Furthermore it updates the stack with all the Resources which are defined in
 `serverless.service.resources.Resources` (this also includes the custom provider resources).
 
 The stack status is checked every 5 seconds with the help of the CloudFormation API. It will return a success message if
