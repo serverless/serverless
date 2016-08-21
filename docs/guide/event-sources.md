@@ -3,13 +3,13 @@
 Serverless is used to build event driven architecture. Basically everything which can trigger a function is an event.
 Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
 
-Let's add a HTTP event to our services `hello` function so that the function get's called whenever a corresponding HTTP
-event will come in.
+Let's add a HTTP event to our services `hello` function so that the function gets called whenever a corresponding HTTP
+event comes in.
 
 ## Adding a HTTP event
 
 Go to the Serverless service directory and open up the [`serverless.yml`](../understanding-serverless/serverless-yml.md)
-file in your favorite editor. At first we need to add an `events` property to the function to tell Serverless that this
+file in your favorite editor. First, we need to add an `events` property to the function to tell Serverless that this
 function will have events attached:
 
 ```yml
