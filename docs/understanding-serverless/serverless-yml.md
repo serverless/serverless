@@ -15,7 +15,7 @@ provider:
     securityGroupIds:
       - securityGroupId1
       - securityGroupId2
-    subnetIds: 
+    subnetIds:
       - subnetId1
       - subnetId2
 
@@ -43,7 +43,7 @@ functions:
   hello:
     # Deployed Lambda name with a prefix
     name: ${prefix}-lambdaName # You have to provide that variable in serverless.env.yml
-    handler: handler.hello
+    handler: handler.hello # Uses the same configuration as your provider. Subdirectories are supported, depending on your language, e.g. subdir/handler.hello if handler.js is in subdir
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
     events:
@@ -57,7 +57,7 @@ functions:
       securityGroupIds:
         - securityGroupId1
         - securityGroupId2
-      subnetIds: 
+      subnetIds:
         - subnetId1
         - subnetId2
 
