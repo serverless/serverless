@@ -90,7 +90,7 @@ Check out our [help-wanted](https://github.com/serverless/serverless/labels/help
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
-* [Contact Us](mailto:team@serverless.com)
+* [Contact Us](mailto:hello@serverless.com)
 
 ## Contributors
 
