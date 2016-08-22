@@ -6,7 +6,7 @@ corresponding events, the used plugins, custom resources, and other service conf
 Here's an example `serverless.yml` file that touches on all the config details.
 
 ```yml
-service: first_service
+service: first-service
 
 provider:
   name: aws
