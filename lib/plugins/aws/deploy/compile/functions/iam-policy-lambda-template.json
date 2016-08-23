@@ -2,7 +2,7 @@
   "IamPolicyLambda": {
     "Type": "AWS::IAM::Policy",
     "Properties": {
-      "PolicyName": "",
+      "PolicyName": "Logging Policy",
       "PolicyDocument": {
         "Version": "2012-10-17",
         "Statement": [
@@ -13,7 +13,17 @@
               "logs:CreateLogStream",
               "logs:PutLogEvents"
             ],
-            "Resource": ""
+            "Resource": {
+              "Fn:Join": [
+                ":",
+                [
+                  "arn:aws:logs",
+                  { "Ref": "AWS::Region" },
+                  { "Ref": "AWS::AccountId" },
+                  "log-group:/aws/lambda/*:*:*"
+                ]
+              ]
+            }
           }
         ]
       },
