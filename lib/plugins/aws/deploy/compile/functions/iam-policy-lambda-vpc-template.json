@@ -1,0 +1,30 @@
+{
+  "IamPolicyLambdaVpc": {
+    "Type": "AWS::IAM::ManagedPolicy",
+    "Properties": {
+      "PolicyName": "",
+      "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "ec2:CreateNetworkInterface",
+              "ec2:DescribeNetworkInterfaces",
+              "ec2:DeleteNetworkInterface"
+            ],
+            "Resource": "*"
+          }
+        ]
+      },
+      "Roles": [
+        {
+          "Ref": "IamRoleLambda"
+        }
+      ]
+    }
+  }
+}
