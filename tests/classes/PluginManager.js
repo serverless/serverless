@@ -6,10 +6,10 @@ const Serverless = require('../../lib/Serverless');
 const Create = require('../../lib/plugins/create/create');
 
 const path = require('path');
-const os = require('os');
 const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const mockRequire = require('mock-require');
+const testUtils = require('../../tests/utils');
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -679,7 +679,7 @@ describe('PluginManager', () => {
     serverlessInstance.init();
     const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
       '..', 'bin', 'serverless');
-    const tmpDir = path.join(os.tmpdir(), (new Date()).getTime().toString());
+    const tmpDir = testUtils.getTmpDirPath();
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();
     process.chdir(tmpDir);

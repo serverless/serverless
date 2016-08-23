@@ -7,15 +7,15 @@
 const expect = require('chai').expect;
 const YAML = require('js-yaml');
 const path = require('path');
-const os = require('os');
 const Serverless = require('../../lib/Serverless');
+const testUtils = require('../../tests/utils');
 
 const serverless = new Serverless();
 
 describe('YamlParser', () => {
   describe('#parse()', () => {
     it('should parse a simple .yaml file', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date()).getTime().toString(), 'simple.yaml');
+      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'simple.yaml');
 
       serverless.utils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
 
@@ -25,7 +25,7 @@ describe('YamlParser', () => {
     });
 
     it('should parse a simple .yml file', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date()).getTime().toString(), 'simple.yml');
+      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'simple.yml');
 
       serverless.utils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
 
@@ -35,7 +35,7 @@ describe('YamlParser', () => {
     });
 
     it('should parse a .yml file with JSON-REF to YAML', () => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
 
       serverless.utils.writeFileSync(path.join(tmpDirPath, 'ref.yml'), { foo: 'bar' });
 
@@ -53,7 +53,7 @@ describe('YamlParser', () => {
     });
 
     it('should parse a .yml file with JSON-REF to JSON', () => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
 
       serverless.utils.writeFileSync(path.join(tmpDirPath, 'ref.json'), { foo: 'bar' });
 
@@ -71,7 +71,7 @@ describe('YamlParser', () => {
     });
 
     it('should parse a .yml file with recursive JSON-REF', () => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
 
       serverless.utils.writeFileSync(path.join(tmpDirPath, 'three.yml'), { foo: 'bar' });
 

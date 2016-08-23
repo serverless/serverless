@@ -33,3 +33,6 @@ require('../lib/plugins/aws/deploy/compile/events/schedule/tests');
 require('../lib/plugins/aws/deploy/compile/events/apiGateway/tests/all');
 require('../lib/plugins/aws/deploy/compile/events/sns/tests');
 require('../lib/plugins/aws/deployFunction/tests/index');
+
+// Other Tests
+require('./utils/tests');
