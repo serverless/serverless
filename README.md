@@ -14,7 +14,7 @@ Enjoy! - Serverless, Inc.
 
 * [Quick Start](#quick-start)
 * [Features](#features)
-* [Documentation v.1](#documentation) / [v.0](http://docs.serverless.com/)
+* [Documentation v.1](#documentation) / [v.0](http://serverless.readme.io)
 * [Road Map](https://github.com/serverless/serverless/milestones)
 * [Contributing](#contributing)
 * [Community](#community)
