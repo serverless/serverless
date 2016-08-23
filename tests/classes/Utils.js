@@ -39,7 +39,7 @@ describe('Utils', () => {
 
   describe('#writeFileSync()', () => {
     it('should write a .json file synchronously', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'anything.json');
+      const tmpFilePath = testUtils.getTmpFilePath('anything.json');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
       const obj = serverless.utils.readFileSync(tmpFilePath);
@@ -48,7 +48,7 @@ describe('Utils', () => {
     });
 
     it('should write a .yml file synchronously', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'anything.yml');
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yml');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
@@ -58,7 +58,7 @@ describe('Utils', () => {
     });
 
     it('should write a .yaml file synchronously', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'anything.yaml');
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yaml');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
@@ -74,7 +74,7 @@ describe('Utils', () => {
 
   describe('#writeFile()', () => {
     it('should write a file asynchronously', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'anything.json');
+      const tmpFilePath = testUtils.getTmpFilePath('anything.json');
 
       // note: use return when testing promises otherwise you'll have unhandled rejection errors
       return serverless.utils.writeFile(tmpFilePath, { foo: 'bar' }).then(() => {
@@ -87,7 +87,7 @@ describe('Utils', () => {
 
   describe('#readFileSync()', () => {
     it('should read a file synchronously', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'anything.json');
+      const tmpFilePath = testUtils.getTmpFilePath('anything.json');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
       const obj = serverless.utils.readFileSync(tmpFilePath);
@@ -98,7 +98,7 @@ describe('Utils', () => {
 
   describe('#readFile()', () => {
     it('should read a file asynchronously', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'anything.json');
+      const tmpFilePath = testUtils.getTmpFilePath('anything.json');
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 

@@ -15,7 +15,7 @@ const serverless = new Serverless();
 describe('YamlParser', () => {
   describe('#parse()', () => {
     it('should parse a simple .yaml file', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'simple.yaml');
+      const tmpFilePath = testUtils.getTmpFilePath('simple.yaml');
 
       serverless.utils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
 
@@ -25,7 +25,7 @@ describe('YamlParser', () => {
     });
 
     it('should parse a simple .yml file', () => {
-      const tmpFilePath = path.join(testUtils.getTmpDirPath(), 'simple.yml');
+      const tmpFilePath = testUtils.getTmpFilePath('simple.yml');
 
       serverless.utils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
 
