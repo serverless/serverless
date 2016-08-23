@@ -38,7 +38,11 @@ describe('Utils', () => {
 
   describe('#writeFileSync()', () => {
     it('should write a .json file synchronously', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+      const tmpFilePath = path.join(
+        os.tmpdir(),
+        (new Date()).getTime().toString(),
+        'anything.json'
+      );
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
       const obj = serverless.utils.readFileSync(tmpFilePath);
@@ -47,7 +51,11 @@ describe('Utils', () => {
     });
 
     it('should write a .yml file synchronously', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yml');
+      const tmpFilePath = path.join(
+        os.tmpdir(),
+        (new Date()).getTime().toString(),
+        'anything.yml'
+      );
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
@@ -57,7 +65,11 @@ describe('Utils', () => {
     });
 
     it('should write a .yaml file synchronously', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.yaml');
+      const tmpFilePath = path.join(
+        os.tmpdir(),
+        (new Date()).getTime().toString(),
+        'anything.yaml'
+      );
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
@@ -73,7 +85,11 @@ describe('Utils', () => {
 
   describe('#writeFile()', () => {
     it('should write a file asynchronously', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+      const tmpFilePath = path.join(
+        os.tmpdir(),
+        (new Date()).getTime().toString(),
+        'anything.json'
+      );
 
       // note: use return when testing promises otherwise you'll have unhandled rejection errors
       return serverless.utils.writeFile(tmpFilePath, { foo: 'bar' }).then(() => {
@@ -86,7 +102,11 @@ describe('Utils', () => {
 
   describe('#readFileSync()', () => {
     it('should read a file synchronously', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+      const tmpFilePath = path.join(
+        os.tmpdir(),
+        (new Date()).getTime().toString(),
+        'anything.json'
+      );
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
       const obj = serverless.utils.readFileSync(tmpFilePath);
@@ -97,7 +117,11 @@ describe('Utils', () => {
 
   describe('#readFile()', () => {
     it('should read a file asynchronously', () => {
-      const tmpFilePath = path.join(os.tmpdir(), (new Date).getTime().toString(), 'anything.json');
+      const tmpFilePath = path.join(
+        os.tmpdir(),
+        (new Date()).getTime().toString(),
+        'anything.json'
+      );
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
@@ -110,7 +134,7 @@ describe('Utils', () => {
 
   describe('#walkDirSync()', () => {
     it('should return an array with corresponding paths to the found files', () => {
-      const tmpDirPath = path.join(os.tmpDir(), (new Date).getTime().toString());
+      const tmpDirPath = path.join(os.tmpDir(), (new Date()).getTime().toString());
 
       const nestedDir1 = path.join(tmpDirPath, 'foo');
       const nestedDir2 = path.join(tmpDirPath, 'foo', 'bar');
@@ -173,7 +197,7 @@ describe('Utils', () => {
     const testDir = process.cwd();
 
     it('should detect if the CWD is a service directory when using Serverless .yaml files', () => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const tmpFilePath = path.join(tmpDirPath, 'serverless.yaml');
 
       serverless.utils.writeFileSync(tmpFilePath, 'foo');
@@ -185,7 +209,7 @@ describe('Utils', () => {
     });
 
     it('should detect if the CWD is a service directory when using Serverless .yml files', () => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date).getTime().toString());
+      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const tmpFilePath = path.join(tmpDirPath, 'serverless.yml');
 
       serverless.utils.writeFileSync(tmpFilePath, 'foo');

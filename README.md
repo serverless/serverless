@@ -1,6 +1,6 @@
 ![Serverless Application Framework AWS Lambda API Gateway](https://cloud.githubusercontent.com/assets/532272/17313761/61af7166-5813-11e6-84af-c296c19ead9b.gif)
 
-[Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups (7+)](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:team@serverless.com)
+[Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups (7+)](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:hello@serverless.com)
 
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run.  This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
@@ -14,7 +14,7 @@ Enjoy! - Serverless, Inc.
 
 * [Quick Start](#quick-start)
 * [Features](#features)
-* [Documentation v.1](#documentation) / [v.0](http://docs.serverless.com/)
+* [Documentation v.1](#documentation) / [v.0](http://serverless.readme.io)
 * [Road Map](https://github.com/serverless/serverless/milestones)
 * [Contributing](#contributing)
 * [Community](#community)
@@ -90,7 +90,7 @@ Check out our [help-wanted](https://github.com/serverless/serverless/labels/help
 * [Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework)
 * [Facebook](https://www.facebook.com/serverless)
 * [Twitter](https://twitter.com/goserverless)
-* [Contact Us](mailto:team@serverless.com)
+* [Contact Us](mailto:hello@serverless.com)
 
 ## Contributors
 
@@ -140,6 +140,8 @@ These consultants use the Serverless Framework and can help you build your serve
 # Previous Serverless Version 0.5.x
 
 Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](docs/developing-plugins)
+
+You can read the v0.5.x documentation at [readme.io](https://serverless.readme.io/v0.5.0/docs).
 
 ## v0.5.x Projects
 Serverless Projects are shareable and installable.  You can publish them to npm and install them via the Serverless Framework CLI by using `$ serverless project install <project-name>`

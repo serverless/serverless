@@ -6,11 +6,18 @@ corresponding events, the used plugins, custom resources, and other service conf
 Here's an example `serverless.yml` file that touches on all the config details.
 
 ```yml
-service: first_service
+service: first-service
 
 provider:
   name: aws
   runtime: nodejs4.3
+  vpc: # optional, applies to all functions described herein but is overridden by any function level settings
+    securityGroupIds:
+      - securityGroupId1
+      - securityGroupId2
+    subnetIds:
+      - subnetId1
+      - subnetId2
 
 plugins:
   - additional_plugin
@@ -36,7 +43,7 @@ functions:
   hello:
     # Deployed Lambda name with a prefix
     name: ${prefix}-lambdaName # You have to provide that variable in serverless.env.yml
-    handler: handler.hello
+    handler: handler.hello # Uses the same configuration as your provider. Subdirectories are supported, depending on your language, e.g. subdir/handler.hello if handler.js is in subdir
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
     events:
@@ -46,6 +53,13 @@ functions:
           path: users/create
           method: get
       - sns: topic-name
+    vpc: # optional, applies only to this function and overrides any provider level settings
+      securityGroupIds:
+        - securityGroupId1
+        - securityGroupId2
+      subnetIds:
+        - subnetId1
+        - subnetId2
 
 resources:
   Resources:
