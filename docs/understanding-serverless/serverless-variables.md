@@ -114,4 +114,14 @@ functions:
 
 In the previous example, if you pass `dev` as a stage option, the framework will look for the `dev_arn` environment variable. If you pass `production`, the framework will look for `production_arn`, and so on. This allows you to creatively use multiple variables by using a certain naming pattern without having to update the values of these variables constantly. You can go as deep as you want in your nesting, and can reference variables at any level of nesting from any source (env, opt or self). Sky is the limit!
 
+# Migrating serverless.env.yml
+Previously we used `serverless.env.yml` file to track Serverless Variables. It was a completely different system with different concepts. To migrate your variables from `serverless.env.yml`, you'll need to decide where you want to store your variables.
+
+* Using a config file: You can still use `serverless.env.yml`, but the difference now is that you can structure the file however you want, and you'll need to reference each variable/property correctly in `serverless.yml`. For more info, you can check the file reference section above.
+* Using the same `serverless.yml` file: You can store your variables in `serverless.yml` if they don't contain sensitive data, and then reference them elsewhere in the file using `self.someProperty`. For more info, you can check the self reference section above.
+* Using environment variables: You ca instead store your variables in environment variables and reference them with `env.someEnvVar`. For more info, you can check the environment variable reference section above.
+* Making your variables stage/region specific: `serverless.env.yml` allowed you to have different values for the same variable based on the stage/region you're deploying to. You can achieve the same result by using the nesting functionality of the new variable system. For example, if you have two different ARNs, one for `dev` stage and the other for `prod` stage, you can do the following: `${env.${opt.stage}_arn}`. This will make sure the correct env var is referenced based on the stage provided as an option. Of course you'll need to export both `dev_arn` and `prod_arn` env vars on your local system.
+
+Now you don't need `serverless.env.yml` at all, but you can still use it if you want. It's just not required anymore. Migrating to the new variable system is easy and you just need to know how the new system works and make small adjustments to how you store & reference your variables.
+
 
