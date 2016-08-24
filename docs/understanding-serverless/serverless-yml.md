@@ -11,6 +11,13 @@ service: first-service
 provider:
   name: aws
   runtime: nodejs4.3
+    vpc: # optional, applies to all functions described herein but is overridden by any function level settings
+      securityGroupIds:
+        - securityGroupId1
+        - securityGroupId2
+      subnetIds: 
+        - subnetId1
+        - subnetId2
   vpc: # optional, applies to all functions described herein but is overridden by any function level settings
     securityGroupIds:
       - securityGroupId1
