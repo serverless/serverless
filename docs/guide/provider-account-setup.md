@@ -1,8 +1,8 @@
 # Provider account setup
 
-Serverless needs access to your cloud providers account so that it can create an manage resources on your behalf.
+Serverless needs access to your cloud providers account so that it can create and manage resources on your behalf.
 
-Here we'll provide setup instruction for different cloud provider account setups. Just pick the one for your
+Here we'll provide setup instructions for different cloud provider accounts. Just pick the one for your
 provider and follow the steps to get everything in place for Serverless.
 
 ## Amazon Web Services
