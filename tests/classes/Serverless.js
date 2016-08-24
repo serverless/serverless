@@ -6,7 +6,6 @@ const semverRegex = require('semver-regex');
 const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
-const os = require('os');
 
 const YamlParser = require('../../lib/classes/YamlParser');
 const PluginManager = require('../../lib/classes/PluginManager');
@@ -14,6 +13,7 @@ const Utils = require('../../lib/classes/Utils');
 const Service = require('../../lib/classes/Service');
 const CLI = require('../../lib/classes/CLI');
 const Error = require('../../lib/classes/Error').SError;
+const testUtils = require('../../tests/utils');
 
 describe('Serverless', () => {
   let serverless;
@@ -129,7 +129,7 @@ describe('Serverless', () => {
     });
 
     it('should track if tracking is enabled', (done) => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       fse.mkdirsSync(tmpDirPath);
 
       serverless.config.serverlessPath = tmpDirPath;
@@ -138,7 +138,7 @@ describe('Serverless', () => {
     });
 
     it('should not track if tracking is disabled', (done) => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       fse.mkdirsSync(tmpDirPath);
       fs.writeFileSync(path.join(tmpDirPath, 'do-not-track'), 'some-content');
 

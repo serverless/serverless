@@ -2,18 +2,18 @@
 
 const expect = require('chai').expect;
 const path = require('path');
-const os = require('os');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const execSync = require('child_process').execSync;
 const Serverless = require('../lib/Serverless');
 const AWS = require('aws-sdk');
+const testUtils = require('./utils');
 
 const serverless = new Serverless();
 serverless.init();
 const serverlessExec = path.join(serverless.config.serverlessPath, '..', 'bin', 'serverless');
 
-const tmpDir = path.join(os.tmpdir(), (new Date()).getTime().toString());
+const tmpDir = testUtils.getTmpDirPath();
 fse.mkdirSync(tmpDir);
 process.chdir(tmpDir);
 
