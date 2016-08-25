@@ -1,9 +1,14 @@
+---
+title: Invoking Serverless Functions
+description: todo
+layout: Page
+---
+
 # Invoking a function
 
 We've just created and deployed our very first service to our cloud provider.
 
-The service skeleton which Serverless created for us included a function with a corresponding function handler (the
-`handler.js` file).
+The service skeleton which Serverless created for us included a function with a corresponding function handler (the `handler.js` file).
 
 Let's invoke this function to see if the service was deployed successfully.
 

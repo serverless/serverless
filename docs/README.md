@@ -6,7 +6,7 @@ Welcome to the Serverless v1.0 documentation.
 
 Follow these simple steps to install the beta, create and deploy your first service, run your function and remove the service afterwards.
 
-1. `npm install -g serverless@beta`
+1. `npm install -g serverless`
 2. `mkdir my-first-service && cd my-first-service`
 3. `serverless create --template aws-nodejs`
 4. `serverless deploy`
@@ -14,7 +14,7 @@ Follow these simple steps to install the beta, create and deploy your first serv
 6. `serverless remove`
 
 ## Getting Started
-- Links to gettings started sections
+- Links to getting started sections
 
 ## How to contribute to Serverless
 

@@ -11,32 +11,25 @@ The Serverless plugin System is at the core of the Serverless framework.
 The main goals of the plugin system are:
 
 - Separation of CLI configuration and plugin logic
-  - We want any plugin author to be able to easily create new commands within the Serverless framework and extend
-  existing commands. To achieve this we've created a strong separation between CLI and plugins that has clear
-  interfaces between each other.
+  - We want any plugin author to be able to easily create new commands within the Serverless framework and extend existing commands. To achieve this we've created a strong separation between CLI and plugins that has clear interfaces between each other.
 - Separation between logic of different plugins
-  - Different plugins need to have an easy way to run independently and after each other without defining dependencies
-  between each other.
+  - Different plugins need to have an easy way to run independently and after each other without defining dependencies between each other.
 - Greater Extensibility
-  - Plugins need to be able to easily integrate into the lifecycle of a command independent of other Plugins that are
-  running and can extend the functionality of Serverless easily.
+  - Plugins need to be able to easily integrate into the lifecycle of a command independent of other Plugins that are running and can extend the functionality of Serverless easily.
 
 ## Concepts
 
 ### Plugin
 
-A plugin encapsulates commands (and corresponding lifecycles) and hooks in a shareable way. A plugin is not forced
-to provide both, they can only consist of a list of commands and lifecycle events or only of hooks.
+A plugin encapsulates commands (and corresponding lifecycles) and hooks in a shareable way. A plugin is not forced to provide both, they can only consist of a list of commands and lifecycle events or only of hooks.
 
 ### Command
 
 A command represents a CLI command that can be called by a user, e.g. `serverless deploy` would be the `deploy` command.
-A command has no logic, but simply defines the CLI configuration (e.g. command, subcommands, parameters) and the
-lifecycle events for this particular command. Every command defines its own lifecycle events, so different commands
-can have completely different lifecycles. The commands that come with Serverless (e.g. `deploy`, `remove`, ...) are
-implemented in the exact same way as commands built by other users. This means that lifecycle events we define for our
-commands do not have any special meaning in Serverless or for other plugins. Every command is free to have its own
-lifecycle events, none of them are more special than others.
+
+A command has no logic, but simply defines the CLI configuration (e.g. command, subcommands, parameters) and the lifecycle events for this particular command. Every command defines its own lifecycle events, so different commands can have completely different lifecycles.
+
+The commands that come with Serverless (e.g. `deploy`, `remove`, ...) are implemented in the exact same way as commands built by other users. This means that lifecycle events we define for our commands do not have any special meaning in Serverless or for other plugins. Every command is free to have its own lifecycle events, none of them are more special than others.
 
 ```javascript
 'use strict';

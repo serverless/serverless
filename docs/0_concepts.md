@@ -6,13 +6,13 @@ layout: Page
 
 # Concepts
 
-Intro text
+Before we begin, let's run through some of the main concepts behind serverless.
 
-- Link to functions section
-- Link to events section
-- Link to resources section
-- Link to services section
-- Link to plugins section
+- [Serverless Functions](#Serverless Functions)
+- [Serverless Events](#Serverless Events)
+- [Serverless Resources](#Serverless Resources)
+- [Serverless Services](#Serverless Services)
+- [Serverless Plugins](#Serverless Plugins)
 
 # Serverless Functions
 
@@ -30,14 +30,11 @@ todo: add links to provider events
 
 # Serverless Resources
 
-todo
+Resources are the different pieces that comprise your infrastructure
 
+# Serverless Services
 
-# Services
-
-A *Serverless service* is a group of one or multiple functions and any resources they require. By grouping related
-functions together, it's easier to share code and resources between those functions. Services are also designed to
-be completely independent, which helps teams develop more quickly without waiting for others.
+A *Serverless service* is a group of one or multiple functions and any resources they require. By grouping related functions together, it's easier to share code and resources between those functions. Services are also designed to be completely independent, which helps teams develop more quickly without waiting for others.
 
 Each *Serverless service* contains two configuration files:
 
@@ -74,9 +71,7 @@ users
 
 # Serverless Plugins
 
-Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to
-extend the functionality of Serverless. Furthermore we'll look into the way how you can use your plugin knowledge
-to integrate your own provider into the Serverless framework.
+Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to extend the functionality of Serverless. Furthermore we'll look into the way how you can use your plugin knowledge to integrate your own provider into the Serverless framework.
 
 ## Table of contents
 

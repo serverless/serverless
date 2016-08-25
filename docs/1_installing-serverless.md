@@ -1,3 +1,9 @@
+---
+title: Installing Serverless
+description: todo
+layout: Page
+---
+
 # Installation
 
 Let's start by installing Node.js and Serverless.
@@ -12,8 +18,7 @@ Go to the official [Node.js website](https://nodejs.org), download and follow th
 
 **Note:** Serverless runs on Node v4 or higher. So make sure that you pick a recent Node version.
 
-You can verify that Node.js is installed successfully by runnning `node --version` in your terminal. You should see the
-corresponding Node version number printed out.
+You can verify that Node.js is installed successfully by runnning `node --version` in your terminal. You should see the corresponding Node version number printed out.
 
 ## Installing Serverless
 
@@ -33,12 +38,14 @@ Here's a list of all available commands you can use:
 2. `sls`
 3. `slss`
 
-**Note:** If you want to run multiple Serverless versions on your machine you might want to check out
-[this issue](https://github.com/serverless/serverless/issues/1572).
+## Provider Account Setup
+
+In order for serverless to act on your behalf, you will need to connect your providers account. (AWS, Azure, etc.)
+
+[AWS account Setup](./providers/setup.md)
 
 ## Conclusion
 
-We've just installed Node.js and Serverless on our local machine! The next step is to configure our cloud provider
-account so that Serverless can act on our behalf and create resources for us on the cloud providers infrastructure.
+We've just installed Node.js and Serverless on our local machine! The next step is to configure our cloud provider account so that Serverless can act on our behalf and create resources for us on the cloud providers infrastructure.
 
-[Next step > Provider account setup](provider-account-setup.md)
+[Next step > Creating Your First Service](./2_creating-services.md)

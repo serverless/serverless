@@ -1,7 +1,12 @@
+---
+title: Installing Serverless Plugins
+description: todo
+layout: Page
+---
+
 # Adding custom plugins
 
-Serverless is extendable through plugins. Plugins can provide e.g. new CLI commands or hook into existing plugins
-to extend their functionality.
+Serverless is extendable through plugins. Plugins can provide e.g. new CLI commands or hook into existing plugins to extend their functionality.
 
 Serverless provides [core plugins](core-plugins.md) out of the box but what if you want to add a 3rd party plugin?
 
