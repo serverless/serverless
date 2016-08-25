@@ -10,6 +10,6 @@ Move to root level
 
 todo: Add links to all examples folders by provider
 
-- [AWS Examples](docs/providers/aws/examples)
-- [Azure Examples](docs/providers/azure/examples)
-- [Google Cloud Functions Examples](docs/providers/google/examples)
+- [AWS Examples](../docs/providers/aws/examples)
+- [Azure Examples](../docs/providers/azure/examples)
+- [Google Cloud Functions Examples](../docs/providers/google/examples)
