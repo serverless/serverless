@@ -1,0 +1,14 @@
+{
+  "name": "hello-world",
+  "description": "Serverless hello-world example",
+  "private": true,
+  "files": [
+    "main.js"
+  ],
+  "scripts": {
+    "deploy": "serverless deploy"
+  },
+  "devDependencies": {
+    "serverless": "^1.x"
+  }
+}
