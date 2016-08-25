@@ -8,11 +8,11 @@ layout: Page
 
 Before we begin, let's run through some of the main concepts behind serverless.
 
-- [Serverless Functions](#Serverless Functions)
-- [Serverless Events](#Serverless Events)
-- [Serverless Resources](#Serverless Resources)
-- [Serverless Services](#Serverless Services)
-- [Serverless Plugins](#Serverless Plugins)
+- [Serverless Functions](#serverless-functions)
+- [Serverless Events](#serverless-events)
+- [Serverless Resources](#serverless-resources)
+- [Serverless Services](#serverless-services)
+- [Serverless Plugins](#serverless-plugins)
 
 # Serverless Functions
 
@@ -75,5 +75,5 @@ Here you can read how to develop your own Serverless plugins. We'll get into det
 
 ## Table of contents
 
-- [Building plugins](building-plugins.md)
-- [Building provider integrations](building-provider-integrations.md)
+- [Building plugins](./7_creating-plugins.md)
+- [Building provider integrations](./8_creating-provider-plugins.md)
