@@ -6,4 +6,6 @@ layout: Page
 
 # Index with description of all examples
 
-Add index of all examples here
+<!-- AUTO-GENERATE-INDEX:START - Do not remove or modify this section -->
+
+<!-- AUTO-GENERATE-INDEX:END -->
