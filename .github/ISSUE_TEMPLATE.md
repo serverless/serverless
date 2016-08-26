@@ -1,35 +1,32 @@
-* Check if an Issue already exists for this
-* Add the relevant label(s)
-* Be kind :)
+<!--
+1. Please check if an issue already exists so there are no duplicates
+2. Check out and follow our Guidelines: https://github.com/serverless/serverless/blob/master/CONTRIBUTING.md
+2. Fill out the whole template so we have a good overview on the issue
+3. Please follow the template, otherwise we'll have to ask you to update it
+4. Remove any template data that isn't necessary for your issue
+-->
 
-Bug Report Template -----------------------------------------------
+# This is a (Bug Report / Feature Proposal)
 
-##### Serverless Framework Version: 
+## Description
 
-##### Operating System: 
+For bug reports:
+* What went wrong?
+* What did you expect should have happened?
+* What was the config you used?
+* What stacktrace or error message from your provider did you see?
 
-##### Expected Behavior:
+For feature proposals:
+* What is the use case that should be solved
+* If there is additional config how would it look
+* Which command should this be running for
 
-##### Actual Behavior:
+Similar or dependent issues:
+* #12345
 
-##### Stack-Trace (Optional):
+## Additional Data
 
-Feature Request Template ------------------------------------------
-
-##### Feature Request:
-
-##### Benefits:
-
-* Benefit one...
-
-##### Drawbacks:
-
-* Drawback one...
-
-##### Additional Details:
-
-Discussion template  ----------------------------------------------
-
-##### TLDR:
-
-##### Discussion:
+* ***Serverless Framework Version you're using:***
+* ***Operating System:***
+* ***Stack Trace:***
+* ***Provider Error messages:***
