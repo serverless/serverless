@@ -1,12 +1,34 @@
-Pull Request Template ------------------------
-* Check out our Pull Request Guidelines here: https://github.com/serverless/serverless/blob/v1.0/CONTRIBUTING.md
+<!--
+1. Please check out and follow our Contributing Guidelines: https://github.com/serverless/serverless/blob/master/CONTRIBUTING.md
+2. Fill out the whole template so we have a good overview on the issue
+3. Please follow the template, otherwise we'll have to ask you to update it
+-->
 
-##### Status:
+***Implementing Issue:*** #12345
 
-Ready/In Development/Hold
+## What did you implement:
 
-##### Description:
+<!--
+Briefly describe the feature
+-->
 
-##### Todos:
+## How did you implement it:
+
+<!--
+If this is a nontrivial change please briefly describe your implementation.
+-->
+
+## How can we verify it:
+
+<!--
+Add any applicable config, commands, screenshots or other resources
+to make it easy for us to verify this works, e.g. an example serverless.yml
+or AWS CLI commands to trigger something.
+-->
+
+
+## Todos:
 
 - [ ] Write tests
+- [ ] Fix linting errors
+- [ ] Provide verification config/commands/resources
