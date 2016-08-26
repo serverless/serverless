@@ -12,5 +12,6 @@
         "Ref": "ServerlessDeploymentBucket"
       }
     }
-  }
+  },
+  "Mappings": {}
 }
