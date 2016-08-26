@@ -21,7 +21,7 @@ The main goals of the plugin system are:
 
 ### Plugin
 
-A plugin encapsulates commands (and corresponding lifecycles) and hooks in a shareable way. A plugin is not forced to provide both, they can only consist of a list of commands and lifecycle events or only of hooks.
+A plugin encapsulates commands (and corresponding lifecycle events) and hooks in a shareable way. A plugin is not forced to provide both, they can only consist of a list of commands and lifecycle events or only of hooks.
 
 ### Command
 
@@ -29,7 +29,7 @@ A command represents a CLI command that can be called by a user, e.g. `serverles
 
 A command has no logic, but simply defines the CLI configuration (e.g. command, subcommands, parameters) and the lifecycle events for this particular command. Every command defines its own lifecycle events, so different commands can have completely different lifecycles.
 
-The commands that come with Serverless (e.g. `deploy`, `remove`, ...) are implemented in the exact same way as commands built by other users. This means that lifecycle events we define for our commands do not have any special meaning in Serverless or for other plugins. Every command is free to have its own lifecycle events, none of them are more special than others.
+The commands that come with Serverless (e.g. `deploy`, `remove`, ...[see all core plugins](../lib/plugins)) are implemented in the exact same way as commands built by other users. This means that lifecycle events we define for our commands do not have any special meaning in Serverless or for other plugins. Every command is free to have its own lifecycle events, none of them are more special than others.
 
 ```javascript
 'use strict';
@@ -55,28 +55,30 @@ So in a hook the following syntax needs to be used.
 
 ***CommandName:LifecycleEventName***
 
-Which would be ***deploy:resources*** in a hook definition (which we will show in more detail below).
+Which would be **deploy:resources**, and **deploy:functions** in a hook definition (which we will show in more detail below).
 
 In addition to the lifecycle events defined here we will create 2 additional events for each:
 
-1. ***before:CommandName:LifecycleEventName***
-2. ***after:CommandName:LifecycleEventName***
+1. `before:CommandName:LifecycleEventName`
+2. `after:CommandName:LifecycleEventName`
 
 Following the above example we’ll have these lifecycle events for our `myPlugin` plugin:
 
-- ***before:deploy:resources***
-- ***deploy:resources***
-- ***after:deploy:resources***
-- ***before:deploy:functions***
-- ***deploy:functions***
-- ***after:deploy:functions***
+For the **deploy:resources** lifecycleEvent:
 
-These names will be used as hooks to include plugin logic. This allows to set up lifecycle events with generic names,
-but still make sure they are only executed for specific commands.
+- `before:deploy:resources`
+- `deploy:resources`
+- `after:deploy:resources`
 
-You can also nest commands, e.g. if you want to provide a command `serverless deploy single` you can simply nest
-commands as defined in the following example. Those nested commands have their own lifecycle events and do not inherit
-them from their parents.
+For the **deploy:functions** lifecycleEvent:
+
+- `before:deploy:functions`
+- `deploy:functions`
+- `after:deploy:functions`
+
+These names will be used as hooks to include plugin logic. This allows to set up lifecycle events with generic names, but still make sure they are only executed for specific commands.
+
+You can also nest commands, e.g. if you want to provide a command `serverless deploy single` you can simply nest commands as defined in the following example. Those nested commands have their own lifecycle events and do not inherit them from their parents.
 
 ```javascript
 'use strict';
@@ -107,9 +109,7 @@ module.exports = MyPlugin;
 
 ### Hook
 
-Hooks allow to connect specific lifecycle events to functions in a plugin. In the constructor of your class you define
-a `hooks` variable that the Plugin System will use once a specific command is running. Any hook can bind to any
-lifecycle event from any command, not just from commands that the same plugin provides.
+Hooks allow to connect specific lifecycle events to functions in a plugin. In the constructor of your class you define a `hooks` variable that the Plugin System will use once a specific command is running. Any hook can bind to any lifecycle event from any command, not just from commands that the same plugin provides.
 
 This allows to extend any command with additional functionality.
 
@@ -152,8 +152,7 @@ module.exports = Deploy;
 
 ### Serverless instance
 
-The `serverless` instance which enables access to the whole Serverless setup during runtime is passed in as the first
-parameter to the plugin constructor.
+The `serverless` instance which enables access to the whole Serverless setup during runtime is passed in as the first parameter to the plugin constructor.
 
 ```javascript
 'use strict';
@@ -271,8 +270,7 @@ module.exports = Deploy;
 #### Define shortcuts for options
 
 Options can also provide shortcuts. Shortcuts make it more convenient to enter long commands. Serverless will
-translate shortcuts into options under the hood which means that the option the shortcut belongs to will be replaced
-with the value of the shortcut (if the shortcut is given).
+translate shortcuts into options under the hood which means that the option the shortcut belongs to will be replaced with the value of the shortcut (if the shortcut is given).
 
 You can define shortcuts by setting the `shortcut` property in the options definition.
 
@@ -317,8 +315,7 @@ module.exports = Deploy;
 
 Plugins can be provider specific which means that they are bound to a provider.
 
-**Note:** Binding a plugin to a provider is optional. Serverless will always consider your plugin if you don't specify
-a `provider`.
+**Note:** Binding a plugin to a provider is optional. Serverless will always consider your plugin if you don't specify a `provider`.
 
 The provider definition should be added inside the plugins constructor:
 
@@ -360,8 +357,7 @@ class ProviderDeploy {
 module.exports = ProviderDeploy;
 ```
 
-The plugins functionality will now only be executed when the Serverless services provider matches the provider name which
-is defined inside the plugins constructor.
+The plugins functionality will now only be executed when the Serverless services provider matches the provider name which is defined inside the plugins constructor.
 
 ## Plugin registration process
 
@@ -374,12 +370,10 @@ plugins:
   - custom-plugin-2
 ```
 
-We do not auto-detect plugins from installed dependencies so users do not run into any surprises and we cut down on the
-startup time of the tool. Through JSON-REF users can share configuration for used plugins between
+We do not auto-detect plugins from installed dependencies so users do not run into any surprises and we cut down on the startup time of the tool. Through JSON-REF users can share configuration for used plugins between
 [`serverless.yml`](../understanding-serverless/serverless-yml.md) files in one repository.
 
-After the [`serverless.yml`](../understanding-serverless/serverless-yml.md) configuration file is loaded the plugin
-system will load all the commands and plugins and initialize the plugin system.
+After the [`serverless.yml`](../understanding-serverless/serverless-yml.md) configuration file is loaded the plugin system will load all the commands and plugins and initialize the plugin system.
 
 ## Plugin options
 
@@ -407,8 +401,4 @@ event.
 
 ## Command naming
 
-Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an
-integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print
-an error and exit. Commands need to be unique in the current service context they are executed. So if you want to have
-your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing
-plugins.
+Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. Commands need to be unique in the current service context they are executed. So if you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.

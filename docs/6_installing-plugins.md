@@ -8,31 +8,29 @@ layout: Page
 
 Serverless is extendable through plugins. Plugins can provide new CLI commands or hook into existing plugins to extend their functionality.
 
-Serverless uses the plugin infrastructure to run the [core plugins](core-plugins.md) as well as third party plugins.
-
-Using the same system, you can extend the framework to suit your custom needs.
+Serverless uses the plugin infrastructure to run the [core plugins](../lib/plugins). The plugin infrastructure is extendable by third party developers too. Using the same system, you can extend the framework to suit your custom needs.
 
 Let's take a look into this now.
 
 ## Installing a plugin
 
-Custom plugins are added on a per service basis.
-
-At first we need to install the corresponding plugin in the services root directory with the help of npm:
+First we need to install the corresponding plugin in the services root directory with the help of npm:
 
 `npm install --save custom-serverless-plugin`.
 
-## Adding the plugin to the service
+Note: Custom plugins are added on a per service basis and are not applied globally
 
-Next up we need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the plugin to the `plugins` section in the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file:
+## Adding the plugin to a service
+
+We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the plugin to the `plugins` section in the [`serverless.yml`](./serverless-yml.md) file.
 
 ```yml
+# serviceXYZ serverless.yml file
 plugins:
   - custom-serverless-plugin
 ```
 
-Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the
-[`serverless.yml`](../understanding-serverless/serverless-yml.md) file is the place where you can add necessary
+Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the [`serverless.yml`](./serverless-yml.md) file is the place where you can add necessary
 configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
 
 ```yml
@@ -45,8 +43,7 @@ custom:
 
 ## Load order
 
-Keep in mind that the order in which you define the plugins matter! At first Serverless loads all the [core
-plugins](core-plugins.md) and then the custom plugins in the order you've defined them.
+Keep in mind that the order you define your plugins matters. When Serverless loads all the [core plugins](../lib/plugins) and then the custom plugins in the order you've defined them.
 
 ```yml
 plugins:

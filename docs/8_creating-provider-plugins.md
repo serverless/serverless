@@ -11,13 +11,11 @@ Take a look at the ["building plugins"](./building-plugins.md) documentation to 
 
 ## Provider specific plugins
 
-You can add the providers name inside the constructor of your plugin. This makes it possible to only execute your
-plugins logic when the Serverless service uses the provider you've specified in your plugin.
+You can add the providers name inside the constructor of your plugin. This makes it possible to only execute your plugins logic when the Serverless service uses the provider you've specified in your plugin.
 
 ## Deployment
 
-Infrastructure provider plugins should bind to specific lifecycle events of the `deploy` command to compile the function
-and their events to provider specific resources.
+Infrastructure provider plugins should bind to specific lifecycle events of the `deploy` command to compile the function and their events to provider specific resources.
 
 ### Deployment lifecycle
 
@@ -82,10 +80,10 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 #### The steps in detail
 
-1. The [`serverless.yml`](../understanding-serverless/serverless-yml.md) and
+1. The [`serverless.yml`](./serverless-yml.md) and
 [`serverless.env.yml`](../understanding-serverless/serverless-env-yml.md) files are loaded into memory
 2. A default AWS CloudFormation template is loaded and deployed to AWS (A S3 bucket for the service gets created)(`deploy:setupProviderConfiguration`)
-3. The functions of the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file are compiled to lambda resources and stored into memory (`deploy:compileFunctions`)
+3. The functions of the [`serverless.yml`](./serverless-yml.md) file are compiled to lambda resources and stored into memory (`deploy:compileFunctions`)
 4. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
 5. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
 6. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentArtifacts` and `deploy:deploy`)
