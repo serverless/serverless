@@ -1,5 +1,5 @@
 {
-  "IamPolicyLambda": {
+  "IamPolicyLambdaExecution": {
     "Type": "AWS::IAM::Policy",
     "Properties": {
       "PolicyName": "",
@@ -19,7 +19,7 @@
       },
       "Roles": [
         {
-          "Ref": "IamRoleLambda"
+          "Ref": "IamRoleLambdaExecution"
         }
       ]
     }
