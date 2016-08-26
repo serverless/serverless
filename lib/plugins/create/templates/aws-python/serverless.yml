@@ -16,6 +16,16 @@ service: aws-python # NOTE: update this with your service name
 provider:
   name: aws
   runtime: python2.7
+# you can add statements to the Lambda function's IAM Role here
+#  iamRoleStatements:
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:PutObject"
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          - - "arn:aws:s3:::"
+#            - "Ref" : "ServerlessDeploymentBucket"
 
 # you can overwrite defaults here
 #defaults:
