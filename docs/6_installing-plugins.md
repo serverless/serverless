@@ -6,15 +6,17 @@ layout: Page
 
 # Adding custom plugins
 
-Serverless is extendable through plugins. Plugins can provide e.g. new CLI commands or hook into existing plugins to extend their functionality.
+Serverless is extendable through plugins. Plugins can provide new CLI commands or hook into existing plugins to extend their functionality.
 
-Serverless provides [core plugins](core-plugins.md) out of the box but what if you want to add a 3rd party plugin?
+Serverless uses the plugin infrastructure to run the [core plugins](core-plugins.md) as well as third party plugins.
+
+Using the same system, you can extend the framework to suit your custom needs.
 
 Let's take a look into this now.
 
 ## Installing a plugin
 
-Custom plugins are added on a per service base.
+Custom plugins are added on a per service basis.
 
 At first we need to install the corresponding plugin in the services root directory with the help of npm:
 
@@ -22,8 +24,7 @@ At first we need to install the corresponding plugin in the services root direct
 
 ## Adding the plugin to the service
 
-Next up we need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name
-of the plugin to the `plugins` section in the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file:
+Next up we need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the plugin to the `plugins` section in the [`serverless.yml`](../understanding-serverless/serverless-yml.md) file:
 
 ```yml
 plugins:
