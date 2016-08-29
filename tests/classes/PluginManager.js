@@ -544,6 +544,50 @@ describe('PluginManager', () => {
 
       expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
     });
+
+    it('should throw an error if a customValidation is not set in a plain commands object', () => {
+      pluginManager.setCliOptions({ bar: 'dev' });
+
+      pluginManager.commands = {
+        foo: {
+          options: {
+            bar: {
+              customValidation: {
+                regularExpression: /^[0-9]+$/,
+                errorMessage: 'Custom Error Message',
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+    });
+
+    it('should throw an error if a customValidation is not set in a nested commands object', () => {
+      pluginManager.setCliOptions({ baz: 100 });
+
+      pluginManager.commands = {
+        foo: {
+          commands: {
+            bar: {
+              options: {
+                baz: {
+                  customValidation: {
+                    regularExpression: /^[a-zA-z¥s]+$/,
+                    errorMessage: 'Custom Error Message',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo', 'bar'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+    });
   });
 
   describe('#run()', () => {
