@@ -43,11 +43,11 @@ See the examples folder for all AWS serverless examples
 
 To add examples, fork this repo and submit a pull request
 
-# Setup and configuration
+# [Setup and configuration](./setup.md)
 
-Todo configuration for AWS docs here
+Please follow these [setup instructions](./setup.md) to start using AWS Lambda and serverless together
 
 # Plugins for AWS
 
-- list coming soon
+- list coming soon. check out the [community plugins repo](https://github.com/serverless/community-plugins) in the meantime!
 
