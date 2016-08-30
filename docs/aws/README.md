@@ -6,13 +6,12 @@ layout: Page
 
 # Serverless AWS Documentation
 
-This is the main AWS index Page
-
 - [About AWS lambda](#about-aws-lambda)
 - [Setup for AWS Lambda](./setup.md)
-- [AWS Lambda Examples](./examples)
 - [Guide to using Serverless with AWS](./guide)
-- [Available AWS Events](./events.md)
+- [AWS Lambda Examples](./examples)
+- [AWS Events](./events.md)
+- [Plugins for AWS](#plugins-for-aws)
 
 # About AWS Lambda
 
