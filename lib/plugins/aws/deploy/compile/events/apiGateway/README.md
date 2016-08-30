@@ -89,8 +89,8 @@ functions:
           path: whatever
           request:
             template:
-              text/xhtml: ./template-1.vm
-              application/json: ./template-2.vm
+              text/xhtml: { "stage" : "$context.stage" }
+              application/json: { "httpMethod" : "$context.httpMethod" }
 ```
 
 ### Responses
