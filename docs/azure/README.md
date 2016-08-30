@@ -4,17 +4,6 @@ description: todo
 layout: Page
 -->
 
-This is the main Azure index Page
+Coming soon.
 
-
-# Examples
-
-See the examples folder for all Azure serverless examples
-
-# Setup and configuration
-
-Todo configuration for Azure docs here
-
-# Azure Events
-
-Todo: List all Azure Events here
+Want to be notified when Azure support launches? Subscribe to our newletter(TODOLINK)

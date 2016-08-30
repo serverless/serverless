@@ -14,17 +14,13 @@ Welcome to the Serverless v1.0 documentation.
 
 ## Quick start
 
-Follow these simple steps to install the beta, create and deploy your first service, run your function and remove the service afterwards.
-
-1. `npm install -g serverless`
-2. `mkdir my-first-service && cd my-first-service`
-3. `serverless create --template aws-nodejs`
-4. `serverless deploy`
-5. `serverless invoke --function hello`
-6. `serverless remove`
+- [AWS Quick Start](./aws/README.md#quick-start)
 
 ## Provider Specific Setup
 - [AWS Lambda Docs](./aws/)
+- [Azure Functions docs](./azure/)
+- [OpenWhisk docs](./openwhisk/)
+- [Google Cloud Function docs](./google/)
 
 ## Concepts
 

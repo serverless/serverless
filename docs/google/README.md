@@ -4,17 +4,7 @@ description: todo
 layout: Page
 -->
 
-This is the main Google Functions index Page
 
+Coming soon.
 
-# Examples
-
-See the examples folder for all Google Functions serverless examples
-
-# Setup and configuration
-
-Todo configuration for Google Functions docs here
-
-# Google Functions Events
-
-Todo: List all aws Events here
+Want to be notified when Google cloud function support launches? Subscribe to our newletter(TODOLINK)
