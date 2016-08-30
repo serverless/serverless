@@ -33,12 +33,13 @@ Learn more about the programming model of lambda functions http://docs.aws.amazo
 - [`sls logs`](./cli/logs.md)
 - [`sls remove`](./cli/remove.md)
 
-# Examples
+# [Examples](./examples)
 
 See the examples folder for all AWS serverless examples
 
-- hello-world
-- web-api
+- [hello-world](./examples/hello-world)
+- [using-external-libraries](./examples/using-external-libraries)
+- [web-api](./examples/web-api)
 
 To add examples, fork this repo and submit a pull request
 
