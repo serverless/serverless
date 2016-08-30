@@ -13,9 +13,8 @@ Follow these simple steps to install the beta, create and deploy your first serv
 5. `serverless invoke --function hello`
 6. `serverless remove`
 
-## Getting Started
+## Provider Specific Setup
 - Link to AWS docs
-
 
 ## Concepts
 
@@ -64,8 +63,6 @@ Here you can read how to develop your own Serverless plugins. We'll get into det
 
 - [Building plugins](./7_creating-plugins.md)
 - [Building provider integrations](./8_creating-provider-plugins.md)
-
-
 
 ## How to contribute to Serverless
 
