@@ -24,7 +24,7 @@ Follow these simple steps to install the beta, create and deploy your first serv
 6. `serverless remove`
 
 ## Provider Specific Setup
-- Link to AWS docs
+- [AWS Lambda Docs](/aws/)
 
 ## Concepts
 
