@@ -80,3 +80,29 @@ file) in this directory. Furthermore it updates the stack with all the Resources
 The stack status is checked every 5 seconds with the help of the CloudFormation API. It will return a success message if
 the stack status is `CREATE_COMPLETE` or `UPDATE_COMPLETE` (depends if you deploy your service for the first time or
 redeploy it after making some changes).
+
+# Deploy Lifecycle Events
+
+Description
+
+See provider specific implemntations
+
+## Provided lifecycle events
+
+for more info on lifecyle events see this doc(link doc)
+
+- `deploy:cleanup`
+- `deploy:initialize`
+- `deploy:setupProviderConfiguration`
+- `deploy:createDeploymentArtifacts`
+- `deploy:compileFunctions`
+- `deploy:compileEvents`
+- `deploy:deploy`
+- `deploy:function:deploy`
+
+## Examples Provider Plugin
+
+```js
+example of plugin hooking into these lifecyle events
+
+```
