@@ -16,13 +16,8 @@ Follow these simple steps to install the beta, create and deploy your first serv
 ## Getting Started
 - Links to getting started sections
 
-<!--
-title: Serverless Concepts
-description: todo
-layout: Page
--->
 
-# Concepts
+## Concepts
 
 Before we begin, let's run through some of the main concepts behind serverless.
 
@@ -32,11 +27,11 @@ Before we begin, let's run through some of the main concepts behind serverless.
 - [Serverless Services](#serverless-services)
 - [Serverless Plugins](#serverless-plugins)
 
-# Serverless Functions
+### Functions
 
 Functions are the unit of deployment in a serverless application
 
-# Serverless Events
+### Events
 
 Serverless is used to build event driven architecture.
 
@@ -46,11 +41,11 @@ Events could be HTTP requests, events fired from a cloud storage (like a S3 buck
 
 todo: add links to provider events
 
-# Serverless Resources
+### Resources
 
 Resources are the different pieces that comprise your infrastructure
 
-# Serverless Services
+### Services
 
 A *Serverless service* is a group of one or multiple functions and any resources they require. By grouping related functions together, it's easier to share code and resources between those functions. Services are also designed to be completely independent, which helps teams develop more quickly without waiting for others.
 
