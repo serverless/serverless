@@ -3,7 +3,7 @@
 Welcome to the Serverless v1.0 documentation.
 
 - [Quick Start](#quick-start)
-- [Core Concepts](#core-concepts)
+- [Core Concepts](#concepts)
 - [Plugins](#plugins)
 
 ## Quick start
