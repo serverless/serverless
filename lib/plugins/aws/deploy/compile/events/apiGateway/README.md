@@ -53,6 +53,86 @@ functions:
           method: post
 ```
 
+### Request templates
+
+#### Default request templates
+
+Serverless ships with the following default request templates you can use out of the box:
+
+1. `application/json`
+2. `application/x-www-form-urlencoded`
+
+Both templates give you access to the following properties you can access with the help of the `event` object:
+
+- body
+- method
+- principalId
+- stage
+- headers
+- query
+- path
+- identity
+- stageVariables
+
+#### Using custom request templates
+
+However you can define and use your own request templates as follows (you can even overwrite the default request templates
+by defining a new request template for an existing content type):
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: get
+          path: whatever
+          request:
+            template:
+              text/xhtml: ./template-1.vm
+              application/json: ./template-2.vm
+```
+
+### Responses
+
+Serverless enables you a way to set custom headers and a response template for your `http` event.
+
+#### Using custom response headers
+
+Here's an example which shows you how you can setup a custom response header:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: get
+          path: whatever
+          response:
+            headers:
+              Content-Type: "'text/html'"
+```
+
+#### Using a custom response template
+
+Sometimes you'll want to define a custom response template API Gateway should use to transform your lambdas output.
+Here's an example which will transform the return value of your lambda so that the browser renders it as HTML:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: get
+          path: whatever
+          response:
+            headers:
+              Content-Type: "'text/html'"
+            template: $input.path('$')
+```
+
 ### Http setup with custom authorizer
 You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function
 in the same service, as shown in the following example
