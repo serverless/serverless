@@ -160,7 +160,7 @@ describe('Service', () => {
       const valueToPopulate = serverless.variables
         .overwrite('opt:stage,env:stage,self:provider.stage');
       expect(valueToPopulate).to.equal(0);
-      expect(getValueFromSourceStub.callCount).to.equal(3);
+      expect(getValueFromSourceStub.callCount).to.equal(1);
       serverless.variables.getValueFromSource.restore();
     });
 
@@ -176,7 +176,23 @@ describe('Service', () => {
       const valueToPopulate = serverless.variables
         .overwrite('opt:stage,env:stage,self:provider.stage');
       expect(valueToPopulate).to.equal(false);
-      expect(getValueFromSourceStub.callCount).to.equal(3);
+      expect(getValueFromSourceStub.callCount).to.equal(1);
+      serverless.variables.getValueFromSource.restore();
+    });
+
+    it('should skip getting values once a value has been found', () => {
+      const serverless = new Serverless();
+      const getValueFromSourceStub = sinon
+        .stub(serverless.variables, 'getValueFromSource');
+
+      getValueFromSourceStub.onCall(0).returns(undefined);
+      getValueFromSourceStub.onCall(1).returns('variableValue');
+      getValueFromSourceStub.onCall(2).returns('variableValue2');
+
+      const valueToPopulate = serverless.variables
+        .overwrite('opt:stage,env:stage,self:provider.stage');
+      expect(valueToPopulate).to.equal('variableValue');
+      expect(getValueFromSourceStub.callCount).to.equal(2);
       serverless.variables.getValueFromSource.restore();
     });
   });
