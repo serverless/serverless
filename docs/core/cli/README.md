@@ -1,0 +1,1 @@
+Core CLI commands and all lifecyle events
