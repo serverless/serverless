@@ -1,8 +1,8 @@
----
+<!--
 title: Serverless Google Cloud Functions Documentation
 description: todo
 layout: Page
----
+-->
 
 This is the main Google Functions index Page
 

@@ -1,8 +1,8 @@
----
+<!--
 title: Web API AWS Lambda Node Example
 description: Create a nodeJS Lambda function on amazon web services
 layout: Page
----
+-->
 
 # Web API with AWS Lambda in Node.js
 
