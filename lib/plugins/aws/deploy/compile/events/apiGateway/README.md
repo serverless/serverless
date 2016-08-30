@@ -85,7 +85,7 @@ functions:
           authorizer:
             name: authorizerFunc
             resultTtlInSeconds: 0
-            identitySource: method.request.header.Auth
+            identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
   authorizerFunc:
     handler: handlers.authorizerFunc
@@ -122,7 +122,7 @@ functions:
           authorizer:
             arn: xxx:xxx:Lambda-Name
             resultTtlInSeconds: 0
-            identitySource: method.request.header.Auth
+            identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
 ```
 
