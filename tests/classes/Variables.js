@@ -1,13 +1,13 @@
 'use strict';
 
 const path = require('path');
-const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
 const Variables = require('../../lib/classes/Variables');
 const Utils = require('../../lib/classes/Utils');
 const Serverless = require('../../lib/Serverless');
 const sinon = require('sinon');
+const testUtils = require('../utils');
 
 describe('Service', () => {
   describe('#constructor()', () => {
@@ -268,13 +268,25 @@ describe('Service', () => {
       const valueToPopulate = serverless.variables.getValueFromSelf('self:provider');
       expect(valueToPopulate).to.be.equal('testProvider');
     });
+
+    it('should not throw error if referencing invalid properties', () => {
+      const serverless = new Serverless();
+      serverless.variables.service = {
+        service: 'testService',
+        custom: {
+          prob: 'prob',
+        },
+      };
+      const valueToPopulate = serverless.variables.getValueFromSelf('self:custom.whatever.deeper');
+      expect(valueToPopulate).to.be.equal(undefined);
+    });
   });
 
   describe('#getValueFromFile()', () => {
     it('should populate an entire variable file', () => {
       const serverless = new Serverless();
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       const configYml = {
         test: 1,
         test2: 'test2',
@@ -293,10 +305,24 @@ describe('Service', () => {
       expect(valueToPopulate).to.deep.equal(configYml);
     });
 
+    it('should populate non json/yml files', () => {
+      const serverless = new Serverless();
+      const SUtils = new Utils();
+      const tmpDirPath = testUtils.getTmpDirPath();
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'someFile'),
+        'hello world');
+
+      serverless.config.update({ servicePath: tmpDirPath });
+
+      const valueToPopulate = serverless.variables.getValueFromFile('file(./someFile)');
+      expect(valueToPopulate).to.equal('hello world');
+    });
+
     it('should populate from another file when variable is of any type', () => {
       const serverless = new Serverless();
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       const configYml = {
         test: 1,
         test2: 'test2',
@@ -316,10 +342,33 @@ describe('Service', () => {
       expect(valueToPopulate).to.equal(2);
     });
 
+    it('should not throw error if referencing invalid properties', () => {
+      const serverless = new Serverless();
+      const SUtils = new Utils();
+      const tmpDirPath = testUtils.getTmpDirPath();
+      const configYml = {
+        test: 1,
+        test2: 'test2',
+        testObj: {
+          sub: 2,
+          prob: 'prob',
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'),
+        YAML.dump(configYml));
+
+      serverless.config.update({ servicePath: tmpDirPath });
+
+      const valueToPopulate = serverless.variables
+        .getValueFromFile('file(./config.yml):testObj.whatever.deeper');
+      expect(valueToPopulate).to.equal(undefined);
+    });
+
     it('should throw error if not using ":" syntax', () => {
       const serverless = new Serverless();
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       const configYml = {
         test: 1,
         test2: 'test2',

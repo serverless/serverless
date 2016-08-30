@@ -4,7 +4,6 @@ const expect = require('chai').expect;
 const Serverless = require('../../lib/Serverless');
 const semverRegex = require('semver-regex');
 const fs = require('fs');
-const os = require('os');
 const fse = require('fs-extra');
 const path = require('path');
 const YAML = require('js-yaml');
@@ -121,7 +120,7 @@ describe('Serverless', () => {
 
     it('should resolve after loading the service', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       const serverlessYml = {
         service: 'new-service',
         provider: 'aws',
@@ -167,12 +166,12 @@ describe('Serverless', () => {
         stage: 'dev',
       };
 
-      serverless.init().then(() => {
-        expect(serverless.service.custom.variableRefs.testA)
+      serverlessInstance.init().then(loadedService => {
+        expect(loadedService.custom.variableRefs.testA)
           .to.deep.equal({ one: 1, two: 'two' });
-        expect(serverless.service.custom.variableRefs.testB).to.equal('dev');
-        expect(serverless.service.custom.variableRefs.testC).to.equal('number is two');
-        expect(serverless.service.custom.variableRefs.testD).to.equal(true);
+        expect(loadedService.custom.variableRefs.testB).to.equal('dev');
+        expect(loadedService.custom.variableRefs.testC).to.equal('number is two');
+        expect(loadedService.custom.variableRefs.testD).to.equal(true);
       });
     });
   });
