@@ -11,19 +11,20 @@ This is the main AWS index Page
 - [About AWS lambda](#about-aws-lambda)
 - [Setup for AWS Lambda](./setup.md)
 - [AWS Lambda Examples](./examples)
+- [Guide to using Serverless with AWS](./guide)
 - [Available AWS Events](./events.md)
 
-# About AWS Lamdba
+# About AWS Lambda
 
 Learn more about the programming model of lambda functions http://docs.aws.amazon.com/lambda/latest/dg/programming-model-v2.html
 
-# Guide to using Serverless with AWS
+# [Guide to using Serverless with AWS](./guide)
 
-- Installing Serverless(link)
-- Creating Services(link)
-- Deploying Services(link)
-- Invoking Services(link)
-- Removing Services(link)
+- [Installing Serverless](./guide/01-installing-serverless.md)
+- [Creating Services](./guide/creating-services.md)
+- [Deploying Services](./guide/deploying-services.md)
+- [Invoking Services](./guide/invoking-functions.md)
+- [Removing Services](./guide/removing-services.md)
 
 # [Available CLI commands for AWS](./cli)
 
