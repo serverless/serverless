@@ -1,0 +1,15 @@
+# web-api NodeJS example for AWS Lambda
+service: web-api
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+
+functions:
+  getHello:
+    handler: handler.getHelloWorld
+    events:
+      - http:
+          path: hello
+          method: get
+
