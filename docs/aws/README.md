@@ -7,7 +7,7 @@ layout: Page
 # Serverless AWS Documentation
 
 - [About AWS lambda](#about-aws-lambda)
-- [Setup for AWS Lambda](./setup.md)
+- [Quick Start](#quick-start)
 - [Guide to using Serverless with AWS](./guide)
 - [AWS Lambda Examples](./examples)
 - [AWS Events](./events.md)
@@ -16,6 +16,21 @@ layout: Page
 # About AWS Lambda
 
 Learn more about the programming model of lambda functions http://docs.aws.amazon.com/lambda/latest/dg/programming-model-v2.html
+
+## <a name="quick-start"></a>Quick Start
+
+[Watch the video guide here](https://youtu.be/weOsx5rLWX0) or follow the steps below to create and deploy your first serverless microservice in minutes.
+
+| **Step** | **Command** |**Description**|
+|---|-------|------|
+|  1.  | `npm install -g serverless@beta` | Install Serverless CLI  |
+|  2.  | `mkdir my-first-service && cd my-first-service` | Create the project directory |
+|  3.  | [Create a default AWS profile, if you don't have one set locally](/docs/guide/provider-account-setup.md#amazon-web-services) | Connect Serverless with your provider |
+|  4.  | `serverless create --template aws-nodejs` | Create an AWS Lamdba function in Node.js |
+|  5.  | `serverless deploy` | Deploy to live AWS account  |
+|  6.  | `serverless invoke --function hello` | run the live API endpoint  |
+
+Run `serverless remove` to clean up this function from your account.
 
 # [Guide to using Serverless with AWS](./guide)
 
