@@ -335,6 +335,20 @@ describe('Service', () => {
       expect(valueToPopulate).to.equal('hello world');
     });
 
+    it('should trim trailing whitespace and new line character', () => {
+      const serverless = new Serverless();
+      const SUtils = new Utils();
+      const tmpDirPath = testUtils.getTmpDirPath();
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'someFile'),
+        'hello world \n');
+
+      serverless.config.update({ servicePath: tmpDirPath });
+
+      const valueToPopulate = serverless.variables.getValueFromFile('file(./someFile)');
+      expect(valueToPopulate).to.equal('hello world');
+    });
+
     it('should populate from another file when variable is of any type', () => {
       const serverless = new Serverless();
       const SUtils = new Utils();
