@@ -1,3 +1,9 @@
+<!--
+title: Serverless Remove CLI Command for AWS
+description: Remove Command for AWS with the Serverless CLI
+layout: Page
+-->
+
 # Remove
 
 This plugin removes the service from AWS.

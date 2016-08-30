@@ -1,3 +1,9 @@
+<!--
+title: Serverless Info CLI Command for AWS
+description: Info Command for AWS with the Serverless CLI
+layout: Page
+-->
+
 # Info
 
 This plugin displays information about the service.

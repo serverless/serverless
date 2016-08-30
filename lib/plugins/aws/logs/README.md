@@ -1,3 +1,9 @@
+<!--
+title: Serverless Logs CLI Command for AWS
+description: Logs Command for AWS with the Serverless CLI
+layout: Page
+-->
+
 # Logs
 
 This plugin returns the CloudWatch logs of a lambda function. You can simply run `serverless logs -f hello` to test it out.

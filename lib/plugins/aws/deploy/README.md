@@ -1,3 +1,9 @@
+<!--
+title: AWS Deploy
+description: Deploy Command for AWS with the Serverless CLI
+layout: Page
+-->
+
 # Deploy
 
 This plugin (re)deploys the service to AWS.
