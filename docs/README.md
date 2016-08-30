@@ -19,13 +19,7 @@ Follow these simple steps to install the beta, create and deploy your first serv
 
 ## Concepts
 
-Before we begin, let's run through some of the main concepts behind serverless.
-
-- [Serverless Functions](#serverless-functions)
-- [Serverless Events](#serverless-events)
-- [Serverless Resources](#serverless-resources)
-- [Serverless Services](#serverless-services)
-- [Serverless Plugins](#serverless-plugins)
+Before we begin, let's run through some of the main concepts behind serverless. [Functions](#functions), [Events](#events), [Resources](#resources), [Services](#services), and [Plugins](#plugins)
 
 ### Functions
 
