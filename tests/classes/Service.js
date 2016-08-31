@@ -162,6 +162,48 @@ describe('Service', () => {
       });
     });
 
+    it('should make sure function name contains the default stage', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const serverlessYml = {
+        service: 'new-service',
+        provider: 'aws',
+        defaults: {
+          stage: 'dev',
+          region: 'us-east-1',
+          variableSyntax: '\\${{([\\s\\S]+?)}}',
+        },
+        plugins: ['testPlugin'],
+        functions: {
+          functionA: {},
+        },
+        resources: {
+          aws: {
+            resourcesProp: 'value',
+          },
+          azure: {},
+          google: {},
+        },
+        package: {
+          include: ['include-me.js'],
+          exclude: ['exclude-me.js'],
+          artifact: 'some/path/foo.zip',
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+
+      const serverless = new Serverless();
+      serverless.init();
+      serverless.config.update({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        expect(serviceInstance.functions.functionA.name).to.be.equal('new-service-dev-functionA');
+      });
+    });
+
     it('should support Serverless file with a .yaml extension', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
