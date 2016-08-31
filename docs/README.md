@@ -1,63 +1,60 @@
-# Documentation
+<!--
+title: Serverless Framework Documentation
+layout: Page
+-->
 
-Welcome to the Serverless v1.0 documentation.
+# Serverless Documentation
 
-Here you'll find all the necessary information you need to learn and understand Serverless.
-It'll show you how you can build next generation Serverless applications. Furthermore we'll deep dive into the
-internals of Serverless so that you know how it works and how you can extend and modify it!
+Welcome to the Serverless documentation.
 
-## Quick start
+- [Quick Start: Check out our getting started guide](./getting-started)
+- [Providers](#providers)
+- [Core Concepts](#concepts)
+- [Contributing to Serverless](#contributing)
+- [Anonymous Usage Tracking](./usage-tracking.md)
 
-Follow these simple steps to install the beta, create and deploy your first service, run your function and remove the
-service afterwards.
+## Providers
+- [AWS Integration Docs](./providers/aws/)
 
-1. `npm install -g serverless@beta`
-2. `mkdir my-first-service && cd my-first-service`
-3. `serverless create --template aws-nodejs`
-4. `serverless deploy`
-5. `serverless invoke --function hello`
-6. `serverless remove`
+## Concepts
 
-## How to contribute to Serverless
+Before we begin, let's run through some of the main concepts behind serverless.
 
-We love our community! Contributions are always welcomed!
-Jump right into our [issues](https://github.com/serverless/serverless/issues) to join existing discussions or open up
-new ones if you have a bug or want to improve Serverless.
+* [Functions](#functions)
+* [Events](#events)
+* [Resources](#resources)
+* [Services](#services)
+* [Plugins](#plugins)
 
-Also feel free to open up [pull requests](https://github.com/serverless/serverless/pulls) which resolves issues!
+### Functions
 
-You may also take a look at our [code of conduct](/code_of_conduct.md).
+Functions are the essential part for any serverless infrastructure. Several functions together form a service. A service typically solves one particular problem in your infrastructure.
 
-## User documentation
+### Events
 
-- [Understanding Serverless and the configuration file](understanding-serverless)
-  - [Serverless services and functions](understanding-serverless/services-and-functions.md)
-  - [serverless.yml](understanding-serverless/serverless-yml.md)
-  - [Serverless variables](understanding-serverless/serverless-variables.md)
-- [How to build your Serverless services](guide)
-  - [Installing Serverless](guide/installation.md)
-  - [Provider account setup](guide/provider-account-setup.md)
-  - [Creating a service](guide/creating-a-service.md)
-  - [Deploying a service](guide/deploying-a-service.md)
-  - [Invoking a function](guide/invoking-a-function.md)
-  - [Viewing function logs](guide/viewing-function-logs.md)
-  - [Event sources](guide/event-sources.md)
-  - [Overview of available event sources](guide/overview-of-event-sources.md)
-  - [Custom provider resources](guide/custom-provider-resources.md)
-  - [Removing a service](guide/removing-a-service.md)
-- [Using plugins](using-plugins)
-  - [How to use additional plugins in your service](using-plugins/adding-custom-plugins.md)
-  - [Plugins provided by Serverless](using-plugins/core-plugins.md)
-- [Building plugins](developing-plugins)
-  - [How to build your own plugin](developing-plugins/building-plugins.md)
-  - [How to build provider integration with your plugin](developing-plugins/building-provider-integrations.md)
-- [Service templates](service-templates)
-- [Usage tracking](usage-tracking)
-  - [Detailed information regarding usage tracking](usage-tracking/usage-tracking.md)
+Serverless is used to build event driven architecture. Basically everything which can trigger a function is an event.
 
-## Running in DEBUG mode
-If you run into issues/errors while working with Serverless, we print a user-friendly error. However, when reporting bugs, it's often useful to output the stack trace and other important information. To set debug mode, make sure you set the environment variable `SLS_DEBUG` with the following command (if you're in Unix based system):
+Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
 
-```
-export SLS_DEBUG=*
-```
+- [AWS Events](./aws/events.md)
+
+### Resources
+
+Resources are the different pieces that comprise your infrastructure like databases, storage buckets, API Gateways or other resources your provider lets you configure.
+
+### Services
+
+A *Serverless service* is a group of one or multiple functions and any resources they require. By grouping related functions together, it's easier to share code and resources between those functions. Services are also designed to be completely independent, which helps teams develop more quickly without waiting for others.
+
+### Plugins
+
+Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to extend the functionality of Serverless. Furthermore we'll look into the way how you can use your plugin knowledge to integrate your own provider into the Serverless framework.
+
+- [Building plugins](./extending-serverless)
+
+Connect with the community on [gitter](https://gitter.im/serverless/serverless) or in the [Forum](http://forum.serverless.com)
+
+## Contributing
+We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
+
+Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.

@@ -1,6 +1,6 @@
 # Package
 
-This plugin creates a deployment package on a per service basis (it will zip up all code for the whole service).
+This plugin creates a deployment package on a per service basis (it will zip up all code for the whole service). It does not provide any executable command.
 
 ## How it works
 
