@@ -2,14 +2,14 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The AWS CloudFormation template for this Serverless application",
   "Resources": {
-    "S3BucketServerlessDeploymentBucket": {
+    "ServerlessDeploymentBucket": {
       "Type" : "AWS::S3::Bucket"
     }
   },
   "Outputs": {
-    "S3BucketServerlessDeploymentBucketName": {
+    "ServerlessDeploymentBucketName": {
       "Value": {
-        "Ref": "S3BucketServerlessDeploymentBucket"
+        "Ref": "ServerlessDeploymentBucket"
       }
     }
   }
