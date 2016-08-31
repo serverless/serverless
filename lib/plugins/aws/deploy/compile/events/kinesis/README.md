@@ -21,7 +21,7 @@ in the mappings `EventSourceArn` definition.
 ```yml
 # serverless.yml
 
-resources
+resources:
   Resources:
     mapping:
       Type: AWS::Lambda::EventSourceMapping
