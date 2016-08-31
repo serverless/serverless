@@ -1,3 +1,8 @@
+<!--
+title: Compile Api Gateway Events
+layout: Page
+-->
+
 # Compile Api Gateway Events
 
 This plugins compiles the functions HTTP endpoint definitions to valid API Gateway CloudFormation resources.

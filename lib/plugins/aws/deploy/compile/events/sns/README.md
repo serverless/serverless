@@ -1,3 +1,8 @@
+<!--
+title: Compile SNS Events
+layout: Page
+-->
+
 # Compile SNS Events
 
 This plugins compiles the function SNS event to a CloudFormation resource.
