@@ -103,20 +103,7 @@ functions:
           method: POST
 ```
 
-**Note:** Serverless supports a built in, universal velocity request template which makes the following parameters available
-in the `event` object:
-
-- body
-- method
-- principalId
-- stage
-- headers
-- query
-- path
-- identity
-- stageVariables
-
-To e.g. access the `body` parameter you can simply write `event.body`.
+See more in-depth configuration for the HTTP event [here](/lib/plugins/aws/deploy/compile/events/apiGateway/README.md).
 
 ### SNS
 

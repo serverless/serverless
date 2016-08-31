@@ -18,15 +18,13 @@ provider:
     subnetIds:
       - subnetId1
       - subnetId2
+  stage: beta # Overwrite the default "dev" stage.
+  region: us-west-2 # Overwite the default "us-east-1" region.
+  variableSyntax: '\${{([\s\S]+?)}}' # Overwrite the default "${}" variable syntax to be "${{}}" instead
 
 plugins:
   - additional_plugin
   - another_plugin
-
-defaults: # overwrite defaults
-  stage: dev
-  region: us-east-1
-  variableSyntax: '\${{([\s\S]+?)}}' # change variable syntax to ${{foo}}
 
 package:
   # only the following paths will be included in the resulting artifact which will be uploaded. Without specific include everything in the current folder will be included
@@ -41,8 +39,7 @@ package:
 
 functions:
   hello:
-    # Deployed Lambda name with a prefix
-    name: ${prefix}-lambdaName # You have to provide that variable in serverless.env.yml
+    name: ${env.prefix}-lambdaName # Deployed Lambda name with a prefix
     handler: handler.hello # Uses the same configuration as your provider. Subdirectories are supported, depending on your language, e.g. subdir/handler.hello if handler.js is in subdir
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6

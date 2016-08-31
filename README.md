@@ -55,7 +55,7 @@ Run `serverless remove` to clean up this function from your account.
 - **[Understanding Serverless and its configuration files](docs/understanding-serverless)**
   - [Serverless services and functions](docs/understanding-serverless/services-and-functions.md)
   - [serverless.yml](docs/understanding-serverless/serverless-yml.md)
-  - [serverless.env.yml](docs/understanding-serverless/serverless-env-yml.md)
+  - [serverless variables](docs/understanding-serverless/serverless-variables.md)
 - **[How to build your Serverless services](docs/guide)**
   - [Installing Serverless](docs/guide/installation.md)
   - [Provider account setup](docs/guide/provider-account-setup.md)
