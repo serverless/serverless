@@ -93,9 +93,12 @@ functions:
               application/json: { "httpMethod" : "$context.httpMethod" }
 ```
 
+**Note:** The templates are defined as plain text here. However you can also reference an external file with the help of
+the `${file(templatefile)}` syntax.
+
 ### Responses
 
-Serverless enables you a way to set custom headers and a response template for your `http` event.
+Serverless lets you setup custom headers and a response template for your `http` event.
 
 #### Using custom response headers
 
@@ -111,8 +114,13 @@ functions:
           path: whatever
           response:
             headers:
-              Content-Type: "'text/html'"
+              Content-Type: integration.response.header.Content-Type
+              Cache-Control: "'max-age=120'"
 ```
+
+**Note:** You're able to use the [integration response variables](http://docs.aws.amazon.com/apigateway/latest/developerguide/request-response-data-mappings.html#mapping-response-parameters)
+for your header values. Headers are passed to API Gateway exactly like you define them. Passing the `Cache-Control` header
+as `"'max-age=120'"` means API Gateway will receive the value as `'max-age=120'` (enclosed with single quotes).
 
 #### Using a custom response template
 
@@ -132,6 +140,9 @@ functions:
               Content-Type: "'text/html'"
             template: $input.path('$')
 ```
+
+**Note:** The template is defined as plain text here. However you can also reference an external file with the help of
+the `${file(templatefile)}` syntax.
 
 ### Http setup with custom authorizer
 You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function
