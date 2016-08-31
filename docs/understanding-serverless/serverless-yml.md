@@ -27,6 +27,9 @@ plugins:
   - another_plugin
 
 package:
+  # Optionally enable or disable packaging each function individually (disabled by default).
+  # See the package setting on the hello function
+  individually: false # or true
   # only the following paths will be included in the resulting artifact which will be uploaded. Without specific include everything in the current folder will be included
   include:
     - lib
@@ -43,6 +46,15 @@ functions:
     handler: handler.hello # Uses the same configuration as your provider. Subdirectories are supported, depending on your language, e.g. subdir/handler.hello if handler.js is in subdir
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
+    package: # optional requires individual function packaging to be enabled
+      include:
+      # The following paths will be unioned with the top level package includes.
+      include:
+        - lib/foo
+      # The following paths will be unioned with the top level package excludes.
+      exclude:
+        - lib/bar
+      artifact: path/to/my-function-artifact.zip # You can specify your own zip file for your function. Serverless won't zip your function if this is set
     events:
       - s3: bucketName
       - schedule: rate(10 minutes)
