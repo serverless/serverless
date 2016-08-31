@@ -1,3 +1,8 @@
+<!--
+title: Info
+layout: Page
+-->
+
 # Info
 
 ```

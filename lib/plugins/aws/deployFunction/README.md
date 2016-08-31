@@ -1,3 +1,9 @@
+<!--
+title: AWS Deploy Function
+description: Deploy Function Command for AWS with the Serverless CLI
+layout: Page
+-->
+
 # Deploy Function
 
 **Note:** This plugin should be used with caution. It will directly upload the lambda function code and bypass

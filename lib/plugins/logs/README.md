@@ -1,3 +1,8 @@
+<!--
+title: Logs
+layout: Page
+-->
+
 # Logs
 
 This plugin returns the CloudWatch logs of a lambda function. You can simply run `serverless logs -f hello` to test it out.
@@ -14,7 +19,7 @@ The logs plugin only requires the function name you want to fetch the logs for. 
 - `--startTime` A specific unit in time to start fetching logs from (ie: `2010-10-20` or `1469705761`). Here's a list of the supported string formats:
 
 ```
-30m                   # since 30 minutes ago  
+30m                   # since 30 minutes ago
 2h                    # since 2 hours ago
 3d                    # since 3 days ago
 

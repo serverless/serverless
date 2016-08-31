@@ -1,3 +1,8 @@
+<!--
+title: Tracking
+layout: Page
+-->
+
 # Tracking
 
 This plugin implements a way to toggle the [framework usage tracking](/docs/usage-tracking) functionality.

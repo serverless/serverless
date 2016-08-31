@@ -1,3 +1,8 @@
+<!--
+title: Compile Scheduled Events
+layout: Page
+-->
+
 # Compile Scheduled Events
 
 This plugins compiles the function schedule event to a CloudFormation resource.

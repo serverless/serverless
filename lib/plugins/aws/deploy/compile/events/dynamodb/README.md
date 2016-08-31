@@ -1,3 +1,8 @@
+<!--
+title: Compile DynamoDB Stream Events
+layout: Page
+-->
+
 # Compile DynamoDB Stream Events
 
 We're currently gathering feedback regarding the exact implementation of this plugin in the following GitHub issue:

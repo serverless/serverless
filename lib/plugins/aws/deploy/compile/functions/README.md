@@ -1,3 +1,8 @@
+<!--
+title: Compile Functions
+layout: Page
+-->
+
 # Compile Functions
 
 This plugins compiles the functions in `serverless.yml` to corresponding lambda CloudFormation resources.

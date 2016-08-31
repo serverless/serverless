@@ -1,3 +1,8 @@
+<!--
+title: Remove
+layout: Page
+-->
+
 # Remove
 
 ```

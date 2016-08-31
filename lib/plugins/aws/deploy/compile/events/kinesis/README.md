@@ -1,3 +1,8 @@
+<!--
+title: Compile Kinesis Stream Events
+layout: Page
+-->
+
 # Compile Kinesis Stream Events
 
 We're currently gathering feedback regarding the exact implementation of this plugin in the following GitHub issue:

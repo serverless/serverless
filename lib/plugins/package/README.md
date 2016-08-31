@@ -1,3 +1,8 @@
+<!--
+title: Package
+layout: Page
+-->
+
 # Package
 
 This plugin creates a deployment package on a per service basis (it will zip up all code for the whole service).

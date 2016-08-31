@@ -1,3 +1,8 @@
+<!--
+title: Compile S3 Events
+layout: Page
+-->
+
 # Compile S3 Events
 
 This plugins compiles the function related S3 events in `serverless.yml` to CloudFormation resources.
