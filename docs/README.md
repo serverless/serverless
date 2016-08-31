@@ -30,10 +30,10 @@ You may also take a look at our [code of conduct](/code_of_conduct.md).
 
 ## User documentation
 
-- [Understanding Serverless and its configuration files](understanding-serverless)
+- [Understanding Serverless and the configuration file](understanding-serverless)
   - [Serverless services and functions](understanding-serverless/services-and-functions.md)
   - [serverless.yml](understanding-serverless/serverless-yml.md)
-  - [serverless.env.yml](understanding-serverless/serverless-env-yml.md)
+  - [Serverless variables](understanding-serverless/serverless-variables.md)
 - [How to build your Serverless services](guide)
   - [Installing Serverless](guide/installation.md)
   - [Provider account setup](guide/provider-account-setup.md)

@@ -12,7 +12,7 @@ upon zipping the service. The resulting path to the artifact will be appended to
 The services `include` and `exclude` arrays are considered during zipping. At first the `exclude` will be applied. After
 that the `include` will be applied to ensure that previously excluded files and folders can be included again.
 
-Serverless will automatically exclude `.git`, `.gitignore`, `serverless.yml`, `serverless.env.yml` and `.DS_Store`.
+Serverless will automatically exclude `.git`, `.gitignore`, `serverless.yml`, and `.DS_Store`.
 
 Servlerless will skip this step if the user has defined it's own artifact in the `service.package.artifact` property.
 

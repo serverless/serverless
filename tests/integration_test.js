@@ -32,8 +32,6 @@ describe('Service Lifecyle Integration Test', () => {
     expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(serverless.utils
-      .fileExistsSync(path.join(tmpDir, 'serverless.env.yml'))).to.be.equal(true);
-    expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
 
