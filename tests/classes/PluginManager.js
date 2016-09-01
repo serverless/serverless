@@ -588,6 +588,50 @@ describe('PluginManager', () => {
 
       expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
     });
+
+    it('should succeeds if a custom regex matches in a plain commands object', () => {
+      pluginManager.setCliOptions({ bar: 100 });
+
+      pluginManager.commands = {
+        foo: {
+          options: {
+            bar: {
+              customValidation: {
+                regularExpression: /^[0-9]+$/,
+                errorMessage: 'Custom Error Message',
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.not.throw(Error);
+    });
+
+    it('should succeeds if a custom regex matches in a nested commands object', () => {
+      pluginManager.setCliOptions({ baz: 'dev' });
+
+      pluginManager.commands = {
+        foo: {
+          commands: {
+            bar: {
+              options: {
+                baz: {
+                  customValidation: {
+                    regularExpression: /^[a-zA-z¥s]+$/,
+                    errorMessage: 'Custom Error Message',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo', 'bar'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.not.throw(Error);
+    });
   });
 
   describe('#run()', () => {
