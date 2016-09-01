@@ -184,16 +184,16 @@ the user is not authorized to perform this action (401).
 
 #### Overview of available status codes
 
-|Status Code|Meaning|
-|-|-|
-|400|Bad Request|
-|401|Unauthorized|
-|403|Forbidden|
-|404|Not Found|
-|422|Unprocessable Entity|
-|500|Internal Server Error|
-|502|Bad Gateway|
-|504|Gateway Timeout|
+| Status Code | Meaning |
+| --- | --- |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not Found |
+| 422 | Unprocessable Entity |
+| 500 | Internal Server Error |
+| 502 | Bad Gateway |
+| 504 | Gateway Timeout |
 
 #### Using status codes
 
