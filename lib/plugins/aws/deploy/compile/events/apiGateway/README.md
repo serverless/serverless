@@ -177,6 +177,52 @@ functions:
 **Note:** The template is defined as plain text here. However you can also reference an external file with the help of
 the `${file(templatefile)}` syntax.
 
+### Status codes
+
+Serverless ships with default status codes you can use to e.g. signal that a resouce could not be found (404) or that
+the user is not authorized to perform this action (401).
+
+#### Overview of available status codes
+
+|Status Code|Meaning|
+|-|-|
+|400|Bad Request|
+|401|Unauthorized|
+|403|Forbidden|
+|404|Not Found|
+|422|Unprocessable Entity|
+|500|Internal Server Error|
+|502|Bad Gateway|
+|504|Gateway Timeout|
+
+#### Using status codes
+
+Here's an example which shows you how you can raise a 400 HTTP status from within your lambda function.
+
+```javascript
+module.exports.hello = (event, context, callback) => {
+  var response = {
+    status: 400,
+    errors: [
+      {
+        code: "1",
+        source: "/users/create",
+        message: "Invalid E-Mail",
+        detail: "The E-Mail address you've entered was invalid."
+      },
+      {
+        code: "2",
+        source: "/users/create",
+        message: "Invalid Password",
+        detail: "The provided password is too short."
+      },
+    ]
+  }
+
+  context.fail(JSON.stringify(response));
+};
+```
+
 ### Http setup with custom authorizer
 You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function
 in the same service, as shown in the following example
