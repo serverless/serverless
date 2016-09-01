@@ -67,7 +67,7 @@ You've successfully executed the function through the HTTP endpoint!
 Serverless provides more than just a HTTP event source. You can find the full list of all available event sources with
 corresponding examples in the provider specific docs:
 
-* [AWS event documentation](../providers/aws/events).
+* [AWS event documentation](../02-providers/aws/events).
 
 ## Conclusion
 

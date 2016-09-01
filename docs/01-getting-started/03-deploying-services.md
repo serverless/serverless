@@ -34,7 +34,7 @@ regions later on. You could accomplish this easily by providing corresponding op
 If you e.g. want to deploy to the `production` stage in the `eu-central-1` region your `deploy` command will look like
 this: `serverless deploy --stage production --region eu-central-1`.
 
-You can also check out the [deploy command docs](../cli-reference/deploy.md) for all the details and options.
+You can also check out the [deploy command docs](../03-cli-reference/deploy.md) for all the details and options.
 
 ## Conclusion
 

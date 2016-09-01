@@ -16,7 +16,7 @@ serverless create --template aws-nodejs
 
 This will create a service and generate `serverless.yml` and `handler.js` files in the current working directory.
 
-You can also check out the [create command docs](../cli-reference/create.md) for all the details and options.
+You can also check out the [create command docs](../03-cli-reference/create.md) for all the details and options.
 
 ## Open the service inside your editor
 

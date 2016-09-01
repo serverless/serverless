@@ -33,7 +33,7 @@ Once the installation process is done you can verify that Serverless is installe
 
 In order for serverless to act on your behalf, you will need to connect your providers account. (AWS, Azure, etc.)
 
-[AWS account Setup](../providers/aws/01-setup.md)
+[AWS account Setup](../02-providers/aws/01-setup.md)
 
 ## Conclusion
 

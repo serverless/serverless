@@ -5,7 +5,7 @@ layout: Page
 
 # Serverless AWS Documentation
 
-Check out the [Getting started guide](../../getting-started) and the [CLI reference](../../cli-reference) for an introduction to Serverless.
+Check out the [Getting started guide](../../01-getting-started) and the [CLI reference](../../03-cli-reference) for an introduction to Serverless.
 
 ## [Setup and configuration](./01-setup.md)
 
