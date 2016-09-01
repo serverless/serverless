@@ -47,7 +47,6 @@ functions:
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
     package: # optional requires individual function packaging to be enabled
-      include:
       # The following paths will be unioned with the top level package includes.
       include:
         - lib/foo
