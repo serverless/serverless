@@ -96,6 +96,39 @@ functions:
 **Note:** The templates are defined as plain text here. However you can also reference an external file with the help of
 the `${file(templatefile)}` syntax.
 
+
+#### Pass Through Behavior
+API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates.  When this happens, the request payload will either be passed through the integration request *without transformation* or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
+
+You can define this behavior as follows (if not specified, a value of **NEVER** will be used):
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: get
+          path: whatever
+          request:
+            passThrough: NEVER
+```
+
+There are 3 available options:
+
+|Value             | Passed Through When                           | Rejected When                                                           |
+|----------------- | --------------------------------------------- | ----------------------------------------------------------------------- |
+|NEVER             |  Never                                        | No templates defined or Content-Type does not match a defined template  |
+|WHEN_NO_MATCH     |  Content-Type does not match defined template | Never                                                                   |
+|WHEN_NO_TEMPLATES |  No templates were defined                    | One or more templates defined, but Content-Type does not match          |
+
+See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html#integration-passthrough-behaviors) for detailed descriptions of these options.
+
+**Notes:**
+
+- A missing/empty request Content-Type is considered to be the API Gateway default (`application/json`)
+- API Gateway docs refer to "WHEN_NO_TEMPLATE" (singular), but this will fail during creation as the actual value should be "WHEN_NO_TEMPLATES" (plural)
+
 ### Responses
 
 Serverless lets you setup custom headers and a response template for your `http` event.
