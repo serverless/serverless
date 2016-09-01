@@ -1,5 +1,5 @@
 {
-  "IamRoleLambda": {
+  "IamRoleLambdaExecution": {
     "Type": "AWS::IAM::Role",
     "Properties": {
       "AssumeRolePolicyDocument": {
