@@ -8,7 +8,7 @@ layout: Page
 
 Displays information about the deployed service.
 
-```
+```bash
 serverless info
 ```
 

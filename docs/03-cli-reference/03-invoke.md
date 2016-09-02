@@ -8,7 +8,7 @@ layout: Page
 
 Invokes a previously deployed function. It allows to send event data to the function and read logs and display other important information of the function invoke.
 
-```
+```bash
 serverless invoke --function functionName
 ```
 

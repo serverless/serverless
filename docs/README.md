@@ -7,11 +7,12 @@ layout: Page
 
 Welcome to the Serverless documentation.
 
-- [Quick Start: Check out our getting started guide](01-guide)
-- [Providers](#providers)
+- [Quick Start Guide](01-getting-started)
 - [Core Concepts](#concepts)
+- [CLI Reference](03-cli-reference)
+- [Providers](#providers)
+- [Extending Serverless](04-extending-serverless)
 - [Contributing to Serverless](#contributing)
-- [Anonymous Usage Tracking](./usage-tracking.md)
 
 ## Providers
 - [AWS Integration Docs](./02-providers/aws/)
@@ -58,3 +59,7 @@ Connect with the community on [gitter](https://gitter.im/serverless/serverless) 
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
 
 Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.
+
+## Usage Tracking
+
+[Anonymous Usage Tracking](./usage-tracking.md)

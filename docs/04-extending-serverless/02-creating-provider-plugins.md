@@ -1,6 +1,5 @@
 <!--
 title: Building Serverless Provider Integrations
-description: todo
 layout: Page
 -->
 

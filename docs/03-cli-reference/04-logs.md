@@ -8,7 +8,7 @@ layout: Page
 
 Lets you watch the logs of a specific function.
 
-```
+```bash
 serverless logs -f hello
 ```
 
@@ -51,23 +51,23 @@ serverless logs -f hello
 
 **Note:** There's a small lag between invoking the function and actually having the log event registered in CloudWatch. So it takes a few seconds for the logs to show up right after invoking the function.
 
-```
+```bash
 serverless logs -f hello --startTime 5h
 ```
 This will fetch the logs that happened in the past 5 hours.
 
-```
+```bash
 serverless logs -f hello --startTime 1469694264
 ```
 This will fetch the logs that happened starting at epoch `1469694264`.
 
-```
+```bash
 serverless logs -f hello -t
 ```
 
 Serverless will tail the CloudWatch log output and print new log messages coming in.
 
-```
+```bash
 serverless logs -f hello --filter serverless
 ```
 This will fetch only the logs that contain the string `serverless`

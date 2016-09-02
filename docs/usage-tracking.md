@@ -3,7 +3,6 @@ title: Serverless Usage Tracking
 layout: Page
 -->
 
-
 # Usage tracking
 
 Serverless will automatically track anonymous usage data. This is done so that we better understand the usage and needs

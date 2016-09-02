@@ -1,3 +1,8 @@
+<!--
+title: Developing plugins
+layout: Page
+-->
+
 # Developing plugins
 
 Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to
