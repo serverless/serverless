@@ -324,6 +324,31 @@ module.exports.hello = (event, context, cb) => {
 }
 ```
 
+#### Custom status codes
+
+You can override the detauls status codes supplied by serverless if you need to change the default code, add/remove codes, or change the templates and selection process that dictates what code is returned.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: post
+          path: whatever
+          response:
+            headers:
+              Content-Type: "'text/html'"
+            template: $input.path('$')
+            codes:
+                201:
+                    pattern: '' # Default response method
+                409:
+                    pattern: '.*"statusCode":409,.*' # JSON response
+                    templates:
+                        application/json: $input.path("$.errorMessage") # JSON return object
+```
+
 ### Catching exceptions in your Lambda function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
