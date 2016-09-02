@@ -7,7 +7,7 @@ layout: Page
 
 Welcome to the Serverless documentation.
 
-- [Quick Start: Check out our getting started guide](01-getting-started)
+- [Quick Start: Check out our getting started guide](01-guide)
 - [Providers](#providers)
 - [Core Concepts](#concepts)
 - [Contributing to Serverless](#contributing)
