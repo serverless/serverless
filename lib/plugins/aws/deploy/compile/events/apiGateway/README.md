@@ -177,6 +177,41 @@ functions:
 **Note:** The template is defined as plain text here. However you can also reference an external file with the help of
 the `${file(templatefile)}` syntax.
 
+### Status codes
+
+Serverless ships with default status codes you can use to e.g. signal that a resource could not be found (404) or that
+the user is not authorized to perform the action (401). Those status codes are regex definitions that will be added to your API Gateway configuration.
+
+#### Overview of available status codes
+
+| Status Code | Meaning |
+| --- | --- |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not Found |
+| 422 | Unprocessable Entity |
+| 500 | Internal Server Error |
+| 502 | Bad Gateway |
+| 504 | Gateway Timeout |
+
+#### Using status codes
+
+To return a given status code you simply need to add square brackets with the status code of your choice to your
+returned message like this: `[401] You are not authorized to access this resource!`.
+
+Here's an example which shows you how you can raise a 404 HTTP status from within your lambda function.
+
+```javascript
+module.exports.hello = (event, context, cb) => {
+  cb(new Error('[404] Not found'));
+}
+```
+
+### Catching exceptions in your Lambda function
+
+In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
+
 ### Http setup with custom authorizer
 You can enable custom authorizers for your HTTP endpoint by setting the authorizer in your http event to another function
 in the same service, as shown in the following example
