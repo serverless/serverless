@@ -179,8 +179,8 @@ the `${file(templatefile)}` syntax.
 
 ### Status codes
 
-Serverless ships with default status codes you can use to e.g. signal that a resouce could not be found (404) or that
-the user is not authorized to perform this action (401).
+Serverless ships with default status codes you can use to e.g. signal that a resource could not be found (404) or that
+the user is not authorized to perform the action (401).
 
 #### Overview of available status codes
 
@@ -197,30 +197,15 @@ the user is not authorized to perform this action (401).
 
 #### Using status codes
 
-Here's an example which shows you how you can raise a 400 HTTP status from within your lambda function.
+To return a given status code you simply need to add square brackets with the status code of your choice to your
+returned message like this: `[401] You are not authorized to access this resource!`.
+
+Here's an example which shows you how you can raise a 404 HTTP status from within your lambda function.
 
 ```javascript
-module.exports.hello = (event, context, callback) => {
-  var response = {
-    status: 400,
-    errors: [
-      {
-        code: "1",
-        source: "/users/create",
-        message: "Invalid E-Mail",
-        detail: "The E-Mail address you've entered was invalid."
-      },
-      {
-        code: "2",
-        source: "/users/create",
-        message: "Invalid Password",
-        detail: "The provided password is too short."
-      },
-    ]
-  }
-
-  context.fail(JSON.stringify(response));
-};
+module.exports.hello = (event, context, cb) => {
+  cb(new Error('[404] Not found'));
+}
 ```
 
 ### Http setup with custom authorizer
