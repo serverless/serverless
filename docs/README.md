@@ -7,7 +7,7 @@ layout: Page
 
 Welcome to the Serverless documentation.
 
-- [Quick Start Guide](01-getting-started)
+- [Quick Start Guide](01-guide)
 - [Core Concepts](#concepts)
 - [CLI Reference](03-cli-reference)
 - [Providers](#providers)
