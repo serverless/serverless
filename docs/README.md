@@ -37,7 +37,7 @@ Serverless is used to build event driven architecture. Basically everything whic
 
 Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
 
-- [AWS Events](./02-providers/aws/events.md)
+- [AWS Events](./02-providers/aws/events)
 
 ### Resources
 
