@@ -39,4 +39,4 @@ In order for serverless to act on your behalf, you will need to connect your pro
 
 We've just installed Node.js and Serverless on our local machine and configured our AWS account! Now lets create our first service.
 
-[Next step > Creating Your First Service](./2_creating-services.md)
+[Next step > Creating Your First Service](./02-creating-services.md)

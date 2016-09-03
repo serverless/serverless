@@ -57,4 +57,4 @@ This file contains event data we'll use later on to invoke our function.
 We've just created our very first service with one simple `create` command. With that in place we're ready to deploy
 our service (which now includes one example function) to our provider (in this case Amazon Web Services).
 
-[Next step > Deploying our service](./3_deploying-services.md)
+[Next step > Deploying our service](./03-deploying-services.md)
