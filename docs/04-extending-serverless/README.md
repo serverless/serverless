@@ -11,5 +11,5 @@ to integrate your own provider into the Serverless framework.
 
 ## Table of contents
 
-- [Building plugins](building-plugins.md)
-- [Building provider integrations](building-provider-integrations.md)
+- [Building plugins](creating-plugins.md)
+- [Building provider integrations](creating-provider-plugins.md)
