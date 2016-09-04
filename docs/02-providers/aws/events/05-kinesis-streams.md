@@ -1,6 +1,6 @@
 <!--
 title: Kinesis Streams Event configuration
-layout: Page
+layout: Doc
 -->
 
 # Kinesis Streams

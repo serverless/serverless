@@ -1,7 +1,7 @@
 <!--
 title: Serverless Variables
 description: How to use variables to make your serverless.yml more dynamic
-layout: Page
+layout: Doc
 -->
 
 # Serverless Variables

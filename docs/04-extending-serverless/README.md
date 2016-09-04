@@ -1,6 +1,6 @@
 <!--
 title: Developing plugins
-layout: Page
+layout: Doc
 -->
 
 # Developing plugins

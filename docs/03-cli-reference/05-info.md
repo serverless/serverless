@@ -1,7 +1,7 @@
 <!--
 title: Serverless Info CLI Command
 description: Display information about your deployed service
-layout: Page
+layout: Doc
 -->
 
 # Info

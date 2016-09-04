@@ -1,6 +1,6 @@
 <!--
 title: AWS Authentication Setup
-layout: Page
+layout: Doc
 -->
 
 # Provider account setup

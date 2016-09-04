@@ -1,6 +1,6 @@
 <!--
 title: Serverless Cloudformation Resource naming Reference
-layout: Page
+layout: Doc
 -->
 
 # Serverless Cloudformation Resource Reference

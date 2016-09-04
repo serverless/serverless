@@ -1,7 +1,7 @@
 <!--
 title: Serverless Logs CLI Command
 description: View logs of your deployed Service
-layout: Page
+layout: Doc
 -->
 
 # Logs

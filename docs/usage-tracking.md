@@ -1,6 +1,6 @@
 <!--
 title: Serverless Usage Tracking
-layout: Page
+layout: Doc
 -->
 
 # Usage tracking

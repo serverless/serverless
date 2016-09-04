@@ -1,7 +1,7 @@
 <!--
 title: Hello World AWS Lambda Node Example
 description: Create a nodeJS Lambda function on amazon web services
-layout: Page
+layout: Doc
 -->
 
 # Hello World Node.js

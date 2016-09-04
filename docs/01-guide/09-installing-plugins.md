@@ -1,6 +1,6 @@
 <!--
 title: Installing Serverless Plugins
-layout: Page
+layout: Doc
 -->
 
 # Adding custom plugins

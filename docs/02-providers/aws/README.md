@@ -1,6 +1,6 @@
 <!--
 title: Serverless AWS Documentation
-layout: Page
+layout: Doc
 -->
 
 # Serverless AWS Documentation

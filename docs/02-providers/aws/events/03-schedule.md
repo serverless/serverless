@@ -1,6 +1,6 @@
 <!--
 title: AWS S3 Event configuration
-layout: Page
+layout: Doc
 -->
 
 # Schedule

@@ -1,7 +1,7 @@
 <!--
 title: Creating Serverless Services
 description: Creating a Serverless Service
-layout: Page
+layout: Doc
 -->
 
 # Creating a service

@@ -1,6 +1,6 @@
 <!--
 title: Serverless CLI Reference
-layout: Page
+layout: Doc
 -->
 
 # Serverless CLI Reference

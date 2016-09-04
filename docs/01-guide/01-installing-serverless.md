@@ -1,7 +1,7 @@
 <!--
 title: Installing Serverless
 description: How to install Serverless
-layout: Page
+layout: Doc
 -->
 
 # Installation

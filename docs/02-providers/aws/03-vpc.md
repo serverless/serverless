@@ -1,6 +1,6 @@
 <!--
 title: Serverless VPC Configuration
-layout: Page
+layout: Doc
 -->
 
 # Configuring your functions to run in a VPC

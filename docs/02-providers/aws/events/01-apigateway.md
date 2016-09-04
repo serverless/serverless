@@ -1,6 +1,6 @@
 <!--
 title: API Gateway Event configuration
-layout: Page
+layout: Doc
 -->
 
 # API Gateway

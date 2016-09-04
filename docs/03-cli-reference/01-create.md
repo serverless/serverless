@@ -1,7 +1,7 @@
 <!--
 title: Serverless Create CLI Command
 description: Create a new service in your current working directory
-layout: Page
+layout: Doc
 -->
 
 # Create

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Deploy CLI Command
 description: Deploy your service to the specified provider
-layout: Page
+layout: Doc
 -->
 
 # Deploy

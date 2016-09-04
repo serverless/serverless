@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Getting Started Guide
-layout: Page
+layout: Doc
 -->
 
 # Guide

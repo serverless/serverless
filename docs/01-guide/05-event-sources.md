@@ -1,7 +1,7 @@
 <!--
 title: Setting up Events for your functions
 description: How to set up events triggering your functions
-layout: Page
+layout: Doc
 -->
 
 # Event sources

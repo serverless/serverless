@@ -1,6 +1,6 @@
 <!--
 title: AWS Serverless Events
-layout: Page
+layout: Doc
 -->
 
 # AWS serverless events

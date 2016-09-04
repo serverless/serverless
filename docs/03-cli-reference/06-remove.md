@@ -1,7 +1,7 @@
 <!--
 title: Serverless Remove CLI Command
 description: Remove a deployed service with the Serverless CLI
-layout: Page
+layout: Doc
 -->
 
 # Remove

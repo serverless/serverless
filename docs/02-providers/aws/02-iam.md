@@ -1,6 +1,6 @@
 <!--
 title: IAM Role configuration
-layout: Page
+layout: Doc
 -->
 
 # Adding custom IAM role statements

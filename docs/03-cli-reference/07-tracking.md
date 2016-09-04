@@ -1,7 +1,7 @@
 <!--
 title: Serverless Tracking CLI Command
 description: Enable or Disable anonymous usage tracking for Serverless
-layout: Page
+layout: Doc
 -->
 
 # Tracking

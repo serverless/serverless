@@ -1,7 +1,7 @@
 <!--
 title: Creating custom provider resources
 description: How to extend your
-layout: Page
+layout: Doc
 -->
 
 # Custom provider resources

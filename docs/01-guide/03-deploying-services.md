@@ -1,6 +1,6 @@
 <!--
 title: Deploying Serverless Services
-layout: Page
+layout: Doc
 -->
 
 # Deploying a service

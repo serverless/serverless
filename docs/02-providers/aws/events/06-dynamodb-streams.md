@@ -1,6 +1,6 @@
 <!--
 title: SNS Event configuration docs
-layout: Page
+layout: Doc
 -->
 
 # DynamoDB Streams

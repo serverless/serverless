@@ -1,7 +1,7 @@
 <!--
 title: Removing Services
 description: How to remove a deployed service
-layout: Page
+layout: Doc
 -->
 
 # Removing a service

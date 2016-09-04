@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Documentation
-layout: Page
+layout: Doc
 -->
 
 # Serverless Documentation

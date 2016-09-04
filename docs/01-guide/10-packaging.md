@@ -1,6 +1,6 @@
 <!--
 title: Including/Excluding files from packaging
-layout: Page
+layout: Doc
 -->
 
 # Including/Excluding files from packaging

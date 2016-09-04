@@ -1,7 +1,7 @@
 <!--
 title: Serverless Invoke CLI Command
 description: Invoke a function in your deployed service
-layout: Page
+layout: Doc
 -->
 
 # Invoke

@@ -1,7 +1,7 @@
 <!--
 title: Invoking Serverless Functions
 description: How to invoke a Serverless function and watch the logs
-layout: Page
+layout: Doc
 -->
 
 # Invoking a function

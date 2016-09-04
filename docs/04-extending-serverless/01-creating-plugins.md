@@ -1,6 +1,6 @@
 <!--
 title: Building Serverless Plugins
-layout: Page
+layout: Doc
 -->
 
 # Building plugins
