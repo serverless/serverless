@@ -17,19 +17,17 @@ In there you will find different issues that we think are important and need som
 
 ## Pull Requests
 Please follow these Pull Request guidelines when creating Pull Requests:
-* If an Issue exists, mention in there that you are working on a solution.
+* If an Issue exists, leave a comment there that you are working on a solution so nobody else jumps on it.
 * If an Issue does not exist, create a new Issue, detail your changes.  We recommend waiting until we accept it, so you don't waste your precious time.
 * Follow our **Testing** and **Code Style** guidelines below.
-* Squash multiple commits into a single commit via `git rebase -i`.
 * Start commit messages with a lowercase verb such as "add", "fix", "refactor", "remove".
-* Submit your PR and make sure the Travis-CI builds don't fail.
+* Submit your PR and make sure the Travis-CI builds don't fail and the code coverage isn't lowered.
 * Reference the issue in your PR.
 
 ## Issues
 Please follow these Issue guidelines for opening Issues:
 * Make sure your Issue is not a duplicate.
 * Make sure your Issue is for a *feature request*, *bug report*, or *a discussion about a relevant topic*.  For everything else, please use our [Discourse Forum](http://forum.serverless.com)
-* Add the relevant Issue Label(s) and together we will keep them updated.
 
 ### Code Style
 We aim for clean, consistent code style.  We're using ESlint to check for codestyle issues using the Airbnb preset. If ESlint issues are found our build will fail and we can't merge the PR.
