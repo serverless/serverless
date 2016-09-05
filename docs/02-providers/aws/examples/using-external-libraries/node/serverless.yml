@@ -1,0 +1,10 @@
+# Hello Random Name for AWS Lambda
+service: hello-random-name # Service Name
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+
+functions:
+  helloRandomName:
+    handler: handler.helloRandomNameHandler
