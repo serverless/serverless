@@ -11,6 +11,7 @@ service: first-service
 provider:
   name: aws
   runtime: nodejs4.3
+  profile: default # optional, must be present in ~/.aws/credentials
   vpc: # optional, applies to all functions described herein but is overridden by any function level settings
     securityGroupIds:
       - securityGroupId1
