@@ -7,7 +7,7 @@ layout: Doc
 
 Make sure that you're still in the service directory that we've created the service in before.
 
-Run `serverless deploy` to start the deployment process (make sure that the credentials for your provider are properly configured).
+Run `serverless deploy -v` to start the deployment process (make sure that the credentials for your provider are properly configured). This command will also print the progress during the deployment as we've configured the `verbose` mode.
 
 Serverless will now deploy the whole service to the configured provider. It will use the default `dev` stage and `us-east-1` region.
 
@@ -23,7 +23,7 @@ provider:
   region: us-west-2
 ```
 
-After running `serverless deploy` you should see the progress of the deployment process in your terminal.
+After running `serverless deploy -v` you should see the progress of the deployment process in your terminal.
 A success message will tell you once everything is deployed and ready to use!
 
 ## Deploying to a different stage and region

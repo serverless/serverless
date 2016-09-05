@@ -8,10 +8,9 @@ layout: Doc
 
 The last step we want to introduce in this guide is how to remove the service.
 
-Removal is done with the help of the `remove` command. Just run `serverless remove` to trigger the removal process.
+Removal is done with the help of the `remove` command. Just run `serverless remove -v` to trigger the removal process. As in the deploy step we're also running in the `verbose` mode so you can see all details of the remove process.
 
-Serverless will start the removal and informs you about it's process on the console.
-A success message is printed once the whole service is removed.
+Serverless will start the removal and informs you about it's process on the console. A success message is printed once the whole service is removed.
 
 **Note:** The removal process will only remove the service on your providers infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
 
