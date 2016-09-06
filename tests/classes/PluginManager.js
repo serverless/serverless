@@ -10,6 +10,7 @@ const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const mockRequire = require('mock-require');
 const testUtils = require('../../tests/utils');
+const os = require('os');
 
 describe('PluginManager', () => {
   let pluginManager;
