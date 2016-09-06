@@ -332,6 +332,33 @@ describe('Service', () => {
       });
     });
 
+    it("should throw error if a function's event is not an array", () => {
+      const SUtils = new Utils();
+      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const serverlessYml = {
+        service: 'service-name',
+        provider: 'aws',
+        functions: {
+          functionA: {
+            events: {},
+          },
+        },
+      };
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
     it('should throw error if provider property is invalid', () => {
       const SUtils = new Utils();
       const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
@@ -420,6 +447,11 @@ describe('Service', () => {
       };
     });
 
+    it('should throw error if events is not an array', () => {
+      expect(() => {
+        serviceInstance.getEventInFunction('schedule');
+      }).to.throw(Error);
+    });
     it('should return an event object based on provided function', () => {
       expect(serviceInstance.getEventInFunction('schedule', 'create'))
         .to.be.equal('rate(5 minutes)');
