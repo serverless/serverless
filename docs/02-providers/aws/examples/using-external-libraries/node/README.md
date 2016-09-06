@@ -30,6 +30,6 @@ Alternatively, you can run `npm run deploy` and deploy via NPM script defined in
 
 ## 2. Invoke
 
-`serverless invoke --function helloRandomName` or `sls invoke --f helloRandomName`
+`serverless invoke --function helloRandomName` or `sls invoke -f helloRandomName`
 
 `-f` is shorthand for `--function`
