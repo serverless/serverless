@@ -39,7 +39,7 @@
     "serverless-run-python-handler": "./bin/serverless-run-python-handler"
   },
   "scripts": {
-    "test": "istanbul cover _mocha tests/all -- -R spec --recursive",
+    "test": "istanbul cover node_modules/mocha/bin/_mocha tests/all -- -R spec --recursive",
     "lint": "eslint .",
     "integration-test": "mocha tests/integration_test"
   },
