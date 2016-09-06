@@ -767,7 +767,7 @@ describe('PluginManager', () => {
     const serverlessInstance = new Serverless();
     serverlessInstance.init();
 
-    // Cannot rely on shebang in severless.js to invoke script using NodeJS on Windows. Add 'node' to command.
+    // Cannot rely on shebang in severless.js to invoke script using NodeJS on Windows.
     const execPrefix = os.platform() === 'win32' ? 'node ' : '';
     const serverlessExec = execPrefix + path.join(serverlessInstance.config.serverlessPath,
             '..', 'bin', 'serverless');
