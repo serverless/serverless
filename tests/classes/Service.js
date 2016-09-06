@@ -447,11 +447,6 @@ describe('Service', () => {
       };
     });
 
-    it('should throw error if events is not an array', () => {
-      expect(() => {
-        serviceInstance.getEventInFunction('schedule');
-      }).to.throw(Error);
-    });
     it('should return an event object based on provided function', () => {
       expect(serviceInstance.getEventInFunction('schedule', 'create'))
         .to.be.equal('rate(5 minutes)');
