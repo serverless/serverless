@@ -42,7 +42,7 @@ functions:
 
 ## AWS events
 
-* [API Gateway](./events/01-api-gateway.md)
+* [API Gateway](./events/01-apigateway.md)
 * [S3](./events/02-s3.md)
 * [Schedule](./events/03-schedule.md)
 * [SNS](./events/04-sns.md)
