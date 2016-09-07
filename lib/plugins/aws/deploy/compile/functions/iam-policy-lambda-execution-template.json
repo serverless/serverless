@@ -6,7 +6,7 @@
         "Fn:Join": [
           "-",
           [
-            { "Ref": "AWS::Region" },
+            "${opt:stage}",
             "${self:service}",
             "lambda"
           ]
