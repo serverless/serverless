@@ -34,6 +34,25 @@ functions:
           method: post
 ```
 
+## Request parameters
+
+You can pass optional and required parameters to your functions, so you can use them in for example Api Gateway tests and SDK generation.
+
+```yml
+# serverless.yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          parameters:
+            method.request.querystring.url: true
+            method.request.header.x-foo: false
+            method.request.path.bar: false
+```
+
 ## Request templates
 
 ### Default request templates
