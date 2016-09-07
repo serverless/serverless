@@ -2,7 +2,16 @@
   "IamPolicyLambdaExecution": {
     "Type": "AWS::IAM::Policy",
     "Properties": {
-      "PolicyName": "Logging Policy",
+      "PolicyName": {
+        "Fn:Join": [
+          "-",
+          [
+            { "Ref": "AWS::Region" },
+            "${self:service}",
+            "lambda"
+          ]
+        ]
+      },
       "PolicyDocument": {
         "Version": "2012-10-17",
         "Statement": [
