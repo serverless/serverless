@@ -345,8 +345,9 @@ functions:
                     pattern: '' # Default response method
                 409:
                     pattern: '.*"statusCode":409,.*' # JSON response
-                    templates:
-                        application/json: $input.path("$.errorMessage") # JSON return object
+                    template: $input.path("$.errorMessage") # JSON return object
+                    headers:
+                      Content-Type: "'application/json+hal'"
 ```
 
 ### Catching exceptions in your Lambda function
