@@ -328,6 +328,10 @@ module.exports.hello = (event, context, cb) => {
 
 You can override the detauls status codes supplied by serverless if you need to change the default code, add/remove codes, or change the templates and selection process that dictates what code is returned.
 
+If you specify a status code with a pattern of '' that will become the default response code. See below on how to change the default to 201 for post requests.
+
+If you omit any default status code. A standard default 200 status code will be generated for you.
+
 ```yml
 functions:
   create:
