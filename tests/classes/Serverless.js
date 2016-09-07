@@ -6,7 +6,7 @@ const semverRegex = require('semver-regex');
 const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
-const os = require('os');
+const YAML = require('js-yaml');
 
 const YamlParser = require('../../lib/classes/YamlParser');
 const PluginManager = require('../../lib/classes/PluginManager');
@@ -14,6 +14,7 @@ const Utils = require('../../lib/classes/Utils');
 const Service = require('../../lib/classes/Service');
 const CLI = require('../../lib/classes/CLI');
 const Error = require('../../lib/classes/Error').SError;
+const testUtils = require('../../tests/utils');
 
 describe('Serverless', () => {
   let serverless;
@@ -117,8 +118,61 @@ describe('Serverless', () => {
       expect(serverless.processedInput).to.not.deep.equal({});
     });
 
-    it('should resolve after loading the service', (done) => {
-      serverless.init().then(() => done());
+    it('should resolve after loading the service', () => {
+      const SUtils = new Utils();
+      const tmpDirPath = testUtils.getTmpDirPath();
+      const serverlessYml = {
+        service: 'new-service',
+        provider: 'aws',
+        custom: {
+          selfValues: {
+            obj: {
+              one: 1,
+              two: 'two',
+            },
+            dev: true,
+          },
+          variableRefs: {
+            testA: '${self:custom.selfValues.obj}',
+            testB: '${env:random_env, opt:stage}',
+            testC: 'number is ${env:random_env, opt:random_opt, self:custom.selfValues.obj.two}',
+            testD: '${self:custom.selfValues.${opt:stage}}',
+          },
+        },
+        plugins: ['testPlugin'],
+        functions: {
+          functionA: {},
+        },
+        resources: {
+          aws: {
+            resourcesProp: 'value',
+          },
+          azure: {},
+          google: {},
+        },
+        package: {
+          include: ['include-me.js'],
+          exclude: ['exclude-me.js'],
+          artifact: 'some/path/foo.zip',
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+
+      const serverlessInstance = new Serverless();
+      serverlessInstance.config.update({ servicePath: tmpDirPath });
+      serverless.pluginManager.cliOptions = {
+        stage: 'dev',
+      };
+
+      serverlessInstance.init().then(loadedService => {
+        expect(loadedService.custom.variableRefs.testA)
+          .to.deep.equal({ one: 1, two: 'two' });
+        expect(loadedService.custom.variableRefs.testB).to.equal('dev');
+        expect(loadedService.custom.variableRefs.testC).to.equal('number is two');
+        expect(loadedService.custom.variableRefs.testD).to.equal(true);
+      });
     });
   });
 
@@ -129,7 +183,7 @@ describe('Serverless', () => {
     });
 
     it('should track if tracking is enabled', (done) => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       fse.mkdirsSync(tmpDirPath);
 
       serverless.config.serverlessPath = tmpDirPath;
@@ -138,7 +192,7 @@ describe('Serverless', () => {
     });
 
     it('should not track if tracking is disabled', (done) => {
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
+      const tmpDirPath = testUtils.getTmpDirPath();
       fse.mkdirsSync(tmpDirPath);
       fs.writeFileSync(path.join(tmpDirPath, 'do-not-track'), 'some-content');
 

@@ -6,15 +6,13 @@
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by [watching the video guide here](https://youtu.be/weOsx5rLWX0).
-
-Enjoy! - Serverless, Inc.
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by following the [Quickstart commands](#quick-start) or reading our [Guide to Serverless](docs/01-guide)
 
 ## Links
 
-* [Quick Start](#quick-start)
+* [Guide to Serverless](docs/01-guide)
 * [Features](#features)
-* [Documentation v.1](#documentation) / [v.0](http://serverless.readme.io)
+* [Documentation v.1](docs) / [v.0](http://serverless.readme.io)
 * [Road Map](https://github.com/serverless/serverless/milestones)
 * [Contributing](#contributing)
 * [Community](#community)
@@ -22,24 +20,27 @@ Enjoy! - Serverless, Inc.
 
 ## <a name="quick-start"></a>Quick Start
 
+Below is a quick list of commands to set up a new project. For a more in-depth look at Serverless check out the [Guide in our docs](docs/01-guide).
+
 [Watch the video guide here](https://youtu.be/weOsx5rLWX0) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
 | **Step** | **Command** |**Description**|
 |---|-------|------|
-|  1.  | `npm install -g serverless@beta` | Install Serverless CLI  |
-|  2.  | `mkdir my-first-service && cd my-first-service` | Create the project directory |
-|  3.  | [Create a default AWS profile, if you don't have one set locally](/docs/guide/provider-account-setup.md#amazon-web-services) | Connect Serverless with your provider |
-|  4.  | `serverless create --template aws-nodejs` | Create an AWS Lamdba function in Node.js |
-|  5.  | `serverless deploy` | Deploy to live AWS account  |
-|  6.  | `serverless invoke --function hello` | run the live API endpoint  |
+|  1.  | `npm install -g serverless` | Install Serverless CLI  |
+|  3.  | [Set up your Provider credentials](/docs/02-providers/aws/01-setup.md) | Connect Serverless with your provider |
+|  4.  | `serverless create --template aws-nodejs --path my-service` | Create an AWS Lamdba function in Node.js |
+|  5.  | `cd my-project` | Change into your service directory  |
+|  6.  | `serverless deploy` | Deploy to your AWS account  |
+|  7.  | `serverless invoke --function hello` | Run the function we just deployed  |
 
 Run `serverless remove` to clean up this function from your account.
+
+Check out our in-depth [Guide to Serverless](docs/01-guide) for more information.
 
 ## <a name="features"></a>Features
 
 * Supports Node.js, Python & Java.
 * Manages the lifecycle of your serverless architecture (build, deploy, update, delete).
-* Deploys to AWS Lambda, Azure Functions (WIP), Google CloudFunctions (WIP), IBM OpenWhisk (WIP) & more.
 * Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation).
 * Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams.
 * Minimal configuration and scaffolding.
@@ -49,32 +50,6 @@ Run `serverless remove` to clean up this function from your account.
 * 100% Extensible: Extend or modify the Framework and its operations via Plugins.
 * An ecosystem of serverless services and plugins.
 * A passionate and welcoming community!
-
-## <a name="documentation"></a>Documentation
-
-- **[Understanding Serverless and its configuration files](docs/understanding-serverless)**
-  - [Serverless services and functions](docs/understanding-serverless/services-and-functions.md)
-  - [serverless.yml](docs/understanding-serverless/serverless-yml.md)
-  - [serverless.env.yml](docs/understanding-serverless/serverless-env-yml.md)
-- **[How to build your Serverless services](docs/guide)**
-  - [Installing Serverless](docs/guide/installation.md)
-  - [Provider account setup](docs/guide/provider-account-setup.md)
-  - [Creating a service](docs/guide/creating-a-service.md)
-  - [Deploying your service](docs/guide/deploying-a-service.md)
-  - [Invoking your functions](docs/guide/invoking-a-function.md)
-  - [Adding additional event sources](docs/guide/event-sources.md)
-  - [Overview of available event sources](docs/guide/overview-of-event-sources.md)
-  - [Managing custom provider resources](docs/guide/custom-provider-resources.md)
-  - [Removing your service](docs/guide/removing-a-service.md)
-- **[Using plugins](docs/using-plugins)**
-  - [How to use additional plugins in your service](docs/using-plugins/adding-custom-plugins.md)
-  - [Plugins provided by Serverless](docs/using-plugins/core-plugins.md)
-- **[Building plugins](docs/developing-plugins)**
-  - [How to build your own plugin](docs/developing-plugins/building-plugins.md)
-  - [How to build provider integration with your plugin](docs/developing-plugins/building-provider-integrations.md)
-- **[Service templates](docs/service-templates)**
-- **[Usage tracking](docs/usage-tracking)**
-  - [Detailed information regarding usage tracking](docs/usage-tracking/usage-tracking.md)
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
