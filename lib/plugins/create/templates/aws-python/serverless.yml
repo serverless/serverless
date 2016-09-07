@@ -16,6 +16,9 @@ service: aws-python # NOTE: update this with your service name
 provider:
   name: aws
   runtime: python2.7
+  stage: dev # default stage name (or could be something like ${env:USER})
+  region: us-east-1 # default region
+
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
 #    - Effect: "Allow"
@@ -30,11 +33,6 @@ provider:
 #          - ""
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
-
-# you can overwrite defaults here
-#defaults:
-#  stage: dev
-#  region: us-east-1
 
 # you can add packaging information here
 #package:
