@@ -29,7 +29,7 @@ You'll see the following files in your working directory:
 
 ### serverless.yml
 
-Each *Serverless service* configuration is managed in the [`serverless.yml`](./serverless-yml.md) file. The main responsibilities of this file are:
+Each *Serverless service* configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
 
   - Declares a Serverless service
   - Defines one or multiple functions in the service

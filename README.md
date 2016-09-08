@@ -29,7 +29,7 @@ Below is a quick list of commands to set up a new project. For a more in-depth l
 |  1.  | `npm install -g serverless` | Install Serverless CLI  |
 |  3.  | [Set up your Provider credentials](/docs/02-providers/aws/01-setup.md) | Connect Serverless with your provider |
 |  4.  | `serverless create --template aws-nodejs --path my-service` | Create an AWS Lamdba function in Node.js |
-|  5.  | `cd my-project` | Change into your service directory  |
+|  5.  | `cd my-service` | Change into your service directory  |
 |  6.  | `serverless deploy` | Deploy to your AWS account  |
 |  7.  | `serverless invoke --function hello` | Run the function we just deployed  |
 

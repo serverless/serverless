@@ -21,7 +21,7 @@ Note: Custom plugins are added on a per service basis and are not applied global
 
 ## Adding the plugin to a service
 
-We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the plugin to the `plugins` section in the [`serverless.yml`](./serverless-yml.md) file.
+We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the plugin to the `plugins` section in the `serverless.yml` file.
 
 ```yml
 # serviceXYZ serverless.yml file
@@ -29,7 +29,7 @@ plugins:
   - custom-serverless-plugin
 ```
 
-Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the [`serverless.yml`](./serverless-yml.md) file is the place where you can add necessary
+Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the `serverless.yml` file is the place where you can add necessary
 configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
 
 ```yml
