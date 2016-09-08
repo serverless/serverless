@@ -284,18 +284,6 @@ describe('Service', () => {
       const valueToPopulate = serverless.variables.getValueFromSelf('self:provider');
       expect(valueToPopulate).to.be.equal('testProvider');
     });
-
-    it('should not throw error if referencing invalid properties', () => {
-      const serverless = new Serverless();
-      serverless.variables.service = {
-        service: 'testService',
-        custom: {
-          prob: 'prob',
-        },
-      };
-      const valueToPopulate = serverless.variables.getValueFromSelf('self:custom.whatever.deeper');
-      expect(valueToPopulate).to.be.equal(undefined);
-    });
   });
 
   describe('#getValueFromFile()', () => {
@@ -372,29 +360,6 @@ describe('Service', () => {
       expect(valueToPopulate).to.equal(2);
     });
 
-    it('should not throw error if referencing invalid properties', () => {
-      const serverless = new Serverless();
-      const SUtils = new Utils();
-      const tmpDirPath = testUtils.getTmpDirPath();
-      const configYml = {
-        test: 1,
-        test2: 'test2',
-        testObj: {
-          sub: 2,
-          prob: 'prob',
-        },
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'),
-        YAML.dump(configYml));
-
-      serverless.config.update({ servicePath: tmpDirPath });
-
-      const valueToPopulate = serverless.variables
-        .getValueFromFile('file(./config.yml):testObj.whatever.deeper');
-      expect(valueToPopulate).to.equal(undefined);
-    });
-
     it('should throw error if not using ":" syntax', () => {
       const serverless = new Serverless();
       const SUtils = new Utils();
@@ -415,6 +380,58 @@ describe('Service', () => {
 
       expect(() => serverless.variables
         .getValueFromFile('file(./config.yml).testObj.sub')).to.throw(Error);
+    });
+  });
+
+  describe('#getDeepValue()', () => {
+    it('should get deep values', () => {
+      const serverless = new Serverless();
+
+      const valueToPopulateMock = {
+        service: 'testService',
+        custom: {
+          subProperty: {
+            deep: 'deepValue',
+          },
+        },
+      };
+      const valueToPopulate = serverless.variables
+        .getDeepValue(['custom', 'subProperty', 'deep'], valueToPopulateMock);
+      expect(valueToPopulate).to.be.equal('deepValue');
+    });
+
+    it('should not throw error if referencing invalid properties', () => {
+      const serverless = new Serverless();
+
+      const valueToPopulateMock = {
+        service: 'testService',
+        custom: {
+          subProperty: 'hello',
+        },
+      };
+      const valueToPopulate = serverless.variables
+        .getDeepValue(['custom', 'subProperty', 'deep', 'deeper'], valueToPopulateMock);
+      expect(valueToPopulate).to.deep.equal({});
+    });
+
+    it('should get deep values with variable references', () => {
+      const serverless = new Serverless();
+
+      serverless.variables.service = {
+        service: 'testService',
+        custom: {
+          subProperty: {
+            deep: '${self:custom.anotherVar.veryDeep}',
+          },
+          var: {
+            veryDeep: 'someValue',
+          },
+          anotherVar: '${self:custom.var}',
+        },
+      };
+      const valueToPopulate = serverless.variables
+        .getDeepValue(['custom', 'subProperty', 'deep'], serverless.variables.service);
+      expect(valueToPopulate).to.be.equal('someValue');
     });
   });
 });
