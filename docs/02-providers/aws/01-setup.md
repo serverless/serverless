@@ -23,7 +23,7 @@ To get you up and running quickly, we're going to create a AWS IAM User with adm
 
 Unfortunately, the frameworks functionality is growing so fast, we can't yet offer you a finite set of permissions it needs. In the interim, ensure that your AWS API Keys are kept in a safe, private location.
 
-1. Create or login to your Amazon Web Services Account and go the the Identity & Access Management (IAM) Page
+1. Create or login to your Amazon Web Services Account and go to the Identity & Access Management (IAM) Page
 2. Click on **Users** and then **Create New Users**. Enter `serverless-admin` in the first field and click **Create**
 3. **View and copy the API Key & Secret. You'll need it in the next step**
 4. In the User record in the AWS IAM Dashboard, look for **Managed Policies** on the **Permissions** tab and click
