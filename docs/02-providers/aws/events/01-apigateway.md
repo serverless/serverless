@@ -47,10 +47,15 @@ functions:
       - http:
           path: posts/create
           method: post
-          parameters:
-            method.request.querystring.url: true
-            method.request.header.x-foo: false
-            method.request.path.bar: false
+          request:
+            parameters:
+              querystrings:
+                url: true
+              headers:
+                foo: false
+                bar: true
+              paths:
+                bar: false
 ```
 
 ## Request templates
