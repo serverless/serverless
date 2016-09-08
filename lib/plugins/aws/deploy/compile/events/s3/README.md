@@ -17,7 +17,7 @@ the bucket name you've defined and an additional lambda notification configurati
 function and the `s3:objectCreated:*` events.
 
 The second possibility is to configure your S3 event more granular (like the bucket name or the event which this bucket
-should listen to) with the help of key value pairs.
+should listen to and or the filters rules) with the help of key value pairs.
 
 Take a look at the [Event syntax examples](#event-syntax-examples) below to see how you can setup S3 bucket events.
 
@@ -57,4 +57,20 @@ functions:
       - s3:
           bucket: confidential-information
           event: s3:ObjectRemoved:*
+```
+
+We can also specify filter rules.
+
+```yml
+# serverless.yml
+functions:
+  mail:
+    handler: mail.removal
+    events:
+      - s3:
+          bucket: confidential-information
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: inbox/
+            - suffix: .eml
 ```
