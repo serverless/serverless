@@ -17,7 +17,7 @@ the bucket name you've defined and an additional lambda notification configurati
 function and the `s3:objectCreated:*` events.
 
 The second possibility is to configure your S3 event more granular (like the bucket name or the event which this bucket
-should listen to and or the filters rules) with the help of key value pairs.
+should listen to) with the help of key value pairs.
 
 Take a look at the [Event syntax examples](#event-syntax-examples) below to see how you can setup S3 bucket events.
 
