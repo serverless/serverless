@@ -326,7 +326,7 @@ module.exports.hello = (event, context, cb) => {
 
 #### Custom status codes
 
-You can override the detauls status codes supplied by serverless if you need to change the default code, add/remove codes, or change the templates and selection process that dictates what code is returned.
+You can override the defaults status codes supplied by Serverless. You can use this to change the default status code, add/remove status codes, or change the templates and headers used for each status code. Use the pattern key to change the selection process that dictates what code is returned.
 
 If you specify a status code with a pattern of '' that will become the default response code. See below on how to change the default to 201 for post requests.
 
@@ -344,12 +344,38 @@ functions:
             headers:
               Content-Type: "'text/html'"
             template: $input.path('$')
-            codes:
+            statusCodes:
                 201:
                     pattern: '' # Default response method
                 409:
                     pattern: '.*"statusCode":409,.*' # JSON response
                     template: $input.path("$.errorMessage") # JSON return object
+                    headers:
+                      Content-Type: "'application/json+hal'"
+```
+
+You can also create varying response templates for each code and content type by creating an object with the key as the content type
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: post
+          path: whatever
+          response:
+            headers:
+              Content-Type: "'text/html'"
+            template: $input.path('$')
+            statusCodes:
+                201:
+                    pattern: '' # Default response method
+                409:
+                    pattern: '.*"statusCode":409,.*' # JSON response
+                    template:
+                      application/json: $input.path("$.errorMessage") # JSON return object
+                      application/xml: $input.path("$.body.errorMessage") # XML return object
                     headers:
                       Content-Type: "'application/json+hal'"
 ```
