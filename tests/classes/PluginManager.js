@@ -214,10 +214,6 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins.length).to.equal(0);
     });
 
-    it('should create an empty commandsList array', () => {
-      expect(pluginManager.commandsList.length).to.equal(0);
-    });
-
     it('should create an empty commands object', () => {
       expect(pluginManager.commands).to.deep.equal({});
     });
@@ -254,81 +250,33 @@ describe('PluginManager', () => {
     it('should convert shortcuts into options when a one level deep command matches', () => {
       const cliOptionsMock = { r: 'eu-central-1', region: 'us-east-1' };
       const cliCommandsMock = ['deploy']; // command with one level deepness
-      const commandsMock = {
-        deploy: {
-          options: {
-            region: {
-              shortcut: 'r',
-            },
+      const commandMock = {
+        options: {
+          region: {
+            shortcut: 'r',
           },
         },
       };
       pluginManager.setCliCommands(cliCommandsMock);
       pluginManager.setCliOptions(cliOptionsMock);
 
-      pluginManager.convertShortcutsIntoOptions(cliOptionsMock, commandsMock);
+      pluginManager.convertShortcutsIntoOptions(commandMock);
 
       expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.r);
-    });
-
-    it('should convert shortcuts into options when a two level deep command matches', () => {
-      const cliOptionsMock = { f: 'function-1', function: 'function-2' };
-      const cliCommandsMock = ['deploy', 'function']; // command with two level deepness
-      const commandsMock = {
-        deploy: {
-          commands: {
-            function: {
-              options: {
-                function: {
-                  shortcut: 'f',
-                },
-              },
-            },
-          },
-        },
-      };
-      pluginManager.setCliCommands(cliCommandsMock);
-      pluginManager.setCliOptions(cliOptionsMock);
-
-      pluginManager.convertShortcutsIntoOptions(cliOptionsMock, commandsMock);
-
-      expect(pluginManager.cliOptions.function).to.equal(cliOptionsMock.f);
-    });
-
-    it('should not convert shortcuts into options when the command does not match', () => {
-      const cliOptionsMock = { r: 'eu-central-1', region: 'us-east-1' };
-      const cliCommandsMock = ['foo'];
-      const commandsMock = {
-        deploy: {
-          options: {
-            region: {
-              shortcut: 'r',
-            },
-          },
-        },
-      };
-      pluginManager.setCliCommands(cliCommandsMock);
-      pluginManager.setCliOptions(cliOptionsMock);
-
-      pluginManager.convertShortcutsIntoOptions(cliOptionsMock, commandsMock);
-
-      expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.region);
     });
 
     it('should not convert shortcuts into options when the shortcut is not given', () => {
       const cliOptionsMock = { r: 'eu-central-1', region: 'us-east-1' };
       const cliCommandsMock = ['deploy'];
-      const commandsMock = {
-        deploy: {
-          options: {
-            region: {},
-          },
+      const commandMock = {
+        options: {
+          region: {},
         },
       };
       pluginManager.setCliCommands(cliCommandsMock);
       pluginManager.setCliOptions(cliOptionsMock);
 
-      pluginManager.convertShortcutsIntoOptions(cliOptionsMock, commandsMock);
+      pluginManager.convertShortcutsIntoOptions(commandMock);
 
       expect(pluginManager.cliOptions.region).to.equal(cliOptionsMock.region);
     });
@@ -344,7 +292,7 @@ describe('PluginManager', () => {
     it('should load the plugin commands', () => {
       pluginManager.addPlugin(SynchronousPluginMock);
 
-      expect(pluginManager.commandsList[0]).to.have.property('deploy');
+      expect(pluginManager.commands).to.have.property('deploy');
     });
   });
 
@@ -438,19 +386,18 @@ describe('PluginManager', () => {
       const synchronousPluginMockInstance = new SynchronousPluginMock();
       pluginManager.loadCommands(synchronousPluginMockInstance);
 
-      expect(pluginManager.commandsList[0]).to.have.property('deploy');
+      expect(pluginManager.commands).to.have.property('deploy');
     });
   });
 
   describe('#getEvents()', () => {
     beforeEach(function () { // eslint-disable-line prefer-arrow-callback
-      const synchronousPluginMockInstance = new SynchronousPluginMock();
-      pluginManager.loadCommands(synchronousPluginMockInstance);
+      pluginManager.addPlugin(SynchronousPluginMock);
     });
 
     it('should get all the matching events for a root level command in the correct order', () => {
-      const commandsArray = ['deploy'];
-      const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
+      const command = pluginManager.getCommand(['deploy']);
+      const events = pluginManager.getEvents(command);
 
       expect(events[0]).to.equal('before:deploy:resources');
       expect(events[1]).to.equal('deploy:resources');
@@ -461,8 +408,8 @@ describe('PluginManager', () => {
     });
 
     it('should get all the matching events for a nested level command in the correct order', () => {
-      const commandsArray = ['deploy', 'onpremises'];
-      const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
+      const command = pluginManager.getCommand(['deploy', 'onpremises']);
+      const events = pluginManager.getEvents(command);
 
       expect(events[0]).to.equal('before:deploy:onpremises:resources');
       expect(events[1]).to.equal('deploy:onpremises:resources');
@@ -470,13 +417,6 @@ describe('PluginManager', () => {
       expect(events[3]).to.equal('before:deploy:onpremises:functions');
       expect(events[4]).to.equal('deploy:onpremises:functions');
       expect(events[5]).to.equal('after:deploy:onpremises:functions');
-    });
-
-    it('should return an empty events array when the command is not defined', () => {
-      const commandsArray = ['foo'];
-      const events = pluginManager.getEvents(commandsArray, pluginManager.commands);
-
-      expect(events.length).to.equal(0);
     });
   });
 
@@ -500,53 +440,34 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('#validateCommands()', () => {
-    it('should throw an error if a first level command is not found in the commands object', () => {
-      pluginManager.commands = {
-        foo: {},
-      };
-      const commandsArray = ['bar'];
-
-      expect(() => { pluginManager.validateCommands(commandsArray); }).to.throw(Error);
-    });
-  });
-
   describe('#validateOptions()', () => {
-    it('should throw an error if a required option is not set in a plain commands object', () => {
+    it('should throw an error if a required option is not set', () => {
       pluginManager.commands = {
         foo: {
           options: {
-            bar: {
+            baz: {
+              shortcut: 'b',
+              required: true,
+            },
+          },
+        },
+        bar: {
+          options: {
+            baz: {
               required: true,
             },
           },
         },
       };
-      const commandsArray = ['foo'];
 
-      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+      const foo = pluginManager.commands.foo;
+      const bar = pluginManager.commands.bar;
+
+      expect(() => { pluginManager.validateOptions(foo); }).to.throw(Error);
+      expect(() => { pluginManager.validateOptions(bar); }).to.throw(Error);
     });
 
-    it('should throw an error if a required option is not set in a nested commands object', () => {
-      pluginManager.commands = {
-        foo: {
-          commands: {
-            bar: {
-              options: {
-                baz: {
-                  required: true,
-                },
-              },
-            },
-          },
-        },
-      };
-      const commandsArray = ['foo', 'bar'];
-
-      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
-    });
-
-    it('should throw an error if a customValidation is not set in a plain commands object', () => {
+    it('should throw an error if a customValidation is not met', () => {
       pluginManager.setCliOptions({ bar: 'dev' });
 
       pluginManager.commands = {
@@ -561,33 +482,9 @@ describe('PluginManager', () => {
           },
         },
       };
-      const commandsArray = ['foo'];
+      const command = pluginManager.commands.foo;
 
-      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
-    });
-
-    it('should throw an error if a customValidation is not set in a nested commands object', () => {
-      pluginManager.setCliOptions({ baz: 100 });
-
-      pluginManager.commands = {
-        foo: {
-          commands: {
-            bar: {
-              options: {
-                baz: {
-                  customValidation: {
-                    regularExpression: /^[a-zA-z¥s]+$/,
-                    errorMessage: 'Custom Error Message',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-      const commandsArray = ['foo', 'bar'];
-
-      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+      expect(() => { pluginManager.validateOptions(command); }).to.throw(Error);
     });
 
     it('should succeeds if a custom regex matches in a plain commands object', () => {
@@ -609,35 +506,27 @@ describe('PluginManager', () => {
 
       expect(() => { pluginManager.validateOptions(commandsArray); }).to.not.throw(Error);
     });
-
-    it('should succeeds if a custom regex matches in a nested commands object', () => {
-      pluginManager.setCliOptions({ baz: 'dev' });
-
-      pluginManager.commands = {
-        foo: {
-          commands: {
-            bar: {
-              options: {
-                baz: {
-                  customValidation: {
-                    regularExpression: /^[a-zA-z¥s]+$/,
-                    errorMessage: 'Custom Error Message',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-      const commandsArray = ['foo', 'bar'];
-
-      expect(() => { pluginManager.validateOptions(commandsArray); }).to.not.throw(Error);
-    });
   });
 
   describe('#run()', () => {
     it('should throw an error when the given command is not available', () => {
       pluginManager.addPlugin(SynchronousPluginMock);
+
+      const commandsArray = ['foo'];
+
+      expect(() => { pluginManager.run(commandsArray); }).to.throw(Error);
+    });
+
+    it('should throw an error when the given command has no hooks', () => {
+      class HooklessPlugin {
+        constructor() {
+          this.commands = {
+            foo: {},
+          };
+        }
+      }
+
+      pluginManager.addPlugin(HooklessPlugin);
 
       const commandsArray = ['foo'];
 
