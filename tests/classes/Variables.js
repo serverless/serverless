@@ -430,7 +430,7 @@ describe('Variables', () => {
       };
       const valueToPopulate = serverless.variables
         .getDeepValue(['custom', 'subProperty', 'deep', 'deeper'], valueToPopulateMock);
-      expect(valueToPopulate).to.deep.equal({});
+      expect(valueToPopulate).to.deep.equal(undefined);
     });
 
     it('should get deep values with variable references', () => {
