@@ -53,6 +53,25 @@ describe('Variables', () => {
       serverless.variables.populateVariable.restore();
     });
 
+    it('should call overwrite if overwrite syntax provided and first option is self', () => {
+      const serverless = new Serverless();
+      const property = 'my stage is ${self:nonExistingVariable, self:provider.stage}';
+
+      const overwriteStub = sinon
+        .stub(serverless.variables, 'overwrite').returns('dev');
+      const populateVariableStub = sinon
+        .stub(serverless.variables, 'populateVariable').returns('my stage is dev');
+
+      const newProperty = serverless.variables
+        .populateProperty(property);
+      expect(overwriteStub.called).to.equal(true);
+      expect(populateVariableStub.called).to.equal(true);
+      expect(newProperty).to.equal('my stage is dev');
+
+      serverless.variables.overwrite.restore();
+      serverless.variables.populateVariable.restore();
+    });
+
     it('should call getValueFromSource if no overwrite syntax provided', () => {
       const serverless = new Serverless();
       const property = 'my stage is ${opt:stage}';
