@@ -1,4 +1,4 @@
-![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/serverless-images/frameworkv1_readme.gif)
+![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/serverless-images/frameworkv1_readme_v2.gif)
 
 [Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups (7+)](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:hello@serverless.com)
 
