@@ -11,7 +11,7 @@ You can create a service based on a specific template that specifies which provi
 To create a service with a `nodejs` runtime running on `aws` just pass the `aws-nodejs` template to the create command:
 
 ```
-serverless create --template aws-nodejs
+serverless project create --template aws-nodejs
 ```
 
 This will create a service and generate `serverless.yml` and `handler.js` files in the current working directory.
