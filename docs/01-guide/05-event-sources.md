@@ -78,4 +78,4 @@ But what if you want to add custom provider specific resources to your service w
 
 Let's take a look at this now.
 
-[Next step > Managing custom provider resources](06-custom-provider-resources.md)
+[Next step > Managing custom provider resources](./06-custom-provider-resources.md)
