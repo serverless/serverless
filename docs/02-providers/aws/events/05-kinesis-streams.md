@@ -1,5 +1,6 @@
 <!--
 title: Kinesis Streams Event configuration
+menuText: Kinesis Streams Event config
 layout: Doc
 -->
 

@@ -1,5 +1,6 @@
 <!--
 title: Serverless Cloudformation Resource naming Reference
+menuText: Cloudformation Resource Reference
 layout: Doc
 -->
 

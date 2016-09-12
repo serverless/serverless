@@ -1,5 +1,6 @@
 <!--
 title: SNS Event configuration docs
+menuText: SNS Event config
 layout: Doc
 -->
 

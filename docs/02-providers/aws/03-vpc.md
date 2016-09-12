@@ -1,5 +1,6 @@
 <!--
 title: Serverless VPC Configuration
+menuText: VPC Configuration
 layout: Doc
 -->
 

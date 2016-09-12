@@ -1,5 +1,6 @@
 <!--
 title: Building Serverless Provider Integrations
+menuText: Building Provider Integrations
 layout: Doc
 -->
 

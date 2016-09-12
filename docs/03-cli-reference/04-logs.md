@@ -1,5 +1,6 @@
 <!--
 title: Serverless Logs CLI Command
+menuText: Logs
 description: View logs of your deployed Service
 layout: Doc
 -->

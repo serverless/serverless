@@ -1,5 +1,6 @@
 <!--
 title: Invoking Serverless Functions
+menuText: Invoking Services
 description: How to invoke a Serverless function and watch the logs
 layout: Doc
 -->

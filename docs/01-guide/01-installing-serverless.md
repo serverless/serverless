@@ -1,5 +1,6 @@
 <!--
 title: Installing Serverless
+menuText: Installation
 description: How to install Serverless
 layout: Doc
 -->

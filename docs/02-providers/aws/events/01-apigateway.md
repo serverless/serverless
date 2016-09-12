@@ -1,5 +1,6 @@
 <!--
 title: API Gateway Event configuration
+menuText: API Gateway Event config
 layout: Doc
 -->
 

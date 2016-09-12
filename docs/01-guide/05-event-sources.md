@@ -1,5 +1,6 @@
 <!--
 title: Setting up Events for your functions
+menuText: Setting up Events
 description: How to set up events triggering your functions
 layout: Doc
 -->

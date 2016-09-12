@@ -1,5 +1,6 @@
 <!--
 title: Removing Services
+menuText: Removing Services
 description: How to remove a deployed service
 layout: Doc
 -->

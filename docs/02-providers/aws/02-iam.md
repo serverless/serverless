@@ -1,5 +1,6 @@
 <!--
 title: IAM Role configuration
+menuText: IAM Role configuration
 layout: Doc
 -->
 

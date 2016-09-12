@@ -1,5 +1,6 @@
 <!--
 title: Creating custom provider resources
+menuText: Creating custom resources
 description: How to extend your
 layout: Doc
 -->
