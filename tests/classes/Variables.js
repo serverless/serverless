@@ -9,7 +9,7 @@ const Serverless = require('../../lib/Serverless');
 const sinon = require('sinon');
 const testUtils = require('../utils');
 
-describe('Service', () => {
+describe('Variables', () => {
   describe('#constructor()', () => {
     const serverless = new Serverless();
 
