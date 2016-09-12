@@ -20,7 +20,7 @@ We've just removed the whole service from our provider with a simple `serverless
 
 ## What's next?
 
-You can either dive deeper into our [Advanced Guides](./#advanced-guides) or read through the provider specific documentation we provide:
+You can either dive deeper into our [Advanced Guides](./README.md#advanced-guides) or read through the provider specific documentation we provide:
 
 * [AWS Documentation](../02-providers/aws/README.md)
 
