@@ -30,8 +30,8 @@ We encourage you to look into the source to see more details about the actual im
 
 The tracking implementation consists of two parts:
 
-1. The [tracking plugin](/lib/plugins/tracking)
-2. The `track` method you can find in the [Utils class](/lib/classes/Utils.js)
+1. The [tracking plugin](../lib/plugins/tracking)
+2. The `track` method you can find in the [Utils class](../lib/classes/Utils.js)
 
 ## How to disable it
 

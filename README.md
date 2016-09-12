@@ -6,13 +6,13 @@
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by following the [Quickstart commands](#quick-start) or reading our [Guide to Serverless](docs/01-guide)
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by following the [Quickstart commands](#quick-start) or reading our [Guide to Serverless](./docs/01-guide/README.md)
 
 ## Links
 
-* [Guide to Serverless](docs/01-guide)
+* [Guide to Serverless](./docs/01-guide/README.md)
 * [Features](#features)
-* [Documentation v.1](docs) / [v.0](http://serverless.readme.io)
+* [Documentation v.1](./docs/README.md) / [v.0](http://serverless.readme.io)
 * [Road Map](https://github.com/serverless/serverless/milestones)
 * [Contributing](#contributing)
 * [Community](#community)
@@ -20,14 +20,14 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## <a name="quick-start"></a>Quick Start
 
-Below is a quick list of commands to set up a new project. For a more in-depth look at Serverless check out the [Guide in our docs](docs/01-guide).
+Below is a quick list of commands to set up a new project. For a more in-depth look at Serverless check out the [Guide in our docs](./docs/01-guide/README.md).
 
 [Watch the video guide here](https://youtu.be/weOsx5rLWX0) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
 | **Step** | **Command** |**Description**|
 |---|-------|------|
 |  1.  | `npm install -g serverless` | Install Serverless CLI  |
-|  3.  | [Set up your Provider credentials](/docs/02-providers/aws/01-setup.md) | Connect Serverless with your provider |
+|  3.  | [Set up your Provider credentials](./docs/02-providers/aws/01-setup.md) | Connect Serverless with your provider |
 |  4.  | `serverless create --template aws-nodejs --path my-service` | Create an AWS Lamdba function in Node.js |
 |  5.  | `cd my-service` | Change into your service directory  |
 |  6.  | `serverless deploy` | Deploy to your AWS account  |
@@ -35,7 +35,7 @@ Below is a quick list of commands to set up a new project. For a more in-depth l
 
 Run `serverless remove` to clean up this function from your account.
 
-Check out our in-depth [Guide to Serverless](docs/01-guide) for more information.
+Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more information.
 
 ## <a name="features"></a>Features
 
@@ -114,7 +114,7 @@ These consultants use the Serverless Framework and can help you build your serve
 
 # Previous Serverless Version 0.5.x
 
-Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](docs/developing-plugins)
+Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](./docs/04-extending-serverless/01-creating-plugins.md)
 
 You can read the v0.5.x documentation at [readme.io](https://serverless.readme.io/v0.5.0/docs).
 

@@ -62,4 +62,4 @@ It gives you access to the whole feature set your provider offers and makes Serv
 
 The last thing we need to learn is how we can remove our service. Let's take a look at this now.
 
-[Next step > Removing your service](07-removing-services.md)
+[Next step > Removing your service](./07-removing-services.md)
