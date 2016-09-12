@@ -22,17 +22,7 @@
               "logs:CreateLogStream",
               "logs:PutLogEvents"
             ],
-            "Resource": {
-              "Fn:Join": [
-                ":",
-                [
-                  "arn:aws:logs",
-                  { "Ref": "AWS::Region" },
-                  { "Ref": "AWS::AccountId" },
-                  "log-group:/aws/lambda/*:*:*"
-                ]
-              ]
-            }
+            "Resource": []
           }
         ]
       },
