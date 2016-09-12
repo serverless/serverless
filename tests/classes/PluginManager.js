@@ -240,7 +240,7 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('#setCliCOmmands()', () => {
+  describe('#setCliCommands()', () => {
     it('should set the cliCommands array', () => {
       const commands = ['foo', 'bar'];
       pluginManager.setCliCommands(commands);
