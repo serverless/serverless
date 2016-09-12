@@ -1,5 +1,6 @@
 <!--
 title: Deploying Serverless Services
+menuText: Deploying Services
 layout: Doc
 -->
 

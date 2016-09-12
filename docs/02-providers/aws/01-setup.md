@@ -1,5 +1,6 @@
 <!--
 title: AWS Authentication Setup
+menuText: AWS Authentication Setup
 layout: Doc
 -->
 

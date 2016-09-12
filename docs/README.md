@@ -1,5 +1,6 @@
 <!--
 title: Serverless Framework Documentation
+menuText: Docs
 layout: Doc
 -->
 

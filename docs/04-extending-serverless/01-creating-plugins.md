@@ -1,5 +1,6 @@
 <!--
 title: Building Serverless Plugins
+menuText: Building Plugins
 layout: Doc
 -->
 

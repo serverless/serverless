@@ -1,5 +1,6 @@
 <!--
 title: Serverless Hello World Example
+menuText: Hello World Example
 description: Example of creating a hello world function in NodeJS and Python with the serverless framework
 layout: Doc
 -->

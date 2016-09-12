@@ -1,5 +1,6 @@
 <!--
 title: Installing Serverless Plugins
+menuText: Installing Plugins
 layout: Doc
 -->
 

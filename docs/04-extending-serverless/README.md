@@ -1,5 +1,6 @@
 <!--
-title: Developing plugins
+title: Developing serverless plugins
+menuText: Developing plugins
 layout: Doc
 -->
 

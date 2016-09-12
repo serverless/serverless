@@ -1,5 +1,6 @@
 <!--
 title: Including/Excluding files from packaging
+menuText: Packaging Services
 layout: Doc
 -->
 
