@@ -10,13 +10,19 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## Links
 
-* [Guide to Serverless](./docs/01-guide/README.md)
-* [Features](#features)
-* [Documentation v.1](./docs/README.md) / [v.0](http://serverless.readme.io)
-* [Road Map](https://github.com/serverless/serverless/milestones)
-* [Contributing](#contributing)
-* [Community](#community)
-* [Changelog](https://github.com/serverless/serverless/releases)
+[Guide to Serverless](./docs/01-guide/README.md)
+
+[Features](#features)
+
+[Documentation v.1](./docs/README.md) / [v.0](http://serverless.readme.io)
+
+[Road Map](https://github.com/serverless/serverless/milestones)
+
+[Contributing](#contributing)
+
+[Community](#community)
+
+[Changelog](https://github.com/serverless/serverless/releases)
 
 ## <a name="quick-start"></a>Quick Start
 
