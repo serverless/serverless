@@ -7,7 +7,7 @@ layout: Doc
 
 # Hello World Node.js
 
-Make sure serverless is installed. [See installation guide](/../docs/01-guide/01-installing-serverless.md)
+Make sure serverless is installed. [See installation guide](/docs/01-guide/01-installing-serverless.md)
 
 ## 1. Deploy
 

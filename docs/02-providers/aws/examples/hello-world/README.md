@@ -11,5 +11,6 @@ Welcome to the hello world serverless example.
 
 We are excited for you to start your serverless journey!
 
-* [Javascript](/node)
-* [Python](/python)
+* [Javascript](./node)
+* [Python](./python)
+
