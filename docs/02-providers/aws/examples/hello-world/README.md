@@ -7,4 +7,9 @@ layout: Doc
 
 # Hello World Example
 
-This is an example of how to create and deploy your first serverless function
+Welcome to the hello world serverless example.
+
+We are excited for you to start your serverless journey!
+
+* [Javascript](/node)
+* [Python](/python)
