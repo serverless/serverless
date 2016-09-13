@@ -90,4 +90,4 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 You may also take a closer look at the corresponding plugin code to get a deeper knowledge about what's going on behind the scenes.
 
-The full AWS integration can be found in [`lib/plugins/aws`](../../lib/plugins/aws).
+The full AWS integration can be found in [`lib/plugins/aws`](https://github.com/serverless/serverless/tree/master/lib/plugins/aws).
