@@ -41,4 +41,4 @@ You can also check out the [deploy command docs](../03-cli-reference/02-deploy.m
 
 We've just deployed our service! Let's invoke the services function in the next step.
 
-[Next step > Invoking a function](./04-invoking-functions.md)
+[Next step > Invoking a function](../04-invoking-functions.md)
