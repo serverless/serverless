@@ -19,7 +19,7 @@ Infrastructure provider plugins should bind to specific lifecycle events of the 
 
 ### Deployment lifecycle
 
-Let's take a look at the [core `deploy` plugin](../../lib/plugins/deploy) and the different lifecycle hooks it provides.
+Let's take a look at the [core `deploy` plugin](https://github.com/serverless/serverless/tree/master/lib/plugins/deploy) and the different lifecycle hooks it provides.
 
 The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
 
