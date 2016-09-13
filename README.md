@@ -19,7 +19,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 * [Contributing](#contributing)
 * [Community](#community)
 * [Changelog](https://github.com/serverless/serverless/releases)
-* [Fill out the 'State of the State of Serverless Community Survey'](https://docs.google.com/forms/d/e/1FAIpQLSf-lMDMR22Bg56zUh71MJ9aH8N0In3s2PdZFrGRJzwZ0ul7rA/viewform)
+* [Fill out the 'State of Serverless Community Survey'](https://docs.google.com/forms/d/e/1FAIpQLSf-lMDMR22Bg56zUh71MJ9aH8N0In3s2PdZFrGRJzwZ0ul7rA/viewform)
 
 ## <a name="quick-start"></a>Quick Start
 
