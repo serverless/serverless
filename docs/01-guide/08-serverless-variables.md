@@ -6,6 +6,7 @@ layout: Doc
 -->
 
 # Serverless Variables
+
 The Serverless framework provides a powerful variable system to give your `serverless.yml` configuration file extra flexibility. With Serverless Variables, you'll be able to do the following:
 
 - Reference & load variables from environment variables
