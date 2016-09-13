@@ -3,6 +3,8 @@
 const path = require('path');
 const os = require('os');
 const expect = require('chai').expect;
+const fse = require('fs-extra');
+const fs = require('fs');
 const Serverless = require('../../lib/Serverless');
 const testUtils = require('../../tests/utils');
 
@@ -213,6 +215,41 @@ describe('Utils', () => {
       // always switch back to the test directory
       // so that we have a clean state
       process.chdir(testDir);
+    });
+  });
+
+  describe('#track()', () => {
+    let serverlessPath;
+
+    beforeEach(() => {
+      serverless.init();
+
+      const tmpDirPath = testUtils.getTmpDirPath();
+      fse.mkdirsSync(tmpDirPath);
+
+      serverlessPath = tmpDirPath;
+      serverless.config.serverlessPath = tmpDirPath;
+    });
+
+    it('should create a new file with a tracking id if not found', () => {
+      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
+
+      return serverless.utils.track(serverless).then(() => {
+        expect(fs.readFileSync(trackingIdFilePath).toString().length).to.be.above(1);
+      });
+    });
+
+    it('should re-use an existing file which contains the tracking id if found', () => {
+      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
+      const trackingId = 'some-tracking-id';
+
+      // create a new file with a tracking id
+      fse.ensureFileSync(trackingIdFilePath);
+      fs.writeFileSync(trackingIdFilePath, trackingId);
+
+      return serverless.utils.track(serverless).then(() => {
+        expect(fs.readFileSync(trackingIdFilePath).toString()).to.be.equal(trackingId);
+      });
     });
   });
 });
