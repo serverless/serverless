@@ -11,11 +11,9 @@ Let's start by installing Node.js and Serverless.
 
 ## Installing Node.js
 
-Serverless is a [Node.js](https://nodejs.org) CLI tool so the first thing you need to do is to install Node.js on your
-machine.
+Serverless is a [Node.js](https://nodejs.org) CLI tool so the first thing you need to do is to install Node.js on your machine.
 
-Go to the official [Node.js website](https://nodejs.org), download and follow the
-[installation instructions](https://nodejs.org/en/download/) to install Node.js on your local machine.
+Go to the official [Node.js website](https://nodejs.org), download and follow the [installation instructions](https://nodejs.org/en/download/) to install Node.js on your local machine.
 
 **Note:** Serverless runs on Node v4 or higher. So make sure that you pick a recent Node version.
 
