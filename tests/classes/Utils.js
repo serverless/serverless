@@ -224,11 +224,33 @@ describe('Utils', () => {
     beforeEach(() => {
       serverless.init();
 
+      // create a new tmpDir for the serverlessPath
       const tmpDirPath = testUtils.getTmpDirPath();
       fse.mkdirsSync(tmpDirPath);
 
       serverlessPath = tmpDirPath;
       serverless.config.serverlessPath = tmpDirPath;
+
+      // add some mock data to the serverless service object
+      serverless.service.functions = {
+        foo: {
+          memorySize: 47,
+          timeout: 11,
+          events: [
+            {
+              http: 'GET foo',
+            },
+          ],
+        },
+        bar: {
+          events: [
+            {
+              http: 'GET foo',
+              s3: 'someBucketName',
+            },
+          ],
+        },
+      };
     });
 
     it('should create a new file with a tracking id if not found', () => {
