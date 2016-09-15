@@ -53,13 +53,13 @@ After deploying your service you should see the URL for your http endpoint in th
 
 ```bash
 endpoints:
-  GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
+  GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/greet
 ```
 
 We can now simply call it:
 
 ```bash
-$ curl https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
+$ curl https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/greet
 {"message":"Go Serverless v1.0! Your function executed successfully!"}
 ```
 
