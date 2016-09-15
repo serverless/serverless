@@ -2,16 +2,7 @@
   "IamPolicyLambdaExecution": {
     "Type": "AWS::IAM::Policy",
     "Properties": {
-      "PolicyName": {
-        "Fn:Join": [
-          "-",
-          [
-            "${opt:stage}",
-            "${self:service}",
-            "lambda"
-          ]
-        ]
-      },
+      "PolicyName": "",
       "PolicyDocument": {
         "Version": "2012-10-17",
         "Statement": [
