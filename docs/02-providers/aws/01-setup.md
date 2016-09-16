@@ -105,4 +105,4 @@ custom:
 With the account setup in place Serverless is now able to create and manage resources on our behalf.
 Now it's time to start with our first Serverless service.
 
-[Next step > Creating a service](creating-a-service.md)
+[Next step > Creating a service](../../01-guide/02-creating-services.md)
