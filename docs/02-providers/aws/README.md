@@ -31,6 +31,7 @@ provider:
 functions:
   hello:
     name: ${self:provider.stage}-lambdaName # Deployed Lambda name
+    description: Description of what the lambda function does # Description to publish to AWS
     handler: handler.hello # handler set in AWS Lambda
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
