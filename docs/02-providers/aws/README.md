@@ -23,6 +23,13 @@ provider:
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+  stackTags: # Optional CF stack tags
+   key: value
+  stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except for the ProductionDatabase (use with caution!)
+    - Effect: Allow
+      Action: "Update:*"
+      Principal: "*"
+      NotResource" : LogicalResourceId/ProductionDatabase
 ```
 
 ### Deployment S3Bucket
