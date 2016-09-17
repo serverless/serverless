@@ -25,11 +25,9 @@ provider:
   deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
   stackTags: # Optional CF stack tags
    key: value
-  stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except for the ProductionDatabase (use with caution!)
-    - Effect: Allow
-      Action: "Update:*"
-      Principal: "*"
-      NotResource" : LogicalResourceId/ProductionDatabase
+  stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
+    - {Effect: Allow, Principal: "*", Action: "Update:*", Resource: "*"}
+    - {Effect: Deny, Principal: "*", Action: [Update:Replace, Update:Delete], Condition: {StringEquals: {ResourceType: [AWS::EC2::Instance]}}}
 ```
 
 ### Deployment S3Bucket
