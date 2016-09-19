@@ -311,6 +311,51 @@ class Deploy {
 module.exports = Deploy;
 ```
 
+#### Custom validations for options
+
+You can provide a custom validation rule in form of a regular expression for your option. Serverless will raise an error
+you can specify if the input for the option does not match the regular expression.
+
+In the following example we'll validate the `retries` option against a regular expression that checks if the value is a number.
+
+```javascript
+'use strict';
+
+class Deploy {
+  constructor(serverless, options) {
+    this.serverless = serverless;
+    this.options = options;
+
+    this.commands = {
+      deploy: {
+        lifecycleEvents: [
+          'functions'
+        ],
+        options: {
+          retries: {
+            usage: 'Number of retries which should be performed',
+            customValidation: {
+              regularExpression: /^[0-9]+$/,
+              errorMessage: 'Retries should be a number',
+            },
+          }
+        }
+      },
+    };
+
+    this.hooks = {
+      'deploy:functions': this.deployFunction.bind(this)
+    }
+  }
+
+  deployFunction() {
+    console.log(`Deploying function... Will retry ${this.options.retries} times`);
+  }
+}
+
+module.exports = Deploy;
+```
+
 ## Provider specific plugins
 
 Plugins can be provider specific which means that they are bound to a provider.
