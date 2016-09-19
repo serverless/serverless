@@ -5,6 +5,7 @@
     "./deploy/deploy.js",
     "./invoke/invoke.js",
     "./info/info.js",
+    "./install",
     "./logs/logs.js",
     "./remove/remove.js",
     "./tracking/tracking.js",
