@@ -7,7 +7,7 @@ layout: Doc
 
 # Deploy
 
-Deploys your service.
+Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.
 
 ```
 serverless deploy [function]
