@@ -37,6 +37,19 @@ describe('Utils', () => {
     });
   });
 
+  describe('#writeFileDir()', () => {
+    it('should create a directory for the path of the given file', () => {
+      const tmpDirPath = testUtils.getTmpDirPath();
+      const rootDir = serverless.utils
+        .writeFileDir(path.join(tmpDirPath, 'foo', 'bar', 'somefile.js'));
+
+      expect(serverless.utils.dirExistsSync(path.join(rootDir, 'foo', 'bar'))).to.equal(true);
+      // it should only create the directories and not the file
+      expect(serverless.utils.fileExistsSync(path.join(rootDir, 'foo', 'bar', 'somefile.js')))
+        .to.equal(false);
+    });
+  });
+
   describe('#writeFileSync()', () => {
     it('should write a .json file synchronously', () => {
       const tmpFilePath = testUtils.getTmpFilePath('anything.json');
@@ -216,4 +229,3 @@ describe('Utils', () => {
     });
   });
 });
-
