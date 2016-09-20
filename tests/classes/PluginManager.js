@@ -6,10 +6,10 @@ const Serverless = require('../../lib/Serverless');
 const Create = require('../../lib/plugins/create/create');
 
 const path = require('path');
-const os = require('os');
 const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const mockRequire = require('mock-require');
+const testUtils = require('../../tests/utils');
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -240,7 +240,7 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('#setCliCOmmands()', () => {
+  describe('#setCliCommands()', () => {
     it('should set the cliCommands array', () => {
       const commands = ['foo', 'bar'];
       pluginManager.setCliCommands(commands);
@@ -544,6 +544,94 @@ describe('PluginManager', () => {
 
       expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
     });
+
+    it('should throw an error if a customValidation is not set in a plain commands object', () => {
+      pluginManager.setCliOptions({ bar: 'dev' });
+
+      pluginManager.commands = {
+        foo: {
+          options: {
+            bar: {
+              customValidation: {
+                regularExpression: /^[0-9]+$/,
+                errorMessage: 'Custom Error Message',
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+    });
+
+    it('should throw an error if a customValidation is not set in a nested commands object', () => {
+      pluginManager.setCliOptions({ baz: 100 });
+
+      pluginManager.commands = {
+        foo: {
+          commands: {
+            bar: {
+              options: {
+                baz: {
+                  customValidation: {
+                    regularExpression: /^[a-zA-z¥s]+$/,
+                    errorMessage: 'Custom Error Message',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo', 'bar'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.throw(Error);
+    });
+
+    it('should succeeds if a custom regex matches in a plain commands object', () => {
+      pluginManager.setCliOptions({ bar: 100 });
+
+      pluginManager.commands = {
+        foo: {
+          options: {
+            bar: {
+              customValidation: {
+                regularExpression: /^[0-9]+$/,
+                errorMessage: 'Custom Error Message',
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.not.throw(Error);
+    });
+
+    it('should succeeds if a custom regex matches in a nested commands object', () => {
+      pluginManager.setCliOptions({ baz: 'dev' });
+
+      pluginManager.commands = {
+        foo: {
+          commands: {
+            bar: {
+              options: {
+                baz: {
+                  customValidation: {
+                    regularExpression: /^[a-zA-z¥s]+$/,
+                    errorMessage: 'Custom Error Message',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const commandsArray = ['foo', 'bar'];
+
+      expect(() => { pluginManager.validateOptions(commandsArray); }).to.not.throw(Error);
+    });
   });
 
   describe('#run()', () => {
@@ -679,7 +767,7 @@ describe('PluginManager', () => {
     serverlessInstance.init();
     const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
       '..', 'bin', 'serverless');
-    const tmpDir = path.join(os.tmpdir(), (new Date()).getTime().toString());
+    const tmpDir = testUtils.getTmpDirPath();
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();
     process.chdir(tmpDir);
@@ -688,8 +776,6 @@ describe('PluginManager', () => {
 
     expect(serverlessInstance.utils
       .fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.equal(true);
-    expect(serverlessInstance.utils
-      .fileExistsSync(path.join(tmpDir, 'serverless.env.yml'))).to.equal(true);
     expect(serverlessInstance.utils
       .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.equal(true);
 

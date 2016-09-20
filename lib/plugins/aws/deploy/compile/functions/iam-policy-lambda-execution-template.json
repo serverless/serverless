@@ -1,0 +1,27 @@
+{
+  "IamPolicyLambdaExecution": {
+    "Type": "AWS::IAM::Policy",
+    "Properties": {
+      "PolicyName": "",
+      "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents"
+            ],
+            "Resource": ""
+          }
+        ]
+      },
+      "Roles": [
+        {
+          "Ref": "IamRoleLambdaExecution"
+        }
+      ]
+    }
+  }
+}
