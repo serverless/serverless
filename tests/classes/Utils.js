@@ -5,7 +5,13 @@ const os = require('os');
 const expect = require('chai').expect;
 const Serverless = require('../../lib/Serverless');
 const testUtils = require('../../tests/utils');
+const BbPromise = require('bluebird');
+const fse = BbPromise.promisifyAll(require('fs-extra'));
 
+const writeFileSync = (filePath, contents) => {
+  fse.mkdirsSync(path.dirname(filePath));
+  return fse.writeFileSync(filePath, contents);
+};
 const serverless = new Serverless();
 
 describe('Utils', () => {
@@ -106,6 +112,33 @@ describe('Utils', () => {
       const obj = serverless.utils.readFileSync(tmpFilePath);
 
       expect(obj.foo).to.equal('bar');
+    });
+
+    it('should read a filename extension .yml', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = serverless.utils.readFileSync(tmpFilePath);
+
+      expect(obj.foo).to.equal('bar');
+    });
+
+    it('should read a filename extension .yaml', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yaml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = serverless.utils.readFileSync(tmpFilePath);
+
+      expect(obj.foo).to.equal('bar');
+    });
+
+    it('should throw YAMLException with filename if yml file is invalid format', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('invalid.yml');
+      const contents = ': a';
+      writeFileSync(tmpFilePath, contents);
+      expect(() => {
+        serverless.utils.readFileSync(tmpFilePath);
+      }).to.throw(new RegExp(`in "${tmpFilePath}"`));
     });
   });
 
