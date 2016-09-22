@@ -5,13 +5,7 @@ const os = require('os');
 const expect = require('chai').expect;
 const Serverless = require('../../lib/Serverless');
 const testUtils = require('../../tests/utils');
-const BbPromise = require('bluebird');
-const fse = BbPromise.promisifyAll(require('fs-extra'));
 
-const writeFileSync = (filePath, contents) => {
-  fse.mkdirsSync(path.dirname(filePath));
-  return fse.writeFileSync(filePath, contents);
-};
 const serverless = new Serverless();
 
 describe('Utils', () => {
@@ -134,8 +128,9 @@ describe('Utils', () => {
 
     it('should throw YAMLException with filename if yml file is invalid format', () => {
       const tmpFilePath = testUtils.getTmpFilePath('invalid.yml');
-      const contents = ': a';
-      writeFileSync(tmpFilePath, contents);
+
+      serverless.utils.writeFileSync(tmpFilePath, ': a');
+
       expect(() => {
         serverless.utils.readFileSync(tmpFilePath);
       }).to.throw(new RegExp(`in "${tmpFilePath}"`));
