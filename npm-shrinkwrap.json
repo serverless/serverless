@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "dependencies": {
     "abbrev": {
       "version": "1.0.9",
@@ -113,6 +113,11 @@
       "version": "1.5.2",
       "from": "async@>=1.5.2 <2.0.0",
       "resolved": "https://registry.npmjs.org/async/-/async-1.5.2.tgz"
+    },
+    "asynckit": {
+      "version": "0.4.0",
+      "from": "asynckit@>=0.4.0 <0.5.0",
+      "resolved": "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz"
     },
     "aws-sdk": {
       "version": "2.5.3",
@@ -521,6 +526,11 @@
       "from": "figures@>=1.3.5 <2.0.0",
       "resolved": "https://registry.npmjs.org/figures/-/figures-1.7.0.tgz"
     },
+    "file-entry-cache": {
+      "version": "2.0.0",
+      "from": "file-entry-cache@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/file-entry-cache/-/file-entry-cache-2.0.0.tgz"
+    },
     "find-up": {
       "version": "1.1.2",
       "from": "find-up@>=1.0.0 <2.0.0",
@@ -885,11 +895,6 @@
       "from": "lcid@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/lcid/-/lcid-1.0.0.tgz"
     },
-    "lcov-parse": {
-      "version": "0.0.6",
-      "from": "lcov-parse@0.0.6",
-      "resolved": "https://registry.npmjs.org/lcov-parse/-/lcov-parse-0.0.6.tgz"
-    },
     "levn": {
       "version": "0.3.0",
       "from": "levn@>=0.3.0 <0.4.0",
@@ -979,11 +984,6 @@
       "version": "3.1.2",
       "from": "lodash.keys@>=3.0.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/lodash.keys/-/lodash.keys-3.1.2.tgz"
-    },
-    "log-driver": {
-      "version": "1.2.4",
-      "from": "log-driver@1.2.4",
-      "resolved": "https://registry.npmjs.org/log-driver/-/log-driver-1.2.4.tgz"
     },
     "lolex": {
       "version": "1.3.2",
@@ -1586,16 +1586,6 @@
       "version": "1.0.2",
       "from": "uglify-to-browserify@>=1.0.0 <1.1.0",
       "resolved": "https://registry.npmjs.org/uglify-to-browserify/-/uglify-to-browserify-1.0.2.tgz"
-    },
-    "underscore": {
-      "version": "1.7.0",
-      "from": "underscore@>=1.7.0 <1.8.0",
-      "resolved": "https://registry.npmjs.org/underscore/-/underscore-1.7.0.tgz"
-    },
-    "underscore.string": {
-      "version": "2.4.0",
-      "from": "underscore.string@>=2.4.0 <2.5.0",
-      "resolved": "https://registry.npmjs.org/underscore.string/-/underscore.string-2.4.0.tgz"
     },
     "uri-js": {
       "version": "2.1.1",
