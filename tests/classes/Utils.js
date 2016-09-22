@@ -107,6 +107,34 @@ describe('Utils', () => {
 
       expect(obj.foo).to.equal('bar');
     });
+
+    it('should read a filename extension .yml', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = serverless.utils.readFileSync(tmpFilePath);
+
+      expect(obj.foo).to.equal('bar');
+    });
+
+    it('should read a filename extension .yaml', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yaml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = serverless.utils.readFileSync(tmpFilePath);
+
+      expect(obj.foo).to.equal('bar');
+    });
+
+    it('should throw YAMLException with filename if yml file is invalid format', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('invalid.yml');
+
+      serverless.utils.writeFileSync(tmpFilePath, ': a');
+
+      expect(() => {
+        serverless.utils.readFileSync(tmpFilePath);
+      }).to.throw(new RegExp(`in "${tmpFilePath}"`));
+    });
   });
 
   describe('#readFile()', () => {
