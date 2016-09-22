@@ -1,7 +1,7 @@
 version: '2'
 services:
   serverless-node:
-    image: node:5.11.1
+    image: node:latest
     working_dir: /app
     volumes:
       - .:/app
