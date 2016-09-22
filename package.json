@@ -77,6 +77,7 @@
     "replaceall": "^0.1.6",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
-    "traverse": "^0.6.6"
+    "traverse": "^0.6.6",
+    "uuid": "^2.0.2"
   }
 }

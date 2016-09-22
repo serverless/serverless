@@ -14,16 +14,7 @@ of our users to improve Serverless in future releases. However you can always [d
 Our main goal is anonymity while tracking usage behavior. All the data is anonymized and won't reveal who you are or what
 the project you're working on is / looks like.
 
-Here's a list about all the information we track:
-- Entered command(s)
-- Operating system
-- Loaded plugins
-- Serverless version
-- Number of functions inside your service
-- Total number of events inside your service
-- Event types and how often they were defined
-- Provider of your service
-- If the command was executed inside a service
+Please take a look at the [`track()` method](../lib/classes/Utils.js) in the `Utils` class to see what (and how) we track.
 
 ## How tracking is implemented
 
