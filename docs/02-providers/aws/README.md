@@ -22,7 +22,7 @@ provider:
   runtime: nodejs4.3 # Runtime used for all functions in this provider
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
-  bucketName: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+  deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
   variableSyntax: '\${{([\s\S]+?)}}' # Overwrite the default "${}" variable syntax to be "${{}}" instead. This can be helpful if you want to use "${}" as a string without using it as a variable.
 ```
 
