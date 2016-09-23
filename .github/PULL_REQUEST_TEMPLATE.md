@@ -26,10 +26,10 @@ to make it easy for us to verify this works. The easier you make it for us
 to review a PR, the faster we can review and merge it.
 
 Examples:
-* Fully functioning serverless.yml to easily deploy changes
-* Screenshot showing the difference between your output and the master
-* AWS CLI commands to list AWS resources and show that the correct config is in place
-* Anything else that comes to mind to help us evaluate
+* serverless.yml - Fully functioning to easily deploy changes
+* Screenshots - Showing the difference between your output and the master
+* AWS CLI commands - To list AWS resources and show that the correct config is in place
+* Other - Anything else that comes to mind to help us evaluate
 -->
 
 
