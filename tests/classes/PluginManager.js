@@ -10,6 +10,7 @@ const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const mockRequire = require('mock-require');
 const testUtils = require('../../tests/utils');
+const os = require('os');
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -765,8 +766,11 @@ describe('PluginManager', () => {
   describe('Plugin/CLI integration', () => {
     const serverlessInstance = new Serverless();
     serverlessInstance.init();
-    const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
-      '..', 'bin', 'serverless');
+
+    // Cannot rely on shebang in severless.js to invoke script using NodeJS on Windows.
+    const execPrefix = os.platform() === 'win32' ? 'node ' : '';
+    const serverlessExec = execPrefix + path.join(serverlessInstance.config.serverlessPath,
+            '..', 'bin', 'serverless');
     const tmpDir = testUtils.getTmpDirPath();
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();
