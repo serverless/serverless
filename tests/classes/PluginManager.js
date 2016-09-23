@@ -763,7 +763,7 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('Plugin/CLI integration', () => {
+  it('Plugin/CLI integration', () => {
     const serverlessInstance = new Serverless();
     serverlessInstance.init();
 
