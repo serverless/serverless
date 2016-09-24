@@ -9,8 +9,17 @@ This plugin creates a deployment package on a per service basis (it will zip up 
 It will zip the whole service directory. The artifact will be stored in the `.serverless` directory which will be created
 upon zipping the service. The resulting path to the artifact will be appended to the `service.package.artifact` property.
 
-The services `include` and `exclude` arrays are considered during zipping. At first the `exclude` will be applied. After
-that the `include` will be applied to ensure that previously excluded files and folders can be included again.
+Services can use `exclude` as an array. The array should be a series of
+globs to be considered for exclusion.
+
+For example in serverless.yaml:
+
+``` yaml
+package:
+  exclude:
+    - "test/**"
+    - "**/spec.js"
+```
 
 Serverless will automatically exclude `.git`, `.gitignore`, `serverless.yml`, and `.DS_Store`.
 
