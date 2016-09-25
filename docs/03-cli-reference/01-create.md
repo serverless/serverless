@@ -16,6 +16,7 @@ serverless create --template aws-nodejs
 ## Options
 - `--template` or `-t` The name of your new service. **Required**.
 - `--path` or `-p` The path where the service should be created.
+- `--name` or `-n` the name of the service in `serverless.yml`.
 
 ## Provided lifecycle events
 - `create:create`
@@ -36,7 +37,7 @@ Most commonly used templates:
 ### Creating a new service
 
 ```
-serverless create --template aws-nodejs
+serverless create --template aws-nodejs --name my-special-service
 ```
 
 This example will generate scaffolding for a service with `AWS` as a provider and `nodejs` as runtime. The scaffolding
