@@ -26,8 +26,19 @@ provider:
   stackTags: # Optional CF stack tags
    key: value
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
-    - {Effect: Allow, Principal: "*", Action: "Update:*", Resource: "*"}
-    - {Effect: Deny, Principal: "*", Action: [Update:Replace, Update:Delete], Condition: {StringEquals: {ResourceType: [AWS::EC2::Instance]}}}
+    - Effect: Allow
+      Principal: "*"
+      Action: "Update:*"
+      Resource: "*"
+    - Effect: Deny
+      Principal: "*"
+      Action:
+        - Update:Replace
+        - Update:Delete
+      Condition:
+        StringEquals:
+          ResourceType:
+            - AWS::EC2::Instance
 ```
 
 ### Deployment S3Bucket
