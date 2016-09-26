@@ -17,7 +17,7 @@ describe('CLI', () => {
   let cli;
   let serverless;
 
-  beforeEach(() => {
+  beforeEach(function () { // eslint-disable-line prefer-arrow-callback
     serverless = new Serverless({});
   });
 
@@ -269,7 +269,7 @@ describe('CLI', () => {
   });
 
   describe('integration tests', () => {
-    before(() => {
+    before(function () {
       const tmpDir = testUtils.getTmpDirPath();
 
       this.cwd = process.cwd();
@@ -287,7 +287,7 @@ describe('CLI', () => {
         '..', 'bin', 'serverless');
     });
 
-    after(() => {
+    after(function () { // eslint-disable-line prefer-arrow-callback
       process.chdir(this.cwd);
     });
 
