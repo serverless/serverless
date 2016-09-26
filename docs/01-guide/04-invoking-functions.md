@@ -1,5 +1,6 @@
 <!--
 title: Invoking Serverless Functions
+menuText: Invoking Services
 description: How to invoke a Serverless function and watch the logs
 layout: Doc
 -->
@@ -47,4 +48,4 @@ A service with functions alone is just the beginning. Event sources provide a re
 
 Let's take a closer look at how we can use different event sources and attach them to our function.
 
-[Next step > Event sources](05-event-sources.md)
+[Next step > Event sources](./05-event-sources.md)

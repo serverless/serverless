@@ -1,5 +1,6 @@
 <!--
 title: Serverless Invoke CLI Command
+menuText: Invoke
 description: Invoke a function in your deployed service
 layout: Doc
 -->

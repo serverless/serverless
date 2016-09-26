@@ -1,5 +1,6 @@
 <!--
 title: Setting up Events for your functions
+menuText: Setting up Events
 description: How to set up events triggering your functions
 layout: Doc
 -->
@@ -50,14 +51,14 @@ Let's test our deployed HTTP endpoint.
 
 After deploying your service you should see the URL for your http endpoint in the terminal:
 
-```
+```bash
 endpoints:
   GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
 ```
 
 We can now simply call it:
 
-```
+```bash
 $ curl https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
 {"message":"Go Serverless v1.0! Your function executed successfully!"}
 ```
@@ -67,7 +68,7 @@ You've successfully executed the function through the HTTP endpoint!
 Serverless provides more than just a HTTP event source. You can find the full list of all available event sources with
 corresponding examples in the provider specific docs:
 
-* [AWS event documentation](../02-providers/aws/events).
+* [AWS event documentation](../02-providers/aws/events/README.md).
 
 ## Conclusion
 
@@ -78,4 +79,4 @@ But what if you want to add custom provider specific resources to your service w
 
 Let's take a look at this now.
 
-[Next step > Managing custom provider resources](06-custom-provider-resources.md)
+[Next step > Managing custom provider resources](./06-custom-provider-resources.md)

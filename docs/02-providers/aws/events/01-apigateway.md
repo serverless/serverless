@@ -1,5 +1,6 @@
 <!--
 title: API Gateway Event configuration
+menuText: API Gateway Event config
 layout: Doc
 -->
 
@@ -348,7 +349,7 @@ resources:
       Properties:
         ParentId:
           Fn::GetAtt:
-            - RestApiApigEvent # our default Rest API logical ID
+            - ApiGatewayRestApi # our default Rest API logical ID
             - RootResourceId
         PathPart: serverless # the endpoint in your API that is set as proxy
         RestApiId:

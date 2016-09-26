@@ -1,5 +1,6 @@
 <!--
 title: Serverless Framework Getting Started Guide
+menuText: Getting Started
 layout: Doc
 -->
 
@@ -13,15 +14,15 @@ We always try to make our documentation better, so if you have feedback on the G
 
 ## Getting started
 
-- [Installing Serverless](01-installing-serverless.md)
-- [Creating a service](02-creating-services.md)
-- [Deploying a service](03-deploying-services.md)
-- [Invoking a function](04-invoking-functions.md)
-- [Event sources](05-event-sources.md)
-- [Custom provider resources](06-custom-provider-resources.md)
-- [Removing a service](07-removing-services.md)
+- [Installing Serverless](./01-installing-serverless.md)
+- [Creating a service](./02-creating-services.md)
+- [Deploying a service](./03-deploying-services.md)
+- [Invoking a function](./04-invoking-functions.md)
+- [Event sources](./05-event-sources.md)
+- [Custom provider resources](./06-custom-provider-resources.md)
+- [Removing a service](./07-removing-services.md)
 
 ## Advanced Guides
-- [Serverless Variables](08-serverless-variables.md)
-- [Installing plugins](09-installing-plugins.md)
+- [Serverless Variables](./08-serverless-variables.md)
+- [Installing plugins](./09-installing-plugins.md)
 - [Including/Excluding files for deployment](./10-packaging.md)

@@ -1,5 +1,6 @@
 <!--
 title: Serverless Deploy CLI Command
+menuText: Deploy
 description: Deploy your service to the specified provider
 layout: Doc
 -->

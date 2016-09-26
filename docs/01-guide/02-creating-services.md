@@ -1,5 +1,6 @@
 <!--
 title: Creating Serverless Services
+menuText: Creating Services
 description: Creating a Serverless Service
 layout: Doc
 -->

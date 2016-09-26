@@ -1,13 +1,14 @@
 <!--
 title: Serverless AWS Documentation
+menuText: AWS Documentation
 layout: Doc
 -->
 
 # Serverless AWS Documentation
 
-Check out the [Getting started guide](../../01-guide) and the [CLI reference](../../03-cli-reference) for an introduction to Serverless.
+Check out the [Getting started guide](../../01-guide/README.md) and the [CLI reference](../../03-cli-reference/README.md) for an introduction to Serverless.
 
-## [Setup and configuration](./01-setup.md)
+## Setup and configuration
 
 Please follow these [setup instructions](./01-setup.md) to start using AWS Lambda and serverless together
 
@@ -36,8 +37,8 @@ functions:
 ```
 
 ## General Configuration
-* [Configuring IAM resources](02-iam.md)
-* [VPC configuration](03-vpc.md)
+* [Configuring IAM resources](./02-iam.md)
+* [VPC configuration](./03-vpc.md)
 * [Cloudformation Resource naming reference](./04-resource-names-reference.md)
 
 ## AWS events
@@ -49,9 +50,9 @@ functions:
 * [Kinesis Streams](./events/05-kinesis-streams.md)
 * [Dynamodb Streams](./events/06-dynamodb-streams.md)
 
-## [Examples](./examples)
+## Examples
 
-See the examples folder for all AWS serverless examples
+See the [examples folder](./examples) for all AWS serverless examples
 
 - [hello-world](./examples/hello-world)
 - [using-external-libraries](./examples/using-external-libraries)
