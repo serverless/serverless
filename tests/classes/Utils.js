@@ -135,7 +135,7 @@ describe('Utils', () => {
 
       expect(() => {
         serverless.utils.readFileSync(tmpFilePath);
-      }).to.throw(new RegExp(`in "${tmpFilePath}"`));
+      }).to.throw(new RegExp('YAMLException:.*invalid.yml'));
     });
   });
 
