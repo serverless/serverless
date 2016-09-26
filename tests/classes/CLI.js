@@ -291,7 +291,8 @@ describe('CLI', () => {
       process.chdir(this.cwd);
     });
 
-    it('prints general --help to stdout', (done) => {
+    it('prints general --help to stdout', function (done) {
+      this.timeout(10000);
       exec(`${this.serverlessExec} --help`, (err, stdout) => {
         if (err) {
           done(err);
@@ -303,7 +304,8 @@ describe('CLI', () => {
       });
     });
 
-    it('prints command --help to stdout', (done) => {
+    it('prints command --help to stdout', function (done) {
+      this.timeout(10000);
       exec(`${this.serverlessExec} deploy --help`, (err, stdout) => {
         if (err) {
           done(err);

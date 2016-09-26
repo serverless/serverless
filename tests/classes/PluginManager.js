@@ -763,7 +763,8 @@ describe('PluginManager', () => {
     });
   });
 
-  it('Plugin/CLI integration', () => {
+  it('Plugin/CLI integration', function () {
+    this.timeout(10000);
     const serverlessInstance = new Serverless();
     serverlessInstance.init();
 
