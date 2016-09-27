@@ -6,7 +6,7 @@ layout: Doc
 
 # Serverless AWS Documentation
 
-Check out the [Getting started guide](../../01-guide/README.md) and the [CLI reference](../../03-cli-reference/README.md) for an introduction to Serverless.
+Check out the [Getting started guide](../../01-guide/) and the [CLI reference](../../03-cli-reference/) for an introduction to Serverless.
 
 ## Setup and configuration
 
@@ -31,6 +31,7 @@ provider:
 functions:
   hello:
     name: ${self:provider.stage}-lambdaName # Deployed Lambda name
+    description: Description of what the lambda function does # Description to publish to AWS
     handler: handler.hello # handler set in AWS Lambda
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6

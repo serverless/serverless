@@ -44,6 +44,7 @@ If you created a new AWS account make sure that a credit card is set up for the 
 To start using Serverless and access the AWS API you need to set the AWS API Access Key & Secret.
 
 #### Quick Setup
+
 As a quick setup to get started you can export them as environment variables so they would be accessible to Serverless and the AWS SDK in your shell:
 
 ```bash
@@ -51,9 +52,12 @@ export AWS_ACCESS_KEY_ID=<key>
 export AWS_SECRET_ACCESS_KEY=<secret>
 serverless deploy
 ```
-#### Advanced & Longer Term Setup
 
-For a more permanent solution you can also set up credentials through the `aws-cli`, or by configuring the credentials file of the `aws-cli` directly. To set them up through the `aws-cli` [install it first](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) then run `aws configure` [to configure the aws-cli and credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html). Serverless will automatically use those credentials. You can even set up a different profiles for different accounts, which can be used by Serverless as well.
+#### Using AWS Profiles
+
+For a more permanent solution you can also set up credentials through AWS profiles using the `aws-cli`, or by configuring the credentials file directly.
+
+To set them up through the `aws-cli` [install it first](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) then run `aws configure` [to configure the aws-cli and credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html):
 
 ```bash
 $ aws configure
@@ -63,4 +67,42 @@ Default region name [None]: us-west-2
 Default output format [None]: ENTER
 ```
 
-You can also edit the credentials file which is located in `~/.aws/credentials` directly. Read more about that file in the [AWS documentation](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
+Credentials are stored in INI format in `~/.aws/credentials`, which you can edit directly if needed. Read more about that file in the [AWS documentation](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files)
+
+You can even set up different profiles for different accounts, which can be used by Serverless as well. To specify a default profile to use, you can add a `profile` setting to your `provider` configuration in `serverless.yml`:
+
+```yml
+service: new-service
+provider:
+  name: aws
+  runtime: nodejs4.3
+  stage: dev
+  profile: devProfile
+```
+
+##### Per Stage Profiles
+
+As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](../01-guide/08-serverless-variables.md) and the provider profile setting.
+
+This example `serverless.yml` snippet will load the profile depending upon the stage specified in the command line options (or default to 'dev' if unspecified);
+
+```yml
+service: new-service
+provider:
+  name: aws
+  runtime: nodejs4.3
+  stage: ${opt:stage, self:custom.defaultStage}
+  profile: ${self:custom.profiles.${self:provider.stage}}
+custom:
+  defaultStage: dev
+  profiles:
+    dev: devProfile
+    prod: prodProfile
+```
+
+## Conclusion
+
+With the account setup in place Serverless is now able to create and manage resources on our behalf.
+Now it's time to start with our first Serverless service.
+
+[Next step > Creating a service](../../01-guide/02-creating-services.md)

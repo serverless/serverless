@@ -17,6 +17,22 @@ describe('Variables', () => {
       const variablesInstance = new Variables(serverless);
       expect(typeof variablesInstance.serverless.version).to.be.equal('string');
     });
+
+    it('should not set variableSyntax in constructor', () => {
+      const variablesInstance = new Variables(serverless);
+      expect(variablesInstance.variableSyntax).to.be.equal(undefined);
+    });
+  });
+
+  describe('#loadVariableSyntax()', () => {
+    it('should set variableSyntax', () => {
+      const serverless = new Serverless();
+
+      serverless.service.defaults.variableSyntax = '\\${{([\\s\\S]+?)}}';
+
+      serverless.variables.loadVariableSyntax();
+      expect(serverless.variables.variableSyntax).to.be.a('RegExp');
+    });
   });
 
   describe('#populateService()', () => {
@@ -31,12 +47,38 @@ describe('Variables', () => {
 
       serverless.variables.populateProperty.restore();
     });
+
+    it('should use variableSyntax', () => {
+      const serverless = new Serverless();
+
+      const variableSyntax = '\\${{([\\s\\S]+?)}}';
+      const fooValue = '${clientId()}';
+      const barValue = 'test';
+
+      serverless.service.defaults.variableSyntax = variableSyntax;
+
+      serverless.service.custom = {
+        var: barValue,
+      };
+
+      serverless.service.resources = {
+        foo: fooValue,
+        bar: '${{self:custom.var}}',
+      };
+
+      serverless.variables.populateService();
+      expect(serverless.service.defaults.variableSyntax).to.equal(variableSyntax);
+      expect(serverless.service.resources.foo).to.equal(fooValue);
+      expect(serverless.service.resources.bar).to.equal(barValue);
+    });
   });
 
   describe('#populateProperty()', () => {
     it('should call overwrite if overwrite syntax provided', () => {
       const serverless = new Serverless();
       const property = 'my stage is ${opt:stage, self:provider.stage}';
+
+      serverless.variables.loadVariableSyntax();
 
       const overwriteStub = sinon
         .stub(serverless.variables, 'overwrite').returns('dev');
@@ -57,6 +99,8 @@ describe('Variables', () => {
       const serverless = new Serverless();
       const property = 'my stage is ${opt:stage}';
 
+      serverless.variables.loadVariableSyntax();
+
       const getValueFromSourceStub = sinon
         .stub(serverless.variables, 'getValueFromSource').returns('prod');
       const populateVariableStub = sinon
@@ -75,6 +119,8 @@ describe('Variables', () => {
     it('should run recursively if nested variables provided', () => {
       const serverless = new Serverless();
       const property = 'my stage is ${env:${opt.name}}';
+
+      serverless.variables.loadVariableSyntax();
 
       const getValueFromSourceStub = sinon
         .stub(serverless.variables, 'getValueFromSource');
@@ -280,7 +326,11 @@ describe('Variables', () => {
       serverless.variables.service = {
         service: 'testService',
         provider: 'testProvider',
+        defaults: serverless.service.defaults,
       };
+
+      serverless.variables.loadVariableSyntax();
+
       const valueToPopulate = serverless.variables.getValueFromSelf('self:provider');
       expect(valueToPopulate).to.be.equal('testProvider');
     });
@@ -395,6 +445,9 @@ describe('Variables', () => {
           },
         },
       };
+
+      serverless.variables.loadVariableSyntax();
+
       const valueToPopulate = serverless.variables
         .getDeepValue(['custom', 'subProperty', 'deep'], valueToPopulateMock);
       expect(valueToPopulate).to.be.equal('deepValue');
@@ -409,6 +462,9 @@ describe('Variables', () => {
           subProperty: 'hello',
         },
       };
+
+      serverless.variables.loadVariableSyntax();
+
       const valueToPopulate = serverless.variables
         .getDeepValue(['custom', 'subProperty', 'deep', 'deeper'], valueToPopulateMock);
       expect(valueToPopulate).to.deep.equal({});
@@ -428,7 +484,11 @@ describe('Variables', () => {
           },
           anotherVar: '${self:custom.var}',
         },
+        defaults: serverless.service.defaults,
       };
+
+      serverless.variables.loadVariableSyntax();
+
       const valueToPopulate = serverless.variables
         .getDeepValue(['custom', 'subProperty', 'deep'], serverless.variables.service);
       expect(valueToPopulate).to.be.equal('someValue');

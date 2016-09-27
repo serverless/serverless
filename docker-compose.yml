@@ -1,11 +1,17 @@
 version: '2'
 services:
   serverless-node:
-    image: node:5.11.1
+    image: node:latest
     working_dir: /app
     volumes:
       - .:/app
       - ~/.aws/:/root/.aws
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_PROFILE
+      - AWS_SESSION_TOKEN
+      - AWS_SECURITY_TOKEN
   aws-nodejs:
     image: node:5.11.1
     volumes:

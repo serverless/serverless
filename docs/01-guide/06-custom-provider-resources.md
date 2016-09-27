@@ -50,7 +50,7 @@ resources:
          # You can also set properties for the resource, based on the CloudFormation properties
          BucketName: my-awesome-thumbnails
          # Or you could reference an environment variable
-         # BucketName: ${env.BUCKET_NAME}
+         # BucketName: ${env:BUCKET_NAME}
 ```
 
 Now that you have this additional resource defined in your `serverless.yml` file, you can simply run `serverless deploy` and that will deploy these custom resources for you along with your service and set up the additional bucket for you.

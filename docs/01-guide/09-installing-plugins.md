@@ -52,5 +52,3 @@ plugins:
 ```
 
 In this case `plugin1` is loaded before `plugin2`.
-
-[Next step > Removing your service](removing-a-service.md)

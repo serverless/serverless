@@ -21,8 +21,8 @@ We've just removed the whole service from our provider with a simple `serverless
 
 ## What's next?
 
-You can either dive deeper into our [Advanced Guides](./README.md#advanced-guides) or read through the provider specific documentation we provide:
+You can either dive deeper into our [Advanced Guides](./#advanced-guides) or read through the provider specific documentation we provide:
 
-* [AWS Documentation](../02-providers/aws/README.md)
+* [AWS Documentation](../02-providers/aws/)
 
 Have fun with building your Serverless services and if you have feedback on the please let us know in [our Forum](forum.serverless.com) or [open an Issue in our Github repository](https://github.com/serverless/serverless/issues/new) for any bugs you might encounter or if you have an idea for a new feature.
