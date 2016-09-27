@@ -1,9 +1,10 @@
 <!--
 title: Serverless Cloudformation Resource naming Reference
+menuText: Cloudformation Resource Reference
 layout: Doc
 -->
 
-# Serverless Cloudformation Resource Reference
+# Cloudformation Resource Reference
 
 To have consistent naming in the Cloudformation Templates that get deployed we've defined a standard name:
 

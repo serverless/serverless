@@ -1,5 +1,6 @@
 <!--
 title: AWS Serverless Events
+menuText: AWS Events
 layout: Doc
 -->
 

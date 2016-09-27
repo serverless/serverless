@@ -1,5 +1,6 @@
 <!--
 title: Serverless Create CLI Command
+menuText: Create
 description: Create a new service in your current working directory
 layout: Doc
 -->

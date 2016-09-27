@@ -1,5 +1,6 @@
 <!--
 title: Serverless CLI Reference
+menuText: CLI Reference
 layout: Doc
 -->
 

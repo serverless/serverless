@@ -1,5 +1,6 @@
 <!--
 title: Serverless Info CLI Command
+menuText: Info
 description: Display information about your deployed service
 layout: Doc
 -->
