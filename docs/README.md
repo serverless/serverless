@@ -8,18 +8,6 @@ layout: Doc
 
 Welcome to the Serverless documentation.
 
-- [Quick Start Guide](./01-guide/README.md)
-- [Core Concepts](#concepts)
-- [CLI Reference](./03-cli-reference/README.md)
-- [Providers](#providers)
-- [Extending Serverless](./04-extending-serverless/README.md)
-- [Contributing to Serverless](#contributing)
-
-## Providers
-- [AWS Integration Docs](./02-providers/aws/README.md)
-
-## Concepts
-
 Before we begin, let's run through some of the main concepts behind serverless.
 
 * [Functions](#functions)

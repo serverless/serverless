@@ -1,13 +1,11 @@
 <!--
-title: Installing Serverless
+title: Installation
 menuText: Installation
-description: How to install Serverless
+description: How to install the Serverless Framework
 layout: Doc
 -->
 
 # Installation
-
-Let's start by installing Node.js and Serverless.
 
 ### Installing Node.js
 
@@ -19,11 +17,10 @@ Go to the official [Node.js website](https://nodejs.org), download and follow th
 
 You can verify that Node.js is installed successfully by runnning `node --version` in your terminal. You should see the corresponding Node version number printed out.
 
-### Installing Serverless
+### Installing the Serverless Framework
 
-Great! Now we've got everything in place to install Serverless. Serverless can be easily installed via
-[npm](https://npmjs.org) which was installed alongside Node.js.
+Next, install the Serverless Framework via [npm](https://npmjs.org) which was already installed when you installed Node.js.
 
 Open up a terminal and type `npm install -g serverless` to install Serverless.
 
-Once the installation process is done you can verify that Serverless is installed successfully by running `serverless --version`
+Once the installation process is done you can verify that Serverless is installed successfully by running `serverless`.

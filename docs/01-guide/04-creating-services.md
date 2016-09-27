@@ -1,7 +1,7 @@
 <!--
 title: Creating Serverless Services
 menuText: Creating Services
-description: Creating a Serverless Service
+description: How to create a serverless service which contains your AWS Lambda functions, their events and infrastructure resources
 layout: Doc
 -->
 
