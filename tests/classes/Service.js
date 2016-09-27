@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
 const Service = require('../../lib/classes/Service');
