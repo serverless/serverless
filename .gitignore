@@ -27,16 +27,17 @@ build/Release
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
 
-#IDE Stuff
+# IDE stuff
 **/.idea
 
-#OS STUFF
+# OS stuff
 .DS_Store
 .tmp
 
-#SERVERLESS STUFF
+# Serverless stuff
 admin.env
 .env
 tmp
 .coveralls.yml
 tracking-id
+tmpdirs-serverless
