@@ -17,7 +17,7 @@ describe('CLI', () => {
   let cli;
   let serverless;
 
-  beforeEach(() => {
+  beforeEach(function () { // eslint-disable-line prefer-arrow-callback
     serverless = new Serverless({});
   });
 
@@ -269,7 +269,7 @@ describe('CLI', () => {
   });
 
   describe('integration tests', () => {
-    before(() => {
+    before(function () {
       const tmpDir = testUtils.getTmpDirPath();
 
       this.cwd = process.cwd();
@@ -287,11 +287,12 @@ describe('CLI', () => {
         '..', 'bin', 'serverless');
     });
 
-    after(() => {
+    after(function () { // eslint-disable-line prefer-arrow-callback
       process.chdir(this.cwd);
     });
 
-    it('prints general --help to stdout', (done) => {
+    it('prints general --help to stdout', function (done) {
+      this.timeout(10000);
       exec(`${this.serverlessExec} --help`, (err, stdout) => {
         if (err) {
           done(err);
@@ -303,7 +304,8 @@ describe('CLI', () => {
       });
     });
 
-    it('prints command --help to stdout', (done) => {
+    it('prints command --help to stdout', function (done) {
+      this.timeout(10000);
       exec(`${this.serverlessExec} deploy --help`, (err, stdout) => {
         if (err) {
           done(err);
