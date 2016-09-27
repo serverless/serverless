@@ -30,7 +30,7 @@ Please follow these Issue guidelines for opening Issues:
 * Make sure your Issue is for a *feature request*, *bug report*, or *a discussion about a relevant topic*.  For everything else, please use our [Discourse Forum](http://forum.serverless.com)
 
 ### Code Style
-We aim for clean, consistent code style.  We're using ESlint to check for codestyle issues using the Airbnb preset. If ESlint issues are found our build will fail and we can't merge the PR.
+We aim for clean, consistent code style.  We're using ESlint to check for codestyle issues using the Airbnb preset. If ESlint issues are found our build will fail and we can't merge the PR.  To help reduce the effort of creating contributions with this style, an [.editorconfig file](http://editorconfig.org/) is provided that your editor may use to override any conflicting global defaults and automate a subset of the style settings.  You may need to enable EditorConfig's use by changing a setting or installing a plugin.  Using it is not compulsory.
 
 Please follow these Code Style guidelines when writing your unit tests:
 * In the root of our repo, use this command to check for styling issues: `npm run lint`

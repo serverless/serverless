@@ -10,6 +10,7 @@ const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const mockRequire = require('mock-require');
 const testUtils = require('../../tests/utils');
+const os = require('os');
 
 describe('PluginManager', () => {
   let pluginManager;
@@ -187,7 +188,7 @@ describe('PluginManager', () => {
     }
   }
 
-  beforeEach(() => {
+  beforeEach(function () { // eslint-disable-line prefer-arrow-callback
     serverless = new Serverless();
     pluginManager = new PluginManager(serverless);
   });
@@ -348,7 +349,7 @@ describe('PluginManager', () => {
   });
 
   describe('#loadAllPlugins()', () => {
-    beforeEach(() => {
+    beforeEach(function () { // eslint-disable-line prefer-arrow-callback
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       mockRequire('ServicePluginMock2', ServicePluginMock2);
     });
@@ -395,7 +396,7 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins[2]).to.be.instanceof(ServicePluginMock2);
     });
 
-    afterEach(() => {
+    afterEach(function () { // eslint-disable-line prefer-arrow-callback
       mockRequire.stop('ServicePluginMock1');
       mockRequire.stop('ServicePluginMock2');
     });
@@ -410,7 +411,7 @@ describe('PluginManager', () => {
   });
 
   describe('#loadServicePlugins()', () => {
-    beforeEach(() => {
+    beforeEach(function () { // eslint-disable-line prefer-arrow-callback
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       mockRequire('ServicePluginMock2', ServicePluginMock2);
     });
@@ -426,7 +427,7 @@ describe('PluginManager', () => {
       expect(pluginManager.plugins).to.contain(servicePluginMock2);
     });
 
-    afterEach(() => {
+    afterEach(function () { // eslint-disable-line prefer-arrow-callback
       mockRequire.stop('ServicePluginMock1');
       mockRequire.stop('ServicePluginMock2');
     });
@@ -442,7 +443,7 @@ describe('PluginManager', () => {
   });
 
   describe('#getEvents()', () => {
-    beforeEach(() => {
+    beforeEach(function () { // eslint-disable-line prefer-arrow-callback
       const synchronousPluginMockInstance = new SynchronousPluginMock();
       pluginManager.loadCommands(synchronousPluginMockInstance);
     });
@@ -480,7 +481,7 @@ describe('PluginManager', () => {
   });
 
   describe('#getPlugins()', () => {
-    beforeEach(() => {
+    beforeEach(function () { // eslint-disable-line prefer-arrow-callback
       mockRequire('ServicePluginMock1', ServicePluginMock1);
       mockRequire('ServicePluginMock2', ServicePluginMock2);
     });
@@ -493,7 +494,7 @@ describe('PluginManager', () => {
       expect(pluginManager.getPlugins()[1]).to.be.instanceof(ServicePluginMock2);
     });
 
-    afterEach(() => {
+    afterEach(function () { // eslint-disable-line prefer-arrow-callback
       mockRequire.stop('ServicePluginMock1');
       mockRequire.stop('ServicePluginMock2');
     });
@@ -691,7 +692,7 @@ describe('PluginManager', () => {
     });
 
     describe('when using a synchronous hook function', () => {
-      beforeEach(() => {
+      beforeEach(function () { // eslint-disable-line prefer-arrow-callback
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
@@ -715,7 +716,7 @@ describe('PluginManager', () => {
     });
 
     describe('when using a promise based hook function', () => {
-      beforeEach(() => {
+      beforeEach(function () { // eslint-disable-line prefer-arrow-callback
         pluginManager.addPlugin(PromisePluginMock);
       });
 
@@ -739,7 +740,7 @@ describe('PluginManager', () => {
     });
 
     describe('when using provider specific plugins', () => {
-      beforeEach(() => {
+      beforeEach(function () { // eslint-disable-line prefer-arrow-callback
         pluginManager.setProvider('provider1');
 
         pluginManager.addPlugin(Provider1PluginMock);
@@ -762,11 +763,15 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('Plugin/CLI integration', () => {
+  it('Plugin/CLI integration', function () {
+    this.timeout(10000);
     const serverlessInstance = new Serverless();
     serverlessInstance.init();
-    const serverlessExec = path.join(serverlessInstance.config.serverlessPath,
-      '..', 'bin', 'serverless');
+
+    // Cannot rely on shebang in severless.js to invoke script using NodeJS on Windows.
+    const execPrefix = os.platform() === 'win32' ? 'node ' : '';
+    const serverlessExec = execPrefix + path.join(serverlessInstance.config.serverlessPath,
+            '..', 'bin', 'serverless');
     const tmpDir = testUtils.getTmpDirPath();
     fse.mkdirSync(tmpDir);
     const cwd = process.cwd();

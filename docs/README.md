@@ -8,15 +8,15 @@ layout: Doc
 
 Welcome to the Serverless documentation.
 
-- [Quick Start Guide](./01-guide/README.md)
+- [Quick Start Guide](./01-guide/)
 - [Core Concepts](#concepts)
-- [CLI Reference](./03-cli-reference/README.md)
+- [CLI Reference](./03-cli-reference/)
 - [Providers](#providers)
-- [Extending Serverless](./04-extending-serverless/README.md)
+- [Extending Serverless](./04-extending-serverless/)
 - [Contributing to Serverless](#contributing)
 
 ## Providers
-- [AWS Integration Docs](./02-providers/aws/README.md)
+- [AWS Integration Docs](./02-providers/aws/)
 
 ## Concepts
 
@@ -38,7 +38,7 @@ Serverless is used to build event driven architecture. Basically everything whic
 
 Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
 
-- [AWS Events](./02-providers/aws/events/README.md)
+- [AWS Events](./02-providers/aws/events/)
 
 ### Resources
 
@@ -52,7 +52,7 @@ A *Serverless service* is a group of one or multiple functions and any resources
 
 Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to extend the functionality of Serverless. Furthermore we'll look into the way how you can use your plugin knowledge to integrate your own provider into the Serverless framework.
 
-- [Building plugins](./04-extending-serverless/README.md)
+- [Building plugins](./04-extending-serverless/)
 
 Connect with the community on [gitter](https://gitter.im/serverless/serverless) or in the [Forum](http://forum.serverless.com)
 

@@ -1,12 +1,12 @@
 'use strict';
 
 const path = require('path');
-const os = require('os');
 const YAML = require('js-yaml');
 const expect = require('chai').expect;
 const Service = require('../../lib/classes/Service');
 const Utils = require('../../lib/classes/Utils');
 const Serverless = require('../../lib/Serverless');
+const testUtils = require('../../tests/utils');
 
 describe('Service', () => {
   describe('#constructor()', () => {
@@ -101,6 +101,11 @@ describe('Service', () => {
 
   describe('#load()', () => {
     let serviceInstance;
+    let tmpDirPath;
+
+    beforeEach(() => {
+      tmpDirPath = testUtils.getTmpDirPath();
+    });
 
     it('should resolve if no servicePath is found', () => {
       const serverless = new Serverless();
@@ -111,7 +116,6 @@ describe('Service', () => {
 
     it('should load from filesystem', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         service: 'new-service',
         provider: 'aws',
@@ -164,7 +168,6 @@ describe('Service', () => {
 
     it('should make sure function name contains the default stage', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         service: 'new-service',
         provider: 'aws',
@@ -206,7 +209,6 @@ describe('Service', () => {
 
     it('should support Serverless file with a .yaml extension', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYaml = {
         service: 'my-service',
         provider: 'aws',
@@ -238,7 +240,6 @@ describe('Service', () => {
 
     it('should support Serverless file with a .yml extension', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         service: 'my-service',
         provider: 'aws',
@@ -268,7 +269,6 @@ describe('Service', () => {
 
     it('should throw error if service property is missing', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         provider: 'aws',
         functions: {},
@@ -290,7 +290,6 @@ describe('Service', () => {
 
     it('should throw error if provider property is missing', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         service: 'service-name',
         functions: {},
@@ -312,7 +311,6 @@ describe('Service', () => {
 
     it('should throw error if functions property is missing', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         service: 'service-name',
         provider: 'aws',
@@ -332,9 +330,34 @@ describe('Service', () => {
       });
     });
 
+    it("should throw error if a function's event is not an array", () => {
+      const SUtils = new Utils();
+      const serverlessYml = {
+        service: 'service-name',
+        provider: 'aws',
+        functions: {
+          functionA: {
+            events: {},
+          },
+        },
+      };
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown as expected
+        // so make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      }).catch(e => {
+        expect(e.name).to.be.equal('ServerlessError');
+      });
+    });
+
     it('should throw error if provider property is invalid', () => {
       const SUtils = new Utils();
-      const tmpDirPath = path.join(os.tmpdir(), (new Date()).getTime().toString());
       const serverlessYml = {
         service: 'service-name',
         provider: 'invalid',
