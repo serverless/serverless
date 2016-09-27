@@ -53,4 +53,12 @@ plugins:
 
 In this case `plugin1` is loaded before `plugin2`.
 
+
+# List of available plugins
+
+* [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - bundle your lambdas with Webpack
+* [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - support Alexa Lambda events
+* [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
+* [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
+
 [Next step > Removing your service](removing-a-service.md)
