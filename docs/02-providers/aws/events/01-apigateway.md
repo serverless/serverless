@@ -356,12 +356,12 @@ resources:
             - RootResourceId
         PathPart: serverless # the endpoint in your API that is set as proxy
         RestApiId:
-          Ref: RestApiApigEvent
+          Ref: ApiGatewayRestApi
     ProxyMethod:
       ResourceId:
         Ref: ProxyResource
       RestApiId:
-        Ref: RestApiApigEvent
+        Ref: ApiGatewayRestApi
       Type: AWS::ApiGateway::Method
       Properties:
         HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
