@@ -54,6 +54,31 @@ Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more
 * An ecosystem of serverless services and plugins.
 * A passionate and welcoming community!
 
+## <a name="v1-plugins"></a>Plugins (V1.0)
+
+Use these plugins to overwrite or extend the Framework's functionality...
+
+* [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
+* [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
+* [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
+* [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
+* [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
+* [serverless-build](https://github.com/nfour/serverless-build-plugin)
+* [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
+* [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
+
+## <a name="v1-services"></a>Services & Projects (V1.0)
+
+Pre-written functions you can use instantly and example implementations...
+
+* [serverless-examples](https://github.com/andymac4182/serverless_example)
+* [serverless-npm-registry](https://github.com/craftship/yith)
+* [serverless-pokego](https://github.com/jch254/pokego-serverless)
+* [serverless-pocket-app](https://github.com/s0enke/weekly2pocket)
+* [serverless-quotebot](https://github.com/pmuens/quotebot)
+* [serverless-slackbot](https://github.com/conveyal/trevorbot)
+* [serverless-garden-aid](https://github.com/garden-aid/web-bff)
+
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
 
