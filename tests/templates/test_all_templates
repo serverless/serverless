@@ -10,5 +10,6 @@ function integration-test {
 
 integration-test aws-java-gradle build
 integration-test aws-java-maven mvn package
+integration-test aws-scala-sbt sbt assembly
 integration-test aws-nodejs
 integration-test aws-python
