@@ -10,8 +10,6 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## Links
 
-
-
 * [Guide to Serverless](./docs/01-guide/README.md)
 * [Features](#features)
 * [Documentation v.1](./docs/README.md) / [v.0](http://serverless.readme.io)
@@ -146,7 +144,7 @@ Below are projects and plugins relating to version 0.5 and below. Note that thes
 
 You can read the v0.5.x documentation at [readme.io](https://serverless.readme.io/v0.5.0/docs).
 
-## v0.5.x Projects
+## Projects (v0.5.x)
 Serverless Projects are shareable and installable.  You can publish them to npm and install them via the Serverless Framework CLI by using `$ serverless project install <project-name>`
 * [serverless-graphql](https://github.com/serverless/serverless-graphql) - Official Serverless boilerplate to kick start your project
 * [serverless-starter](https://github.com/serverless/serverless-starter) - A simple boilerplate for new projects (JavaScript) with a few architectural options
@@ -156,7 +154,7 @@ Serverless Projects are shareable and installable.  You can publish them to npm 
 * [sc5-serverless-boilerplate](https://github.com/SC5/sc5-serverless-boilerplate) - A boilerplate for test driven development of REST endpoints
 * [MoonMail] (https://github.com/microapps/MoonMail) - Build your own email marketing infrastructure using Lambda + SES
 
-## v0.5.x Plugins
+## Plugins (v0.5.x)
 Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
 * [Meta Sync](https://github.com/serverless/serverless-meta-sync) - Securely sync your the variables in your project's `_meta/variables` across your team.
 * [Offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and Api Gateway locally to speed up your development cycles.
