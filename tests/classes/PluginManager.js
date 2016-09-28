@@ -388,6 +388,46 @@ describe('PluginManager', () => {
 
       expect(pluginManager.commands).to.have.property('deploy');
     });
+
+    it('should merge plugin commands', () => {
+      pluginManager.loadCommands({
+        commands: {
+          deploy: {
+            lifecycleEvents: [
+              'one',
+            ],
+            options: {
+              foo: {},
+            },
+          },
+        },
+      });
+
+      pluginManager.loadCommands({
+        commands: {
+          deploy: {
+            lifecycleEvents: [
+              'one',
+              'two',
+            ],
+            options: {
+              bar: {},
+            },
+            commands: {
+              fn: {
+              },
+            },
+          },
+        },
+      });
+
+      expect(pluginManager.commands.deploy).to.have.property('options')
+        .that.has.all.keys('foo', 'bar');
+      expect(pluginManager.commands.deploy).to.have.property('lifecycleEvents')
+        .that.is.an('array')
+        .that.deep.equals(['one', 'two']);
+      expect(pluginManager.commands.deploy.commands).to.have.property('fn');
+    });
   });
 
   describe('#getEvents()', () => {
