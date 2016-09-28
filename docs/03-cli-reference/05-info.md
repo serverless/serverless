@@ -24,7 +24,8 @@ serverless info
 
 ### AWS
 
-On AWS the info plugin uses the `Outputs` section of the CloudFormation stack. Outputs will include Lambda function ARN's, a `ServiceEndpoint` for the API Gateway endpoint and user provided custom Outputs.
+On AWS the info plugin uses the `Outputs` section of the CloudFormation stack and the AWS SDK to gather the necessary information.
+See the example below for an example output.
 
 **Example:**
 
@@ -35,6 +36,8 @@ Service Information
 service: my-serverless-service
 stage: dev
 region: us-east-1
+api keys:
+  myKey: some123valid456api789key1011for1213api1415gateway
 endpoints:
   GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
 functions:
