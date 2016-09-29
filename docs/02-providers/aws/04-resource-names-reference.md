@@ -31,6 +31,7 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | <ul><li>ApiGatewayResourceUsers</li><li>ApiGatewayResourceUsers**Var** for paths containing a variable</li><li>ApiGatewayResource**Dash** if the path is just a `-`</li></ul>       |
 |ApiGateway::Method     | ApiGatewayResource{normalizedPath}{normalizedMethod}    | ApiGatewayResourceUsersGet    |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
-|ApiGateway::Deployment | ApiGatewayDeployment                                    | ApiGatewayDeployment          |
+|ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
+|CloudFormation::WaitCondition | ApiGatewayDeploymentWait                         | ApiGatewayDeploymentWait - Used to Depend on the ApiGateway::Deployment |
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
