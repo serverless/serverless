@@ -380,12 +380,12 @@ resources:
         RestApiId:
           Ref: ApiGatewayRestApi
     ProxyMethod:
-      ResourceId:
-        Ref: ProxyResource
-      RestApiId:
-        Ref: ApiGatewayRestApi
       Type: AWS::ApiGateway::Method
       Properties:
+        ResourceId:
+          Ref: ProxyResource
+        RestApiId:
+          Ref: ApiGatewayRestApi
         HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
         MethodResponses:
           - StatusCode: 200
