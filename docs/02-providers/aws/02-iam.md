@@ -202,7 +202,7 @@ resources:
                     - ec2:DescribeNetworkInterfaces
                     - ec2:DetachNetworkInterface
                     - ec2:DeleteNetworkInterface
-                  Resource: *
+                  Resource: "*"
     myCustRole1:
       Type: AWS::IAM::Role
       RoleName: MyCustRole1
@@ -323,5 +323,5 @@ resources:
                     - ec2:DescribeNetworkInterfaces
                     - ec2:DetachNetworkInterface
                     - ec2:DeleteNetworkInterface
-                  Resource: *
+                  Resource: "*"
 ```
