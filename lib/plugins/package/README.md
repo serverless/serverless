@@ -12,7 +12,7 @@ upon zipping the service. The resulting path to the artifact will be appended to
 Services can use `exclude` as an array. The array should be a series of
 globs to be considered for exclusion.
 
-For example in serverless.yaml:
+For example in serverless.yml:
 
 ``` yaml
 package:
