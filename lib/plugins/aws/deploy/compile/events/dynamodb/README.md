@@ -1,36 +1,55 @@
-# Compile DynamoDB Stream Events
+# Compile DynamoDB Events
 
-We're currently gathering feedback regarding the exact implementation of this plugin in the following GitHub issue:
+This plugins compiles the function dynamodb event to a CloudFormation resource.
 
-[Issue #1441](https://github.com/serverless/serverless/issues/1441)
+## How it works
 
-It would be great if you can chime in on this and give us feedback on your specific use case and how you think the plugin
-should work.
+`Compile DynamoDB Events` hooks into the [`deploy:compileEvents`](/lib/plugins/deploy) lifecycle.
 
-In the meantime you can simply add the code below to the [custom provider resources](/docs/guide/custom-provider-resources.md)
-section in your [`serverless.yml`](/docs/understanding-serverless/serverless-yml.md) file.
+It loops over all functions which are defined in `serverless.yml`. For each function that has a dynamodb event defined,
+an event source mapping will be created.
 
-## Template code for DynamoDB Stream support
+You have two options to define the dynamodb event:
 
-Add the following code to your [`serverless.yml`](/docs/understanding-serverless/serverless-yml.md) file to setup
-DynamoDB Stream support.
+The first one is to use a simple string which represents the streams arn.
 
-**Note:** You can also create the table in the `resources.Resources` section and use `Fn::GetAtt` to reference the `StreamArn`
-in the mappings `EventSourceArn` definition.
+The second option is to define the dynamodb event more granular (e.g. the batch size or the staring position) with the help of
+key value pairs.
+
+Take a look at the [Event syntax examples](#event-syntax-examples) below to see how you can setup a dynamodb event.
+
+The necessary lambda execution policies are created alongside the dynamodb event.
+
+Those two resources are then merged into the compiled CloudFormation template.
+
+## Event syntax examples
+
+### Simple dynamodb setup
+
+This setup specifies that the `compute` function should be triggered whenever the corresponding dynamodb table is modified (e.g. a new entry is added).
 
 ```yml
 # serverless.yml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - dynamodb: some:dynamodb:stream:arn
+```
 
-resources
-  Resources:
-    mapping:
-      Type: AWS::Lambda::EventSourceMapping
-      Properties:
-        BatchSize: 10
-        EventSourceArn: "arn:aws:dynamodb:<region>:<aws-account-id>:table/<table-name>/stream/<stream-name>"
-        FunctionName:
-          Fn::GetAtt:
-            - "<function-name>"
-            - "Arn"
-        StartingPosition: "TRIM_HORIZON"
+### Dynamodb setup with extended event options
+
+This configuration sets up dynamodb event for the `preprocess` function which has a batch size of `100`. The staring position is
+`LATEST`.
+
+```yml
+# serverless.yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - dynamodb:
+          streamArn: some:dynamodb:stream:arn
+          bathSize: 100
+          startingPosition: LATEST
 ```
