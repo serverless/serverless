@@ -34,6 +34,7 @@ require('../lib/plugins/aws/deploy/compile/events/s3/tests');
 require('../lib/plugins/aws/deploy/compile/events/schedule/tests');
 require('../lib/plugins/aws/deploy/compile/events/apiGateway/tests/all');
 require('../lib/plugins/aws/deploy/compile/events/sns/tests');
+require('../lib/plugins/aws/deploy/compile/events/dynamodb/tests');
 require('../lib/plugins/aws/deployFunction/tests/index');
 
 // Other Tests
