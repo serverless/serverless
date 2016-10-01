@@ -22,6 +22,7 @@ require('../lib/plugins/tracking/tests/tracking');
 
 // AWS Plugins Tests
 require('../lib/plugins/aws/tests');
+require('../lib/plugins/aws/tests/naming');
 require('../lib/plugins/aws/tests/validate');
 require('../lib/plugins/aws/tests/monitorStack');
 require('../lib/plugins/aws/info/tests');
