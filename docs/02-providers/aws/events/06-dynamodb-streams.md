@@ -18,7 +18,7 @@ functions:
 
 ## Setting the BatchSize and StartingPosition
 
-This configuration sets up a dynamodb event for the `preprocess` function which has a batch size of `100`. The staring position is
+This configuration sets up a disabled dynamodb event for the `preprocess` function which has a batch size of `100`. The staring position is
 `LATEST`.
 
 ```yml
@@ -30,4 +30,5 @@ functions:
           streamArn: some:dynamodb:stream:arn
           bathSize: 100
           startingPosition: LATEST
+          enabled: false
 ```
