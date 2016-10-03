@@ -1,7 +1,7 @@
 version: '2'
 services:
   serverless-node:
-    image: node:5.11.1
+    image: node:latest
     working_dir: /app
     volumes:
       - .:/app
@@ -28,3 +28,7 @@ services:
     image: qlik/gradle
     volumes:
       - ./tmp/serverless-integration-test-aws-java-gradle:/app
+  aws-scala-sbt:
+    image: hseeberger/scala-sbt
+    volumes:
+      - ./tmp/serverless-integration-test-aws-scala-sbt:/app
