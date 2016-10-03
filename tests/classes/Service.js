@@ -207,6 +207,37 @@ describe('Service', () => {
       });
     });
 
+    it('should support Serverless file with a non-aws provider', () => {
+      const SUtils = new Utils();
+      const serverlessYaml = {
+        service: 'my-service',
+        provider: 'ibm',
+        functions: {
+          functionA: {
+            name: 'customFunctionName',
+          },
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        const expectedFunc = {
+          functionA: {
+            name: 'customFunctionName',
+            events: [],
+          },
+        };
+        expect(serviceInstance.service).to.be.equal('my-service');
+        expect(serviceInstance.provider.name).to.deep.equal('ibm');
+        expect(serviceInstance.functions).to.deep.equal(expectedFunc);
+      });
+    });
+
     it('should support Serverless file with a .yaml extension', () => {
       const SUtils = new Utils();
       const serverlessYaml = {
