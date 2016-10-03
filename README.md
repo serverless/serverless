@@ -70,6 +70,7 @@ Use these plugins to overwrite or extend the Framework's functionality...
 
 Pre-written functions you can use instantly and example implementations...
 
+* [serverless-authentication-boilerplate](https://github.com/laardee/serverless-authentication-boilerplate)
 * [serverless-examples](https://github.com/andymac4182/serverless_example)
 * [serverless-npm-registry](https://github.com/craftship/yith)
 * [serverless-pokego](https://github.com/jch254/pokego-serverless)
