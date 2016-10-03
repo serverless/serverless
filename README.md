@@ -76,6 +76,7 @@ Pre-written functions you can use instantly and example implementations...
 * [serverless-quotebot](https://github.com/pmuens/quotebot)
 * [serverless-slackbot](https://github.com/conveyal/trevorbot)
 * [serverless-garden-aid](https://github.com/garden-aid/web-bff)
+* [serverless-react-boilerplate](https://github.com/99xt/serverless-react-boilerplate)
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
