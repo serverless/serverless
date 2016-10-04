@@ -6,7 +6,7 @@ layout: Doc
 
 # Defining IAM Rights
 
-Serverless provides no-configuration rights provisioning by default.  You are welcome.  Yet, if you ungratefully require greater control over rights provisioning it graciously gets out of your way too.  Custom provider or function level roles may be specified either by named reference or by role ARN.
+Serverless provides no-configuration rights provisioning by default.  You are welcome.  Yet, if you ungratefully require greater control over rights provisioning, more power to you.  Custom provider or function level roles may be specified either by logical name, ARN, or "Fn::GetAtt" reference to ARN.
 
 Decision Trees...
 
@@ -16,16 +16,16 @@ Are there any further concerns or decision points to add?
 **Shared or Individual Rights Management?**
 
 <pre>
-----------------             -----------------------
-|Least _______?|  Effort --> |Optimize Config Time?|  TL;DR! -------------------------|
-----------------             -----------------------                                  |
-Privilege                     My Disks Are                                            |
-|                             |   Endless!                                            |
-|------------------------------                                                       |
-V                                                                                     V
-You Can Has 'Individual/Function-Level' RM!     You Can Has 'Shared/Provider-Level' RM!
+----------------             -----------------------            -------------------------
+|Least _______?|  Effort --> |Optimize Config Time?|  TL;DR! -- | Optimize Deploy Time? |  ...  --|
+----------------             -----------------------            -------------------------         |
+Privilege                     My Disks Are                       (D1 = D0 + N*T)? All the         |
+|                             |   Endless!                       |    times are unto me!          |
+|-----------------------------------------------------------------                                |
+V                                                                                                 V
+You Can Has 'Individual/Function-Level' RM!                 You Can Has 'Shared/Provider-Level' RM!
 </pre>
-\* where `D` is `time to deploy` and `N` is the `number of functions in your service`.
+\* where `D` is `time to deploy`, `N` is the `number of functions in your service, less one`, and `T` is the time to deploy a role via CloudFormation.
 
 <!--
 Are there any further concerns or decision points to add?
@@ -43,14 +43,14 @@ Are there any further concerns or decision points to add?
 You Can Has '<a href="#Custom%20Role%20Management">Custom Role Management</a>'!     You Can Has '<a href="#Custom%20Role%20Management">Default Role Management</a>'!
  |
  V
-------------           --------------------------
-|I Can IAM?|  Yes! --> |Use SLS to Define Roles?|
-------------           --------------------------
- No :(                  I Can Does!          Yes!
- |                      |                      |
- |-----------------------                      |
- V                                             V
-You Can Has 'roleArn'!        You Can Has 'role'!
+------------            --------------------------
+|I Can IAM?|  Yes! -->  |Use SLS to Define Roles?|  U can worx -----|
+------------            --------------------------                  |
+ No :(                  I No Can Does!                              |
+ |                      |                                           |
+ |-----------------------                                           |
+ V                                                                  V
+You Can Has ARN in 'role'!    You Can Has Logical Role Name in'role'!
 </pre>
 
 ## <a name="Default Role Management"></a> Default Role Management
@@ -85,9 +85,9 @@ provider:
 On deployment, all these statements will be added to the policy that is applied to the IAM role that is assumed by your lambda functions.
 
 ## <a name="Custom Role Management"></a> Custom Role Management
-You are an expert.  An AWS genius.  You make right and your lambdas prosper under your rights'eous'ness.  Since this is you, Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis.  To do this you must declare a `role` or `roleArn` attribute at the level at which you would like the role to be applied.  Defining it on the provider will make the role referenced by the `role` or `roleArn` value the default role for any lambda without its own `role` or `roleArn` declared.  This is to say that defining a `role` or `roleArn` attribute on individual functions will override any provider level declared role.  If every function within your service has a role assigned to it (either via provider level `role` or `roleArn` declaration, individual declarations, or a mix of the two) then the default role and policy will not be generated and added to your Cloud Formation Template.
+You are an expert.  An AWS genius.  You make right and your lambdas prosper under your rights'eous'ness.  Since this is you, Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis.  To do this you must declare a `role` attribute at the level at which you would like the role to be applied.  Defining it on the provider will make the role referenced by the `role` value the default role for any lambda without its own `role` declared.  This is to say that defining a `role` attribute on individual functions will override any provider level declared role.  If every function within your service has a role assigned to it (either via provider level `role` declaration, individual declarations, or a mix of the two) then the default role and policy will not be generated and added to your Cloud Formation Template.
 
-The `role` attribute is best to use if your role is defined in your service.  The declaration `{ function: { role: myRole } }` will be translated to `{ function: { roleArn: { 'Fn::GetAtt': ['myRole', 'Arn'] } } }`.  As you can see, terse and easy to declare.  You can of course declare `roleArn` (just as done in the latter of those) but the primary use case is for those who must create their roles and/or policies via a means outside of Serverless.  After all, you're not paranoid if you're after you.  For those cases, see a therapist but otherwise, `roleArn` is for you!
+The `role` attribute can have a value of the logical name of the role, the ARN of the role, or an object that will resolve in the ARN of the role.  The declaration `{ function: { role: 'myRole' } }` will result in `{ 'Fn::GetAtt': ['myRole', 'Arn'] }`.  As you can see, terse and easy to declare.  You can of course just declare an ARN like so `{ function: { role: 'an:aws:arn:xxx:*:*' } }`.  This use case is primarily for those who must create their roles and/or policies via a means outside of Serverless.  After all, you're not paranoid if you're after you.  For those cases, see a therapist but otherwise, using an ARN is for you!  If you insist, you can declare your own object and that will be used as-is.
 
 Examples of using these capabilities to specify lambda roles follow.
 
@@ -101,15 +101,15 @@ service: new-service
 provider:
   name: aws
   # declare one of the following...
-  role: 'myDefaultRole'                                                   # defining 'role' will override any 'roleArn' declaration // must validly reference a role defined in the service
-  roleArn: { 'Fn::GetAtt': ['myDefaultRole', 'Arn'] }                     # must validly reference a role defined in the service
-  roleArn: 'arn:aws:iam::0123456789:role//my/default/path/myDefaultRole'  # must validly reference a role defined in your account
+  role: 'myDefaultRole'                                                # must validly reference a role defined in the service
+  role: 'arn:aws:iam::0123456789:role//my/default/path/myDefaultRole'  # must validly reference a role defined in your account
+  role: { 'Fn::GetAtt': ['myDefaultRole', 'Arn'] }                     # must validly resolve to the ARN of a role you have the rights to use
 
 functions:
   func0: # will assume 'myDefaultRole'
-    ...    # does not define roleArn
+    ...    # does not define role
   func1: # will assume 'myDefaultRole'
-    ...    # does not define roleArn
+    ...    # does not define role
 
 resources:
   Resources:
@@ -154,20 +154,14 @@ resources:
 service: new-service
 provider:
   name: aws
-  ...    # does not define roleArn
+  ...    # does not define role
 
 functions:
   func0: # will assume 'myCustRole0'
-    # declare one of the following...
-    role: 'myCustRole0'                                                # defining 'role' will override any 'roleArn' declaration // must validly reference a role defined in the service
-    roleArn: { 'Fn::GetAtt': ['myCustRole0', 'Arn'] }                  # must validly reference a role defined in the service
-    roleArn: 'arn:aws:iam::0123456789:role//my/cust/path/myCustRole0'  # must validly reference a role defined in your account
+    role: 'myCustRole0'
     ...
   func1: # will assume 'myCustRole1'
-    # declare one of the following...
-    role: 'myCustRole1'                                                # defining 'role' will override any 'roleArn' declaration // must validly reference a role defined in the service
-    roleArn: { 'Fn::GetAtt': ['myCustRole1', 'Arn'] }                  # must validly reference a role defined in the service
-    roleArn: 'arn:aws:iam::0123456789:role//my/cust/path/myCustRole1'  # must validly reference a role defined in your account
+    role: 'myCustRole1'
     ...
 
 resources:
@@ -244,20 +238,14 @@ resources:
 service: new-service
 provider:
   name: aws
-  # declare one of the following...
-  role: 'myDefaultRole'                                                   # defining 'role' will override any 'roleArn' declaration // must validly reference a role defined in the service
-  roleArn: { 'Fn::GetAtt': ['myDefaultRole', 'Arn'] }                     # must validly reference a role defined in the service
-  roleArn: 'arn:aws:iam::0123456789:role//my/default/path/myDefaultRole'  # must validly reference a role defined in your account
+  role: 'myDefaultRole'
 
 functions:
   func0: # will assume 'myCustRole0'
-    # declare one of the following...
-    role: 'myCustRole0'                                                # defining 'role' will override any 'roleArn' declaration // must validly reference a role defined in the service
-    roleArn: { 'Fn::GetAtt': ['myCustRole0', 'Arn'] }                  # must validly reference a role defined in the service
-    roleArn: 'arn:aws:iam::0123456789:role//my/cust/path/myCustRole0'  # must validly reference a role defined in your account
+    role: 'myCustRole0'
     ...
   func1: # will assume 'myDefaultRole'
-    ...    # does not define roleArn
+    ...    # does not define role
 
 resources:
   Resources:
