@@ -58,6 +58,7 @@
     "mocha": "^3.0.2",
     "mocha-lcov-reporter": "^1.2.0",
     "mock-require": "^1.3.0",
+    "proxyquire": "^1.7.10",
     "sinon": "^1.17.5"
   },
   "dependencies": {
