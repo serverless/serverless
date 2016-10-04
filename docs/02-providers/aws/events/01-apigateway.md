@@ -71,11 +71,33 @@ functions:
           path: whatever
           request:
             template:
-              text/xhtml: { "stage" : "$context.stage" }
-              application/json: { "httpMethod" : "$context.httpMethod" }
+              text/xhtml: '{ "stage" : "$context.stage" }'
+              application/json: '{ "httpMethod" : "$context.httpMethod" }'
 ```
 
 **Note:** The templates are defined as plain text here. However you can also reference an external file with the help of the `${file(templatefile)}` syntax.
+
+**Note 2:** In .yml, strings containing `:`, `{`, `}`, `[`, `]`, `,`, `&`, `*`, `#`, `?`, `|`, `-`, `<`, `>`, `=`, `!`, `%`, `@`, `` ` `` must be quoted.
+
+If you want to map querystrings to the event object, you can use the `$input.params('hub.challenge')` syntax from API Gateway, as follows:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: get
+          path: whatever
+          request:
+            template:
+              application/json: '{ "foo" : "$input.params(''bar'')" }'
+```
+
+**Note:** Notice when using single-quoted strings, any single quote `'` inside its contents must be doubled (`''`) to escape it.
+You can then access the query string `https://example.com/dev/whatever?bar=123` by `event.foo` in the lambda function.
+If you want to spread a string into multiple lines, you can use the `>` or `|` syntax, but the following strings have to be all indented with the same amount, [read more about `>` syntax](http://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines).
+
 
 ### Pass Through Behavior
 API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates.  When this happens, the request payload will either be passed through the integration request *without transformation* or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
@@ -356,14 +378,14 @@ resources:
             - RootResourceId
         PathPart: serverless # the endpoint in your API that is set as proxy
         RestApiId:
-          Ref: RestApiApigEvent
+          Ref: ApiGatewayRestApi
     ProxyMethod:
-      ResourceId:
-        Ref: ProxyResource
-      RestApiId:
-        Ref: RestApiApigEvent
       Type: AWS::ApiGateway::Method
       Properties:
+        ResourceId:
+          Ref: ProxyResource
+        RestApiId:
+          Ref: ApiGatewayRestApi
         HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
         MethodResponses:
           - StatusCode: 200

@@ -11,11 +11,11 @@
 #
 # Happy Coding!
 
-service: aws-nodejs # NOTE: update this with your service name
+service: aws-scala-sbt # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: java8
 
 # you can overwrite defaults here
 #  stage: dev
@@ -37,23 +37,25 @@ provider:
 #            - "Ref" : "ServerlessDeploymentBucket"
 
 # you can add packaging information here
-#package:
+package:
+#  include:
+#    - include-me.java
 #  exclude:
-#    - exclude-me.js
-#  artifact: my-service-code.zip
+#    - exclude-me.java
+  artifact: target/scala-2.11/hello.jar
 
 functions:
   hello:
-    handler: handler.hello
+    handler: hello.Handler
 
-#    you can add any of the following events
-#    events:
-#      - http:
-#          path: users/create
-#          method: get
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
+#   you can add any of the following events
+#   events:
+#     - http:
+#         path: users/create
+#         method: get
+#     - s3: ${env:bucket}
+#     - schedule: rate(10 minutes)
+#     - sns: greeter-topic
 
 # you can add CloudFormation resource templates here
 #resources:

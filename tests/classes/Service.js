@@ -53,7 +53,6 @@ describe('Service', () => {
           google: {},
         },
         package: {
-          include: ['include-me.js'],
           exclude: ['exclude-me.js'],
           artifact: 'some/path/foo.zip',
         },
@@ -69,7 +68,6 @@ describe('Service', () => {
       expect(serviceInstance.resources.aws).to.deep.equal({ resourcesProp: 'value' });
       expect(serviceInstance.resources.azure).to.deep.equal({});
       expect(serviceInstance.resources.google).to.deep.equal({});
-      expect(serviceInstance.package.include[0]).to.equal('include-me.js');
       expect(serviceInstance.package.exclude[0]).to.equal('exclude-me.js');
       expect(serviceInstance.package.artifact).to.equal('some/path/foo.zip');
     });
@@ -136,7 +134,6 @@ describe('Service', () => {
           google: {},
         },
         package: {
-          include: ['include-me.js'],
           exclude: ['exclude-me.js'],
           artifact: 'some/path/foo.zip',
         },
@@ -158,8 +155,6 @@ describe('Service', () => {
         expect(serviceInstance.resources.aws).to.deep.equal({ resourcesProp: 'value' });
         expect(serviceInstance.resources.azure).to.deep.equal({});
         expect(serviceInstance.resources.google).to.deep.equal({});
-        expect(serviceInstance.package.include.length).to.equal(1);
-        expect(serviceInstance.package.include[0]).to.equal('include-me.js');
         expect(serviceInstance.package.exclude.length).to.equal(1);
         expect(serviceInstance.package.exclude[0]).to.equal('exclude-me.js');
         expect(serviceInstance.package.artifact).to.equal('some/path/foo.zip');
@@ -188,7 +183,6 @@ describe('Service', () => {
           google: {},
         },
         package: {
-          include: ['include-me.js'],
           exclude: ['exclude-me.js'],
           artifact: 'some/path/foo.zip',
         },
@@ -204,6 +198,37 @@ describe('Service', () => {
 
       return serviceInstance.load().then(() => {
         expect(serviceInstance.functions.functionA.name).to.be.equal('new-service-dev-functionA');
+      });
+    });
+
+    it('should support Serverless file with a non-aws provider', () => {
+      const SUtils = new Utils();
+      const serverlessYaml = {
+        service: 'my-service',
+        provider: 'ibm',
+        functions: {
+          functionA: {
+            name: 'customFunctionName',
+          },
+        },
+      };
+
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yaml'),
+        YAML.dump(serverlessYaml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        const expectedFunc = {
+          functionA: {
+            name: 'customFunctionName',
+            events: [],
+          },
+        };
+        expect(serviceInstance.service).to.be.equal('my-service');
+        expect(serviceInstance.provider.name).to.deep.equal('ibm');
+        expect(serviceInstance.functions).to.deep.equal(expectedFunc);
       });
     });
 
