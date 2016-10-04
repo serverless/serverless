@@ -661,7 +661,7 @@ describe('PluginManager', () => {
       describe('when running a nested command', () => {
         it('should run the nested command', () => {
           const commandsArray = ['deploy', 'onpremises'];
-          pluginManager.run(commandsArray)
+          return pluginManager.run(commandsArray)
             .then(() => expect(pluginManager.plugins[0].deployedResources)
               .to.equal(1));
         });
@@ -679,14 +679,14 @@ describe('PluginManager', () => {
         pluginManager.addPlugin(SynchronousPluginMock);
       });
 
-      it('should run only the providers plugins (if the provider is specified)', () => {
+      it('should load only the providers plugins (if the provider is specified)', () => {
         const commandsArray = ['deploy'];
-        pluginManager.run(commandsArray).then(() => {
+        return pluginManager.run(commandsArray).then(() => {
+          expect(pluginManager.plugins.length).to.equal(2);
           expect(pluginManager.plugins[0].deployedFunctions).to.equal(1);
-          expect(pluginManager.plugins[1].deployedFunctions).to.equal(0);
-
-          // other, provider independent plugins should also be run
-          expect(pluginManager.plugins[2].deployedFunctions).to.equal(1);
+          expect(pluginManager.plugins[0].provider).to.equal('provider1');
+          expect(pluginManager.plugins[1].deployedFunctions).to.equal(1);
+          expect(pluginManager.plugins[1].provider).to.equal(undefined);
         });
       });
     });
