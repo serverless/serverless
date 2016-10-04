@@ -28,3 +28,7 @@ services:
     image: qlik/gradle
     volumes:
       - ./tmp/serverless-integration-test-aws-java-gradle:/app
+  aws-scala-sbt:
+    image: hseeberger/scala-sbt
+    volumes:
+      - ./tmp/serverless-integration-test-aws-scala-sbt:/app

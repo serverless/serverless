@@ -58,3 +58,19 @@ functions:
           bucket: confidential-information
           event: s3:ObjectRemoved:*
 ```
+
+We can also specify filter rules.
+
+```yml
+# serverless.yml
+functions:
+  mail:
+    handler: mail.removal
+    events:
+      - s3:
+          bucket: confidential-information
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: inbox/
+            - suffix: .eml
+```

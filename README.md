@@ -10,8 +10,6 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## Links
 
-
-
 * [Guide to Serverless](./docs/01-guide/README.md)
 * [Features](#features)
 * [Documentation v.1](./docs/README.md) / [v.0](http://serverless.readme.io)
@@ -53,6 +51,31 @@ Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more
 * 100% Extensible: Extend or modify the Framework and its operations via Plugins.
 * An ecosystem of serverless services and plugins.
 * A passionate and welcoming community!
+
+## <a name="v1-plugins"></a>Plugins (V1.0)
+
+Use these plugins to overwrite or extend the Framework's functionality...
+
+* [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
+* [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
+* [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
+* [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
+* [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
+* [serverless-build](https://github.com/nfour/serverless-build-plugin)
+* [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
+* [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
+
+## <a name="v1-services"></a>Services & Projects (V1.0)
+
+Pre-written functions you can use instantly and example implementations...
+
+* [serverless-examples](https://github.com/andymac4182/serverless_example)
+* [serverless-npm-registry](https://github.com/craftship/yith)
+* [serverless-pokego](https://github.com/jch254/pokego-serverless)
+* [serverless-pocket-app](https://github.com/s0enke/weekly2pocket)
+* [serverless-quotebot](https://github.com/pmuens/quotebot)
+* [serverless-slackbot](https://github.com/conveyal/trevorbot)
+* [serverless-garden-aid](https://github.com/garden-aid/web-bff)
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
@@ -121,7 +144,7 @@ Below are projects and plugins relating to version 0.5 and below. Note that thes
 
 You can read the v0.5.x documentation at [readme.io](https://serverless.readme.io/v0.5.0/docs).
 
-## v0.5.x Projects
+## Projects (v0.5.x)
 Serverless Projects are shareable and installable.  You can publish them to npm and install them via the Serverless Framework CLI by using `$ serverless project install <project-name>`
 * [serverless-graphql](https://github.com/serverless/serverless-graphql) - Official Serverless boilerplate to kick start your project
 * [serverless-starter](https://github.com/serverless/serverless-starter) - A simple boilerplate for new projects (JavaScript) with a few architectural options
@@ -131,7 +154,7 @@ Serverless Projects are shareable and installable.  You can publish them to npm 
 * [sc5-serverless-boilerplate](https://github.com/SC5/sc5-serverless-boilerplate) - A boilerplate for test driven development of REST endpoints
 * [MoonMail] (https://github.com/microapps/MoonMail) - Build your own email marketing infrastructure using Lambda + SES
 
-## v0.5.x Plugins
+## Plugins (v0.5.x)
 Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
 * [Meta Sync](https://github.com/serverless/serverless-meta-sync) - Securely sync your the variables in your project's `_meta/variables` across your team.
 * [Offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and Api Gateway locally to speed up your development cycles.
