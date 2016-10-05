@@ -35,7 +35,74 @@ functions:
           method: post
 ```
 
+## Integration types
+
+Serverless supports the following integration types:
+
+- `lambda`
+- `lambda-proxy`
+
+Here's a simple example which demonstrates how you can set the `integration` type for your `http` event:
+
+```yml
+# serverless.yml
+functions:
+  get:
+    handler: users.get
+    events:
+      - http:
+          path: users
+          method: get
+          integration: lambda
+```
+
+### `lambda-proxy`
+
+**Important:** Serverless defaults to this integration type if you don't setup another one.
+Furthermore any `request` or `response` configuration will be ignored if this `integration` type is used.
+
+`lambda-proxy` simply passes the whole request as is (regardless of the content type, the headers, etc.) directly to the
+Lambda function. This means that you don't have to setup custom request / response configuration (such as templates, the
+passthrough behavior, etc.).
+
+Your function needs to return corresponding response information.
+
+Here's an example for a JavaScript / Node.js function which shows how this might look like:
+
+```javascript
+'use strict';
+
+exports.handler = function(event, context) {
+    const responseBody = {
+      message: "Hello World!",
+      input: event
+    };
+
+    const response = {
+      statusCode: responseCode,
+      headers: {
+        "x-custom-header" : "My Header Value"
+      },
+      body: JSON.stringify(responseBody)
+    };
+
+    context.succeed(response);
+};
+```
+
+Take a look at the [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-as-simple-proxy-for-lambda.html)
+for more information about this.
+
+### `lambda`
+
+The `lambda` integration type should be used if you want more control over the `request` and `response` configurations.
+
+Serverless ships with defaults for the request / response configuration (such as request templates, error code mappings,
+default passthrough behaviour) but you can always configure those accordingly when you set the `integration` type to `lambda`.
+
 ## Request templates
+
+**Note:** The request configuration can only be used when the integration type is set to `lambda`.
 
 ### Default request templates
 
@@ -132,6 +199,8 @@ See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/lates
 - API Gateway docs refer to "WHEN_NO_TEMPLATE" (singular), but this will fail during creation as the actual value should be "WHEN_NO_TEMPLATES" (plural)
 
 ## Responses
+
+**Note:** The response configuration can only be used when the integration type is set to `lambda`.
 
 Serverless lets you setup custom headers and a response template for your `http` event.
 
@@ -316,7 +385,6 @@ Please note that those are the API keys names, not the actual values. Once you d
 
 Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
 
-
 ## Enabling CORS for your endpoints
 To set CORS configurations for your HTTP endpoints, simply modify your event configurations as follows:
 
@@ -358,7 +426,6 @@ This example is the default setting and is exactly the same as the previous exam
 
 To set up an HTTP proxy, you'll need two CloudFormation templates, one for the endpoint (known as resource in CF), and
 one for method. These two templates will work together to construct your proxy. So if you want to set `your-app.com/serverless` as a proxy for `serverless.com`, you'll need the following two templates in your `serverless.yml`:
-
 
 ```yml
 # serverless.yml
