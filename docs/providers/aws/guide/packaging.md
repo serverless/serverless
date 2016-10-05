@@ -16,9 +16,21 @@ Sometimes you might like to have more control over your function artifacts and h
 
 You can use the `package` and `exclude` configuration for more control over the packaging process.
 
-## Exclude
+## Exclude / include
 
-Exclude allows you to define globs that will be excluded from the resulting artifact.
+Exclude allows you to define globs that will be excluded from the resulting artifact. If you wish to
+include files you can use a glob pattern prefixed with `!` such as `!re-include-me/**`. Serverless will run the glob patterns in order.
+
+## Example
+
+Exclude all node_modules but then re-include a specific modules (in this case node-fetch)
+
+``` yaml
+package:
+  exclude:
+    - node_modules/**
+    - !node_modules/node-fetch/**
+```
 
 ```
 exclude:
