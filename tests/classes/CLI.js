@@ -116,10 +116,11 @@ describe('CLI', () => {
           };
         }
       }
-      const pluginMock = new PluginMock();
-      const plugins = [pluginMock];
+      serverless.pluginManager.addPlugin(PluginMock);
 
-      cli.setLoadedPlugins(plugins);
+      cli.setLoadedPlugins(serverless.pluginManager.getPlugins());
+      cli.setLoadedCommands(serverless.pluginManager.getCommands());
+
       const processedInput = cli.processInput();
       const helpDisplayed = cli.displayHelp(processedInput);
 
@@ -180,10 +181,11 @@ describe('CLI', () => {
           };
         }
       }
-      const pluginMock = new PluginMock();
-      const plugins = [pluginMock];
+      serverless.pluginManager.addPlugin(PluginMock);
 
-      cli.setLoadedPlugins(plugins);
+      cli.setLoadedPlugins(serverless.pluginManager.getPlugins());
+      cli.setLoadedCommands(serverless.pluginManager.getCommands());
+
       const processedInput = cli.processInput();
       const helpDisplayed = cli.displayHelp(processedInput);
 
@@ -228,10 +230,11 @@ describe('CLI', () => {
           };
         }
       }
-      const pluginMock = new PluginMock();
-      const plugins = [pluginMock];
+      serverless.pluginManager.addPlugin(PluginMock);
 
-      cli.setLoadedPlugins(plugins);
+      cli.setLoadedPlugins(serverless.pluginManager.getPlugins());
+      cli.setLoadedCommands(serverless.pluginManager.getCommands());
+
       const processedInput = cli.processInput();
       const helpDisplayed = cli.displayHelp(processedInput);
 

@@ -82,7 +82,7 @@ provider:
 
 ##### Per Stage Profiles
 
-As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](../01-guide/08-serverless-variables.md) and the provider profile setting.
+As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](../../01-guide/08-serverless-variables.md) and the provider profile setting.
 
 This example `serverless.yml` snippet will load the profile depending upon the stage specified in the command line options (or default to 'dev' if unspecified);
 
