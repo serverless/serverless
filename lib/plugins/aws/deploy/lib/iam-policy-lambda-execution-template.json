@@ -9,7 +9,13 @@
           {
             "Effect": "Allow",
             "Action": [
-              "logs:CreateLogStream",
+              "logs:CreateLogStream"
+            ],
+            "Resource": []
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
               "logs:PutLogEvents"
             ],
             "Resource": []
