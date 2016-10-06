@@ -115,9 +115,9 @@ resources:
   Resources:
     myDefaultRole:
       Type: AWS::IAM::Role
-      RoleName: MyDefaultRole
       Properties:
         Path: /my/default/path
+        RoleName: MyDefaultRole
         AssumeRolePolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -168,9 +168,9 @@ resources:
   Resources:
     myCustRole0:
       Type: AWS::IAM::Role
-      RoleName: MyCustRole0
       Properties:
         Path: /my/cust/path
+        RoleName: MyCustRole0
         AssumeRolePolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -199,9 +199,9 @@ resources:
                   Resource: "*"
     myCustRole1:
       Type: AWS::IAM::Role
-      RoleName: MyCustRole1
       Properties:
         Path: /my/cust/path
+        RoleName: MyCustRole1
         AssumeRolePolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -251,9 +251,9 @@ resources:
   Resources:
     myDefaultRole:
       Type: AWS::IAM::Role
-      RoleName: MyDefaultRole
       Properties:
         Path: /my/default/path
+        RoleName: MyDefaultRole
         AssumeRolePolicyDocument:
           Version: 2012-10-17
           Statement:
@@ -283,9 +283,9 @@ resources:
                          - "Ref" : "ServerlessDeploymentBucket"
     myCustRole0:
       Type: AWS::IAM::Role
-      RoleName: MyCustRole0
       Properties:
         Path: /my/cust/path
+        RoleName: MyCustRole0
         AssumeRolePolicyDocument:
           Version: 2012-10-17
           Statement:
