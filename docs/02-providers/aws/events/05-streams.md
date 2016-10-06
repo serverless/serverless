@@ -28,7 +28,7 @@ functions:
     events:
       - stream:
           arn: some:kinesis:stream:arn
-          bathSize: 100
+          batchSize: 100
           startingPosition: LATEST
           enabled: false
 ```
