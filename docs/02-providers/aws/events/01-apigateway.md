@@ -90,6 +90,8 @@ exports.handler = function(event, context) {
 };
 ```
 
+**Note:** If you want to use CORS with the lambda-proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object.
+
 Take a look at the [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-as-simple-proxy-for-lambda.html)
 for more information about this.
 
@@ -421,6 +423,20 @@ functions:
 ```
 
 This example is the default setting and is exactly the same as the previous example. The `Access-Control-Allow-Methods` header is set automatically, based on the endpoints specified in your service configuration with CORS enabled.
+
+**Note:** If you are using the default lambda proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object otherwise CORS will fail.
+
+```
+module.exports.hello = (event, context, cb) => {
+  return cb(null, {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: 'Hello World!'
+  });
+}
+```
 
 ## Setting an HTTP proxy on API Gateway
 
