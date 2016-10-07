@@ -12,6 +12,7 @@ require('./classes/CLI');
 
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
+require('../lib/plugins/install/tests/install');
 require('../lib/plugins/deploy/tests/deploy');
 require('../lib/plugins/info/tests/info');
 require('../lib/plugins/invoke/tests/invoke');
