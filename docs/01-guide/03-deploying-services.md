@@ -34,7 +34,7 @@ If you want to deploy to different stages and regions later on, provide correspo
 For example, deploy to the `production` stage in the `eu-central-1` region by running a `deploy` command that looks like
 this: `serverless deploy --stage production --region eu-central-1`.
 
-Check out the [deploy command docs](../03-cli-reference/02-deploy.md) for all the details and options.
+Check out the [deploy command docs](../03-cli-reference/03-deploy.md) for all the details and options.
 
 ## Conclusion
 
