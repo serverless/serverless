@@ -35,6 +35,49 @@ functions:
           method: post
 ```
 
+## Request parameters
+
+You can pass optional and required parameters to your functions, so you can use them in for example Api Gateway tests and SDK generation. Marking them as `true` will make them required, `false` will make them optional.
+
+```yml
+# serverless.yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          integration: lambda
+          request:
+            parameters:
+              querystrings:
+                url: true
+              headers:
+                foo: false
+                bar: true
+              paths:
+                bar: false
+```
+
+In order for path variables to work, ApiGateway also needs them in the method path itself, like so:
+
+```yml
+# serverless.yml
+functions:
+  create:
+    handler: posts.post_detail
+    events:
+      - http:
+          path: posts/{id}
+          method: get
+          integration: lambda
+          request:
+            parameters:
+              paths:
+                id: true
+```
+
 ## Integration types
 
 Serverless supports the following integration types:
