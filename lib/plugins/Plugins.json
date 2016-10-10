@@ -1,6 +1,7 @@
 {
   "plugins": [
     "./create/create.js",
+    "./install/install.js",
     "./package/index.js",
     "./deploy/deploy.js",
     "./invoke/invoke.js",
@@ -18,6 +19,7 @@
     "./aws/deploy/compile/events/s3/index.js",
     "./aws/deploy/compile/events/apiGateway/index.js",
     "./aws/deploy/compile/events/sns/index.js",
+    "./aws/deploy/compile/events/stream/index.js",
     "./aws/deployFunction/index.js"
   ]
 }

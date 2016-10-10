@@ -64,11 +64,13 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-build](https://github.com/nfour/serverless-build-plugin)
 * [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
 * [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
+* [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
 
 ## <a name="v1-services"></a>Services & Projects (V1.0)
 
 Pre-written functions you can use instantly and example implementations...
 
+* [serverless-authentication-boilerplate](https://github.com/laardee/serverless-authentication-boilerplate)
 * [serverless-examples](https://github.com/andymac4182/serverless_example)
 * [serverless-npm-registry](https://github.com/craftship/yith)
 * [serverless-pokego](https://github.com/jch254/pokego-serverless)
@@ -76,6 +78,7 @@ Pre-written functions you can use instantly and example implementations...
 * [serverless-quotebot](https://github.com/pmuens/quotebot)
 * [serverless-slackbot](https://github.com/conveyal/trevorbot)
 * [serverless-garden-aid](https://github.com/garden-aid/web-bff)
+* [serverless-react-boilerplate](https://github.com/99xt/serverless-react-boilerplate)
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
@@ -126,6 +129,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Branded Crate](https://www.brandedcrate.com/)
 * [cloudonaut](https://cloudonaut.io/serverless-consulting/)
 * [PromptWorks](https://www.promptworks.com/serverless/)
+* [Craftship](https://craftship.io)
 
 ## Badges
 
