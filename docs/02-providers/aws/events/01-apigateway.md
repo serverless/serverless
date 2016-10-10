@@ -48,6 +48,7 @@ functions:
       - http:
           path: posts/create
           method: post
+          integration: lambda
           request:
             parameters:
               querystrings:
@@ -70,6 +71,7 @@ functions:
       - http:
           path: posts/{id}
           method: get
+          integration: lambda
           request:
             parameters:
               paths:
