@@ -5,12 +5,28 @@ const os = require('os');
 const expect = require('chai').expect;
 const fse = require('fs-extra');
 const fs = require('fs');
+const sinon = require('sinon');
+const BbPromise = require('bluebird');
+const proxyquire = require('proxyquire');
 const Serverless = require('../../lib/Serverless');
 const testUtils = require('../../tests/utils');
+const serverlessVersion = require('../../package.json').version;
 
-const serverless = new Serverless();
+const fetchStub = sinon.stub().returns(BbPromise.resolve());
+const Utils = proxyquire('../../lib/classes/Utils.js', {
+  'node-fetch': fetchStub,
+});
 
 describe('Utils', () => {
+  let utils;
+  let serverless;
+
+  beforeEach(() => {
+    serverless = new Serverless();
+    utils = new Utils(serverless);
+    serverless.init();
+  });
+
   describe('#dirExistsSync()', () => {
     describe('When reading a directory', () => {
       it('should detect if a directory exists', () => {
@@ -271,27 +287,6 @@ describe('Utils', () => {
 
       serverlessPath = tmpDirPath;
       serverless.config.serverlessPath = tmpDirPath;
-
-      // add some mock data to the serverless service object
-      serverless.service.functions = {
-        foo: {
-          memorySize: 47,
-          timeout: 11,
-          events: [
-            {
-              http: 'GET foo',
-            },
-          ],
-        },
-        bar: {
-          events: [
-            {
-              http: 'GET foo',
-              s3: 'someBucketName',
-            },
-          ],
-        },
-      };
     });
 
     it('should create a new file with a tracking id if not found', () => {
@@ -312,6 +307,102 @@ describe('Utils', () => {
 
       return serverless.utils.track(serverless).then(() => {
         expect(fs.readFileSync(trackingIdFilePath).toString()).to.be.equal(trackingId);
+      });
+    });
+
+    it('should send the gathered tracking data to the Segement tracking API', () => {
+      serverless.service = {
+        service: 'new-service',
+        provider: {
+          name: 'aws',
+          runtime: 'nodejs4.3',
+        },
+        defaults: {
+          stage: 'dev',
+          region: 'us-east-1',
+          variableSyntax: '\\${foo}',
+        },
+        plugins: [],
+        functions: {
+          functionOne: {
+            events: [
+              {
+                http: {
+                  path: 'foo',
+                  method: 'GET',
+                },
+              },
+              {
+                s3: 'my.bucket',
+              },
+            ],
+          },
+          functionTwo: {
+            memorySize: 16,
+            timeout: 200,
+            events: [
+              {
+                http: 'GET bar',
+              },
+              {
+                sns: 'my-topic-name',
+              },
+            ],
+          },
+        },
+        resources: {
+          Resources: {
+            foo: 'bar',
+          },
+        },
+      };
+
+      return utils.track(serverless).then(() => {
+        expect(fetchStub.calledOnce).to.equal(true);
+        expect(fetchStub.args[0][0]).to.equal('https://api.segment.io/v1/track');
+        expect(fetchStub.args[0][1].method).to.equal('POST');
+        expect(fetchStub.args[0][1].timeout).to.equal('1000');
+
+        const parsedBody = JSON.parse(fetchStub.args[0][1].body);
+
+        expect(parsedBody.userId.length).to.be.at.least(1);
+        // command property
+        expect(parsedBody.properties.command
+          .isRunInService).to.equal(false); // false because CWD is not a service
+        // service property
+        expect(parsedBody.properties.service.numberOfCustomPlugins).to.equal(0);
+        expect(parsedBody.properties.service.hasCustomResourcesDefined).to.equal(true);
+        expect(parsedBody.properties.service.hasVariablesInCustomSectionDefined).to.equal(false);
+        expect(parsedBody.properties.service.hasCustomVariableSyntaxDefined).to.equal(true);
+        // functions property
+        expect(parsedBody.properties.functions.numberOfFunctions).to.equal(2);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[0]
+          .memorySize).to.equal(1024);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[0]
+          .timeout).to.equal(6);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[1]
+          .memorySize).to.equal(16);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[1]
+          .timeout).to.equal(200);
+        // events property
+        expect(parsedBody.properties.events.numberOfEvents).to.equal(3);
+        expect(parsedBody.properties.events.numberOfEventsPerType[0].name).to.equal('http');
+        expect(parsedBody.properties.events.numberOfEventsPerType[0].count).to.equal(2);
+        expect(parsedBody.properties.events.numberOfEventsPerType[1].name).to.equal('s3');
+        expect(parsedBody.properties.events.numberOfEventsPerType[1].count).to.equal(1);
+        expect(parsedBody.properties.events.numberOfEventsPerType[2].name).to.equal('sns');
+        expect(parsedBody.properties.events.numberOfEventsPerType[2].count).to.equal(1);
+        expect(parsedBody.properties.events.eventNamesPerFunction[0][0]).to.equal('http');
+        expect(parsedBody.properties.events.eventNamesPerFunction[0][1]).to.equal('s3');
+        expect(parsedBody.properties.events.eventNamesPerFunction[1][0]).to.equal('http');
+        expect(parsedBody.properties.events.eventNamesPerFunction[1][1]).to.equal('sns');
+        // general property
+        expect(parsedBody.properties.general.userId.length).to.be.at.least(1);
+        expect(parsedBody.properties.general.timestamp).to.match(/[0-9]+/);
+        expect(parsedBody.properties.general.timezone.length).to.be.at.least(1);
+        expect(parsedBody.properties.general.operatingSystem.length).to.be.at.least(1);
+        expect(parsedBody.properties.general.serverlessVersion).to.equal(serverlessVersion);
+        expect(parsedBody.properties.general.nodeJsVersion.length).to.be.at.least(1);
       });
     });
   });
