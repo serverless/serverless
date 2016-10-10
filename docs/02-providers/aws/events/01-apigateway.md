@@ -36,7 +36,7 @@ functions:
 
 ## Request parameters
 
-You can pass optional and required parameters to your functions, so you can use them in for example Api Gateway tests and SDK generation.
+You can pass optional and required parameters to your functions, so you can use them in for example Api Gateway tests and SDK generation. Marking them as `true` will make them required, `false` will make them optional.
 
 ```yml
 # serverless.yml
@@ -56,6 +56,23 @@ functions:
                 bar: true
               paths:
                 bar: false
+```
+
+In order for path variables to work, ApiGateway also needs them in the method path itself, like so:
+
+```yml
+# serverless.yml
+functions:
+  create:
+    handler: posts.post_detail
+    events:
+      - http:
+          path: posts/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
 ```
 
 ## Request templates
