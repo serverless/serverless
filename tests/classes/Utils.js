@@ -3,6 +3,8 @@
 const path = require('path');
 const os = require('os');
 const expect = require('chai').expect;
+const fse = require('fs-extra');
+const fs = require('fs');
 const Serverless = require('../../lib/Serverless');
 const testUtils = require('../../tests/utils');
 
@@ -34,6 +36,19 @@ describe('Utils', () => {
         const noFile = serverless.utils.fileExistsSync(path.join(__dirname, 'XYZ.json'));
         expect(noFile).to.equal(false);
       });
+    });
+  });
+
+  describe('#writeFileDir()', () => {
+    it('should create a directory for the path of the given file', () => {
+      const tmpDirPath = testUtils.getTmpDirPath();
+      const rootDir = serverless.utils
+        .writeFileDir(path.join(tmpDirPath, 'foo', 'bar', 'somefile.js'));
+
+      expect(serverless.utils.dirExistsSync(path.join(rootDir, 'foo', 'bar'))).to.equal(true);
+      // it should only create the directories and not the file
+      expect(serverless.utils.fileExistsSync(path.join(rootDir, 'foo', 'bar', 'somefile.js')))
+        .to.equal(false);
     });
   });
 
@@ -93,6 +108,34 @@ describe('Utils', () => {
       const obj = serverless.utils.readFileSync(tmpFilePath);
 
       expect(obj.foo).to.equal('bar');
+    });
+
+    it('should read a filename extension .yml', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = serverless.utils.readFileSync(tmpFilePath);
+
+      expect(obj.foo).to.equal('bar');
+    });
+
+    it('should read a filename extension .yaml', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('anything.yaml');
+
+      serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
+      const obj = serverless.utils.readFileSync(tmpFilePath);
+
+      expect(obj.foo).to.equal('bar');
+    });
+
+    it('should throw YAMLException with filename if yml file is invalid format', () => {
+      const tmpFilePath = testUtils.getTmpFilePath('invalid.yml');
+
+      serverless.utils.writeFileSync(tmpFilePath, ': a');
+
+      expect(() => {
+        serverless.utils.readFileSync(tmpFilePath);
+      }).to.throw(new RegExp('YAMLException:.*invalid.yml'));
     });
   });
 
@@ -215,5 +258,61 @@ describe('Utils', () => {
       process.chdir(testDir);
     });
   });
-});
 
+  describe('#track()', () => {
+    let serverlessPath;
+
+    beforeEach(() => {
+      serverless.init();
+
+      // create a new tmpDir for the serverlessPath
+      const tmpDirPath = testUtils.getTmpDirPath();
+      fse.mkdirsSync(tmpDirPath);
+
+      serverlessPath = tmpDirPath;
+      serverless.config.serverlessPath = tmpDirPath;
+
+      // add some mock data to the serverless service object
+      serverless.service.functions = {
+        foo: {
+          memorySize: 47,
+          timeout: 11,
+          events: [
+            {
+              http: 'GET foo',
+            },
+          ],
+        },
+        bar: {
+          events: [
+            {
+              http: 'GET foo',
+              s3: 'someBucketName',
+            },
+          ],
+        },
+      };
+    });
+
+    it('should create a new file with a tracking id if not found', () => {
+      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
+
+      return serverless.utils.track(serverless).then(() => {
+        expect(fs.readFileSync(trackingIdFilePath).toString().length).to.be.above(1);
+      });
+    });
+
+    it('should re-use an existing file which contains the tracking id if found', () => {
+      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
+      const trackingId = 'some-tracking-id';
+
+      // create a new file with a tracking id
+      fse.ensureFileSync(trackingIdFilePath);
+      fs.writeFileSync(trackingIdFilePath, trackingId);
+
+      return serverless.utils.track(serverless).then(() => {
+        expect(fs.readFileSync(trackingIdFilePath).toString()).to.be.equal(trackingId);
+      });
+    });
+  });
+});

@@ -1,5 +1,6 @@
 <!--
 title: Creating Serverless Services
+menuText: Creating Services
 description: Creating a Serverless Service
 layout: Doc
 -->
@@ -11,10 +12,10 @@ You can create a service based on a specific template that specifies which provi
 To create a service with a `nodejs` runtime running on `aws` just pass the `aws-nodejs` template to the create command:
 
 ```
-serverless create --template aws-nodejs
+serverless create --template aws-nodejs --name my-special-service
 ```
 
-This will create a service and generate `serverless.yml` and `handler.js` files in the current working directory.
+This will create a service and generate `serverless.yml`, `handler.js` and `event.json` files in the current working directory and set the name of the service to `my-special-service` in `serverless.yml`.
 
 You can also check out the [create command docs](../03-cli-reference/01-create.md) for all the details and options.
 

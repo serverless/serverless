@@ -1,5 +1,6 @@
 <!--
 title: Serverless Framework Documentation
+menuText: Docs
 layout: Doc
 -->
 
@@ -7,11 +8,11 @@ layout: Doc
 
 Welcome to the Serverless documentation.
 
-- [Quick Start Guide](01-guide)
+- [Quick Start Guide](./01-guide/)
 - [Core Concepts](#concepts)
-- [CLI Reference](03-cli-reference)
+- [CLI Reference](./03-cli-reference/)
 - [Providers](#providers)
-- [Extending Serverless](04-extending-serverless)
+- [Extending Serverless](./04-extending-serverless/)
 - [Contributing to Serverless](#contributing)
 
 ## Providers
@@ -37,7 +38,7 @@ Serverless is used to build event driven architecture. Basically everything whic
 
 Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
 
-- [AWS Events](./02-providers/aws/events)
+- [AWS Events](./02-providers/aws/events/)
 
 ### Resources
 
@@ -51,12 +52,12 @@ A *Serverless service* is a group of one or multiple functions and any resources
 
 Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to extend the functionality of Serverless. Furthermore we'll look into the way how you can use your plugin knowledge to integrate your own provider into the Serverless framework.
 
-- [Building plugins](./04-extending-serverless)
+- [Building plugins](./04-extending-serverless/)
 
 Connect with the community on [gitter](https://gitter.im/serverless/serverless) or in the [Forum](http://forum.serverless.com)
 
 ## Contributing
-We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
+We love our contributors! Please read our [Contributing Document](../CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
 
 Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.
 

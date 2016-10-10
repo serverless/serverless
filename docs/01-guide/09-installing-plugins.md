@@ -1,5 +1,6 @@
 <!--
 title: Installing Serverless Plugins
+menuText: Installing Plugins
 layout: Doc
 -->
 
@@ -51,5 +52,3 @@ plugins:
 ```
 
 In this case `plugin1` is loaded before `plugin2`.
-
-[Next step > Removing your service](removing-a-service.md)

@@ -1,5 +1,6 @@
 <!--
 title: AWS Serverless Events
+menuText: AWS Events
 layout: Doc
 -->
 
@@ -9,5 +10,4 @@ layout: Doc
 * [S3](./02-s3.md)
 * [Schedule](./03-schedule.md)
 * [SNS](./04-sns.md)
-* [Kinesis Streams](./05-kinesis-streams.md)
-* [DynamoDB Streams](./06-dynamodb-streams.md)
+* [DynamoDB / Kinesis Streams](./05-streams.md)

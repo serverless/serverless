@@ -1,5 +1,6 @@
 <!--
 title: Invoking Serverless Functions
+menuText: Invoking Services
 description: How to invoke a Serverless function and watch the logs
 layout: Doc
 -->
@@ -22,7 +23,7 @@ As a result of this you should see the functions message printed out on the cons
 
 You can also change the message returned by your function in `handler.js` or change the event.json file to see how your function output will change.
 
-You can also check out the [invoke command docs](../03-cli-reference/03-invoke.md) for all the details and options.
+You can also check out the [invoke command docs](../03-cli-reference/04-invoke.md) for all the details and options.
 
 ## Viewing Function Logs
 
@@ -37,7 +38,7 @@ By default, Serverless will fetch all the logs that happened in the past 30 minu
 The logs will then be displayed on your terminal. By default, AWS logs a `START`, `END` & `REPORT` logs for each invocation, plus of course any logging functionality you have in your code. You should see all these logs on the screen.
 
 The logs command provides different options you can use. Please take a look at the
-[logs command documentation](../03-cli-reference/04-logs.md) to see what else you can do.
+[logs command documentation](../03-cli-reference/05-logs.md) to see what else you can do.
 
 ## Conclusion
 
@@ -47,4 +48,4 @@ A service with functions alone is just the beginning. Event sources provide a re
 
 Let's take a closer look at how we can use different event sources and attach them to our function.
 
-[Next step > Event sources](05-event-sources.md)
+[Next step > Event sources](./05-event-sources.md)

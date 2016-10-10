@@ -1,4 +1,4 @@
-![Serverless Application Framework AWS Lambda API Gateway](https://cloud.githubusercontent.com/assets/532272/17313761/61af7166-5813-11e6-84af-c296c19ead9b.gif)
+![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/serverless-images/frameworkv1_readme_v2.gif)
 
 [Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups (7+)](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:hello@serverless.com)
 
@@ -6,28 +6,29 @@
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by following the [Quickstart commands](#quick-start) or reading our [Guide to Serverless](docs/01-guide)
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by following the [Quickstart commands](#quick-start) or reading our [Guide to Serverless](./docs/01-guide/README.md)
 
 ## Links
 
-* [Guide to Serverless](docs/01-guide)
+* [Guide to Serverless](./docs/01-guide/README.md)
 * [Features](#features)
-* [Documentation v.1](docs) / [v.0](http://serverless.readme.io)
+* [Documentation v.1](./docs/README.md) / [v.0](http://serverless.readme.io)
 * [Road Map](https://github.com/serverless/serverless/milestones)
 * [Contributing](#contributing)
 * [Community](#community)
 * [Changelog](https://github.com/serverless/serverless/releases)
+* [Fill out the 'State of Serverless Community Survey'](https://docs.google.com/forms/d/e/1FAIpQLSf-lMDMR22Bg56zUh71MJ9aH8N0In3s2PdZFrGRJzwZ0ul7rA/viewform)
 
 ## <a name="quick-start"></a>Quick Start
 
-Below is a quick list of commands to set up a new project. For a more in-depth look at Serverless check out the [Guide in our docs](docs/01-guide).
+Below is a quick list of commands to set up a new project. For a more in-depth look at Serverless check out the [Guide in our docs](./docs/01-guide/README.md).
 
 [Watch the video guide here](https://youtu.be/weOsx5rLWX0) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
 | **Step** | **Command** |**Description**|
 |---|-------|------|
 |  1.  | `npm install -g serverless` | Install Serverless CLI  |
-|  3.  | [Set up your Provider credentials](/docs/02-providers/aws/01-setup.md) | Connect Serverless with your provider |
+|  3.  | [Set up your Provider credentials](./docs/02-providers/aws/01-setup.md) | Connect Serverless with your provider |
 |  4.  | `serverless create --template aws-nodejs --path my-service` | Create an AWS Lamdba function in Node.js |
 |  5.  | `cd my-service` | Change into your service directory  |
 |  6.  | `serverless deploy` | Deploy to your AWS account  |
@@ -35,7 +36,7 @@ Below is a quick list of commands to set up a new project. For a more in-depth l
 
 Run `serverless remove` to clean up this function from your account.
 
-Check out our in-depth [Guide to Serverless](docs/01-guide) for more information.
+Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more information.
 
 ## <a name="features"></a>Features
 
@@ -50,6 +51,34 @@ Check out our in-depth [Guide to Serverless](docs/01-guide) for more information
 * 100% Extensible: Extend or modify the Framework and its operations via Plugins.
 * An ecosystem of serverless services and plugins.
 * A passionate and welcoming community!
+
+## <a name="v1-plugins"></a>Plugins (V1.0)
+
+Use these plugins to overwrite or extend the Framework's functionality...
+
+* [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
+* [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
+* [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
+* [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
+* [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
+* [serverless-build](https://github.com/nfour/serverless-build-plugin)
+* [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
+* [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
+* [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
+
+## <a name="v1-services"></a>Services & Projects (V1.0)
+
+Pre-written functions you can use instantly and example implementations...
+
+* [serverless-authentication-boilerplate](https://github.com/laardee/serverless-authentication-boilerplate)
+* [serverless-examples](https://github.com/andymac4182/serverless_example)
+* [serverless-npm-registry](https://github.com/craftship/yith)
+* [serverless-pokego](https://github.com/jch254/pokego-serverless)
+* [serverless-pocket-app](https://github.com/s0enke/weekly2pocket)
+* [serverless-quotebot](https://github.com/pmuens/quotebot)
+* [serverless-slackbot](https://github.com/conveyal/trevorbot)
+* [serverless-garden-aid](https://github.com/garden-aid/web-bff)
+* [serverless-react-boilerplate](https://github.com/99xt/serverless-react-boilerplate)
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
@@ -100,6 +129,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Branded Crate](https://www.brandedcrate.com/)
 * [cloudonaut](https://cloudonaut.io/serverless-consulting/)
 * [PromptWorks](https://www.promptworks.com/serverless/)
+* [Craftship](https://craftship.io)
 
 ## Badges
 
@@ -114,11 +144,11 @@ These consultants use the Serverless Framework and can help you build your serve
 
 # Previous Serverless Version 0.5.x
 
-Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](docs/developing-plugins)
+Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](./docs/04-extending-serverless/01-creating-plugins.md)
 
 You can read the v0.5.x documentation at [readme.io](https://serverless.readme.io/v0.5.0/docs).
 
-## v0.5.x Projects
+## Projects (v0.5.x)
 Serverless Projects are shareable and installable.  You can publish them to npm and install them via the Serverless Framework CLI by using `$ serverless project install <project-name>`
 * [serverless-graphql](https://github.com/serverless/serverless-graphql) - Official Serverless boilerplate to kick start your project
 * [serverless-starter](https://github.com/serverless/serverless-starter) - A simple boilerplate for new projects (JavaScript) with a few architectural options
@@ -128,7 +158,7 @@ Serverless Projects are shareable and installable.  You can publish them to npm 
 * [sc5-serverless-boilerplate](https://github.com/SC5/sc5-serverless-boilerplate) - A boilerplate for test driven development of REST endpoints
 * [MoonMail] (https://github.com/microapps/MoonMail) - Build your own email marketing infrastructure using Lambda + SES
 
-## v0.5.x Plugins
+## Plugins (v0.5.x)
 Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
 * [Meta Sync](https://github.com/serverless/serverless-meta-sync) - Securely sync your the variables in your project's `_meta/variables` across your team.
 * [Offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and Api Gateway locally to speed up your development cycles.

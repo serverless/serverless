@@ -1,12 +1,13 @@
 <!--
 title: Building Serverless Provider Integrations
+menuText: Building Provider Integrations
 layout: Doc
 -->
 
 # Building provider integrations
 
 Integrating different infrastructure providers happens through the standard plugin system.
-Take a look at the ["building plugins"](./building-plugins.md) documentation to understand how the plugin system works.
+Take a look at the ["building plugins"](./01-creating-plugins.md) documentation to understand how the plugin system works.
 
 ## Provider specific plugins
 
@@ -18,7 +19,7 @@ Infrastructure provider plugins should bind to specific lifecycle events of the 
 
 ### Deployment lifecycle
 
-Let's take a look at the [core `deploy` plugin](/lib/plugins/deploy) and the different lifecycle hooks it provides.
+Let's take a look at the [core `deploy` plugin](https://github.com/serverless/serverless/tree/master/lib/plugins/deploy) and the different lifecycle hooks it provides.
 
 The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
 
@@ -53,8 +54,6 @@ Serverless will automatically exclude the following files / folders to reduce th
 - .serverless
 - serverless.yaml
 - serverless.yml
-- serverless.env.yaml
-- serverless.env.yml
 - .DS_Store
 
 You can always include previously excluded files and folders if you want to.
@@ -79,8 +78,7 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 #### The steps in detail
 
-1. The `serverless.yml` and
-[`serverless.env.yml`](../understanding-serverless/serverless-env-yml.md) files are loaded into memory
+1. The `serverless.yml` file is loaded into memory
 2. A default AWS CloudFormation template is loaded and deployed to AWS (A S3 bucket for the service gets created)(`deploy:setupProviderConfiguration`)
 3. The functions of the `serverless.yml`
 4. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
@@ -92,4 +90,4 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 You may also take a closer look at the corresponding plugin code to get a deeper knowledge about what's going on behind the scenes.
 
-The full AWS integration can be found in [`lib/plugins/aws`](/lib/plugins/aws).
+The full AWS integration can be found in [`lib/plugins/aws`](https://github.com/serverless/serverless/tree/master/lib/plugins/aws).

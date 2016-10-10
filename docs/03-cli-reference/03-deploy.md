@@ -1,12 +1,13 @@
 <!--
 title: Serverless Deploy CLI Command
+menuText: Deploy
 description: Deploy your service to the specified provider
 layout: Doc
 -->
 
 # Deploy
 
-Deploys your service.
+Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.
 
 ```
 serverless deploy [function]

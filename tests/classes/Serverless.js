@@ -151,7 +151,6 @@ describe('Serverless', () => {
           google: {},
         },
         package: {
-          include: ['include-me.js'],
           exclude: ['exclude-me.js'],
           artifact: 'some/path/foo.zip',
         },

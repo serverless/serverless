@@ -1,5 +1,6 @@
 <!--
 title: API Gateway Event configuration
+menuText: API Gateway Event config
 layout: Doc
 -->
 
@@ -75,7 +76,76 @@ functions:
                 id: true
 ```
 
+## Integration types
+
+Serverless supports the following integration types:
+
+- `lambda`
+- `lambda-proxy`
+
+Here's a simple example which demonstrates how you can set the `integration` type for your `http` event:
+
+```yml
+# serverless.yml
+functions:
+  get:
+    handler: users.get
+    events:
+      - http:
+          path: users
+          method: get
+          integration: lambda
+```
+
+### `lambda-proxy`
+
+**Important:** Serverless defaults to this integration type if you don't setup another one.
+Furthermore any `request` or `response` configuration will be ignored if this `integration` type is used.
+
+`lambda-proxy` simply passes the whole request as is (regardless of the content type, the headers, etc.) directly to the
+Lambda function. This means that you don't have to setup custom request / response configuration (such as templates, the
+passthrough behavior, etc.).
+
+Your function needs to return corresponding response information.
+
+Here's an example for a JavaScript / Node.js function which shows how this might look like:
+
+```javascript
+'use strict';
+
+exports.handler = function(event, context) {
+    const responseBody = {
+      message: "Hello World!",
+      input: event
+    };
+
+    const response = {
+      statusCode: responseCode,
+      headers: {
+        "x-custom-header" : "My Header Value"
+      },
+      body: JSON.stringify(responseBody)
+    };
+
+    context.succeed(response);
+};
+```
+
+**Note:** If you want to use CORS with the lambda-proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object.
+
+Take a look at the [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-as-simple-proxy-for-lambda.html)
+for more information about this.
+
+### `lambda`
+
+The `lambda` integration type should be used if you want more control over the `request` and `response` configurations.
+
+Serverless ships with defaults for the request / response configuration (such as request templates, error code mappings,
+default passthrough behaviour) but you can always configure those accordingly when you set the `integration` type to `lambda`.
+
 ## Request templates
+
+**Note:** The request configuration can only be used when the integration type is set to `lambda`.
 
 ### Default request templates
 
@@ -111,11 +181,33 @@ functions:
           path: whatever
           request:
             template:
-              text/xhtml: { "stage" : "$context.stage" }
-              application/json: { "httpMethod" : "$context.httpMethod" }
+              text/xhtml: '{ "stage" : "$context.stage" }'
+              application/json: '{ "httpMethod" : "$context.httpMethod" }'
 ```
 
 **Note:** The templates are defined as plain text here. However you can also reference an external file with the help of the `${file(templatefile)}` syntax.
+
+**Note 2:** In .yml, strings containing `:`, `{`, `}`, `[`, `]`, `,`, `&`, `*`, `#`, `?`, `|`, `-`, `<`, `>`, `=`, `!`, `%`, `@`, `` ` `` must be quoted.
+
+If you want to map querystrings to the event object, you can use the `$input.params('hub.challenge')` syntax from API Gateway, as follows:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: get
+          path: whatever
+          request:
+            template:
+              application/json: '{ "foo" : "$input.params(''bar'')" }'
+```
+
+**Note:** Notice when using single-quoted strings, any single quote `'` inside its contents must be doubled (`''`) to escape it.
+You can then access the query string `https://example.com/dev/whatever?bar=123` by `event.foo` in the lambda function.
+If you want to spread a string into multiple lines, you can use the `>` or `|` syntax, but the following strings have to be all indented with the same amount, [read more about `>` syntax](http://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines).
+
 
 ### Pass Through Behavior
 API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates.  When this happens, the request payload will either be passed through the integration request *without transformation* or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
@@ -150,6 +242,8 @@ See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/lates
 - API Gateway docs refer to "WHEN_NO_TEMPLATE" (singular), but this will fail during creation as the actual value should be "WHEN_NO_TEMPLATES" (plural)
 
 ## Responses
+
+**Note:** The response configuration can only be used when the integration type is set to `lambda`.
 
 Serverless lets you setup custom headers and a response template for your `http` event.
 
@@ -330,7 +424,9 @@ functions:
         private: true
 ```
 
-Clients connecting to this Rest API will then need to set any of these API keys in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
+Please note that those are the API keys names, not the actual values. Once you deploy your service, the value of those API keys will be auto generated by AWS and printed on the screen for you to use.
+
+Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
 
 ## Enabling CORS for your endpoints
 To set CORS configurations for your HTTP endpoints, simply modify your event configurations as follows:
@@ -369,11 +465,24 @@ functions:
 
 This example is the default setting and is exactly the same as the previous example. The `Access-Control-Allow-Methods` header is set automatically, based on the endpoints specified in your service configuration with CORS enabled.
 
+**Note:** If you are using the default lambda proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object otherwise CORS will fail.
+
+```
+module.exports.hello = (event, context, cb) => {
+  return cb(null, {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: 'Hello World!'
+  });
+}
+```
+
 ## Setting an HTTP proxy on API Gateway
 
 To set up an HTTP proxy, you'll need two CloudFormation templates, one for the endpoint (known as resource in CF), and
 one for method. These two templates will work together to construct your proxy. So if you want to set `your-app.com/serverless` as a proxy for `serverless.com`, you'll need the following two templates in your `serverless.yml`:
-
 
 ```yml
 # serverless.yml
@@ -389,18 +498,18 @@ resources:
       Properties:
         ParentId:
           Fn::GetAtt:
-            - RestApiApigEvent # our default Rest API logical ID
+            - ApiGatewayRestApi # our default Rest API logical ID
             - RootResourceId
         PathPart: serverless # the endpoint in your API that is set as proxy
         RestApiId:
-          Ref: RestApiApigEvent
+          Ref: ApiGatewayRestApi
     ProxyMethod:
-      ResourceId:
-        Ref: ProxyResource
-      RestApiId:
-        Ref: RestApiApigEvent
       Type: AWS::ApiGateway::Method
       Properties:
+        ResourceId:
+          Ref: ProxyResource
+        RestApiId:
+          Ref: ApiGatewayRestApi
         HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
         MethodResponses:
           - StatusCode: 200

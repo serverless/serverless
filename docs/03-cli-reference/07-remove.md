@@ -1,5 +1,6 @@
 <!--
 title: Serverless Remove CLI Command
+menuText: Remove
 description: Remove a deployed service with the Serverless CLI
 layout: Doc
 -->

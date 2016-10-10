@@ -1,9 +1,10 @@
 <!--
 title: Serverless Cloudformation Resource naming Reference
+menuText: Cloudformation Resource Reference
 layout: Doc
 -->
 
-# Serverless Cloudformation Resource Reference
+# Cloudformation Resource Reference
 
 To have consistent naming in the Cloudformation Templates that get deployed we've defined a standard name:
 
@@ -24,12 +25,13 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |IAM::Role              | IamRoleLambdaExecution                                  | IamRoleLambdaExecution        |
 |IAM::Policy            | IamPolicyLambdaExecution                                | IamPolicyLambdaExecution      |
 |Lambda::Function       | {normalizedFunctionName}LambdaFunction                  | HelloLambdaFunction           |
-|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermissionS3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}</li> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1 </li><li>**S3**: HelloLambdaPermissionS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionSometopic</li> |
+|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermissionS3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}</li></ul> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1 </li><li>**S3**: HelloLambdaPermissionS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionSometopic</li></ul> |
 |Events::Rule           | {normalizedFuntionName}EventsRuleSchedule{SequentialID} | HelloEventsRuleSchedule1      |
 |ApiGateway::RestApi    | ApiGatewayRestApi                                       | ApiGatewayRestApi             |
-|ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | ApiGatewayResourceUsers       |
+|ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | <ul><li>ApiGatewayResourceUsers</li><li>ApiGatewayResourceUsers**Var** for paths containing a variable</li><li>ApiGatewayResource**Dash** if the path is just a `-`</li></ul>       |
 |ApiGateway::Method     | ApiGatewayResource{normalizedPath}{normalizedMethod}    | ApiGatewayResourceUsersGet    |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
 |ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
+|AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB**: {normalizedFunctionName}EventSourceMappingDynamodb{tableName} </li><li>**Kinesis**: {normalizedFunctionName}EventSourceMappingKinesis{streamName} </li></ul> | <ul><li>**DynamoDB**: HelloLambdaEventSourceMappingDynamodbUsers </li><li>**Kinesis**: HelloLambdaEventSourceMappingKinesisMystream </li></ul> |
