@@ -29,7 +29,7 @@ Exclude all node_modules but then re-include a specific modules (in this case no
 package:
   exclude:
     - node_modules/**
-    - !node_modules/node-fetch/**
+    - "!node_modules/node-fetch/**"
 ```
 
 ```
