@@ -86,7 +86,7 @@ provider:
 
 A set of credentials for each stage using serverless.yml
 ```yml
-vars:
+custom:
   test:
     credentials:
       accessKeyId: YOUR_ACCESS_KEY_FOR_TEST
@@ -96,7 +96,7 @@ vars:
       accessKeyId: YOUR_ACCESS_KEY_FOR_PROD
       secretAccessKey: YOUR_SECRET_KEY_FOR_PROD
 provider:
-  credentials: ${self:vars.{opt:stage}.credentials}
+  credentials: ${self:custom.{opt:stage}.credentials}
 ```
 
 One profile for all stages using serverless.yml
@@ -107,13 +107,13 @@ provider:
 
 A profile for each stage using serverless.yml
 ```yml
-vars:
+custom:
   test:
     profile: your-profile-for-test
   prod:
     profile: your-profile-for-prod
 provider:
-  profile: ${self:vars.{opt:stage}.profile}
+  profile: ${self:custom.{opt:stage}.profile}
 ```
 
 One set of credentials for all stages using environment variables
@@ -192,8 +192,6 @@ export AWS_PROD_SESSION_TOKEN=<prod-token>
 
 serverless <...>
 ```
-
-Et cetera
 
 ## Conclusion
 
