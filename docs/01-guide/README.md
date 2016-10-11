@@ -26,3 +26,4 @@ We always try to make our documentation better, so if you have feedback on the G
 - [Serverless Variables](./08-serverless-variables.md)
 - [Installing plugins](./09-installing-plugins.md)
 - [Including/Excluding files for deployment](./10-packaging.md)
+- [Environment variable handling](./11-environment-variable-handling.md)

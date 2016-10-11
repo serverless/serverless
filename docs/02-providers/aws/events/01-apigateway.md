@@ -35,6 +35,49 @@ functions:
           method: post
 ```
 
+## Request parameters
+
+You can pass optional and required parameters to your functions, so you can use them in for example Api Gateway tests and SDK generation. Marking them as `true` will make them required, `false` will make them optional.
+
+```yml
+# serverless.yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          integration: lambda
+          request:
+            parameters:
+              querystrings:
+                url: true
+              headers:
+                foo: false
+                bar: true
+              paths:
+                bar: false
+```
+
+In order for path variables to work, ApiGateway also needs them in the method path itself, like so:
+
+```yml
+# serverless.yml
+functions:
+  create:
+    handler: posts.post_detail
+    events:
+      - http:
+          path: posts/{id}
+          method: get
+          integration: lambda
+          request:
+            parameters:
+              paths:
+                id: true
+```
+
 ## Integration types
 
 Serverless supports the following integration types:
@@ -79,7 +122,7 @@ exports.handler = function(event, context) {
     };
 
     const response = {
-      statusCode: responseCode,
+      statusCode: 200,
       headers: {
         "x-custom-header" : "My Header Value"
       },
@@ -89,6 +132,8 @@ exports.handler = function(event, context) {
     context.succeed(response);
 };
 ```
+
+**Note:** If you want to use CORS with the lambda-proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object.
 
 Take a look at the [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-as-simple-proxy-for-lambda.html)
 for more information about this.
@@ -421,6 +466,20 @@ functions:
 ```
 
 This example is the default setting and is exactly the same as the previous example. The `Access-Control-Allow-Methods` header is set automatically, based on the endpoints specified in your service configuration with CORS enabled.
+
+**Note:** If you are using the default lambda proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object otherwise CORS will fail.
+
+```
+module.exports.hello = (event, context, cb) => {
+  return cb(null, {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: 'Hello World!'
+  });
+}
+```
 
 ## Setting an HTTP proxy on API Gateway
 

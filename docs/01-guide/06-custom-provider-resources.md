@@ -46,7 +46,7 @@ resources:
   Resources:
     ThumbnailsBucket:
       Type: AWS::S3::Bucket
-       Properties:
+      Properties:
          # You can also set properties for the resource, based on the CloudFormation properties
          BucketName: my-awesome-thumbnails
          # Or you could reference an environment variable

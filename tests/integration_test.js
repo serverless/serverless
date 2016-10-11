@@ -14,7 +14,7 @@ serverless.init();
 const serverlessExec = path.join(serverless.config.serverlessPath, '..', 'bin', 'serverless');
 
 const tmpDir = testUtils.getTmpDirPath();
-fse.mkdirSync(tmpDir);
+fse.mkdirsSync(tmpDir);
 process.chdir(tmpDir);
 
 const templateName = 'aws-nodejs';
