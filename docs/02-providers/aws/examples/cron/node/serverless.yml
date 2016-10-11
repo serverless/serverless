@@ -1,11 +1,11 @@
-service: cron-example   # This is the name of your service
+service: cron-example
+
 provider:
-  name: aws             # This is the provider we’re deploying to
-  runtime: nodejs4.3    # You have a choice of Node, Java, or
-                        # Python, but you can run native binaries too
+  name: aws
+  runtime: nodejs4.3
+
 functions:
   cron:
-    handler: handler.run  # This will require the handler.js file,
-                          # and execute the exported run function
+    handler: handler.run
     events:
       - schedule: rate(1 minute)
