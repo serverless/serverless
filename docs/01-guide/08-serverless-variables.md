@@ -162,7 +162,7 @@ This overwrite functionality is super powerful. You can have as many variable re
 
 You can overwrite the variable syntax in case you want to use a text for a config parameter that would clash with the variable syntax.
 
-```
+```yml
 service: aws-nodejs # Name of the Service
 
 defaults:
