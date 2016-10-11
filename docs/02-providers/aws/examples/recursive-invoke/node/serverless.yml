@@ -1,0 +1,15 @@
+
+service: recursive-example
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  iamRoleStatements:
+    -  Effect: "Allow"
+       Action:
+         - "lambda:InvokeFunction"
+       Resource: ${file(config.json):functionArn} # Insert your function ARN in config.json
+
+functions:
+  recursiveExample:
+    handler: handler.recursiveLambda
