@@ -50,8 +50,15 @@ As a quick setup to get started you can export them as environment variables so 
 ```bash
 export AWS_ACCESS_KEY_ID=<key>
 export AWS_SECRET_ACCESS_KEY=<secret>
-serverless deploy
 ```
+
+OR, if you already have an AWS profile set up...
+
+```bash
+export AWS_PROFILE=<profile>
+```
+
+Continue with [creating your first service](https://github.com/serverless/serverless/blob/master/docs/01-guide/02-creating-services.md).
 
 #### Using AWS Profiles
 
