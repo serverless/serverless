@@ -146,7 +146,7 @@ Total number of events in the service.
 ]
 ```
 
-How often the events are use throughout the service.
+How often the events are used throughout the service.
 
 #### eventNamesPerFunction
 
