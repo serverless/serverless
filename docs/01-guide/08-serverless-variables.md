@@ -158,6 +158,18 @@ What this says is to use the `stage` CLI option if it exists, if not, use the de
 
 This overwrite functionality is super powerful. You can have as many variable references as you want, from any source you want, and each of them can be of different type and different name.
 
+## Setting the variable syntax
+
+You can overwrite the variable syntax in case you want to use a text for a config parameter that would clash with the variable syntax.
+
+```
+service: aws-nodejs # Name of the Service
+
+defaults:
+  variableSyntax: '\${{([\s\S]+?)}}' # Overwrite the default "${}" variable syntax to be "${{}}" instead. This can be helpful if you want to use "${}" as a string without using it as a variable.
+```
+
+
 # Migrating serverless.env.yml
 Previously we used the `serverless.env.yml` file to track Serverless Variables. It was a completely different system with different concepts. To migrate your variables from `serverless.env.yml`, you'll need to decide where you want to store your variables.
 
