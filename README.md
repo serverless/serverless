@@ -65,6 +65,7 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
 * [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
+* [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args)
 
 ## <a name="v1-services"></a>Services & Projects (V1.0)
 
