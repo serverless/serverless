@@ -56,21 +56,19 @@ Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more
 
 The following are services you can instantly install and use by running `serverless install --url <service-github-url>`.
 
-| Service | Description |
-| ------ | ------ |
-| [CRUD](https://github.com/pmuens/serverless-crud) | CRUD service |
-| [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) | GraphQL application Boilerplate service |
-| [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) | Authentication boilerplate service |
-| [Mailer](https://github.com/eahefnawy/serverless-mailer) | Service for sending emails |
-| [Kinesis streams](https://github.com/pmuens/serverless-kinesis-streams) | Service to showcase Kinesis stream support |
-| [DynamoDB streams](https://github.com/pmuens/serverless-dynamodb-streams) | Service to showcase DynamoDB stream support |
-| [Landingpage backend](https://github.com/pmuens/serverless-landingpage-backend) | Landingpage backend service to store E-Mail addresses |
-| [Facebook Messenger Chatbot](https://github.com/pmuens/serverless-facebook-messenger-bot) | Chatbot for the Facebook Messenger platform |
-| [Lambda chaining](https://github.com/pmuens/serverless-lambda-chaining) | Service which chains Lambdas through SNS |
-| [Secured API](https://github.com/pmuens/serverless-secured-api) | Service which exposes an API key accessible API |
-| [Authorizer](https://github.com/eahefnawy/serverless-authorizer) | Service that uses API Gateway custom authorizers |
-| [Thumbnails](https://github.com/eahefnawy/serverless-thumbnails) | Service that takes an image url and returns a 100x100 thumbnail |
-| [Boilerplate](https://github.com/eahefnawy/serverless-boilerplate) | Opinionated boilerplate |
+* [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service
+* [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
+* [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
+* [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
+* [Kinesis streams](https://github.com/pmuens/serverless-kinesis-streams) - Service to showcase Kinesis stream support
+* [DynamoDB streams](https://github.com/pmuens/serverless-dynamodb-streams) - Service to showcase DynamoDB stream support
+* [Landingpage backend](https://github.com/pmuens/serverless-landingpage-backend) - Landingpage backend service to store E-Mail addresses
+* [Facebook Messenger Chatbot](https://github.com/pmuens/serverless-facebook-messenger-bot) - Chatbot for the Facebook Messenger platform
+* [Lambda chaining](https://github.com/pmuens/serverless-lambda-chaining) - Service which chains Lambdas through SNS
+* [Secured API](https://github.com/pmuens/serverless-secured-api) - Service which exposes an API key accessible API
+* [Authorizer](https://github.com/eahefnawy/serverless-authorizer) - Service that uses API Gateway custom authorizers
+* [Thumbnails](https://github.com/eahefnawy/serverless-thumbnails) - Service that takes an image url and returns a 100x100 thumbnail
+* [Boilerplate](https://github.com/eahefnawy/serverless-boilerplate) - Opinionated boilerplate
 
 ## <a name="v1-plugins"></a>Plugins (V1.0)
 
