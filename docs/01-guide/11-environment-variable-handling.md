@@ -10,11 +10,11 @@ Environment variables are a very important and often requested feature in Server
 
 ## Javascript
 
-You can use [dotenv](https://www.npmjs.com/package/dotenv) to to load files with environment variables. Those variables can be set during your CI process or locally and then packaged and deployed together with your function code.
+You can use [dotenv](https://www.npmjs.com/package/dotenv) to load files with environment variables. Those variables can be set during your CI process or locally and then packaged and deployed together with your function code.
 
 ## Python
 
-You can use [python-dotenv](https://github.com/theskumar/python-dotenv) to to load files with environment variables. Those variables can be set during your CI process or locally and then packaged and deployed together with your function code.
+You can use [python-dotenv](https://github.com/theskumar/python-dotenv) to load files with environment variables. Those variables can be set during your CI process or locally and then packaged and deployed together with your function code.
 
 ## Java
 
