@@ -52,6 +52,26 @@ Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more
 * An ecosystem of serverless services and plugins.
 * A passionate and welcoming community!
 
+## <a name="v1-services"></a>Services (V1.0)
+
+The following are services you can instantly install and use by running `serverless install --url <service-github-url>`.
+
+| Service | Description |
+| ------ | ------ |
+| https://github.com/pmuens/serverless-crud | Serverless CRUD service |
+| https://github.com/serverless/serverless-graphql | The Application Boilerplate for a Serverless, Event-Driven Architecture using GraphQL |
+| https://github.com/laardee/serverless-authentication-boilerplate | Generic authentication boilerplate for Serverless framework |
+| https://github.com/eahefnawy/serverless-mailer | Serverless Module for sending emails |
+| https://github.com/pmuens/serverless-kinesis-streams | Serverless service to showcase Kinesis stream support |
+| https://github.com/pmuens/serverless-dynamodb-streams | Serverless service to showcase DynamoDB stream support |
+| https://github.com/pmuens/serverless-landingpage-backend | Serverless landingpage backend to store E-Mail addresses |
+| https://github.com/pmuens/serverless-facebook-messenger-bot | Serverless Chatbot for the Facebook Messenger platform |
+| https://github.com/pmuens/serverless-lambda-chaining | Serverless service which shows how one can chain Lambdas through SNS |
+| https://github.com/pmuens/serverless-secured-api | Serverless service which showcases how to build an API which is accessible through an API key |
+| https://github.com/eahefnawy/serverless-authorizer | Example of a service that uses API Gateway custom authorizer feature to authorize your endpoints |
+| https://github.com/eahefnawy/serverless-thumbnails | Serverless Service that takes an image url and returns a 100x100 thumbnail |
+| https://github.com/eahefnawy/serverless-boilerplate | Opinionated boilerplate for the Serverless Framework |
+
 ## <a name="v1-plugins"></a>Plugins (V1.0)
 
 Use these plugins to overwrite or extend the Framework's functionality...
@@ -66,11 +86,10 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
 
-## <a name="v1-services"></a>Services & Projects (V1.0)
+## <a name="v1-projects"></a>Projects (V1.0)
 
-Pre-written functions you can use instantly and example implementations...
+Example implementations...
 
-* [serverless-authentication-boilerplate](https://github.com/laardee/serverless-authentication-boilerplate)
 * [serverless-examples](https://github.com/andymac4182/serverless_example)
 * [serverless-npm-registry](https://github.com/craftship/yith)
 * [serverless-pokego](https://github.com/jch254/pokego-serverless)
