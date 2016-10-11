@@ -25,4 +25,4 @@ milestone if still open
 - [ ] Update Alpha/Beta accordingly so they point to the latest release. If its an Alpha Release the Beta tag should point to the latest stable release. This way Alpha/Beta always either point to something stable or the highest priority release in Alpha/Beta stage (`npm dist-tag add serverless@<VERSION> alpha`, `npm dist-tag add serverless@<VERSION> beta`)
 - [ ] Validate NPM install works (`npm install -g serverless@<TagForInstall>` or `npm install -g serverless` if latest is released)
 - [ ] Close milestone on Github
-- [ ] Create a new release in GitHub for Release Notes
+- [ ] Create a new release in GitHub for Release Notes. Run `git log --grep "Merge pull request" "LAST_TAG_HERE"..HEAD --pretty=oneline --abbrev-commit > gitlogoutput` to get a list of all merged PR's since a specific tag.
