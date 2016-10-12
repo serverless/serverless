@@ -289,14 +289,11 @@ describe('Utils', () => {
       serverless.config.serverlessPath = tmpDirPath;
     });
 
-    it('should create a new file with a tracking id and inform the user if not found', () => {
+    it('should create a new file with a tracking id if not found', () => {
       const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
-      const logStub = sinon.stub(serverless.cli, 'log');
 
       return serverless.utils.track(serverless).then(() => {
         expect(fs.readFileSync(trackingIdFilePath).toString().length).to.be.above(1);
-        expect(logStub.calledOnce).to.equal(true);
-        serverless.cli.log.restore();
       });
     });
 
