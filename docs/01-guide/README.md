@@ -6,7 +6,7 @@ layout: Doc
 
 # Guide
 
-This guide will help you building your Serverless services. We'll start by giving you information on how to install Serverless. After that we create and deploy a service, invoke a services function and add additional event sources to our function.
+This guide will help you build your Serverless services. We'll start by giving you information on how to install Serverless. After that we create and deploy a service, invoke a services function and add additional event sources to our function.
 
 At the end we'll add custom provider resources to our service and remove it.
 
