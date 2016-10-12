@@ -213,7 +213,7 @@ The Node.js version which is used to run Serverless.
 
 The tracking implementation consists of three parts:
 
-1. The [tracking plugin](https://github.com/serverless/serverless/blob/master/lib/Serverless.js/lib/plugins/tracking)
+1. The [tracking plugin](https://github.com/serverless/serverless/tree/master/lib/plugins/tracking)
 2. A check if the `do-not-track` file is present in the [Serverless class](https://github.com/serverless/serverless/blob/master/lib/Serverless.js)
 3. The `track()` method you can find in the [Utils class](https://github.com/serverless/serverless/blob/master/lib/classes/Utils.js#L145)
 
