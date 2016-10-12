@@ -1,10 +1,7 @@
 {
-  "name": "hello-world",
-  "description": "Serverless using external libraries example with node",
+  "name": "external-library",
+  "description": "Serverless using external libraries example with Node.js",
   "private": true,
-  "scripts": {
-    "deploy": "serverless deploy"
-  },
   "dependencies": {
     "faker": "^3.1.0"
   }
