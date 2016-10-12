@@ -1,3 +1,5 @@
+[![Serverless Application Framework AWS Lambda API Gateway](https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/serverless_framework_v1.gif)](http://serverless.com)
+
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![Build Status](https://travis-ci.org/serverless/serverless.svg?branch=master)](https://travis-ci.org/serverless/serverless)
 [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
@@ -5,7 +7,6 @@
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
 [![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
-![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/serverless-images/frameworkv1_readme_v2.gif)
 
 [Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](http://eepurl.com/b8dv4P) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless)
 
@@ -35,7 +36,7 @@ Below is a quick list of commands to set up a new project. For a more in-depth l
 
 1. `npm install -g serverless`
 2. [Set up your Provider credentials](./docs/02-providers/aws/01-setup.md)
-3. `serverless create --template aws-nodejs --path my-service` 
+3. `serverless create --template aws-nodejs --path my-service`
 4. `cd my-service`
 5. `serverless deploy`
 6. `serverless invoke --function hello`
