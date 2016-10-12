@@ -25,6 +25,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 * [Features](#features)
 * [Plugins](#v1-plugins)
 * [Example Projects](#v1-projects)
+* [Why Serverless?](#why-serverless)
 * [Contributing](#contributing)
 * [Community](#community)
 * [Consultants](#consultants)
@@ -122,6 +123,10 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-garden-aid](https://github.com/garden-aid/web-bff)
 * [serverless-react-boilerplate](https://github.com/99xt/serverless-react-boilerplate)
 * [serverless-delivery-framework](https://github.com/99xt/serverless-delivery-framework)
+
+## <a name="why-serverless"></a>Why Serverless?
+
+We want to make sure that you and your team don't have to manage or think about Servers in your day to day development. Through AWS Lambda and similar Function as a Service providers you can focus on building your business code without having to worry about operations. While there are of course still servers running, you don't have to think about them. This turns you into a Serverless Team and thats why we think Serverless is a fitting name.
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
