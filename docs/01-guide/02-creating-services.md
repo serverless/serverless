@@ -53,6 +53,10 @@ Check out the code inside of the `handler.js` so you can play around with it onc
 
 This file contains event data we'll use later on to invoke our function.
 
+## Other services to get started
+
+Take a look at the our [list of Serverless services](../../README.md#services).
+
 ## Conclusion
 
 We've just created our very first service with one simple `create` command. With that in place we're ready to deploy
