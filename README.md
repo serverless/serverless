@@ -14,7 +14,9 @@
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by following the [Quickstart commands](#quick-start) or reading our [Guide to Serverless](./docs/01-guide/README.md)
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
+
+<a href="https://serverless.com/framework/" target="_blank">Watch the video guide here.</a>
 
 ## Contents
 
@@ -30,18 +32,34 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## <a name="quick-start"></a>Quick Start
 
-Below is a quick list of commands to set up a new project. For a more in-depth look at Serverless check out the [Guide in our docs](./docs/01-guide/README.md).
+[Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
-[Watch the video guide here](https://youtu.be/weOsx5rLWX0) or follow the steps below to create and deploy your first serverless microservice in minutes.
+Install via npm:
+* `npm install -g serverless`
 
-1. `npm install -g serverless`
-2. [Set up your Provider credentials](./docs/02-providers/aws/01-setup.md)
-3. `serverless create --template aws-nodejs --path my-service`
-4. `cd my-service`
-5. `serverless deploy`
-6. `serverless invoke --function hello`
+Set-up your [provider credentials](./docs/02-providers/aws/01-setup.md)
 
-Run `serverless remove` to clean up this function from your account.
+Create a service:
+* `serverless create --template aws-nodejs --path my-service`
+* `cd my-service`
+
+Deploy a service:
+* `serverless deploy`
+
+Deploy an individual function, without triggering a CloudFormation stack update (faster):
+* `serverless deploy function -f myfunction`
+
+Invoke a function:
+* `serverless invoke --function hello`
+
+Fetch the logs of a function:
+* `serverless logs --function hello --tail`
+
+Install an existing service from Github:
+* `serverless install --url https://github.com/pmuens/serverless-crud`
+
+Remove the service and its resources from AWS:
+* `serverless remove`
 
 Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more information.
 
