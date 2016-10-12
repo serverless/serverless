@@ -47,7 +47,9 @@ describe('Service Lifecyle Integration Test', () => {
     this.timeout(0);
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
     const result = JSON.parse(new Buffer(invoked, 'base64').toString());
-    expect(result.message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
+    // parse it once again because the body is stringified to be LAMBDA-PROXY ready
+    const message = JSON.parse(result.body).message;
+    expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   });
 
   it('should deploy updated service to aws', function () {
