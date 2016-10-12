@@ -35,8 +35,7 @@
   "bin": {
     "serverless": "./bin/serverless",
     "slss": "./bin/serverless",
-    "sls": "./bin/serverless",
-    "serverless-run-python-handler": "./bin/serverless-run-python-handler"
+    "sls": "./bin/serverless"
   },
   "scripts": {
     "test": "istanbul cover node_modules/mocha/bin/_mocha tests/all -- -R spec --recursive",
