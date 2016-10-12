@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const Serverless = require('../../lib/Serverless');
 const semverRegex = require('semver-regex');
 const fs = require('fs');
-const fse = require('fs-extra');
+const os = require('os');
 const path = require('path');
 const YAML = require('js-yaml');
 
@@ -176,26 +176,30 @@ describe('Serverless', () => {
   });
 
   describe('#run()', () => {
+    let homeDir;
+    let serverlessDirPath;
+
     beforeEach(() => {
       serverless.init();
       serverless.processedInput = { commands: [], options: {} };
+
+      const tmpDirPath = testUtils.getTmpDirPath();
+
+      // save the homeDir so that we can reset this later on
+      homeDir = os.homedir();
+      process.env.HOME = tmpDirPath;
+      process.env.HOMEPATH = tmpDirPath;
+      process.env.USERPROFILE = tmpDirPath;
+
+      serverlessDirPath = path.join(os.homedir(), '.serverless');
     });
 
-    it('should track if tracking is enabled', (done) => {
-      const tmpDirPath = testUtils.getTmpDirPath();
-      fse.mkdirsSync(tmpDirPath);
-
-      serverless.config.serverlessPath = tmpDirPath;
-
+    it('should collect info if stats is enabled', (done) => {
       serverless.run().then(() => done());
     });
 
-    it('should not track if tracking is disabled', (done) => {
-      const tmpDirPath = testUtils.getTmpDirPath();
-      fse.mkdirsSync(tmpDirPath);
-      fs.writeFileSync(path.join(tmpDirPath, 'do-not-track'), 'some-content');
-
-      serverless.config.serverlessPath = tmpDirPath;
+    it('should not collect info if stats is disabled', (done) => {
+      fs.writeFileSync(path.join(serverlessDirPath, 'stats-disabled'), 'some-content');
 
       serverless.run().then(() => done());
     });
@@ -212,6 +216,13 @@ describe('Serverless', () => {
     it('should resolve if help is displayed or no commands are entered', (done) => {
       serverless.processedInput.commands = ['help'];
       serverless.run().then(() => done());
+    });
+
+    afterEach(() => {
+      // recover the homeDir
+      process.env.HOME = homeDir;
+      process.env.HOMEPATH = homeDir;
+      process.env.USERPROFILE = homeDir;
     });
   });
 

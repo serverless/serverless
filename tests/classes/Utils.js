@@ -275,42 +275,48 @@ describe('Utils', () => {
     });
   });
 
-  describe('#track()', () => {
-    let serverlessPath;
+  describe('#logStat()', () => {
+    let serverlessDirPath;
+    let homeDir;
 
     beforeEach(() => {
       serverless.init();
 
-      // create a new tmpDir for the serverlessPath
+      // create a new tmpDir for the homeDir path
       const tmpDirPath = testUtils.getTmpDirPath();
       fse.mkdirsSync(tmpDirPath);
 
-      serverlessPath = tmpDirPath;
-      serverless.config.serverlessPath = tmpDirPath;
+      // save the homeDir so that we can reset this later on
+      homeDir = os.homedir();
+      process.env.HOME = tmpDirPath;
+      process.env.HOMEPATH = tmpDirPath;
+      process.env.USERPROFILE = tmpDirPath;
+
+      serverlessDirPath = path.join(os.homedir(), '.serverless');
     });
 
-    it('should create a new file with a tracking id if not found', () => {
-      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
+    it('should create a new file with a stats id if not found', () => {
+      const statsIdFilePath = path.join(serverlessDirPath, 'stats-id');
 
-      return serverless.utils.track(serverless).then(() => {
-        expect(fs.readFileSync(trackingIdFilePath).toString().length).to.be.above(1);
+      return serverless.utils.logStat(serverless).then(() => {
+        expect(fs.readFileSync(statsIdFilePath).toString().length).to.be.above(1);
       });
     });
 
-    it('should re-use an existing file which contains the tracking id if found', () => {
-      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
-      const trackingId = 'some-tracking-id';
+    it('should re-use an existing file which contains the stats id if found', () => {
+      const statsIdFilePath = path.join(serverlessDirPath, 'stats-id');
+      const statsId = 'some-id';
 
-      // create a new file with a tracking id
-      fse.ensureFileSync(trackingIdFilePath);
-      fs.writeFileSync(trackingIdFilePath, trackingId);
+      // create a new file with a stats id
+      fse.ensureFileSync(statsIdFilePath);
+      fs.writeFileSync(statsIdFilePath, statsId);
 
-      return serverless.utils.track(serverless).then(() => {
-        expect(fs.readFileSync(trackingIdFilePath).toString()).to.be.equal(trackingId);
+      return serverless.utils.logStat(serverless).then(() => {
+        expect(fs.readFileSync(statsIdFilePath).toString()).to.be.equal(statsId);
       });
     });
 
-    it('should send the gathered tracking data to the Segement tracking API', () => {
+    it('should send the gathered information', () => {
       serverless.service = {
         service: 'new-service',
         provider: {
@@ -357,7 +363,7 @@ describe('Utils', () => {
         },
       };
 
-      return utils.track(serverless).then(() => {
+      return utils.logStat(serverless).then(() => {
         expect(fetchStub.calledOnce).to.equal(true);
         expect(fetchStub.args[0][0]).to.equal('https://api.segment.io/v1/track');
         expect(fetchStub.args[0][1].method).to.equal('POST');
@@ -404,6 +410,13 @@ describe('Utils', () => {
         expect(parsedBody.properties.general.serverlessVersion).to.equal(serverlessVersion);
         expect(parsedBody.properties.general.nodeJsVersion.length).to.be.at.least(1);
       });
+    });
+
+    afterEach(() => {
+      // recover the homeDir
+      process.env.HOME = homeDir;
+      process.env.HOMEPATH = homeDir;
+      process.env.USERPROFILE = homeDir;
     });
   });
 });
