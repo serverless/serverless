@@ -7,15 +7,15 @@ layout: Doc
 # Comparison between 0.x and 1.x of Serverless
 
 After the 0.5.6 release of Serverless we sat down with many contributors and users of the Framework to discuss the next steps to improve Serverless.
-Those discussions lead to our decision to completely reimplement Serverless. The configuration is in no way backwards compatible and can basically be seen as a completely new tool.
+Those discussions lead to our decision to completely rewrite Serverless. The configuration is in no way backwards compatible and can basically be seen as a completely new tool.
 
-We've decided to make this step so in the future we have a stronger base to work from and make sure we don't have to do major braking changes like this anymore.
+We've decided to make this step so in the future we have a stronger base to work from and make sure we don't have to do major breaking changes like this anymore.
 
-Lets dig into the main differences between 0.x and 1.x to give you an idea how to start migrating your services. In general we've seen teams move from 0.x to 1.x in a relatively short amount of time, if you have any questions regarding the move please let us know in [our Forum](http://forum.serverless.com) or create [Issues in Github](https://github.com/serverless/serverless/issues).
+Let's dig into the main differences between 0.x and 1.x to give you an idea how to start migrating your services. In general we've seen teams move from 0.x to 1.x in a relatively short amount of time, if you have any questions regarding the move please let us know in [our Forum](http://forum.serverless.com) or create [Issues in Github](https://github.com/serverless/serverless/issues).
 
 ## Main differences between 0.x and 1.x
 
-As 1.x is a complete reimplementation without backwards compatibility pretty much everything is different, the following feature are the most important ones to give you an understanding of where Serverless is moving.
+As 1.x is a complete reimplementation without backwards compatibility pretty much everything is different. The following features are the most important ones to give you an understanding of where Serverless is moving.
 
 ### Central configuration file
 
@@ -23,7 +23,7 @@ In the past configuration was spread out over several configuration files. It wa
 
 ### Services are the main unit of deployment
 
-In the past Serverless didn't create a strong connection between functions that were deployed together. It was more for convenience sake that separate functions were grouped together. With 1.x functions now belong to a service. You can implement and deploy different services and while its still possible to mix functions that are not related into the same service its discouraged. Serverless wants you to build a micro-service architecture with functions being a part of that, but not the only part. You can read more about this in a past [blog post](https://serverless.com/blog/beginning-serverless-framework-v1/)
+In the past Serverless didn't create a strong connection between functions that were deployed together. It was more for convenience sake that separate functions were grouped together. With 1.x functions now belong to a service. You can implement and deploy different services and while it's still possible to mix functions that are not related into the same service it's discouraged. Serverless wants you to build a micro-service architecture with functions being a part of that, but not the only part. You can read more about this in a past [blog post](https://serverless.com/blog/beginning-serverless-framework-v1/)
 
 ### Built on CloudFormation
 
