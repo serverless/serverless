@@ -34,31 +34,31 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 [Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
-Install via npm:
+**Install via npm:**
 * `npm install -g serverless`
 
-Set-up your [provider credentials](./docs/02-providers/aws/01-setup.md)
+**Set-up your [provider credentials](./docs/02-providers/aws/01-setup.md)**
 
-Create a service:
+**Create a service:**
 * `serverless create --template aws-nodejs --path my-service`
 * `cd my-service`
 
-Deploy a service:
+**Deploy a service:**
 * `serverless deploy`
 
-Deploy an individual function, without triggering a CloudFormation stack update (faster):
+**Deploy an individual function, without triggering a CloudFormation stack update (faster):**
 * `serverless deploy function -f myfunction`
 
-Invoke a function:
+**Invoke a function:**
 * `serverless invoke --function hello`
 
-Fetch the logs of a function:
+**Fetch the logs of a function:**
 * `serverless logs --function hello --tail`
 
-Install an existing service from Github:
+**Install an existing service from Github:**
 * `serverless install --url https://github.com/pmuens/serverless-crud`
 
-Remove the service and its resources from AWS:
+**Remove the service and its resources from AWS:**
 * `serverless remove`
 
 Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more information.
