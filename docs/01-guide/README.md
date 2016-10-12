@@ -27,3 +27,4 @@ We always try to make our documentation better, so if you have feedback on the G
 - [Installing plugins](./09-installing-plugins.md)
 - [Including/Excluding files for deployment](./10-packaging.md)
 - [Environment variable handling](./11-environment-variable-handling.md)
+- [Serverless.yml reference](./12-serverless-yml-reference.md)
