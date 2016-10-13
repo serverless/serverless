@@ -13,7 +13,3 @@ functions:
       - http:
           method: get
           path: landing-page
-          response:
-            headers:
-              Content-Type: "'text/html'"
-            template: $input.path('$') # return my html
