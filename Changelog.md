@@ -1,3 +1,12 @@
+# 1.0.2 (13.10.2016)
+
+* Clean up NPM package (#2352)
+* Clean up Stats functionality (#2345)
+
+# 1.0.1 (12.10.2016)
+
+Accidentally released 1.0.1 to NPM, so we have to skip this version (added here to remove confusion)
+
 # 1.0.0 (12.10.2016)
 
 Following is a selection of the most important Features of the 1.0.0 since 1.0.0-rc.1.
