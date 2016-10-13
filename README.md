@@ -111,6 +111,7 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
 * [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
+* [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
