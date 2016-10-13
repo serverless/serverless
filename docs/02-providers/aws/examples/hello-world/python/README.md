@@ -19,7 +19,7 @@ Make sure `serverless` is installed. [See installation guide](/docs/01-guide/01-
 
 `-f` is shorthand for `--function`
 
-In your terminal window you should be the response from AWS Lambda
+In your terminal window you should see the response from AWS Lambda
 
 ```bash
 {
