@@ -35,8 +35,7 @@
   "bin": {
     "serverless": "./bin/serverless",
     "slss": "./bin/serverless",
-    "sls": "./bin/serverless",
-    "serverless-run-python-handler": "./bin/serverless-run-python-handler"
+    "sls": "./bin/serverless"
   },
   "scripts": {
     "test": "istanbul cover node_modules/mocha/bin/_mocha tests/all -- -R spec --recursive",
@@ -44,7 +43,6 @@
     "integration-test": "mocha tests/integration_test"
   },
   "devDependencies": {
-    "all-contributors-cli": "^3.0.6",
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
     "eslint": "^3.3.1",

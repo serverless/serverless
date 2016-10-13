@@ -1,4 +1,3 @@
-/* eslint no-console: "off" */
 'use strict';
 
 module.exports.run = () => {
