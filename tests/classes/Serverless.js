@@ -3,8 +3,6 @@
 const expect = require('chai').expect;
 const Serverless = require('../../lib/Serverless');
 const semverRegex = require('semver-regex');
-const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const YAML = require('js-yaml');
 
