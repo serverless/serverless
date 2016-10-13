@@ -35,7 +35,6 @@ node_modules
 .tmp
 
 # Serverless stuff
-.serverless
 admin.env
 .env
 tmp
