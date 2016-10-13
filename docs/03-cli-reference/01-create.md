@@ -31,6 +31,7 @@ Most commonly used templates:
 - aws-python
 - aws-java-maven
 - aws-java-gradle
+- aws-scala-sbt
 
 ## Examples
 
