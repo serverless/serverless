@@ -295,24 +295,36 @@ describe('Utils', () => {
       serverlessDirPath = path.join(os.homedir(), '.serverless');
     });
 
+    it('should resolve if a file called stats-disabled is present', () => {
+      // create a stats-disabled file
+      serverless.utils.writeFileSync(
+        path.join(serverlessDirPath, 'stats-disabled'),
+        'some content'
+      );
+
+      return utils.logStat(serverless).then(() => {
+        expect(fetchStub.calledOnce).to.equal(false);
+      });
+    });
+
     it('should create a new file with a stats id if not found', () => {
-      const statsIdFilePath = path.join(serverlessDirPath, 'stats-id');
+      const statsFilePath = path.join(serverlessDirPath, 'stats-enabled');
 
       return serverless.utils.logStat(serverless).then(() => {
-        expect(fs.readFileSync(statsIdFilePath).toString().length).to.be.above(1);
+        expect(fs.readFileSync(statsFilePath).toString().length).to.be.above(1);
       });
     });
 
     it('should re-use an existing file which contains the stats id if found', () => {
-      const statsIdFilePath = path.join(serverlessDirPath, 'stats-id');
+      const statsFilePath = path.join(serverlessDirPath, 'stats-enabled');
       const statsId = 'some-id';
 
       // create a new file with a stats id
-      fse.ensureFileSync(statsIdFilePath);
-      fs.writeFileSync(statsIdFilePath, statsId);
+      fse.ensureFileSync(statsFilePath);
+      fs.writeFileSync(statsFilePath, statsId);
 
       return serverless.utils.logStat(serverless).then(() => {
-        expect(fs.readFileSync(statsIdFilePath).toString()).to.be.equal(statsId);
+        expect(fs.readFileSync(statsFilePath).toString()).to.be.equal(statsId);
       });
     });
 

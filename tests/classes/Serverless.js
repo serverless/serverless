@@ -176,32 +176,9 @@ describe('Serverless', () => {
   });
 
   describe('#run()', () => {
-    let homeDir;
-    let serverlessDirPath;
-
     beforeEach(() => {
       serverless.init();
       serverless.processedInput = { commands: [], options: {} };
-
-      const tmpDirPath = testUtils.getTmpDirPath();
-
-      // save the homeDir so that we can reset this later on
-      homeDir = os.homedir();
-      process.env.HOME = tmpDirPath;
-      process.env.HOMEPATH = tmpDirPath;
-      process.env.USERPROFILE = tmpDirPath;
-
-      serverlessDirPath = path.join(os.homedir(), '.serverless');
-    });
-
-    it('should collect info if stats is enabled', (done) => {
-      serverless.run().then(() => done());
-    });
-
-    it('should not collect info if stats is disabled', (done) => {
-      fs.writeFileSync(path.join(serverlessDirPath, 'stats-disabled'), 'some-content');
-
-      serverless.run().then(() => done());
     });
 
     it('should forward the entered command to the PluginManager class', () => {
@@ -216,13 +193,6 @@ describe('Serverless', () => {
     it('should resolve if help is displayed or no commands are entered', (done) => {
       serverless.processedInput.commands = ['help'];
       serverless.run().then(() => done());
-    });
-
-    afterEach(() => {
-      // recover the homeDir
-      process.env.HOME = homeDir;
-      process.env.HOMEPATH = homeDir;
-      process.env.USERPROFILE = homeDir;
     });
   });
 
