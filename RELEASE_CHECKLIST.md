@@ -19,6 +19,7 @@ milestone if still open
 ## Release to NPM
 - [ ] Create a new branch to bump version in package.json
 - [ ] Bump version in package.json, remove `node_modules` folder and run `npm install` and `npm shrinkwrap`
+- [ ] Make sure all files that need to be pushed are included in `package.json->files`
 - [ ] send PR and merge PR with new version to be released
 - [ ] Go back to branch you want to release from (e.g. master or v1) and pull bumped version changes from Github
 - [ ] Make sure there are no local changes to your repository (or reset with `git reset --hard HEAD`)
