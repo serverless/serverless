@@ -40,5 +40,4 @@ admin.env
 .env
 tmp
 .coveralls.yml
-tracking-id
 tmpdirs-serverless

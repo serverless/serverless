@@ -122,7 +122,7 @@ exports.handler = function(event, context) {
     };
 
     const response = {
-      statusCode: responseCode,
+      statusCode: 200,
       headers: {
         "x-custom-header" : "My Header Value"
       },
