@@ -8,7 +8,7 @@
     "./info/info.js",
     "./logs/logs.js",
     "./remove/remove.js",
-    "./tracking/tracking.js",
+    "./slstats/slstats.js",
     "./aws/deploy/index.js",
     "./aws/invoke/index.js",
     "./aws/info/index.js",
