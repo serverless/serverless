@@ -21,10 +21,10 @@ milestone if still open
 - [ ] Install the latest NPM version or Docker container with latest Node and NPM
 - [ ] Bump version in package.json, remove `node_modules` folder and run `npm install` and `npm shrinkwrap`
 - [ ] Make sure all files that need to be pushed are included in `package.json->files`
-- [ ] send PR and merge PR with new version to be released
+- [ ] Send PR and merge PR with new version to be released
 - [ ] Go back to branch you want to release from (e.g. master or v1) and pull bumped version changes from Github
 - [ ] Make sure there are no local changes to your repository (or reset with `git reset --hard HEAD`)
-- [ ] Check package.json and npm-shrinkwrap.json Version config to make sure it fits what we want to release. *DO THIS, DON'T SKIP, DON'T BE LAZY!!!*
+- [ ] Check package.json and npm-shrinkwrap.json version config to make sure it fits what we want to release. *DO THIS, DON'T SKIP, DON'T BE LAZY!!!*
 
 ## Git Tagging
 - [ ] Create a git tag with the version (`git tag <VersionName>`: `git tag v1.0.0`)
@@ -32,7 +32,7 @@ milestone if still open
 
 ## Segment Configuration
 - [ ] Update Segment.io key in Utils.js (never push the key to GitHub and revert afterwards with `git checkout .`)
-- [ ] Run `./bin/serverless help` and filter for this new version in the Segment debugger to make sure data is sent to segment for this new version
+- [ ] Run `./bin/serverless help` and filter for this new version in the Segment debugger to make sure data is sent to Segment for this new version
 
 ## Release to NPM
 - [ ] Log into npm (`npm login`)
