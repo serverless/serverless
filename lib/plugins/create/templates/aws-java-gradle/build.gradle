@@ -30,3 +30,7 @@ task buildZip(type: Zip) {
 }
 
 build.dependsOn buildZip
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '3.1'
+}
