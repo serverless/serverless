@@ -1,46 +1,92 @@
-![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/serverless-images/frameworkv1_readme_v2.gif)
+[![Serverless Application Framework AWS Lambda API Gateway](https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/serverless_framework_v1.gif)](http://serverless.com)
 
-[Website](http://www.serverless.com) • [Email Updates](http://eepurl.com/b8dv4P) • [Gitter (1,000+)](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups (7+)](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless) • [Facebook](https://www.facebook.com/serverless) • [Contact Us](mailto:hello@serverless.com)
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![Build Status](https://travis-ci.org/serverless/serverless.svg?branch=master)](https://travis-ci.org/serverless/serverless)
+[![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
+[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=master)](https://coveralls.io/github/serverless/serverless?branch=master)
+[![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
+[![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
+[![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
+
+[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](http://eepurl.com/b8dv4P) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless-meetups/main) • [Twitter](https://twitter.com/goserverless)
 
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run.  This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.  Get started quickly by following the [Quickstart commands](#quick-start) or reading our [Guide to Serverless](./docs/01-guide/README.md)
+Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
-## Links
+<a href="https://serverless.com/framework/" target="_blank">Watch the video guide here.</a>
 
-* [Guide to Serverless](./docs/01-guide/README.md)
+## Contents
+
+* [Quick Start](#quick-start)
+* [Services](#services)
 * [Features](#features)
-* [Documentation v.1](./docs/README.md) / [v.0](http://serverless.readme.io)
-* [Road Map](https://github.com/serverless/serverless/milestones)
+* [Plugins](#v1-plugins)
+* [Example Projects](#v1-projects)
+* [Why Serverless?](#why-serverless)
 * [Contributing](#contributing)
 * [Community](#community)
-* [Changelog](https://github.com/serverless/serverless/releases)
-* [Fill out the 'State of Serverless Community Survey'](https://docs.google.com/forms/d/e/1FAIpQLSf-lMDMR22Bg56zUh71MJ9aH8N0In3s2PdZFrGRJzwZ0ul7rA/viewform)
+* [Consultants](#consultants)
+* [Previous Version 0.5.x](#v.5)
 
 ## <a name="quick-start"></a>Quick Start
 
-Below is a quick list of commands to set up a new project. For a more in-depth look at Serverless check out the [Guide in our docs](./docs/01-guide/README.md).
+[Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
-[Watch the video guide here](https://youtu.be/weOsx5rLWX0) or follow the steps below to create and deploy your first serverless microservice in minutes.
+**Install via npm:**
+* `npm install -g serverless`
 
-| **Step** | **Command** |**Description**|
-|---|-------|------|
-|  1.  | `npm install -g serverless` | Install Serverless CLI  |
-|  3.  | [Set up your Provider credentials](./docs/02-providers/aws/01-setup.md) | Connect Serverless with your provider |
-|  4.  | `serverless create --template aws-nodejs --path my-service` | Create an AWS Lamdba function in Node.js |
-|  5.  | `cd my-service` | Change into your service directory  |
-|  6.  | `serverless deploy` | Deploy to your AWS account  |
-|  7.  | `serverless invoke --function hello` | Run the function we just deployed  |
+**Set-up your [provider credentials](./docs/02-providers/aws/01-setup.md)**
 
-Run `serverless remove` to clean up this function from your account.
+**Create a service:**
+* `serverless create --template aws-nodejs --path my-service`
+* `cd my-service`
+
+**Deploy a service:**
+* `serverless deploy`
+
+**Deploy an individual function, without triggering a CloudFormation stack update (faster):**
+* `serverless deploy function -f myfunction`
+
+**Invoke a function:**
+* `serverless invoke --function hello`
+
+**Fetch the logs of a function:**
+* `serverless logs --function hello --tail`
+
+**Install an existing service from Github:**
+* `serverless install --url https://github.com/pmuens/serverless-crud`
+
+**Remove the service and its resources from AWS:**
+* `serverless remove`
 
 Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more information.
 
+## <a name="services"></a>Services (V1.0)
+
+The following are services you can instantly install and use by running `serverless install --url <service-github-url>`
+
+* [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service
+* [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
+* [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
+* [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
+* [Kinesis streams](https://github.com/pmuens/serverless-kinesis-streams) - Service to showcase Kinesis stream support
+* [DynamoDB streams](https://github.com/pmuens/serverless-dynamodb-streams) - Service to showcase DynamoDB stream support
+* [Landingpage backend](https://github.com/pmuens/serverless-landingpage-backend) - Landingpage backend service to store E-Mail addresses
+* [Facebook Messenger Chatbot](https://github.com/pmuens/serverless-facebook-messenger-bot) - Chatbot for the Facebook Messenger platform
+* [Lambda chaining](https://github.com/pmuens/serverless-lambda-chaining) - Service which chains Lambdas through SNS
+* [Secured API](https://github.com/pmuens/serverless-secured-api) - Service which exposes an API key accessible API
+* [Authorizer](https://github.com/eahefnawy/serverless-authorizer) - Service that uses API Gateway custom authorizers
+* [Thumbnails](https://github.com/eahefnawy/serverless-thumbnails) - Service that takes an image url and returns a 100x100 thumbnail
+* [Boilerplate](https://github.com/eahefnawy/serverless-boilerplate) - Opinionated boilerplate
+
+**Note**: the `serverless install` command will only work on V1.0 or later.
+
 ## <a name="features"></a>Features
 
-* Supports Node.js, Python & Java.
+* Supports Node.js, Python, Java & Scala.
 * Manages the lifecycle of your serverless architecture (build, deploy, update, delete).
 * Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation).
 * Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams.
@@ -65,13 +111,11 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
 * [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
+* [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 * [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args) - Event json passes to your Lambda function in commandline
 
-## <a name="v1-services"></a>Services & Projects (V1.0)
+## <a name="v1-projects"></a>Example Projects (V1.0)
 
-Pre-written functions you can use instantly and example implementations...
-
-* [serverless-authentication-boilerplate](https://github.com/laardee/serverless-authentication-boilerplate)
 * [serverless-examples](https://github.com/andymac4182/serverless_example)
 * [serverless-npm-registry](https://github.com/craftship/yith)
 * [serverless-pokego](https://github.com/jch254/pokego-serverless)
@@ -81,6 +125,10 @@ Pre-written functions you can use instantly and example implementations...
 * [serverless-garden-aid](https://github.com/garden-aid/web-bff)
 * [serverless-react-boilerplate](https://github.com/99xt/serverless-react-boilerplate)
 * [serverless-delivery-framework](https://github.com/99xt/serverless-delivery-framework)
+
+## <a name="why-serverless"></a>Why Serverless?
+
+We want to make sure that you and your team don't have to manage or think about Servers in your day to day development. Through AWS Lambda and similar Function as a Service providers you can focus on building your business code without having to worry about operations. While there are of course still servers running, you don't have to think about them. This turns you into a Serverless Team and thats why we think Serverless is a fitting name.
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
@@ -98,24 +146,7 @@ Check out our [help-wanted](https://github.com/serverless/serverless/labels/help
 * [Twitter](https://twitter.com/goserverless)
 * [Contact Us](mailto:hello@serverless.com)
 
-## Contributors
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-| [<img src="https://avatars.githubusercontent.com/u/2752551?v=3" width="75px;"/><br /><sub>Austen </sub>](http://www.serverless.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/1036546?v=3" width="75px;"/><br /><sub>Ryan Pendergast</sub>](http://rynop.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/2312463?v=3" width="75px;"/><br /><sub>Eslam λ Hefnawy</sub>](http://eahefnawy.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/439309?v=3" width="75px;"/><br /><sub>Egor Kislitsyn</sub>](https://github.com/minibikini)<br /> | [<img src="https://avatars.githubusercontent.com/u/554841?v=3" width="75px;"/><br /><sub>Kamil Burzynski</sub>](http://www.nopik.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/636610?v=3" width="75px;"/><br /><sub>Ryan Brown</sub>](http://rsb.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/571200?v=3" width="75px;"/><br /><sub>Erik Erikson</sub>](https://github.com/erikerikson)<br /> |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| [<img src="https://avatars.githubusercontent.com/u/851863?v=3" width="75px;"/><br /><sub>Joost Farla</sub>](http://www.apiwise.nl)<br /> | [<img src="https://avatars.githubusercontent.com/u/532272?v=3" width="75px;"/><br /><sub>David Wells</sub>](http://davidwells.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/5524702?v=3" width="75px;"/><br /><sub>Frank Schmid</sub>](https://github.com/HyperBrain)<br /> | [<img src="https://avatars.githubusercontent.com/u/27389?v=3" width="75px;"/><br /><sub>Jacob Evans</sub>](www.dekz.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/1606004?v=3" width="75px;"/><br /><sub>Philipp Muens</sub>](http://serverless.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/1689118?v=3" width="75px;"/><br /><sub>Jared Short</sub>](http://jaredshort.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/37931?v=3" width="75px;"/><br /><sub>Jordan Mack</sub>](http://www.glitchbot.com/)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/479049?v=3" width="75px;"/><br /><sub>stevecaldwell77</sub>](https://github.com/stevecaldwell77)<br /> | [<img src="https://avatars.githubusercontent.com/u/101239?v=3" width="75px;"/><br /><sub>Aaron Boushley</sub>](blog.boushley.net)<br /> | [<img src="https://avatars.githubusercontent.com/u/3111541?v=3" width="75px;"/><br /><sub>Michael Haselton</sub>](https://github.com/icereval)<br /> | [<img src="https://avatars.githubusercontent.com/u/4904741?v=3" width="75px;"/><br /><sub>visualasparagus</sub>](https://github.com/visualasparagus)<br /> | [<img src="https://avatars.githubusercontent.com/u/239624?v=3" width="75px;"/><br /><sub>Alexandre Saiz Verdaguer</sub>](http://www.alexsaiz.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/132653?v=3" width="75px;"/><br /><sub>Florian Motlik</sub>](https://github.com/flomotlik)<br /> | [<img src="https://avatars.githubusercontent.com/u/13944?v=3" width="75px;"/><br /><sub>Kenneth Falck</sub>](http://kfalck.net)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/509798?v=3" width="75px;"/><br /><sub>akalra</sub>](https://github.com/akalra)<br /> | [<img src="https://avatars.githubusercontent.com/u/14071524?v=3" width="75px;"/><br /><sub>Martin Lindenberg</sub>](https://github.com/martinlindenberg)<br /> | [<img src="https://avatars.githubusercontent.com/u/26691?v=3" width="75px;"/><br /><sub>Tom Milewski</sub>](http://carrot.is/tom)<br /> | [<img src="https://avatars.githubusercontent.com/u/195210?v=3" width="75px;"/><br /><sub>Antti Ahti</sub>](https://twitter.com/apaatsio)<br /> | [<img src="https://avatars.githubusercontent.com/u/476010?v=3" width="75px;"/><br /><sub>Dan</sub>](https://github.com/BlueBlock)<br /> | [<img src="https://avatars.githubusercontent.com/u/8393068?v=3" width="75px;"/><br /><sub>Mikael Puittinen</sub>](https://github.com/mpuittinen)<br /> | [<img src="https://avatars.githubusercontent.com/u/4513907?v=3" width="75px;"/><br /><sub>Jeremy Wallace</sub>](https://github.com/jerwallace)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/265395?v=3" width="75px;"/><br /><sub>Jonathan Nuñez</sub>](https://twitter.com/jonathan_naguin)<br /> | [<img src="https://avatars.githubusercontent.com/u/195404?v=3" width="75px;"/><br /><sub>Nick den Engelsman</sub>](http://www.codedrops.nl)<br /> | [<img src="https://avatars.githubusercontent.com/u/116057?v=3" width="75px;"/><br /><sub>Kazato Sugimoto</sub>](https://twitter.com/uiureo)<br /> | [<img src="https://avatars.githubusercontent.com/u/1551510?v=3" width="75px;"/><br /><sub>Matthew Chase Whittemore</sub>](https://github.com/mcwhittemore)<br /> | [<img src="https://avatars.githubusercontent.com/u/280997?v=3" width="75px;"/><br /><sub>Joe Turgeon</sub>](https://github.com/arithmetric)<br /> | [<img src="https://avatars.githubusercontent.com/u/4154003?v=3" width="75px;"/><br /><sub>David Hérault</sub>](https://github.com/dherault)<br /> | [<img src="https://avatars.githubusercontent.com/u/1114054?v=3" width="75px;"/><br /><sub>Austin Rivas</sub>](https://github.com/austinrivas)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/15729112?v=3" width="75px;"/><br /><sub>Tomasz Szajna</sub>](https://github.com/tszajna0)<br /> | [<img src="https://avatars.githubusercontent.com/u/446405?v=3" width="75px;"/><br /><sub>Daniel Johnston</sub>](https://github.com/affablebloke)<br /> | [<img src="https://avatars.githubusercontent.com/u/950078?v=3" width="75px;"/><br /><sub>Michael Wittig</sub>](https://michaelwittig.info/)<br /> | [<img src="https://avatars.githubusercontent.com/u/1475986?v=3" width="75px;"/><br /><sub>worldsoup</sub>]()<br /> | [<img src="https://avatars.githubusercontent.com/u/1091399?v=3" width="75px;"/><br /><sub>pwagener</sub>]()<br /> | [<img src="https://avatars.githubusercontent.com/u/125881?v=3" width="75px;"/><br /><sub>Ian Serlin</sub>](http://useful.io)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/2160421?v=3" width="75px;"/><br /><sub>nishantjain91</sub>](https://github.com/nishantjain91)<br /> | [<img src="https://avatars.githubusercontent.com/u/70826?v=3" width="75px;"/><br /><sub>Michael McManus</sub>](https://github.com/michaelorionmcmanus)<br /> | [<img src="https://avatars.githubusercontent.com/u/470292?v=3" width="75px;"/><br /><sub>Kiryl Yermakou</sub>](https://github.com/rma4ok)<br /> | [<img src="https://avatars.githubusercontent.com/u/1669965?v=3" width="75px;"/><br /><sub>Lauri Svan</sub>](http://www.linkedin.com/in/laurisvan)<br /> | [<img src="https://avatars.githubusercontent.com/u/47539?v=3" width="75px;"/><br /><sub>James Hall</sub>](http://parall.ax/)<br /> | [<img src="https://avatars.githubusercontent.com/u/53535?v=3" width="75px;"/><br /><sub>Raj Nigam</sub>](https://github.com/rajington)<br /> | [<img src="https://avatars.githubusercontent.com/u/7740?v=3" width="75px;"/><br /><sub>Moshe Weitzman</sub>](http://weitzman.github.com)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/2035388?v=3" width="75px;"/><br /><sub>Potekhin Kirill</sub>](http://www.easy10.com/)<br /> | [<img src="https://avatars.githubusercontent.com/u/2107342?v=3" width="75px;"/><br /><sub>Brent</sub>](https://github.com/brentax)<br /> | [<img src="https://avatars.githubusercontent.com/u/762414?v=3" width="75px;"/><br /><sub>Ryu Tamaki</sub>](http://ryutamaki.hatenablog.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/172072?v=3" width="75px;"/><br /><sub>Nicolas Grenié</sub>](http://nicolasgrenie.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/72954?v=3" width="75px;"/><br /><sub>Colin Ramsay</sub>](http://colinramsay.co.uk)<br /> | [<img src="https://avatars.githubusercontent.com/u/21967?v=3" width="75px;"/><br /><sub>Kevin Old</sub>](http://www.kevinold.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/6233204?v=3" width="75px;"/><br /><sub>forevermatt</sub>](https://github.com/forevermatt)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/192728?v=3" width="75px;"/><br /><sub>Norm MacLennan</sub>](http://blog.normmaclennan.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/521483?v=3" width="75px;"/><br /><sub>Chris Magee</sub>](http://www.velocity42.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/855022?v=3" width="75px;"/><br /><sub>Ninir</sub>](https://github.com/Ninir)<br /> | [<img src="https://avatars.githubusercontent.com/u/636075?v=3" width="75px;"/><br /><sub>Miguel Parramon</sub>](https://github.com/mparramont)<br /> | [<img src="https://avatars.githubusercontent.com/u/909648?v=3" width="75px;"/><br /><sub>Henri Meltaus</sub>](https://webscale.fi)<br /> | [<img src="https://avatars.githubusercontent.com/u/584675?v=3" width="75px;"/><br /><sub>Thomas Vendetta</sub>](http://vendetta.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/1557716?v=3" width="75px;"/><br /><sub>fuyu</sub>](https://github.com/fuyu)<br /> |
-| [<img src="https://avatars.githubusercontent.com/u/2457588?v=3" width="75px;"/><br /><sub>Alex Casalboni</sub>](https://github.com/alexcasalboni)<br /> | [<img src="https://avatars.githubusercontent.com/u/6675751?v=3" width="75px;"/><br /><sub>Marko Grešak</sub>](https://gresak.io)<br /> | [<img src="https://avatars.githubusercontent.com/u/301217?v=3" width="75px;"/><br /><sub>Derek van Vliet</sub>](http://getsetgames.com)<br /> | [<img src="https://avatars.githubusercontent.com/u/126104?v=3" width="75px;"/><br /><sub>Michael Friis</sub>](http://friism.com/)<br /> | [<img src="https://avatars.githubusercontent.com/u/133328?v=3" width="75px;"/><br /><sub>Stephen Crosby</sub>](http://lithostech.com)<br /> |
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-
-## Consultants
+## <a name="consultants"></a>Consultants
 These consultants use the Serverless Framework and can help you build your serverless projects.
 * [Trek10](https://www.trek10.com/)
 * [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
@@ -133,18 +164,9 @@ These consultants use the Serverless Framework and can help you build your serve
 * [PromptWorks](https://www.promptworks.com/serverless/)
 * [Craftship](https://craftship.io)
 
-## Badges
-
-[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
-[![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
-[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=master)](https://coveralls.io/github/serverless/serverless?branch=master)
-[![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
-[![dependencies](https://img.shields.io/david/serverless/serverless.svg)](https://www.npmjs.com/package/serverless)
-[![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
-
 ----
 
-# Previous Serverless Version 0.5.x
+# <a name="v.5"></a>Previous Serverless Version 0.5.x
 
 Below are projects and plugins relating to version 0.5 and below. Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](./docs/04-extending-serverless/01-creating-plugins.md)
 
