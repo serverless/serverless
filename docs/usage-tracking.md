@@ -14,7 +14,7 @@ of our users to improve Serverless in future releases. However you can always [d
 Our main goal is anonymity while tracking usage behavior. All the data is anonymized and won't reveal who you are or what
 the project you're working on is / looks like.
 
-Please take a look at the [`track()` method](../lib/classes/Utils.js) in the `Utils` class to see what (and how) we track.
+Please take a look at the [`track()` method](https://github.com/serverless/serverless/blob/master/lib/classes/Utils.js#L145) in the `Utils` class to see what (and how) we track.
 
 ## How tracking is implemented
 
@@ -23,7 +23,7 @@ We encourage you to look into the source to see more details about the actual im
 The tracking implementation consists of two parts:
 
 1. The [tracking plugin](../lib/plugins/tracking)
-2. The `track` method you can find in the [Utils class](../lib/classes/Utils.js)
+2. The `track` method you can find in the [Utils class](https://github.com/serverless/serverless/blob/master/lib/classes/Utils.js#L145)
 
 ## How to disable it
 
