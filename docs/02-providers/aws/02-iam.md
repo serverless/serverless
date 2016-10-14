@@ -29,3 +29,14 @@ provider:
 ```
 
 On deployment, all these statements will be added to the IAM role that is assumed by your lambda functions.
+
+If you want to use an existing IAM role, you can add your IAM role ARN in the `iamRoleARN`. For example:
+
+```yml
+# serverless.yml
+
+service: new-service
+provider:
+  name: aws
+  iamRoleARN: arn:aws:iam::YourAccountNumber:role/YourIamRole
+```
