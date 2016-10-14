@@ -293,6 +293,24 @@ functions:
 **Note:** The template is defined as plain text here. However you can also reference an external file with the help of
 the `${file(templatefile)}` syntax.
 
+### Using a custom response status code
+
+The default response status code (200) can be overidden by specifying one of your own.
+
+```yml
+functions:
+  create:
+    handler: posts.redirect
+    events:
+      - http:
+          method: get
+          path: whatever
+          response:
+            statusCode: 301
+            headers:
+              Location: "integration.response.body.url"
+```
+
 ### Status codes
 
 Serverless ships with default status codes you can use to e.g. signal that a resource could not be found (404) or that
