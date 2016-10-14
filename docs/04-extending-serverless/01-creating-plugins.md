@@ -437,7 +437,7 @@ custom:
 
 Plugins are registered in the order they are defined through our system and the
 `serverless.yml` file. By default we will load the
-[core plugins](https://github.com/serverless/serverless/tree/master/lib/plugins/) first, then we will load all plugins according to the order given in the
+[core plugins](../../lib/plugins/) first, then we will load all plugins according to the order given in the
 `serverless.yml` file.
 
 This means the Serverless core plugins will always be executed first for every lifecycle event before 3rd party plugins.
