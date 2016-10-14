@@ -30,6 +30,7 @@ provider:
 
 On deployment, all these statements will be added to the IAM role that is assumed by your lambda functions.
 
+# Using existing IAM role
 If you want to use an existing IAM role, you can add your IAM role ARN in the `iamRoleARN`. For example:
 
 ```yml
