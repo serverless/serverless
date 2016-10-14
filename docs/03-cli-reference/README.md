@@ -15,4 +15,4 @@ Here you can read through the docs of all commands that come with Serverless.
 * [logs](./05-logs.md)
 * [info](./06-info.md)
 * [remove](./07-remove.md)
-* [tracking](./08-tracking.md)
+* [slstats](./08-slstats.md)
