@@ -1,5 +1,5 @@
 # Hello Random Name for AWS Lambda
-service: hello-random-name # Service Name
+service: external-lib # Service Name
 
 provider:
   name: aws
@@ -7,4 +7,4 @@ provider:
 
 functions:
   helloRandomName:
-    handler: handler.helloRandomNameHandler
+    handler: handler.helloRandomName

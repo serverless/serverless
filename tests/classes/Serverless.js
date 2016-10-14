@@ -3,8 +3,6 @@
 const expect = require('chai').expect;
 const Serverless = require('../../lib/Serverless');
 const semverRegex = require('semver-regex');
-const fs = require('fs');
-const fse = require('fs-extra');
 const path = require('path');
 const YAML = require('js-yaml');
 
@@ -179,25 +177,6 @@ describe('Serverless', () => {
     beforeEach(() => {
       serverless.init();
       serverless.processedInput = { commands: [], options: {} };
-    });
-
-    it('should track if tracking is enabled', (done) => {
-      const tmpDirPath = testUtils.getTmpDirPath();
-      fse.mkdirsSync(tmpDirPath);
-
-      serverless.config.serverlessPath = tmpDirPath;
-
-      serverless.run().then(() => done());
-    });
-
-    it('should not track if tracking is disabled', (done) => {
-      const tmpDirPath = testUtils.getTmpDirPath();
-      fse.mkdirsSync(tmpDirPath);
-      fs.writeFileSync(path.join(tmpDirPath, 'do-not-track'), 'some-content');
-
-      serverless.config.serverlessPath = tmpDirPath;
-
-      serverless.run().then(() => done());
     });
 
     it('should forward the entered command to the PluginManager class', () => {

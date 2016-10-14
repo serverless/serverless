@@ -19,7 +19,7 @@ require('../lib/plugins/invoke/tests/invoke');
 require('../lib/plugins/logs/tests/logs');
 require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/package/tests/all');
-require('../lib/plugins/tracking/tests/tracking');
+require('../lib/plugins/slstats/tests/slstats');
 
 // AWS Plugins Tests
 require('../lib/plugins/aws/tests');
