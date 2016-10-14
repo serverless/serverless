@@ -115,7 +115,7 @@ Here's an example for a JavaScript / Node.js function which shows how this might
 ```javascript
 'use strict';
 
-exports.handler = function(event, context) {
+exports.handler = function(event, context, callback) {
     const responseBody = {
       message: "Hello World!",
       input: event
@@ -129,7 +129,7 @@ exports.handler = function(event, context) {
       body: JSON.stringify(responseBody)
     };
 
-    context.succeed(response);
+    callback(null, response);
 };
 ```
 
