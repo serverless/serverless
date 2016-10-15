@@ -6,7 +6,11 @@ description: An introduction to using AWS and AWS Lambda with the Serverless Fra
 layout: Doc
 -->
 
-The Serverless Framework was built for easy management of your AWS Lambda functions, the events that trigger them, as well as the infrastructure resources they require.
+The Serverless Framework helps you develop and deploy your AWS Lambda functions, as we as the infrastructure resources they require.  It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures.
+
+A few things the Serverless Framework does differently than a normal application Framework are:
+* It manages your code as well as your infrastructure
+* It supports multiple lannguages (Node.js, Python, Java, and more)
 
 Here are the Framework's main concepts and how they pertain to AWS and Lambda...
 
@@ -14,19 +18,17 @@ Here are the Framework's main concepts and how they pertain to AWS and Lambda...
 
 ### Functions
 
-A Function is an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job, like:
+A Function is an AWS Lambda function.  It's an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job, like:
 
 * *Saving a user to the database*
 * *Processing a file in a database*
 * *Performing a scheduled task*
 
-You can perform multiple jobs in your code, but we don't recommend it without good reason.  Separation of concerns is best.
-
-The Framework allows you to easily develop and deploy Functions, and lots of them.
+You can perform multiple jobs in your code, but we don't recommend it without good reason.  Separation of concerns is best, and the Framework is designed to helpy you easily develop and deploy Functions, and lots of them.
 
 ### Events
 
-Anything that triggers a Function to execute is regarded by the Framework as an **Event**.  Events are infrastruture events on AWS, like:
+Anything that triggers an AWS Lambda Function to execute is regarded by the Framework as an **Event**.  Events are infrastruture events on AWS, like:
 
 * *An AWS API Gateway HTTP endpoint (e.g., for a REST API)*
 * *An AWS S3 bucket upload (e.g., for an image)*
@@ -35,7 +37,7 @@ Anything that triggers a Function to execute is regarded by the Framework as an 
 * *A CloudWatch Alert (e.g., something happened)*
 * *And more...*
 
-The Framework allows you to easily define events to trigger your Functions, and deploy them together.
+When you define an event for your AWS Lambda functions in the Serverless Framework, the Framework will automatically create any infrastructure necessary for that event (e.g., an API Gateway endpoint) and configure your AWS Lambda Functions to listen to it.
 
 ### Resources
 
@@ -50,7 +52,7 @@ The Serverless Framework not only deploys your Functions and the Events that tri
 
 ### Services
 
-A **Service** is the Framework's unit of organization.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml`.  It looks like this:
+A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml`.  It looks like this:
 
 ```yml
 // serverless.yml

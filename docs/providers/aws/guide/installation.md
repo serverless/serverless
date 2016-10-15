@@ -1,7 +1,7 @@
 <!--
 title: Installation
 menuText: Installation
-menuOrder: 1
+menuOrder: 2
 description: How to install the Serverless Framework
 layout: Doc
 -->

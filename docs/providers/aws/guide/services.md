@@ -1,16 +1,34 @@
 <!--
 title: Serverless Services
 menuText: Services
-menuOrder: 2
-description: How to create a serverless service which contains your AWS Lambda functions, their events and infrastructure resources
+menuOrder: 3
+description: How to manage and configure serverless services, containing your AWS Lambda functions, their events and infrastructure resources.
 layout: Doc
 -->
 
-# Creating A Service
+To get started building your first Serverless Framework project, create a *Service*.
 
-A *Serverless Service* describes functions, events and infrastructure resources together and deploys them together.
+A *Service* is like a project, where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`
 
-Each Service translates to a single AWS CloudFormation template and a CloudFormation stack is created from that template.
+# Service Organization
+
+In the beginning of a project, many people use a single Service to define all of the Functions, Events and Resources for that project.  This is what we recommend.
+
+When your project begins to grow, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
+
+```
+users
+  serverless.yml  // Contains 4 functions that that do Users CRUD operations and the Users database
+posts
+  serverless.yml // Contains 4 functions that that do Posts CRUD operations and the Posts database
+comments
+  serverless.yml // Contains 4 functions that that do Comments CRUD operations and the Comments database
+```
+This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
+
+**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have use a custom domain per one REST API.  If you plan on making a large REST API, please make not of this limitation.  Also, a fix is in the works and is a top priority.
+
+# Service Creation
 
 To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python, etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
 
@@ -28,7 +46,7 @@ Here are the available runtimes for AWS Lambda:
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
-## Open the service inside your editor
+## Service Scaffolding
 
 You'll see the following files in your working directory:
 - `serverless.yml`
@@ -50,29 +68,57 @@ Each *Serverless service* configuration is managed in the `serverless.yml` file.
 
 You can see the name of our service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
 
+```yml
+# serverless.yml
+
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  memorySize: 512
+
+functions:
+  usersCreate: # A Function
+    events: # The Events that trigger this Function
+      - http: post users/create
+  usersCreate: # A Function
+    events:  # The Events that trigger this Function
+      - http: delete users/delete
+
+resources: # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: usersTable
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+```
+
+Every `serverless.yml` translates to a single AWS CloudFormation template and a CloudFormation stack is created from that resulting CloudFormation template.
+
 ### handler.js
 
-The `handler.js` file includes a function skeleton which returns a simple message. The function definition in `serverless.yml` will point to this `handler.js` file and the function inside of it.
-
-Check out the code inside of the `handler.js` so you can play around with it once we've deployed the service.
+The `handler.js` file contains your function code. The function definition in `serverless.yml` will point to this `handler.js` file and the function inside of it.
 
 ### event.json
 
-This file contains event data we'll use later on to invoke our function.
+This file contains event data you can use to invoke your function with via `serverless invoke -p event.json`
 
-<!--
-title: Removing Services
-menuText: Removing Services
-description: How to remove a deployed service
-layout: Doc
--->
+# Service Removal
 
-# Removing a service
+To easily remove your Service from your AWS account, you can use the `remove` command.
 
-The last step we want to introduce in this guide is how to remove the service.
-
-Removal is done with the help of the `remove` command. Just run `serverless remove -v` to trigger the removal process. As in the deploy step we're also running in the `verbose` mode so you can see all details of the remove process.
+Run `serverless remove -v` to trigger the removal process. As in the deploy step we're also running in the `verbose` mode so you can see all details of the remove process.
 
 Serverless will start the removal and informs you about it's process on the console. A success message is printed once the whole service is removed.
 
-**Note:** The removal process will only remove the service on your providers infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
+The removal process will only remove the service on your provider's infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.

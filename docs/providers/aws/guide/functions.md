@@ -2,7 +2,7 @@
 title: Functions
 menuText: Functions
 menuOrder: 4
-description: Configuring AWS Lambda functions in the Serverless Framework
+description: How to configure AWS Lambda functions in the Serverless Framework
 layout: Doc
 -->
 
