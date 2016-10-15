@@ -1,5 +1,5 @@
 <!--
-title: Serverless - AWS Events
+title: Serverless Framework - AWS Lambda Events
 menuText: Events
 layout: Doc
 -->

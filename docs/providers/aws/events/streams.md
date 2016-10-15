@@ -1,6 +1,8 @@
 <!--
-title: Kinesis Streams Event configuration
-menuText: Kinesis Streams Event config
+title: Serverless Framework - AWS Lambda Events - Kinesis & DynamoDB Streams
+menuText: Kinesis & DynamoDB Streams
+menuOrder: 2
+description:
 layout: Doc
 -->
 

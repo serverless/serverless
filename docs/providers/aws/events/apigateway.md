@@ -1,6 +1,8 @@
 <!--
-title: API Gateway Event configuration
+title: Serverless Framework - AWS Lambda Events - API Gateway
 menuText: API Gateway Event config
+menuOrder: 1
+description:
 layout: Doc
 -->
 

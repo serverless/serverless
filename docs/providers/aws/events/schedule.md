@@ -1,6 +1,8 @@
 <!--
-title: AWS Schedule
+title: Serverless Framework - AWS Lambda Events - Scheduled & Recurring
 menuText: AWS Schedule config
+menuOrder: 1
+description:
 layout: Doc
 -->
 

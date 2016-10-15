@@ -1,6 +1,8 @@
 <!--
-title: SNS Event configuration docs
+title: Serverless Framework - AWS Lambda Events - SNS
 menuText: SNS Event config
+menuOrder: 3
+description:
 layout: Doc
 -->
 
