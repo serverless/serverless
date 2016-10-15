@@ -5,3 +5,5 @@ layout: Doc
 -->
 
 # Serverless - Providers
+
+Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs) for a much better reading experience.

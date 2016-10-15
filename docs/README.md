@@ -6,7 +6,7 @@ layout: Doc
 
 # Serverless Documentation
 
-For a much better reading experience, go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs)
+Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs) for a much better reading experience.
 
 | AWS |
 | ------------- |
