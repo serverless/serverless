@@ -1,5 +1,5 @@
 <!--
-title: Deploying Serverless Services
+title: Serverless Framework - AWS Lambda Guide - Deploying
 menuText: Deploying Services
 menuOrder: 5
 layout: Doc

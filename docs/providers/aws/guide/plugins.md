@@ -1,5 +1,5 @@
 <!--
-title: Building Serverless Plugins
+title: Serverless Framework - AWS Lambda Guide - Plugins
 menuText: Building Plugins
 layout: Doc
 -->
@@ -149,6 +149,60 @@ class Deploy {
 
 module.exports = Deploy;
 ```
+
+
+# Adding custom plugins
+
+Serverless is extendable through plugins. Plugins can provide new CLI commands or hook into existing plugins to extend their functionality.
+
+Serverless uses the plugin infrastructure to run the core plugins. The plugin infrastructure is extendable by third party developers too. Using the same system, you can extend the framework to suit your custom needs.
+
+Let's take a look into this now.
+
+## Installing a plugin
+
+First we need to install the corresponding plugin in the services root directory with the help of npm:
+
+`npm install --save custom-serverless-plugin`.
+
+Note: Custom plugins are added on a per service basis and are not applied globally
+
+## Adding the plugin to a service
+
+We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the plugin to the `plugins` section in the `serverless.yml` file.
+
+```yml
+# serviceXYZ serverless.yml file
+plugins:
+  - custom-serverless-plugin
+```
+
+Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the `serverless.yml` file is the place where you can add necessary
+configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
+
+```yml
+plugins:
+  - custom-serverless-plugin
+
+custom:
+  customkey: customvalue
+```
+
+## Load order
+
+Keep in mind that the order you define your plugins matters. When Serverless loads all the [core plugins](../lib/plugins) and then the custom plugins in the order you've defined them.
+
+```yml
+plugins:
+  - plugin1
+  - plugin2
+```
+
+In this case `plugin1` is loaded before `plugin2`.
+
+[Next step > Removing your service](removing-a-service.md)
+
+
 
 ### Serverless instance
 
@@ -402,3 +456,99 @@ event.
 ## Command naming
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. Commands need to be unique in the current service context they are executed. So if you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
+
+
+
+<!--
+title: Building Serverless Provider Integrations
+menuText: Building Provider Integrations
+layout: Doc
+-->
+
+# Building provider integrations
+
+Integrating different infrastructure providers happens through the standard plugin system.
+Take a look at the ["building plugins"](./01-creating-plugins.md) documentation to understand how the plugin system works.
+
+## Provider specific plugins
+
+You can add the providers name inside the constructor of your plugin. This makes it possible to only execute your plugins logic when the Serverless service uses the provider you've specified in your plugin.
+
+## Deployment
+
+Infrastructure provider plugins should bind to specific lifecycle events of the `deploy` command to compile the function and their events to provider specific resources.
+
+### Deployment lifecycle
+
+Let's take a look at the [core `deploy` plugin](https://github.com/serverless/serverless/tree/master/lib/plugins/deploy) and the different lifecycle hooks it provides.
+
+The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
+
+- `deploy:initialize`
+- `deploy:setupProviderConfiguration`
+- `deploy:compileFunctions`
+- `deploy:compileEvents`
+- `deploy:createDeploymentArtifacts`
+- `deploy:deploy`
+
+Plugin developers can hook into those lifecycle events to compile and deploy functions and events on your providers infrastructure.
+
+Let's take a closer look at each lifecycle event to understand what its purpose is and what it should be used for.
+
+#### `deploy:initialize`
+
+This lifecycle should be used to load the basic resources the provider needs into memory (e.g. parse a basic resource
+template skeleton such as a CloudFormation template).
+
+#### `deploy:setupProviderConfiguration`
+
+The purpose of the `deploy:setupProviderConfiguration` lifecycle is to take the basic resource template which was created in the previous lifecycle and deploy the rough skeleton on the cloud providers infrastructure (without any functions or events) for the first time.
+
+#### `deploy:createDeploymentArtifacts`
+
+The whole service get's zipped up into one .zip file.
+
+Serverless will automatically exclude the following files / folders to reduce the size of the .zip file:
+
+- .git
+- .gitignore
+- .serverless
+- serverless.yaml
+- serverless.yml
+- .DS_Store
+
+You can always include previously excluded files and folders if you want to.
+
+#### `deploy:compileFunctions`
+
+Next up the functions inside the `serverless.yml` file should be compiled to provider specific resources and stored into memory.
+
+#### `deploy:compileEvents`
+
+After that the events which are defined in the `serverless.yml` file on a per function basis should be compiled to provider specific resources and also stored into memory.
+
+#### `deploy:deploy`
+
+The final lifecycle is the `deploy:deploy` lifecycle which should be used to deploy the previously compiled function and event resources to the providers infrastructure.
+
+### Amazon Web Services provider integration
+
+Curious how this works for the Amazon Web Services (AWS) provider integration?
+
+Here are the steps the AWS plugins take to compile and deploy the service on the AWS infrastructure in detail.
+
+#### The steps in detail
+
+1. The `serverless.yml` file is loaded into memory
+2. A default AWS CloudFormation template is loaded and deployed to AWS (A S3 bucket for the service gets created)(`deploy:setupProviderConfiguration`)
+3. The functions of the `serverless.yml`
+4. Each functions events are compiled into CloudFormation resources and stored into memory (`deploy:compileEvents`)
+5. Old functions (if available) are removed from the S3 bucket (`deploy:deploy`)
+6. The service gets zipped up and is uploaded to S3 (`deploy:createDeploymentArtifacts` and `deploy:deploy`)
+7. The compiled functions, event resources and custom provider resources are attached to the core CloudFormation template and the updated CloudFormation template gets redeployed (`deploy:deploy`)
+
+#### The code
+
+You may also take a closer look at the corresponding plugin code to get a deeper knowledge about what's going on behind the scenes.
+
+The full AWS integration can be found in [`lib/plugins/aws`](https://github.com/serverless/serverless/tree/master/lib/plugins/aws).

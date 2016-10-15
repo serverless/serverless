@@ -1,5 +1,5 @@
 <!--
-title: Including/Excluding files from packaging
+title: Serverless Framework Guide - AWS Lambda Guide - Packaging
 menuText: Packaging Services
 layout: Doc
 -->

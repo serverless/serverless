@@ -1,5 +1,5 @@
 <!--
-title: Running Serverless AWS Lambda Functions
+title: Serverless Framework - AWS Lambda Guide - Development
 menuText: Running Functions
 menuOrder: 4
 description: How to run AWS Lambda functions authored with the Serverless Framework

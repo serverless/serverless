@@ -1,5 +1,5 @@
 <!--
-title: Resources
+title: Serverless Framework - AWS Lambda Guide - Infrastructure Resources
 menuText: Resources
 description: Managing infrastructure resources on AWS to use with your Functions
 layout: Doc

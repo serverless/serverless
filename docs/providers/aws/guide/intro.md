@@ -1,5 +1,5 @@
 <!--
-title: Serverless Guide - AWS Lambda - Introduction
+title: Serverless Framework - AWS Lambda Guide - Introduction
 menuText: Intro
 menuOrder: 1
 description: An introduction to using AWS and AWS Lambda with the Serverless Framework.
