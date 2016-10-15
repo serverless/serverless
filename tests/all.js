@@ -8,6 +8,7 @@ require('./classes/Config');
 require('./classes/Service');
 require('./classes/Variables');
 require('./classes/YamlParser');
+require('./classes/Logger');
 require('./classes/CLI');
 
 // Core Plugins Tests
