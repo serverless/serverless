@@ -2,13 +2,13 @@
 
 // Serverless Core Tests
 require('../lib/Serverless.test');
-require('./classes/PluginManager');
-require('./classes/Utils');
-require('./classes/Config');
-require('./classes/Service');
-require('./classes/Variables');
-require('./classes/YamlParser');
-require('./classes/CLI');
+require('../lib/classes/PluginManager.test');
+require('../lib/classes/Utils.test');
+require('../lib/classes/Config.test');
+require('../lib/classes/Service.test');
+require('../lib/classes/Variables.test');
+require('../lib/classes/YamlParser.test');
+require('../lib/classes/CLI.test');
 
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
