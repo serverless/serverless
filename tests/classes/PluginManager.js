@@ -273,7 +273,7 @@ describe('PluginManager', () => {
     it('should add a plugin instance to the plugins array', () => {
       pluginManager.addPlugin(SynchronousPluginMock);
 
-      expect(pluginManager.plugins[0]).to.be.an.instanceof(SynchronousPluginMock);
+      expect(pluginManager.plugins[0]).to.be.instanceof(SynchronousPluginMock);
     });
 
     it('should load the plugin commands', () => {
