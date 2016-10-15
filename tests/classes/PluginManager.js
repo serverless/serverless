@@ -198,10 +198,6 @@ describe('PluginManager', () => {
       expect(pluginManager.serverless).to.deep.equal(serverless);
     });
 
-    it('should create a nullified provider variable', () => {
-      expect(pluginManager.provider).to.equal(null);
-    });
-
     it('should create an empty cliOptions object', () => {
       expect(pluginManager.cliOptions).to.deep.equal({});
     });
@@ -216,15 +212,6 @@ describe('PluginManager', () => {
 
     it('should create an empty commands object', () => {
       expect(pluginManager.commands).to.deep.equal({});
-    });
-  });
-
-  describe('#setProvider()', () => {
-    it('should set the provider variable', () => {
-      const provider = 'provider1';
-      pluginManager.setProvider(provider);
-
-      expect(pluginManager.provider).to.equal(provider);
     });
   });
 
@@ -670,7 +657,7 @@ describe('PluginManager', () => {
 
     describe('when using provider specific plugins', () => {
       beforeEach(function () { // eslint-disable-line prefer-arrow-callback
-        pluginManager.setProvider('provider1');
+        pluginManager.serverless.service.provider.name = 'provider1';
 
         pluginManager.addPlugin(Provider1PluginMock);
         pluginManager.addPlugin(Provider2PluginMock);
