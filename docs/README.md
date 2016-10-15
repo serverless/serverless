@@ -6,49 +6,93 @@ layout: Doc
 
 # Serverless Documentation
 
-Welcome to the Serverless documentation.
+The Serverless Framework allows you to easily build applications on [AWS Lambda](https://aws.amazon.com/lambda/).
 
-Before we begin, let's run through some of the main concepts behind serverless.
+Together, the Framework and these new compute services enable you to build more than ever, without having to operate complex infrastructure, and take advantage of Lambda's efficient pay-per-execution pricing.
 
-* [Functions](#functions)
-* [Events](#events)
-* [Resources](#resources)
-* [Services](#services)
-* [Plugins](#plugins)
+Here are the main concepts behind the Serverless Framework...
+
+## Concepts
 
 ### Functions
 
-Functions are the essential part for any serverless infrastructure. Several functions together form a service. A service typically solves one particular problem in your infrastructure.
+A Function is an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job, like:
+
+* *Saving a user to the database*
+* *Processing a file in a database*
+* *Performing a scheduled task*
+
+You can perform multiple jobs in your code, but we don't recommend it without good reason.  Separation of concerns is best.
+
+The Framework allows you to easily develop and deploy Functions, and lots of them.
 
 ### Events
 
-Serverless is used to build event driven architecture. Basically everything which can trigger a function is an event.
+Anything that triggers a Function to execute is regarded by the Framework as an **Event**.  Events are infrastruture events on AWS, like:
 
-Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
+* *An AWS API Gateway HTTP endpoint (e.g., for a REST API)*
+* *An AWS S3 bucket upload (e.g., for an image)*
+* *A CloudWatch timer (e.g., run every 5 minutes)*
+* *An AWS SNS topic (e.g., a message)*
+* *A CloudWatch Alert (e.g., something happened)*
+* *[And more...](./events)*
 
-- [AWS Events](./02-providers/aws/events/README.md)
+The Framework allows you to easily define events to trigger your Functions, and deploy them together.
 
 ### Resources
 
-Resources are the different pieces that comprise your infrastructure like databases, storage buckets, API Gateways or other resources your provider lets you configure.
+**Resources** are AWS infrastructure components which your Functions use, like:
+
+* *An AWS DynamoDB Table (e.g., for saving Users/Posts/Comments data)*
+* *An AWS S3 Bucket (e.g., for saving images or files)*
+* *An AWS SNS Topic (e.g., for sending messages asynchronously)*
+* *Anything that can be defined in CloudFormation is supported by the Serverless Framework*
+
+The Serverless Framework not only deploys your Functions and the Events that trigger them, but it also deploys the AWS infrastructure components your Functions depend upon.
 
 ### Services
 
-A *Serverless service* is a group of one or multiple functions and any resources they require. By grouping related functions together, it's easier to share code and resources between those functions. Services are also designed to be completely independent, which helps teams develop more quickly without waiting for others.
+A **Service** is the Framework's unit of organization.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml`.  It looks like this:
+
+```yml
+// serverless.yml
+
+service: users
+
+functions: // Your "Functions"
+  usersCreate:
+    events: // The "Events" that trigger this function
+      - http: post users/create
+  usersCreate:
+    events:
+      - http: delete users/delete
+
+resources: // The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: usersTable
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+```
+When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
 
 ### Plugins
 
-Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to extend the functionality of Serverless. Furthermore we'll look into the way how you can use your plugin knowledge to integrate your own provider into the Serverless framework.
+You can overwrite or extend the functionality of the Framework using **Plugins**.  Every `serverless.yml` can contain a `plugins:` property, which features multiple plugins.
 
-- [Building plugins](./04-extending-serverless/README.md)
+```yml
+// serverless.yml
 
-Connect with the community on [gitter](https://gitter.im/serverless/serverless) or in the [Forum](http://forum.serverless.com)
-
-## Contributing
-We love our contributors! Please read our [Contributing Document](../CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
-
-Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.
-
-## Usage Tracking
-
-[Anonymous Usage Tracking](./usage-tracking.md)
+plugins:
+  - serverless-offline
+  - serverless-secrets
+```

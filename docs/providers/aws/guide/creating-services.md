@@ -1,27 +1,34 @@
 <!--
 title: Creating Serverless Services
 menuText: Creating Services
+menuOrder: 2
 description: How to create a serverless service which contains your AWS Lambda functions, their events and infrastructure resources
 layout: Doc
 -->
 
-# Creating a service
+# Creating A Service
 
-You can create a service based on a specific template that specifies which provider and runtime to use.
+A *Serverless Service* describes functions, events and infrastructure resources together and deploys them together.
 
-To create a service with a `nodejs` runtime running on `aws` just pass the `aws-nodejs` template to the create command:
+Each Service translates to a single AWS CloudFormation template and a CloudFormation stack is created from that template.
+
+To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python, etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
 
 ```
-serverless create --template aws-nodejs
+serverless create --template aws-nodejs --path myService
 ```
 
-This will create a service and generate `serverless.yml` and `handler.js` files in the current working directory.
+Here are the available runtimes for AWS Lambda:
 
-You can also check out the [create command docs](../03-cli-reference/01-create.md) for all the details and options.
+* aws-nodejs
+* aws-python
+* aws-java-gradle
+* aws-java-maven
+* aws-scala-sbt
+
+Check out the [create command docs](../cli-reference/create) for all the details and options.
 
 ## Open the service inside your editor
-
-Let's take a closer look at the skeleton Serverless has created for us.
 
 You'll see the following files in your working directory:
 - `serverless.yml`
@@ -43,19 +50,12 @@ Each *Serverless service* configuration is managed in the `serverless.yml` file.
 
 You can see the name of our service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
 
-### `handler.js`
+### handler.js
 
 The `handler.js` file includes a function skeleton which returns a simple message. The function definition in `serverless.yml` will point to this `handler.js` file and the function inside of it.
 
 Check out the code inside of the `handler.js` so you can play around with it once we've deployed the service.
 
-### `event.json`
+### event.json
 
 This file contains event data we'll use later on to invoke our function.
-
-## Conclusion
-
-We've just created our very first service with one simple `create` command. With that in place we're ready to deploy
-our service (which now includes one example function) to our provider (in this case Amazon Web Services).
-
-[Next step > Deploying our service](./03-deploying-services.md)

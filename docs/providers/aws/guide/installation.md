@@ -1,6 +1,7 @@
 <!--
 title: Installation
 menuText: Installation
+menuOrder: 1
 description: How to install the Serverless Framework
 layout: Doc
 -->
@@ -24,3 +25,7 @@ Next, install the Serverless Framework via [npm](https://npmjs.org) which was al
 Open up a terminal and type `npm install -g serverless` to install Serverless.
 
 Once the installation process is done you can verify that Serverless is installed successfully by running `serverless`.
+
+### Installing AWS
+
+AWS ships with the core of the Serverless Framework, so no additional installation is required.
