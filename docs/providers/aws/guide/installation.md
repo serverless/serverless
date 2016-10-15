@@ -1,5 +1,5 @@
 <!--
-title: Installation
+title: Serverless Guide - AWS Lambda - Installing The Serverless Framework
 menuText: Installation
 menuOrder: 2
 description: How to install the Serverless Framework
