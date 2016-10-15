@@ -6,4 +6,4 @@ layout: Doc
 
 # Serverless - Providers - AWS - Events
 
-Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs/providers/aws/events) for a much better reading experience.
+Go to [serverless.com/framework/docs/providers/aws/events](https://www.serverless.com/framework/docs/providers/aws/events) for a much better reading experience.
