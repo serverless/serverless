@@ -1,16 +1,14 @@
 <!--
-title: Serverless Framework Documentation
-menuText: Docs
+title: Introduction to AWS and AWS Lambda with the Serverless Framework
+menuText: Intro
+menuOrder: 1
+description: An introduction to using AWS and AWS Lambda with the Serverless Framework.
 layout: Doc
 -->
 
-# Serverless Documentation
+The Serverless Framework was built for easy management of your AWS Lambda functions, the events that trigger them, as well as the infrastructure resources they require.
 
-The Serverless Framework allows you to easily build applications on [AWS Lambda](https://aws.amazon.com/lambda/).
-
-Together, the Framework and these new compute services enable you to build more than ever, without having to operate complex infrastructure, and take advantage of Lambda's efficient pay-per-execution pricing.
-
-Here are the main concepts behind the Serverless Framework...
+Here are the Framework's main concepts and how they pertain to AWS and Lambda...
 
 ## Concepts
 
