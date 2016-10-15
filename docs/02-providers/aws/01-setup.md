@@ -58,7 +58,7 @@ OR, if you already have an AWS profile set up...
 export AWS_PROFILE=<profile>
 ```
 
-Continue with [creating your first service](https://github.com/serverless/serverless/blob/master/docs/01-guide/02-creating-services.md).
+Continue with [creating your first service](../../01-guide/02-creating-services.md).
 
 #### Using AWS Profiles
 
