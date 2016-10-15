@@ -281,6 +281,51 @@ describe('PluginManager', () => {
 
       expect(pluginManager.commands).to.have.property('deploy');
     });
+
+    it('should skip service related plugins which not match the services provider', () => {
+      pluginManager.serverless.service.provider.name = 'someProvider';
+      class Plugin {
+        constructor() {
+          this.provider = 'someOtherProvider';
+        }
+      }
+
+      pluginManager.addPlugin(Plugin);
+
+      expect(pluginManager.plugins.length).to.equal(0);
+    });
+
+    it('should add service related plugins when provider property is the providers name', () => {
+      pluginManager.serverless.service.provider.name = 'someProvider';
+      class Plugin {
+        constructor() {
+          this.provider = 'someProvider';
+        }
+      }
+
+      pluginManager.addPlugin(Plugin);
+
+      expect(pluginManager.plugins[0]).to.be.an.instanceOf(Plugin);
+    });
+
+    it('should add service related plugins when provider propery is provider plugin', () => {
+      pluginManager.serverless.service.provider.name = 'someProvider';
+      class ProviderPlugin {
+        static getProviderName() {
+          return 'someProvider';
+        }
+      }
+      const providerPlugin = new ProviderPlugin();
+      class Plugin {
+        constructor() {
+          this.provider = providerPlugin;
+        }
+      }
+
+      pluginManager.addPlugin(Plugin);
+
+      expect(pluginManager.plugins[0]).to.be.an.instanceOf(Plugin);
+    });
   });
 
   describe('#loadAllPlugins()', () => {
