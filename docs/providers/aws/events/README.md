@@ -1,14 +1,7 @@
 <!--
-title: AWS Serverless Events
-menuText: AWS Events
+title: Serverless - AWS Events
+menuText: Events
 layout: Doc
 -->
 
-# AWS serverless events
-
-* [API Gateway](./01-apigateway.md)
-* [S3](./02-s3.md)
-* [Schedule](./03-schedule.md)
-* [SNS](./04-sns.md)
-* [Kinesis Streams](./05-kinesis-streams.md)
-* [DynamoDB Streams](./06-dynamodb-streams.md)
+# Serverless - Providers - AWS - Events

@@ -1,10 +1,8 @@
 <!--
-title: AWS Lambda Example Projects
-menuText: AWS Lambda Examples
+title: Serverless - AWS Lambda Examples
+menuText: Examples
 description: A list of serverless AWS Lambda Example Projects
 layout: Doc
 -->
 
-* [hello-world](./hello-world)
-* [using-external-libraries](./using-external-libraries)
-* [web-api](./web-api)
+# Serverless - AWS - Examples
