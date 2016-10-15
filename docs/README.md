@@ -14,7 +14,8 @@ Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs)
 |  - [Installation](./providers/aws/guide/installation.md) |
 |  - [Setting Up Credentials](./providers/aws/guide/setting-up-credentials.md) |
 |  - [Creating Services](./providers/aws/guide/creating-services.md) |
-|  - [Functions & Events](./providers/aws/guide/functions-and-events.md) |
+|  - [Functions](./providers/aws/guide/functions.md) |
+|  - [Events](./providers/aws/guide/events.md) |
 |  - [Resources](./providers/aws/guide/resources.md) |
 |  - [Deploying](./providers/aws/guide/deploying.md) |
 |  - [Running Functions](./providers/aws/guide/running-functions.md) |

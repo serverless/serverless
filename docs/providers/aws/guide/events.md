@@ -1,8 +1,8 @@
 <!--
-title: Functions
-menuText: Functions
+title: Events
+menuText: Events
 menuOrder: 4
-description: Configuring AWS Lambda functions in the Serverless Framework
+description: Configuring AWS Lambda function events in the Serverless Framework
 layout: Doc
 -->
 
@@ -65,7 +65,7 @@ provider:
   name: aws
   runtime: nodejs4.3
   memorySize: 512 # inherited value
-  
+
 
 functions:
   functionOne:
