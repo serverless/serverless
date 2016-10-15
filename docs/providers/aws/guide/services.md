@@ -1,6 +1,6 @@
 <!--
-title: Creating Serverless Services
-menuText: Creating Services
+title: Serverless Services
+menuText: Services
 menuOrder: 2
 description: How to create a serverless service which contains your AWS Lambda functions, their events and infrastructure resources
 layout: Doc
@@ -59,3 +59,20 @@ Check out the code inside of the `handler.js` so you can play around with it onc
 ### event.json
 
 This file contains event data we'll use later on to invoke our function.
+
+<!--
+title: Removing Services
+menuText: Removing Services
+description: How to remove a deployed service
+layout: Doc
+-->
+
+# Removing a service
+
+The last step we want to introduce in this guide is how to remove the service.
+
+Removal is done with the help of the `remove` command. Just run `serverless remove -v` to trigger the removal process. As in the deploy step we're also running in the `verbose` mode so you can see all details of the remove process.
+
+Serverless will start the removal and informs you about it's process on the console. A success message is printed once the whole service is removed.
+
+**Note:** The removal process will only remove the service on your providers infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
