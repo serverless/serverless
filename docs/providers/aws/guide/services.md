@@ -120,6 +120,25 @@ The `handler.js` file contains your function code. The function definition in `s
 
 This file contains event data you can use to invoke your function with via `serverless invoke -p event.json`
 
+## Deployment
+
+When you deploy a Service, all of the Functions, Events and Resources in your `serverless.yml` are translated to an AWS CloudFormation template and deployed as a single CloudFormation stack.
+
+To deploy a service, use the `deploy` command:
+
+```
+serverless deploy
+```
+
+Deployment defaults to `dev` stage and `us-east-1` region on AWS, unless you specified these elsewhere, or add them in as options:
+
+```
+serverless deploy --stage prod --region us-east-1
+```
+
+Check out the [deployment guide](./deployment.md) to learn more about deployments and how they work.
+Or check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
+
 ## Removal
 
 To easily remove your Service from your AWS account, you can use the `remove` command.
