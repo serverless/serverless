@@ -136,8 +136,7 @@ Deployment defaults to `dev` stage and `us-east-1` region on AWS, unless you spe
 serverless deploy --stage prod --region us-east-1
 ```
 
-Check out the [deployment guide](./deployment.md) to learn more about deployments and how they work.
-Or check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
+Check out the [deployment guide](./deployment.md) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
 
 ## Removal
 

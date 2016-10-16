@@ -10,7 +10,7 @@ layout: Doc
 
 If you are using AWS as a provider for your *Service*, all *Functions* are AWS Lambda functions.
 
-## Function Configuration
+## Configuration
 
 All of the AWS Lambda functions in your serverless service can be found in `serverless.yml` under the `functions` property.
 
@@ -91,7 +91,7 @@ functions:
     memorySize: 512 # function specific
 ```
 
-## Function Permissions
+## Permissions
 
 Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account.  These permissions are set via an AWS IAM Role.  You can set permission policy statements within this role via the `provider.iamRoleStatements` property.
 

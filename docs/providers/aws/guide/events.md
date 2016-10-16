@@ -8,71 +8,48 @@ layout: Doc
 
 # Events
 
-If you are using AWS as a provider for your *Service*, all *Events* are anything in AWS that can trigger an AWS Lambda function, including HTTP endpoints created via API Gateway.
+If you are using AWS as a provider for your Service, all *Events* are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via API Gateway.
 
-## Event Configuration
+Upon deployment, the Serverless Framework will deploy any infrastructure required for an event (e.g., an API Gateway endpoint) and configure your Function to listen to it.
 
-# Event sources
+## Configuration
 
-Serverless is used to build event driven architectures. Basically everything which can trigger a function is an event. Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
-
-Events are provider specific, so not every event syntax is available for every provider. We're documenting every event in-depth in the provider specific documentation. Before we deep dive, lets look at how to add a simple HTTP Event to our function.
-
-## Adding a HTTP event
-
-Go to the Serverless service directory and open up the `serverless.yml`
-file in your editor. First, we need to add an `events` property to the function to tell Serverless that this
-function will have events attached:
+Events belong to each Function and can be found in the `events` property, which is an array:
 
 ```yml
 functions:
-  hello:
-    handler: handler.hello
-    events:
+  createUser: # A function
+    handler: handler.createUser
+    events: # All events are here
+      - http:
+          path: users/create
+          method: post
 ```
 
-This `events` property is used to store all the event definitions for the function.
-Each event will be added inside this `events` section. Events are added as an array as you can have multiple events of the same type associated with a function.
+Events are objects, which can contain event-specific information.
 
-Let's add a `http` event with a path of `greet` and a method of `get`:
+You can set multiple Events per Function, as long as that is supported by AWS.
 
 ```yml
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http: GET greet
+  createUser: # A function
+    handler: handler.users
+    events: # All events are here
+      - http:
+          path: users/create
+          method: post
+      - http:
+          path: users/update
+          method: put
+      - http:
+          path: users/delete
+          method: delete
 ```
 
-That's it. There's nothing more to do to setup a `http` event. Let's (re)deploy our service so that Serverless will
-translate this event definition to provider specific syntax and sets it up for us.
+## Types
 
-## (Re)deploying
+The Serverless Framework supports all of the AWS Lambda events and more.  Instead of listing them here, we've put them in a seprate section, since they have a lot of configurations and functionality.  [Check out the events section for more information.](../events)
 
-We can redeploy our updated service by simply running `serverless deploy` again.
-Serverless will show the progress on the terminal and tell you once the service is updated.
+## Deploying
 
-## Calling our HTTP endpoint
-
-Let's test our deployed HTTP endpoint.
-
-After deploying your service you should see the URL for your http endpoint in the terminal:
-
-```bash
-endpoints:
-  GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/greet
-```
-
-We can now simply call it:
-
-```bash
-$ curl https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/greet
-{"message":"Go Serverless v1.0! Your function executed successfully!"}
-```
-
-You've successfully executed the function through the HTTP endpoint!
-
-Serverless provides more than just a HTTP event source. You can find the full list of all available event sources with
-corresponding examples in the provider specific docs:
-
-* [AWS event documentation](../02-providers/aws/events/README.md).
+To deploy or update your Functions, Events and Infrastructure, run `serverless deploy`.j
