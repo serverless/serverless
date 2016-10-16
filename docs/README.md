@@ -61,6 +61,6 @@ We love our contributors! Please read our [Contributing Document](../CONTRIBUTIN
 
 Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.
 
-## Usage Tracking
+## Framework statistics
 
-[Anonymous Usage Tracking](./usage-tracking.md)
+[Framework statistics](./framework-statistics.md)
