@@ -4,7 +4,7 @@ menuText: Docs
 layout: Doc
 -->
 
-# Serverless Documentation
+# Serverless Framework Documentation
 
 Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs) for a much better reading experience.
 

@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Projects & Services
+title: Serverless Framework - AWS Lambda Guide - Services & Projects
 menuText: Services
 menuOrder: 3
 description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
@@ -12,11 +12,11 @@ A *Service* is like a project, where you define your AWS Lambda Functions, the E
 
 To get started building your first Serverless Framework project, create a *Service*.
 
-# Service Organization
+## Application Organization
 
-In the beginning of a project, many people use a single Service to define all of the Functions, Events and Resources for that project.  This is what we recommend.
+In the beginning of an application, many people use a single Service to define all of the Functions, Events and Resources for that project.  This is what we recommend in the beginning.
 
-When your project begins to grow, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
+However, as your project grows, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
 
 ```
 users
@@ -48,7 +48,7 @@ Here are the available runtimes for AWS Lambda:
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
-## Service Scaffolding
+## Service Contents
 
 You'll see the following files in your working directory:
 - `serverless.yml`
@@ -115,7 +115,7 @@ The `handler.js` file contains your function code. The function definition in `s
 
 This file contains event data you can use to invoke your function with via `serverless invoke -p event.json`
 
-# Service Removal
+## Service Removal
 
 To easily remove your Service from your AWS account, you can use the `remove` command.
 
