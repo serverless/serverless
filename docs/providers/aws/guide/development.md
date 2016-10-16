@@ -6,7 +6,7 @@ description: How to develop your AWS Lambda functions locally and remotely
 layout: Doc
 -->
 
-# Running AWS Lambda Functions
+# Development
 
 The Serverless Framework allows you to run AWS Lambda functions you have deployed onto AWS, via the CLI.  It does not currently allow you to run functions locally, but this functionality is in the works.
 

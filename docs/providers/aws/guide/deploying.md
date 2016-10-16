@@ -6,7 +6,7 @@ description: How to deploy your AWS Lambda functions and their required infrastr
 layout: Doc
 -->
 
-# Deploying a service
+# Deploying
 
 Make sure that you're still in the service directory that we've created the service in before.
 

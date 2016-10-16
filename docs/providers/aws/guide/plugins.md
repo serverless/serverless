@@ -6,7 +6,7 @@ description: How to install and create Plugins to extend or overwrite the functi
 layout: Doc
 -->
 
-# Building Serverless plugins
+# Plugins
 
 The Serverless plugin System is at the core of the Serverless framework.
 

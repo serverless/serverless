@@ -6,7 +6,7 @@ description: How to set up the Serverless Framework with your Amazon Web Service
 layout: Doc
 -->
 
-# Setting Up Credentials
+# Credentials
 
 The Serverless Framework needs access to your cloud providers account so that it can create and manage resources on your behalf.
 

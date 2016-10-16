@@ -6,7 +6,7 @@ description: How the Serverless Framework packages your AWS Lambda functions and
 layout: Doc
 -->
 
-# Including/Excluding files from packaging
+# Packaging
 
 Sometimes you might like to have more control over your function artifacts and how they are packaged.
 

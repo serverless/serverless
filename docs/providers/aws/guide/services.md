@@ -6,6 +6,8 @@ description: How to manage and configure serverless services, which contain your
 layout: Doc
 -->
 
+# Services
+
 To get started building your first Serverless Framework project, create a *Service*.
 
 A *Service* is like a project, where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`
