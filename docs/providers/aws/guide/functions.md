@@ -8,6 +8,8 @@ layout: Doc
 
 # Functions
 
+If you are using AWS as a provider for your *Service*, all *Functions* are AWS Lambda functions.
+
 ## Function Configuration
 
 All of the AWS Lambda functions in your serverless service can be found in `serverless.yml` under the `functions` property.

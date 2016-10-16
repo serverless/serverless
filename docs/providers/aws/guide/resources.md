@@ -8,11 +8,11 @@ layout: Doc
 
 # Resources
 
+If you are using AWS as a provider for your *Service*, all *Resources* are other AWS infrastructure resources which the AWS Lambda functions in your *Service* depend on, like AWS DynamoDB or AWS S3.
+
 ## Resource Configuration
 
-Half of the value of AWS Lambda and similar serverless services is you can easily access other infrastructure services on their respective providers, like AWS DynamoDB or AWS S3.
-
-Fortunately, the Serverless Framework can provision infrastructure as well as code, and you can define the infrastructure you need in `serverless.yml`, and easily provision it.
+The Serverless Framework can provision infrastructure as well as code, and you can define the infrastructure you need in `serverless.yml`, and easily provision it.
 
 If the `provider` of `serverless.yml` is set to `aws`, you can define infrastructure resources in a property titled `resources`.  What goes in this property is raw CloudFormation template syntax, in YAML, like this:
 

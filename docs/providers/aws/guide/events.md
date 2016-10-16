@@ -8,6 +8,8 @@ layout: Doc
 
 # Events
 
+If you are using AWS as a provider for your *Service*, all *Events* are anything in AWS that can trigger an AWS Lambda function, including HTTP endpoints created via API Gateway.
+
 ## Event Configuration
 
 # Event sources

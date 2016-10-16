@@ -8,9 +8,9 @@ layout: Doc
 
 # Services
 
-To get started building your first Serverless Framework project, create a *Service*.
+A *Service* is like a project, where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`.
 
-A *Service* is like a project, where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`
+To get started building your first Serverless Framework project, create a *Service*.
 
 # Service Organization
 
