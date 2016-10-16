@@ -11,18 +11,20 @@ Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs)
 | AWS |
 | ------------- |
 | **Guide** |
+|  - [Intro](./providers/aws/guide/intro.md) |
 |  - [Installation](./providers/aws/guide/installation.md) |
-|  - [Setting Up Credentials](./providers/aws/guide/setting-up-credentials.md) |
+|  - [Credentials](./providers/aws/guide/credentials.md) |
 |  - [Services](./providers/aws/guide/services.md) |
 |  - [Functions](./providers/aws/guide/functions.md) |
 |  - [Events](./providers/aws/guide/events.md) |
 |  - [Resources](./providers/aws/guide/resources.md) |
 |  - [Deploying](./providers/aws/guide/deploying.md) |
-|  - [Running Functions](./providers/aws/guide/running-functions.md) |
+|  - [Development](./providers/aws/guide/development.md) |
 |  - [Testing](./providers/aws/guide/testing.md) |
 |  - [Variables](./providers/aws/guide/variables.md) |
 |  - [Packaging](./providers/aws/guide/packaging.md) |
 |  - [Plugins](./providers/aws/guide/plugins.md) |
+|  - [Workflow](./providers/aws/guide/workflow.md) |
 | **CLI Reference** |
 |  - [Create](./providers/aws/cli-reference/create.md) |
 |  - [Deploy](./providers/aws/cli-reference/deploy.md) |

@@ -1,6 +1,8 @@
 <!--
 title: Serverless Framework Guide - AWS Lambda Guide - Packaging
-menuText: Packaging Services
+menuText: Packaging
+menuOrder: 1
+description: How the Serverless Framework packages your AWS Lambda functions and other available options
 layout: Doc
 -->
 

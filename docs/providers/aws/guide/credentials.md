@@ -1,7 +1,8 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Credentials
-menuText: Setting Up Credentials
-description: How to set up the Serverless Framework with Amazon Web Services
+menuText: Credentials
+menuOrder: 2
+description: How to set up the Serverless Framework with your Amazon Web Services credentials
 layout: Doc
 -->
 

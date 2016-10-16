@@ -1,8 +1,8 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Development
-menuText: Running Functions
+menuText: Development
 menuOrder: 4
-description: How to run AWS Lambda functions authored with the Serverless Framework
+description: How to develop your AWS Lambda functions locally and remotely
 layout: Doc
 -->
 

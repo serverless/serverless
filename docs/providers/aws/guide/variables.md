@@ -1,7 +1,8 @@
 <!--
 title: Serverless Variables
-menuText: Using Variables
-description: How to use variables to make your serverless.yml more dynamic
+menuText: Variables
+menuOrder: 5
+description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
 layout: Doc
 -->
 

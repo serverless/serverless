@@ -6,7 +6,7 @@ description: An introduction to using AWS and AWS Lambda with the Serverless Fra
 layout: Doc
 -->
 
-The Serverless Framework helps you develop and deploy your AWS Lambda functions, as we as the infrastructure resources they require.  It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures.
+The Serverless Framework helps you develop and deploy your AWS Lambda functions, along with the AWS infrastructure resources they require.  It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures.
 
 A few things the Serverless Framework does differently than a normal application Framework are:
 * It manages your code as well as your infrastructure
@@ -68,20 +68,6 @@ functions: // Your "Functions"
       - http: delete users/delete
 
 resources: // The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
-  Resources:
-    usersTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: usersTable
-        AttributeDefinitions:
-          - AttributeName: email
-            AttributeType: S
-        KeySchema:
-          - AttributeName: email
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
 ```
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
 
@@ -90,7 +76,7 @@ When you deploy with the Framework by running `serverless deploy`, everything in
 You can overwrite or extend the functionality of the Framework using **Plugins**.  Every `serverless.yml` can contain a `plugins:` property, which features multiple plugins.
 
 ```yml
-// serverless.yml
+# serverless.yml
 
 plugins:
   - serverless-offline

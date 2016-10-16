@@ -1,7 +1,9 @@
 <!--
-title: Serverless Framework Guide - AWS Lambda - Testing
-menuText: Testing
+title: Serverless Framework Guide - AWS Lambda - Workflow
+menuText: Workflow
 menuOrder: 5
-description: Recommendations and best practices for testing AWS Lambda Functions with the Serverless Framework
+description: A cheatsheet containing CLI commands and workflow recommendations.
 layout: Doc
 -->
+
+Coming soon...

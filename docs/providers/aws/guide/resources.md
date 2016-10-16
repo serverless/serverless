@@ -1,7 +1,8 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Infrastructure Resources
 menuText: Resources
-description: Managing infrastructure resources on AWS to use with your Functions
+menuOrder: 1
+description: How to deploy and manage AWS infrastructure to use with your AWS Lambda functions with the Serverless Framework
 layout: Doc
 -->
 
