@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Guide - Services & Projects
+title: Serverless Framework - AWS Lambda Guide - Services
 menuText: Services
 menuOrder: 3
 description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
@@ -8,15 +8,20 @@ layout: Doc
 
 # Services
 
-A *Service* is like a project, where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`.
+A *Service* is where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`.
 
 To get started building your first Serverless Framework project, create a *Service*.
 
-## Application Organization
+## Organization
 
 In the beginning of an application, many people use a single Service to define all of the Functions, Events and Resources for that project.  This is what we recommend in the beginning.
 
-However, as your project grows, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
+```
+myApp
+  serverless.yml  // Contains all functions and infrastructure resources
+```
+
+However, as your application grows, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
 
 ```
 users
@@ -30,7 +35,7 @@ This makes sense since related functions usually use common infrastructure resou
 
 **Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have use a custom domain per one REST API.  If you plan on making a large REST API, please make not of this limitation.  Also, a fix is in the works and is a top priority.
 
-# Service Creation
+## Creation
 
 To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python, etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
 
@@ -48,7 +53,7 @@ Here are the available runtimes for AWS Lambda:
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
-## Service Contents
+## Contents
 
 You'll see the following files in your working directory:
 - `serverless.yml`
@@ -115,7 +120,7 @@ The `handler.js` file contains your function code. The function definition in `s
 
 This file contains event data you can use to invoke your function with via `serverless invoke -p event.json`
 
-## Service Removal
+## Removal
 
 To easily remove your Service from your AWS account, you can use the `remove` command.
 
