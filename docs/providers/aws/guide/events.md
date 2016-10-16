@@ -52,4 +52,4 @@ The Serverless Framework supports all of the AWS Lambda events and more.  Instea
 
 ## Deploying
 
-To deploy or update your Functions, Events and Infrastructure, run `serverless deploy`.j
+To deploy or update your Functions, Events and Infrastructure, run `serverless deploy`.
