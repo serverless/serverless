@@ -95,6 +95,24 @@ describe('Variables', () => {
       serverless.variables.populateVariable.restore();
     });
 
+    it('should fallback to default when a variable is first part of override', () => {
+      const serverless = new Serverless();
+      const property =
+        'my stage is ${self:custom.stages.${self:provider.stage}.variable, self:provider.stage}';
+
+      const getValueFromSource = sinon
+        .stub(serverless.variables, 'getValueFromSource');
+      getValueFromSource.withArgs('self:provider.stage').returns('dev');
+      getValueFromSource.returns(undefined);
+
+      const newProperty = serverless.variables
+        .populateProperty(property);
+
+      expect(newProperty).to.equal('my stage is dev');
+
+      serverless.variables.getValueFromSource.restore();
+    });
+
     it('should call getValueFromSource if no overwrite syntax provided', () => {
       const serverless = new Serverless();
       const property = 'my stage is ${opt:stage}';
@@ -467,7 +485,7 @@ describe('Variables', () => {
 
       const valueToPopulate = serverless.variables
         .getDeepValue(['custom', 'subProperty', 'deep', 'deeper'], valueToPopulateMock);
-      expect(valueToPopulate).to.deep.equal({});
+      expect(valueToPopulate).to.deep.equal(undefined);
     });
 
     it('should get deep values with variable references', () => {
