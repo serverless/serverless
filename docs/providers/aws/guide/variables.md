@@ -8,7 +8,7 @@ layout: Doc
 
 # Variables
 
-The Serverless framework provides a powerful variable system to give your `serverless.yml` configuration file extra flexibility. With Serverless Variables, you'll be able to do the following:
+The Serverless framework provides a powerful variable system which allows you to add dynamic data into your `serverless.yml`. With Serverless Variables, you'll be able to do the following:
 
 - Reference & load variables from environment variables
 - Reference & load variables from CLI options
@@ -17,44 +17,8 @@ The Serverless framework provides a powerful variable system to give your `serve
 - Recursively nest variable references within each other for ultimate flexibility
 - Combine multiple variable references to overwrite each other
 
-## Referencing Environment Variables
-To reference environment variables, you'll need to use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file. Here's an example:
-
-```yml
-service: new-service
-provider: aws
-functions:
-  hello:
-      name: ${env:FUNC_PREFIX}-hello
-      handler: handler.hello
-  world:
-      name: ${env:FUNC_PREFIX}-world
-      handler: handler.world
-
-```
-
-In the previous example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
-
-## Referencing CLI Options
-To reference CLI options that you passed, you'll need to use the `${opt:some_option}` syntax in your `serverless.yml` configuration file. Here's an example:
-
-```yml
-service: new-service
-provider: aws
-functions:
-  hello:
-      name: ${opt:stage}-hello
-      handler: handler.hello
-  world:
-      name: ${opt:stage}-world
-      handler: handler.world
-
-```
-
-In the previous example you're dynamically adding a prefix to the function names by referencing the `stage` option that you pass in the CLI when you run `serverless deploy --stage dev`. So when you deploy, the function name will always include the stage you're deploying to.
-
-## Recursively Self-Reference serverless.yml Properties
-To self-reference properties in `serverless.yml`, you'll need to use the `${self:someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in the object tree as you want. Here's an example:
+## Reference Properties In serverless.yml
+To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. This functionality is recursive, so you can go as deep in the object tree as you want.
 
 ```yml
 service: new-service
@@ -71,22 +35,51 @@ functions:
       handler: handler.world
       events:
         - schedule: ${self:custom.globalSchedule}
-
 ```
 
-In the previous example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
+In the above example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
 
-## Recursively Reference Variables in Other Files
-To reference variables in other YAML or JSON files, you'll need to use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
+## Referencing Environment Variables
+To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.
 
 ```yml
-
-# myCustomFile.yml
-
-globalSchedule: rate(10 minutes)
-
+service: new-service
+provider: aws
+functions:
+  hello:
+      name: ${env:FUNC_PREFIX}-hello
+      handler: handler.hello
+  world:
+      name: ${env:FUNC_PREFIX}-world
+      handler: handler.world
 ```
 
+In the above example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
+
+## Referencing CLI Options
+To reference CLI options that you passed, use the `${opt:some_option}` syntax in your `serverless.yml` configuration file.
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+      name: ${opt:stage}-hello
+      handler: handler.hello
+  world:
+      name: ${opt:stage}-world
+      handler: handler.world
+```
+
+In the above example, you're dynamically adding a prefix to the function names by referencing the `stage` option that you pass in the CLI when you run `serverless deploy --stage dev`. So when you deploy, the function name will always include the stage you're deploying to.
+
+## Reference Variables in Other Files
+To reference variables in other YAML or JSON files, use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
+
+```yml
+# myCustomFile.yml
+globalSchedule: rate(10 minutes)
+```
 
 ```yml
 # serverless.yml
@@ -102,12 +95,11 @@ functions:
       handler: handler.world
       events:
         - schedule: ${self:custom.globalSchedule} # This would also work in this case
-
 ```
 
-In the previous example you're referencing the entire `myCustomFile.yml` file in the `custom` property. You just need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
+In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
 
-### Referencing other
+## Multiple Configuration Files
 
 Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.
 
@@ -116,8 +108,7 @@ resources:
   Resources: ${file(cloudformation-resources.json)}
 ```
 
-The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded
-into the `Resources` section.
+The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded into the `Resources` section.
 
 ## Nesting Variable References
 The Serverless variable system allows you to nest variable references within each other for ultimate flexibility. So you can reference certain variables based on other variables. Here's an example:
@@ -131,10 +122,9 @@ custom:
 functions:
   hello:
       handler: handler.hello
-
 ```
 
-In the previous example, if you pass `dev` as a stage option, the framework will look for the `dev_arn` environment variable. If you pass `production`, the framework will look for `production_arn`, and so on. This allows you to creatively use multiple variables by using a certain naming pattern without having to update the values of these variables constantly. You can go as deep as you want in your nesting, and can reference variables at any level of nesting from any source (env, opt, self or file).
+In the above example, if you pass `dev` as a stage option, the framework will look for the `dev_arn` environment variable. If you pass `production`, the framework will look for `production_arn`, and so on. This allows you to creatively use multiple variables by using a certain naming pattern without having to update the values of these variables constantly. You can go as deep as you want in your nesting, and can reference variables at any level of nesting from any source (env, opt, self or file).
 
 ## Overwriting Variables
 The Serverless framework gives you an intuitive way to reference multiple variables as a fallback strategy in case one of the variables is missing. This way you'll be able to use a default value from a certain source, if the variable from another source is missing.
@@ -157,9 +147,9 @@ functions:
 
 What this says is to use the `stage` CLI option if it exists, if not, use the default stage (which lives in `provider.stage`). So during development you can safely deploy with `serverless deploy`, but during production you can do `serverless deploy --stage production` and the stage will be picked up for you without having to make any changes to `serverless.yml`.
 
-This overwrite functionality is super powerful. You can have as many variable references as you want, from any source you want, and each of them can be of different type and different name.
+You can have as many variable references as you want, from any source you want, and each of them can be of different type and different name.
 
-# Migrating serverless.env.yml
+## Migrating serverless.env.yml
 Previously we used the `serverless.env.yml` file to track Serverless Variables. It was a completely different system with different concepts. To migrate your variables from `serverless.env.yml`, you'll need to decide where you want to store your variables.
 
 * Using a config file: You can still use `serverless.env.yml`, but the difference now is that you can structure the file however you want, and you'll need to reference each variable/property correctly in `serverless.yml`. For more info, you can check the file reference section above.
