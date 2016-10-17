@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Services
 menuText: Services
-menuOrder: 3
+menuOrder: 4
 description: How to manage and configure serverless services, which contain your AWS Lambda functions, their events and infrastructure resources.
 layout: Doc
 -->

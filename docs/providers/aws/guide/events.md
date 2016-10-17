@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Events
 menuText: Events
-menuOrder: 5
+menuOrder: 6
 description: Configuring AWS Lambda function events in the Serverless Framework
 layout: Doc
 -->

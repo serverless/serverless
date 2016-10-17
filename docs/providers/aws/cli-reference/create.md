@@ -1,6 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Create
 menuText: Create
+menuOrder: 1
 description: Creates a new Service in your current working directory
 layout: Doc
 -->
