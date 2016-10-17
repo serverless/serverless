@@ -174,15 +174,17 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
-### Options and shortcuts
+### Defining Options
 
-Each (sub)command can have multiple options (and corresponding shortcuts if available).
+Each (sub)command can have multiple Options.
 
 Options are passed in with a double dash (`--`) like this: `serverless function deploy --function functionName`.
 
-Shortcuts are passed in with a single dash (`-`) like this: `serverless function deploy -f functionName`
+Option Shortcuts are passed in with a single dash (`-`) like this: `serverless function deploy -f functionName`.
 
-The `options` object will be passed in as the second parameter to the constructor of your plugin.
+The `options` object will be passed in as the second parameter to the constructor of your plugin.  
+
+In it, you can optionally add a `shortcut` property, as well as a `required` property.  The Framework will return an error if a `required` Option is not included.
 
 **Note:** At this time, the Serverless Framework does not use parameters.
 
@@ -201,45 +203,8 @@ class Deploy {
         ],
         options: {
           function: {
-            usage: 'Specify the function you want to deploy (e.g. "--function myFunction")'
-          }
-        }
-      },
-    };
-
-    this.hooks = {
-      'deploy:functions': this.deployFunction.bind(this)
-    }
-  }
-
-  deployFunction() {
-    console.log('Deploying function: ', this.options.function);
-  }
-}
-
-module.exports = Deploy;
-```
-
-#### Mark options as required
-
-Options can be marked as required. This way the plugin manager will automatically raise an error if a required option is not passed in via the CLI. You can mark options as required with the help of `required: true` inside the options
-definition.
-
-```javascript
-'use strict';
-
-class Deploy {
-  constructor(serverless, options) {
-    this.options = options;
-
-    this.commands = {
-      deploy: {
-        lifecycleEvents: [
-          'functions'
-        ],
-        options: {
-          function: {
             usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
+            shortcut: 'f',
             required: true
           }
         }
@@ -259,50 +224,7 @@ class Deploy {
 module.exports = Deploy;
 ```
 
-#### Define shortcuts for options
-
-Options can also provide shortcuts. Shortcuts make it more convenient to enter long commands. Serverless will translate shortcuts into options under the hood which means that the option the shortcut belongs to will be replaced with the value of the shortcut (if the shortcut is given).
-
-You can define shortcuts by setting the `shortcut` property in the options definition.
-
-**Note:** A shortcut should be unique inside of a plugin.
-
-```javascript
-'use strict';
-
-class Deploy {
-  constructor(serverless, options) {
-    this.options = options;
-
-    this.commands = {
-      deploy: {
-        lifecycleEvents: [
-          'functions'
-        ],
-        options: {
-          function: {
-            usage: 'Specify the function you want to deploy (e.g. "--function myFunction" or "-f myFunction")',
-            required: true,
-            shortcut: 'f'
-          }
-        }
-      },
-    };
-
-    this.hooks = {
-      'deploy:functions': this.deployFunction.bind(this)
-    }
-  }
-
-  deployFunction() {
-    console.log('Deploying function: ', this.options.function);
-  }
-}
-
-module.exports = Deploy;
-```
-
-## Provider specific plugins
+### Provider Specific Plugins
 
 Plugins can be provider specific which means that they are bound to a provider.
 
@@ -348,9 +270,9 @@ class ProviderDeploy {
 module.exports = ProviderDeploy;
 ```
 
-The plugins functionality will now only be executed when the Serverless services provider matches the provider name which is defined inside the plugins constructor.
+The Plugin's functionality will now only be executed when the Serverless Service's provider matches the provider name which is defined inside the plugins constructor.
 
-### Serverless instance
+### Serverless Instance
 
 The `serverless` instance which enables access to global service config during runtime is passed in as the first parameter to the plugin constructor.
 
@@ -383,6 +305,6 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
-## Command naming
+### Command Naming
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. If you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
