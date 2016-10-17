@@ -1,7 +1,7 @@
 <!--
-title: Serverless Logs CLI Command
+title: Serverless Framework Commands - AWS Lambda - Logs
 menuText: Logs
-description: View logs of your deployed Service
+description: View logs of your AWS Lambda Function within your terminal using the Serverless Framework
 layout: Doc
 -->
 

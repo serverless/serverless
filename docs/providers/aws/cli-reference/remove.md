@@ -1,7 +1,7 @@
 <!--
-title: Serverless Remove CLI Command
+title: Serverless Framework Commands - AWS Lambda - Remove
 menuText: Remove
-description: Remove a deployed service with the Serverless CLI
+description: Remove a deployed Service and all of its AWS Lambda Functions, Events and Resources
 layout: Doc
 -->
 

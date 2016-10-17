@@ -1,7 +1,7 @@
 <!--
-title: Serverless Invoke CLI Command
+title: Serverless Framework Commands - AWS Lambda - Invoke
 menuText: Invoke
-description: Invoke a function in your deployed service
+description: Invoke an AWS Lambda Function using the Serverless Framework
 layout: Doc
 -->
 

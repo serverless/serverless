@@ -1,16 +1,16 @@
 <!--
-title: Serverless Tracking CLI Command
-menuText: Tracking
-description: Enable or Disable anonymous usage tracking for Serverless
+title: Serverless Framework Commands - AWS Lambda - Serverless Stats
+menuText: Serverless Stats
+description: Enables or disables Serverless Statistic logging within the Serverless Framework.
 layout: Doc
 -->
 
-# Tracking
+# Serverless Statistics
 
-This plugin implements a way to toggle the [framework usage tracking](../usage-tracking.md) functionality.
+This plugin implements a way to toggle [framework statistics](../framework-statistics.md).
 
 ```
-serverless tracking --enable
+serverless slstats --enable
 ```
 
 ## Options
@@ -18,14 +18,14 @@ serverless tracking --enable
 - `--disable` or `-d`
 
 ## Provided lifecycle events
-- `tracking:tracking`
+- `slstats:slstats`
 
 ## Examples
 
-### Disable tracking
+### Disabling it
 
 ```
-serverless tracking --disable
+serverless slstats --disable
 ```
 
-This example will disable usage tracking.
+This example will disable framework statistics.

@@ -1,7 +1,7 @@
 <!--
-title: Serverless Create CLI Command
+title: Serverless Framework Commands - AWS Lambda - Create
 menuText: Create
-description: Create a new service in your current working directory
+description: Creates a new Service in your current working directory
 layout: Doc
 -->
 
@@ -14,8 +14,9 @@ serverless create --template aws-nodejs
 ```
 
 ## Options
-- `--template` or `-t` The name of your new service. **Required**.
+- `--template` or `-t` The name of one of the available templates. **Required**.
 - `--path` or `-p` The path where the service should be created.
+- `--name` or `-n` the name of the service in `serverless.yml`.
 
 ## Provided lifecycle events
 - `create:create`
@@ -30,13 +31,14 @@ Most commonly used templates:
 - aws-python
 - aws-java-maven
 - aws-java-gradle
+- aws-scala-sbt
 
 ## Examples
 
 ### Creating a new service
 
 ```
-serverless create --template aws-nodejs
+serverless create --template aws-nodejs --name my-special-service
 ```
 
 This example will generate scaffolding for a service with `AWS` as a provider and `nodejs` as runtime. The scaffolding

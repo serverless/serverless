@@ -1,5 +1,5 @@
 <!--
-title: Serverless Deploy CLI Command
+title: Serverless Framework Commands - AWS Lambda - Deploy
 menuText: Deploy
 description: Deploy your service to the specified provider
 layout: Doc
@@ -7,7 +7,7 @@ layout: Doc
 
 # Deploy
 
-Deploys your service.
+Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.
 
 ```
 serverless deploy [function]
@@ -19,7 +19,7 @@ serverless deploy [function]
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
-- `--verbose` or `-v` Shows all stack events during deployment.
+- `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 
 ## Examples
 
