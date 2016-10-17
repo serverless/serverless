@@ -120,7 +120,7 @@ custom:
   prod:
     profile: your-profile-for-prod
 provider:
-  profile: ${self:custom.{opt:stage}.profile}
+  profile: ${self:custom.${opt:stage}.profile}
 ```
 
 One set of credentials for all stages using environment variables
