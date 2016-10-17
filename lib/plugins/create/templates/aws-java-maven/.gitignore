@@ -1,0 +1,10 @@
+*.class
+target
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# Serverless directories
+.serverless

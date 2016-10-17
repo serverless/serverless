@@ -27,6 +27,7 @@ You'll see the following files in your working directory:
 - `serverless.yml`
 - `handler.js`
 - `event.json`
+- `.gitignore`
 
 ### serverless.yml
 
@@ -52,6 +53,10 @@ Check out the code inside of the `handler.js` so you can play around with it onc
 ### `event.json`
 
 This file contains event data we'll use later on to invoke our function.
+
+## Other services to get started
+
+Take a look at the our [list of Serverless services](../../README.md#services).
 
 ## Conclusion
 

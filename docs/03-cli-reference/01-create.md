@@ -14,7 +14,7 @@ serverless create --template aws-nodejs
 ```
 
 ## Options
-- `--template` or `-t` The name of your new service. **Required**.
+- `--template` or `-t` The name of one of the available templates. **Required**.
 - `--path` or `-p` The path where the service should be created.
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
@@ -31,6 +31,7 @@ Most commonly used templates:
 - aws-python
 - aws-java-maven
 - aws-java-gradle
+- aws-scala-sbt
 
 ## Examples
 

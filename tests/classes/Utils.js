@@ -5,12 +5,28 @@ const os = require('os');
 const expect = require('chai').expect;
 const fse = require('fs-extra');
 const fs = require('fs');
+const sinon = require('sinon');
+const BbPromise = require('bluebird');
+const proxyquire = require('proxyquire');
 const Serverless = require('../../lib/Serverless');
 const testUtils = require('../../tests/utils');
+const serverlessVersion = require('../../package.json').version;
 
-const serverless = new Serverless();
+const fetchStub = sinon.stub().returns(BbPromise.resolve());
+const Utils = proxyquire('../../lib/classes/Utils.js', {
+  'node-fetch': fetchStub,
+});
 
 describe('Utils', () => {
+  let utils;
+  let serverless;
+
+  beforeEach(() => {
+    serverless = new Serverless();
+    utils = new Utils(serverless);
+    serverless.init();
+  });
+
   describe('#dirExistsSync()', () => {
     describe('When reading a directory', () => {
       it('should detect if a directory exists', () => {
@@ -259,60 +275,160 @@ describe('Utils', () => {
     });
   });
 
-  describe('#track()', () => {
-    let serverlessPath;
+  describe('#logStat()', () => {
+    let serverlessDirPath;
+    let homeDir;
 
     beforeEach(() => {
       serverless.init();
 
-      // create a new tmpDir for the serverlessPath
+      // create a new tmpDir for the homeDir path
       const tmpDirPath = testUtils.getTmpDirPath();
       fse.mkdirsSync(tmpDirPath);
 
-      serverlessPath = tmpDirPath;
-      serverless.config.serverlessPath = tmpDirPath;
+      // save the homeDir so that we can reset this later on
+      homeDir = os.homedir();
+      process.env.HOME = tmpDirPath;
+      process.env.HOMEPATH = tmpDirPath;
+      process.env.USERPROFILE = tmpDirPath;
 
-      // add some mock data to the serverless service object
-      serverless.service.functions = {
-        foo: {
-          memorySize: 47,
-          timeout: 11,
-          events: [
-            {
-              http: 'GET foo',
-            },
-          ],
+      serverlessDirPath = path.join(os.homedir(), '.serverless');
+    });
+
+    it('should resolve if a file called stats-disabled is present', () => {
+      // create a stats-disabled file
+      serverless.utils.writeFileSync(
+        path.join(serverlessDirPath, 'stats-disabled'),
+        'some content'
+      );
+
+      return utils.logStat(serverless).then(() => {
+        expect(fetchStub.calledOnce).to.equal(false);
+      });
+    });
+
+    it('should create a new file with a stats id if not found', () => {
+      const statsFilePath = path.join(serverlessDirPath, 'stats-enabled');
+
+      return serverless.utils.logStat(serverless).then(() => {
+        expect(fs.readFileSync(statsFilePath).toString().length).to.be.above(1);
+      });
+    });
+
+    it('should re-use an existing file which contains the stats id if found', () => {
+      const statsFilePath = path.join(serverlessDirPath, 'stats-enabled');
+      const statsId = 'some-id';
+
+      // create a new file with a stats id
+      fse.ensureFileSync(statsFilePath);
+      fs.writeFileSync(statsFilePath, statsId);
+
+      return serverless.utils.logStat(serverless).then(() => {
+        expect(fs.readFileSync(statsFilePath).toString()).to.be.equal(statsId);
+      });
+    });
+
+    it('should send the gathered information', () => {
+      serverless.service = {
+        service: 'new-service',
+        provider: {
+          name: 'aws',
+          runtime: 'nodejs4.3',
         },
-        bar: {
-          events: [
-            {
-              http: 'GET foo',
-              s3: 'someBucketName',
-            },
-          ],
+        defaults: {
+          stage: 'dev',
+          region: 'us-east-1',
+          variableSyntax: '\\${foo}',
+        },
+        plugins: [],
+        functions: {
+          functionOne: {
+            events: [
+              {
+                http: {
+                  path: 'foo',
+                  method: 'GET',
+                },
+              },
+              {
+                s3: 'my.bucket',
+              },
+            ],
+          },
+          functionTwo: {
+            memorySize: 16,
+            timeout: 200,
+            events: [
+              {
+                http: 'GET bar',
+              },
+              {
+                sns: 'my-topic-name',
+              },
+            ],
+          },
+        },
+        resources: {
+          Resources: {
+            foo: 'bar',
+          },
         },
       };
-    });
 
-    it('should create a new file with a tracking id if not found', () => {
-      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
+      return utils.logStat(serverless).then(() => {
+        expect(fetchStub.calledOnce).to.equal(true);
+        expect(fetchStub.args[0][0]).to.equal('https://api.segment.io/v1/track');
+        expect(fetchStub.args[0][1].method).to.equal('POST');
+        expect(fetchStub.args[0][1].timeout).to.equal('1000');
 
-      return serverless.utils.track(serverless).then(() => {
-        expect(fs.readFileSync(trackingIdFilePath).toString().length).to.be.above(1);
+        const parsedBody = JSON.parse(fetchStub.args[0][1].body);
+
+        expect(parsedBody.userId.length).to.be.at.least(1);
+        // command property
+        expect(parsedBody.properties.command
+          .isRunInService).to.equal(false); // false because CWD is not a service
+        // service property
+        expect(parsedBody.properties.service.numberOfCustomPlugins).to.equal(0);
+        expect(parsedBody.properties.service.hasCustomResourcesDefined).to.equal(true);
+        expect(parsedBody.properties.service.hasVariablesInCustomSectionDefined).to.equal(false);
+        expect(parsedBody.properties.service.hasCustomVariableSyntaxDefined).to.equal(true);
+        // functions property
+        expect(parsedBody.properties.functions.numberOfFunctions).to.equal(2);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[0]
+          .memorySize).to.equal(1024);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[0]
+          .timeout).to.equal(6);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[1]
+          .memorySize).to.equal(16);
+        expect(parsedBody.properties.functions.memorySizeAndTimeoutPerFunction[1]
+          .timeout).to.equal(200);
+        // events property
+        expect(parsedBody.properties.events.numberOfEvents).to.equal(3);
+        expect(parsedBody.properties.events.numberOfEventsPerType[0].name).to.equal('http');
+        expect(parsedBody.properties.events.numberOfEventsPerType[0].count).to.equal(2);
+        expect(parsedBody.properties.events.numberOfEventsPerType[1].name).to.equal('s3');
+        expect(parsedBody.properties.events.numberOfEventsPerType[1].count).to.equal(1);
+        expect(parsedBody.properties.events.numberOfEventsPerType[2].name).to.equal('sns');
+        expect(parsedBody.properties.events.numberOfEventsPerType[2].count).to.equal(1);
+        expect(parsedBody.properties.events.eventNamesPerFunction[0][0]).to.equal('http');
+        expect(parsedBody.properties.events.eventNamesPerFunction[0][1]).to.equal('s3');
+        expect(parsedBody.properties.events.eventNamesPerFunction[1][0]).to.equal('http');
+        expect(parsedBody.properties.events.eventNamesPerFunction[1][1]).to.equal('sns');
+        // general property
+        expect(parsedBody.properties.general.userId.length).to.be.at.least(1);
+        expect(parsedBody.properties.general.timestamp).to.match(/[0-9]+/);
+        expect(parsedBody.properties.general.timezone.length).to.be.at.least(1);
+        expect(parsedBody.properties.general.operatingSystem.length).to.be.at.least(1);
+        expect(parsedBody.properties.general.serverlessVersion).to.equal(serverlessVersion);
+        expect(parsedBody.properties.general.nodeJsVersion.length).to.be.at.least(1);
       });
     });
 
-    it('should re-use an existing file which contains the tracking id if found', () => {
-      const trackingIdFilePath = path.join(serverlessPath, 'tracking-id');
-      const trackingId = 'some-tracking-id';
-
-      // create a new file with a tracking id
-      fse.ensureFileSync(trackingIdFilePath);
-      fs.writeFileSync(trackingIdFilePath, trackingId);
-
-      return serverless.utils.track(serverless).then(() => {
-        expect(fs.readFileSync(trackingIdFilePath).toString()).to.be.equal(trackingId);
-      });
+    afterEach(() => {
+      // recover the homeDir
+      process.env.HOME = homeDir;
+      process.env.HOMEPATH = homeDir;
+      process.env.USERPROFILE = homeDir;
     });
   });
 });

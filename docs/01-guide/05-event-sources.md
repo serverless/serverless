@@ -60,7 +60,6 @@ We can now simply call it:
 
 ```bash
 $ curl https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/greet
-{"message":"Go Serverless v1.0! Your function executed successfully!"}
 ```
 
 You've successfully executed the function through the HTTP endpoint!

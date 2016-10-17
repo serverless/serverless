@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.2",
   "engines": {
     "node": ">=4.0"
   },
@@ -31,12 +31,20 @@
     "internet of things",
     "serverless.com"
   ],
+  "files": [
+    "bin",
+    "lib",
+    "package.json",
+    "npm-shrinkwrap.json",
+    "README.md",
+    "LICENSE.txt",
+    "CHANGELOG.md"
+  ],
   "main": "lib/Serverless.js",
   "bin": {
     "serverless": "./bin/serverless",
     "slss": "./bin/serverless",
-    "sls": "./bin/serverless",
-    "serverless-run-python-handler": "./bin/serverless-run-python-handler"
+    "sls": "./bin/serverless"
   },
   "scripts": {
     "test": "istanbul cover node_modules/mocha/bin/_mocha tests/all -- -R spec --recursive",
@@ -44,7 +52,6 @@
     "integration-test": "mocha tests/integration_test"
   },
   "devDependencies": {
-    "all-contributors-cli": "^3.0.6",
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
     "eslint": "^3.3.1",
@@ -58,6 +65,7 @@
     "mocha": "^3.0.2",
     "mocha-lcov-reporter": "^1.2.0",
     "mock-require": "^1.3.0",
+    "proxyquire": "^1.7.10",
     "sinon": "^1.17.5"
   },
   "dependencies": {
@@ -66,7 +74,9 @@
     "aws-sdk": "^2.3.17",
     "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
+    "download": "^5.0.2",
     "fs-extra": "^0.26.7",
+    "glob": "^7.0.6",
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
