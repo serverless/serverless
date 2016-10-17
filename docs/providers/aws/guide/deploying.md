@@ -10,9 +10,7 @@ layout: Doc
 
 The Serverless Framework was designed to provision your AWS Lambda Functions, Events and infrastructure Resources safely and quickly.  It does this via a couple of methods designed for different types of deployments.
 
-## Methods
-
-### Deploy
+## Deploy All
 
 This is the main method for doing deployments with the Serverless Framework:
 
@@ -22,7 +20,7 @@ serverless deploy
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Amazon Web Services.
 
-#### How It Works
+### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to a single AWS CloudFormation template.  By depending on CloudFormation for deployments, users of the Serverless Framework get the safety and reliability of CloudFormation.
 
@@ -33,7 +31,7 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 * Any IAM Roles, Functions, Events and Resources are added to the AWS CloudFormation template.
 * The CloudFormation Stack is updated with the new CloudFormation template.
 
-#### Tips
+### Tips
 
 * Use this in your CI/CD systems, as it is the safest method of deployment.
 * You can print the progress during the deployment if you use `verbose` mode, like this:
@@ -60,7 +58,7 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 
 Check out the [deploy command docs](../cli-reference/deploy) for all details and options.
 
-### Deploy Function
+## Deploy Function
 
 This deployment method does not touch your AWS CloudFormation Stack.  Instead, it simply overwrites the zip file of the current function on AWS.  This method is much faster, since it does not rely on CloudFormation.
 
@@ -68,12 +66,12 @@ This deployment method does not touch your AWS CloudFormation Stack.  Instead, i
 serverless deploy function --function myFunction
 ```
 
-#### How It Works
+### How It Works
 
 * The Framework packages up the targeted AWS Lambda Function into a zip file.
 * That zip file is uplaoded to your S3 bucket using the same name as the previous function, which the CloudFormation stack is pointing to.
 
-#### Tips
+### Tips
 
 * Use this when you are developing and want to test on AWS because it's much faster.
 * During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
