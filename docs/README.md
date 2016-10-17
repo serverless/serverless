@@ -51,9 +51,9 @@ layout: Doc
 
 ### Examples
 
-- [Hello World](./providers/aws/examples/hello-world.md)
-- [Cron](./providers/aws/examples/cron.md)
- - using-external-libraries.md)
-- [Web Serving HTML](./providers/aws/examples/web-serving-html.md)
+- [Hello World](./providers/aws/examples/hello-world)
+- [Cron](./providers/aws/examples/cron)
+- [Using external libraries](./providers/aws/examples/using-external-libraries)
+- [Web Serving HTML](./providers/aws/examples/web-serving-html)
 
 ---
