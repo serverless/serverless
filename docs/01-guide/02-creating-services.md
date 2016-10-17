@@ -27,6 +27,7 @@ You'll see the following files in your working directory:
 - `serverless.yml`
 - `handler.js`
 - `event.json`
+- `.gitignore`
 
 ### serverless.yml
 
