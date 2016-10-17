@@ -8,20 +8,23 @@ layout: Doc
 
 # Plugins
 
-A Plugin is custom Javascript code that creates new commands within the Serverless framework and extends existing commands.  The Serverless Framework is merely a group of Plugins that are provided in the core.  If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs.  External Plugins are written exactly the same way as the core Plugins.
+A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework.  The Serverless Framework is merely a group of Plugins that are provided in the core.  
+
+If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs.  External Plugins are written exactly the same way as the core Plugins.
 
 ## Installing Plugins
 
-Install the corresponding Plugin in the Service's root directory with the help of NPM:
+External Plugins are added on a per service basis and are not applied globally.  Make sure you are in your Service's root directory, then install the corresponding Plugin with the help of NPM:
 
-`npm install --save custom-serverless-plugin`.
+```
+npm install --save custom-serverless-plugin
+```
 
-**Note:** External Plugins are added on a per service basis and are not applied globally.
-
-We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the plugin to the `plugins` section in the `serverless.yml` file.
+We need to tell Serverless that we want to use the plugin inside our service. We do this by adding the name of the Plugin to the `plugins` section in the `serverless.yml` file.
 
 ```yml
-# serviceXYZ serverless.yml file
+# serverless.yml file
+
 plugins:
   - custom-serverless-plugin
 ```
@@ -37,11 +40,13 @@ custom:
   customkey: customvalue
 ```
 
-### Load order
+### Load Order
 
 Keep in mind that the order you define your plugins matters. When Serverless loads all the core plugins and then the custom plugins in the order you've defined them.
 
 ```yml
+# serverless.yml
+
 plugins:
   - plugin1
   - plugin2
