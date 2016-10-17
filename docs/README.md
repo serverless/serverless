@@ -26,11 +26,12 @@ Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs)
 |  - [Workflow](./providers/aws/guide/workflow.md) |
 | **CLI Reference** |
 |  - [Create](./providers/aws/cli-reference/create.md) |
+|  - [Install](./providers/aws/cli-reference/install.md) |
 |  - [Deploy](./providers/aws/cli-reference/deploy.md) |
 |  - [Invoke](./providers/aws/cli-reference/invoke.md) |
 |  - [Logs](./providers/aws/cli-reference/logs.md) |
 |  - [Info](./providers/aws/cli-reference/info.md) |
-|  - [Install](./providers/aws/cli-reference/install.md) |
+|  - [Remove](./providers/aws/cli-reference/remove.md) |
 | **Events** |
 |  - [API Gateway](./providers/aws/events/apigateway.md) |
 |  - [Streams](./providers/aws/events/streams.md) |
