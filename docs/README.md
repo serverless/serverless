@@ -10,6 +10,8 @@ layout: Doc
 
 | AWS |
 | ------------- |
+| **Videos** |
+|  - [Getting Started](https://www.youtube.com/watch?v=bFHmgqbAh4M)
 | **Guide** |
 |  - [Intro](./providers/aws/guide/intro.md) |
 |  - [Installation](./providers/aws/guide/installation.md) |
