@@ -19,7 +19,6 @@ Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs)
 |  - [Events](./providers/aws/guide/events.md) |
 |  - [Resources](./providers/aws/guide/resources.md) |
 |  - [Deploying](./providers/aws/guide/deploying.md) |
-|  - [Development](./providers/aws/guide/development.md) |
 |  - [Testing](./providers/aws/guide/testing.md) |
 |  - [Variables](./providers/aws/guide/variables.md) |
 |  - [Packaging](./providers/aws/guide/packaging.md) |
