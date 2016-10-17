@@ -11,11 +11,11 @@ layout: Doc
 
 ## AWS
 
-**Videos**
+### Getting Started
 
-- [Getting Started](https://www.youtube.com/watch?v=bFHmgqbAh4M)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bFHmgqbAh4M" frameborder="0" allowfullscreen='true'></iframe>
 
-**Guide*
+### Guide
 
 - [Intro](./providers/aws/guide/intro.md)
 - [Installation](./providers/aws/guide/installation.md)
@@ -31,7 +31,7 @@ layout: Doc
 - [Plugins](./providers/aws/guide/plugins.md)
 - [Workflow](./providers/aws/guide/workflow.md)
 
-**CLI Reference**
+### CLI Reference
 
 - [Create](./providers/aws/cli-reference/create.md)
 - [Install](./providers/aws/cli-reference/install.md)
@@ -41,7 +41,7 @@ layout: Doc
 - [Info](./providers/aws/cli-reference/info.md)
 - [Remove](./providers/aws/cli-reference/remove.md)
 
-**Events**
+### Events
 
 - [API Gateway](./providers/aws/events/apigateway.md)
 - [Streams](./providers/aws/events/streams.md)
@@ -49,9 +49,11 @@ layout: Doc
 - [Schedule](./providers/aws/events/schedule.md)
 - [SNS](./providers/aws/events/sns.md)
 
-**Examples**
+### Examples
 
 - [Hello World](./providers/aws/examples/hello-world.md)
 - [Cron](./providers/aws/examples/cron.md)
  - using-external-libraries.md)
 - [Web Serving HTML](./providers/aws/examples/web-serving-html.md)
+
+---
