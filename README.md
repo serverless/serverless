@@ -35,34 +35,41 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 [Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
-**Install via npm:**
+##### Install via npm:
 * `npm install -g serverless`
 
-**Set-up your [provider credentials](./docs/02-providers/aws/01-setup.md)**
+##### Set-up your [Provider Credentials](./docs/02-providers/aws/01-setup.md)
 
-**Create a service:**
+##### Create a Service:
+Creates a new Serverless Service/Project
 * `serverless create --template aws-nodejs --path my-service`
 * `cd my-service`
 
-**Deploy a service:**
-* `serverless deploy`
+##### Or Install a Service:
+This is a convenience method to install a pre-made Serverless Service locally by downloading the Github repo and unzipping it.  Services are listed below.
+* `serverless install -u [GITHUB URL OF SERVICE]`
 
-**Deploy an individual function, without triggering a CloudFormation stack update (faster):**
+##### Deploy a Service:
+Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+* `serverless deploy -v`
+
+##### Deploy Function:
+Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing you to develop faster.
 * `serverless deploy function -f myfunction`
 
-**Invoke a function:**
-* `serverless invoke --function hello`
+##### Invoke a Function:
+Invokes an AWS Lambda Function on AWS and returns logs.
+* `serverless invoke -f hello -l`
 
-**Fetch the logs of a function:**
-* `serverless logs --function hello --tail`
+##### Fetch Function Logs:
+Open up a separate tab in your console and stream all logs for a specific Function using this command.
+* `serverless logs -f hello -t`
 
-**Install an existing service from Github:**
-* `serverless install --url https://github.com/pmuens/serverless-crud`
-
-**Remove the service and its resources from AWS:**
+##### Remove a Service:
+Removes all Functions, Events and Resources from your AWS account.
 * `serverless remove`
 
-Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more information.
+Check out our in-depth [Serverless Framework Guide](./docs/01-guide/README.md) for more information.
 
 ## <a name="services"></a>Services (V1.0)
 
