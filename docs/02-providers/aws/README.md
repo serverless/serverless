@@ -41,8 +41,20 @@ provider:
             - AWS::EC2::Instance
 ```
 
-### Deployment S3Bucket
-The bucket must exist beforehand and be in the same region as the deploy.
+### Deployment S3 Bucket
+The bucket must exist beforehand and be in the same region as the deploy. Due to the importance and hard dependency of the deployment bucket, if you want to switch between the core and custom bucket, you have to do the following:
+
+* **From Default Bucket to Custom Bucket:** You'll need to manually empty the default bucket so that it would be removed by CloudFormation and replaced with the custom bucket.
+
+* **From Custom Bucket to Default Bucket:** You'll need to add the following custom resources template to `serverles.yml`:
+
+```yml
+resources:
+  Resources:
+    ServerlessDeploymentBucket:
+      Type: AWS::S3::Bucket
+```
+then deploy your service to create that default bucket, then remove the `provider.deploymentBucket` property and deploy your service again. This syncs the framework back to the default bucket without conflict.
 
 ## Additional function configuration
 
