@@ -4,10 +4,11 @@ menuText: Docs
 layout: Doc
 -->
 
-# Serverless Framework Documentation
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/)
+<!-- DOCS-SITE-LINK:END -->
 
-* Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs) for a better reading experience.
-
+# Documentation
 
 ## AWS
 

@@ -4,9 +4,9 @@ menuText: Serverless Providers
 layout: Doc
 -->
 
-<!-- GITHUB-ONLY-CONTENT:START -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs)
-<!-- GITHUB-ONLY-CONTENT:END -->
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/)
+<!-- DOCS-SITE-LINK:END -->
 
 # Infrastructure Providers
 
