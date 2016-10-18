@@ -5,7 +5,7 @@ const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 const BbPromise = require('bluebird');
 
-describe('AWS - Schedule: multiple schedules with multiple functions', function () {
+describe('AWS - Schedule: Multiple schedules with multiple functions', function () {
   this.timeout(0);
 
   before(() => {
