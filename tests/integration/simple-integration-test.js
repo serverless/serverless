@@ -5,9 +5,9 @@ const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const execSync = require('child_process').execSync;
-const Serverless = require('../lib/Serverless');
+const Serverless = require('../../lib/Serverless');
 const AWS = require('aws-sdk');
-const testUtils = require('./utils');
+const testUtils = require('../utils/index');
 
 const serverless = new Serverless();
 serverless.init();
