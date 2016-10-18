@@ -43,7 +43,7 @@ custom:
 
 ## Load order
 
-Keep in mind that the order you define your plugins matters. When Serverless loads all the [core plugins](../lib/plugins) and then the custom plugins in the order you've defined them.
+Keep in mind that the order you define your plugins matters. When Serverless loads all the [core plugins](https://github.com/serverless/serverless/tree/master/lib/plugins) and then the custom plugins in the order you've defined them.
 
 ```yml
 plugins:
