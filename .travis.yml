@@ -22,7 +22,8 @@ install:
 script:
   - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
   - if [[ ! -z "$DISABLE_TESTS" && ! -z "$LINTING" && -z "$INTEGRATION_TEST" ]]; then npm run lint; fi
-  - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} ]]; then npm run integration-test; fi
+  - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} ]]; then npm run simple-integration-test; fi
+  - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} ]]; then npm run complex-integration-test; fi
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
