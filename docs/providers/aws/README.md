@@ -8,7 +8,9 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/)
 <!-- DOCS-SITE-LINK:END -->
 
-# Serverless - Providers - AWS
+# Serverless AWS Provider docs
 
-* Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs) for a better reading experience.
-* [Back to main documentation](../../README.md)
+* [View the guide](./guide)
+* [CLI Reference](./cli-reference)
+* [AWS Events](./events)
+* [Examples](./examples)
