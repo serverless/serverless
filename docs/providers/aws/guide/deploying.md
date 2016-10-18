@@ -18,7 +18,7 @@ The Serverless Framework was designed to provision your AWS Lambda Functions, Ev
 
 This is the main method for doing deployments with the Serverless Framework:
 
-```
+```bash
 serverless deploy
 ```
 
@@ -66,7 +66,7 @@ Check out the [deploy command docs](../cli-reference/deploy) for all details and
 
 This deployment method does not touch your AWS CloudFormation Stack.  Instead, it simply overwrites the zip file of the current function on AWS.  This method is much faster, since it does not rely on CloudFormation.
 
-```
+```bash
 serverless deploy function --function myFunction
 ```
 

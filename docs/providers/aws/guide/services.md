@@ -20,20 +20,20 @@ To get started building your first Serverless Framework project, create a *Servi
 
 In the beginning of an application, many people use a single Service to define all of the Functions, Events and Resources for that project.  This is what we recommend in the beginning.
 
-```
-myApp
-  serverless.yml  // Contains all functions and infrastructure resources
+```bash
+myApp/
+  serverless.yml  # Contains all functions and infrastructure resources
 ```
 
 However, as your application grows, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
 
-```
-users
-  serverless.yml  // Contains 4 functions that that do Users CRUD operations and the Users database
-posts
-  serverless.yml // Contains 4 functions that that do Posts CRUD operations and the Posts database
-comments
-  serverless.yml // Contains 4 functions that that do Comments CRUD operations and the Comments database
+```bash
+users/
+  serverless.yml  # Contains 4 functions that that do Users CRUD operations and the Users database
+posts/
+  serverless.yml # Contains 4 functions that that do Posts CRUD operations and the Posts database
+comments/
+  serverless.yml # Contains 4 functions that that do Comments CRUD operations and the Comments database
 ```
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
@@ -43,7 +43,7 @@ This makes sense since related functions usually use common infrastructure resou
 
 To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python, etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
 
-```
+```bash
 serverless create --template aws-nodejs --path myService
 ```
 
@@ -97,7 +97,8 @@ functions:
     events:  # The Events that trigger this Function
       - http: delete users/delete
 
-resources: # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
+# The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
+resources:
   Resources:
     usersTable:
       Type: AWS::DynamoDB::Table
@@ -130,13 +131,13 @@ When you deploy a Service, all of the Functions, Events and Resources in your `s
 
 To deploy a service, use the `deploy` command:
 
-```
+```bash
 serverless deploy
 ```
 
 Deployment defaults to `dev` stage and `us-east-1` region on AWS, unless you specified these elsewhere, or add them in as options:
 
-```
+```bash
 serverless deploy --stage prod --region us-east-1
 ```
 

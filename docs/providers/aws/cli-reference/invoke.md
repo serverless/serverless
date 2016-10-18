@@ -35,7 +35,7 @@ Default is `false`.
 
 ### AWS
 
-```
+```bash
 serverless invoke --function functionName --stage dev --region us-east-1
 ```
 
@@ -44,7 +44,7 @@ output the result of the invocation in your terminal.
 
 #### Function invocation with logging
 
-```
+```bash
 serverless invoke --function functionName --stage dev --region us-east-1 --log
 ```
 
@@ -52,7 +52,7 @@ Just like the first example, but will also outputs logging information about you
 
 #### Function invocation with data passing
 
-```
+```bash
 serverless invoke --function functionName --stage dev --region us-east-1 --path lib/data.json
 ```
 

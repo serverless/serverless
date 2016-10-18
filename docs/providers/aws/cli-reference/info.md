@@ -35,7 +35,7 @@ See the example below for an example output.
 
 **Example:**
 
-```
+```bash
 $ serverless info
 
 Service Information
@@ -53,7 +53,8 @@ functions:
 #### Verbose
 
 When using the `--verbose` flag, the `info` command will also append all Stack Outputs to the output:
-```
+
+```bash
 $ serverless info --verbose
 
 Service Information

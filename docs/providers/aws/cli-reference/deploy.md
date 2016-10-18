@@ -14,7 +14,7 @@ layout: Doc
 
 Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.
 
-```
+```bash
 serverless deploy [function]
 ```
 
@@ -30,7 +30,7 @@ serverless deploy [function]
 
 ### Deployment without stage and region options
 
-```
+```bash
 serverless deploy
 ```
 
@@ -39,7 +39,7 @@ provider in the default stage (`dev`) to the default region (`us-east-1`).
 
 ### Deployment with stage and region options
 
-```
+```bash
 serverless deploy --stage production --region eu-central-1
 ```
 

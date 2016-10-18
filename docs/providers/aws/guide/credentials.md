@@ -26,7 +26,7 @@ Here's how to set up the Serverless Framework with your Amazon Web Services acco
 
 If you're new to Amazon Web Services, make sure you put in a credit card.  If you don't have a credit card set up, you may not be able to deploy your resources and you may run into this error:
 
-```
+```bash
 AWS Access Key Id needs a subscription for the service
 ```
 

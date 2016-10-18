@@ -14,7 +14,7 @@ layout: Doc
 
 Creates a new service in the current working directory based on the provided template.
 
-```
+```bash
 serverless create --template aws-nodejs
 ```
 
@@ -42,7 +42,7 @@ Most commonly used templates:
 
 ### Creating a new service
 
-```
+```bash
 serverless create --template aws-nodejs --name my-special-service
 ```
 
@@ -54,7 +54,7 @@ The provider which is used for deployment later on is AWS (Amazon web services).
 
 ### Creating a named service in a (new) directory
 
-```
+```bash
 serverless create --template aws-nodejs --path my-new-service
 ```
 

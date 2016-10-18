@@ -14,7 +14,7 @@ layout: Doc
 
 This plugin implements a way to toggle [framework statistics](../framework-statistics.md).
 
-```
+```bash
 serverless slstats --enable
 ```
 
@@ -29,7 +29,7 @@ serverless slstats --enable
 
 ### Disabling it
 
-```
+```bash
 serverless slstats --disable
 ```
 

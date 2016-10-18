@@ -14,7 +14,7 @@ layout: Doc
 
 The following config will attach a schedule event and causes the function `crawl` to be called every 2 hours. The configuration allows you to attach multiple schedules to the same function. You can either use the `rate` or `cron` syntax. Take a look at the [AWS schedule syntax documentation](http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for more details.
 
-```yml
+```yaml
 functions:
   crawl:
     handler: crawl
@@ -28,7 +28,7 @@ functions:
 This will create and attach a schedule event for the `aggregate` function which is disabled. If enabled it will call
 the `aggregate` function every 10 minutes.
 
-```yml
+```yaml
 functions:
   aggregate:
     handler: statistics.handler

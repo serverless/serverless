@@ -14,7 +14,7 @@ layout: Doc
 
 Installs a service from a GitHub URL in the current working directory.
 
-```
+```bash
 serverless install --url https://github.com/some/service
 ```
 
@@ -28,10 +28,8 @@ serverless install --url https://github.com/some/service
 
 ### Installing a service from a GitHub URL
 
-```
+```bash
 serverless install --url https://github.com/johndoe/authentication
 ```
 
-This example will download the .zip file of the `authentication` service from GitHub,
-create a new directory with the name `authentication` in the current working directory
-and unzips the files in this directory.
+This example will download the .zip file of the `authentication` service from GitHub, create a new directory with the name `authentication` in the current working directory and unzips the files in this directory.

@@ -14,7 +14,7 @@ layout: Doc
 
 Removes the deployed service which is defined in your current working directory.
 
-```
+```bash
 serverless remove
 ```
 
@@ -30,7 +30,7 @@ serverless remove
 
 ### Removal of service in specific stage and region
 
-```
+```bash
 serverless remove --stage dev --region us-east-1
 ```
 
