@@ -6,6 +6,10 @@ description: Setting up AWS API Gateway Events with AWS Lambda via the Serverles
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/events/apigateway)
+<!-- DOCS-SITE-LINK:END -->
+
 
 The `lambda` integration type should be used if you want more control over the `request` and `response` configurations.
 

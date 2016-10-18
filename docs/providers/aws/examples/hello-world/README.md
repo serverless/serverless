@@ -5,6 +5,10 @@ description: Example of creating a hello world function in NodeJS and Python wit
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/examples/hello-world/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Hello World Example
 
 Welcome to the hello world serverless example.

@@ -6,6 +6,10 @@ description: Recommendations and best practices for testing AWS Lambda Functions
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/testing)
+<!-- DOCS-SITE-LINK:END -->
+
 # Testing
 
 Serverless introduces a lot of simplifications when it comes to serving business logic. We only need to provide handler function that almost entirely implements business logic. The only thing that we need to apply to are handler function arguments that are passed by FaaS provider. E.g. AWS Lambda passes 3 arguments `event`, `context` and `callback` to Node.js functions. Of course list of arguments differs between languages and, what is more important, between FaaS providers.

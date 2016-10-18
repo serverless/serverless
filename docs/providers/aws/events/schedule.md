@@ -6,6 +6,10 @@ description: Setting up Scheduled, Recurring, CRON Task Events with AWS Lambda v
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/events/schedule)
+<!-- DOCS-SITE-LINK:END -->
+
 # Schedule
 
 The following config will attach a schedule event and causes the function `crawl` to be called every 2 hours. The configuration allows you to attach multiple schedules to the same function. You can either use the `rate` or `cron` syntax. Take a look at the [AWS schedule syntax documentation](http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for more details.

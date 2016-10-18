@@ -6,6 +6,10 @@ description: How to deploy and manage AWS infrastructure to use with your AWS La
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/resources)
+<!-- DOCS-SITE-LINK:END -->
+
 # Resources
 
 If you are using AWS as a provider for your Service, all *Resources* are other AWS infrastructure resources which the AWS Lambda functions in your *Service* depend on, like AWS DynamoDB or AWS S3.

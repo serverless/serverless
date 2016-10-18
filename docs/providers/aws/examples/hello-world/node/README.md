@@ -5,6 +5,10 @@ description: Create a nodeJS Lambda function on amazon web services
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/examples/hello-world/node/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Hello World Node.js
 
 Make sure serverless is installed. [See installation guide](/docs/01-guide/01-installing-serverless.md)

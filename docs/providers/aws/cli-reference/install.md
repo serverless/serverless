@@ -6,6 +6,10 @@ description: Install pre-written AWS Lambda Functions, Events and Resources with
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/cli-reference/install)
+<!-- DOCS-SITE-LINK:END -->
+
 # Install
 
 Installs a service from a GitHub URL in the current working directory.

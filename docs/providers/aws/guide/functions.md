@@ -6,6 +6,10 @@ description: How to configure AWS Lambda functions in the Serverless Framework
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/functions)
+<!-- DOCS-SITE-LINK:END -->
+
 # Functions
 
 If you are using AWS as a provider for your *Service*, all *Functions* are AWS Lambda functions.

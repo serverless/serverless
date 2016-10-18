@@ -6,6 +6,10 @@ description: Configuring AWS Lambda function events in the Serverless Framework
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/events)
+<!-- DOCS-SITE-LINK:END -->
+
 # Events
 
 If you are using AWS as a provider for your Service, all *Events* are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via API Gateway.

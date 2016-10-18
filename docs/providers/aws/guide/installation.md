@@ -6,6 +6,10 @@ description: How to install the Serverless Framework and start using AWS Lambda
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/installation)
+<!-- DOCS-SITE-LINK:END -->
+
 # Installation
 
 ### Installing Node.js

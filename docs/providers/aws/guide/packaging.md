@@ -6,6 +6,10 @@ description: How the Serverless Framework packages your AWS Lambda functions and
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/packaging)
+<!-- DOCS-SITE-LINK:END -->
+
 # Packaging
 
 Sometimes you might like to have more control over your function artifacts and how they are packaged.

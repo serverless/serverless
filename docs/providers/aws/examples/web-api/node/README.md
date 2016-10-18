@@ -4,6 +4,10 @@ description: Create a nodeJS Lambda function on amazon web services
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/examples/web-api/node/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Web API with AWS Lambda in Node.js
 
 This example demonstrates how to create a web api with AWS Gateway and Lambda.

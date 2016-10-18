@@ -5,6 +5,10 @@ description: Create a nodeJS Lambda function on amazon web services
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/examples/using-external-libraries/node/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Using External libraries in Node
 
 Make sure serverless is installed. [See installation guide](/docs/01-guide/01-installing-serverless.md)

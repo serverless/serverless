@@ -6,6 +6,10 @@ description: How to use Serverless Variables to insert dynamic configuration inf
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/variables)
+<!-- DOCS-SITE-LINK:END -->
+
 # Variables
 
 The Serverless framework provides a powerful variable system which allows you to add dynamic data into your `serverless.yml`. With Serverless Variables, you'll be able to do the following:

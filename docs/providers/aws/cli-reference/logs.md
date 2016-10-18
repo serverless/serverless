@@ -6,6 +6,10 @@ description: View logs of your AWS Lambda Function within your terminal using th
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/cli-reference/logs)
+<!-- DOCS-SITE-LINK:END -->
+
 # Logs
 
 Lets you watch the logs of a specific function.

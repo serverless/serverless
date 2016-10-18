@@ -6,6 +6,10 @@ description:  Setting up AWS SNS Events with AWS Lambda via the Serverless Frame
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/events/sns)
+<!-- DOCS-SITE-LINK:END -->
+
 # SNS
 
 In the following example we create a new SNS topic with the name `dispatch` which is bound to the `dispatcher` function. The function will be called every time a message is sent to the `dispatch` topic.

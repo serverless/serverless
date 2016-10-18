@@ -6,6 +6,10 @@ description: Creates a new Service in your current working directory
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/cli-reference/create)
+<!-- DOCS-SITE-LINK:END -->
+
 # Create
 
 Creates a new service in the current working directory based on the provided template.

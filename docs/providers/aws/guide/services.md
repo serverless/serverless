@@ -6,6 +6,10 @@ description: How to manage and configure serverless services, which contain your
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/services)
+<!-- DOCS-SITE-LINK:END -->
+
 # Services
 
 A *Service* is where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`.

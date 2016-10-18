@@ -6,6 +6,10 @@ description: Invoke an AWS Lambda Function using the Serverless Framework
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/cli-reference/invoke)
+<!-- DOCS-SITE-LINK:END -->
+
 # Invoke
 
 Invokes a previously deployed function. It allows to send event data to the function and read logs and display other important information of the function invoke.

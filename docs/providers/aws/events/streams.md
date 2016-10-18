@@ -6,6 +6,10 @@ description:  Setting up AWS Kinesis Streams and AWS DynamoDB Streams Events wit
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/events/streams)
+<!-- DOCS-SITE-LINK:END -->
+
 # DynamoDB / Kinesis Streams
 
 This setup specifies that the `compute` function should be triggered whenever the corresponding DynamoDB table is modified (e.g. a new entry is added).

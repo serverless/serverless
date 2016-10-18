@@ -6,6 +6,10 @@ description: How to deploy your AWS Lambda functions and their required infrastr
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/deploying)
+<!-- DOCS-SITE-LINK:END -->
+
 # Deploying
 
 The Serverless Framework was designed to provision your AWS Lambda Functions, Events and infrastructure Resources safely and quickly.  It does this via a couple of methods designed for different types of deployments.

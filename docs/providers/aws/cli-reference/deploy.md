@@ -6,6 +6,10 @@ description: Deploy your service to the specified provider
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/cli-reference/deploy)
+<!-- DOCS-SITE-LINK:END -->
+
 # Deploy
 
 Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.

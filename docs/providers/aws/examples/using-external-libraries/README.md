@@ -5,6 +5,10 @@ description: Example of Using External Libraries in NodeJS and Python with the s
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/examples/using-external-libraries/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Using External Libraries Examples
 
 When creating serverless services you are able to use third party packages from your respective ecosystems package manager.

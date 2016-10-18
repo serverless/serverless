@@ -6,6 +6,10 @@ description: Remove a deployed Service and all of its AWS Lambda Functions, Even
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/cli-reference/remove)
+<!-- DOCS-SITE-LINK:END -->
+
 # Remove
 
 Removes the deployed service which is defined in your current working directory.
