@@ -40,7 +40,6 @@ package:
   artifact: path/to/my-artifact.zip
 ```
 
-
 ## Packaging functions separately
 
 If you want even more controls over your functions for deployment you can configure them to be packaged independently. This allows you more control for optimizing your deployment. To enable individual packaging set `individually` to true in the service wide packaging settings.

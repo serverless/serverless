@@ -71,7 +71,6 @@ provider:
   name: aws
   runtime: nodejs4.3
   memorySize: 512 # inherited value
-  
 
 functions:
   functionOne:

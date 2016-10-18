@@ -135,7 +135,6 @@ The Serverless framework gives you an intuitive way to reference multiple variab
 
 For example, if you want to reference the stage you're deploying to, but you don't want to keep on providing the `stage` option in the CLI. What you can do in `serverless.yml` is:
 
-
 ```yml
 service: new-service
 provider:

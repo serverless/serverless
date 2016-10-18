@@ -18,8 +18,6 @@ This example demonstrates how to create a web api with AWS Gateway and Lambda.
 
 In your serverless.yml file, configure a function and http to the events with path and method.
 
-
-
 ## 2. Deploy
 
 `serverless deploy` or `sls deploy`. `sls` is shorthand for the serverless CLI command.
@@ -27,7 +25,6 @@ In your serverless.yml file, configure a function and http to the events with pa
 After you deploy your function. Serverless will setup and configure the AWS
 
 ## 2. Invoke the remote function
-
 
 In your terminal window you should be the response from AWS Lambda
 
