@@ -46,7 +46,7 @@ The bucket must exist beforehand and be in the same region as the Lambda functio
 
 * **From CloudFormation Bucket to Self Provided Bucket:** You need to manually empty the CloudFormation bucket. On the next deployment the bucket will be removed and we will use the self provided bucket. Without emptying the CloudFormation bucket your next deployment will fail.
 
-* **From Self Provided Bucket to CloudFormation Bucket:** You'll need to add the following custom resources template to `serverles.yml`:
+* **From Self Provided Bucket to CloudFormation Bucket:** You'll need to add the following custom resources template to `serverless.yml`:
 
 ```yml
 resources:
