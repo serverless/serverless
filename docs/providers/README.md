@@ -4,7 +4,10 @@ menuText: Serverless Providers
 layout: Doc
 -->
 
-# Serverless - Providers
+# Infrastructure Providers
 
-* Go to [serverless.com/framework/docs](https://www.serverless.com/framework/docs) for a better reading experience.
+<!-- GITHUB-ONLY-CONTENT:START -->
+## [Go to the docs site](https://www.serverless.com/framework/docs) for a better reading experience.
+<!-- GITHUB-ONLY-CONTENT:END -->
+
 * [Back to main documentation](../README.md)
