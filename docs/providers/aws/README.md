@@ -10,7 +10,16 @@ layout: Doc
 
 # Serverless AWS Provider docs
 
-* [View the guide](./guide)
-* [CLI Reference](./cli-reference)
-* [AWS Events](./events)
-* [Examples](./examples)
+Welcome to the Serverless Amazon Web Services documentation!
+
+**Note:** Before continuing [AWS system credentials](./guide/credentials/) are required for using the CLI.
+
+### [View the guide](./guide)
+
+### [CLI Reference](./cli-reference)
+
+### [AWS Events](./events)
+
+### [Examples](./examples)
+
+If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
