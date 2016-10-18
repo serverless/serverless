@@ -355,14 +355,67 @@ describe('Service', () => {
       });
     });
 
-    it("should throw error if a function's event is not an array", () => {
+    it('should support function events provided as arrays', () => {
       const SUtils = new Utils();
       const serverlessYml = {
         service: 'service-name',
         provider: 'aws',
         functions: {
           functionA: {
-            events: {},
+            events: [],
+          },
+        },
+      };
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown
+        expect(serviceInstance.functions.functionA.events).to.be.a('array');
+      }).catch(() => {
+        // make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      });
+    });
+
+    it('should support function events provided as variables', () => {
+      const SUtils = new Utils();
+      const serverlessYml = {
+        service: 'service-name',
+        provider: 'aws',
+        functions: {
+          functionA: {
+            events: '${self:testVariable}',
+          },
+        },
+        testVariable: [],
+      };
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'),
+        YAML.dump(serverlessYml));
+
+      const serverless = new Serverless({ servicePath: tmpDirPath });
+      serviceInstance = new Service(serverless);
+
+      return serviceInstance.load().then(() => {
+        // if we reach this, then no error was thrown
+        expect(serviceInstance.functions.functionA.events).to.be.equal('${self:testVariable}');
+      }).catch(() => {
+        // make assertion fail intentionally to let us know something is wrong
+        expect(1).to.equal(2);
+      });
+    });
+
+    it('should throw error if a function\'s event is not an array or a variable', () => {
+      const SUtils = new Utils();
+      const serverlessYml = {
+        service: 'service-name',
+        provider: 'aws',
+        functions: {
+          functionA: {
+            events: 'not an array or a variable',
           },
         },
       };
