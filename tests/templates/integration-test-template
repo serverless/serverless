@@ -31,10 +31,10 @@ else
 fi
 
 echo "Deploying Service"
-serverless deploy
+serverless deploy -v
 
 echo "Invoking Service"
-serverless invoke --function hello --path event.json
+serverless invoke --function hello --path event.json -l
 
 echo "Removing Service"
-serverless remove
+serverless remove -v

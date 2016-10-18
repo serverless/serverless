@@ -103,7 +103,7 @@ custom:
       accessKeyId: YOUR_ACCESS_KEY_FOR_PROD
       secretAccessKey: YOUR_SECRET_KEY_FOR_PROD
 provider:
-  credentials: ${self:custom.{opt:stage}.credentials}
+  credentials: ${self:custom.${opt:stage}.credentials}
 ```
 
 One profile for all stages using serverless.yml
@@ -120,7 +120,7 @@ custom:
   prod:
     profile: your-profile-for-prod
 provider:
-  profile: ${self:custom.{opt:stage}.profile}
+  profile: ${self:custom.${opt:stage}.profile}
 ```
 
 One set of credentials for all stages using environment variables
