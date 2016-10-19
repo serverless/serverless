@@ -12,21 +12,9 @@ layout: Doc
 
 <div>
 
-  <!-- HIDE:START automatically generated -->
-<!--   <div>
-    <h2>AWS</h2>
-  </div> -->
-  <!-- HIDE:END -->
-
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws2.jpg" alt="AWS Lambda Guide" width="250">
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws2.jpg" alt="Serverless Framework AWS Lambda Guide" width="250">
   </div>
-
-  <!-- HIDE:START automatically generated -->
-<!--   <div>
-    <h3>Guide</h3>
-  </div> -->
-  <!-- HIDE:END -->
 
   <div>
     <ul>
@@ -47,9 +35,7 @@ layout: Doc
   </div>
 
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws2.jpg" alt="AWS Lambda Guide" width="250">
-
-<!--     <h3>CLI Reference</h3> -->
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws2.jpg" alt="Serverless Framework AWS Lambda CLI Reference" width="250">
   </div>
 
   <div>
@@ -65,8 +51,7 @@ layout: Doc
   </div>
 
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws2.jpg" width="250">
-<!--     <h3>Events</h3> -->
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws2.jpg" alt="Serverless Framework AWS Lambda Events"  width="250">
   </div>
 
   <div>
@@ -80,8 +65,7 @@ layout: Doc
   </div>
 
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws2.jpg" width="250">
-<!--     <h3>Examples</h3> -->
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws2.jpg" alt="Serverless Framework AWS Lambda Examples" width="250">
   </div>
 
   <div>
