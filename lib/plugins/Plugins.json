@@ -9,7 +9,7 @@
     "./logs/logs.js",
     "./remove/remove.js",
     "./slstats/slstats.js",
-    "./awsProvider/awsProvider.js",
+    "./aws/provider/awsProvider.js",
     "./aws/deploy/index.js",
     "./aws/invoke/index.js",
     "./aws/info/index.js",

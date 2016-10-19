@@ -22,7 +22,7 @@ require('../lib/plugins/package/tests/all');
 require('../lib/plugins/slstats/tests/slstats');
 
 // AWS Plugins Tests
-require('../lib/plugins/awsProvider/awsProvider.test');
+require('../lib/plugins/aws/provider/awsProvider.test');
 require('../lib/plugins/aws/tests/validate');
 require('../lib/plugins/aws/tests/monitorStack');
 require('../lib/plugins/aws/info/tests');
