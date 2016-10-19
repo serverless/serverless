@@ -6,7 +6,7 @@
 
 ## What did you implement:
 
-closes #12345
+Closes #12345
 
 <!--
 Briefly describe the feature if no issue exists for this PR
