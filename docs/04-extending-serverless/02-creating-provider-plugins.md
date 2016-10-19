@@ -19,7 +19,7 @@ Infrastructure provider plugins should bind to specific lifecycle events of the 
 
 ### Deployment lifecycle
 
-Let's take a look at the [core `deploy` plugin](../../lib/plugins/deploy) and the different lifecycle hooks it provides.
+Let's take a look at the [core `deploy` plugin](https://github.com/serverless/serverless/tree/master/lib/plugins/deploy) and the different lifecycle hooks it provides.
 
 The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
 
@@ -90,4 +90,4 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 You may also take a closer look at the corresponding plugin code to get a deeper knowledge about what's going on behind the scenes.
 
-The full AWS integration can be found in [`lib/plugins/aws`](../../lib/plugins/aws).
+The full AWS integration can be found in [`lib/plugins/aws`](https://github.com/serverless/serverless/tree/master/lib/plugins/aws).
