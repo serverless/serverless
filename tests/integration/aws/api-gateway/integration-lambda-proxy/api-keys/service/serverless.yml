@@ -1,0 +1,16 @@
+service: aws-nodejs # NOTE: update this with your service name
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  apiKeys:
+    - WillBeReplacedBeforeDeployment
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: GET
+          private: true

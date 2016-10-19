@@ -52,7 +52,7 @@ export AWS_ACCESS_KEY_ID=<key>
 export AWS_SECRET_ACCESS_KEY=<secret>
 ```
 
-OR, if you already have an AWS profile set up...
+OR, if you already have an AWS profile set up…
 
 ```bash
 export AWS_PROFILE=<profile>
@@ -128,7 +128,7 @@ One set of credentials for all stages using environment variables
 export AWS_ACCESS_KEY_ID=<key>
 export AWS_SECRET_ACCESS_KEY=<secret>
 export AWS_SESSION_TOKEN=<token>
-serverless <...>
+serverless <…>
 ```
 
 A set of credentials for each stage using environment variables
@@ -141,13 +141,13 @@ export AWS_PROD_ACCESS_KEY_ID=<key>
 export AWS_PROD_SECRET_ACCESS_KEY=<secret>
 export AWS_PROD_SESSION_TOKEN=<token>
 
-serverless <...>
+serverless <…>
 ```
 
 A profile for all stages using environment variables
 ```bash
 export AWS_PROFILE=<profile>
-serverless <...>
+serverless <…>
 ```
 
 A profile for each stage using environment variables
@@ -156,7 +156,7 @@ export AWS_TEST_PROFILE=<profile>
 
 export AWS_PROD_PROFILE=<profile>
 
-serverless <...>
+serverless <…>
 ```
 
 #### Credential & Profile Overriding
@@ -175,7 +175,7 @@ export AWS_PROD_ACCESS_KEY_ID=<prod-key>
 export AWS_PROD_SECRET_ACCESS_KEY=<prod-secret>
 export AWS_PROD_SESSION_TOKEN=<prod-token>
 
-serverless <...>
+serverless <…>
 ```
 
 A default profile to use overriden by a `prod` specific profile
@@ -184,7 +184,7 @@ export AWS_PROFILE=<profile>
 
 export AWS_PROD_PROFILE=<profile>
 
-serverless <...>
+serverless <…>
 ```
 
 A default profile declared in serverless.yml overridden by a `prod` specific environment variable profile
@@ -197,7 +197,7 @@ export AWS_PROD_ACCESS_KEY_ID=<prod-key>
 export AWS_PROD_SECRET_ACCESS_KEY=<prod-secret>
 export AWS_PROD_SESSION_TOKEN=<prod-token>
 
-serverless <...>
+serverless <…>
 ```
 
 ## Conclusion

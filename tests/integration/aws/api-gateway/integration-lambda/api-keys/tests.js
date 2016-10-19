@@ -7,6 +7,8 @@ const execSync = require('child_process').execSync;
 const AWS = require('aws-sdk');
 const _ = require('lodash');
 const fetch = require('node-fetch');
+const fse = require('fs-extra');
+const crypto = require('crypto');
 
 const Utils = require('../../../../../utils/index');
 
@@ -15,33 +17,41 @@ const APIG = new AWS.APIGateway({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(APIG, { suffix: 'Promised' });
 
-describe('AWS - API Gateway (Integration: Lambda): API keys test', () => {
+describe('AWS - API Gateway (Integration: Lambda): API keys test', function () {
+  this.timeout(0);
+
   let stackName;
   let endpoint;
   let apiKey;
 
-  before(function () {
-    this.timeout(0);
-
+  before(() => {
     stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+
+    // replace name of the API key with something unique
+    const serverlessYmlFilePath = path.join(process.cwd(), 'serverless.yml');
+    let serverlessYmlFileContent = fse.readFileSync(serverlessYmlFilePath).toString();
+
+    const apiKeyName = crypto.randomBytes(8).toString('hex');
+
+    serverlessYmlFileContent = serverlessYmlFileContent
+      .replace(/WillBeReplacedBeforeDeployment/, apiKeyName);
+
+    fse.writeFileSync(serverlessYmlFilePath, serverlessYmlFileContent);
+
     Utils.deployService();
   });
 
-  it('should expose the endpoint(s) in the CloudFormation Outputs', function () {
-    this.timeout(0);
-
-    return CF.describeStacksPromised({ StackName: stackName })
+  it('should expose the endpoint(s) in the CloudFormation Outputs', () =>
+    CF.describeStacksPromised({ StackName: stackName })
       .then((result) => _.find(result.Stacks[0].Outputs,
         { OutputKey: 'ServiceEndpoint' }).OutputValue)
       .then((endpointOutput) => {
         endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
         endpoint = `${endpoint}/hello`;
-      });
-  });
+      })
+  );
 
-  it('should expose the API key(s) with its values when running the info command', function () {
-    this.timeout(0);
-
+  it('should expose the API key(s) with its values when running the info command', () => {
     const info = execSync(`${Utils.serverlessExec} info`);
 
     const stringifiedOutput = (new Buffer(info, 'base64').toString());
@@ -52,30 +62,24 @@ describe('AWS - API Gateway (Integration: Lambda): API keys test', () => {
     expect(apiKey.length).to.be.above(0);
   });
 
-  it('should reject a request with an invalid API Key', function () {
-    this.timeout(0);
-
-    return fetch(endpoint)
+  it('should reject a request with an invalid API Key', () =>
+    fetch(endpoint)
       .then((response) => {
         expect(response.status).to.equal(403);
-      });
-  });
+      })
+  );
 
-  it('should succeed if correct API key is given', function () {
-    this.timeout(0);
-
-    return fetch(endpoint, { headers: { 'x-api-key': apiKey } })
+  it('should succeed if correct API key is given', () =>
+    fetch(endpoint, { headers: { 'x-api-key': apiKey } })
       .then(response => response.json())
       .then((json) => {
         expect(json.message).to.equal('Hello from API Gateway!');
         expect(json.event.identity.apiKey).to.equal(apiKey);
         expect(json.event.headers['x-api-key']).to.equal(apiKey);
-      });
-  });
+      })
+  );
 
-  after(function () {
-    this.timeout(0);
-
+  after(() => {
     Utils.removeService();
   });
 });

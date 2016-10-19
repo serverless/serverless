@@ -41,8 +41,20 @@ provider:
             - AWS::EC2::Instance
 ```
 
-### Deployment S3Bucket
-The bucket must exist beforehand and be in the same region as the deploy.
+### Deployment S3 Bucket
+The bucket must exist beforehand and be in the same region as the Lambda functions you want to deploy. Due to the importance and hard dependency of the deployment bucket, if you want to switch between the core and custom bucket, you have to do the following:
+
+* **From CloudFormation Bucket to Self Provided Bucket:** You need to manually empty the CloudFormation bucket. On the next deployment the bucket will be removed and we will use the self provided bucket. Without emptying the CloudFormation bucket your next deployment will fail.
+
+* **From Self Provided Bucket to CloudFormation Bucket:** You'll need to add the following custom resources template to `serverless.yml`:
+
+```yml
+resources:
+  Resources:
+    ServerlessDeploymentBucket:
+      Type: AWS::S3::Bucket
+```
+then deploy your service to create the CloudFormation bucket, then remove the `provider.deploymentBucket` property and deploy your service again. This syncs the framework back to the CloudFormation Bucket without conflict. After that deployment you can remove the CloudFormation bucket from the resources section in `serverless.yml` as it will be automatically added from now on.
 
 ## Additional function configuration
 

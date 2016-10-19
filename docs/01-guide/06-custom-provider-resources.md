@@ -40,7 +40,7 @@ Sometimes you need an extra S3 bucket to store some data in (say, thumbnails). T
 service: lambda-screenshots
 provider: aws
 functions:
-  ...
+  …
 
 resources:
   Resources:
