@@ -56,7 +56,7 @@ This file contains event data we'll use later on to invoke our function.
 
 ## Other services to get started
 
-Take a look at the our [list of Serverless services](../../README.md#services).
+Take a look at the our [list of Serverless services](https://github.com/serverless/serverless/blob/master/README.md#services).
 
 ## Conclusion
 

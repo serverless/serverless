@@ -1,14 +1,14 @@
 'use strict';
 
 // Serverless Core Tests
-require('./classes/Serverless');
-require('./classes/PluginManager');
-require('./classes/Utils');
-require('./classes/Config');
-require('./classes/Service');
-require('./classes/Variables');
-require('./classes/YamlParser');
-require('./classes/CLI');
+require('../lib/Serverless.test');
+require('../lib/classes/PluginManager.test');
+require('../lib/classes/Utils.test');
+require('../lib/classes/Config.test');
+require('../lib/classes/Service.test');
+require('../lib/classes/Variables.test');
+require('../lib/classes/YamlParser.test');
+require('../lib/classes/CLI.test');
 
 // Core Plugins Tests
 require('../lib/plugins/create/tests/create');
@@ -22,7 +22,7 @@ require('../lib/plugins/package/tests/all');
 require('../lib/plugins/slstats/tests/slstats');
 
 // AWS Plugins Tests
-require('../lib/plugins/aws/tests');
+require('../lib/plugins/aws/provider/awsProvider.test');
 require('../lib/plugins/aws/tests/validate');
 require('../lib/plugins/aws/tests/monitorStack');
 require('../lib/plugins/aws/info/tests');
