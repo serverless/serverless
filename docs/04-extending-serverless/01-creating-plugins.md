@@ -29,7 +29,7 @@ A command represents a CLI command that can be called by a user, e.g. `serverles
 
 A command has no logic, but simply defines the CLI configuration (e.g. command, subcommands, parameters) and the lifecycle events for this particular command. Every command defines its own lifecycle events, so different commands can have completely different lifecycles.
 
-The commands that come with Serverless (e.g. `deploy`, `remove`, ...) are implemented in the exact same way as commands built by other users. This means that lifecycle events we define for our commands do not have any special meaning in Serverless or for other plugins. Every command is free to have its own lifecycle events, none of them are more special than others.
+The commands that come with Serverless (e.g. `deploy`, `remove`, …) are implemented in the exact same way as commands built by other users. This means that lifecycle events we define for our commands do not have any special meaning in Serverless or for other plugins. Every command is free to have its own lifecycle events, none of them are more special than others.
 
 ```javascript
 'use strict';
@@ -349,7 +349,7 @@ class Deploy {
   }
 
   deployFunction() {
-    console.log(`Deploying function... Will retry ${this.options.retries} times`);
+    console.log(`Deploying function… Will retry ${this.options.retries} times`);
   }
 }
 
