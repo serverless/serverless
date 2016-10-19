@@ -107,7 +107,7 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="v1-plugins"></a>Plugins (V1.0)
 
-Use these plugins to overwrite or extend the Framework's functionality...
+Use these plugins to overwrite or extend the Framework's functionality…
 
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
