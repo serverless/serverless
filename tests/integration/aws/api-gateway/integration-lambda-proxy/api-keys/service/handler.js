@@ -5,7 +5,7 @@ module.exports.hello = (event, context, callback) => {
     statusCode: 200,
     body: JSON.stringify({
       message: 'Hello from API Gateway!',
-      input: event,
+      event,
     }),
   };
 
