@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs4.3
   apiKeys:
-    - myApiKey
+    - WillBeReplacedBeforeDeployment
 
 functions:
   hello:
