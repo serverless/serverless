@@ -6,7 +6,7 @@
 
 ## What did you implement:
 
-***Implementing Issue:*** #12345
+closes #12345
 
 <!--
 Briefly describe the feature if no issue exists for this PR
