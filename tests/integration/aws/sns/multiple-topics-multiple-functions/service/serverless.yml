@@ -1,0 +1,13 @@
+service: aws-nodejs
+
+provider: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - sns: ${env:TOPIC_1}
+  world:
+    handler: handler.world
+    events:
+      - sns: ${env:TOPIC_2}

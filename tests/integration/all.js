@@ -17,5 +17,11 @@ require('./aws/api-gateway/integration-lambda-proxy/simple-api/tests');
 // Schedule
 require('./aws/schedule/multiple-schedules-multiple-functions/tests');
 
+// SNS
+require('./aws/sns/single-topic-single-function/tests');
+require('./aws/sns/single-topic-multiple-functions/tests');
+require('./aws/sns/multiple-topics-single-function/tests');
+require('./aws/sns/multiple-topics-multiple-functions/tests');
+
 // General
 require('./general/custom-plugins/tests');
