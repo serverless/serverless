@@ -47,6 +47,9 @@ With this example we've defined that we want our service to be deployed to the `
 serverless deploy list
 ```
 
+Running this command will list your recent deployments available in your S3 deployment bucket. It will use
+stage and region from the provider config.
+
 ## Provided lifecycle events
 - `deploy:cleanup`
 - `deploy:initialize`
