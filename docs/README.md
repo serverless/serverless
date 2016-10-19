@@ -10,51 +10,65 @@ layout: Doc
 
 # Documentation
 
-## AWS
-
-### Getting Started
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/bFHmgqbAh4M" frameborder="0" allowfullscreen='true'></iframe>
-
-### Guide
-
-- [Intro](./providers/aws/guide/intro.md)
-- [Installation](./providers/aws/guide/installation.md)
-- [Credentials](./providers/aws/guide/credentials.md)
-- [Services](./providers/aws/guide/services.md)
-- [Functions](./providers/aws/guide/functions.md)
-- [Events](./providers/aws/guide/events.md)
-- [Resources](./providers/aws/guide/resources.md)
-- [Deploying](./providers/aws/guide/deploying.md)
-- [Testing](./providers/aws/guide/testing.md)
-- [Variables](./providers/aws/guide/variables.md)
-- [Packaging](./providers/aws/guide/packaging.md)
-- [Plugins](./providers/aws/guide/plugins.md)
-- [Workflow](./providers/aws/guide/workflow.md)
-
-### CLI Reference
-
-- [Create](./providers/aws/cli-reference/create.md)
-- [Install](./providers/aws/cli-reference/install.md)
-- [Deploy](./providers/aws/cli-reference/deploy.md)
-- [Invoke](./providers/aws/cli-reference/invoke.md)
-- [Logs](./providers/aws/cli-reference/logs.md)
-- [Info](./providers/aws/cli-reference/info.md)
-- [Remove](./providers/aws/cli-reference/remove.md)
-
-### Events
-
-- [API Gateway](./providers/aws/events/apigateway.md)
-- [Streams](./providers/aws/events/streams.md)
-- [S3](./providers/aws/events/s3.md)
-- [Schedule](./providers/aws/events/schedule.md)
-- [SNS](./providers/aws/events/sns.md)
-
-### Examples
-
-- [Hello World](./providers/aws/examples/hello-world)
-- [Cron](./providers/aws/examples/cron)
-- [Using external libraries](./providers/aws/examples/using-external-libraries)
-- [Web Serving HTML](./providers/aws/examples/web-serving-html)
-
----
+<div>
+  <div>
+    <h2>AWS</h2>
+  </div>
+  <div>
+    <h3>Guide</h3>
+  </div>
+  <div>
+    <ul>
+      <li><a href="./providers/aws/guide/intro.md">Intro</a></li>
+      <li><a href="./providers/aws/guide/installation.md">Installation</a></li>
+      <li><a href="./providers/aws/guide/credentials.md">Credentials</a></li>
+      <li><a href="./providers/aws/guide/services.md">Services</a></li>
+      <li><a href="./providers/aws/guide/functions.md">Functions</a></li>
+      <li><a href="./providers/aws/guide/events.md">Events</a></li>
+      <li><a href="./providers/aws/guide/resources.md">Resources</a></li>
+      <li><a href="./providers/aws/guide/deploying.md">Deploying</a></li>
+      <li><a href="./providers/aws/guide/testing.md">Testing</a></li>
+      <li><a href="./providers/aws/guide/variables.md">Variables</a></li>
+      <li><a href="./providers/aws/guide/packaging.md">Packaging</a></li>
+      <li><a href="./providers/aws/guide/plugins.md">Plugins</a></li>
+      <li><a href="./providers/aws/guide/workflow.md">Workflow</a></li>
+    </ul>
+  </div>
+  <div>
+    <h3>CLI Reference</h3>
+  </div>
+  <div>
+    <ul>
+      <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
+      <li><a href="./providers/aws/cli-reference/install.md">Install</a></li>
+      <li><a href="./providers/aws/cli-reference/deploy.md">Deploy</a></li>
+      <li><a href="./providers/aws/cli-reference/invoke.md">Invoke</a></li>
+      <li><a href="./providers/aws/cli-reference/logs.md">Logs</a></li>
+      <li><a href="./providers/aws/cli-reference/info.md">Info</a></li>
+      <li><a href="./providers/aws/cli-reference/remove.md">Remove</a></li>
+    </ul>
+  </div>
+  <div>
+    <h3>Events</h3>
+  </div>
+  <div>
+    <ul>
+      <li><a href="./providers/aws/events/apigateway.md">API Gateway</a></li>
+      <li><a href="./providers/aws/events/streams.md">Streams</a></li>
+      <li><a href="./providers/aws/events/s3.md">S3</a></li>
+      <li><a href="./providers/aws/events/schedule.md">Schedule</a></li>
+      <li><a href="./providers/aws/events/sns.md">SNS</a></li>
+    </ul>
+  </div>
+  <div>
+    <h3>Examples</h3>
+  </div>
+  <div>
+    <ul>
+      <li><a href="./providers/aws/examples/hello-world">Hello World</a></li>
+      <li><a href="./providers/aws/examples/cron">Cron</a></li>
+      <li><a href="./providers/aws/examples/using-external-libraries">Using External Libraries</a></li>
+      <li><a href="./providers/aws/examples/web-serving-html.md">Web Serving HTML</a></li>
+    </ul>
+  </div>
+</div>
