@@ -19,7 +19,7 @@ layout: Doc
   <!-- HIDE:END -->
 
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws.jpg" alt="AWS Lambda Guide" width="250">
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws2.jpg" alt="AWS Lambda Guide" width="250">
   </div>
 
   <!-- HIDE:START automatically generated -->
@@ -47,7 +47,7 @@ layout: Doc
   </div>
 
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws.jpg" alt="AWS Lambda Guide" width="250">
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws2.jpg" alt="AWS Lambda Guide" width="250">
 
 <!--     <h3>CLI Reference</h3> -->
   </div>
@@ -65,7 +65,7 @@ layout: Doc
   </div>
 
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws.jpg" width="250">
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws2.jpg" width="250">
 <!--     <h3>Events</h3> -->
   </div>
 
@@ -80,7 +80,7 @@ layout: Doc
   </div>
 
   <div>
-    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws.jpg" width="250">
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws2.jpg" width="250">
 <!--     <h3>Examples</h3> -->
   </div>
 
