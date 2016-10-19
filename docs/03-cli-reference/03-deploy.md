@@ -10,7 +10,7 @@ layout: Doc
 Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.
 
 ```
-serverless deploy [function]
+serverless deploy [function|list]
 ```
 
 ## Options
@@ -41,6 +41,12 @@ serverless deploy --stage production --region eu-central-1
 With this example we've defined that we want our service to be deployed to the `production` stage in the region
 `eu-central-1`.
 
+## List existing deploys
+
+```
+serverless deploy list
+```
+
 ## Provided lifecycle events
 - `deploy:cleanup`
 - `deploy:initialize`
@@ -50,3 +56,4 @@ With this example we've defined that we want our service to be deployed to the `
 - `deploy:compileEvents`
 - `deploy:deploy`
 - `deploy:function:deploy`
+- `deploy:list:log`
