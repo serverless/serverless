@@ -11,12 +11,23 @@ layout: Doc
 # Documentation
 
 <div>
-  <div>
+
+  <!-- HIDE:START automatically generated -->
+<!--   <div>
     <h2>AWS</h2>
-  </div>
+  </div> -->
+  <!-- HIDE:END -->
+
   <div>
-    <h3>Guide</h3>
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws.jpg" alt="AWS Lambda Guide" width="250">
   </div>
+
+  <!-- HIDE:START automatically generated -->
+<!--   <div>
+    <h3>Guide</h3>
+  </div> -->
+  <!-- HIDE:END -->
+
   <div>
     <ul>
       <li><a href="./providers/aws/guide/intro.md">Intro</a></li>
@@ -34,9 +45,13 @@ layout: Doc
       <li><a href="./providers/aws/guide/workflow.md">Workflow</a></li>
     </ul>
   </div>
+
   <div>
-    <h3>CLI Reference</h3>
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws.jpg" alt="AWS Lambda Guide" width="250">
+
+<!--     <h3>CLI Reference</h3> -->
   </div>
+
   <div>
     <ul>
       <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
@@ -48,9 +63,12 @@ layout: Doc
       <li><a href="./providers/aws/cli-reference/remove.md">Remove</a></li>
     </ul>
   </div>
+
   <div>
-    <h3>Events</h3>
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws.jpg" width="250">
+<!--     <h3>Events</h3> -->
   </div>
+
   <div>
     <ul>
       <li><a href="./providers/aws/events/apigateway.md">API Gateway</a></li>
@@ -60,9 +78,12 @@ layout: Doc
       <li><a href="./providers/aws/events/sns.md">SNS</a></li>
     </ul>
   </div>
+
   <div>
-    <h3>Examples</h3>
+    <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws.jpg" width="250">
+<!--     <h3>Examples</h3> -->
   </div>
+
   <div>
     <ul>
       <li><a href="./providers/aws/examples/hello-world">Hello World</a></li>
@@ -71,4 +92,5 @@ layout: Doc
       <li><a href="./providers/aws/examples/web-serving-html.md">Web Serving HTML</a></li>
     </ul>
   </div>
+
 </div>
