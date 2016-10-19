@@ -4,6 +4,7 @@
 // General
 require('./aws/general/nested-handlers/tests');
 require('./aws/general/custom-resources/tests');
+require('./aws/general/overwrite-resources/tests');
 
 // API Gateway
 // Integration: Lambda
