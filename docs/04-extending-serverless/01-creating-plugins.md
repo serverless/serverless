@@ -362,7 +362,11 @@ Plugins can be provider specific which means that they are bound to a provider.
 
 **Note:** Binding a plugin to a provider is optional. Serverless will always consider your plugin if you don't specify a `provider`.
 
-The provider definition should be added inside the plugins constructor:
+The provider definition should be added inside the plugins constructor and can be the name of the provider (as a string) or the provider plugin instance.
+
+### String representation
+
+The string representation simply tells Serverless that this plugin should only be loaded if the provider defined in the service matches the one of the plugin.
 
 ```javascript
 'use strict';
@@ -402,7 +406,52 @@ class ProviderDeploy {
 module.exports = ProviderDeploy;
 ```
 
-The plugins functionality will now only be executed when the Serverless services provider matches the provider name which is defined inside the plugins constructor.
+### The provider plugin instance
+
+If you want to get access to provider specific utilities such as the SDK you can get the provider plugin instance with the help of the
+`this.serverless.getProvider('providerName')` function and set it to the plugins `provider` property.
+You can access the wrapped methods via `this.provider.<methodName>`.
+
+The usage of the plugins `provider` property will load the plugin only if the `provider` matches the one defined in the service.
+
+```javascript
+'use strict';
+
+class ProviderInvoke {
+  constructor(serverless, options) {
+    this.serverless = serverless;
+    this.options = options;
+
+    // get access to the provider plugin instance here
+    this.provider = this.serverless.getProvider('providerName');
+
+    this.commands = {
+      invoke: {
+        lifecycleEvents: [
+          'function'
+        ],
+        options: {
+          function: {
+            usage: 'Specify the function you want to invoke (e.g. "--function myFunction")',
+            required: true
+          }
+        }
+      },
+    };
+
+    this.hooks = {
+      'invoke:function': this.invokeFunction.bind(this)
+    }
+  }
+
+  invokeFunction() {
+    // use the "request" method from the provider plugin
+    return this.provider.request('function', 'invoke', this.options.function);
+  }
+}
+
+module.exports = ProviderInvoke;
+```
 
 ## Plugin registration process
 
