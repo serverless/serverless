@@ -19,7 +19,7 @@ Following are examples and descriptions of all available AWS specific provider c
 ```yaml
 provider:
   name: aws # Set the provider you want to use, in this case AWS
-  runtime: nodejs4.3 # Runtime used for all functions in this provider
+  runtime: nodejs4.3 # Default runtime for functions in this provider
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
@@ -64,6 +64,7 @@ functions:
     name: ${self:provider.stage}-lambdaName # Deployed Lambda name
     description: Description of what the lambda function does # Description to publish to AWS
     handler: handler.hello # handler set in AWS Lambda
+    runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
 ```
