@@ -472,6 +472,7 @@ provider:
   name: aws
   apiKeys:
     - myFirstKey
+    - ${opt:stage}-myFirstKey # If you want to deploy multiple stage, you need to add stage variable
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
 functions:
   hello:
