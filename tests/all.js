@@ -20,7 +20,7 @@ require('../lib/plugins/logs/tests/logs');
 require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/package/tests/all');
 require('../lib/plugins/slstats/tests/slstats');
-require('../lib/plugins/rollback/tests/rollback.js');
+require('../lib/plugins/rollback/tests/rollback');
 
 // AWS Plugins Tests
 require('../lib/plugins/aws/provider/awsProvider.test');

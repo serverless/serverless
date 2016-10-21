@@ -1,5 +1,5 @@
 <!--
-title: Serverless Info CLI Command
+title: Serverless Rollback CLI Command
 menuText: Rollback
 description: Rollback the Serverless service to a specific deployment
 layout: Doc
@@ -25,7 +25,7 @@ serverless rollback
 
 ### AWS
 
-At first you want to run `serverless deploy list` to show you existing deployments. This will provide you with a list of the deployments stored in your S3 bucket. You can use the timestamp of one of these deployments to set your infrastructure stack to this specific deployment.
+At first you want to run `serverless deploy list` to show your existing deployments. This will provide you with a list of the deployments stored in your S3 bucket. You can use the timestamp of one of these deployments to set your infrastructure stack to this specific deployment.
 
 **Example:**
 
