@@ -15,6 +15,7 @@ serverless rollback
 
 ## Options
 - `--timestamp` or `-t` The stage in your service you want to display information about.
+- `--verbose` or `-v` Shows any Stack Output.
 
 ## Provided lifecycle events
 - `rollback:initialize`
