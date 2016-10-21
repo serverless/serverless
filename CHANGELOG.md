@@ -1,3 +1,25 @@
+# 1.0.3 (21.10.2016)
+
+Following is a selection of features, bug fixes and other changes we did since 1.0.2.
+You can also check out all changes in the [Github Compare View](https://github.com/serverless/serverless/compare/v1.0.2...v1.0.3)
+
+## Features
+* [Stack Tags and Policy](https://serverless.com/framework/docs/providers/aws/) (#2158)
+* CF Stack Output Variables in Verbose deploy output (#2253)
+* [Custom Status code for non-proxy APIG integration](https://serverless.com/framework/docs/providers/aws/events/apigateway/) (#2014)
+* [Function Runtime can now be configured per function](https://serverless.com/framework/docs/providers/aws/)(#2425)
+* Allow absolute path for invoke command event file (#2443)
+* [Add list deployments command to show last deployments stored in S3 bucket](https://serverless.com/framework/docs/cli-reference/deploy/)(#2439)
+
+## Bugs
+
+* [Fix not thrown error after failed ResourceStatus bug](#2367)
+* [Fix overwrite resources and custom resource merge bug](#2385)
+* [Clean up after deployment works correctly now](#2436)
+
+## Other
+* [Migrate Integration tests into main repository](#2438)
+
 # 1.0.2 (13.10.2016)
 
 * Clean up NPM package (#2352)
