@@ -43,6 +43,7 @@ require('../lib/plugins/aws/deploy/compile/events/sns/tests');
 require('../lib/plugins/aws/deploy/compile/events/stream/tests');
 require('../lib/plugins/aws/deployFunction/tests/index');
 require('../lib/plugins/aws/deployList/tests/index');
+require('../lib/plugins/aws/rollback/tests/rollback');
 
 // Other Tests
 require('./utils/tests');
