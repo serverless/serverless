@@ -56,7 +56,8 @@ functions:
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - dynamodb: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - kinesis: arn:aws:kinesis:region:XXXXXX:stream/foo
 
 # you can add CloudFormation resource templates here
 #resources:
