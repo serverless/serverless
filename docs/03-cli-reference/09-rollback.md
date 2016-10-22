@@ -10,7 +10,7 @@ layout: Doc
 Rollback the Serverless service to a specific deployment.
 
 ```bash
-serverless rollback
+serverless rollback --timestamp timestamp
 ```
 
 ## Options
