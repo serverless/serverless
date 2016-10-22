@@ -1,0 +1,13 @@
+service: aws-nodejs
+
+provider: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - schedule: rate(1 minute)
+  world:
+    handler: handler.world
+    events:
+      - schedule: rate(1 minute)

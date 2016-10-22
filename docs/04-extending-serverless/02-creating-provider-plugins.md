@@ -9,6 +9,38 @@ layout: Doc
 Integrating different infrastructure providers happens through the standard plugin system.
 Take a look at the ["building plugins"](./01-creating-plugins.md) documentation to understand how the plugin system works.
 
+## Provider plugins
+
+We'd recommend that you encapsulate provider related utilities into an own plugin and call it `<ProviderName>Provider`.
+You can register this provider plugin in Serverless with the help of the `serverless.setProvider(<providerName>, <pluginInstance>)` function.
+Furthermore your provider plugin needs to provide a static method which returns the providers name.
+
+Here's a simple skeleton which shows this in detail and can be used as a boilerplate to get started:
+
+```javascript
+class MyProvider {
+  static getProviderName() {
+    return 'providerName';
+  }
+
+  constructor(serverless) {
+    this.serverless = serverless;
+    this.sdk = TheProvidersSDK;
+    this.provider = this; // only load plugin in a "providerName" service context
+    this.serverless.setProvider('providerName', this);
+  }
+
+  // this method can be easily re-used by other plugins
+  useSDK(command) {
+    return this.sdk(command);
+  }
+}
+
+module.exports = MyProvider;
+```
+
+After doing this other plugins can simply call `this.serverless.getProvider('providerName')` and access all the methods you've defined in your provider plugin.
+
 ## Provider specific plugins
 
 You can add the providers name inside the constructor of your plugin. This makes it possible to only execute your plugins logic when the Serverless service uses the provider you've specified in your plugin.
@@ -19,7 +51,7 @@ Infrastructure provider plugins should bind to specific lifecycle events of the 
 
 ### Deployment lifecycle
 
-Let's take a look at the [core `deploy` plugin](../../lib/plugins/deploy) and the different lifecycle hooks it provides.
+Let's take a look at the [core `deploy` plugin](https://github.com/serverless/serverless/tree/master/lib/plugins/deploy) and the different lifecycle hooks it provides.
 
 The following lifecycle events are run in order once the user types `serverless deploy` and hits enter:
 
@@ -90,4 +122,4 @@ Here are the steps the AWS plugins take to compile and deploy the service on the
 
 You may also take a closer look at the corresponding plugin code to get a deeper knowledge about what's going on behind the scenes.
 
-The full AWS integration can be found in [`lib/plugins/aws`](../../lib/plugins/aws).
+The full AWS integration can be found in [`lib/plugins/aws`](https://github.com/serverless/serverless/tree/master/lib/plugins/aws).

@@ -18,7 +18,7 @@ serverless logs -f hello
 - `--function` or `-f` The function you want to fetch the logs for. **Required**
 - `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
 - `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
-- `--startTime` A specific unit in time to start fetching logs from (ie: `2010-10-20` or `1469705761`). Here's a list of the supported string formats:
+- `--startTime` A specific unit in time to start fetching logs from (ie: `2010-10-20` or `1469705761`). All absolute dates/datetimes .e.g `2010-10-20` are parsed as UTC. Here's a list of the supported string formats:
 
 ```
 30m                   # since 30 minutes ago

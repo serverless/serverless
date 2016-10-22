@@ -547,7 +547,7 @@ one for method. These two templates will work together to construct your proxy. 
 service: service-name
 provider: aws
 functions:
-  ...
+  …
 
 resources:
   Resources:
@@ -568,7 +568,7 @@ resources:
           Ref: ProxyResource
         RestApiId:
           Ref: ApiGatewayRestApi
-        HttpMethod: GET # the method of your proxy. Is it GET or POST or ... ?
+        HttpMethod: GET # the method of your proxy. Is it GET or POST or … ?
         MethodResponses:
           - StatusCode: 200
         Integration:
