@@ -30,4 +30,7 @@ functions:
       - schedule:
           rate: rate(10 minutes)
           enabled: false
+      - schedule:
+          rate: cron(0 12 * * ? *)
+          enabled: false
 ```
