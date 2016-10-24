@@ -133,6 +133,11 @@ exports.handler = function(event, context, callback) {
 };
 ```
 
+**Note:** When the body is a JSON-Document, you must parse it yourself:
+```
+JSON.parse(event.body);
+```
+
 **Note:** If you want to use CORS with the lambda-proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object.
 
 Take a look at the [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-as-simple-proxy-for-lambda.html)
