@@ -5,7 +5,7 @@ description: Rollback the Serverless service to a specific deployment
 layout: Doc
 -->
 
-# Info
+# Rollback
 
 Rollback the Serverless service to a specific deployment.
 
