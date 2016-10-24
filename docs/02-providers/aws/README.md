@@ -80,8 +80,7 @@ functions:
 * [S3](./events/02-s3.md)
 * [Schedule](./events/03-schedule.md)
 * [SNS](./events/04-sns.md)
-* [Kinesis Streams](./events/05-kinesis-streams.md)
-* [Dynamodb Streams](./events/06-dynamodb-streams.md)
+* [DynamoDB / Kinesis Streams](./events/05-streams.md)
 
 ## Examples
 
