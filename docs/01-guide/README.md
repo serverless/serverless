@@ -10,7 +10,7 @@ This guide will help you build your Serverless services. We'll start by giving y
 
 At the end we'll add custom provider resources to our service and remove it.
 
-We always try to make our documentation better, so if you have feedback on the Guide please let us know in [our Forum](http://forum.serverless.com) or [open an Issue in our Github repository](https://github.com/serverless/serverless/issues/new)
+We always try to make our documentation better, so if you have feedback on the Guide please let us know in [our Forum](http://forum.serverless.com) or [open an Issue in our GitHub repository](https://github.com/serverless/serverless/issues/new)
 
 ## Getting started
 
