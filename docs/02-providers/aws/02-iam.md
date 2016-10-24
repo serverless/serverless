@@ -41,3 +41,15 @@ provider:
   name: aws
   iamRoleARN: arn:aws:iam::YourAccountNumber:role/YourIamRole
 ```
+
+# Explicitly creating LogGroups Resources
+By default, the framework does not create LogGroups for your Lambdas. However this behavior will be deprecated soon and we'll be adding CloudFormation LogGroups resources as part of the stack. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
+
+To opt in for this feature now to avoid breaking changes later, add the following to your provider config in `serverless.yml`:
+
+```yml
+provider:
+  cfLogs: true
+```
+If you get a CloudFormation error saying that log group already exists, you have to remove it first from AWS console, then deploy, otherwise for new services this should work out of the box.
+
