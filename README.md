@@ -12,7 +12,7 @@
 
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run.  This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
-The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
+The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command-line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
 Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
@@ -109,7 +109,7 @@ The following are services you can instantly install and use by running `serverl
 
 Use these plugins to overwrite or extend the Framework's functionality…
 
-* [serverless-offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and Api Gateway locally to speed up your development cycles.
+* [serverless-offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and API Gateway locally to speed up your development cycles.
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
 * [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
