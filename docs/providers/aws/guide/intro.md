@@ -16,7 +16,7 @@ The Serverless Framework helps you develop and deploy your AWS Lambda functions,
 
 A few things the Serverless Framework does differently than a normal application Framework are:
 * It manages your code as well as your infrastructure
-* It supports multiple lannguages (Node.js, Python, Java, and more)
+* It supports multiple languages (Node.js, Python, Java, and more)
 
 Here are the Framework's main concepts and how they pertain to AWS and Lambda...
 
@@ -24,17 +24,17 @@ Here are the Framework's main concepts and how they pertain to AWS and Lambda...
 
 ### Functions
 
-A Function is an AWS Lambda function.  It's an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job, like:
+A Function is an AWS Lambda function.  It's an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
 
 * *Saving a user to the database*
 * *Processing a file in a database*
 * *Performing a scheduled task*
 
-You can perform multiple jobs in your code, but we don't recommend it without good reason.  Separation of concerns is best, and the Framework is designed to helpy you easily develop and deploy Functions, and lots of them.
+You can perform multiple jobs in your code, but we don't recommend doing that without good reason.  Separation of concerns is best and the Framework is designed to help you easily develop and deploy Functions, as well as manage lots of them.
 
 ### Events
 
-Anything that triggers an AWS Lambda Function to execute is regarded by the Framework as an **Event**.  Events are infrastruture events on AWS, like:
+Anything that triggers an AWS Lambda Function to execute is regarded by the Framework as an **Event**.  Events are infrastructure events on AWS such as:
 
 * *An AWS API Gateway HTTP endpoint (e.g., for a REST API)*
 * *An AWS S3 bucket upload (e.g., for an image)*
@@ -47,7 +47,7 @@ When you define an event for your AWS Lambda functions in the Serverless Framewo
 
 ### Resources
 
-**Resources** are AWS infrastructure components which your Functions use, like:
+**Resources** are AWS infrastructure components which your Functions use such as:
 
 * *An AWS DynamoDB Table (e.g., for saving Users/Posts/Comments data)*
 * *An AWS S3 Bucket (e.g., for saving images or files)*
