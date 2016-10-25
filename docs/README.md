@@ -16,7 +16,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/aws/guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws5.jpg" alt="Serverless Framework AWS Lambda Guide" width="250" draggable="false">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws5.jpg" alt="Serverless Framework AWS Lambda Guide" width="250" draggable="false"/>
       </a>
     </div>
     <div class="test">
@@ -41,7 +41,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/aws/cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws4.jpg" alt="Serverless Framework AWS Lambda CLI Reference" width="250" draggable="false">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws4.jpg" alt="Serverless Framework AWS Lambda CLI Reference" width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -61,7 +61,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/aws/events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws4.jpg" alt="Serverless Framework AWS Lambda Events"  width="250" draggable="false">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws4.jpg" alt="Serverless Framework AWS Lambda Events"  width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -78,7 +78,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/aws/examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws4.jpg" alt="Serverless Framework AWS Lambda Examples" width="250" draggable="false">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws4.jpg" alt="Serverless Framework AWS Lambdxxxxa Examples" width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -91,4 +91,5 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         </ul>
       </div>
     </div>
+  </div>
 </div>
