@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/events/sns)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/sns)
 <!-- DOCS-SITE-LINK:END -->
 
 # SNS
