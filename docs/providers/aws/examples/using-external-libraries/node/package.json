@@ -1,0 +1,11 @@
+{
+  "name": "hello-world",
+  "description": "Serverless using external libraries example with node",
+  "private": true,
+  "scripts": {
+    "deploy": "serverless deploy"
+  },
+  "dependencies": {
+    "faker": "^3.1.0"
+  }
+}
