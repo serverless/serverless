@@ -93,7 +93,7 @@ functions:
   usersCreate: # A Function
     events: # The Events that trigger this Function
       - http: post users/create
-  usersCreate: # A Function
+  usersDelete: # A Function
     events:  # The Events that trigger this Function
       - http: delete users/delete
 
