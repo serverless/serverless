@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/events/apigateway)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)
 <!-- DOCS-SITE-LINK:END -->
 
 # API Gateway
@@ -333,7 +333,6 @@ functions:
 You can then access the query string `https://example.com/dev/whatever?bar=123` by `event.foo` in the lambda function.
 If you want to spread a string into multiple lines, you can use the `>` or `|` syntax, but the following strings have to be all indented with the same amount, [read more about `>` syntax](http://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines).
 
-
 #### Pass Through Behavior
 API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates.  When this happens, the request payload will either be passed through the integration request *without transformation* or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
 
@@ -502,7 +501,6 @@ functions:
 ```
 
 ## Enabling CORS with the Lambda Integration Method
-
 
 ```yml
 functions:

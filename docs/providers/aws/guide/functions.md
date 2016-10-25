@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/guide/functions)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/functions)
 <!-- DOCS-SITE-LINK:END -->
 
 # Functions

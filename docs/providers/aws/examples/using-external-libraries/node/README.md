@@ -6,7 +6,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/docs/providers/aws/examples/using-external-libraries/node/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/using-external-libraries/node/)
 <!-- DOCS-SITE-LINK:END -->
 
 # Using External libraries in Node
