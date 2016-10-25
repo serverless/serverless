@@ -44,6 +44,7 @@ require('../lib/plugins/aws/deploy/compile/events/stream/tests');
 require('../lib/plugins/aws/deployFunction/tests/index');
 require('../lib/plugins/aws/deployList/tests/index');
 require('../lib/plugins/aws/rollback/tests/rollback');
+require('../lib/plugins/aws/invokeLocal/tests');
 
 // Other Tests
 require('./utils/tests');
