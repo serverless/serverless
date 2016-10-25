@@ -12,7 +12,7 @@ layout: Doc
 
 # Services
 
-A *Service* is like a Project.  It's where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all defined in a file called `serverless.yml`.
+A *Service* is like a Project.  It's where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all in a file called `serverless.yml`.
 
 To get started building your first Serverless Framework project, create a *Service*.
 
@@ -29,19 +29,19 @@ However, as your application grows, you can break it out into multiple services.
 
 ```bash
 users/
-  serverless.yml  # Contains 4 functions that that do Users CRUD operations and the Users database
+  serverless.yml  # Contains 4 functions that do Users CRUD operations and the Users database
 posts/
-  serverless.yml # Contains 4 functions that that do Posts CRUD operations and the Posts database
+  serverless.yml # Contains 4 functions that do Posts CRUD operations and the Posts database
 comments/
-  serverless.yml # Contains 4 functions that that do Comments CRUD operations and the Comments database
+  serverless.yml # Contains 4 functions that do Comments CRUD operations and the Comments database
 ```
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
-**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have use a custom domain per one REST API.  If you plan on making a large REST API, please make not of this limitation.  Also, a fix is in the works and is a top priority.
+**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have a custom domain per one REST API.  If you plan on making a large REST API, please make note of this limitation.  Also, a fix is in the works and is a top priority.
 
 ## Creation
 
-To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python, etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
+To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
 
 ```bash
 serverless create --template aws-nodejs --path myService
@@ -68,16 +68,16 @@ You'll see the following files in your working directory:
 
 Each *Serverless service* configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
 
-  - Declares a Serverless service
-  - Defines one or multiple functions in the service
-  - Defines the provider the service will be deployed to (and the runtime if provided)
-  - Defines custom plugins to be used
-  - Defines events that trigger each function to execute (e.g. HTTP requests)
-  - Defines one set of resources (e.g. 1 AWS CloudFormation stack) required by the functions in this service
-  - Events listed in the `events` section may automatically create the resources required for the event upon deployment
-  - Allow flexible configuration using Serverless Variables.
+  - Declare a Serverless service
+  - Define one or multiple functions in the service
+  - Define the provider the service will be deployed to (and the runtime if provided)
+  - Define custom plugins to be used
+  - Define events that trigger each function to execute (e.g. HTTP requests)
+  - Define a set of resources (e.g. 1 AWS CloudFormation stack) required by the functions in this service
+  - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
+  - Allow flexible configuration using Serverless Variables
 
-You can see the name of our service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
+You can see the name of the service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
 
 ```yml
 # serverless.yml
@@ -93,7 +93,7 @@ functions:
   usersCreate: # A Function
     events: # The Events that trigger this Function
       - http: post users/create
-  usersCreate: # A Function
+  usersDelete: # A Function
     events:  # The Events that trigger this Function
       - http: delete users/delete
 
@@ -119,7 +119,7 @@ Every `serverless.yml` translates to a single AWS CloudFormation template and a 
 
 ### handler.js
 
-The `handler.js` file contains your function code. The function definition in `serverless.yml` will point to this `handler.js` file and the function inside of it.
+The `handler.js` file contains your function code. The function definition in `serverless.yml` will point to this `handler.js` file and the function exported here.
 
 ### event.json
 
