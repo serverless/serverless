@@ -31,6 +31,21 @@ Default is `false`.
 ## Provided lifecycle events
 - `invoke:invoke`
 
+
+# Invoke Local
+
+Invokes a function locally for testing and logs the output.
+
+```bash
+serverless invoke local --function functionName
+```
+
+## Options
+- `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
+- `--path` or `-p` The path to a json file holding input data to be passed to the invoked function. This path is relative to the
+root directory of the service. The json file should have an `event` and `context` properties to hold your mocked event and context data.
+- `--data` or `-d` String data to be passed as an event to your function.
+
 ## Examples
 
 ### AWS
@@ -58,3 +73,11 @@ serverless invoke --function functionName --stage dev --region us-east-1 --path 
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking
 the specified/deployed function.
+
+#### Local function invocation
+
+```bash
+serverless invoke local --function functionName
+```
+
+This example will locally invoke your function.
