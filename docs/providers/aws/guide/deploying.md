@@ -80,4 +80,4 @@ serverless deploy function --function myFunction
 * Use this when you are developing and want to test on AWS because it's much faster.
 * During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
 
-Check out the [deploy command docs](../cli-reference/deploy) for all details and options.
+Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
