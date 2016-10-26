@@ -20,6 +20,7 @@ require('../lib/plugins/logs/tests/logs');
 require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/package/tests/all');
 require('../lib/plugins/slstats/tests/slstats');
+require('../lib/plugins/rollback/tests/rollback');
 
 // AWS Plugins Tests
 require('../lib/plugins/aws/provider/awsProvider.test');
@@ -28,6 +29,7 @@ require('../lib/plugins/aws/tests/monitorStack');
 require('../lib/plugins/aws/tests/setBucketName');
 require('../lib/plugins/aws/tests/findAndGroupDeployments');
 require('../lib/plugins/aws/tests/getS3ObjectsFromStacks');
+require('../lib/plugins/aws/tests/updateStack');
 require('../lib/plugins/aws/info/tests');
 require('../lib/plugins/aws/invoke/tests');
 require('../lib/plugins/aws/logs/tests');
@@ -41,6 +43,7 @@ require('../lib/plugins/aws/deploy/compile/events/sns/tests');
 require('../lib/plugins/aws/deploy/compile/events/stream/tests');
 require('../lib/plugins/aws/deployFunction/tests/index');
 require('../lib/plugins/aws/deployList/tests/index');
+require('../lib/plugins/aws/rollback/tests/rollback');
 
 // Other Tests
 require('./utils/tests');
