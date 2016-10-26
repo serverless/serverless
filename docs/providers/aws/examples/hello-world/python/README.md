@@ -11,4 +11,4 @@ layout: Doc
 
 # Hello World in Python
 
-[See installation guide](/docs/01-guide/01-installing-serverless.md)
+[See installation guide](/framework/docs/providers/aws/guide/installation/)
