@@ -48,20 +48,20 @@ resources:  // CloudFormation template syntax
 
 You can overwrite/attach any kind of resource to your CloudFormation stack. You can add `Resources`, `Outputs` or even overwrite the `Description`. You can also use [Serverless Variables](./variables.md) for sensitive data or reusable configuration in your resources templates.  Please be cautious as overwriting existing parts of your CloudFormation stack might introduce unexpected behavior.
 
-# Cloudformation Resource Reference
+## AWS CloudFormation Resource Reference
 
-To have consistent naming in the Cloudformation Templates that get deployed we've defined a standard name:
+To have consistent naming in the Cloudformation Templates that get deployed we use a standard pattern:
 
 `{Function Name}{Cloud Formation Resource Type}{ResourceName}{SequentialID or Random String}`
 
-* `Function Name` this is optional for Resources that should be recreated when the function name gets changed. Those resources are also called *function bound*
-* `Cloud Formation Resource Type` e.g. S3Bucket
-* `Resource Name` an identifier for the specific resource, e.g. for an S3 Bucket the configured bucket name.
-* `SequentialID or Random String` For a few resources we need to add an optional sequential id or random string to identify them
+* `Function Name` - This is optional for Resources that should be recreated when the function name gets changed. Those resources are also called *function bound*
+* `Cloud Formation Resource Type` - E.g., S3Bucket
+* `Resource Name` - An identifier for the specific resource, e.g. for an S3 Bucket the configured bucket name.
+* `SequentialID or Random String` - For a few resources we need to add an optional sequential id or random string to identify them
 
 All resource names that are deployed by Serverless have to follow this naming scheme. The only exception (for backwards compatibility reasons) is the S3 Bucket that is used to upload artifacts so they can be deployed to your function.
 
-We're also using the term `normalizedName` or similar terms in this guide. This basically just means dropping any characters that aren't allowed in resources names, e.g. special characters.
+We're also using the term `normalizedName` or similar terms in this guide. This means dropping any characters that aren't allowed in resources names, e.g. special characters.
 
 | AWS Resource          |  Name Template                                          | Example                       |
 |---                    |---                                                      | ---                           |
@@ -69,10 +69,10 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |IAM::Role              | IamRoleLambdaExecution                                  | IamRoleLambdaExecution        |
 |IAM::Policy            | IamPolicyLambdaExecution                                | IamPolicyLambdaExecution      |
 |Lambda::Function       | {normalizedFunctionName}LambdaFunction                  | HelloLambdaFunction           |
-|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermissionS3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}</li></ul> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1 </li><li>**S3**: HelloLambdaPermissionS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionSometopic</li></ul> |
+|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermissionS3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}</li> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1 </li><li>**S3**: HelloLambdaPermissionS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionSometopic</li> |
 |Events::Rule           | {normalizedFuntionName}EventsRuleSchedule{SequentialID} | HelloEventsRuleSchedule1      |
 |ApiGateway::RestApi    | ApiGatewayRestApi                                       | ApiGatewayRestApi             |
-|ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | <ul><li>ApiGatewayResourceUsers</li><li>ApiGatewayResourceUsers**Var** for paths containing a variable</li><li>ApiGatewayResource**Dash** if the path is just a `-`</li></ul>       |
+|ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | ApiGatewayResourceUsers       |
 |ApiGateway::Method     | ApiGatewayResource{normalizedPath}{normalizedMethod}    | ApiGatewayResourceUsersGet    |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
 |ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
