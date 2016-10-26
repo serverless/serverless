@@ -12,7 +12,7 @@ layout: Doc
 
 # Serverless Statistics
 
-This plugin implements a way to toggle [framework statistics](../framework-statistics.md).
+This plugin implements a way to toggle framework statistics.
 
 ```bash
 serverless slstats --enable
