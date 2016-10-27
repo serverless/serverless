@@ -10,10 +10,11 @@ layout: Doc
 
 # Serverless AWS Lambda Examples
 
-Welcome to the Serverless Amazon Web Services Examples!  Please select an example below:
+Welcome to the Serverless Amazon Web Services Examples! Please select an example below:
 
-* [Hello World]()
-* [Using External Libraries]()
-* [Web API]()
+* [Hello World](./hello-world)
+* [Using External Libraries](./using-external-libraries)
+* [Cron](./cron)
+* [Serving HTML page](./web-serving-html)
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
