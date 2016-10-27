@@ -52,7 +52,7 @@ functions:
 
 ## Types
 
-The Serverless Framework supports all of the AWS Lambda events and more.  Instead of listing them here, we've put them in a seprate section, since they have a lot of configurations and functionality.  [Check out the events section for more information.](../events)
+The Serverless Framework supports all of the AWS Lambda events and more.  Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality.  [Check out the events section for more information.](../events)
 
 ## Deploying
 
