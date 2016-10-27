@@ -11,8 +11,10 @@ layout: Doc
 
 # Using External Libraries Examples
 
-When creating serverless services you are able to use third party packages from your respective ecosystems package manager.
+When creating Serverless services you are able to use third party packages from your respective ecosystems package manager. Examples:
 
-For node.js you can leverage the vast ecosystem of NPM and `require` in modules into your project.
+* [JavaScript](./node)
 
-For Python you can use the pip package manager
+For Node.js you can leverage the vast ecosystem of NPM and `require` in modules into your project.
+
+For Python you can use the `pip` package manager.
