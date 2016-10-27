@@ -15,7 +15,6 @@ Welcome to the Serverless Amazon Web Services Examples! Please select an example
 * [Hello World](./hello-world)
 * [Using External Libraries](./using-external-libraries)
 * [Cron](./cron)
-* [Web API](./web-api)
 * [Serving HTML page](./web-serving-html)
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
