@@ -8,7 +8,7 @@ function integration-test {
   $DIR/integration-test-template $@
 }
 
-integration-test aws-java-gradle build
+integration-test aws-java-gradle ./gradlew build
 integration-test aws-java-maven mvn package
 integration-test aws-scala-sbt sbt assembly
 integration-test aws-nodejs

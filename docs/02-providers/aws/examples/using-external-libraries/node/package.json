@@ -1,8 +1,0 @@
-{
-  "name": "external-library",
-  "description": "Serverless using external libraries example with Node.js",
-  "private": true,
-  "dependencies": {
-    "faker": "^3.1.0"
-  }
-}
