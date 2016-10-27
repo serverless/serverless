@@ -1,3 +1,4 @@
+
 <!--
 title: Serverless Framework - AWS Lambda Guide - Comparison Of Serverless Framework V.1 & V.0
 menuText: V.0 & V.1
@@ -26,7 +27,7 @@ As 1.x is a complete reimplementation without backwards compatibility pretty muc
 
 ### Central configuration file
 
-In the past configuration was spread out over several configuration files. It was hard for users to have a good overview over all the different configuration values set for different functions. This was now moved into a central [serverless.yml file](./01-guide/12-serverless-yml-reference.md) that stores all configuration for one service. This also means there is no specific folder setup that you have to follow any more. By default Serverless simply zips up the folder your serverless.yml is in and deploys it to any functions defined in that config file (although you can [change the packaging behavior](./01-guide/10-packaging.md)).
+In the past configuration was spread out over several configuration files. It was hard for users to have a good overview over all the different configuration values set for different functions. This was now moved into a central serverless.yml file that stores all configuration for one service. This also means there is no specific folder setup that you have to follow any more. By default Serverless simply zips up the folder your serverless.yml is in and deploys it to any functions defined in that config file (although you can [change the packaging behavior](https://serverless.com/framework/docs/providers/aws/guide/packaging/)).
 
 ### Services are the main unit of deployment
 
@@ -34,16 +35,16 @@ In the past Serverless didn't create a strong connection between functions that 
 
 ### Built on CloudFormation
 
-With the move to a more service oriented style came the decision to move all configuration into CloudFormation. Every resource we create gets created through a central CloudFormation template. Each service gets its own CloudFormation stack, we even deploy new CF stacks if you create a service in a different stage. A very important feature that came with this move to CF was that you can now easily create any other kind of resource in AWS and connect it with your functions. You can read more about custom resources in [our guide](./01-guide/06-custom-provider-resources.md)
+With the move to a more service oriented style came the decision to move all configuration into CloudFormation. Every resource we create gets created through a central CloudFormation template. Each service gets its own CloudFormation stack, we even deploy new CF stacks if you create a service in a different stage. A very important feature that came with this move to CF was that you can now easily create any other kind of resource in AWS and connect it with your functions. You can read more about resources in [our guide](https://serverless.com/framework/docs/providers/aws/guide/resources/)
 
 ### New plugin system
 
-While our old plugin system allowed for a powerful setup we felt we could push it a lot further and went back to the drawing board. We came up with a completely new way to build plugins for Serverless through hooks and lifecycle events. This is a breaking change for any existing plugin. You can read more about our Plugin system in our [extending serverless docs](./04-extending-serverless).
+While our old plugin system allowed for a powerful setup we felt we could push it a lot further and went back to the drawing board. We came up with a completely new way to build plugins for Serverless through hooks and lifecycle events. This is a breaking change for any existing plugin. You can read more about our Plugin system in our [extending serverless docs](https://serverless.com/framework/docs/providers/aws/guide/plugins/).
 
 ### Endpoints are now events
 
-In 0.x APIG was treated as a separate resource and you could deploy endpoints separately. In 1.x APIG is just another event source that can be configured to trigger Lambda functions. We create one APIG per CloudFormation stack, so if you deploy to different stages we're creating separate API Gateways. You can read all about our [APIG integration in our event docs](./02-providers/aws/events/01-apigateway.md).
+In 0.x APIG was treated as a separate resource and you could deploy endpoints separately. In 1.x APIG is just another event source that can be configured to trigger Lambda functions. We create one APIG per CloudFormation stack, so if you deploy to different stages we're creating separate API Gateways. You can read all about our [APIG integration in our event docs](https://serverless.com/framework/docs/providers/aws/events/apigateway/).
 
 ## How to upgrade from 0.x to 1.x
 
-As Serverless 1.x is a complete reimplementation and does not implement all the features that were in 0.x (but has a lot more features in general) there is no direct update path. Basically the best way for users to move from 0.x to 1.x is to go through [our guide](./01-guide) and the [AWS provider documentation](./02-providers/aws) that will teach you all the details of Serverless 1.x. This should make it pretty easy to understand how to set up a service for 1.x and move your code over. We've worked with different teams during the Beta phase of Serverless 1.x and they were able to move their services into the new release pretty quickly.
+As Serverless 1.x is a complete reimplementation and does not implement all the features that were in 0.x (but has a lot more features in general) there is no direct update path. Basically the best way for users to move from 0.x to 1.x is to go through [our guide](https://serverless.com/framework/docs/providers/aws/guide/) and the [AWS provider documentation](https://serverless.com/framework/docs/providers/aws/) that will teach you all the details of Serverless 1.x. This should make it pretty easy to understand how to set up a service for 1.x and move your code over. We've worked with different teams during the Beta phase of Serverless 1.x and they were able to move their services into the new release pretty quickly.
