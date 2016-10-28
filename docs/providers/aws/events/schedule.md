@@ -36,7 +36,9 @@ functions:
       - schedule:
           rate: rate(10 minutes)
           enabled: false
+          input: '{"key": "value"}'
       - schedule:
           rate: cron(0 12 * * ? *)
           enabled: false
+          inputPath: ''
 ```
