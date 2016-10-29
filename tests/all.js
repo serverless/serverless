@@ -24,6 +24,7 @@ require('../lib/plugins/rollback/tests/rollback');
 
 // AWS Plugins Tests
 require('../lib/plugins/aws/provider/awsProvider.test');
+require('../lib/plugins/aws/tests/naming');
 require('../lib/plugins/aws/tests/validate');
 require('../lib/plugins/aws/tests/monitorStack');
 require('../lib/plugins/aws/tests/setBucketName');
