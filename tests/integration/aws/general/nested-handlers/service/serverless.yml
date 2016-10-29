@@ -1,0 +1,10 @@
+service: aws-nodejs # NOTE: update this with your service name
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  cfLogs: true
+
+functions:
+  hello:
+    handler: deeply/nested/handler.hello

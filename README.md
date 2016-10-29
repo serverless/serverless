@@ -12,7 +12,7 @@
 
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run.  This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
-The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
+The Framework uses new event-driven compute services, like AWS Lambda, Google CloudFunctions, and more.  It's a command-line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
 Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
@@ -35,34 +35,41 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 [Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
-**Install via npm:**
-* `npm install -g serverless`
+* ##### Install via npm:
+  * `npm install -g serverless`
 
-**Set-up your [provider credentials](./docs/02-providers/aws/01-setup.md)**
+* ##### Set-up your [Provider Credentials](./docs/02-providers/aws/01-setup.md)
 
-**Create a service:**
-* `serverless create --template aws-nodejs --path my-service`
-* `cd my-service`
+* ##### Create a Service:
+  * Creates a new Serverless Service/Project
+  * `serverless create --template aws-nodejs --path my-service`
+  * `cd my-service`
 
-**Deploy a service:**
-* `serverless deploy`
+* ##### Or Install a Service:
+  *  This is a convenience method to install a pre-made Serverless Service locally by downloading the Github repo and unzipping it.  Services are listed below.
+  * `serverless install -u [GITHUB URL OF SERVICE]`
 
-**Deploy an individual function, without triggering a CloudFormation stack update (faster):**
-* `serverless deploy function -f myfunction`
+* ##### Deploy a Service:
+  * Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+  * `serverless deploy -v`
 
-**Invoke a function:**
-* `serverless invoke --function hello`
+* ##### Deploy Function:
+  * Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing you to develop faster.
+  * `serverless deploy function -f myfunction`
 
-**Fetch the logs of a function:**
-* `serverless logs --function hello --tail`
+* ##### Invoke a Function:
+  * Invokes an AWS Lambda Function on AWS and returns logs.
+  * `serverless invoke -f hello -l`
 
-**Install an existing service from Github:**
-* `serverless install --url https://github.com/pmuens/serverless-crud`
+* ##### Fetch Function Logs:
+  * Open up a separate tab in your console and stream all logs for a specific Function using this command.
+  * `serverless logs -f hello -t`
 
-**Remove the service and its resources from AWS:**
-* `serverless remove`
+* ##### Remove a Service:
+  * Removes all Functions, Events and Resources from your AWS account.
+  * `serverless remove`
 
-Check out our in-depth [Guide to Serverless](./docs/01-guide/README.md) for more information.
+Check out our in-depth [Serverless Framework Guide](./docs/01-guide/README.md) for more information.
 
 ## <a name="services"></a>Services (V1.0)
 
@@ -81,6 +88,7 @@ The following are services you can instantly install and use by running `serverl
 * [Authorizer](https://github.com/eahefnawy/serverless-authorizer) - Service that uses API Gateway custom authorizers
 * [Thumbnails](https://github.com/eahefnawy/serverless-thumbnails) - Service that takes an image url and returns a 100x100 thumbnail
 * [Boilerplate](https://github.com/eahefnawy/serverless-boilerplate) - Opinionated boilerplate
+* [ES6 + Jest](https://github.com/americansystems/serverless-es6-jest) - ES6 + Jest Boilerplate
 
 **Note**: the `serverless install` command will only work on V1.0 or later.
 
@@ -100,8 +108,9 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="v1-plugins"></a>Plugins (V1.0)
 
-Use these plugins to overwrite or extend the Framework's functionality...
+Use these plugins to overwrite or extend the Framework's functionality…
 
+* [serverless-offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and API Gateway locally to speed up your development cycles.
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
 * [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
@@ -112,6 +121,7 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
 * [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
+* [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args) - Event json passes to your Lambda function in commandline
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
@@ -184,7 +194,6 @@ Serverless Projects are shareable and installable.  You can publish them to npm 
 ## Plugins (v0.5.x)
 Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
 * [Meta Sync](https://github.com/serverless/serverless-meta-sync) - Securely sync your the variables in your project's `_meta/variables` across your team.
-* [Offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and Api Gateway locally to speed up your development cycles.
 * [Hook Scripts](https://github.com/kennu/serverless-plugin-hookscripts) - Easily create shell script hooks that are run whenever Serverless actions are executed.
 * [CORS](https://github.com/joostfarla/serverless-cors-plugin) - Adds support for CORS (Cross-origin resource sharing).
 * [Serve](https://github.com/Nopik/serverless-serve) - Simulate API Gateway locally, so all function calls can be run via localhost.
@@ -204,5 +213,5 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Sentry](https://github.com/arabold/serverless-sentry-plugin) - Automatically send errors and exceptions to [Sentry](https://getsentry.com).
 * [Auto-Prune](https://github.com/arabold/serverless-autoprune-plugin) - Delete old AWS Lambda versions.
 * [Serverless Secrets](https://github.com/trek10inc/serverless-secrets) - Easily encrypt and decrypt secrets in your Serverless projects
-* [Serverless DynamoDB Local](https://github.com/99xt/serverless-dynamodb-local) - Simiulate DynamoDB instance locally.
+* [Serverless DynamoDB Local](https://github.com/99xt/serverless-dynamodb-local) - Simulate DynamoDB instance locally.
 * [Serverless Dependency Install](https://github.com/99xt/serverless-dependency-install) - Manage node, serverless dependencies easily within the project.
