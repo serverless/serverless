@@ -75,7 +75,7 @@ Check out our in-depth [Serverless Framework Guide](./docs/providers/aws/guide/R
 
 The following are services you can instantly install and use by running `serverless install --url <service-github-url>`
 
-* [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service
+* [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
 * [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 * [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
 * [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
