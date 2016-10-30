@@ -38,7 +38,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 * ##### Install via npm:
   * `npm install -g serverless`
 
-* ##### Set-up your [Provider Credentials](./docs/02-providers/aws/01-setup.md)
+* ##### Set-up your [Provider Credentials](./docs/providers/aws/guide/credentials.md)
 
 * ##### Create a Service:
   * Creates a new Serverless Service/Project
@@ -69,7 +69,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
   * Removes all Functions, Events and Resources from your AWS account.
   * `serverless remove`
 
-Check out our in-depth [Serverless Framework Guide](./docs/01-guide/README.md) for more information.
+Check out our in-depth [Serverless Framework Guide](./docs/providers/aws/guide/README.md) for more information.
 
 ## <a name="services"></a>Services (V1.0)
 
