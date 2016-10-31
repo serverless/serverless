@@ -27,6 +27,7 @@ root directory of the service.
 - `--type` or `-t` The type of invocation. Either `RequestResponse`, `Event` or `DryRun`. Default is `RequestResponse`.
 - `--log` or `-l` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation.
 Default is `false`.
+- `--data` or `-d` String data to be passed as an event to your function.
 
 ## Provided lifecycle events
 - `invoke:invoke`
@@ -35,6 +36,8 @@ Default is `false`.
 # Invoke Local
 
 Invokes a function locally for testing and logs the output.
+
+**Note:** You can only invoke Node.js runtime locally at the moment.
 
 ```bash
 serverless invoke local --function functionName
@@ -78,6 +81,25 @@ the specified/deployed function.
 
 ```bash
 serverless invoke local --function functionName
+```
+
+This example will locally invoke your function.
+
+
+#### Local function invocation with event data
+
+You can input test data in `event.json` file inside your service directory:
+```json
+{
+  "foo": bar
+}
+
+```
+
+and then pass it with the command
+
+```bash
+serverless invoke local --function functionName -p event.json
 ```
 
 This example will locally invoke your function.
