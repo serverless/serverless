@@ -1,25 +1,36 @@
 language: node_js
 
-node_js:
-  - '4.4'
-  - '5.11'
-  - '6.2'
-
+matrix:
+  include:
+    - node_js: '4.4'
+    - node_js: '5.11'
+    - node_js: '6.2'
+    - node_js: '6.2'
+      env:
+        - INTEGRATION_TEST=true
+        - INTEGRATION_TEST_SUITE=simple
+        - secure: Ia2nYzOeYvTE6qOP7DBKX3BO7s/U7TXdsvB2nlc3kOPFi//IbTVD0/cLKCAE5XqTzrrliHINSVsFcJNSfjCwmDSRmgoIGrHj5CJkWpkI6FEPageo3mdqFQYEc8CZeAjsPBNaHe6Ewzg0Ev/sjTByLSJYVqokzDCF1QostSxx1Ss6SGt1zjxeP/Hp4yOJn52VAm9IHAKYn7Y62nMAFTaaTPUQHvW0mJj6m2Z8TWyPU+2Bx6mliO65gTPFGs+PdHGwHtmSF/4IcUO504x+HjDuwzW2itomLXZmIOFfGDcFYadKWzVMAfJzoRWOcVKF4jXdMoSCOviWpHGtK35E7K956MTXkroVoWCS7V0knQDovbRZj8c8td8mS4tdprUA+TzgZoHet2atWNtMuTh79rdmwoAO+IAWJegYj62Tdfy3ycESzY+KxSaV8kysG9sR3PRFoWjZerA7MhLZEzQMORXDGjJlgwLaZfYVqjlsGe5p5etFBUTd0WbFgSwOKLoA2U/fm7WzqItkjs3UWaHuvFVvwYixGxjEVmVczS6wa2cdGpHtVD9H7km4fPEzljHqQ26v0P5e8eylgqLF2IB6mL7UqGFrAtrMvAgN/M3gnq4dTs/wq1AJIOxEP7YW7kc0NAldk8vUz6t5GzCPNcuukxAku91Awnh0twxgUywatgJLZPY=
+        - secure: Dgaa5XIsA5Vbw/CYQLUAuVVsDX26C8+f1XYGwsbNmFQKbKvM8iy9lGrHlfrT3jftJkJH6re8tP1RjyZjjzLe25KPk4Tps7grNteCyiIIEDsC2aHhiXHD6zNHsItpxYusaFfyQinFWnK4CAYKWb9ZNIwHIDUIB4vq807QGAhYsnoj1Lg/ajWvtEKBwYjEzDz9OjB91lw7lpCnHtmKKw5A+TNIVGpDDZ/jRBqETsPaePtiXC9UTHZQyM3gFoeVXiJw9KSU/gjIx9REihCaWWPbnuQSeIONGGlVWY9V4DTZIsJr9/uwDcbioeXDD3G1ezGtNPPRSNTtq08QlUtE4mEtKea/+ObpllKZCeZGn6AJhMn+uqMIP95FFlqBB55YzRcLZY+Igi/qm/9LJ9RinAhxRVXiwzeQ+BdVA6jshAAzr+7wklux6lZAa0xGw9pgTv7MI4RP2LJ/LMP1ppFsnv9n/qt93Ax1VEwEu3xHZe3VTYL9tbXOPTZutf6fKjUrW7wSSuy637queESjYnnPKSb1vZcPxjSFlyh+GJvxu/3PurF9aqfiBdiorIBre+pQS4lakLtoft5nsbA+4iYUwrXR58qUPVUqQ7a0A0hedOWlp6g9ixLa6nugUP5aobJzR71T8l/IjqpnY2EEd/iINEb0XfUiZtB5zHaqFWejBtmWwCI=
+    - node_js: '6.2'
+      env:
+        - INTEGRATION_TEST=true
+        - INTEGRATION_TEST_SUITE=complex
+        - secure: Ia2nYzOeYvTE6qOP7DBKX3BO7s/U7TXdsvB2nlc3kOPFi//IbTVD0/cLKCAE5XqTzrrliHINSVsFcJNSfjCwmDSRmgoIGrHj5CJkWpkI6FEPageo3mdqFQYEc8CZeAjsPBNaHe6Ewzg0Ev/sjTByLSJYVqokzDCF1QostSxx1Ss6SGt1zjxeP/Hp4yOJn52VAm9IHAKYn7Y62nMAFTaaTPUQHvW0mJj6m2Z8TWyPU+2Bx6mliO65gTPFGs+PdHGwHtmSF/4IcUO504x+HjDuwzW2itomLXZmIOFfGDcFYadKWzVMAfJzoRWOcVKF4jXdMoSCOviWpHGtK35E7K956MTXkroVoWCS7V0knQDovbRZj8c8td8mS4tdprUA+TzgZoHet2atWNtMuTh79rdmwoAO+IAWJegYj62Tdfy3ycESzY+KxSaV8kysG9sR3PRFoWjZerA7MhLZEzQMORXDGjJlgwLaZfYVqjlsGe5p5etFBUTd0WbFgSwOKLoA2U/fm7WzqItkjs3UWaHuvFVvwYixGxjEVmVczS6wa2cdGpHtVD9H7km4fPEzljHqQ26v0P5e8eylgqLF2IB6mL7UqGFrAtrMvAgN/M3gnq4dTs/wq1AJIOxEP7YW7kc0NAldk8vUz6t5GzCPNcuukxAku91Awnh0twxgUywatgJLZPY=
+        - secure: Dgaa5XIsA5Vbw/CYQLUAuVVsDX26C8+f1XYGwsbNmFQKbKvM8iy9lGrHlfrT3jftJkJH6re8tP1RjyZjjzLe25KPk4Tps7grNteCyiIIEDsC2aHhiXHD6zNHsItpxYusaFfyQinFWnK4CAYKWb9ZNIwHIDUIB4vq807QGAhYsnoj1Lg/ajWvtEKBwYjEzDz9OjB91lw7lpCnHtmKKw5A+TNIVGpDDZ/jRBqETsPaePtiXC9UTHZQyM3gFoeVXiJw9KSU/gjIx9REihCaWWPbnuQSeIONGGlVWY9V4DTZIsJr9/uwDcbioeXDD3G1ezGtNPPRSNTtq08QlUtE4mEtKea/+ObpllKZCeZGn6AJhMn+uqMIP95FFlqBB55YzRcLZY+Igi/qm/9LJ9RinAhxRVXiwzeQ+BdVA6jshAAzr+7wklux6lZAa0xGw9pgTv7MI4RP2LJ/LMP1ppFsnv9n/qt93Ax1VEwEu3xHZe3VTYL9tbXOPTZutf6fKjUrW7wSSuy637queESjYnnPKSb1vZcPxjSFlyh+GJvxu/3PurF9aqfiBdiorIBre+pQS4lakLtoft5nsbA+4iYUwrXR58qUPVUqQ7a0A0hedOWlp6g9ixLa6nugUP5aobJzR71T8l/IjqpnY2EEd/iINEb0XfUiZtB5zHaqFWejBtmWwCI=
+    - node_js: '6.2'
+      env:
+        - DISABLE_TESTS=true
+        - LINTING=true
 sudo: false
 
 install:
   - travis_retry npm install
 
 script:
-  - npm test
-  # Only Run Integration Tests and ESLINT for the first job in the whole build to make the build faster
-  # Only Run Integration Test when an AWS ACCESS KEY ID is available so the build doesn't fail for PR's from forks
-  - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 && ! -z ${AWS_ACCESS_KEY_ID+x} ]]; then npm run integration-test; fi
-  - if [[ "$TRAVIS_JOB_NUMBER" =~ [0-9]+\.1 ]]; then npm run lint; fi
+  - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
+  - if [[ ! -z "$DISABLE_TESTS" && ! -z "$LINTING" && -z "$INTEGRATION_TEST" ]]; then npm run lint; fi
+  - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$INTEGRATION_TEST_SUITE" == "simple" ]]; then npm run simple-integration-test; fi
+  - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$INTEGRATION_TEST_SUITE" == "complex" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then npm run complex-integration-test; fi
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
-env:
-  global:
-  - secure: d/mNhZSYk4y2FcSr88NKic/6n+rhONDRNzt6qLMBQ1tQ8YZ0ktzd54X/j7YMLwIA2/yl4PquJF5kwGyVzIhSl6IjmH/YhSEsQzGPI/1YI/pBoG+O9nocqr1jPnUbNhph9+ICiCUtXzeT6LaSKtV0r70eI9/sdB4aKko1I9m+o6tfZPfBiKhDYnvihbOI+yg1rqaWOeDNfWuv7aatsSmqOjScpKYSOAg/aB0ireotc9nFLb3ju2b+fNyzkg3eunFKuZh5pdSm5Zt5QE3nJHKe7rBzx8YkddeJIjiUaaIdW2hIp1PcePc6wOqaZA/lxgfoyLPn8MrcB57ifPeV8M7OW+VhL76beZfgxPB/sVQwpanCl9gyBdge1elep0ZGHWm7X2Y2WhredISxBTkbvBxepKXC6ZyXNW8K3XVEPVp+zwixHDST5E6AHlC0Kzn6QadZEuFoBkSylz+pYedGEGMTakS4jYidcvG+/4TC2Z9ByiDNumA3ooKsjcZyfoPD40IaB/qzZxBDt9rETKvzby1vgGiMvw7stZ0QWwbmeNshAcHGL/Md/oQDQtTMae0rgLjVjc56FQRzfoEDQYlczl/aGk8CPOjFsq9CcS3CdhhlgjTvnGyPtRZBe4djR6pt980SD4H/R8ELxK9uzWWxQ1SvEZYyTCHCjgwZkNstUwH+LIM=
-  - secure: AjvCD8P7YbGeatnTrdUpPS5ckHquVLkkL8CFFHZvIJPpWDFrZL5srJZ7iRiUjfHxIf35BKqMjmM03zLD/hYYd0erslVmKwzo56ESvcEG30cgai4LIh6dO3XaqAK4oTdwSMbW6HTIbg1zr8sXdsGVTvA0UrHHbd2HYLPffxA40T6hcsYko+3qHeO1ZXlfB6IP7mi4nD0VA04GMEFNBC+LenvP6UbDSh3nWwMb4WSCstgy48fKRddsiAZLZr4+4alNTcfwHS3aPjbU/aYH7GcG4uy/T/Lcd8DWVdiUv/a/wXJZPdqULF3Gh7dnnQJFDfXheSSq+MjqRM1/by7WzoltuRwzXGrzj+qyVlxHIt0sb8WNscdeVga7jgddyXFf9awz09vOv8pxDQuPYRhSExJ0SIbmX3DpOTwiWF71VcH/Oqjn7a42D1ItqmUbj9GOycu7Izlnw0iPrRFJ5NyXwL4KegEJtTOXRSQ4f/jeQhNG/RUnUDmarku5LMN2XFcVb/Y2FAAc6NHfdUsOiJfYx060RPDQTVbZ8JfAhM7ZLUl9a0HL0Xa/aADysYQ3eN39E4CJaoxh0VkNkRjG1v6WKYEvjFCke7uHhRFfe/K7qCzbtExBj/wzokB+zGR9V0deXVD/dShN78HpVeq88mivml9KKtqzwQAj2IBQEb38M6Mdkg4=

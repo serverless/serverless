@@ -8,18 +8,22 @@
     "./info/info.js",
     "./logs/logs.js",
     "./remove/remove.js",
-    "./tracking/tracking.js",
+    "./rollback/index.js",
+    "./slstats/slstats.js",
+    "./aws/provider/awsProvider.js",
     "./aws/deploy/index.js",
     "./aws/invoke/index.js",
     "./aws/info/index.js",
     "./aws/logs/index.js",
     "./aws/remove/index.js",
+    "./aws/rollback/index.js",
     "./aws/deploy/compile/functions/index.js",
     "./aws/deploy/compile/events/schedule/index.js",
     "./aws/deploy/compile/events/s3/index.js",
     "./aws/deploy/compile/events/apiGateway/index.js",
     "./aws/deploy/compile/events/sns/index.js",
     "./aws/deploy/compile/events/stream/index.js",
-    "./aws/deployFunction/index.js"
+    "./aws/deployFunction/index.js",
+    "./aws/deployList/index.js"
   ]
 }

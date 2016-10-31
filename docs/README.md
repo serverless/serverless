@@ -4,63 +4,92 @@ menuText: Docs
 layout: Doc
 -->
 
-# Serverless Documentation
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/)
+<!-- DOCS-SITE-LINK:END -->
 
-Welcome to the Serverless documentation.
+# Documentation
 
-- [Quick Start Guide](./01-guide/)
-- [Core Concepts](#concepts)
-- [CLI Reference](./03-cli-reference/)
-- [Providers](#providers)
-- [Extending Serverless](./04-extending-serverless/)
-- [Contributing to Serverless](#contributing)
+The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud.  We currently support Amazon Web Service's Lambda, and are expanding to support other cloud providers.
 
-## Providers
-- [AWS Integration Docs](./02-providers/aws/)
+<div class="docsSections">
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/aws/guide/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_aws5.jpg" alt="Serverless Framework AWS Lambda Guide" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div class="test">
+      <ul>
+        <li><a href="./providers/aws/guide/intro.md">Intro</a></li>
+        <li><a href="./providers/aws/guide/installation.md">Installation</a></li>
+        <li><a href="./providers/aws/guide/credentials.md">Credentials</a></li>
+        <li><a href="./providers/aws/guide/services.md">Services</a></li>
+        <li><a href="./providers/aws/guide/functions.md">Functions</a></li>
+        <li><a href="./providers/aws/guide/events.md">Events</a></li>
+        <li><a href="./providers/aws/guide/resources.md">Resources</a></li>
+        <li><a href="./providers/aws/guide/deploying.md">Deploying</a></li>
+        <li><a href="./providers/aws/guide/testing.md">Testing</a></li>
+        <li><a href="./providers/aws/guide/variables.md">Variables</a></li>
+        <li><a href="./providers/aws/guide/packaging.md">Packaging</a></li>
+        <li><a href="./providers/aws/guide/plugins.md">Plugins</a></li>
+        <li><a href="./providers/aws/guide/workflow.md">Workflow</a></li>
+      </ul>
+    </div>
+  </div>
 
-## Concepts
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/aws/cli-reference/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_clireference_aws4.jpg" alt="Serverless Framework AWS Lambda CLI Reference" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
+        <li><a href="./providers/aws/cli-reference/install.md">Install</a></li>
+        <li><a href="./providers/aws/cli-reference/deploy.md">Deploy</a></li>
+        <li><a href="./providers/aws/cli-reference/invoke.md">Invoke</a></li>
+        <li><a href="./providers/aws/cli-reference/logs.md">Logs</a></li>
+        <li><a href="./providers/aws/cli-reference/info.md">Info</a></li>
+        <li><a href="./providers/aws/cli-reference/remove.md">Remove</a></li>
+        <li><a href="./providers/aws/cli-reference/slstats.md">Serverless Stats</a></li>
+      </ul>
+    </div>
+  </div>
 
-Before we begin, let's run through some of the main concepts behind serverless.
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/aws/events/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_aws4.jpg" alt="Serverless Framework AWS Lambda Events"  width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/aws/events/apigateway.md">API Gateway</a></li>
+        <li><a href="./providers/aws/events/streams.md">Streams</a></li>
+        <li><a href="./providers/aws/events/s3.md">S3</a></li>
+        <li><a href="./providers/aws/events/schedule.md">Schedule</a></li>
+        <li><a href="./providers/aws/events/sns.md">SNS</a></li>
+      </ul>
+    </div>
+  </div>
 
-* [Functions](#functions)
-* [Events](#events)
-* [Resources](#resources)
-* [Services](#services)
-* [Plugins](#plugins)
-
-### Functions
-
-Functions are the essential part for any serverless infrastructure. Several functions together form a service. A service typically solves one particular problem in your infrastructure.
-
-### Events
-
-Serverless is used to build event driven architecture. Basically everything which can trigger a function is an event.
-
-Events could be HTTP requests, events fired from a cloud storage (like a S3 bucket), scheduled events, etc.
-
-- [AWS Events](./02-providers/aws/events/)
-
-### Resources
-
-Resources are the different pieces that comprise your infrastructure like databases, storage buckets, API Gateways or other resources your provider lets you configure.
-
-### Services
-
-A *Serverless service* is a group of one or multiple functions and any resources they require. By grouping related functions together, it's easier to share code and resources between those functions. Services are also designed to be completely independent, which helps teams develop more quickly without waiting for others.
-
-### Plugins
-
-Here you can read how to develop your own Serverless plugins. We'll get into details on how to write custom plugins to extend the functionality of Serverless. Furthermore we'll look into the way how you can use your plugin knowledge to integrate your own provider into the Serverless framework.
-
-- [Building plugins](./04-extending-serverless/)
-
-Connect with the community on [gitter](https://gitter.im/serverless/serverless) or in the [Forum](http://forum.serverless.com)
-
-## Contributing
-We love our contributors! Please read our [Contributing Document](../CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
-
-Check out our [help-wanted](https://github.com/serverless/serverless/labels/help-wanted) or [help-wanted-easy](https://github.com/serverless/serverless/labels/help-wanted-easy) labels to find issues we want to move forward on with your help.
-
-## Usage Tracking
-
-[Anonymous Usage Tracking](./usage-tracking.md)
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/aws/examples/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_aws4.jpg" alt="Serverless Framework AWS Lambdxxxxa Examples" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <div>
+        <ul>
+          <li><a href="./providers/aws/examples/hello-world">Hello World</a></li>
+          <li><a href="./providers/aws/examples/cron">Cron</a></li>
+          <li><a href="./providers/aws/examples/using-external-libraries">Using External Libraries</a></li>
+          <li><a href="./providers/aws/examples/web-serving-html">Serving HTML page</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

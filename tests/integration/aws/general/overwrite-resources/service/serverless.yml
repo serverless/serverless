@@ -1,0 +1,19 @@
+service: aws-nodejs # NOTE: update this with your service name
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  cfLogs: true
+
+functions:
+  hello:
+    handler: handler.hello
+  world:
+    handler: handler.world
+
+resources:
+  Resources:
+    HelloLambdaFunction:
+      Type: "AWS::Lambda::Function"
+      Properties:
+        Timeout: 10
