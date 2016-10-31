@@ -76,6 +76,7 @@
     "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
     "download": "^5.0.2",
+    "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
     "glob-all": "^3.1.0",
     "https-proxy-agent": "^1.0.0",
