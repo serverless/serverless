@@ -15,7 +15,7 @@ layout: Doc
 Invokes a previously deployed function. It allows to send event data to the function and read logs and display other important information of the function invoke.
 
 ```bash
-serverless invoke --function functionName
+serverless invoke [local] --function functionName
 ```
 
 ## Options
@@ -43,7 +43,7 @@ serverless invoke local --function functionName
 ## Options
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
 - `--path` or `-p` The path to a json file holding input data to be passed to the invoked function. This path is relative to the
-root directory of the service. The json file should have an `event` and `context` properties to hold your mocked event and context data.
+root directory of the service. The json file should have event and context properties to hold your mocked event and context data.
 - `--data` or `-d` String data to be passed as an event to your function.
 
 ## Examples
