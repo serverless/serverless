@@ -112,6 +112,7 @@ Use these plugins to overwrite or extend the Framework's functionality…
 
 * [serverless-offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and API Gateway locally to speed up your development cycles.
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
+* [serverless-plugin-browserify](https://github.com/doapp-ryanp/serverless-plugin-browserify) - Bundle your lambdas with Browserify
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
 * [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
 * [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
