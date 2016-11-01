@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "node": ">=4.0"
   },
@@ -47,9 +47,10 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test": "istanbul cover node_modules/mocha/bin/_mocha tests/all -- -R spec --recursive",
+    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha tests/all -- -R spec --recursive",
     "lint": "eslint .",
-    "integration-test": "mocha tests/integration_test"
+    "simple-integration-test": "mocha tests/integration/simple-integration-test",
+    "complex-integration-test": "mocha tests/integration/all"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -75,8 +76,9 @@
     "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
     "download": "^5.0.2",
+    "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
-    "glob": "^7.0.6",
+    "glob-all": "^3.1.0",
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",

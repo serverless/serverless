@@ -1,0 +1,21 @@
+service: aws-nodejs # NOTE: update this with your service name
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  cfLogs: true
+
+functions:
+  hello:
+    handler: handler.hello
+
+resources:
+  Resources:
+    MyCustomS3Bucket:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: WillBeReplacedBeforeDeployment
+  Outputs:
+    MyCustomOutput:
+      Value: SomeValue
+      Description: Used to test custom outputs

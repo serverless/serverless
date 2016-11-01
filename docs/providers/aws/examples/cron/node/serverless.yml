@@ -1,0 +1,11 @@
+service: cron-example
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+
+functions:
+  cron:
+    handler: handler.run
+    events:
+      - schedule: rate(1 minute)

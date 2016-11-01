@@ -1,0 +1,16 @@
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  cfLogs: true
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - schedule: rate(1 minute)
+  world:
+    handler: handler.world
+    events:
+      - schedule: rate(1 minute)

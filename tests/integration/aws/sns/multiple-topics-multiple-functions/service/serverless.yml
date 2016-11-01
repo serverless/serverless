@@ -1,0 +1,16 @@
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  cfLogs: true
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - sns: ${env:TOPIC_1}
+  world:
+    handler: handler.world
+    events:
+      - sns: ${env:TOPIC_2}
