@@ -8,11 +8,11 @@ layout: Doc
 
 # Why?
 
-The Serverless framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available to your disposal on your entire system. Installing tools globally has the downside that the version can't be pinned inside package.json. This can lead to issues if you upgrade Serverless, but your colleagues or CI system doesn't. Think about you using a new feature in your serverless.yaml which is available only in the latest version, but your CI system not being aware of this feature and therefor can't leverage it.
+The Serverless framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your services. Installing tools globally has the downside that the version can't be pinned inside package.json. This can lead to issues if you upgrade Serverless, but your colleagues or CI system don't. You can now use a new feature in your serverless.yaml which is available only in the latest version without worrying that your CI system will deploy with an old version of Serverless.
 
 ## Pinning a Version
 
-To tackle this issue you optionally can define a `frameworkVersion` property in your serverless.yaml. Whenever you run a Serverless CLI command the tool is checking if your current Serverless version is matching the `frameworkVersion` range. The CLI leverages [Semantic Versioning](http://semver.org/). Therefor you can pin it to an exact version or provide a version range. In general we recommend to pin to an exact version to ensure everybody in your team has the exact same setup.
+To configure version pinning define a `frameworkVersion` property in your serverless.yaml. Whenever you run a Serverless command from the CLI it checks if your current Serverless version is matching the `frameworkVersion` range. The CLI uses [Semantic Versioning](http://semver.org/) so you can pin it to an exact version or provide a range. In general we recommend to pin to an exact version to ensure everybody in your team has the exact same setup and no unexpected problems happen.
 
 ## Examples
 
