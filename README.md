@@ -38,7 +38,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 * ##### Install via npm:
   * `npm install -g serverless`
 
-* ##### Set-up your [Provider Credentials](./docs/02-providers/aws/01-setup.md)
+* ##### Set-up your [Provider Credentials](./docs/providers/aws/guide/credentials.md)
 
 * ##### Create a Service:
   * Creates a new Serverless Service/Project
@@ -69,13 +69,13 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
   * Removes all Functions, Events and Resources from your AWS account.
   * `serverless remove`
 
-Check out our in-depth [Serverless Framework Guide](./docs/01-guide/README.md) for more information.
+Check out our in-depth [Serverless Framework Guide](./docs/providers/aws/guide/README.md) for more information.
 
 ## <a name="services"></a>Services (V1.0)
 
 The following are services you can instantly install and use by running `serverless install --url <service-github-url>`
 
-* [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service
+* [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
 * [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 * [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
 * [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
@@ -112,6 +112,7 @@ Use these plugins to overwrite or extend the Framework's functionality…
 
 * [serverless-offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and API Gateway locally to speed up your development cycles.
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
+* [serverless-plugin-browserify](https://github.com/doapp-ryanp/serverless-plugin-browserify) - Bundle your lambdas with Browserify
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
 * [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
 * [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
@@ -172,6 +173,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [cloudonaut](https://cloudonaut.io/serverless-consulting/)
 * [PromptWorks](https://www.promptworks.com/serverless/)
 * [Craftship](https://craftship.io)
+* [EPX Labs](http://www.epxlabs.com/) - runs [Serverless NYC Meetup](https://www.meetup.com/Serverless-NYC/)
 
 ----
 

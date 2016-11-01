@@ -1,8 +1,7 @@
-
 <!--
 title: Serverless Framework - AWS Lambda Guide - Comparison Of Serverless Framework V.1 & V.0
 menuText: V.0 & V.1
-menuOrder: 14
+menuOrder: 15
 description: A comparison of Serverless Framework V.1 and Serverless Framework V.0
 layout: Doc
 -->
