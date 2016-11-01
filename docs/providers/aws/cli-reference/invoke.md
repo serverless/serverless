@@ -91,7 +91,7 @@ This example will locally invoke your function.
 You can input test data in `event.json` file inside your service directory:
 ```json
 {
-  "foo": bar
+  "foo": "bar"
 }
 
 ```
@@ -99,7 +99,7 @@ You can input test data in `event.json` file inside your service directory:
 and then pass it with the command
 
 ```bash
-serverless invoke local --function functionName -p event.json
+serverless invoke local --function functionName --path event.json
 ```
 
 This example will locally invoke your function.
