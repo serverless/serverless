@@ -29,3 +29,4 @@ require('./aws/sns/multiple-topics-multiple-functions/tests');
 
 // General
 require('./general/custom-plugins/tests');
+require('./general/local-plugins/tests');

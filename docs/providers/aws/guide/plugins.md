@@ -42,6 +42,12 @@ custom:
   customkey: customvalue
 ```
 
+## Service local plugin
+
+If you are working on a plugin or have a plugin that is just designed for one project you can add them to the `.serverless_plugins` directory at the root of your service, and in the `plugins` array in `serverless.yml`.
+
+The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin\index.js` in the root of `.serverless_plugins` folder.
+
 ### Load Order
 
 Keep in mind that the order you define your plugins matters. When Serverless loads all the core plugins and then the custom plugins in the order you've defined them.
