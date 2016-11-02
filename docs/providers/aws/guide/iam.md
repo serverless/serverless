@@ -31,18 +31,22 @@ service: new-service
 provider:
   name: aws
   iamRoleStatements:
-    -  Effect: "Allow"
+    -  Effect: 'Allow'
        Action:
-         - "s3:ListBucket"
-       Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket"} ] ] }
+         - 's3:ListBucket'
+       Resource:
+         Fn::Join:
+           - ''
+           - - 'arn:aws:s3:::'
+           - Ref: ServerlessDeploymentBucket
     -  Effect: "Allow"
        Action:
          - "s3:PutObject"
        Resource:
          Fn::Join:
-           - ""
-           - - "arn:aws:s3:::"
-             - "Ref" : "ServerlessDeploymentBucket"
+           - ''
+           - - 'arn:aws:s3:::'
+             - Ref: ServerlessDeploymentBucket
 ```
 
 On deployment, all these statements will be added to the policy that is applied to the IAM role that is assumed by your Lambda functions.
@@ -65,9 +69,12 @@ service: new-service
 provider:
   name: aws
   # declare one of the following...
-  role: myDefaultRole                                                # must validly reference a role defined in the service
-  role: arn:aws:iam::0123456789:role//my/default/path/myDefaultRole  # must validly reference a role defined in your account
-  role: { 'Fn::GetAtt': ['myDefaultRole', 'Arn'] }                   # must validly resolve to the ARN of a role you have the rights to use
+  role: myDefaultRole                                                  # must validly reference a role defined in the service
+  role: arn:aws:iam::0123456789:role//my/default/path/roleInMyAccount  # must validly reference a role defined in your account
+  role:                                                                # must validly resolve to the ARN of a role you have the rights to use
+    Fn::GetAtt:
+      - myRole
+      - Arn
 
 functions:
   func0: # will assume 'myDefaultRole'
