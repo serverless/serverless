@@ -53,6 +53,9 @@ On deployment, all these statements will be added to the policy that is applied 
 
 ## Custom Role Management
 
+**WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
+That means that `iamRoleStatements` you've defined on the `provider` level won't be applied anymore. Furthermore you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
+
 Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis. To do this you must declare a `role` attribute at the level at which you would like the role to be applied.
 
 Defining it on the provider will make the role referenced by the `role` value the default role for any Lambda without its own `role` declared. This is to say that defining a `role` attribute on individual functions will override any provider level declared role. If every function within your service has a role assigned to it (either via provider level `role` declaration, individual declarations, or a mix of the two) then the default role and policy will not be generated and added to your Cloud Formation Template.
