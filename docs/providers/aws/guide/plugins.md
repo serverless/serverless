@@ -14,8 +14,6 @@ layout: Doc
 
 A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework.  The Serverless Framework is merely a group of Plugins that are provided in the core.  If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs.  External Plugins are written exactly the same way as the core Plugins.
 
-If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs.  External Plugins are written exactly the same way as the core Plugins.
-
 ## Installing Plugins
 
 External Plugins are added on a per service basis and are not applied globally.  Make sure you are in your Service's root directory, then install the corresponding Plugin with the help of NPM:
@@ -43,6 +41,12 @@ plugins:
 custom:
   customkey: customvalue
 ```
+
+## Service local plugin
+
+If you are working on a plugin or have a plugin that is just designed for one project you can add them to the `.serverless_plugins` directory at the root of your service, and in the `plugins` array in `serverless.yml`.
+
+The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin\index.js` in the root of `.serverless_plugins` folder.
 
 ### Load Order
 
