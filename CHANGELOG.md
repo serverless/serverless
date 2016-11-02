@@ -10,7 +10,7 @@ We will include the LogGroup for your Lambda function in the CloudFormation temp
 * [Rollback Support](https://serverless.com/framework/docs/providers/aws/cli-reference/rollback/) (#2495)
 * [Log Groups in Cloudformation](https://serverless.com/framework/docs/providers/aws/guide/functions#log-group-resources) (#2520)
 * [Allow Services without functions](#2499) (#2499)
-* [Clean up Pull Requests only after successful deployment](#2564) (#2564)
+* [Clean up S3 Deployment bucket only after successful deployment](#2564) (#2564)
 * [Allow Inclusion after Exclusion using ! Globs](https://serverless.com/framework/docs/providers/aws/guide/packaging/) (#2266)
 * [Version Pinning for Serverless Services to only deploy with specified versions](https://serverless.com/framework/docs/providers/aws/guide/version/) (#2505)
 * [Invoke local plugin](https://serverless.com/framework/docs/providers/aws/cli-reference/invoke/) (#2533)
@@ -21,6 +21,7 @@ We will include the LogGroup for your Lambda function in the CloudFormation temp
 * Fix variable syntax fallback if the file doesn't exist (#2565)
 * Fix overwriting undefined variables (#2541)
 * Fix CF deployment issue (#2576)
+* Correctly package symlinks (#2266)
 
 ## Other
 * [Large documentation refactoring](https://serverless.com/framework/docs/) (#2527)
