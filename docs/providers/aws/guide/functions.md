@@ -54,6 +54,7 @@ provider:
 functions:
   functionOne:
     handler: handler.functionOne
+    description: optional description for your Lambda
   functionTwo:
     handler: handler.functionTwo
   functionThree:

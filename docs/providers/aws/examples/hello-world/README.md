@@ -1,7 +1,7 @@
 <!--
-title: Serverless Hello World Example
+title: Hello World Example
 menuText: Hello World Example
-description: Example of creating a hello world function in NodeJS and Python with the serverless framework
+description: Example of creating a Hello World function in Node.js and Python with the Serverless framework
 layout: Doc
 -->
 
@@ -11,10 +11,9 @@ layout: Doc
 
 # Hello World Example
 
-Welcome to the hello world serverless example.
+Welcome to the Hello World example.
 
-We are excited for you to start your serverless journey!
+We are excited for you to start your Serverless journey!
 
-* [Javascript](./node)
+* [JavaScript](./node)
 * [Python](./python)
-
