@@ -1,0 +1,12 @@
+#!/bin/bash
+
+last_tag=`git tag | grep "v.*" | sort -n | tail -n 1`
+
+if [ ! -z "$1" ]
+then
+  last_tag=$1
+fi
+
+echo $last_tag
+
+git log --grep "Merge pull request" "$last_tag"..HEAD --pretty=full
