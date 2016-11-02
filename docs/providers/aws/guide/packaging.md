@@ -32,6 +32,14 @@ package:
     - "!node_modules/node-fetch/**"
 ```
 
+Exclude all files but `handler.js`
+
+``` yaml
+package:
+  exclude:
+    - "!src/function/handler.js"
+```
+
 ```
 exclude:
   - tmp/**
