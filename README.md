@@ -217,4 +217,4 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Serverless Secrets](https://github.com/trek10inc/serverless-secrets) - Easily encrypt and decrypt secrets in your Serverless projects
 * [Serverless DynamoDB Local](https://github.com/99xt/serverless-dynamodb-local) - Simulate DynamoDB instance locally.
 * [Serverless Dependency Install](https://github.com/99xt/serverless-dependency-install) - Manage node, serverless dependencies easily within the project.
-* [Serverless Header Function](https://github.com/blackevil245/serverless-header-function) - Automatically run a javascript script on every Serverless action hooks
+* [Serverless Header Function](https://github.com/blackevil245/serverless-header-function) - Automatically run a javascript script on every Serverless action hooks.
