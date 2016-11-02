@@ -1,3 +1,30 @@
+# 1.1.0 (02.11.2016)
+
+* [Github Milestone](https://github.com/serverless/serverless/milestone/15)
+* [Comparison since last release](https://github.com/serverless/serverless/compare/v1.0.3...v1.1.0)
+
+## Future breaking changes
+We will include the LogGroup for your Lambda function in the CloudFormation template in the future. This will break deployments to existing applications because the log group was already created. You will get a warning about this if you deploy currently. We will force this behaviour in a future release, for now you can set it through the `cfLogs: true` parameter in your provider config. This change will also limit the logging rights to only this LogGroup, which should have no impact on your environment. You can read more in [our docs](https://serverless.com/framework/docs/providers/aws/guide/functions#log-group-resources).
+
+## Features
+* [Rollback Support](https://serverless.com/framework/docs/providers/aws/cli-reference/rollback/) (#2495)
+* [Log Groups in Cloudformation](https://serverless.com/framework/docs/providers/aws/guide/functions#log-group-resources) (#2520)
+* [Allow Services without functions](#2499) (#2499)
+* [Clean up Pull Requests only after successful deployment](#2564) (#2564)
+* [Allow Inclusion after Exclusion using ! Globs](https://serverless.com/framework/docs/providers/aws/guide/packaging/) (#2266)
+* [Version Pinning for Serverless Services to only deploy with specified versions](https://serverless.com/framework/docs/providers/aws/guide/version/) (#2505)
+* [Invoke local plugin](https://serverless.com/framework/docs/providers/aws/cli-reference/invoke/) (#2533)
+* [Plugin template](https://serverless.com/framework/docs/providers/aws/cli-reference/create/) (#2581)
+* [Simple Plugins are now installable in subfolder of the service](https://serverless.com/framework/docs/providers/aws/guide/plugins#service-local-plugin) (#2581)
+
+## Bugs
+* Fix variable syntax fallback if the file doesn't exist (#2565)
+* Fix overwriting undefined variables (#2541)
+* Fix CF deployment issue (#2576)
+
+## Other
+* [Large documentation refactoring](https://serverless.com/framework/docs/) (#2527)
+
 # 1.0.3 (21.10.2016)
 
 Following is a selection of features, bug fixes and other changes we did since 1.0.2.
