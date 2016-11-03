@@ -52,6 +52,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/cli-reference/invoke.md">Invoke</a></li>
         <li><a href="./providers/aws/cli-reference/logs.md">Logs</a></li>
         <li><a href="./providers/aws/cli-reference/info.md">Info</a></li>
+        <li><a href="./providers/aws/cli-reference/rollback.md">Rollback</a></li>
         <li><a href="./providers/aws/cli-reference/remove.md">Remove</a></li>
         <li><a href="./providers/aws/cli-reference/slstats.md">Serverless Stats</a></li>
       </ul>

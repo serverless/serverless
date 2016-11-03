@@ -114,6 +114,7 @@ Use these plugins to overwrite or extend the Framework's functionality…
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
 * [serverless-plugin-browserify](https://github.com/doapp-ryanp/serverless-plugin-browserify) - Bundle your lambdas with Browserify
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
+* [serverless-optimizer](https://github.com/FidelLimited/serverless-plugin-optimize) - Bundle with Browserify, transpile with Babel to ES5 and minify with Uglify your Serverless functions.
 * [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
 * [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
 * [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
@@ -217,3 +218,4 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Serverless Secrets](https://github.com/trek10inc/serverless-secrets) - Easily encrypt and decrypt secrets in your Serverless projects
 * [Serverless DynamoDB Local](https://github.com/99xt/serverless-dynamodb-local) - Simulate DynamoDB instance locally.
 * [Serverless Dependency Install](https://github.com/99xt/serverless-dependency-install) - Manage node, serverless dependencies easily within the project.
+* [Serverless Header Function](https://github.com/blackevil245/serverless-header-function) - Automatically run a javascript script on every Serverless action hooks.
