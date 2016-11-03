@@ -33,34 +33,45 @@ Here's an example service you can use to get started.
 in the root of your service and named `index.js` or `function.js` (we recommend `index.js`).
 
 ```yml
-service: my-test-service
+# NOTE: rename the service to something unique before deploying the service
+service: gcloud-service
 
 provider:
   name: google
   runtime: nodejs4.3
 
 functions:
-  hello:
-    handler: helloWorld
+  fist:
+    handler: pubSub
     events:
       - pubSub: someTopicName
-  world:
-    handler: helloGET
+  second:
+    handler: http
     events:
       - http: true
+  third:
+    handler: bucket
+    events:
+      # NOTE: the bucket needs to be available before deploying the service
+      - bucket: my-serverless-test-bucket
 ```
 
 ```javascript
 // index.js
 'use strict';
 
-exports.helloWorld = function helloWorld (context, data) {
-  console.log('My Cloud Function: ' + data.message);
-  context.success();
+exports.pubSub = (event, callback) => {
+  console.log(`PubSub: ${event}`);
+  callback();
 };
 
-exports.helloGET = function helloGET (req, res) {
-  res.send('Hello World!');
+exports.http = (request, response) => {
+  request.send('Hello World!');
+};
+
+exports.bucket = (event, callback) => {
+  console.log(`Bucket: ${event}`);
+  callback();
 };
 ```
 
@@ -71,4 +82,5 @@ Just create this service, `cd` into the directory and run `serverless deploy`.
 1. Deploy the service with `serverless deploy`
 2. Invoke a function with `serverless invoke -f hello`
 3. View the function logs with `serverless logs -f hello`
-4. Remove the service with `serverless remove`
+4. See information about the service with `serverless info`
+5. Remove the service with `serverless remove`
