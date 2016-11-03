@@ -30,6 +30,7 @@
     "./google/deploy/googleDeploy.js",
     "./google/remove/googleRemove.js",
     "./google/invoke/googleInvoke.js",
-    "./google/logs/googleLogs.js"
+    "./google/logs/googleLogs.js",
+    "./google/info/googleInfo.js"
   ]
 }
