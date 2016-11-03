@@ -43,7 +43,7 @@ provider:
 # you can add packaging information here
 #package:
 #  exclude:
-#    - exclude-me.js
+#    - exclude-me.py
 #  artifact: my-service-code.zip
 
 functions:
