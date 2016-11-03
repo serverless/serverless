@@ -60,18 +60,20 @@ functions:
 // index.js
 'use strict';
 
-exports.pubSub = (event, callback) => {
-  console.log(`PubSub: ${event}`);
-  callback();
+exports.pubSub = (context, data) => {
+  console.log('Hello from a "pubSub" event');
+  console.log(data);
+  context.success();
 };
 
 exports.http = (request, response) => {
-  request.send('Hello World!');
+  response.status(200).send('Hello World!');
 };
 
-exports.bucket = (event, callback) => {
-  console.log(`Bucket: ${event}`);
-  callback();
+exports.bucket = (context, data) => {
+  console.log('Hello from a "bucket" event');
+  console.log(data);
+  context.success();
 };
 ```
 
