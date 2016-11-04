@@ -133,6 +133,8 @@ Here's an example service you can use to get started.
 **NOTE:** The file with your function handlers (the functions you export) must be
 in the root of your service and named `index.js` or `function.js` (we recommend `index.js`).
 
+### `serverless.yml`
+
 ```yml
 # NOTE: rename the service to something unique before deploying the service
 service: gcloud-service
@@ -156,6 +158,8 @@ functions:
   #  events:
   #    - bucket: my-serverless-test-bucket
 ```
+
+### `index.js`
 
 ```javascript
 // index.js
