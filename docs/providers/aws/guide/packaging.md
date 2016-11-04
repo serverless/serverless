@@ -29,29 +29,35 @@ Exclude all node_modules but then re-include a specific modules (in this case no
 package:
   exclude:
     - node_modules/**
-    - "!node_modules/node-fetch/**"
+    - '!node_modules/node-fetch/**'
+```
+
+Exclude all files but `handler.js`
+
+``` yaml
+package:
+  exclude:
+    - "!src/function/handler.js"
 ```
 
 ```
 exclude:
   - tmp/**
-  - .git
+  - .git/**
 ```
 
 ## Artifact
-For complete control over the packaging process you can specify your own zip file for your service. Serverless won't zip your service if this is configured so `include` and `exclude` will be ignored.
+
+For complete control over the packaging process you can specify your own zip file for your service. Serverless won't zip your service if this is configured so `exclude` will be ignored.
 
 ## Example
 
 ```yaml
 service: my-service
 package:
-  include:
-    - lib
-    - functions
   exclude:
-    - tmp
-    - .git
+    - tmp/**
+    - .git/**
   artifact: path/to/my-artifact.zip
 ```
 
@@ -59,7 +65,7 @@ package:
 
 If you want even more controls over your functions for deployment you can configure them to be packaged independently. This allows you more control for optimizing your deployment. To enable individual packaging set `individually` to true in the service wide packaging settings.
 
-Then for every function you can use the same `include/exclude/artifact` config options as you can service wide. The `include/exclude` options will be merged with the service wide options to create one `include/exclude` config per function during packaging.
+Then for every function you can use the same `exclude / artifact` config options as you can service wide. The `exclude` option will be merged with the service wide options to create one `exclude` config per function during packaging.
 
 ```yaml
 service: my-service
@@ -71,9 +77,9 @@ functions:
   hello:
     handler: handler.hello
     package:
-      include:
+      exclude:
         # We're including this file so it will be in the final package of this function only
-        - excluded-by-default.json
+        - '!excluded-by-default.json'
   world:
     handler: handler.hello
     package:

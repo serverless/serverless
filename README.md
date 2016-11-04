@@ -18,6 +18,8 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 <a href="https://serverless.com/framework/" target="_blank">Watch the video guide here.</a>
 
+<a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
+
 ## Contents
 
 * [Quick Start](#quick-start)
@@ -124,6 +126,7 @@ Use these plugins to overwrite or extend the Framework's functionality…
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
 * [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 * [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args) - Event json passes to your Lambda function in commandline
+* [serverless-subscription-filter](https://github.com/blackevil245/serverless-subscription-filter) - Register and pipe the logs of one lambda to another to process.
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
