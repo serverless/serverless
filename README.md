@@ -126,6 +126,7 @@ Use these plugins to overwrite or extend the Framework's functionality…
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
 * [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 * [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args) - Event json passes to your Lambda function in commandline
+* [serverless-subscription-filter](https://github.com/blackevil245/serverless-subscription-filter) - Register and pipe the logs of one lambda to another to process.
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
