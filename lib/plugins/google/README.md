@@ -7,23 +7,107 @@ services can be deployed in the Google Cloud.
 
 ## Getting started
 
-You need two things setup so that you can use the Google Cloud integration:
+This guide will help you setup and deploy your first Google Cloud project.
 
-1. Create a Google project which has access to all the necessary Google services
-(especially the Google Cloud Functions)
-2. Retrieve a `keyfile.json` with has full admin access to your project
+### Verify if your account is whitelisted for Google Cloud Functions
 
-Next up you simply need to export two environment variables:
+At first please make sure that you're whitelisted to test Google Cloud Functions.
+You're whitelisted if you can access the [Google Cloud Functions console](https://console.cloud.google.com/functions).
 
-### 1. Export your Google Cloud project
+### Create a new project
 
-`export GCLOUD_PROJECT=my-awesome-project123`
+1. Go to the [Google Cloud console](https://console.cloud.google.com) and click on the
+dropdown next to the search bar
+2. Select "Create project" and enter a new for your new project.
+3. Click on "Create" to start the creation process
+4. Wait until the project was successfully created (Google should redirect you to your
+new project)
+5. Verify that your current project is the new project by taking a look at the dropdown next
+to the search bar (this should now mark your new project as selected)
 
-### 2. Export your `keyfile.json`
+### Enable the Google Cloud Functions API
 
-`export GOOGLE_APPLICATION_CREDENTIALS=/some-dir/gcloud-keyfile.json`
+You need to enable the Google Cloud Functions API so that you can use Google Cloud Functions
+for your projects.
 
-That's it. You're now all set to use Serverless with GoogleCloud.
+1. Go to the [Google Cloud Functions console](https://console.cloud.google.com/functions)
+2. Click on "Enable API"
+
+### Get credentials
+
+Next up we need to create credentials Serverless can use to create resources in our
+project on our behalf.
+
+1. Go to the [Google Cloud API Manager console](https://console.cloud.google.com/apis)
+and select "Credentials" on the left
+2. Click on "Create credentials" and select "Service account key"
+3. Select "New service account" in the "Service account" dropdown
+4. Enter a name for your "Service account name" (e.g. "Serverless Framework")
+5. Select "Project" --> "Owner" as the "Role"
+6. The "Key type" should be "JSON"
+7. Click on "Create" to create your private key
+8. That's your so called `keyfile` which should be downloaded on your machine
+
+### Rename the `keyfile`
+
+Rename the previously obtained `.json` file to something more expressive
+e.g. the name of your Google Cloud project (The corresponding project name
+is the one right to the project name you defined when creating the project
+(it's light grey)).
+
+`mv the-auto-generated-name.json my-gcloud-project-123.json`
+
+### Move the `keyfile` to a secure location
+
+The `keyfile` is used by the Google API so that Serverless can create and manage
+resources for us in our Google Cloud project. Never commit this file to source control
+or share it publicly!
+
+The `keyfile` can live in pretty much every location on your local machine.
+We'd recommend to move it into home directory.
+
+`mkdir -p ~/.gcloud/; mv my-gcloud-project123.json $_`
+
+### Export the Google Cloud project
+
+Export an environment variable with the name of your Google Cloud project.
+You can see the name of your project if you click on the Project selection dropdown
+next to the search bar in the Google Cloud console. The corresponding project name
+is the one right to the project name you defined when creating the project
+(it's light grey).
+
+`export GCLOUD_PROJECT=my-gcloud-project123`
+
+### Export your credentials / keyfile
+
+Next up export an environment variable with the path to your `keyfile`.
+
+`export GOOGLE_APPLICATION_CREDENTIALS=~/.gcloud/my-gcloud-project123.json`
+
+### Create an example service
+
+That's it. You're now all set to use Serverless with the Google Cloud!
+
+Let's create a new service to verify that everything works smoothly.
+
+#### Create a new service skeleton
+
+`mkdir my-serverless-gcloud-service && cd my-serverless-gcloud-service && touch serverless.yml && touch index.js`
+
+#### Copy the file contents
+
+Open up the service directory and copy the content from the
+[example service section](#an-example-service) below into the corresponding files.
+
+#### Rename the service
+
+Rename the service property in `serverless.yml` to something unique.
+
+**NOTE:** This name should not include "google" or "goog".
+
+#### Deploy
+
+Run `serverless deploy` to deploy your service to the Google Cloud.
 
 ## An example service
 
@@ -49,11 +133,11 @@ functions:
     handler: http
     events:
       - http: true
-  third:
-    handler: bucket
-    events:
-      # NOTE: the bucket needs to be available before deploying the service
-      - bucket: my-serverless-test-bucket
+  # NOTE: Please create the bucket first, then comment this out and deploy again
+  #third:
+  #  handler: bucket
+  #  events:
+  #    - bucket: my-serverless-test-bucket
 ```
 
 ```javascript
@@ -76,8 +160,6 @@ exports.bucket = (context, data) => {
   context.success();
 };
 ```
-
-Just create this service, `cd` into the directory and run `serverless deploy`.
 
 ### Example workflow
 
