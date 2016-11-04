@@ -199,7 +199,8 @@ In case an exception is thrown in your lambda function AWS will send an error me
 You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
 `provider` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require
 one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you
-want to set as private.
+want to set as private. API Keys are created globally, so if you want to deploy your service to different stages make sure
+your API key contains a stage variable as defined below.
 
 Here's an example configuration for setting API keys for your service Rest API:
 
@@ -209,6 +210,7 @@ provider:
   name: aws
   apiKeys:
     - myFirstKey
+    - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
 functions:
   hello:
