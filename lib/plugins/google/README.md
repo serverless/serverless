@@ -16,6 +16,8 @@ You're whitelisted if you can access the [Google Cloud Functions console](https:
 
 ### Create a new project
 
+At first we need to create a new project.
+
 1. Go to the [Google Cloud console](https://console.cloud.google.com) and click on the
 dropdown next to the search bar
 2. Select "Create project" and enter a new for your new project.
@@ -24,6 +26,21 @@ dropdown next to the search bar
 new project)
 5. Verify that your current project is the new project by taking a look at the dropdown next
 to the search bar (this should now mark your new project as selected)
+
+### Attach a billing account to your project
+
+Our projects needs a valid billing account attached so that we can use all the Google Cloud
+services without problems.
+
+Follow [this guide](https://support.google.com/cloud/answer/6288653?hl=en) to create a
+billing account if you don't have any.
+
+1. Go to the [Google Cloud Billing console](https://console.cloud.google.com/billing)
+2. Click on the dropdown right next to "Overview" and select "Manage billing accounts"
+3. Click on the "My projects" tab
+4. Click on the three dots right next to your recently created project and click on
+"Change billing account"
+5. Select the billing account of your choice
 
 ### Enable the Google Cloud Functions API
 
