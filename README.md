@@ -18,6 +18,8 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 <a href="https://serverless.com/framework/" target="_blank">Watch the video guide here.</a>
 
+<a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
+
 ## Contents
 
 * [Quick Start](#quick-start)
@@ -114,6 +116,7 @@ Use these plugins to overwrite or extend the Framework's functionality…
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
 * [serverless-plugin-browserify](https://github.com/doapp-ryanp/serverless-plugin-browserify) - Bundle your lambdas with Browserify
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
+* [serverless-optimizer](https://github.com/FidelLimited/serverless-plugin-optimize) - Bundle with Browserify, transpile with Babel to ES5 and minify with Uglify your Serverless functions.
 * [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
 * [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
 * [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
@@ -123,6 +126,7 @@ Use these plugins to overwrite or extend the Framework's functionality…
 * [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
 * [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 * [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args) - Event json passes to your Lambda function in commandline
+* [serverless-subscription-filter](https://github.com/blackevil245/serverless-subscription-filter) - Register and pipe the logs of one lambda to another to process.
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
@@ -217,3 +221,4 @@ Serverless is composed of Plugins.  A group of default Plugins ship with the Fra
 * [Serverless Secrets](https://github.com/trek10inc/serverless-secrets) - Easily encrypt and decrypt secrets in your Serverless projects
 * [Serverless DynamoDB Local](https://github.com/99xt/serverless-dynamodb-local) - Simulate DynamoDB instance locally.
 * [Serverless Dependency Install](https://github.com/99xt/serverless-dependency-install) - Manage node, serverless dependencies easily within the project.
+* [Serverless Header Function](https://github.com/blackevil245/serverless-header-function) - Automatically run a javascript script on every Serverless action hooks.

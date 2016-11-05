@@ -46,6 +46,14 @@ serverless deploy --stage production --region eu-central-1
 With this example we've defined that we want our service to be deployed to the `production` stage in the region
 `eu-central-1`.
 
+## List existing deploys
+
+```
+serverless deploy list
+```
+
+Running this command will list your recent deployments available in your S3 deployment bucket. It will use stage and region from the provider config and show the timestamp of each deployment so you can roll back if necessary.
+
 ## Provided lifecycle events
 - `deploy:cleanup`
 - `deploy:initialize`
