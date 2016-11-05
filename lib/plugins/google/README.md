@@ -78,7 +78,15 @@ Export an environment variable with the name of your Google Cloud project.
 
 Run `serverless deploy` to deploy your service to the Google Cloud.
 
-## An example service
+## Workflow
+
+1. Deploy the service with `serverless deploy`
+2. Invoke a function with `serverless invoke -f hello`
+3. View the function logs with `serverless logs -f hello`
+4. See information about the service with `serverless info`
+5. Remove the service with `serverless remove`
+
+## Example service
 
 Here's an example service you can use to get started.
 
@@ -133,11 +141,3 @@ exports.bucket = (context, data) => {
   context.success();
 };
 ```
-
-### Example workflow
-
-1. Deploy the service with `serverless deploy`
-2. Invoke a function with `serverless invoke -f hello`
-3. View the function logs with `serverless logs -f hello`
-4. See information about the service with `serverless info`
-5. Remove the service with `serverless remove`
