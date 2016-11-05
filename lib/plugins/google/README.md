@@ -1,69 +1,56 @@
-# Google Cloud Functions (Experimental)
+# Google Cloud Functions (Alpha)
 
-This plugin directory provides several Serverless plugins so that your Serverless
-services can be deployed in the Google Cloud.
-
-**NOTE:** This quick start guide should be moved to the official docs later on.
+This suite of plugins enables Google CloudFunctions support within the Serverless Framework.
 
 ## Getting started
 
-This guide will help you setup and deploy your first Google Cloud project.
+This guide will help you setup a Google Cloud Project (required) and your first Google Cloud Functions.
 
-### Verify if your account is whitelisted for Google Cloud Functions
+### Verify your Google Cloud Account is whitelisted
 
-At first please make sure that you're whitelisted to test Google Cloud Functions.
-You're whitelisted if you can access the [Google Cloud Functions console](https://console.cloud.google.com/functions).
+Verify you're whitelisted for Google Cloud Functions by checking if you can access the <a href="https://console.cloud.google.com/functions" target="_blank">Google Cloud Functions Console</a>.
 
-### Create a new project
+### Create a Google Cloud Billing Account
 
-At first we need to create a new project.
+You need a Billing Account with a credit card attached to use Google Cloud Functions.  Here's how to create one:
 
-1. Go to the [Google Cloud console](https://console.cloud.google.com) and click on the
-dropdown next to the search bar
-2. Select "Create project" and enter a new for your new project.
-3. Click on "Create" to start the creation process
-4. Wait until the project was successfully created (Google should redirect you to your
-new project)
-5. Verify that your current project is the new project by taking a look at the dropdown next
-to the search bar (this should now mark your new project as selected)
+1. <a href="https://console.cloud.google.com/billing/create" target="_blank">Click here</a>, to go to the screen to create a new Billing Account.
+2. Enter the name of the Billing Account and enter your billing information.  Then click Submit to enable billing.
+3. A Billing Account will exist already offering you a free trial.  Please note that this will not work for Google Cloud Functions.  Only a Billing Account with a valid credit card will work.
 
-### Attach a billing account to your project
+If necessary, a more detailed guide on creating a Billing Account can be found <a href="https://support.google.com/cloud/answer/6288653?hl=en" target="_blank">here</a>.
 
-Our projects needs a valid billing account attached so that we can use all the Google Cloud
-services without problems.
+### Create a new Google Cloud Project
 
-Follow [this guide](https://support.google.com/cloud/answer/6288653?hl=en) to create a
-billing account if you don't have any.
+A Google Cloud Project is required to use Google Cloud Functions.  Here's how to create one:
 
-1. Go to the [Google Cloud Billing console](https://console.cloud.google.com/billing)
-2. Click on the dropdown right next to "Overview" and select "Manage billing accounts"
-3. Click on the "My projects" tab
-4. Click on the three dots right next to your recently created project and click on
-"Change billing account"
-5. Select the billing account of your choice
+1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console Console</a>.
+2. There is a dropdown near the top left of the screen (near the search bar that lists your projects).  Click it and select "Create Project".
+3. Enter a Project name and select the Billing Account you created in the steps above (or any Billing Account with a valid credit card attached).
+3. Click on "Create" to start the creation process.
+4. Wait until the Project was successfully created and Google will redirect you to your new Project.
+5. Verify your currently within your new Project by looking at the dropdown next to the search bar.  This should mark your new Project as selected.
 
 ### Enable the Google Cloud Functions API
 
 You need to enable the Google Cloud Functions API so that you can use Google Cloud Functions
 for your projects.
 
-1. Go to the [Google Cloud Functions console](https://console.cloud.google.com/functions)
-2. Click on "Enable API"
+1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console Console</a>.
+2. Click on "Enable API".
 
 ### Get credentials
 
-Next up we need to create credentials Serverless can use to create resources in our
-project on our behalf.
+You need to create credentials Serverless can use to create resources in your Project.
 
-1. Go to the [Google Cloud API Manager console](https://console.cloud.google.com/apis)
-and select "Credentials" on the left
-2. Click on "Create credentials" and select "Service account key"
-3. Select "New service account" in the "Service account" dropdown
-4. Enter a name for your "Service account name" (e.g. "Serverless Framework")
-5. Select "Project" --> "Owner" as the "Role"
-6. The "Key type" should be "JSON"
-7. Click on "Create" to create your private key
-8. That's your so called `keyfile` which should be downloaded on your machine
+1. Go to the <a href="https://console.cloud.google.com/apis" target="_blank">Google Cloud API Manager</a> and select "Credentials" on the left.
+2. Click on "Create credentials" and select "Service account key".
+3. Select "New service account" in the "Service account" dropdown.
+4. Enter a name for your "Service account name" (e.g. "serverless-framework").
+5. Select "Project" --> "Owner" as the "Role".
+6. The "Key type" should be "JSON".
+7. Click on "Create" to create your private key.
+8. That's your so called `keyfile` which should be downloaded on your machine.
 
 ### Rename the `keyfile`
 
