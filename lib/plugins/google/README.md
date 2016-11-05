@@ -1,14 +1,21 @@
 # Google Cloud Functions (Alpha)
 
-This suite of plugins enables Google CloudFunctions support within the Serverless Framework.
+This plugin enables Google CloudFunctions support within the Serverless Framework.
 
 ## Getting started
 
 This guide will help you setup a Google Cloud Project (required) and your first Google Cloud Functions.
 
+### Create a Serverless Service with Google as the Provider
+
+Google support for the `create` command is coming soon.  Until then, follow these steps:
+
+1. Run `serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs`.
+2. Rename your service.  Make sure the name does not include "google" or "goog".
+
 ### Verify your Google Cloud Account is whitelisted
 
-Verify you're whitelisted for Google Cloud Functions by checking if you can access the <a href="https://console.cloud.google.com/functions" target="_blank">Google Cloud Functions Console</a>.
+At the moment, Google Cloud Functions is in private beta.  You can verify you're whitelisted for the Google Cloud Functions beta by checking if you can access the <a href="https://console.cloud.google.com/functions" target="_blank">Google Cloud Functions Console</a>.
 
 ### Create a Google Cloud Billing Account
 
@@ -51,63 +58,19 @@ You need to create credentials Serverless can use to create resources in your Pr
 6. The "Key type" should be "JSON".
 7. Click on "Create" to create your private key.
 8. That's your so called `keyfile` which should be downloaded on your machine.
-
-### Rename the `keyfile`
-
-Rename the previously obtained `.json` file to something more expressive
-e.g. the name of your Google Cloud project (The corresponding project name
-is the one right to the project name you defined when creating the project
-(it's light grey)).
-
-`mv the-auto-generated-name.json my-gcloud-project-123.json`
-
-### Move the `keyfile` to a secure location
-
-The `keyfile` is used by the Google API so that Serverless can create and manage
-resources for us in our Google Cloud project. Never commit this file to source control
-or share it publicly!
-
-The `keyfile` can live in pretty much every location on your local machine.
-We'd recommend to move it into home directory.
-
-`mkdir -p ~/.gcloud/; mv my-gcloud-project123.json $_`
+9. Save the `keyfile` to your serverless service folder.  MAKE SURE it is in your `.gitignore`.
 
 ### Export the Google Cloud project
 
 Export an environment variable with the name of your Google Cloud project.
-You can see the name of your project if you click on the Project selection dropdown
-next to the search bar in the Google Cloud console. The corresponding project name
-is the one right to the project name you defined when creating the project
-(it's light grey).
 
 `export GCLOUD_PROJECT=my-gcloud-project123`
 
-### Export your credentials / keyfile
+### Export your credentials / keyfile name
 
-Next up export an environment variable with the path to your `keyfile`.
+Export an environment variable with the path to your `keyfile`.
 
-`export GOOGLE_APPLICATION_CREDENTIALS=~/.gcloud/my-gcloud-project123.json`
-
-### Create an example service
-
-That's it. You're now all set to use Serverless with the Google Cloud!
-
-Let's create a new service to verify that everything works smoothly.
-
-#### Create a new service skeleton
-
-`mkdir my-serverless-gcloud-service && cd my-serverless-gcloud-service && touch serverless.yml && touch index.js`
-
-#### Copy the file contents
-
-Open up the service directory and copy the content from the
-[example service section](#an-example-service) below into the corresponding files.
-
-#### Rename the service
-
-Rename the service property in `serverless.yml` to something unique.
-
-**NOTE:** This name should not include "google" or "goog".
+`GOOGLE_APPLICATION_CREDENTIALS=keyfile.json`
 
 #### Deploy
 
