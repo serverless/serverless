@@ -13,11 +13,13 @@ Google support for the `create` command is coming soon.  Until then, follow thes
 1. Run `serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs`.
 2. Rename your service.  Make sure the name does not include "google" or "goog".
 
-### Verify your Google Cloud Account is whitelisted
+### Set up Google Cloud Platform
+
+#### Verify your Google Cloud Account is whitelisted
 
 At the moment, Google Cloud Functions is in private beta.  You can verify you're whitelisted for the Google Cloud Functions beta by checking if you can access the <a href="https://console.cloud.google.com/functions" target="_blank">Google Cloud Functions Console</a>.
 
-### Create a Google Cloud Billing Account
+#### Create a Google Cloud Billing Account
 
 You need a Billing Account with a credit card attached to use Google Cloud Functions.  Here's how to create one:
 
@@ -27,7 +29,7 @@ You need a Billing Account with a credit card attached to use Google Cloud Funct
 
 If necessary, a more detailed guide on creating a Billing Account can be found <a href="https://support.google.com/cloud/answer/6288653?hl=en" target="_blank">here</a>.
 
-### Create a new Google Cloud Project
+#### Create a new Google Cloud Project
 
 A Google Cloud Project is required to use Google Cloud Functions.  Here's how to create one:
 
@@ -38,7 +40,7 @@ A Google Cloud Project is required to use Google Cloud Functions.  Here's how to
 4. Wait until the Project was successfully created and Google will redirect you to your new Project.
 5. Verify your currently within your new Project by looking at the dropdown next to the search bar.  This should mark your new Project as selected.
 
-### Enable the Google Cloud Functions API
+#### Enable the Google Cloud Functions API
 
 You need to enable the Google Cloud Functions API so that you can use Google Cloud Functions
 for your projects.
@@ -46,7 +48,7 @@ for your projects.
 1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console Console</a>.
 2. Click on "Enable API".
 
-### Get credentials
+#### Get credentials
 
 You need to create credentials Serverless can use to create resources in your Project.
 
@@ -58,19 +60,19 @@ You need to create credentials Serverless can use to create resources in your Pr
 6. The "Key type" should be "JSON".
 7. Click on "Create" to create your private key.
 8. That's your so called `keyfile` which should be downloaded on your machine.
-9. Save the `keyfile` to your serverless service folder.  MAKE SURE it is in your `.gitignore`.
+9. Save the `keyfile` somewhere secure.  We recommend making a folder in your root folder and putting it there.  Like this, `~/.gcloud/keyfile.json`.  You can change the file name from `keyfile` to anything.  Remember the path you saved it to.
 
-### Export the Google Cloud project
-
-Export an environment variable with the name of your Google Cloud project.
-
-`export GCLOUD_PROJECT=my-gcloud-project123`
-
-### Export your credentials / keyfile name
+#### Export your credentials / keyfile name
 
 Export an environment variable with the path to your `keyfile`.
 
 `GOOGLE_APPLICATION_CREDENTIALS=keyfile.json`
+
+#### Export the Google Cloud project
+
+Export an environment variable with the name of your Google Cloud project.
+
+`export GCLOUD_PROJECT=my-gcloud-project123`
 
 #### Deploy
 
