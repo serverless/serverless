@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -76,6 +76,7 @@
     "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
     "download": "^5.0.2",
+    "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
     "glob-all": "^3.1.0",
     "https-proxy-agent": "^1.0.0",
@@ -86,6 +87,7 @@
     "moment": "^2.13.0",
     "node-fetch": "^1.5.3",
     "replaceall": "^0.1.6",
+    "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
     "traverse": "^0.6.6",

@@ -13,6 +13,10 @@
 
 service: aws-scala-sbt # NOTE: update this with your service name
 
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
 provider:
   name: aws
   runtime: java8
@@ -38,10 +42,8 @@ provider:
 
 # you can add packaging information here
 package:
-#  include:
-#    - include-me.java
 #  exclude:
-#    - exclude-me.java
+#    - exclude-me.jar
   artifact: target/scala-2.11/hello.jar
 
 functions:

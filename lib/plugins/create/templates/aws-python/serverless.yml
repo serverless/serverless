@@ -13,6 +13,10 @@
 
 service: aws-python # NOTE: update this with your service name
 
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
 provider:
   name: aws
   runtime: python2.7
@@ -39,7 +43,7 @@ provider:
 # you can add packaging information here
 #package:
 #  exclude:
-#    - exclude-me.js
+#    - exclude-me.py
 #  artifact: my-service-code.zip
 
 functions:

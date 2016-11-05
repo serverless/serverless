@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "dependencies": {
     "agent-base": {
       "version": "2.0.1",
@@ -262,6 +262,11 @@
       "version": "1.2.1",
       "from": "filenamify@>=1.2.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/filenamify/-/filenamify-1.2.1.tgz"
+    },
+    "filesize": {
+      "version": "3.3.0",
+      "from": "filesize@latest",
+      "resolved": "https://registry.npmjs.org/filesize/-/filesize-3.3.0.tgz"
     },
     "form-data": {
       "version": "1.0.0-rc3",
