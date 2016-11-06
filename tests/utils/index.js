@@ -24,7 +24,8 @@ module.exports = {
   getTmpFilePath,
 
   createTestService: (templateName, testServiceDir) => {
-    const serviceName = `service-${(new Date()).getTime().toString()}`;
+    const hrtime = process.hrtime();
+    const serviceName = `test-${hrtime[0]}-${hrtime[1]}`;
     const tmpDir = path.join(os.tmpdir(),
       'tmpdirs-serverless',
       'integration-test-suite',

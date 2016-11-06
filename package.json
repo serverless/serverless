@@ -49,10 +49,11 @@
   "scripts": {
     "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
     "lint": "eslint .",
-    "simple-integration-test": "mocha tests/integration/simple-integration-test",
-    "complex-integration-test": "mocha tests/integration/all"
+    "simple-integration-test": "ava tests/integration/simple-integration-test.js",
+    "complex-integration-test": "ava -c 8 tests/integration/**/tests.js"
   },
   "devDependencies": {
+    "ava": "^0.16.0",
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
     "eslint": "^3.3.1",
