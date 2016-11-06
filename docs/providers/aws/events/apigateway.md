@@ -191,6 +191,21 @@ functions:
             identityValidationExpression: someRegex
 ```
 
+You can also configure an existing Cognito User Pool as the authorizer, as shown
+in the following example:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
+```
+
 ### Catching Exceptions In Your Lambda Function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
