@@ -93,6 +93,6 @@
     "shelljs": "^0.6.0",
     "traverse": "^0.6.6",
     "uuid": "^2.0.2",
-    "yaml-edit": "^0.1.2"
+    "yaml-edit": "^0.1.3"
   }
 }
