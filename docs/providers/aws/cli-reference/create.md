@@ -79,12 +79,12 @@ This example will generate scaffolding for a hello world plugin that demonstrate
 Creates a new function inside the the current service.
 
 ```bash
-serverless create function -f myNewFunction -h myNewFunction/index.handler
+serverless create function --function myNewFunction --handler myNewFunction/index.handler
 ```
 
 ## Options
 - `--function` or `-f` The name of the function to be created. **Required**.
-- `--handler` or `-h` The handler for the function. **Required**
+- `--handler` The handler for the function. **Required**
 
 ## Provided lifecycle events
 - `create:create:function`
@@ -98,7 +98,7 @@ The create function command is currently only supported for the provider `AWS` w
 ### Creating a new function to the service root
 
 ```bash
-serverless create function -f myNewFunction -h myNewFunction/handler
+serverless create function --function myNewFunction --handler myNewFunction/handler
 ```
 
 This adds a new function to `serverless.yml` and creates a new file `myNewFunction.js` with `module.exports.handler` as the Node.js function.
@@ -106,7 +106,7 @@ This adds a new function to `serverless.yml` and creates a new file `myNewFuncti
 ### Creating a new function to a subdirectory
 
 ```bash
-serverless create function -f myNewFunction -h functions/myNewFunction.handler
+serverless create function -f myNewFunction --handler functions/myNewFunction.handler
 ```
 
 This adds a new function to `serverless.yml` and creates a new file `myNewFunction.js` in directory `functions` with `module.exports.handler` as the Node.js function.
