@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/create)
 <!-- DOCS-SITE-LINK:END -->
 
-# Create
+# Create Service
 
 Creates a new service in the current working directory based on the provided template.
 
@@ -73,3 +73,40 @@ serverless create --template plugin
 ```
 
 This example will generate scaffolding for a hello world plugin that demonstrates how to create a new command and how to listen to the various events available.
+
+# Create function
+
+Creates a new function inside the the current service.
+
+```bash
+serverless create function -f myNewFunction -h myNewFunction/index.handler
+```
+
+## Options
+- `--function` or `-f` The name of the function to be created. **Required**.
+- `--handler` or `-h` The handler for the function. **Required**
+
+## Provided lifecycle events
+- `create:create:function`
+
+## Supported runtimes
+
+The create function command is currently only supported for the provider `AWS` when using the runtime `nodejs4.3`.
+
+## Examples
+
+### Creating a new function to the service root
+
+```bash
+serverless create function -f myNewFunction -h myNewFunction/handler
+```
+
+This adds a new function to `serverless.yml` and creates a new file `myNewFunction.js` with `module.exports.handler` as the Node.js function.
+
+### Creating a new function to a subdirectory
+
+```bash
+serverless create function -f myNewFunction -h functions/myNewFunction.handler
+```
+
+This adds a new function to `serverless.yml` and creates a new file `myNewFunction.js` in directory `functions` with `module.exports.handler` as the Node.js function.
