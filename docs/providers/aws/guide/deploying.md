@@ -73,7 +73,7 @@ serverless deploy function --function myFunction
 ### How It Works
 
 * The Framework packages up the targeted AWS Lambda Function into a zip file.
-* That zip file is uplaoded to your S3 bucket using the same name as the previous function, which the CloudFormation stack is pointing to.
+* That zip file is uploaded to your S3 bucket using the same name as the previous function, which the CloudFormation stack is pointing to.
 
 ### Tips
 
