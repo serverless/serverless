@@ -103,6 +103,28 @@ functions:
 
 In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
 
+## Reference Variables in Javascript Files
+To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
+
+```js
+# myCustomFile.js
+module.exports.hello: function() {
+   // Code that creates dynamic data
+   return dynamicData;
+}
+```
+
+```yml
+# serverless.yml
+service: new-service
+provider: aws
+functions:
+  hello:
+      handler: handler.hello
+      events:
+        - schedule: ${file(./myCustomFile.js):hello} # Reference a specific module
+```
+
 ## Multiple Configuration Files
 
 Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.
