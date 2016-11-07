@@ -41,7 +41,7 @@ This example will download the .zip file of the `authentication` service from Gi
 serverless install --url https://github.com/johndoe/authentication --name my-authentication
 ```
 
-This example will download the .zip file of the `authentication` service from GitHub, create a new directory with the name `my-authentication` in the current working directory, unzips the files in this directory and renames service to `my-authentication` if `serverless.yml` exists in the service root.
+This example will download the .zip file of the `authentication` service from GitHub, create a new directory with the name `my-authentication` in the current working directory, unzips the files in this directory and renames the service to `my-authentication` if `serverless.yml` exists in the service root.
 
 This example will download the .zip file of the `serverless-crud` service from GitHub, create a new directory with the name `serverless-crud` in the current working directory and unzips the files in this directory.
 
