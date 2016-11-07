@@ -79,4 +79,4 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
-|AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB:** {normalizedFunctionName}EventSourceMappingDynamodb{tableName}</li><li>**Kinesis:** {normalizedFunctionName}EventSourceMappingKinesis{streamName}</li></ul> | <ul><li>**DynamoDB:** HelloLambdaEventSourceMappingDynamodbUsers</li><li>**Kinesis:** HelloLambdaEventSourceMappingKinesisMystream</li></ul> |
+|AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB**: {normalizedFunctionName}EventSourceMappingDynamodb{SequentialID} </li><li>**Kinesis**: {normalizedFunctionName}EventSourceMappingKinesis{SequentialID} </li></ul> | <ul><li>**DynamoDB**: HelloLambdaEventSourceMappingDynamodb1 </li><li>**Kinesis**: HelloLambdaEventSourceMappingKinesis1 </li></ul> |

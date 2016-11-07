@@ -21,8 +21,8 @@ functions:
   compute:
     handler: handler.compute
     events:
-      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-      - stream:
+      - dynamodb: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+      - kinesis:
           arn:
             Fn::GetAtt:
               - MyKinesisStream
@@ -41,7 +41,7 @@ functions:
   preprocess:
     handler: handler.preprocess
     events:
-      - stream:
+      - kinesis:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
           startingPosition: LATEST
