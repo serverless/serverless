@@ -127,6 +127,8 @@ Use these plugins to overwrite or extend the Framework's functionality…
 * [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 * [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args) - Event json passes to your Lambda function in commandline
 * [serverless-subscription-filter](https://github.com/blackevil245/serverless-subscription-filter) - Register and pipe the logs of one lambda to another to process.
+* [serverless-rollback-function](https://github.com/marcy-terui/serverless-rollback-function) - Support `rollback function` command.
+* [serverless-crypt](https://github.com/marcy-terui/serverless-crypt) - Securing Serverless secrets by AWS KMS encryption.
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
