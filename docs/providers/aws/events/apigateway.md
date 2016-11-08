@@ -306,6 +306,7 @@ functions:
       - http:
           method: get
           path: whatever
+          integration: lambda
           request:
             template:
               text/xhtml: '{ "stage" : "$context.stage" }'
@@ -326,6 +327,7 @@ functions:
       - http:
           method: get
           path: whatever
+          integration: lambda
           request:
             template:
               application/json: '{ "foo" : "$input.params(''bar'')" }'
@@ -348,6 +350,7 @@ functions:
       - http:
           method: get
           path: whatever
+          integration: lambda
           request:
             passThrough: NEVER
 ```
@@ -383,6 +386,7 @@ functions:
       - http:
           method: get
           path: whatever
+          integration: lambda
           response:
             headers:
               Content-Type: integration.response.header.Content-Type
@@ -406,6 +410,7 @@ functions:
       - http:
           method: get
           path: whatever
+          integration: lambda
           response:
             headers:
               Content-Type: "'text/html'"
@@ -441,8 +446,8 @@ returned message like this: `[401] You are not authorized to access this resourc
 Here's an example which shows you how you can raise a 404 HTTP status from within your lambda function.
 
 ```javascript
-module.exports.hello = (event, context, cb) => {
-  cb(new Error('[404] Not found'));
+module.exports.hello = (event, context, callback) => {
+  callback(new Error('[404] Not found'));
 }
 ```
 
@@ -462,6 +467,7 @@ functions:
       - http:
           method: post
           path: whatever
+          integration: lambda
           response:
             headers:
               Content-Type: "'text/html'"
@@ -486,6 +492,7 @@ functions:
       - http:
           method: post
           path: whatever
+          integration: lambda
           response:
             headers:
               Content-Type: "'text/html'"
@@ -512,6 +519,7 @@ functions:
       - http:
           path: user/create
           method: get
+          integration: lambda
           cors: true
 ```
 
@@ -525,6 +533,7 @@ functions:
       - http:
           path: user/create
           method: get
+          integration: lambda
           cors:
             origins:
               - '*'
@@ -541,8 +550,8 @@ This example is the default setting and is exactly the same as the previous exam
 **Note:** If you are using the default lambda proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object otherwise CORS will fail.
 
 ```
-module.exports.hello = (event, context, cb) => {
-  return cb(null, {
+module.exports.hello = (event, context, callback) => {
+  return callback(null, {
     statusCode: 200,
     headers: {
       'Access-Control-Allow-Origin': '*'
