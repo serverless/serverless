@@ -9,19 +9,54 @@ functions:
   hello:
     handler: handler.hello
     events:
+      # paths without a slash
       - http:
           method: POST
-          path: hello
+          path: without-slash
           integration: lambda
       - http:
           method: GET
-          path: hello
+          path: without-slash
           integration: lambda
       - http:
           method: PUT
-          path: hello
+          path: without-slash
           integration: lambda
       - http:
           method: DELETE
-          path: hello
+          path: without-slash
+          integration: lambda
+      # paths with a slash
+      - http:
+          method: POST
+          path: /with-slash
+          integration: lambda
+      - http:
+          method: GET
+          path: /with-slash
+          integration: lambda
+      - http:
+          method: PUT
+          path: /with-slash
+          integration: lambda
+      - http:
+          method: DELETE
+          path: /with-slash
+          integration: lambda
+      # root only paths
+      - http:
+          method: POST
+          path: /
+          integration: lambda
+      - http:
+          method: GET
+          path: /
+          integration: lambda
+      - http:
+          method: PUT
+          path: /
+          integration: lambda
+      - http:
+          method: DELETE
+          path: /
           integration: lambda

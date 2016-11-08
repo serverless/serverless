@@ -9,11 +9,30 @@ functions:
   hello:
     handler: handler.hello
     events:
-      - http: POST hello
-      - http: GET hello
+      # paths without a slash
+      - http: POST without-slash
+      - http: GET without-slash
       - http:
           method: PUT
-          path: hello
+          path: without-slash
       - http:
           method: DELETE
-          path: hello
+          path: without-slash
+      # paths with a slash
+      - http: POST /with-slash
+      - http: GET /with-slash
+      - http:
+          method: PUT
+          path: /with-slash
+      - http:
+          method: DELETE
+          path: /with-slash
+      # root only paths
+      - http: POST /
+      - http: GET /
+      - http:
+          method: PUT
+          path: /
+      - http:
+          method: DELETE
+          path: /
