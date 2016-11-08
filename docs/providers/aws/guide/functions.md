@@ -160,7 +160,7 @@ functions:
     memorySize: 512
 ```
 
-You can also use an existing IAM role by adding your IAM Role ARN in the `iamRoleARN` property. For example:
+You can also use an existing IAM role by adding your IAM Role ARN in the `role` property. For example:
 
 ```yml
 # serverless.yml
@@ -168,10 +168,10 @@ You can also use an existing IAM role by adding your IAM Role ARN in the `iamRol
 service: new-service
 provider:
   name: aws
-  iamRoleARN: arn:aws:iam::YourAccountNumber:role/YourIamRole
+  role: arn:aws:iam::YourAccountNumber:role/YourIamRole
 ```
 
-Support for separate IAM Roles per function is coming soon.
+See the documentation about [IAM](./iam.md) for function level IAM roles.
 
 ## VPC Configuration
 
