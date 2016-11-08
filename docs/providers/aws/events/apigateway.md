@@ -32,7 +32,6 @@ a `GET` request.
 Here's an example:
 
 ```yml
-# serverless.yml
 functions:
   index:
     handler: users.index
@@ -71,7 +70,6 @@ JSON.parse(event.body);
 Here we've defined an POST endpoint for the path `posts/create`.
 
 ```yml
-# serverless.yml
 functions:
   create:
     handler: posts.create
@@ -124,7 +122,6 @@ You can enable Custom Authorizers for your HTTP endpoint by setting the Authoriz
 in the same service, as shown in the following example:
 
 ```yml
-# serverless.yml
 functions:
   create:
     handler: posts.create
@@ -140,7 +137,6 @@ Or, if you want to configure the Authorizer with more options, you can turn the 
 shown in the following example:
 
 ```yml
-# serverless.yml
 functions:
   create:
     handler: posts.create
@@ -161,7 +157,6 @@ If the Authorizer function does not exist in your service but exists in AWS, you
 function instead of the function name, as shown in the following example:
 
 ```yml
-# serverless.yml
 functions:
   create:
     handler: posts.create
@@ -176,7 +171,6 @@ Or, if you want to configure the Authorizer with more options, you can turn the 
 shown in the following example:
 
 ```yml
-# serverless.yml
 functions:
   create:
     handler: posts.create
@@ -234,7 +228,6 @@ This method is more complicated and involves a lot more configuration of the `ht
 To pass optional and required parameters to your functions, so you can use them in API Gateway tests and SDK generation, marking them as `true` will make them required, `false` will make them optional.
 
 ```yml
-# serverless.yml
 functions:
   create:
     handler: posts.create
@@ -257,7 +250,6 @@ functions:
 In order for path variables to work, API Gateway also needs them in the method path itself, like so:
 
 ```yml
-# serverless.yml
 functions:
   create:
     handler: posts.post_detail
@@ -567,7 +559,6 @@ To set up an HTTP proxy, you'll need two CloudFormation templates, one for the e
 one for method. These two templates will work together to construct your proxy. So if you want to set `your-app.com/serverless` as a proxy for `serverless.com`, you'll need the following two templates in your `serverless.yml`:
 
 ```yml
-# serverless.yml
 service: service-name
 provider: aws
 functions:
