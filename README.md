@@ -112,21 +112,22 @@ The following are services you can instantly install and use by running `serverl
 
 Use these plugins to overwrite or extend the Framework's functionality…
 
-* [serverless-offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and API Gateway locally to speed up your development cycles.
-* [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
-* [serverless-plugin-browserify](https://github.com/doapp-ryanp/serverless-plugin-browserify) - Bundle your lambdas with Browserify
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
-* [serverless-optimizer](https://github.com/FidelLimited/serverless-plugin-optimize) - Bundle with Browserify, transpile with Babel to ES5 and minify with Uglify your Serverless functions.
-* [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
-* [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
-* [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
 * [serverless-build](https://github.com/nfour/serverless-build-plugin)
-* [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
-* [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
-* [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
-* [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 * [serverless-command-line-event-args](https://github.com/horike37/serverless-command-line-event-args) - Event json passes to your Lambda function in commandline
+* [serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local/tree/v1)
+* [serverless-offline](https://github.com/dherault/serverless-offline) - Emulate AWS Lambda and API Gateway locally to speed up your development cycles.
+* [serverless-optimizer](https://github.com/FidelLimited/serverless-plugin-optimize) - Bundle with Browserify, transpile with Babel to ES5 and minify with Uglify your Serverless functions.
+* [serverless-plugin-browserify](https://github.com/doapp-ryanp/serverless-plugin-browserify) - Bundle your lambdas with Browserify
+* [serverless-plugin-diff](https://github.com/nicka/serverless-plugin-diff) - Compares your local AWS CloudFormation templates against deployed ones
+* [serverless-plugin-multiple-responses](https://github.com/silvermine/serverless-plugin-multiple-responses)
+* [serverless-plugin-stage-variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)
+* [serverless-plugin-write-env-vars](https://github.com/silvermine/serverless-plugin-write-env-vars)
+* [serverless-run-function](https://github.com/lithin/serverless-run-function-plugin) - Run functions locally
+* [serverless-scriptable](https://github.com/wei-xu-myob/serverless-scriptable-plugin)
 * [serverless-subscription-filter](https://github.com/blackevil245/serverless-subscription-filter) - Register and pipe the logs of one lambda to another to process.
+* [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
+* [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
