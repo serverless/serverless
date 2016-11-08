@@ -87,7 +87,26 @@ service: users
 provider:
   name: aws
   runtime: nodejs4.3
-  memorySize: 512
+  stage: dev # Set the default stage used. Default is dev
+  region: us-east-1 # Overwrite the default region used. Default is us-east-1
+  memorySize: 512 # Overwrite the default memory size. Default is 1024
+  deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+  stackTags: # Optional CF stack tags
+   key: value
+  stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
+    - Effect: Allow
+      Principal: "*"
+      Action: "Update:*"
+      Resource: "*"
+    - Effect: Deny
+      Principal: "*"
+      Action:
+        - Update:Replace
+        - Update:Delete
+      Condition:
+        StringEquals:
+          ResourceType:
+            - AWS::EC2::Instance
 
 functions:
   usersCreate: # A Function
