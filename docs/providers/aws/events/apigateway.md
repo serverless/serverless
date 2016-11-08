@@ -535,6 +535,7 @@ functions:
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
+            allowCredentials: true
 ```
 
 This example is the default setting and is exactly the same as the previous example. The `Access-Control-Allow-Methods` header is set automatically, based on the endpoints specified in your service configuration with CORS enabled.
