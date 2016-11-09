@@ -42,6 +42,8 @@ provider:
 
 # you can add packaging information here
 #package:
+#  include:
+#    - include-me.js
 #  exclude:
 #    - exclude-me.js
 #  artifact: my-service-code.zip

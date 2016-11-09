@@ -42,6 +42,8 @@ provider:
 
 # you can add packaging information here
 package:
+#  include:
+#    - include-me.java
 #  exclude:
 #    - exclude-me.java
   artifact: build/distributions/hello.zip

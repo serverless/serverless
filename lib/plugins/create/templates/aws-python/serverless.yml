@@ -42,6 +42,8 @@ provider:
 
 # you can add packaging information here
 #package:
+#  include:
+#    - include-me.py
 #  exclude:
 #    - exclude-me.py
 #  artifact: my-service-code.zip

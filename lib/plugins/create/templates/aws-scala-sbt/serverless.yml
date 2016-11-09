@@ -42,6 +42,8 @@ provider:
 
 # you can add packaging information here
 package:
+#  include:
+#    - include-me.jar
 #  exclude:
 #    - exclude-me.jar
   artifact: target/scala-2.11/hello.jar

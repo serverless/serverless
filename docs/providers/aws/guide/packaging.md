@@ -18,27 +18,35 @@ You can use the `package` and `exclude` configuration for more control over the 
 
 ## Exclude / include
 
-Exclude allows you to define globs that will be excluded from the resulting artifact. If you wish to
-include files you can use a glob pattern prefixed with `!` such as `!re-include-me/**`. Serverless will run the glob patterns in order.
+Exclude and include allows you to define globs that will be excluded / included from the resulting artifact. If you wish to
+include files you can use a glob pattern prefixed with `!` such as `!re-include-me/**` in `exclude` or the dedicated `include` config.
+Serverless will run the glob patterns in order.
 
-## Example
+At first it will apply the globs defined in `exclude`. After that it'll add all the globs from `include`. This way you can always re-include
+previously excluded files and directories.
 
-Exclude all node_modules but then re-include a specific modules (in this case node-fetch)
+## Examples
 
-``` yaml
+Exclude all node_modules but then re-include a specific modules (in this case node-fetch) using `exclude` exclusively
+
+``` yml
 package:
   exclude:
     - node_modules/**
     - '!node_modules/node-fetch/**'
 ```
 
-Exclude all files but `handler.js`
+Exclude all files but `handler.js` using `exclude` and `include`
 
-``` yaml
+``` yml
 package:
   exclude:
-    - "!src/function/handler.js"
+    - src/**
+  include:
+    - src/function/handler.js
 ```
+
+**Note:** Don't forget to use the correct glob syntax if you want to exclude directories
 
 ```
 exclude:
@@ -48,16 +56,18 @@ exclude:
 
 ## Artifact
 
-For complete control over the packaging process you can specify your own zip file for your service. Serverless won't zip your service if this is configured so `exclude` will be ignored.
+For complete control over the packaging process you can specify your own zip file for your service. Serverless won't zip your service if this is configured so `exclude` and `include` will be ignored.
 
 ## Example
 
-```yaml
+```yml
 service: my-service
 package:
   exclude:
     - tmp/**
     - .git/**
+  include:
+    - some-file
   artifact: path/to/my-artifact.zip
 ```
 
@@ -65,9 +75,9 @@ package:
 
 If you want even more controls over your functions for deployment you can configure them to be packaged independently. This allows you more control for optimizing your deployment. To enable individual packaging set `individually` to true in the service wide packaging settings.
 
-Then for every function you can use the same `exclude / artifact` config options as you can service wide. The `exclude` option will be merged with the service wide options to create one `exclude` config per function during packaging.
+Then for every function you can use the same `exclude`, `include` or `artifact` config options as you can service wide. The `exclude` and `include` option will be merged with the service wide options to create one `exclude` and `include` config per function during packaging.
 
-```yaml
+```yml
 service: my-service
 package:
   individually: true
@@ -77,9 +87,9 @@ functions:
   hello:
     handler: handler.hello
     package:
-      exclude:
-        # We're including this file so it will be in the final package of this function only
-        - '!excluded-by-default.json'
+      # We're including this file so it will be in the final package of this function only
+      include:
+        - excluded-by-default.json
   world:
     handler: handler.hello
     package:
