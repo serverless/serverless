@@ -24,9 +24,10 @@ const stackName = `${newServiceName}-dev`;
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
-describe('Service Lifecyle Integration Test', () => {
-  it('should create service in tmp directory', function () {
-    this.timeout(10000);
+describe('Service Lifecyle Integration Test', function () {
+  this.timeout(0);
+
+  it('should create service in tmp directory', () => {
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
     execSync(`sed -i.bak s/${templateName}/${newServiceName}/g serverless.yml`);
     expect(serverless.utils
@@ -35,16 +36,14 @@ describe('Service Lifecyle Integration Test', () => {
       .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
 
-  it('should deploy service to aws', function () {
-    this.timeout(0);
+  it('should deploy service to aws', () => {
     execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
 
     return CF.describeStacksPromised({ StackName: stackName })
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE'));
   });
 
-  it('should invoke function from aws', function () {
-    this.timeout(0);
+  it('should invoke function from aws', () => {
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
     const result = JSON.parse(new Buffer(invoked, 'base64').toString());
     // parse it once again because the body is stringified to be LAMBDA-PROXY ready
@@ -52,7 +51,7 @@ describe('Service Lifecyle Integration Test', () => {
     expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   });
 
-  it('should deploy updated service to aws', function () {
+  it('should deploy updated service to aws', () => {
     const newHandler =
       `
         'use strict';
@@ -63,19 +62,16 @@ describe('Service Lifecyle Integration Test', () => {
       `;
 
     serverless.utils.writeFileSync(path.join(tmpDir, 'handler.js'), newHandler);
-    this.timeout(0);
     execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
   });
 
-  it('should invoke updated function from aws', function () {
-    this.timeout(0);
+  it('should invoke updated function from aws', () => {
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
     const result = JSON.parse(new Buffer(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Service Update Succeeded');
   });
 
-  it('should list existing deployments and roll back to first deployment', function () {
-    this.timeout(0);
+  it('should list existing deployments and roll back to first deployment', () => {
     let timestamp;
     const listDeploys = execSync(`${serverlessExec} deploy list`);
     const output = listDeploys.toString();
@@ -95,8 +91,7 @@ describe('Service Lifecyle Integration Test', () => {
     expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   });
 
-  it('should remove service from aws', function () {
-    this.timeout(0);
+  it('should remove service from aws', () => {
     execSync(`${serverlessExec} remove`, { stdio: 'inherit' });
 
     return CF.describeStacksPromised({ StackName: stackName })
