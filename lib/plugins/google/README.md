@@ -62,17 +62,18 @@ You need to create credentials Serverless can use to create resources in your Pr
 8. That's your so called `keyfile` which should be downloaded on your machine.
 9. Save the `keyfile` somewhere secure.  We recommend making a folder in your root folder and putting it there.  Like this, `~/.gcloud/keyfile.json`.  You can change the file name from `keyfile` to anything.  Remember the path you saved it to.
 
-### Export your credentials / keyfile name
+### Update the `provider` config in `serverless.yml`
 
-Export an environment variable with the path to your `keyfile`.
+Open up your `serverless.yml` file and update the `provider` section with your Google Cloud Project id and
+the path to your `keyfile.json` file. It should look something like this:
 
-`GOOGLE_APPLICATION_CREDENTIALS=keyfile.json`
-
-### Export the Google Cloud project
-
-Export an environment variable with the name of your Google Cloud project.
-
-`export GCLOUD_PROJECT=my-gcloud-project123`
+```yml
+provider:
+  name: google
+  runtime: nodejs4.3
+  project: my-serverless-project-1234
+  credentials: ~/.gcloud/keyfile.json
+```
 
 ### Deploy
 
@@ -102,6 +103,8 @@ service: gcloud-service
 provider:
   name: google
   runtime: nodejs4.3
+  project: my-serverless-project-1234
+  credentials: ~/.gcloud/keyfile.json
 
 functions:
   fist:
