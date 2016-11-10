@@ -26,11 +26,7 @@
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
     "./aws/invokeLocal/index.js",
-    "./google/provider/googleProvider.js",
-    "./google/deploy/googleDeploy.js",
-    "./google/remove/googleRemove.js",
-    "./google/invoke/googleInvoke.js",
-    "./google/logs/googleLogs.js",
-    "./google/info/googleInfo.js"
+
+    "./google/index.js"
   ]
 }
