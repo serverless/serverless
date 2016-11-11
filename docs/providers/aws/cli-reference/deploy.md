@@ -15,7 +15,10 @@ layout: Doc
 Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.
 
 ```bash
-serverless deploy [function]
+serverless deploy
+
+# or
+serverless deploy function
 ```
 
 ## Options
