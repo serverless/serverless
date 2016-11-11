@@ -44,8 +44,10 @@ provider:
 package:
 #  include:
 #    - include-me.java
+#    - include-me-dir/**
 #  exclude:
 #    - exclude-me.java
+#    - exclude-me-dir/**
   artifact: build/distributions/hello.zip
 
 functions:

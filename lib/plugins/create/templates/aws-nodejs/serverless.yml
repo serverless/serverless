@@ -44,8 +44,10 @@ provider:
 #package:
 #  include:
 #    - include-me.js
+#    - include-me-dir/**
 #  exclude:
 #    - exclude-me.js
+#    - exclude-me-dir/**
 #  artifact: my-service-code.zip
 
 functions:

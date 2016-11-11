@@ -44,8 +44,10 @@ provider:
 package:
 #  include:
 #    - include-me.jar
+#    - include-me-dir/**
 #  exclude:
 #    - exclude-me.jar
+#    - exclude-me-dir/**
   artifact: target/scala-2.11/hello.jar
 
 functions:
