@@ -16,7 +16,6 @@ Deploys your service. You can access all created deployment artifacts in the `.s
 
 ```bash
 serverless deploy
-
 # or
 serverless deploy function
 ```
