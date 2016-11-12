@@ -103,6 +103,8 @@ functions:
 
 In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
 
+Files with the extension `.json`, `.yml`, or `.yaml` will be parsed automatically. If your file does not have one of these extensions you can use `${file:json(path)}` or `${file:yaml(path)}` to explicitly have it parsed in your config.
+
 ## Multiple Configuration Files
 
 Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.
