@@ -112,9 +112,11 @@ provider:
 
 functions:
   usersCreate: # A Function
+    handler: users.create
     events: # The Events that trigger this Function
       - http: post users/create
   usersDelete: # A Function
+    handler: users.delete
     events:  # The Events that trigger this Function
       - http: delete users/delete
 
