@@ -19,7 +19,7 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 
 ## 2. Invoke deployed function
 
-`serverless invoke --function helloWorld` or `serverless invoke -f helloWorld`
+`serverless invoke --function helloWorld` or `serverless invoke -f hello`
 
 `-f` is shorthand for `--function`
 
