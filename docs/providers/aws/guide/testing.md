@@ -12,17 +12,21 @@ layout: Doc
 
 # Testing
 
-Serverless introduces a lot of simplifications when it comes to serving business logic. We only need to provide handler function that almost entirely implements business logic. The only thing that we need to apply to are handler function arguments that are passed by FaaS provider. E.g. AWS Lambda passes 3 arguments `event`, `context` and `callback` to Node.js functions. Of course list of arguments differs between languages and, what is more important, between FaaS providers.
+While the Serverless Architecture introduces a lot of simplicity when it comes to serving business logic, some of its characteristics that present challenges for testing.  They are:
 
-Another important factor is a cloud environment. Basically, it's impossible to emulate AWS locally. Of course projects like [dynamodb-local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) or [kinesalite](https://github.com/mhart/kinesalite) may help but AWS (and other providers) provide much more services. We shouldn't rely on local implementations if we want to be 100% sure that our service won't fail after deploying to production environment.
+* The Serverless Architecture is an integration of separate, distributed services, which must be tested both independently, and together.
+* The Serverless Architecture is dependent on internet/cloud services, which are hard to emulate locally.
+* The Serverless Architecture can feature event-driven, asynchronous workflows, which are hard to emulate entirely.
 
-Because of those issues (and having [test pyramid](http://martinfowler.com/bliki/TestPyramid.html) in mind) we suggest following testing strategy:
+To get through these challenges, and to keep the [test pyramid](http://martinfowler.com/bliki/TestPyramid.html) in mind, keep the following principles in mind:
 
-- business logic should be independent from FaaS provider,
-- unit testing should be used as a main tool for verifying business logic,
-- integration tests should be used for verifying integration with other services.
+* Write your business logic so that it is separate from your FaaS provider (e.g., AWS Lambda), to keep it provider-independent, reusable and more easily testable.
+* When your business logic is written separately from the FaaS provider, you can write traditional Unit Tests to ensure it is working properly.
+* Write Integration Tests to verify integrations with other services are working correctly.
 
-Let's take simple Node.js function as an example. The responsibility of this function is to save user into DB and send welcome email:
+## A Poor Example
+
+Here is an example in Node.js of how to follow the practices above.  This job this Function should perform is to save a user in a database and then send a welcome email:
 
 ```javascript
 const db = require('db').connect();
@@ -45,14 +49,14 @@ module.exports.saveUser = (event, context, callback) => {
 };
 ```
 
-There are two main problems with this functions:
+There are two main problems with this function:
 
-- code is bounded to how AWS Lambda passes incoming data (`event` object),
-- testing this function require running DB instance and mail server.
+* The business logic is not separate from the FaaS Provider.  It's bounded to how AWS Lambda passes incoming data (Lambda's `event` object).
+* Testing this function will rely on separate services.  Specifically, running a database instance and a mail server.
 
-## Unit testing
+## Writing Testable AWS Lambda Functions
 
-Business logic should be implemented in a way that allows using it in a different environment, no matter if it's AWS Lambda, Google Cloud Functions or HTTP server. Instead of writing complicated handler functions we should extract what is the core of our business. Let's extract it from above example
+Let's refactor the above example to separate the business logic from the FaaS Provider.
 
 ```javascript
 class Users {
@@ -77,22 +81,30 @@ class Users {
   });
   }
 }
+
+module.exports = Users;
 ```
-
-This class is testable and doesn't require running any of the external services. Instead of real `db` and `mailer` objects we can pass mocks and assert if `saveUser` and `sendWelcomeEmail` has been called with proper arguments. We should have as much unit-test as possible and run them every code change. Of course passing unit-tests doesn't mean that our function is working as expected. That's why we also need integration test.
-
-## Integration tests
-
-After extracting business logic to separate module handler function looks like this:
 
 ```javascript
 const db = require('db').connect();
 const mailer = require('mailer');
-const users = require('users')(db, mailer);
+const Users = require('users');
+
+let users = new Users(db, mailer);
 
 module.exports.saveUser = (event, context, callback) => {
   users.save(event.email, callback);
 };
 ```
 
-It's responsible for setting up dependencies, injecting them and calling business logic functions. This code will be changed less often. To make sure that function is working as expected integration tests should be ran against deployed function. They should invoke function (`serverless invoke`) with fixture email address, check if user is actually saved to DB and check if email was received.
+Now, the above class keeps business logic separate.  Further, the code responsible for setting up dependencies, injecting them, calling business logic functions and interacting with AWS Lambda is in its own file, which will be changed less often.  This way, the business logic is not provider dependent, easier to re-use, and easier to test.
+
+Further, this code doesn't require running any external services.  Instead of a real `db` and `mailer` services, we can pass mocks and assert if `saveUser` and `sendWelcomeEmail` has been called with proper arguments.
+
+Unit Tests can easily be written to cover the above class.  Then invoke the function (`serverless invoke`) with fixture email address, check if user is actually saved to DB and check if email was received to see if everything is working together.
+
+## Other
+
+Here are a few links to services which can help you test locally:
+* [dynamodb-local](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)
+* [kinesalite](https://github.com/mhart/kinesalite)
