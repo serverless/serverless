@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Serverless.yml Reference
 menuText: Serverless.yml
-menuOrder: 16
+menuOrder: 15
 description: A list of all available properties on serverless.yml for AWS
 layout: Doc
 -->
