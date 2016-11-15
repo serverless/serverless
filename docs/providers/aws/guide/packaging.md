@@ -56,7 +56,9 @@ exclude:
 
 ## Artifact
 
-For complete control over the packaging process you can specify your own zip file for your service. Serverless won't zip your service if this is configured so `exclude` and `include` will be ignored.
+For complete control over the packaging process you can specify your own artifact zip file. Serverless won't zip your service if this is configured and therefor `exclude` and `include` will be ignored. Either you use artifact or include/exclude.
+
+The artifact option is especially useful in case your development environment allows you to generate a deployable artifact like Maven does for Java.
 
 ## Example
 
