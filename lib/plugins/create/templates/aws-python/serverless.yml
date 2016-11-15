@@ -48,7 +48,6 @@ provider:
 #  exclude:
 #    - exclude-me.py
 #    - exclude-me-dir/**
-#  artifact: my-service-code.zip
 
 functions:
   hello:

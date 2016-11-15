@@ -42,12 +42,6 @@ provider:
 
 # you can add packaging information here
 package:
-#  include:
-#    - include-me.java
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.java
-#    - exclude-me-dir/**
   artifact: target/hello-dev.jar
 
 functions:
