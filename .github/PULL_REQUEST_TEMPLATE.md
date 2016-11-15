@@ -40,6 +40,7 @@ Examples:
 - [ ] Fix linting errors
 - [ ] Make sure code coverage hasn't dropped
 - [ ] Provide verification config/commands/resources
+- [ ] Enable ["Allow edits from maintainers"](https://help.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) for this PR
 - [ ] Change ready for review message below
 
 

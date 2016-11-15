@@ -13,7 +13,7 @@ layout: Doc
 # Defining IAM Rights
 
 Serverless provides no-configuration rights provisioning by default.
-However you can always define roles on a service or function level if you need to.
+However, you can always define roles on a service or function level if you need to.
 
 ## Default Role Management
 
@@ -54,7 +54,7 @@ On deployment, all these statements will be added to the policy that is applied 
 ## Custom Role Management
 
 **WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
-That means that `iamRoleStatements` you've defined on the `provider` level won't be applied anymore. Furthermore you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
+That means that `iamRoleStatements` you've defined on the `provider` level won't be applied anymore. Furthermore, you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
 
 Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis. To do this you must declare a `role` attribute at the level at which you would like the role to be applied.
 
