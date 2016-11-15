@@ -47,7 +47,7 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha tests/all -- -R spec --recursive",
+    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
     "lint": "eslint .",
     "simple-integration-test": "mocha tests/integration/simple-integration-test",
     "complex-integration-test": "mocha tests/integration/all"
