@@ -110,7 +110,7 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="v1-plugins"></a>Plugins (V1.0)
 
-Use these plugins to overwrite or extend the Framework's functionality…
+Use these plugins to overwrite or extend the Framework's functionality...
 
 * [serverless-alexa-plugin](https://github.com/rajington/serverless-alexa-plugin) - Support Alexa Lambda events
 * [serverless-build](https://github.com/nfour/serverless-build-plugin)

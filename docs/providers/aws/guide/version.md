@@ -30,7 +30,7 @@ provider:
   runtime: nodejs4.3
   memorySize: 512
 
-…
+...
 ```
 
 ### Version Range
@@ -47,5 +47,5 @@ provider:
   runtime: nodejs4.3
   memorySize: 512
 
-…
+...
 ```
