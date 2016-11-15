@@ -44,7 +44,7 @@ provider:
 package:
 #  exclude:
 #    - exclude-me.java
-  artifact: build/distributions/hello.zip
+  artifact: build/libs/hello.jar
 
 functions:
   hello:
