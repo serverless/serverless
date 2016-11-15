@@ -36,7 +36,13 @@ functions:
       - schedule:
           rate: rate(10 minutes)
           enabled: false
+          input:
+            key1: value1
+            key2: value2
+            stageParams:
+              stage: dev
       - schedule:
           rate: cron(0 12 * * ? *)
           enabled: false
+          inputPath: '$.stageVariables'
 ```
