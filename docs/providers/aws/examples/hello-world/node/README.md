@@ -13,13 +13,14 @@ layout: Doc
 
 Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
 
-## 1. Deploy
+## 1. Create a service
+`serverless create --template aws-nodejs --path myService` or `sls create --template aws-nodejs --path myService`, where 'myService' is a new folder to be created with template service files.  Change directories into this new folder.
 
+## 2. Deploy
 `serverless deploy` or `sls deploy`. `sls` is shorthand for the Serverless CLI command
 
-## 2. Invoke deployed function
-
-`serverless invoke --function helloWorld` or `serverless invoke -f helloWorld`
+## 3. Invoke deployed function
+`serverless invoke --function hello` or `serverless invoke -f hello`
 
 `-f` is shorthand for `--function`
 
@@ -27,9 +28,9 @@ In your terminal window you should see the response from AWS Lambda
 
 ```bash
 {
-  "message": "Hello World",
-  "event": {}
+    "statusCode": 200,
+    "body": "{\"message\":\"Go Serverless v1.0! Your function executed successfully!\",\"input\":{}}"
 }
 ```
 
-Congrats you have just deployed and ran your Hello World function!
+Congrats you have just deployed and run your Hello World function!
