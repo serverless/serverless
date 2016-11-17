@@ -10,8 +10,10 @@ layout: Doc
 
 # Serverless AWS Lambda Guide
 
-Welcome to the Serverless AWS Lambda Guide!  Please select a section on the left to get started.
+Welcome to the Serverless AWS Lambda Guide!
 
-**Note:** Before continuing [AWS system credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/) are required for using the CLI.
+Get started with the **[Introduction to the framework](./introduction.md)**
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+
+**Note:** Before continuing [AWS system credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/) are required for using the CLI.

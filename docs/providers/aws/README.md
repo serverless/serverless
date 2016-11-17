@@ -10,8 +10,10 @@ layout: Doc
 
 # Serverless AWS Provider Documentation
 
-Welcome to the Serverless Amazon Web Services documentation!  Please select a section on the left to get started.
+Welcome to the Serverless Amazon Web Services documentation!
 
-**Note:** Before continuing [AWS system credentials](./guide/credentials/) are required for using the CLI.
+Please select a section on the left to get started.
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+
+**Note:** Before continuing [AWS system credentials](./guide/credentials/) are required for using the CLI.

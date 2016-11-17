@@ -10,8 +10,10 @@ layout: Doc
 
 # Serverless AWS Lambda Events
 
-Welcome to the Serverless AWS Lambda Events Glossary!  Please select a section on the left to get started.
+Welcome to the Serverless AWS Lambda Events Glossary!
 
-**Note:** Before continuing [AWS system credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/) are required for using the CLI.
+Please select a section on the left to get started.
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+
+**Note:** Before continuing [AWS system credentials](https://serverless.com/framework/docs/providers/aws/guide/credentials/) are required for using the CLI.

@@ -14,8 +14,16 @@ layout: Doc
 
 Creates a new service in the current working directory based on the provided template.
 
+**Create service in current working directory:**
+
 ```bash
 serverless create --template aws-nodejs
+```
+
+**Create service in new folder:**
+
+```bash
+serverless create --template aws-nodejs --path myService
 ```
 
 ## Options

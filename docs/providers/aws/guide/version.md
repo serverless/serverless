@@ -6,7 +6,7 @@ description: How to pin a service to certain Serverless versions.
 layout: Doc
 -->
 
-# Why?
+# Version Pinning
 
 The Serverless framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your services. Installing tools globally has the downside that the version can't be pinned inside package.json. This can lead to issues if you upgrade Serverless, but your colleagues or CI system don't. You can now use a new feature in your serverless.yaml which is available only in the latest version without worrying that your CI system will deploy with an old version of Serverless.
 

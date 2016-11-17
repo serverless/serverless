@@ -12,15 +12,14 @@ layout: Doc
 
 # Functions
 
-If you are using AWS as a provider for your *Service*, all *Functions* are AWS Lambda functions.
+If you are using AWS as a provider, all *functions* inside the service are AWS Lambda functions.
 
 ## Configuration
 
-All of the AWS Lambda functions in your serverless service can be found in `serverless.yml` under the `functions` property.
+All of the Lambda functions in your serverless service can be found in `serverless.yml` under the `functions` property.
 
 ```yml
 # serverless.yml
-
 service: myService
 
 provider:
@@ -43,7 +42,6 @@ The `handler` property points to the file and module containing the code you wan
 
 ```javascript
 // handler.js
-
 module.exports.functionOne = function(event, context, callback) {}
 ```
 
@@ -72,7 +70,6 @@ Your functions can either inherit their settings from the `provider` property.
 
 ```yml
 # serverless.yml
-
 service: myService
 
 provider:
@@ -89,7 +86,6 @@ Or you can specify properties at the function level.
 
 ```yml
 # serverless.yml
-
 service: myService
 
 provider:
@@ -108,7 +104,6 @@ Every AWS Lambda function needs permission to interact with other AWS infrastruc
 
 ```yml
 # serverless.yml
-
 service: myService
 
 provider:
@@ -136,7 +131,6 @@ Another example:
 
 ```yml
 # serverless.yml
-
 service: myService
 provider:
   name: aws
@@ -164,7 +158,6 @@ You can also use an existing IAM role by adding your IAM Role ARN in the `role` 
 
 ```yml
 # serverless.yml
-
 service: new-service
 provider:
   name: aws
@@ -227,7 +220,7 @@ Then, when you run `serverless deploy`, VPC configuration will be deployed along
 
 ## Environment Variables
 
-We're working on great Environment Variable support. Until then, you'll be able to use the following tools for different languages to set environment variables and make them available to your code.
+We're working on great environment variable support. Until then, you'll be able to use the following tools for different languages to set environment variables and make them available to your code.
 
 ## Javascript
 
@@ -247,7 +240,7 @@ By default, the framework does not create LogGroups for your Lambdas. However th
 
 To opt in for this feature now to avoid breaking changes later, add the following to your provider config in serverless.yml:
 
-```
+```yml
 provider:
   cfLogs: true
 ```

@@ -12,16 +12,16 @@ layout: Doc
 
 # Services
 
-A *Service* is like a Project.  It's where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all in a file called `serverless.yml`.
+A `service` is like a project.  It's where you define your AWS Lambda Functions, the `events` that trigger them and any AWS infrastructure `resources` they require, all in a file called `serverless.yml`.
 
-To get started building your first Serverless Framework project, create a *Service*.
+To get started building your first Serverless Framework project, create a `service`.
 
 ## Organization
 
 In the beginning of an application, many people use a single Service to define all of the Functions, Events and Resources for that project.  This is what we recommend in the beginning.
 
 ```bash
-myApp/
+myService/
   serverless.yml  # Contains all functions and infrastructure resources
 ```
 
@@ -29,7 +29,7 @@ However, as your application grows, you can break it out into multiple services.
 
 ```bash
 users/
-  serverless.yml  # Contains 4 functions that do Users CRUD operations and the Users database
+  serverless.yml # Contains 4 functions that do Users CRUD operations and the Users database
 posts/
   serverless.yml # Contains 4 functions that do Posts CRUD operations and the Posts database
 comments/
@@ -44,6 +44,7 @@ This makes sense since related functions usually use common infrastructure resou
 To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
 
 ```bash
+# Create service with nodeJS template in the folder ./myService
 serverless create --template aws-nodejs --path myService
 ```
 
@@ -66,14 +67,14 @@ You'll see the following files in your working directory:
 
 ### serverless.yml
 
-Each *Serverless service* configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
+Each `service` configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
 
   - Declare a Serverless service
-  - Define one or multiple functions in the service
+  - Define one or more functions in the service
   - Define the provider the service will be deployed to (and the runtime if provided)
-  - Define custom plugins to be used
+  - Define any custom plugins to be used
   - Define events that trigger each function to execute (e.g. HTTP requests)
-  - Define a set of resources (e.g. 1 AWS CloudFormation stack) required by the functions in this service
+  - Define a set of resources (e.g. 1 DynamoDB table) required by the functions in this service
   - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
   - Allow flexible configuration using Serverless Variables
 
