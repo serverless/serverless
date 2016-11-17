@@ -69,7 +69,7 @@ functions: // Your "Functions"
   usersCreate:
     events: // The "Events" that trigger this function
       - http: post users/create
-  usersCreate:
+  usersDelete:
     events:
       - http: delete users/delete
 
