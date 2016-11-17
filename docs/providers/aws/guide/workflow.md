@@ -12,19 +12,22 @@ layout: Doc
 
 # Workflow
 
-## Process
-Quick recommendations and tips for various processes.
-### Development
-* Write your functions
-* Use `serverless deploy` only when you've made changes to `serverless.yml` and in CI/CD systems.
-* Use `serverless deploy function -f myFunction -l` to rapidly deploy changes when you are working on a specific AWS Lambda Function.
-* Use `serverless invoke -f myFunction -l` to test your AWS Lambda Functions on AWS.
-* Open up a separate tab in your console and stream logs in there via `serverless logs -f myFunction -t`.
-* Write tests to run locally.
-### Stages
+Intro. Quick recommendations and tips for various processes.
+
+### Development Workflow
+
+1. Write your functions
+2. Use `serverless deploy` only when you've made changes to `serverless.yml` and in CI/CD systems.
+3. Use `serverless deploy function -f myFunction -l` to rapidly deploy changes when you are working on a specific AWS Lambda Function.
+4. Use `serverless invoke -f myFunction -l` to test your AWS Lambda Functions on AWS.
+5.  Open up a separate tab in your console and stream logs in there via `serverless logs -f myFunction -t`.
+6. Write tests to run locally.
+
+### Using stages
 * At the very least, use a `dev` and `production` stage.
 * Use different AWS accounts for stages.
 * In larger teams, each member should use a separate AWS account and their own stage for development.
+
 ### Larger Projects
 * Break your application/project into multiple Serverless Services.
 * Model your Serverless Services around Data Models or Workflows.

@@ -12,19 +12,24 @@ layout: Doc
 
 # Events
 
-If you are using AWS as a provider for your Service, all *Events* are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via API Gateway.
+Simply put, events are the things that trigger your functions to run.
 
-Upon deployment, the Serverless Framework will deploy any infrastructure required for an event (e.g., an API Gateway endpoint) and configure your Function to listen to it.
+If you are using AWS as your provider, all `events` in the service are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via API Gateway.
+
+[View the AWS events section for a list of supported events](../events)
+
+Upon deployment, the framework will deploy any infrastructure required for an event (e.g., an API Gateway endpoint) and configure your `function` to listen to it.
 
 ## Configuration
 
-Events belong to each Function and can be found in the `events` property, which is an array:
+Events belong to each Function and can be found in the `events` property in `serverless.yml`.
 
 ```yml
+# 'functions' in serverless.yml
 functions:
-  createUser: # A function
-    handler: handler.createUser
-    events: # All events are here
+  createUser: # Function name
+    handler: handler.createUser # Reference to file handler.js & exported function 'createUser'
+    events: # All events associated with this function
       - http:
           path: users/create
           method: post
@@ -32,13 +37,16 @@ functions:
 
 Events are objects, which can contain event-specific information.
 
+The `events` property is an array, because it's possible for functions to be triggered by multple events, as shown
+
 You can set multiple Events per Function, as long as that is supported by AWS.
 
 ```yml
+# 'functions' in serverless.yml
 functions:
-  createUser: # A function
-    handler: handler.users
-    events: # All events are here
+  createUser: # Function name
+    handler: handler.users # Reference to file handler.js & exported function 'users'
+    events: # All events associated with this function
       - http:
           path: users/create
           method: post

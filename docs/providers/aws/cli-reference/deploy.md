@@ -12,13 +12,21 @@ layout: Doc
 
 # Deploy
 
-Deploys your service. You can access all created deployment artifacts in the `.serverless` folder.
+The `sls deploy` command deploys your service or an individual function.
+
+**Deploy entire service:**
 
 ```bash
 serverless deploy
-# or
-serverless deploy function
 ```
+
+**Deploy a single function:**
+
+```bash
+serverless deploy function -f functionName
+```
+
+**Note:** `sls deploy function` is faster than a full service deploy and recommended for a faster development flow
 
 ## Options
 - `--function` or `-f` The name of the function which should be deployed (**Note:** only available when running
@@ -27,6 +35,10 @@ serverless deploy function
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
+
+## Artifacts
+
+After the `serverless deploy` command runs all created deployment artifacts are placed in the `.serverless` folder of the service.
 
 ## Examples
 
@@ -50,7 +62,7 @@ With this example we've defined that we want our service to be deployed to the `
 
 ## List existing deploys
 
-```
+```bash
 serverless deploy list
 ```
 

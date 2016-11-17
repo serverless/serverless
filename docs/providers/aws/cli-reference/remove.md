@@ -12,7 +12,7 @@ layout: Doc
 
 # Remove
 
-Removes the deployed service which is defined in your current working directory.
+The `sls remove` command will remove the deployed service, defined in your current working directory,  from the provider.
 
 ```bash
 serverless remove
