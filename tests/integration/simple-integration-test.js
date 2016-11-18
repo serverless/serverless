@@ -30,6 +30,7 @@ describe('Service Lifecyle Integration Test', function () {
   it('should create service in tmp directory', () => {
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
     execSync(`sed -i.bak s/${templateName}/${newServiceName}/g serverless.yml`);
+    execSync("sed -i.bak '/provider:/a \\  cfLogs: true' serverless.yml");
     expect(serverless.utils
       .fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(serverless.utils

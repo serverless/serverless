@@ -24,19 +24,21 @@ At this time, the Serverless Framework supports only Amazon Web Services, but su
 
 Here's how to set up the Serverless Framework with your Amazon Web Services account.
 
-If you're new to Amazon Web Services, make sure you put in a credit card.  If you don't have a credit card set up, you may not be able to deploy your resources and you may run into this error:
+If you're new to Amazon Web Services, make sure you put in a credit card.  
 
-```bash
+New AWS users get access to the [AWS Free Tier](https://aws.amazon.com/free/), which let's you use many AWS resources for free for 1 year, like [AWS Lambda](https://aws.amazon.com/lambda/pricing/). New AWS users won't be charged for signing up.
+
+If you don't have a credit card set up, you may not be able to deploy your resources and you may run into this error:
+
+```
 AWS Access Key Id needs a subscription for the service
 ```
 
-Don't worry, you won't be charged for signing up.  New AWS users get access to the [AWS Free Tier](https://aws.amazon.com/free/), which let's you use many AWS resources for free for 1 year, like [AWS Lambda](https://aws.amazon.com/lambda/pricing/).
-
-While in the AWS Free Tier, you can build an entire application on AWS Lambda, AWS API Gateway, and more, without getting charged for 1 year...  As long as you don't exceed the resources in the Free Tier.
+While in the AWS Free Tier, you can build an entire application on AWS Lambda, AWS API Gateway, and more, without getting charged for 1 year...  As long as you don't exceed the resources in the free tier, of course.
 
 ### Creating AWS Access Keys
 
-To let the Serverless Framework access your AWS account, we're going to create an IAM User with Admin access, which can configure the services in your AWS account.  This IAM User will have its own set of AWS Access Keys.
+To let the Serverless Framework access your AWS account, we're going to **create an IAM User with Admin access**, which can configure the services in your AWS account.  This IAM User will have its own set of AWS Access Keys.
 
 **Note:** In a production environment, we recommend reducing the permissions to the IAM User which the Framework uses.  Unfortunately, the Framework's functionality is growing so fast, we can't yet offer you a finite set of permissions it needs (we're working on this).  Consider using a separate AWS account in the interim, if you cannot get permission to your organization's primary AWS accounts.
 
@@ -59,8 +61,9 @@ You can configure the Serverless Framework to use your AWS **API Key** & **Secre
 As a quick setup to get started you can export them as environment variables so they would be accessible to Serverless and the AWS SDK in your shell:
 
 ```bash
-export AWS_ACCESS_KEY_ID=<key>
-export AWS_SECRET_ACCESS_KEY=<secret>
+export AWS_ACCESS_KEY_ID=<your-key-here>
+export AWS_SECRET_ACCESS_KEY=<your-secret-key-here>
+# AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are now available for serverless to use
 serverless deploy
 ```
 

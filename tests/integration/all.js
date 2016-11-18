@@ -11,12 +11,10 @@ require('./aws/general/overwrite-resources/tests');
 require('./aws/api-gateway/integration-lambda/simple-api/tests');
 require('./aws/api-gateway/integration-lambda/custom-authorizers/tests');
 require('./aws/api-gateway/integration-lambda/cors/tests');
-require('./aws/api-gateway/integration-lambda/api-keys/tests');
 // Integration: Lambda Proxy
 require('./aws/api-gateway/integration-lambda-proxy/simple-api/tests');
 require('./aws/api-gateway/integration-lambda-proxy/custom-authorizers/tests');
 require('./aws/api-gateway/integration-lambda-proxy/cors/tests');
-require('./aws/api-gateway/integration-lambda-proxy/api-keys/tests');
 
 // Schedule
 require('./aws/schedule/multiple-schedules-multiple-functions/tests');

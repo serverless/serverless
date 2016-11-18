@@ -18,7 +18,7 @@ Serverless is a [Node.js](https://nodejs.org) CLI tool so the first thing you ne
 
 Go to the official [Node.js website](https://nodejs.org), download and follow the [installation instructions](https://nodejs.org/en/download/) to install Node.js on your local machine.
 
-**Note:** Serverless runs on Node v4 or higher. So make sure that you pick a recent Node version.
+**Note:** Serverless runs on Node v4 or higher.
 
 You can verify that Node.js is installed successfully by runnning `node --version` in your terminal. You should see the corresponding Node version number printed out.
 
@@ -28,8 +28,24 @@ Next, install the Serverless Framework via [npm](https://npmjs.org) which was al
 
 Open up a terminal and type `npm install -g serverless` to install Serverless.
 
-Once the installation process is done you can verify that Serverless is installed successfully by running `serverless`.
+```bash
+npm install -g serverless
+```
 
-### Installing AWS
+Once the installation process is done you can verify that Serverless is installed successfully by running the following command in your terminal:
 
-AWS ships with the core of the Serverless Framework, so no additional installation is required.
+```bash
+serverless
+```
+
+To see which version of serverless you have installed run:
+
+```bash
+serverless --version
+```
+
+### Setting up AWS
+
+To run serverless commands that interface with your AWS account, you will need to setup your AWS account credentials on your machine.
+
+[Follow these instructions on setting up AWS credentials](./credentials.md)

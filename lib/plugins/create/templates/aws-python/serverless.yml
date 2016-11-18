@@ -42,9 +42,12 @@ provider:
 
 # you can add packaging information here
 #package:
+#  include:
+#    - include-me.py
+#    - include-me-dir/**
 #  exclude:
 #    - exclude-me.py
-#  artifact: my-service-code.zip
+#    - exclude-me-dir/**
 
 functions:
   hello:
