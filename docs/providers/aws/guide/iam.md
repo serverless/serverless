@@ -72,9 +72,9 @@ service: new-service
 provider:
   name: aws
   # declare one of the following...
-  role: myDefaultRole                                                  # must validly reference a role defined in the service
-  role: arn:aws:iam::0123456789:role//my/default/path/roleInMyAccount  # must validly reference a role defined in your account
-  role:                                                                # must validly resolve to the ARN of a role you have the rights to use
+  role: myDefaultRole                                  # must validly reference a role defined in the service
+  iamRoleARN: arn:aws:iam::0123456789:role/role-name   # must be a valid IAM Role ARN defined in your account
+  role:                                                # must validly resolve to the ARN of a role you have the rights to use
     Fn::GetAtt:
       - myRole
       - Arn
