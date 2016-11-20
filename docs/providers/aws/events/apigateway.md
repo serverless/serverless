@@ -224,7 +224,7 @@ functions:
               - nickname
 ```
 
-You must use `integration: lambda` to have any claims exposed.
+Note: Since claims must be explicitly listed to be exposed, you must use `integration: lambda` integration type to access any claims.
 
 ### Catching Exceptions In Your Lambda Function
 
