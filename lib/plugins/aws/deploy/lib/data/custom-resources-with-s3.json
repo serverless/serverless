@@ -1,0 +1,40 @@
+{
+  "Resources": {
+    "AssetsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "AccessControl": "Private",
+        "BucketName": "example-api.dev.assets",
+        "CorsConfiguration": {
+          "CorsRules": [
+            {
+              "AllowedOrigins": [
+                "http://example.dev:3001"
+              ],
+              "AllowedHeaders": [
+                "*"
+              ],
+              "AllowedMethods": [
+                "PUT",
+                "GET"
+              ]
+            },
+            {
+              "AllowedOrigins": [
+                "https://dev.example.com"
+              ],
+              "AllowedHeaders": [
+                "*"
+              ],
+              "AllowedMethods": [
+                "PUT",
+                "GET"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {}
+}
