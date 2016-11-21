@@ -1,0 +1,14 @@
+service: aws-nodejs # NOTE: update this with your service name
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  cfLogs: true
+  environment:
+    provider_level_variable: provider_level
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      function_level_variable: function_level
