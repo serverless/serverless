@@ -26,6 +26,12 @@ require('./aws/sns/single-topic-multiple-functions/tests');
 require('./aws/sns/multiple-topics-single-function/tests');
 require('./aws/sns/multiple-topics-multiple-functions/tests');
 
+// S3
+require('./aws/s3/single-event-single-function-single-bucket/tests');
+require('./aws/s3/multiple-events-single-function-single-bucket/tests');
+require('./aws/s3/multiple-events-multiple-functions-single-bucket/tests');
+require('./aws/s3/multiple-events-multiple-functions-multiple-buckets/tests');
+
 // General
 require('./general/custom-plugins/tests');
 require('./general/local-plugins/tests');
