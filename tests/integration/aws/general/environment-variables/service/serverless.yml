@@ -5,10 +5,13 @@ provider:
   runtime: nodejs4.3
   cfLogs: true
   environment:
-    provider_level_variable: provider_level
+    provider_level_variable_1: provider_level_1
+    provider_level_variable_2: provider_level_2
 
 functions:
   hello:
     handler: handler.hello
     environment:
-      function_level_variable: function_level
+      function_level_variable_1: function_level_1
+      function_level_variable_2: function_level_2
+      provider_level_variable_2: overwritten_by_function
