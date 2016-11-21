@@ -234,7 +234,7 @@ functions:
       TABLE_NAME: tableName
 ```
 
-Or if you want to apply Environment Variable configuration to all functions in your service, you can add the configuration to the higher level `provider` object, and overwrite these service level config at the function level. For example:
+Or if you want to apply Environment Variable configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Environment Variable configured at the function level are overwriting the ones defined at the service level. For example:
 
 ```yml
 # serverless.yml
@@ -245,12 +245,12 @@ provider:
     TABLE_NAME: tableName1
 
 functions:
-  hello: # this function will overwrite the service level environment config above
+  hello: # this function will INHERIT the service level environment config above
     handler: handler.hello
+  users: # this function will OVERWRITE the service level environment config above
+    handler: handler.users
     environment:
       TABLE_NAME: tableName2
-  users: # this function will inherit the service level environment config above
-    handler: handler.users
 ```
 
 ## Log Group Resources
