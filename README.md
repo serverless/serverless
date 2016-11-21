@@ -91,6 +91,7 @@ The following are services you can instantly install and use by running `serverl
 * [Thumbnails](https://github.com/eahefnawy/serverless-thumbnails) - Service that takes an image url and returns a 100x100 thumbnail
 * [Boilerplate](https://github.com/eahefnawy/serverless-boilerplate) - Opinionated boilerplate
 * [ES6 + Jest](https://github.com/americansystems/serverless-es6-jest) - ES6 + Jest Boilerplate
+* [PHP](https://github.com/ZeroSharp/serverless-php) - Call a PHP function from your lambda
 
 **Note**: the `serverless install` command will only work on V1.0 or later.
 
