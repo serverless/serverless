@@ -40,6 +40,10 @@ provider:
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
 
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
 # you can add packaging information here
 #package:
 #  include:
@@ -64,6 +68,10 @@ functions:
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
 
 # you can add CloudFormation resource templates here
 #resources:
