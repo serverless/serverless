@@ -5,6 +5,7 @@
 require('./aws/general/nested-handlers/tests');
 require('./aws/general/custom-resources/tests');
 require('./aws/general/overwrite-resources/tests');
+require('./aws/general/environment-variables/tests');
 
 // API Gateway
 // Integration: Lambda
@@ -24,6 +25,12 @@ require('./aws/sns/single-topic-single-function/tests');
 require('./aws/sns/single-topic-multiple-functions/tests');
 require('./aws/sns/multiple-topics-single-function/tests');
 require('./aws/sns/multiple-topics-multiple-functions/tests');
+
+// S3
+require('./aws/s3/single-event-single-function-single-bucket/tests');
+require('./aws/s3/multiple-events-single-function-single-bucket/tests');
+require('./aws/s3/multiple-events-multiple-functions-single-bucket/tests');
+require('./aws/s3/multiple-events-multiple-functions-multiple-buckets/tests');
 
 // General
 require('./general/custom-plugins/tests');
