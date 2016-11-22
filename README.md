@@ -77,6 +77,7 @@ Check out our in-depth [Serverless Framework Guide](./docs/providers/aws/guide/R
 
 The following are services you can instantly install and use by running `serverless install --url <service-github-url>`
 
+* [serverless-examples](https://github.com/serverless/examples)
 * [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
 * [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 * [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
@@ -130,11 +131,11 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-webpack](https://github.com/elastic-coders/serverless-webpack) - Bundle your lambdas with Webpack
 * [serverless-wsgi](https://github.com/logandk/serverless-wsgi) - Deploy Python WSGI applications (Flask/Django etc.)
 * [serverless-rollback-function](https://github.com/marcy-terui/serverless-rollback-function) - Support `rollback function` command.
- * [serverless-crypt](https://github.com/marcy-terui/serverless-crypt) - Securing Serverless secrets by AWS KMS encryption.
+* [serverless-crypt](https://github.com/marcy-terui/serverless-crypt) - Securing Serverless secrets by AWS KMS encryption.
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
-* [serverless-examples](https://github.com/andymac4182/serverless_example)
+* [serverless-examples-andymac](https://github.com/andymac4182/serverless_example)
 * [serverless-npm-registry](https://github.com/craftship/yith)
 * [serverless-pokego](https://github.com/jch254/pokego-serverless)
 * [serverless-pocket-app](https://github.com/s0enke/weekly2pocket)
@@ -143,10 +144,6 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-garden-aid](https://github.com/garden-aid/web-bff)
 * [serverless-react-boilerplate](https://github.com/99xt/serverless-react-boilerplate)
 * [serverless-delivery-framework](https://github.com/99xt/serverless-delivery-framework)
-
-## <a name="why-serverless"></a>Why Serverless?
-
-We want to make sure that you and your team don't have to manage or think about Servers in your day to day development. Through AWS Lambda and similar Function as a Service providers you can focus on building your business code without having to worry about operations. While there are of course still servers running, you don't have to think about them. This turns you into a Serverless Team and thats why we think Serverless is a fitting name.
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
