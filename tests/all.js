@@ -21,8 +21,8 @@ require('../lib/plugins/remove/tests/remove');
 require('../lib/plugins/package/tests/all');
 require('../lib/plugins/slstats/tests/slstats');
 require('../lib/plugins/rollback/tests/rollback');
-
-// AWS Plugins Tests
+//
+// // AWS Plugins Tests
 require('../lib/plugins/aws/provider/awsProvider.test');
 require('../lib/plugins/aws/tests/validate');
 require('../lib/plugins/aws/tests/naming');
@@ -45,6 +45,7 @@ require('../lib/plugins/aws/deploy/compile/events/stream/tests');
 require('../lib/plugins/aws/deployFunction/tests/index');
 require('../lib/plugins/aws/deployList/tests/index');
 require('../lib/plugins/aws/rollback/tests/rollback');
+require('../lib/plugins/aws/rollbackFunction/tests/index');
 require('../lib/plugins/aws/invokeLocal/tests');
 
 // Other Tests

@@ -16,16 +16,19 @@ layout: Doc
 Rollback the Serverless service to a specific deployment.
 
 ```bash
-serverless rollback --timestamp timestamp
+serverless rollback [function]
 ```
 
 ## Options
 - `--timestamp` or `-t` The stage in your service you want to display information about.
 - `--verbose` or `-v` Shows any Stack Output.
+- `--function` or `-f` The name of the function which should be rollbacked (**Note:** only available when running
+`serverless rollback function`)
 
 ## Provided lifecycle events
 - `rollback:initialize`
 - `rollback:rollback`
+- `rollback:function:rollback`
 
 ## Examples
 

@@ -35,6 +35,8 @@ serverless deploy function -f functionName
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
+- `--backup` or `-b` Backup the function to rollback (**Note:** only available when running
+`serverless deploy function`)
 
 ## Artifacts
 
