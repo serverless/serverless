@@ -29,6 +29,7 @@ node_modules
 
 # IDE stuff
 **/.idea
+*.swp
 
 # OS stuff
 .DS_Store
@@ -40,7 +41,3 @@ admin.env
 tmp
 .coveralls.yml
 tmpdirs-serverless
-
-# Vim stuff
-*.swp
-
