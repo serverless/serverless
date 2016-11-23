@@ -18,6 +18,7 @@
     "./aws/logs/index.js",
     "./aws/remove/index.js",
     "./aws/rollback/index.js",
+    "./aws/setup/awsSetup.js",
     "./aws/deploy/compile/functions/index.js",
     "./aws/deploy/compile/events/schedule/index.js",
     "./aws/deploy/compile/events/s3/index.js",
