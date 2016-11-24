@@ -12,16 +12,16 @@ layout: Doc
 
 # Services
 
-A *Service* is like a Project.  It's where you define your AWS Lambda Functions, the Events that trigger them and any AWS infrastructure Resources they require, all in a file called `serverless.yml`.
+A `service` is like a project.  It's where you define your AWS Lambda Functions, the `events` that trigger them and any AWS infrastructure `resources` they require, all in a file called `serverless.yml`.
 
-To get started building your first Serverless Framework project, create a *Service*.
+To get started building your first Serverless Framework project, create a `service`.
 
 ## Organization
 
 In the beginning of an application, many people use a single Service to define all of the Functions, Events and Resources for that project.  This is what we recommend in the beginning.
 
 ```bash
-myApp/
+myService/
   serverless.yml  # Contains all functions and infrastructure resources
 ```
 
@@ -29,7 +29,7 @@ However, as your application grows, you can break it out into multiple services.
 
 ```bash
 users/
-  serverless.yml  # Contains 4 functions that do Users CRUD operations and the Users database
+  serverless.yml # Contains 4 functions that do Users CRUD operations and the Users database
 posts/
   serverless.yml # Contains 4 functions that do Posts CRUD operations and the Posts database
 comments/
@@ -44,6 +44,7 @@ This makes sense since related functions usually use common infrastructure resou
 To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
 
 ```bash
+# Create service with nodeJS template in the folder ./myService
 serverless create --template aws-nodejs --path myService
 ```
 
@@ -62,18 +63,17 @@ Check out the [create command docs](../cli-reference/create) for all the details
 You'll see the following files in your working directory:
 - `serverless.yml`
 - `handler.js`
-- `event.json`
 
 ### serverless.yml
 
-Each *Serverless service* configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
+Each `service` configuration is managed in the `serverless.yml` file. The main responsibilities of this file are:
 
   - Declare a Serverless service
-  - Define one or multiple functions in the service
+  - Define one or more functions in the service
   - Define the provider the service will be deployed to (and the runtime if provided)
-  - Define custom plugins to be used
+  - Define any custom plugins to be used
   - Define events that trigger each function to execute (e.g. HTTP requests)
-  - Define a set of resources (e.g. 1 AWS CloudFormation stack) required by the functions in this service
+  - Define a set of resources (e.g. 1 DynamoDB table) required by the functions in this service
   - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
   - Allow flexible configuration using Serverless Variables
 
@@ -111,9 +111,11 @@ provider:
 
 functions:
   usersCreate: # A Function
+    handler: users.create
     events: # The Events that trigger this Function
       - http: post users/create
   usersDelete: # A Function
+    handler: users.delete
     events:  # The Events that trigger this Function
       - http: delete users/delete
 
@@ -143,7 +145,9 @@ The `handler.js` file contains your function code. The function definition in `s
 
 ### event.json
 
-This file contains event data you can use to invoke your function with via `serverless invoke -p event.json`
+**Note:** This file is not created by default
+
+Create this file and add event data so you can invoke your function with the data via `serverless invoke -p event.json`
 
 ## Deployment
 
@@ -172,3 +176,49 @@ Run `serverless remove -v` to trigger the removal process. As in the deploy step
 Serverless will start the removal and informs you about it's process on the console. A success message is printed once the whole service is removed.
 
 The removal process will only remove the service on your provider's infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
+
+## Version Pinning
+
+The Serverless framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your services.
+
+Installing tools globally has the downside that the version can't be pinned inside package.json. This can lead to issues if you upgrade Serverless, but your colleagues or CI system don't. You can now use a new feature in your serverless.yml which is available only in the latest version without worrying that your CI system will deploy with an old version of Serverless.
+
+### Pinning a Version
+
+To configure version pinning define a `frameworkVersion` property in your serverless.yaml. Whenever you run a Serverless command from the CLI it checks if your current Serverless version is matching the `frameworkVersion` range. The CLI uses [Semantic Versioning](http://semver.org/) so you can pin it to an exact version or provide a range. In general we recommend to pin to an exact version to ensure everybody in your team has the exact same setup and no unexpected problems happen.
+
+### Examples
+
+#### Exact Version
+
+```yml
+# serverless.yml
+
+frameworkVersion: "=1.0.3"
+
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  memorySize: 512
+
+…
+```
+
+#### Version Range
+
+```yml
+# serverless.yml
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  memorySize: 512
+
+…
+```
