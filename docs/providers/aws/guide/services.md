@@ -63,7 +63,6 @@ Check out the [create command docs](../cli-reference/create) for all the details
 You'll see the following files in your working directory:
 - `serverless.yml`
 - `handler.js`
-- `event.json`
 
 ### serverless.yml
 
@@ -146,7 +145,9 @@ The `handler.js` file contains your function code. The function definition in `s
 
 ### event.json
 
-This file contains event data you can use to invoke your function with via `serverless invoke -p event.json`
+**Note:** This file is not created by default
+
+Create this file and add event data so you can invoke your function with the data via `serverless invoke -p event.json`
 
 ## Deployment
 

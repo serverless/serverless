@@ -86,11 +86,11 @@ This example will locally invoke your function.
 #### Local function invocation with event data
 
 You can input test data in `event.json` file inside your service directory:
+
 ```json
 {
   "foo": "bar"
 }
-
 ```
 
 and then pass it with the command
