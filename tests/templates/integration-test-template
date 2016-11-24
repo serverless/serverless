@@ -34,7 +34,7 @@ echo "Deploying Service"
 serverless deploy -v
 
 echo "Invoking Service"
-serverless invoke --function hello --path event.json -l
+serverless invoke --function hello
 
 echo "Removing Service"
 serverless remove -v
