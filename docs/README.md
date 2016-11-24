@@ -32,6 +32,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/guide/testing.md">Testing</a></li>
         <li><a href="./providers/aws/guide/variables.md">Variables</a></li>
         <li><a href="./providers/aws/guide/packaging.md">Packaging</a></li>
+        <li><a href="./providers/aws/guide/iam.md">IAM</a></li>
         <li><a href="./providers/aws/guide/plugins.md">Plugins</a></li>
         <li><a href="./providers/aws/guide/workflow.md">Workflow</a></li>
       </ul>
