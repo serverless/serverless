@@ -30,6 +30,9 @@ provider:
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   timeout: 10 # The default is 6
   deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+  role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
+  environment: # Service wide environment variables
+    serviceEnvVar: 123456789
   apiKeys: # List of API keys to be used by your service API Gateway REST API
     - myFirstKey
     - ${opt:stage}-myFirstKey
@@ -56,6 +59,9 @@ functions:
     handler: users.create # The file and module for this specific function.
     memorySize: 512 # memorySize for this specific function.
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
+    role: arn:aws:iam::XXXXXX:role/role # IAM role which which will be used for this function
+    environment: # Function level environment variables
+      functionEnvVar: 12345678
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
