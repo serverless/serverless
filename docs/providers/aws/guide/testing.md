@@ -26,7 +26,7 @@ To get through these challenges, and to keep the [test pyramid](http://martinfow
 
 ## A Poor Example
 
-Here is an example in Node.js of how to follow the practices above.  This job this Function should perform is to save a user in a database and then send a welcome email:
+Here is an example in Node.js of how to follow the practices above. The job this Function should perform is to save a user in a database and then send a welcome email:
 
 ```javascript
 const db = require('db').connect();
@@ -101,7 +101,7 @@ Now, the above class keeps business logic separate.  Further, the code responsib
 
 Further, this code doesn't require running any external services.  Instead of a real `db` and `mailer` services, we can pass mocks and assert if `saveUser` and `sendWelcomeEmail` has been called with proper arguments.
 
-Unit Tests can easily be written to cover the above class.  Then invoke the function (`serverless invoke`) with fixture email address, check if user is actually saved to DB and check if email was received to see if everything is working together.
+Unit Tests can easily be written to cover the above class.  An integration test can be added by invoking the function (`serverless invoke`) with fixture email address, check if user is actually saved to DB and check if email was received to see if everything is working together.
 
 ## Other
 
