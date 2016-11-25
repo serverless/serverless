@@ -98,7 +98,6 @@ functions:
     memorySize: 512 # function specific
 ```
 
-
 ## Permissions
 
 Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account.  These permissions are set via an AWS IAM Role.  You can set permission policy statements within this role via the `provider.iamRoleStatements` property.
