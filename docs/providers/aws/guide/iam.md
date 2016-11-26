@@ -33,7 +33,7 @@ provider:
          Fn::Join:
            - ""
            - - "arn:aws:s3:::"
-           - Ref: ServerlessDeploymentBucket
+           - Ref: SlsDeploy
     -  Effect: "Allow"
        Action:
          - "s3:PutObject"
@@ -41,7 +41,7 @@ provider:
          Fn::Join:
            - ""
            - - "arn:aws:s3:::"
-           - Ref : "ServerlessDeploymentBucket"
+           - Ref : "SlsDeploy"
 
 ```
 
@@ -113,7 +113,7 @@ resources:
                      Fn::Join:
                        - ""
                        - - "arn:aws:s3:::"
-                         - "Ref" : "ServerlessDeploymentBucket"
+                         - "Ref" : "SlsDeploy"
 ```
 
 ### Custom IAM Roles For Each Function
@@ -197,7 +197,7 @@ resources:
                      Fn::Join:
                        - ""
                        - - "arn:aws:s3:::"
-                         - "Ref" : "ServerlessDeploymentBucket"
+                         - "Ref" : "SlsDeploy"
 ```
 
 ### A Custom Default Role & Custom Function Roles
@@ -249,7 +249,7 @@ resources:
                      Fn::Join:
                        - ""
                        - - "arn:aws:s3:::"
-                         - "Ref" : "ServerlessDeploymentBucket"
+                         - "Ref" : "SlsDeploy"
     myCustRole0:
       Type: AWS::IAM::Role
       Properties:
