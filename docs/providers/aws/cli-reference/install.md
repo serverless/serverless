@@ -33,3 +33,11 @@ serverless install --url https://github.com/johndoe/authentication
 ```
 
 This example will download the .zip file of the `authentication` service from GitHub, create a new directory with the name `authentication` in the current working directory and unzips the files in this directory.
+
+### Installing a service from directories in a GitHub URL
+
+```bash
+serverless install --url https://github.com/johndoe/authentication/tree/master/todo/someauth
+```
+
+This example will download the `someauth` service from directory in GitHub.
