@@ -43,3 +43,4 @@ milestone if still open
 ## Validate Release
 - [ ] Validate NPM install works (`npm install -g serverless@<TagForInstall>` or `npm install -g serverless` if latest is released)
 - [ ] Check Segment.com production data if events are coming in correctly with the new version
+- [ ] Make sure you run `git checkout .` to revert adding Segment write key

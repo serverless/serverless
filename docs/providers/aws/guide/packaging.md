@@ -97,5 +97,5 @@ functions:
     handler: handler.hello
     package:
       exclude:
-        - event.json
+        - some-file.js
 ```

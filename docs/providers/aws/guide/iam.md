@@ -1,8 +1,8 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - IAM
+description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
 menuText: IAM
 menuOrder: 12
-description: How to set up the different roles on a service and function level
 layout: Doc
 -->
 
@@ -10,20 +10,15 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/iam)
 <!-- DOCS-SITE-LINK:END -->
 
-# Defining IAM Rights
+# IAM
 
-Serverless provides no-configuration rights provisioning by default.
-However, you can always define roles on a service or function level if you need to.
+Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account.  These permissions are set via an AWS IAM Role which the Serverless Framework automatically creates for each Serverless Service, and is shared by all of your Functions.  The Framework allows you to modify this Role or create Function-specific Roles, easily.
 
-## Default Role Management
+## The Default IAM Role
 
-The default rights provisioning approach requires no configuration and defines a role that is shared by all of the Lambda functions in your service. A policy is also created and is attached to the generated role. Any additional specific rights are added to the role by defining provider level `iamRoleStatements` that will be merged into the generated policy.
+By default, one IAM Role is shared by all of the Lambda functions in your service. An IAM Policy is also created and is attached to that Role.  Also by default, your Lambda functions have permission create and write to CloudWatch logs, and if you have specified VPC security groups and subnets for your Functions to use then the EC2 rights necessary to attach to the VPC via an ENI will be added into the default IAM Policy.
 
-### Adding Custom IAM Role Statements to the Default Policy
-
-By default, your Lambda functions will be provided with the right to create and write to CloudWatch logs. Further, if you have specified VPC security groups and subnets for your lambdas to use then the EC2 rights necessary to attach to the VPC via an ENI will be added into the default IAM policy.
-
-If you want to give permission to your functions to access certain resources on your AWS account, you can add custom IAM role statements to your service by adding the statements in the `iamRoleStatements` array in the `provider` object. As those statements will be merged into the CloudFormation template you can use `Join`, `Ref` or any other CloudFormation method or feature. You're also able to either use YAML for defining the statement (including the methods) or use embedded JSON if you prefer it. Here's an example that uses all of these:
+To add specific rights to this service-wide Role, define statements in `provider.iamRoleStatements` which will be merged into the generated policy.  As those statements will be merged into the CloudFormation template you can use `Join`, `Ref` or any other CloudFormation method or feature.
 
 ```yml
 service: new-service
@@ -31,29 +26,29 @@ service: new-service
 provider:
   name: aws
   iamRoleStatements:
-    -  Effect: 'Allow'
+    -  Effect: "Allow"
        Action:
-         - 's3:ListBucket'
+         - "s3:ListBucket"
        Resource:
          Fn::Join:
-           - ''
-           - - 'arn:aws:s3:::'
+           - ""
+           - - "arn:aws:s3:::"
            - Ref: ServerlessDeploymentBucket
     -  Effect: "Allow"
        Action:
          - "s3:PutObject"
        Resource:
          Fn::Join:
-           - ''
-           - - 'arn:aws:s3:::'
-             - Ref: ServerlessDeploymentBucket
+           - ""
+           - - "arn:aws:s3:::"
+           - Ref : "ServerlessDeploymentBucket"
+
 ```
 
-On deployment, all these statements will be added to the policy that is applied to the IAM role that is assumed by your Lambda functions.
-
-## Custom Role Management
+## Custom IAM Roles
 
 **WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
+
 That means that `iamRoleStatements` you've defined on the `provider` level won't be applied anymore. Furthermore, you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
 
 Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis. To do this you must declare a `role` attribute at the level at which you would like the role to be applied.
@@ -64,7 +59,7 @@ The `role` attribute can have a value of the logical name of the role, the ARN o
 
 Here are some examples of using these capabilities to specify Lambda roles.
 
-### Provide a single role for all lambdas (via each form of declaration)
+### One Custom IAM Role For All Functions
 
 ```yml
 service: new-service
@@ -121,7 +116,7 @@ resources:
                          - "Ref" : "ServerlessDeploymentBucket"
 ```
 
-### Provide individual roles for each Lambda
+### Custom IAM Roles For Each Function
 
 ```yml
 service: new-service
@@ -205,7 +200,7 @@ resources:
                          - "Ref" : "ServerlessDeploymentBucket"
 ```
 
-### Provide a default role for all Lambdas except those overriding the default
+### A Custom Default Role & Custom Function Roles
 
 ```yml
 service: new-service

@@ -63,7 +63,6 @@ Check out the [create command docs](../cli-reference/create) for all the details
 You'll see the following files in your working directory:
 - `serverless.yml`
 - `handler.js`
-- `event.json`
 
 ### serverless.yml
 
@@ -112,9 +111,11 @@ provider:
 
 functions:
   usersCreate: # A Function
+    handler: users.create
     events: # The Events that trigger this Function
       - http: post users/create
   usersDelete: # A Function
+    handler: users.delete
     events:  # The Events that trigger this Function
       - http: delete users/delete
 
@@ -144,7 +145,9 @@ The `handler.js` file contains your function code. The function definition in `s
 
 ### event.json
 
-This file contains event data you can use to invoke your function with via `serverless invoke -p event.json`
+**Note:** This file is not created by default
+
+Create this file and add event data so you can invoke your function with the data via `serverless invoke -p event.json`
 
 ## Deployment
 
@@ -173,3 +176,49 @@ Run `serverless remove -v` to trigger the removal process. As in the deploy step
 Serverless will start the removal and informs you about it's process on the console. A success message is printed once the whole service is removed.
 
 The removal process will only remove the service on your provider's infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
+
+## Version Pinning
+
+The Serverless framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your services.
+
+Installing tools globally has the downside that the version can't be pinned inside package.json. This can lead to issues if you upgrade Serverless, but your colleagues or CI system don't. You can now use a new feature in your serverless.yml which is available only in the latest version without worrying that your CI system will deploy with an old version of Serverless.
+
+### Pinning a Version
+
+To configure version pinning define a `frameworkVersion` property in your serverless.yaml. Whenever you run a Serverless command from the CLI it checks if your current Serverless version is matching the `frameworkVersion` range. The CLI uses [Semantic Versioning](http://semver.org/) so you can pin it to an exact version or provide a range. In general we recommend to pin to an exact version to ensure everybody in your team has the exact same setup and no unexpected problems happen.
+
+### Examples
+
+#### Exact Version
+
+```yml
+# serverless.yml
+
+frameworkVersion: "=1.0.3"
+
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  memorySize: 512
+
+…
+```
+
+#### Version Range
+
+```yml
+# serverless.yml
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+service: users
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  memorySize: 512
+
+…
+```

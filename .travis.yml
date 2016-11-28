@@ -21,6 +21,7 @@ matrix:
       env:
         - DISABLE_TESTS=true
         - LINTING=true
+
 sudo: false
 
 install:

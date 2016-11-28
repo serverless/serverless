@@ -60,7 +60,7 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
   serverless deploy --stage production --region eu-central-1
   ```
 
-Check out the [deploy command docs](../cli-reference/deploy) for all details and options.
+Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 
 ## Deploy Function
 

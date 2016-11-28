@@ -69,8 +69,9 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |IAM::Role              | IamRoleLambdaExecution                                  | IamRoleLambdaExecution        |
 |IAM::Policy            | IamPolicyLambdaExecution                                | IamPolicyLambdaExecution      |
 |Lambda::Function       | {normalizedFunctionName}LambdaFunction                  | HelloLambdaFunction           |
+|Lambda::Version        | {normalizedFunctionName}LambdaVersion{sha256}                           | HelloLambdaVersionr3pgoTvv1xT4E4NiCL6JG02fl6vIyi7OS1aW0FwAI |
 |Logs::LogGroup         | {normalizedFunctionName}LogGroup                        | HelloLogGroup                 |
-|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermissionS3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}</li> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1 </li><li>**S3**: HelloLambdaPermissionS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionSometopic</li> |
+|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermission{normalizedBucketName}S3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}SNS</li> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1 </li><li>**S3**: HelloLambdaPermissionBucketS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionTopicSNS</li> |
 |Events::Rule           | {normalizedFuntionName}EventsRuleSchedule{SequentialID} | HelloEventsRuleSchedule1      |
 |ApiGateway::RestApi    | ApiGatewayRestApi                                       | ApiGatewayRestApi             |
 |ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | ApiGatewayResourceUsers       |

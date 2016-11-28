@@ -1,0 +1,13 @@
+
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  cfLogs: true
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - s3: ${env:BUCKET_1}

@@ -44,6 +44,8 @@ module.exports = {
 
     process.env.TOPIC_1 = `${serviceName}-1`;
     process.env.TOPIC_2 = `${serviceName}-1`;
+    process.env.BUCKET_1 = `${serviceName}-1`;
+    process.env.BUCKET_2 = `${serviceName}-2`;
 
     // return the name of the CloudFormation stack
     return `${serviceName}-dev`;

@@ -1,36 +1,34 @@
 {
-  "IamPolicyLambdaExecution": {
-    "Type": "AWS::IAM::Policy",
-    "DependsOn": [
-      "IamRoleLambdaExecution"
-    ],
-    "Properties": {
-      "PolicyName": "",
-      "PolicyDocument": {
-        "Version": "2012-10-17",
-        "Statement": [
-          {
-            "Effect": "Allow",
-            "Action": [
-              "logs:CreateLogGroup",
-              "logs:CreateLogStream"
-            ],
-            "Resource": []
-          },
-          {
-            "Effect": "Allow",
-            "Action": [
-              "logs:PutLogEvents"
-            ],
-            "Resource": []
-          }
-        ]
-      },
-      "Roles": [
+  "Type": "AWS::IAM::Policy",
+  "DependsOn": [
+    "IamRoleLambdaExecution"
+  ],
+  "Properties": {
+    "PolicyName": "",
+    "PolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
         {
-          "Ref": "IamRoleLambdaExecution"
+          "Effect": "Allow",
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream"
+          ],
+          "Resource": []
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:PutLogEvents"
+          ],
+          "Resource": []
         }
       ]
-    }
+    },
+    "Roles": [
+      {
+        "Ref": "[TO BE REPLACED]"
+      }
+    ]
   }
 }
