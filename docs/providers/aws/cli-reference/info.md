@@ -53,7 +53,7 @@ functions:
       invocations: 0
       throttles: 0
       errors: 0
-      avg duration: 0
+      avg. duration: 0
 ```
 
 #### Verbose
@@ -78,7 +78,7 @@ functions:
       invocations: 0
       throttles: 0
       errors: 0
-      avg duration: 0
+      avg. duration: 0
 
 Stack Outputs
   CloudFrontUrl: d2d10e2tyk1pei.cloudfront.net
