@@ -133,6 +133,8 @@ Use these plugins to overwrite or extend the Framework's functionality...
 * [serverless-rollback-function](https://github.com/marcy-terui/serverless-rollback-function) - Support `rollback function` command.
 * [serverless-crypt](https://github.com/marcy-terui/serverless-crypt) - Securing Serverless secrets by AWS KMS encryption.
 
+[Add a plugin to this list](https://github.com/serverless/community-plugins/blob/master/plugins.json)
+
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
 * [serverless-examples-andymac](https://github.com/andymac4182/serverless_example)
