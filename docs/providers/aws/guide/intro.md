@@ -61,19 +61,19 @@ The Serverless Framework not only deploys your Functions and the Events that tri
 A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml`.  It looks like this:
 
 ```yml
-// serverless.yml
+# serverless.yml
 
 service: users
 
-functions: // Your "Functions"
+functions: # Your "Functions"
   usersCreate:
-    events: // The "Events" that trigger this function
+    events: # The "Events" that trigger this function
       - http: post users/create
   usersDelete:
     events:
       - http: delete users/delete
 
-resources: // The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
+resources: # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 ```
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
 
