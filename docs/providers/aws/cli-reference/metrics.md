@@ -25,7 +25,6 @@ serverless metrics --function hello
 - `--region` or `-r` The region you want to view the function metrics for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the metrics from the `us-east-1` region.
 - `--startTime` A specific unit in time to start fetching metrics from (ie: `2010-10-20` or `1469705761`). Must be a valid ISO 8601 format.
 - `--endTime` A specific unit in time to end fetching metrics from (ie: `2010-10-21` or `1469705761`). Must be a valid ISO 8601 format.
-- `--period` The granularity, in seconds, of the returned data points (defaults to 86400 (1 day)).
 
 ## Examples
 
