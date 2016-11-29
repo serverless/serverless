@@ -57,7 +57,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 * ##### Deploy Function:
   * Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing you to develop faster.
-  * `serverless deploy function -f myfunction`
+  * `serverless deploy function -f hello`
 
 * ##### Invoke a Function:
   * Invokes an AWS Lambda Function on AWS and returns logs.
