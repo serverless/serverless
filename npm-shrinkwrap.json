@@ -81,6 +81,11 @@
       "from": "archiver-utils@>=1.3.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/archiver-utils/-/archiver-utils-1.3.0.tgz"
     },
+    "archy": {
+      "version": "1.0.0",
+      "from": "archy@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/archy/-/archy-1.0.0.tgz"
+    },
     "argparse": {
       "version": "1.0.9",
       "from": "argparse@>=1.0.7 <2.0.0",

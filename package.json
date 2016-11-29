@@ -71,6 +71,7 @@
   },
   "dependencies": {
     "archiver": "^1.1.0",
+    "archy": "^1.0.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.3.17",
     "bluebird": "^3.4.0",
