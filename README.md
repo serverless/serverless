@@ -186,6 +186,6 @@ These consultants use the Serverless Framework and can help you build your serve
 
 # <a name="v.5"></a>Previous Serverless Version 0.5.x
 
-You can find projects and plugins relating to version 0.5 [here](./0.5.x-RESOURCES.md). Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](./docs/04-extending-serverless/01-creating-plugins.md)
+You can find projects and plugins relating to version 0.5 [here](./0.5.x-RESOURCES.md). Note that these are not compatible with v1.0 but we are working diligently on updating them. [Guide on building v1.0 plugins](./docs/providers/aws/guide/plugins.md).
 
 You can read the v0.5.x documentation at [readme.io](https://serverless.readme.io/v0.5.0/docs).
