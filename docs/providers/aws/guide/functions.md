@@ -138,7 +138,7 @@ provider:
       -  Effect: "Allow"
          Action:
            - "s3:ListBucket"
-         Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket"} ] ] } # You can put CloudFormation syntax in here.  No one will judge you.  Remember, this all gets translated to CloudFormation.
+         Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "SlsDeploy"} ] ] } # You can put CloudFormation syntax in here.  No one will judge you.  Remember, this all gets translated to CloudFormation.
       -  Effect: "Allow"
          Action:
            - "s3:PutObject"
@@ -146,7 +146,7 @@ provider:
            Fn::Join:
              - ""
              - - "arn:aws:s3:::"
-               - "Ref" : "ServerlessDeploymentBucket"
+               - "Ref" : "SlsDeploy"
 
 functions:
   functionOne:

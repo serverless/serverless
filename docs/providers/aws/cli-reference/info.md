@@ -75,5 +75,5 @@ ScreenshotBucket: dev-svdgraaf-screenshots
 CreateThumbnailsLambdaFunctionArn: arn:aws:lambda:us-east-1:377024778620:function:lambda-screenshots-dev-createThumbnails
 TakeScreenshotLambdaFunctionArn: arn:aws:lambda:us-east-1:377024778620:function:lambda-screenshots-dev-takeScreenshot
 ServiceEndpoint: https://12341jc801.execute-api.us-east-1.amazonaws.com/dev
-ServerlessDeploymentBucketName: lambda-screenshots-dev-serverlessdeploymentbucket-15b7pkc04f98a
+ServerlessDeploymentBucketName: lambda-screenshots-dev-slsdeploy-15b7pkc04f98a
 ```
