@@ -10,6 +10,7 @@
     "./remove/remove.js",
     "./rollback/index.js",
     "./slstats/slstats.js",
+    "./visualize/visualize.js",
     "./aws/provider/awsProvider.js",
     "./aws/deploy/index.js",
     "./aws/invoke/index.js",
