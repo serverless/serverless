@@ -29,7 +29,7 @@ serverless config credentials --provider provider --key key --secret secret
 
 ### Provided lifecycle events
 
-- `config:credentials:credentials`
+- `config:credentials:config`
 
 ### Examples
 
