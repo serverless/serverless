@@ -1,5 +1,8 @@
 {
   "Type": "AWS::IAM::Policy",
+  "DependsOn": [
+    "IamRoleLambdaExecution"
+  ],
   "Properties": {
     "PolicyName": "",
     "PolicyDocument": {
