@@ -69,7 +69,21 @@ serverless deploy
 
 #### Using AWS Profiles
 
-For a more permanent solution you can also set up credentials through AWS profiles using the `aws-cli`, or by configuring the credentials file directly.
+For a more permanent solution you can also set up credentials through AWS profiles. Here are different methods you can use to do so.
+
+##### Setup with `serverless config credentials` command
+
+Serverless provides a convenient way to configure AWS profiles with the help of the `serverless config credentials` command.
+
+Here's an example how you can configure the `default` AWS profile:
+
+```bash
+serverless config credentials --provider aws --key AKIAIOSFODNN7EXAMPLE --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+```
+
+Take a look at the [`config` CLI reference](../cli-reference/config.md) for more information about credential configuration.
+
+##### Setup with the `aws-cli`
 
 To set them up through the `aws-cli` [install it first](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) then run `aws configure` [to configure the aws-cli and credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html):
 
@@ -94,7 +108,7 @@ provider:
   profile: devProfile
 ```
 
-##### Per Stage Profiles
+#### Per Stage Profiles
 
 As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](https://serverless.com/framework/docs/providers/aws/guide/variables) and the provider profile setting.
 

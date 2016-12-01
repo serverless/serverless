@@ -1,5 +1,6 @@
 {
   "plugins": [
+    "./config/config.js",
     "./create/create.js",
     "./install/install.js",
     "./package/index.js",
@@ -10,6 +11,7 @@
     "./remove/remove.js",
     "./rollback/index.js",
     "./slstats/slstats.js",
+    "./aws/configCredentials/awsConfigCredentials.js",
     "./aws/provider/awsProvider.js",
     "./aws/deploy/index.js",
     "./aws/invoke/index.js",
