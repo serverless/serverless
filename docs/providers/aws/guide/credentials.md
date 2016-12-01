@@ -71,17 +71,17 @@ serverless deploy
 
 For a more permanent solution you can also set up credentials through AWS profiles. Here are different methods you can use to do so.
 
-##### Setup with `serverless setup` command
+##### Setup with `serverless config credentials` command
 
-Serverless provides a convenient way to setup AWS profiles with the help of the `serverless setup` command.
+Serverless provides a convenient way to configure AWS profiles with the help of the `serverless config credentials` command.
 
-Here's an example how you can setup the `default` AWS profile:
+Here's an example how you can configure the `default` AWS profile:
 
 ```bash
-serverless setup --provider aws --key AKIAIOSFODNN7EXAMPLE --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+serverless config credentials --provider aws --key AKIAIOSFODNN7EXAMPLE --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
-Take a look at the [`setup` CLI reference](../cli-reference/setup.md) for more information about profile setup.
+Take a look at the [`config` CLI reference](../cli-reference/config.md) for more information about credential configuration.
 
 ##### Setup with the `aws-cli`
 
