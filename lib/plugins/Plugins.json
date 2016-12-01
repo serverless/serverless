@@ -1,5 +1,6 @@
 {
   "plugins": [
+    "./config/config.js",
     "./create/create.js",
     "./install/install.js",
     "./package/index.js",
@@ -9,8 +10,8 @@
     "./logs/logs.js",
     "./remove/remove.js",
     "./rollback/index.js",
-    "./setup/setup.js",
     "./slstats/slstats.js",
+    "./aws/configCredentials/awsConfigCredentials.js",
     "./aws/provider/awsProvider.js",
     "./aws/deploy/index.js",
     "./aws/invoke/index.js",
@@ -18,7 +19,6 @@
     "./aws/logs/index.js",
     "./aws/remove/index.js",
     "./aws/rollback/index.js",
-    "./aws/setup/awsSetup.js",
     "./aws/deploy/compile/functions/index.js",
     "./aws/deploy/compile/events/schedule/index.js",
     "./aws/deploy/compile/events/s3/index.js",
