@@ -72,7 +72,7 @@
   "dependencies": {
     "archiver": "^1.1.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.3.17",
+    "aws-sdk": "^v2.7.10",
     "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
     "download": "^5.0.2",
