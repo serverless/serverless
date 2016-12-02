@@ -48,12 +48,7 @@ endpoints:
   GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
 functions:
   my-serverless-service-dev-hello:
-    arn: arn:aws:lambda:us-east-1:377024778620:function:my-serverless-service-dev-hello
-    metrics (last 24h):
-      invocations: 0
-      throttles: 0
-      errors: 0
-      avg. duration: 0
+    arn:aws:lambda:us-east-1:377024778620:function:my-serverless-service-dev-hello
 ```
 
 #### Verbose
@@ -73,12 +68,7 @@ endpoints:
   GET - https://dxaynpuzd4.execute-api.us-east-1.amazonaws.com/dev/users
 functions:
   my-serverless-service-dev-hello:
-    arn: arn:aws:lambda:us-east-1:377024778620:function:my-serverless-service-dev-hello
-    metrics (last 24h):
-      invocations: 0
-      throttles: 0
-      errors: 0
-      avg. duration: 0
+    arn:aws:lambda:us-east-1:377024778620:function:my-serverless-service-dev-hello
 
 Stack Outputs
   CloudFrontUrl: d2d10e2tyk1pei.cloudfront.net
