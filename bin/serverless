@@ -17,4 +17,7 @@ process.noDeprecation = true;
   });
 
   return serverless.init().then(() => serverless.run());
-}).catch(e => logError(e)))();
+}).catch(e => {
+  process.exitCode = 1;
+  logError(e);
+}))();
