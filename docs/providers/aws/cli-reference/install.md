@@ -37,7 +37,7 @@ This example will download the .zip file of the `authentication` service from Gi
 ### Installing a service from directories in a GitHub URL
 
 ```bash
-serverless install --url https://github.com/johndoe/authentication/tree/master/todo/someauth
+serverless install --url https://github.com/serverless/examples/tree/master/rest-api-with-dynamodb
 ```
 
-This example will download the `someauth` service from directory in GitHub.
+This example will download the `rest-api-with-dynamodb` service from directory in GitHub.
