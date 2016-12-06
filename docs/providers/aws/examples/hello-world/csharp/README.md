@@ -1,12 +1,12 @@
 <!--
-title: Hello World Node.js Example
-menuText: Hello World Node.js Example
-description: Create a Node.js Hello World Lambda function
+title: Hello World CSharp Example
+menuText: Hello World CSharp Example
+description: Create a CSharp Hello World Lambda function
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/node/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/csharp/)
 <!-- DOCS-SITE-LINK:END -->
 
 # Hello World CSharp Example
@@ -14,7 +14,7 @@ layout: Doc
 Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
 
 ## 1. Create a service
-`serverless create --template aws-csharp --path myService` or `sls create --template aws-ncsharp --path myService`, where 'myService' is a new folder to be created with template service files.  Change directories into this new folder.
+`serverless create --template aws-csharp --path myService` or `sls create --template aws-csharp --path myService`, where 'myService' is a new folder to be created with template service files.  Change directories into this new folder.
 
 ## 2. build
 
@@ -32,8 +32,12 @@ In your terminal window you should see the response from AWS Lambda
 
 ```bash
 {
-    "statusCode": 200,
-    "body": "{\"message\":\"Go Serverless v1.0! Your function executed successfully!\",\"input\":{}}"
+    "Message": "Go Serverless v1.0! Your function executed successfully!",
+    "Request": {
+        "Key1": null,
+        "Key2": null,
+        "Key3": null
+    }
 }
 ```
 
