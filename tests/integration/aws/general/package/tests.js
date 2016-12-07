@@ -13,17 +13,18 @@ const Utils = require('../../../../utils/index');
 describe('AWS - General: Deployment with --noDeploy', function () {
   this.timeout(0);
   let serviceName;
+  let deploy;
 
   before(() => {
     serviceName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+    deploy = execSync(`${Utils.serverlessExec} deploy --noDeploy`);
   });
 
   it('should deploy package with --noDeploy flag', () => {
-    const deploy = execSync(`${Utils.serverlessExec} deploy --noDeploy`);
     const result = new Buffer(deploy, 'base64').toString();
     const resultLines = result.split(EOL);
     expect(resultLines[0]).to.equal('Serverless: Packaging service...');
-    expect(resultLines[1]).to.equal('Serverless: Did not deploy due to --noDeploy');
+    expect(resultLines[1]).to.have.string('--noDeploy');
   });
 
   it('should have create cloudformation files and functions zip', () => {
