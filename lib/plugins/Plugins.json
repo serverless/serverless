@@ -27,6 +27,7 @@
     "./aws/deploy/compile/events/apiGateway/index.js",
     "./aws/deploy/compile/events/sns/index.js",
     "./aws/deploy/compile/events/stream/index.js",
+    "./aws/deploy/compile/events/alexa/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
     "./aws/invokeLocal/index.js"
