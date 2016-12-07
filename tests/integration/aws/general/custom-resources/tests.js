@@ -1,5 +1,6 @@
 'use strict';
 
+const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const AWS = require('aws-sdk');
@@ -15,46 +16,42 @@ const S3 = new AWS.S3({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(S3, { suffix: 'Promised' });
 
-describe('AWS - General: Custom resources test', function () {
-  this.timeout(0);
+let stackName;
+let s3BucketName;
 
-  let stackName;
-  let s3BucketName;
+test.before('AWS - General: Custom resources test', () => {
+  stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
-  before(() => {
-    stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+  // replace name of bucket which is created through custom resources with something unique
+  const serverlessYmlFilePath = path.join(process.cwd(), 'serverless.yml');
+  let serverlessYmlFileContent = fse.readFileSync(serverlessYmlFilePath).toString();
 
-    // replace name of bucket which is created through custom resources with something unique
-    const serverlessYmlFilePath = path.join(process.cwd(), 'serverless.yml');
-    let serverlessYmlFileContent = fse.readFileSync(serverlessYmlFilePath).toString();
+  s3BucketName = crypto.randomBytes(8).toString('hex');
 
-    s3BucketName = crypto.randomBytes(8).toString('hex');
+  serverlessYmlFileContent = serverlessYmlFileContent
+    .replace(/WillBeReplacedBeforeDeployment/, s3BucketName);
 
-    serverlessYmlFileContent = serverlessYmlFileContent
-      .replace(/WillBeReplacedBeforeDeployment/, s3BucketName);
+  fse.writeFileSync(serverlessYmlFilePath, serverlessYmlFileContent);
 
-    fse.writeFileSync(serverlessYmlFilePath, serverlessYmlFileContent);
+  Utils.deployService();
+});
 
-    Utils.deployService();
-  });
+test('should add the custom outputs to the Outputs section', () =>
+  CF.describeStacksPromised({ StackName: stackName })
+    .then((result) => _.find(result.Stacks[0].Outputs,
+      { OutputKey: 'MyCustomOutput' }).OutputValue)
+    .then((endpointOutput) => {
+      expect(endpointOutput).to.equal('SomeValue');
+    })
+);
 
-  it('should add the custom outputs to the Outputs section', () =>
-    CF.describeStacksPromised({ StackName: stackName })
-      .then((result) => _.find(result.Stacks[0].Outputs,
-        { OutputKey: 'MyCustomOutput' }).OutputValue)
-      .then((endpointOutput) => {
-        expect(endpointOutput).to.equal('SomeValue');
-      })
-  );
+test('should create the custom resources (a S3 bucket)', () =>
+  S3.listBucketsPromised()
+    .then((result) => !!_.find(result.Buckets,
+      { Name: s3BucketName }))
+    .then((found) => expect(found).to.equal(true))
+);
 
-  it('should create the custom resources (a S3 bucket)', () =>
-    S3.listBucketsPromised()
-      .then((result) => !!_.find(result.Buckets,
-        { Name: s3BucketName }))
-      .then((found) => expect(found).to.equal(true))
-  );
-
-  after(() => {
-    Utils.removeService();
-  });
+test.after(() => {
+  Utils.removeService();
 });
