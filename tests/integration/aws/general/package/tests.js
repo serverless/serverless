@@ -23,7 +23,6 @@ describe('AWS - General: Deployment with --noDeploy', function () {
   it('should deploy package with --noDeploy flag', () => {
     const result = new Buffer(deploy, 'base64').toString();
     const resultLines = result.split(EOL);
-    expect(resultLines[0]).to.equal('Serverless: Packaging service...');
     expect(resultLines[1]).to.have.string('--noDeploy');
   });
 
