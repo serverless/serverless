@@ -50,7 +50,6 @@
     "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
     "lint": "eslint .",
     "docs": "node scripts/generate-readme.js",
-    "prepublish": "npm run docs",
     "simple-integration-test": "mocha tests/integration/simple-integration-test",
     "complex-integration-test": "mocha tests/integration/all"
   },
