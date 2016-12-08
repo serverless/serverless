@@ -22,7 +22,7 @@ function username(repo) {
   }
 
   const o = url.parse(repo);
-  let urlPath = o.path;
+  var urlPath = o.path; // eslint-disable-line
 
   if (urlPath.length && urlPath.charAt(0) === '/') {
     urlPath = urlPath.slice(1);
