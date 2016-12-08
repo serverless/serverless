@@ -112,7 +112,7 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="v1-plugins"></a>Plugins (V1.0)
 
-Use these plugins to overwrite or extend the Framework's functionality...
+Use these plugins to extend or overwrite the Framework's functionality...
 
 <!-- AUTO-GENERATED-CONTENT:START (GENERATE_SERVERLESS_PLUGIN_TABLE)-->
 | Plugin name | description  |

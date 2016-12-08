@@ -18,11 +18,11 @@ function formatPluginName(string) {
 const config = {
   transforms: {
     GENERATE_SERVERLESS_PLUGIN_TABLE(content, options) { // eslint-disable-line
-      const pluginUrl = 'https://raw.githubusercontent.com/serverless/community-plugins/master/plugins.json';
+      const pluginUrl = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json?h';
       const remoteContent = remoteRequest(pluginUrl);
       let md = '| Plugin name | description  |\n';
       md += '|:--------------------------- |:-----|\n';
-      JSON.parse(remoteContent).plugins.sort((a, b) => { // eslint-disable-line 
+      JSON.parse(remoteContent).sort((a, b) => { // eslint-disable-line
         return a.name < b.name ? -1 : 1;
       }).forEach((data) => {
         md += `| [${formatPluginName(data.name)}](${data.githubUrl}) | ${data.description} |\n`;
