@@ -17,8 +17,18 @@ function formatPluginName(string) {
 
 const config = {
   transforms: {
+    GENERATE_SERVERLESS_EXAMPLES_TABLE(content, options) { // eslint-disable-line
+      const examplesUrl = 'https://raw.githubusercontent.com/serverless/examples/master/community-examples.json';
+      const remoteContent = remoteRequest(examplesUrl);
+      let md = '| Project name | description  |\n';
+      md += '|:--------------------------- |:-----|\n';
+      JSON.parse(remoteContent).forEach((data) => {
+        md += `| [${formatPluginName(data.name)}](${data.githubUrl}) | ${data.description} |\n`;
+      });
+      return md.replace(/^\s+|\s+$/g, '');
+    },
     GENERATE_SERVERLESS_PLUGIN_TABLE(content, options) { // eslint-disable-line
-      const pluginUrl = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json?h';
+      const pluginUrl = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
       const remoteContent = remoteRequest(pluginUrl);
       let md = '| Plugin name | description  |\n';
       md += '|:--------------------------- |:-----|\n';
