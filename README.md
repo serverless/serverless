@@ -37,41 +37,67 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 [Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
-* ##### Install via npm:
-  * `npm install -g serverless`
+1. **Install via npm:**
+  ```bash
+  npm install -g serverless
+  ```
 
-* ##### Set-up your [Provider Credentials](./docs/providers/aws/guide/credentials.md)
+2. **Set-up your [Provider Credentials](./docs/providers/aws/guide/credentials.md)**
 
-* ##### Create a Service:
-  * Creates a new Serverless Service/Project
-  * `serverless create --template aws-nodejs --path my-service`
-  * `cd my-service`
+3. **Create a Service:**
 
-* ##### Or Install a Service:
-  *  This is a convenience method to install a pre-made Serverless Service locally by downloading the Github repo and unzipping it.  Services are listed below.
-  * `serverless install -u [GITHUB URL OF SERVICE]`
+  You can create a new service or [install existing services](#how-to-install-a-service).
+  ```bash
+  # Create a new Serverless Service/Project
+  serverless create --template aws-nodejs --path my-service
+  # Change into the newly created directory
+  cd my-service
+  ```
 
-* ##### Deploy a Service:
-  * Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
-  * `serverless deploy -v`
+4. **Deploy a Service:**
 
-* ##### Deploy Function:
-  * Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing you to develop faster.
-  * `serverless deploy function -f hello`
+  Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+  ```bash
+  serverless deploy -v
+  ```
 
-* ##### Invoke a Function:
-  * Invokes an AWS Lambda Function on AWS and returns logs.
-  * `serverless invoke -f hello -l`
+5. **Deploy the Function:**
 
-* ##### Fetch Function Logs:
-  * Open up a separate tab in your console and stream all logs for a specific Function using this command.
-  * `serverless logs -f hello -t`
+  Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing you to develop faster.
+  ```bash
+  serverless deploy function -f hello
+  ```
 
-* ##### Remove a Service:
-  * Removes all Functions, Events and Resources from your AWS account.
-  * `serverless remove`
+6. **Invoke the Function:**
 
-Check out our in-depth [Serverless Framework Guide](./docs/providers/aws/guide/README.md) for more information.
+  Invokes an AWS Lambda Function on AWS and returns logs.
+  ```bash
+  serverless invoke -f hello -l
+  ```
+
+7. **Fetch the Function Logs:**
+
+  Open up a separate tab in your console and stream all logs for a specific Function using this command.
+  ```bash
+  serverless logs -f hello -t
+  ```
+
+8. **Remove the Service:**
+
+  Removes all Functions, Events and Resources from your AWS account.
+  ```bash
+  serverless remove
+  ```
+
+### How to Install a Service:
+
+This is a convenience method to install a pre-made Serverless Service locally by downloading the Github repo and unzipping it.  Services are listed below.
+
+```bash
+serverless install -u [GITHUB URL OF SERVICE]`
+```
+
+Check out the [Serverless Framework Guide](./docs/providers/aws/guide/README.md) for more information.
 
 ## <a name="services"></a>Services (V1.0)
 
