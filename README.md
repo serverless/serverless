@@ -152,15 +152,30 @@ Use these plugins to extend or overwrite the Framework's functionality...
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
-* [serverless-examples-andymac](https://github.com/andymac4182/serverless_example)
-* [serverless-npm-registry](https://github.com/craftship/yith)
-* [serverless-pokego](https://github.com/jch254/pokego-serverless)
-* [serverless-pocket-app](https://github.com/s0enke/weekly2pocket)
-* [serverless-quotebot](https://github.com/pmuens/quotebot)
-* [serverless-slackbot](https://github.com/conveyal/trevorbot)
-* [serverless-garden-aid](https://github.com/garden-aid/web-bff)
-* [serverless-react-boilerplate](https://github.com/99xt/serverless-react-boilerplate)
-* [serverless-delivery-framework](https://github.com/99xt/serverless-delivery-framework)
+<!-- AUTO-GENERATED-CONTENT:START (GENERATE_SERVERLESS_EXAMPLES_TABLE)-->
+| Project name | description  |
+|:--------------------------- |:-----|
+| [Serverless Screenshot](https://github.com/svdgraaf/serverless-screenshot) | Serverless Screenshot Service using PhantomJS |
+| [Serverless Messenger Boilerplate](https://github.com/SC5/serverless-messenger-boilerplate) | Serverless messenger bot boilerplate |
+| [Serverless Npm Registry](https://github.com/craftship/yith) | Serverless private npm registry, proxy and cache. |
+| [Serverless Pokego](https://github.com/jch254/pokego-serverless) | Serverless-powered API to fetch nearby Pokemon Go data |
+| [Serverless Weekly2pocket App](https://github.com/s0enke/weekly2pocket) | Serverless-powered API for sending posts to pocket app |
+| [Serverless Facebook Quotebot](https://github.com/pmuens/quotebot) | 100% Serverless Facebook messenger chatbot which will respond with inspiring quotes |
+| [Serverless Slack Trevorbot](https://github.com/conveyal/trevorbot) | Slack bot for info on where in the world is Trevor Gerhardt? |
+| [Serverless Garden Aid](https://github.com/garden-aid/web-bff) | IoT Garden Aid Backend |
+| [Serverless React Boilerplate](https://github.com/99xt/serverless-react-boilerplate) | A serverless react boilerplate for offline development |
+| [Serverless Delivery Framework](https://github.com/99xt/serverless-delivery-framework) | This is a boilerplate for version release pipeline with serverless framework |
+| [Serverless Mailgun Slack](https://github.com/Marcus-L/serverless-mailgun-slack) | A Serverless function for posting to a Slack Webhook in response to a Mailgun route |
+| [Pfs Email Serverless](https://github.com/SCPR/pfs-email-serverless) | This is a lambda function created by the serverless framework. It searches through members in our mongodb who have not been sent emails and sends them an email with their custom token to unlock the pledge free stream. It then marks those members off as already receiving the email. |
+| [Plaid Cashburndown Service](https://github.com/cplee/cashburndown-service) | Service for calculating cash burndown with plaid. Frontend code can be found here: https://github.com/cplee/cashburndown-site |
+| [Cordis Serverless](https://github.com/marzeelabs/cordis-serverless) | A serverless API for EU Cordis data |
+| [Serverless Newsletter Signup](https://github.com/ivanderbu2/serverless-newsletter-signup) | Saves user details into DynamoDB table. Required values are email, first_name and last_name. |
+| [Serverless Slack Cron](https://github.com/ivanderbu2/serverless-slack-cron) | Lambda function which sends messages to Slack channel in regular intervals via cron trigger. |
+| [Giphy Bot](https://github.com/tywong/lambda-workshop-2016/tree/master/giphy-bot) | giphy-bot for Facebook chat |
+| [Jwt Lambda Python](https://github.com/mikaelmork/jwt-auth.serverless) | Minimal proof-of-concept implementation of JWT with Serverless / AWS Lambda |
+| [Sls Access Counter](https://github.com/takahashim/sls-access-counter) | Site visitor counter |
+| [Sls Form Mail](https://github.com/takahashim/sls-form-mail) | Send SNS email from form data |
+<!-- AUTO-GENERATED-CONTENT:END -->
 
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
