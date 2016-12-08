@@ -16,7 +16,16 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 ## 1. Create a service
 `serverless create --template aws-csharp --path myService` or `sls create --template aws-csharp --path myService`, where 'myService' is a new folder to be created with template service files.  Change directories into this new folder.
 
-## 2. build
+## 2. Build using .NET CLI tools and create zip package
+
+```
+dotnet restore
+dotnet publish -c release
+
+pushd bin/Release/netcoreapp1.0/publish
+zip -r ./deploy-package.zip ./*
+popd
+```
 
 `./build.sh` runs the dotnet restore and package commands then creates the zip file to upload to lambda.
 
