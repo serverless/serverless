@@ -1,7 +1,7 @@
 <!--
-title: Hello World CSharp Example
-menuText: Hello World CSharp Example
-description: Create a CSharp Hello World Lambda function
+title: Hello World C# Example
+menuText: Hello World C# Example
+description: Create a C# Hello World Lambda function
 layout: Doc
 -->
 
@@ -9,7 +9,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/csharp/)
 <!-- DOCS-SITE-LINK:END -->
 
-# Hello World CSharp Example
+# Hello World C# Example
 
 Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
 
