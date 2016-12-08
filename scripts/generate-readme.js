@@ -37,7 +37,7 @@ const config = {
     GENERATE_SERVERLESS_EXAMPLES_TABLE(content, options) { // eslint-disable-line
       const examplesUrl = 'https://raw.githubusercontent.com/serverless/examples/master/community-examples.json';
       const remoteContent = remoteRequest(examplesUrl);
-      let md = '| Project Name | Author |\n';
+      var md = '| Project Name | Author |\n'; // eslint-disable-line
       md += '|:-------------|:------:|\n';
       JSON.parse(remoteContent).forEach((data) => {
         const userName = username(data.githubUrl);
@@ -50,7 +50,7 @@ const config = {
     GENERATE_SERVERLESS_PLUGIN_TABLE(content, options) { // eslint-disable-line
       const pluginUrl = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
       const remoteContent = remoteRequest(pluginUrl);
-      let md = '| Plugin | Author |\n';
+      var md = '| Plugin | Author |\n'; // eslint-disable-line
       md += '|:-------|:------:|\n';
       JSON.parse(remoteContent).sort((a, b) =>  // eslint-disable-line
          a.name < b.name ? -1 : 1
