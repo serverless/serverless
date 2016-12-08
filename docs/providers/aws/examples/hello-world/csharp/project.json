@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "outputName": "CsharpHandlers"
+  },
+
+  "dependencies": {
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.0.1"
+    },
+
+    "Newtonsoft.Json": "9.0.1",
+
+    "Amazon.Lambda.Core": "1.0.0*",
+    "Amazon.Lambda.Serialization.Json": "1.0.0",
+
+    "Amazon.Lambda.Tools" : {
+      "type" :"build",
+      "version":"0.9.0-preview1"
+    }
+  },
+
+  "tools": {
+    "Amazon.Lambda.Tools" : "0.9.0-preview1"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": "dnxcore50"
+    }
+  }
+}
