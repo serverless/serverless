@@ -29,7 +29,15 @@ serverless install --url https://github.com/some/service
 ### Installing a service from a GitHub URL
 
 ```bash
-serverless install --url https://github.com/johndoe/authentication
+serverless install --url https://github.com/pmuens/serverless-crud
 ```
 
-This example will download the .zip file of the `authentication` service from GitHub, create a new directory with the name `authentication` in the current working directory and unzips the files in this directory.
+This example will download the .zip file of the `examples` service from GitHub, create a new directory with the name `examples` in the current working directory and unzips the files in this directory.
+
+### Installing a service from a directory in a GitHub URL
+
+```bash
+serverless install --url https://github.com/serverless/examples/tree/master/rest-api-with-dynamodb
+```
+
+This example will download the `rest-api-with-dynamodb` service from GitHub.
