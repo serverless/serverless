@@ -29,7 +29,7 @@ serverless install --url https://github.com/some/service
 ### Installing a service from a GitHub URL
 
 ```bash
-serverless install --url https://github.com/serverless/examples
+serverless install --url https://github.com/pmuens/serverless-crud
 ```
 
 This example will download the .zip file of the `examples` service from GitHub, create a new directory with the name `examples` in the current working directory and unzips the files in this directory.
