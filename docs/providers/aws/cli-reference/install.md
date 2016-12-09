@@ -32,7 +32,7 @@ serverless install --url https://github.com/some/service
 serverless install --url https://github.com/pmuens/serverless-crud
 ```
 
-This example will download the .zip file of the `examples` service from GitHub, create a new directory with the name `examples` in the current working directory and unzips the files in this directory.
+This example will download the .zip file of the `serverless-crud` service from GitHub, create a new directory with the name `serverless-crud` in the current working directory and unzips the files in this directory.
 
 ### Installing a service from a directory in a GitHub URL
 
