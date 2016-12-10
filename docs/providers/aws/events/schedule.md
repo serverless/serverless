@@ -34,6 +34,8 @@ functions:
     handler: statistics.handler
     events:
       - schedule:
+          name: your-scheduled-rate-event-name
+          description: 'your scheduled rate event description'
           rate: rate(10 minutes)
           enabled: false
           input:
@@ -42,6 +44,8 @@ functions:
             stageParams:
               stage: dev
       - schedule:
+          name: your-scheduled-cron-event-name
+          description: 'your scheduled cron event description'
           rate: cron(0 12 * * ? *)
           enabled: false
           inputPath: '$.stageVariables'
