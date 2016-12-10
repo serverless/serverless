@@ -33,17 +33,15 @@ serverless install --url https://github.com/some/service
 serverless install --url https://github.com/pmuens/serverless-crud
 ```
 
-This example will download the .zip file of the `authentication` service from GitHub, create a new directory with the name `authentication` in the current working directory and unzips the files in this directory.
+This example will download the .zip file of the `serverless-crud` service from GitHub, create a new directory with the name `serverless-crud` in the current working directory and unzips the files in this directory.
 
 ### Installing a service from a GitHub URL with a new service name
 
 ```bash
-serverless install --url https://github.com/johndoe/authentication --name my-authentication
+serverless install --url https://github.com/pmuens/serverless-crud --name my-crud
 ```
 
-This example will download the .zip file of the `authentication` service from GitHub, create a new directory with the name `my-authentication` in the current working directory, unzips the files in this directory and renames the service to `my-authentication` if `serverless.yml` exists in the service root.
-
-This example will download the .zip file of the `serverless-crud` service from GitHub, create a new directory with the name `serverless-crud` in the current working directory and unzips the files in this directory.
+This example will download the .zip file of the `serverless-crud` service from GitHub, create a new directory with the name `my-crud` in the current working directory and unzips the files in this directory and renames the service to `my-crud` if `serverless.yml` exists in the service root.
 
 ### Installing a service from a directory in a GitHub URL
 
