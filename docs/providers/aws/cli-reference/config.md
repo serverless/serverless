@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Config
 menuText: Config
-menuOrder: 10
+menuOrder: 1
 description: Configure Serverless.
 layout: Doc
 -->
