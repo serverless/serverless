@@ -56,5 +56,5 @@ events:
   - schedule:
       name: your-scheduled-rate-event-name
       description: 'your scheduled rate event description'
-      rate(2 hours)
+      rate: rate(2 hours)
 ```
