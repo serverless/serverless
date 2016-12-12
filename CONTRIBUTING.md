@@ -2,7 +2,7 @@
 
 Welcome, and thanks in advance for your help!  Please follow these simple guidelines :)
 
-# How to contribute to Serverless
+# How to Contribute to Serverless
 
 ## When you want to start on something we need
 
