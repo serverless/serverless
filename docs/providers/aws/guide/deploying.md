@@ -34,6 +34,7 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 * Zip files of your Functions' code are uploaded to your Code S3 Bucket.
 * Any IAM Roles, Functions, Events and Resources are added to the AWS CloudFormation template.
 * The CloudFormation Stack is updated with the new CloudFormation template.
+* Each deployment publishes a new version for each function in your service.
 
 ### Tips
 
