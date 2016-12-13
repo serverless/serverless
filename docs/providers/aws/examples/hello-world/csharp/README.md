@@ -27,8 +27,6 @@ zip -r ./deploy-package.zip ./*
 popd
 ```
 
-`./build.sh` runs the dotnet restore and package commands then creates the zip file to upload to lambda.
-
 ## 3. Deploy
 `serverless deploy` or `sls deploy`. `sls` is shorthand for the Serverless CLI command
 
