@@ -105,6 +105,8 @@ functions:
           batchSize: 100
           startingPosition: LATEST
           enabled: false
+      - alexaSkill:
+          enabled: true
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
