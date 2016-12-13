@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke
 menuText: Invoke
-menuOrder: 5
+menuOrder: 7
 description: Invoke an AWS Lambda Function using the Serverless Framework
 layout: Doc
 -->
@@ -84,29 +84,3 @@ serverless invoke --function functionName --stage dev --region us-east-1 --path 
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking
 the specified/deployed function.
-
-#### Local function invocation
-
-```bash
-serverless invoke local --function functionName
-```
-
-This example will locally invoke your function.
-
-#### Local function invocation with event data
-
-You can input test data in `event.json` file inside your service directory:
-
-```json
-{
-  "foo": "bar"
-}
-```
-
-and then pass it with the command
-
-```bash
-serverless invoke local --function functionName --path event.json
-```
-
-This example will locally invoke your function.

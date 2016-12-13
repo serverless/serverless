@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Remove
 menuText: Remove
-menuOrder: 10
+menuOrder: 13
 description: Remove a deployed Service and all of its AWS Lambda Functions, Events and Resources
 layout: Doc
 -->
