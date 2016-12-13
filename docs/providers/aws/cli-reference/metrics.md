@@ -41,10 +41,10 @@ Displays service wide metrics for the last 24h.
 ### See service wide metrics for a specific timespan
 
 ```bash
-serverless metrics --startTime 1970-01-01 --endTime 1970-01-02
+serverless metrics --startTime 2016-01-01 --endTime 2016-01-02
 ```
 
-Displays service wide metrics for the time between January 1, 1970 and January 2, 1970.
+Displays service wide metrics for the time between January 1, 2016 and January 2, 2016.
 
 ### See all metrics for the function `hello` of the last 24h
 
@@ -57,7 +57,7 @@ Displays all `hello` function metrics for the last 24h.
 ### See metrics for the function `hello` of a specific timespan
 
 ```bash
-serverless metrics --function hello --startTime 1970-01-01 --endTime 1970-01-02
+serverless metrics --function hello --startTime 2016-01-01 --endTime 2016-01-02
 ```
 
-Displays all `hello` function metrics for the time between January 1, 1970 and January 2, 1970.
+Displays all `hello` function metrics for the time between January 1, 2016 and January 2, 2016.
