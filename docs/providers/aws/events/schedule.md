@@ -46,3 +46,15 @@ functions:
           enabled: false
           inputPath: '$.stageVariables'
 ```
+
+## Specify Name and Description
+
+Name and Description can be specified for a schedule event. These are not required properties.
+
+```yaml
+events:
+  - schedule:
+      name: your-scheduled-rate-event-name
+      description: 'your scheduled rate event description'
+      rate: rate(2 hours)
+```

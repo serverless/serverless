@@ -108,7 +108,7 @@ To add dynamic data into your variables, reference javascript files by putting `
 
 ```js
 # myCustomFile.js
-module.exports.hello: function() {
+module.exports.hello = function() {
    // Code that generates dynamic data
    return 'rate (10 minutes)';
 }
@@ -140,7 +140,7 @@ functions:
 
 ```js
 # myCustomFile.js
-module.exports.schedule: function() {
+module.exports.schedule = function() {
    // Code that generates dynamic data
    return {
      ten: 'rate(10 minutes)',

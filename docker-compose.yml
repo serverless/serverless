@@ -32,3 +32,7 @@ services:
     image: hseeberger/scala-sbt
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
+  aws-csharp:
+    image: microsoft/dotnet:1.0.1-sdk-projectjson
+    volumes:
+      - ./tmp/serverless-integration-test-aws-csharp:/app

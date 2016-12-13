@@ -9,11 +9,14 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/)
 <!-- DOCS-SITE-LINK:END -->
 
-# Hello World Example
+# Hello World Serverless Example 🌍
 
 Welcome to the Hello World example.
 
-We are excited for you to start your Serverless journey!
+Pick your language of choice:
 
 * [JavaScript](./node)
 * [Python](./python)
+* [csharp](./csharp)
+
+[View all examples](https://www.serverless.com/framework/docs/providers/aws/examples/)

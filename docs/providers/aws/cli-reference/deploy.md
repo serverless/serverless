@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy
 menuText: Deploy
-menuOrder: 3
+menuOrder: 4
 description: Deploy your service to the specified provider
 layout: Doc
 -->
@@ -12,25 +12,13 @@ layout: Doc
 
 # Deploy
 
-The `sls deploy` command deploys your service or an individual function.
-
-**Deploy entire service:**
+The `sls deploy` command deploys your entire service via CloudFormation.  Run this command when you have made infrastructure changes (i.e., you edited `serverless.yml`).  Use `serverless deploy function -f myFunction` when you have made code changes and you want to quickly upload your updated code to AWS Lambda.
 
 ```bash
 serverless deploy
 ```
 
-**Deploy a single function:**
-
-```bash
-serverless deploy function -f functionName
-```
-
-**Note:** `sls deploy function` is faster than a full service deploy and recommended for a faster development flow
-
 ## Options
-- `--function` or `-f` The name of the function which should be deployed (**Note:** only available when running
-`serverless deploy function`)
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
@@ -59,14 +47,6 @@ serverless deploy --stage production --region eu-central-1
 
 With this example we've defined that we want our service to be deployed to the `production` stage in the region
 `eu-central-1`.
-
-## List existing deploys
-
-```bash
-serverless deploy list
-```
-
-Running this command will list your recent deployments available in your S3 deployment bucket. It will use stage and region from the provider config and show the timestamp of each deployment so you can roll back if necessary.
 
 ## Provided lifecycle events
 - `deploy:cleanup`

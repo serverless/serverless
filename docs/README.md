@@ -35,6 +35,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/guide/iam.md">IAM</a></li>
         <li><a href="./providers/aws/guide/plugins.md">Plugins</a></li>
         <li><a href="./providers/aws/guide/workflow.md">Workflow</a></li>
+        <li><a href="./providers/aws/guide/serverless.yml.md">Serverless.yml</a></li>
       </ul>
     </div>
   </div>
@@ -47,11 +48,16 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
     </div>
     <div>
       <ul>
+        <li><a href="./providers/aws/cli-reference/config-credentials.md">Config Credentials</a></li>
         <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
         <li><a href="./providers/aws/cli-reference/install.md">Install</a></li>
         <li><a href="./providers/aws/cli-reference/deploy.md">Deploy</a></li>
+        <li><a href="./providers/aws/cli-reference/deploy-function.md">Deploy Function</a></li>
+        <li><a href="./providers/aws/cli-reference/deploy-list.md">Deploy List</a></li>
         <li><a href="./providers/aws/cli-reference/invoke.md">Invoke</a></li>
+        <li><a href="./providers/aws/cli-reference/invoke-local.md">Invoke Local</a></li>
         <li><a href="./providers/aws/cli-reference/logs.md">Logs</a></li>
+        <li><a href="./providers/aws/cli-reference/metrics.md">Metrics</a></li>
         <li><a href="./providers/aws/cli-reference/info.md">Info</a></li>
         <li><a href="./providers/aws/cli-reference/rollback.md">Rollback</a></li>
         <li><a href="./providers/aws/cli-reference/remove.md">Remove</a></li>

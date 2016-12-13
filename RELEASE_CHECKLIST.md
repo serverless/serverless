@@ -7,6 +7,7 @@ This checklist should be worked through when releasing a new Serverless version.
 milestone if still open
 - [ ] Look through all closed issues and PRs of that milestone to see what has changed. Run `./scripts/pr-since-last tag` or if you want to run against a specific tag `./scripts/pr-since-last tag v1.0.3` to get a list of all merged PR's since a specific tag.
 - [ ] Create Changelog for this new release
+- [ ] Update CHANGELOG.md
 - [ ] Close milestone on Github
 - [ ] Create a new release in GitHub for Release Notes.
 
@@ -20,7 +21,7 @@ milestone if still open
 ## Prepare Package
 - [ ] Create a new branch to bump version in package.json
 - [ ] Install the latest NPM version or Docker container with latest Node and NPM
-- [ ] Bump version in package.json, remove `node_modules` folder and run `npm install` and `npm shrinkwrap`
+- [ ] Bump version in package.json, remove `node_modules` folder and run `npm install` and `npm prune --production && npm shrinkwrap`
 - [ ] Make sure all files that need to be pushed are included in `package.json->files`
 - [ ] Send PR and merge PR with new version to be released
 - [ ] Go back to branch you want to release from (e.g. master or v1) and pull bumped version changes from Github

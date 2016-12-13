@@ -33,7 +33,7 @@ provider:
          Fn::Join:
            - ""
            - - "arn:aws:s3:::"
-           - Ref: ServerlessDeploymentBucket
+             - Ref: ServerlessDeploymentBucket
     -  Effect: "Allow"
        Action:
          - "s3:PutObject"
@@ -41,7 +41,7 @@ provider:
          Fn::Join:
            - ""
            - - "arn:aws:s3:::"
-           - Ref : "ServerlessDeploymentBucket"
+             - Ref : "ServerlessDeploymentBucket"
 
 ```
 

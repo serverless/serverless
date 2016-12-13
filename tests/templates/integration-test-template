@@ -25,7 +25,8 @@ docker-compose build $template
 if [ ! -z "$2" ]
 then
   echo "Running Build command for $template"
-  docker-compose run -w /app $template ${@:2}
+  command=${@:2}
+  docker-compose run -w /app $template /bin/bash -c "$command"
 else
   echo "No Language build commands specified, skipping building"
 fi
