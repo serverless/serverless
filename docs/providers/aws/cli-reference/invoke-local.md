@@ -47,7 +47,7 @@ serverless invoke --function functionName --data '{"a":"bar"}'
 ### Local function invocation with data from standard input
 
 ```bash
-dataGenerator.js | serverless invoke local --function functionName
+node dataGenerator.js | serverless invoke local --function functionName
 ```
 
 ### Local function invocation with data passing

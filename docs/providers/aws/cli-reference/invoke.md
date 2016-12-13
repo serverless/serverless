@@ -65,7 +65,7 @@ serverless invoke --function functionName --stage dev --region us-east-1 --data 
 #### Function invocation with data from standard input
 
 ```bash
-dataGenerator.js | serverless invoke --function functionName --stage dev --region us-east-1
+node dataGenerator.js | serverless invoke --function functionName --stage dev --region us-east-1
 ```
 
 #### Function invocation with logging
