@@ -26,25 +26,27 @@ By default, the Framework uses the `lambda-proxy` method (i.e., everything is pa
 
 ### Simple HTTP Endpoint
 
-This setup specifies that the `index` function should be run when someone accesses the API gateway at `users/index` via
+This setup specifies that the `hello` function should be run when someone accesses the API gateway at `hello` via
 a `GET` request.
 
 Here's an example:
 
 ```yml
+# serverless.yml
+
 functions:
   index:
-    handler: users.index
+    handler: handler.hello
     events:
-      - http: GET users/index
+      - http: GET hello
 ```
 
 ```javascript
-// users.js
+// handler.js
 
 'use strict';
 
-exports.handler = function(event, context, callback) {
+module.exports.hello = function(event, context, callback) {
 
     console.log(event); // Contains incoming request data (e.g., query params, headers and more)
 
@@ -70,6 +72,8 @@ JSON.parse(event.body);
 Here we've defined an POST endpoint for the path `posts/create`.
 
 ```yml
+# serverless.yml
+
 functions:
   create:
     handler: posts.create
@@ -83,12 +87,14 @@ functions:
 To set CORS configurations for your HTTP endpoints, simply modify your event configurations as follows:
 
 ```yml
+# serverless.yml
+
 functions:
   hello:
     handler: handler.hello
     events:
       - http:
-          path: user/create
+          path: hello
           method: get
           cors: true
 ```
@@ -96,11 +102,11 @@ functions:
 If you want to use CORS with the lambda-proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object, like this:
 
 ```javascript
-// users.js
+// handler.js
 
 'use strict';
 
-exports.handler = function(event, context, callback) {
+module.exports.hello = function(event, context, callback) {
 
     const response = {
       statusCode: 200,
