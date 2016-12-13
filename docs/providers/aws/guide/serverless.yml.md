@@ -105,6 +105,10 @@ functions:
           batchSize: 100
           startingPosition: LATEST
           enabled: false
+      - iot:
+          rule:
+            sql: "SELECT * FROM 'some_topics'"
+            enabled: true
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
