@@ -21,6 +21,5 @@ functions:
   mySkill:
     handler: mySkill.handler
     events:
-      - alexaSkill:
-          enabled: true
+      - alexaSkill
 ```
