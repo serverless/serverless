@@ -1,3 +1,25 @@
+# 1.4.0 (15.12.2016)
+
+## Features
+* [Alexa event support](https://github.com/serverless/serverless/issues/2875) (#2875)
+* [New C# service template](https://github.com/serverless/serverless/blob/master/docs/providers/aws/events/alexa-skill.md) (#2858)
+* [Local Invoke Improvements](https://github.com/serverless/serverless/pull/2865) (#2865)
+* [Service wide metrics](https://github.com/serverless/serverless/blob/master/docs/providers/aws/cli-reference/metrics.md) (#2846)
+* [Install service by pointing to a Github directory](https://github.com/serverless/serverless/issues/2721) (#2721)
+* [Add support for stdin for invoke & invoke local](https://github.com/serverless/serverless/blob/master/docs/providers/aws/cli-reference/invoke.md#function-invocation-with-data-from-standard-input) (#2894)
+
+## Bug Fixes
+* Fixed exit code for failed function invocations (#2836)
+* Stricter validation for custom IAM statements (#2132)
+* Fixed bug in credentials setup (#2878)
+* Removed unnecessary warnings during Serverless installation (#2811)
+* Removed request and response config when using proxy integration (#2799)
+* Internal refactoring
+
+## Meta
+* [Github Milestone](https://github.com/serverless/serverless/milestone/18?closed=1)
+* [Comparison since last release](https://github.com/serverless/serverless/compare/v1.3.0...v1.4.0)
+
 # 1.3.0 (02.12.2016)
 
 ## Features
