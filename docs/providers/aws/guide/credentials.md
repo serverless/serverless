@@ -26,7 +26,7 @@ Here's how to set up the Serverless Framework with your Amazon Web Services acco
 
 If you're new to Amazon Web Services, make sure you put in a credit card.  
 
-New AWS users get access to the [AWS Free Tier](https://aws.amazon.com/free/), which lets you use many AWS resources for free for 1 year, like [AWS Lambda](https://aws.amazon.com/lambda/pricing/). New AWS users won't be charged for signing up.
+All AWS users get access to the Free Tier for [AWS Lambda](https://aws.amazon.com/lambda/pricing/). AWS Lambda is part of the non-expiring [AWS Free Tier](https://aws.amazon.com/free/#AWS_FREE_TIER).
 
 If you don't have a credit card set up, you may not be able to deploy your resources and you may run into this error:
 
