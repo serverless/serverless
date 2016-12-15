@@ -23,3 +23,5 @@ functions:
     events:
       - alexaSkill
 ```
+
+You can find detailed guides on how to create an Alexa Skill with Serverless using NodeJS [here](https://github.com/serverless/examples/tree/master/aws-node-alexa-skill) as well as in combination with Python [here](https://github.com/serverless/examples/tree/master/aws-python-alexa-skill).
