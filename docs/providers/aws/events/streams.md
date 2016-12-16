@@ -22,11 +22,6 @@ functions:
     handler: handler.compute
     events:
       - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-      - stream:
-          arn:
-            Fn::GetAtt:
-              - MyKinesisStream
-              - Arn
 ```
 
 ## Setting the BatchSize and StartingPosition
