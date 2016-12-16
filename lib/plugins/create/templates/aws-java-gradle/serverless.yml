@@ -66,8 +66,7 @@ functions:
 #      - alexaSkill
 #      - iot:
 #          rule:
-#            sql: "SELECT * FROM 'some_topics'"
-#            enabled: true
+#            sql: "SELECT * FROM 'some_topic'"
 
 #    Define function environment variables here
 #    environment:

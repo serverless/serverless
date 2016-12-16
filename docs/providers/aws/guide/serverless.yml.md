@@ -108,8 +108,7 @@ functions:
       - alexaSkill
       - iot:
           rule:
-            sql: "SELECT * FROM 'some_topics'"
-            enabled: true
+            sql: "SELECT * FROM 'some_topic'"
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:

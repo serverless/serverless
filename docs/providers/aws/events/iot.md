@@ -24,10 +24,11 @@ functions:
       - iot:
           rule:
             sql: "SELECT * FROM 'some_topic'"
-            enabled: true
 ```
 
 ## Enabling / Disabling
+
+**Note:** `iot` events are enabled by default.
 
 This will create and attach a disabled `iot` event for the `myIoT` function.
 
@@ -70,6 +71,5 @@ functions:
       - iot:
           rule:
             sql: "SELECT * FROM 'some_topic'"
-            enabled: true
             sqlVersion: "beta"
 ```
