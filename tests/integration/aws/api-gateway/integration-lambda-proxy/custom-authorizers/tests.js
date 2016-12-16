@@ -12,50 +12,51 @@ const Utils = require('../../../../../utils/index');
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
-let stackName;
-let endpoint;
 
+describe('AWS - API Gateway (Integration: Lambda Proxy): Custom authorizers test', () => {
+  let stackName;
+  let endpoint;
 
-// AWS - API Gateway (Integration: Lambda Proxy): Custom authorizers test'
-beforeAll(() => {
-  stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
-  Utils.deployService();
-});
+  beforeAll(() => {
+    stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+    Utils.deployService();
+  });
 
+  it('should expose the endpoint(s) in the CloudFormation Outputs', () =>
+    CF.describeStacksPromised({ StackName: stackName })
+      .then((result) => _.find(result.Stacks[0].Outputs,
+        { OutputKey: 'ServiceEndpoint' }).OutputValue)
+      .then((endpointOutput) => {
+        endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+        endpoint = `${endpoint}/hello`;
+      })
+  );
 
-// should expose the endpoint(s) in the CloudFormation Outputs
-beforeAll(() => CF.describeStacksPromised({ StackName: stackName })
-    .then((result) => _.find(result.Stacks[0].Outputs,
-      { OutputKey: 'ServiceEndpoint' }).OutputValue)
-    .then((endpointOutput) => {
-      endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
-      endpoint = `${endpoint}/hello`;
-    })
-);
+  it('should reject requests without authorization', () =>
+    fetch(endpoint)
+      .then((response) => {
+        expect(response.status).to.equal(401);
+      })
+  );
 
-it('should reject requests without authorization', () => fetch(endpoint)
-  .then((response) => {
-    expect(response.status).to.equal(401);
-  })
-);
+  it('should reject requests with wrong authorization', () =>
+    fetch(endpoint, { headers: { Authorization: 'Bearer ShouldNotBeAuthorized' } })
+      .then((response) => {
+        expect(response.status).to.equal(401);
+      })
+  );
 
-it('should reject requests with wrong authorization', () =>
-  fetch(endpoint, { headers: { Authorization: 'Bearer ShouldNotBeAuthorized' } })
-    .then((response) => {
-      expect(response.status).to.equal(401);
-    })
-);
+  it('should authorize requests with correct authorization', () =>
+    fetch(endpoint, { headers: { Authorization: 'Bearer ShouldBeAuthorized' } })
+      .then(response => response.json())
+      .then((json) => {
+        expect(json.message).to.equal('Successfully authorized!');
+        expect(json.event.requestContext.authorizer.principalId).to.equal('SomeRandomId');
+        expect(json.event.headers.Authorization).to.equal('Bearer ShouldBeAuthorized');
+      })
+  );
 
-it('should authorize requests with correct authorization', () =>
-  fetch(endpoint, { headers: { Authorization: 'Bearer ShouldBeAuthorized' } })
-    .then(response => response.json())
-    .then((json) => {
-      expect(json.message).to.equal('Successfully authorized!');
-      expect(json.event.requestContext.authorizer.principalId).to.equal('SomeRandomId');
-      expect(json.event.headers.Authorization).to.equal('Bearer ShouldBeAuthorized');
-    })
-);
-
-afterAll(() => {
-  Utils.removeService();
+  afterAll(() => {
+    Utils.removeService();
+  });
 });

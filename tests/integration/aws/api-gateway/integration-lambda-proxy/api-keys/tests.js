@@ -61,10 +61,11 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
     expect(apiKey.length).to.be.above(0);
   });
 
-  it('should reject a request with an invalid API Key', () => fetch(endpoint)
-    .then((response) => {
-      expect(response.status).to.equal(403);
-    })
+  it('should reject a request with an invalid API Key', () =>
+    fetch(endpoint)
+      .then((response) => {
+        expect(response.status).to.equal(403);
+      })
   );
 
   it('should succeed if correct API key is given', () =>

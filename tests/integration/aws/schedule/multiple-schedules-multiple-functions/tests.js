@@ -5,25 +5,26 @@ const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 const BbPromise = require('bluebird');
 
-// AWS - Schedule: Multiple schedules with multiple functions
-beforeAll(() => {
-  Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
-  Utils.deployService();
-});
+describe('AWS - Schedule: Multiple schedules with multiple functions', () => {
+  beforeAll(() => {
+    Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+    Utils.deployService();
+  });
 
-it('should trigger functions every minute', () => BbPromise.resolve()
-  .delay(100000)
-  .then(() => {
-    const helloLogs = Utils.getFunctionLogs('hello');
-    const worldLogs = Utils.getFunctionLogs('world');
+  it('should trigger functions every minute', () => BbPromise.resolve()
+    .delay(100000)
+    .then(() => {
+      const helloLogs = Utils.getFunctionLogs('hello');
+      const worldLogs = Utils.getFunctionLogs('world');
 
-    expect(/Scheduled Event/g.test(helloLogs)).to.equal(true);
-    expect(/aws\.events/g.test(helloLogs)).to.equal(true);
-    expect(/Scheduled Event/g.test(worldLogs)).to.equal(true);
-    expect(/aws\.events/g.test(worldLogs)).to.equal(true);
-  })
-);
+      expect(/Scheduled Event/g.test(helloLogs)).to.equal(true);
+      expect(/aws\.events/g.test(helloLogs)).to.equal(true);
+      expect(/Scheduled Event/g.test(worldLogs)).to.equal(true);
+      expect(/aws\.events/g.test(worldLogs)).to.equal(true);
+    })
+  );
 
-afterAll(() => {
-  Utils.removeService();
+  afterAll(() => {
+    Utils.removeService();
+  });
 });

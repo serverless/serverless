@@ -10,32 +10,33 @@ const Utils = require('../../../../utils/index');
 const Lambda = new AWS.Lambda({ region: 'us-east-1' });
 BbPromise.promisifyAll(Lambda, { suffix: 'Promised' });
 
-let stackName;
+describe('AWS - General: Overwrite resources test', () => {
+  let stackName;
 
-// AWS - General: Overwrite resources test
-beforeAll(() => {
-  stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
-  Utils.deployService();
-});
+  beforeAll(() => {
+    stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+    Utils.deployService();
+  });
 
-it('should overwrite timeout config for hello function', () => {
-  const helloFunctionName = `${stackName}-hello`;
-  return Lambda.getFunctionPromised({ FunctionName: helloFunctionName })
-    .then(data => {
-      const timeout = data.Configuration.Timeout;
-      expect(timeout).to.equal(10);
-    });
-});
+  it('should overwrite timeout config for hello function', () => {
+    const helloFunctionName = `${stackName}-hello`;
+    return Lambda.getFunctionPromised({ FunctionName: helloFunctionName })
+      .then(data => {
+        const timeout = data.Configuration.Timeout;
+        expect(timeout).to.equal(10);
+      });
+  });
 
-it('should NOT overwrite timeout config for world function', () => {
-  const worldFunctionName = `${stackName}-world`;
-  return Lambda.getFunctionPromised({ FunctionName: worldFunctionName })
-    .then(data => {
-      const timeout = data.Configuration.Timeout;
-      expect(timeout).to.equal(6);
-    });
-});
+  it('should NOT overwrite timeout config for world function', () => {
+    const worldFunctionName = `${stackName}-world`;
+    return Lambda.getFunctionPromised({ FunctionName: worldFunctionName })
+      .then(data => {
+        const timeout = data.Configuration.Timeout;
+        expect(timeout).to.equal(6);
+      });
+  });
 
-afterAll(() => {
-  Utils.removeService();
+  afterAll(() => {
+    Utils.removeService();
+  });
 });

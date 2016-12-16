@@ -6,19 +6,20 @@ const execSync = require('child_process').execSync;
 
 const Utils = require('../../../../utils/index');
 
-// AWS - General: Nested handlers test
-beforeAll(() => {
-  Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
-  Utils.deployService();
-});
+describe('AWS - General: Nested handlers test', () => {
+  beforeAll(() => {
+    Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+    Utils.deployService();
+  });
 
-it('should invoke the nested handler function from AWS', () => {
-  const invoked = execSync(`${Utils.serverlessExec} invoke --function hello --noGreeting true`);
+  it('should invoke the nested handler function from AWS', () => {
+    const invoked = execSync(`${Utils.serverlessExec} invoke --function hello --noGreeting true`);
 
-  const result = JSON.parse(new Buffer(invoked, 'base64').toString());
-  expect(result.message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
-});
+    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    expect(result.message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
+  });
 
-afterAll(() => {
-  Utils.removeService();
+  afterAll(() => {
+    Utils.removeService();
+  });
 });

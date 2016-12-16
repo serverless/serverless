@@ -6,30 +6,31 @@ const execSync = require('child_process').execSync;
 
 const Utils = require('../../../utils/index');
 
-// General: Custom plugins test
-beforeAll(() => {
-  Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+describe('General: Custom plugins test', () => {
+  beforeAll(() => {
+    Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
-  // cd into the plugins directory
-  execSync('cd serverless-plugin-greeter');
+    // cd into the plugins directory
+    execSync('cd serverless-plugin-greeter');
 
-  // link and install the npm package / plugin
-  execSync('npm link serverless-plugin-greeter && npm install --save serverless-plugin-greeter');
+    // link and install the npm package / plugin
+    execSync('npm link serverless-plugin-greeter && npm install --save serverless-plugin-greeter');
 
-  // cd back into the service directory
-  execSync('cd ..');
-});
+    // cd back into the service directory
+    execSync('cd ..');
+  });
 
-afterAll(() => {
-  // unlink the npm package
-  execSync('npm r serverless-plugin-greeter -g');
-});
+  afterAll(() => {
+    // unlink the npm package
+    execSync('npm r serverless-plugin-greeter -g');
+  });
 
-it('should successfully run the greet command of the custom plugin', () => {
-  const pluginExecution = execSync(`${Utils.serverlessExec} greet`);
+  it('should successfully run the greet command of the custom plugin', () => {
+    const pluginExecution = execSync(`${Utils.serverlessExec} greet`);
 
-  // note: the result will return a newline at the end
-  const result = new Buffer(pluginExecution, 'base64').toString();
+    // note: the result will return a newline at the end
+    const result = new Buffer(pluginExecution, 'base64').toString();
 
-  expect(result).to.equal('Hello from the greeter plugin!');
+    expect(result).to.equal('Hello from the greeter plugin!');
+  });
 });
