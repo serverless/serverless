@@ -48,7 +48,6 @@ module.exports = {
     }
 
     replaceTextInFile('serverless.yml', templateName, serviceName);
-    execSync(`sed -i.bak s/${templateName}/${serviceName}/g serverless.yml`);
 
     process.env.TOPIC_1 = `${serviceName}-1`;
     process.env.TOPIC_2 = `${serviceName}-1`;
