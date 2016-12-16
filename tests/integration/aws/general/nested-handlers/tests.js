@@ -6,7 +6,8 @@ const execSync = require('child_process').execSync;
 
 const Utils = require('../../../../utils/index');
 
-beforeAll('AWS - General: Nested handlers test', () => {
+// AWS - General: Nested handlers test
+beforeAll(() => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });

@@ -15,14 +15,15 @@ BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 let stackName;
 let endpointBase;
 
-beforeAll('AWS - API Gateway (Integration: Lambda Proxy): CORS test', () => {
+// AWS - API Gateway (Integration: Lambda Proxy): CORS test
+beforeAll(() => {
   stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });
 
-beforeAll(
-  'should expose the endpoint(s) in the CloudFormation Outputs',
-  () => CF.describeStacksPromised({ StackName: stackName })
+
+// should expose the endpoint(s) in the CloudFormation Outputs
+beforeAll(() => CF.describeStacksPromised({ StackName: stackName })
     .then((result) => _.find(result.Stacks[0].Outputs,
       { OutputKey: 'ServiceEndpoint' }).OutputValue)
     .then((endpointOutput) => {
@@ -30,9 +31,9 @@ beforeAll(
     })
 );
 
-beforeAll(
-  'should setup CORS support with simple string config',
-  () => fetch(`${endpointBase}/simple-cors`, { method: 'OPTIONS' })
+
+// should setup CORS support with simple string config
+beforeAll(() => fetch(`${endpointBase}/simple-cors`, { method: 'OPTIONS' })
     .then((response) => {
       const headers = response.headers;
 

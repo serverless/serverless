@@ -13,7 +13,8 @@ const Utils = require('../../../../utils/index');
 let serviceName;
 let deploy;
 
-beforeAll('AWS - General: Deployment with --noDeploy', () => {
+// AWS - General: Deployment with --noDeploy
+beforeAll(() => {
   serviceName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   deploy = execSync(`${Utils.serverlessExec} deploy --noDeploy`);
 });
@@ -31,7 +32,7 @@ it('should have create cloudformation files and functions zip', () => {
   expect(deployedFiles[2]).to.match(/test-[0-9]{6}-[0-9]{9}.zip/);
 });
 
-it('should not found stack from AWS', () => {
+it('should not found stack from AWS', (done) => {
   CF.describeStackResources({ StackName: serviceName }, (error) => {
     expect(error.message).to.equal(`Stack with id ${serviceName} does not exist`);
     done();

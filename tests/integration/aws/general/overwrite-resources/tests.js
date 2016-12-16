@@ -12,7 +12,8 @@ BbPromise.promisifyAll(Lambda, { suffix: 'Promised' });
 
 let stackName;
 
-beforeAll('AWS - General: Overwrite resources test', () => {
+// AWS - General: Overwrite resources test
+beforeAll(() => {
   stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });

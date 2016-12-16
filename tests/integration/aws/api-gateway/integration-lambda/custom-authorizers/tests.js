@@ -15,17 +15,14 @@ BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 let stackName;
 let endpoint;
 
-beforeAll(
-  'AWS - API Gateway (Integration: Lambda): Custom authorizers test',
-  () => {
-    stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
-    Utils.deployService();
-  }
-);
+// AWS - API Gateway (Integration: Lambda): Custom authorizers test
+beforeAll(() => {
+  stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+  Utils.deployService();
+});
 
-beforeAll(
-  'should expose the endpoint(s) in the CloudFormation Outputs',
-  () => CF.describeStacksPromised({ StackName: stackName })
+// should expose the endpoint(s) in the CloudFormation Outputs
+beforeAll(() => CF.describeStacksPromised({ StackName: stackName })
     .then((result) => _.find(result.Stacks[0].Outputs,
       { OutputKey: 'ServiceEndpoint' }).OutputValue)
     .then((endpointOutput) => {

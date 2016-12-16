@@ -6,7 +6,8 @@ const execSync = require('child_process').execSync;
 
 const Utils = require('../../../utils/index');
 
-beforeAll('General: Custom plugins test', () => {
+// General: Custom plugins test
+beforeAll(() => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
   // cd into the plugins directory

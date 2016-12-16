@@ -18,7 +18,8 @@ BbPromise.promisifyAll(S3, { suffix: 'Promised' });
 let stackName;
 let s3BucketName;
 
-beforeAll('AWS - General: Custom resources test', () => {
+// AWS - General: Custom resources test
+beforeAll(() => {
   stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
   // replace name of bucket which is created through custom resources with something unique

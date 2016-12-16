@@ -21,7 +21,8 @@ let stackName;
 let endpoint;
 let apiKey;
 
-beforeAll('AWS - API Gateway (Integration: Lambda): API keys test', () => {
+// AWS - API Gateway (Integration: Lambda): API keys test
+beforeAll(() => {
   stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
   // replace name of the API key with something unique
@@ -38,29 +39,29 @@ beforeAll('AWS - API Gateway (Integration: Lambda): API keys test', () => {
   Utils.deployService();
 });
 
-beforeAll(
-  'should expose the endpoint(s) in the CloudFormation Outputs',
-  () => CF.describeStacksPromised({ StackName: stackName })
-    .then((result) => _.find(result.Stacks[0].Outputs,
-      { OutputKey: 'ServiceEndpoint' }).OutputValue)
-    .then((endpointOutput) => {
-      endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
-      endpoint = `${endpoint}/hello`;
-    })
+
+// should expose the endpoint(s) in the CloudFormation Outputs
+beforeAll(() => CF.describeStacksPromised({ StackName: stackName })
+  .then((result) => _.find(result.Stacks[0].Outputs,
+    { OutputKey: 'ServiceEndpoint' }).OutputValue)
+  .then((endpointOutput) => {
+    endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+    endpoint = `${endpoint}/hello`;
+  })
 );
 
-beforeAll(
-  'should expose the API key(s) with its values when running the info command',
-  () => {
-    const info = execSync(`${Utils.serverlessExec} info`);
 
-    const stringifiedOutput = (new Buffer(info, 'base64').toString());
+// should expose the API key(s) with its values when running the info command
+beforeAll(() => {
+  const info = execSync(`${Utils.serverlessExec} info`);
 
-    // some regex magic to extract the first API key value from the info output
-    apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
+  const stringifiedOutput = (new Buffer(info, 'base64').toString());
 
-    expect(apiKey.length).to.be.above(0);
-  }
+  // some regex magic to extract the first API key value from the info output
+  apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
+
+  expect(apiKey.length).to.be.above(0);
+}
 );
 
 it('should reject a request with an invalid API Key', () => fetch(endpoint)

@@ -4,7 +4,8 @@ const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-beforeAll('AWS - SNS: Single topic with multiple functions', () => {
+// AWS - SNS: Single topic with multiple functions
+beforeAll(() => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });
