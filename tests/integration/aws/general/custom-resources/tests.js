@@ -45,10 +45,11 @@ describe('AWS - General: Custom resources test', () => {
       })
   );
 
-  it('should create the custom resources (a S3 bucket)', () => S3.listBucketsPromised()
-    .then((result) => !!_.find(result.Buckets,
-      { Name: s3BucketName }))
-    .then((found) => expect(found).to.equal(true))
+  it('should create the custom resources (a S3 bucket)', ()
+    => S3.listBucketsPromised()
+      .then((result) => !!_.find(result.Buckets,
+        { Name: s3BucketName }))
+      .then((found) => expect(found).to.equal(true))
   );
 
   afterAll(() => {

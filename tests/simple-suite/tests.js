@@ -11,7 +11,7 @@ const testUtils = require('../utils/index');
 
 const serverless = new Serverless();
 serverless.init();
-const serverlessExec = path.join(serverless.config.serverlessPath, '..', 'bin', 'serverless');
+const serverlessExec = path.join(__dirname, '..', 'bin', 'serverless');
 
 const tmpDir = testUtils.getTmpDirPath();
 fse.mkdirsSync(tmpDir);

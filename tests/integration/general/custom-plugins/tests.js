@@ -20,11 +20,6 @@ describe('General: Custom plugins test', () => {
     execSync('cd ..');
   });
 
-  afterAll(() => {
-    // unlink the npm package
-    execSync('npm r serverless-plugin-greeter -g');
-  });
-
   it('should successfully run the greet command of the custom plugin', () => {
     const pluginExecution = execSync(`${Utils.serverlessExec} greet`);
 
@@ -32,5 +27,10 @@ describe('General: Custom plugins test', () => {
     const result = new Buffer(pluginExecution, 'base64').toString();
 
     expect(result).to.equal('Hello from the greeter plugin!');
+  });
+
+  afterAll(() => {
+    // unlink the npm package
+    execSync('npm r serverless-plugin-greeter -g');
   });
 });
