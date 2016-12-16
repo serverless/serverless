@@ -8,12 +8,9 @@ const BbPromise = require('bluebird');
 const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const AWS = require('aws-sdk');
-const Serverless = require('../../lib/Serverless');
 
-const serverless = new Serverless();
-serverless.init();
-const serverlessExec = path.join(serverless.config.serverlessPath, '..', 'bin', 'serverless');
-
+const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
+//
 const getTmpDirPath = () => path.join(os.tmpdir(),
   'tmpdirs-serverless', 'serverless', crypto.randomBytes(8).toString('hex'));
 
