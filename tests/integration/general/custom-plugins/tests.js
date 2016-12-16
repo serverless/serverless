@@ -1,13 +1,12 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const execSync = require('child_process').execSync;
 
 const Utils = require('../../../utils/index');
 
-test.before('General: Custom plugins test', () => {
+beforeAll('General: Custom plugins test', () => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
   // cd into the plugins directory
@@ -20,12 +19,12 @@ test.before('General: Custom plugins test', () => {
   execSync('cd ..');
 });
 
-test.after(() => {
+afterAll(() => {
   // unlink the npm package
   execSync('npm r serverless-plugin-greeter -g');
 });
 
-test('should successfully run the greet command of the custom plugin', () => {
+it('should successfully run the greet command of the custom plugin', () => {
   const pluginExecution = execSync(`${Utils.serverlessExec} greet`);
 
   // note: the result will return a newline at the end

@@ -1,6 +1,5 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const BbPromise = require('bluebird');
@@ -22,7 +21,7 @@ let stackName;
 let endpoint;
 let apiKey;
 
-test.before('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
+beforeAll('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
   stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
   // replace name of the API key with something unique
@@ -39,8 +38,9 @@ test.before('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () =
   Utils.deployService();
 });
 
-test.before('should expose the endpoint(s) in the CloudFormation Outputs', () =>
-  CF.describeStacksPromised({ StackName: stackName })
+beforeAll(
+  'should expose the endpoint(s) in the CloudFormation Outputs',
+  () => CF.describeStacksPromised({ StackName: stackName })
     .then((result) => _.find(result.Stacks[0].Outputs,
       { OutputKey: 'ServiceEndpoint' }).OutputValue)
     .then((endpointOutput) => {
@@ -49,34 +49,35 @@ test.before('should expose the endpoint(s) in the CloudFormation Outputs', () =>
     })
 );
 
-test.before('should expose the API key(s) with its values when running the info command', () => {
-  const info = execSync(`${Utils.serverlessExec} info`);
+beforeAll(
+  'should expose the API key(s) with its values when running the info command',
+  () => {
+    const info = execSync(`${Utils.serverlessExec} info`);
 
-  const stringifiedOutput = (new Buffer(info, 'base64').toString());
+    const stringifiedOutput = (new Buffer(info, 'base64').toString());
 
-  // some regex magic to extract the first API key value from the info output
-  apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
+    // some regex magic to extract the first API key value from the info output
+    apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
 
-  expect(apiKey.length).to.be.above(0);
-});
-
-test('should reject a request with an invalid API Key', () =>
-  fetch(endpoint)
-    .then((response) => {
-      expect(response.status).to.equal(403);
-    })
+    expect(apiKey.length).to.be.above(0);
+  }
 );
 
-test('should succeed if correct API key is given', () =>
-  fetch(endpoint, { headers: { 'x-api-key': apiKey } })
-    .then(response => response.json())
-    .then((json) => {
-      expect(json.message).to.equal('Hello from API Gateway!');
-      expect(json.event.requestContext.identity.apiKey).to.equal(apiKey);
-      expect(json.event.headers['x-api-key']).to.equal(apiKey);
-    })
+it('should reject a request with an invalid API Key', () => fetch(endpoint)
+  .then((response) => {
+    expect(response.status).to.equal(403);
+  })
 );
 
-test.after(() => {
+it('should succeed if correct API key is given', () => fetch(endpoint, { headers: { 'x-api-key': apiKey } })
+  .then(response => response.json())
+  .then((json) => {
+    expect(json.message).to.equal('Hello from API Gateway!');
+    expect(json.event.requestContext.identity.apiKey).to.equal(apiKey);
+    expect(json.event.headers['x-api-key']).to.equal(apiKey);
+  })
+);
+
+afterAll(() => {
   Utils.removeService();
 });

@@ -1,6 +1,5 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const AWS = require('aws-sdk');
@@ -13,12 +12,12 @@ BbPromise.promisifyAll(Lambda, { suffix: 'Promised' });
 
 let stackName;
 
-test.before('AWS - General: Overwrite resources test', () => {
+beforeAll('AWS - General: Overwrite resources test', () => {
   stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });
 
-test('should overwrite timeout config for hello function', () => {
+it('should overwrite timeout config for hello function', () => {
   const helloFunctionName = `${stackName}-hello`;
   return Lambda.getFunctionPromised({ FunctionName: helloFunctionName })
     .then(data => {
@@ -27,7 +26,7 @@ test('should overwrite timeout config for hello function', () => {
     });
 });
 
-test('should NOT overwrite timeout config for world function', () => {
+it('should NOT overwrite timeout config for world function', () => {
   const worldFunctionName = `${stackName}-world`;
   return Lambda.getFunctionPromised({ FunctionName: worldFunctionName })
     .then(data => {
@@ -36,6 +35,6 @@ test('should NOT overwrite timeout config for world function', () => {
     });
 });
 
-test.after(() => {
+afterAll(() => {
   Utils.removeService();
 });

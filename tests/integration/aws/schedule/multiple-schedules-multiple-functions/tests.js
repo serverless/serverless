@@ -1,17 +1,16 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 const BbPromise = require('bluebird');
 
-test.before('AWS - Schedule: Multiple schedules with multiple functions', () => {
+beforeAll('AWS - Schedule: Multiple schedules with multiple functions', () => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });
 
-test('should trigger functions every minute', () => BbPromise.resolve()
+it('should trigger functions every minute', () => BbPromise.resolve()
   .delay(100000)
   .then(() => {
     const helloLogs = Utils.getFunctionLogs('hello');
@@ -24,6 +23,6 @@ test('should trigger functions every minute', () => BbPromise.resolve()
   })
 );
 
-test.after(() => {
+afterAll(() => {
   Utils.removeService();
 });

@@ -1,16 +1,15 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-test.before(() => {
+beforeAll(() => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });
 
-test('should trigger function when object created or deleted in bucket', () => Utils
+it('should trigger function when object created or deleted in bucket', () => Utils
   .createAndRemoveInBucket(process.env.BUCKET_1)
   .delay(60000)
   .then(() => {
@@ -22,6 +21,6 @@ test('should trigger function when object created or deleted in bucket', () => U
   })
 );
 
-test.after(() => {
+afterAll(() => {
   Utils.removeService();
 });

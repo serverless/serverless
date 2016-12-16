@@ -1,6 +1,5 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const BbPromise = require('bluebird');
@@ -16,7 +15,7 @@ BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 let stackName;
 let endpoint;
 
-test.before(() => {
+beforeAll(() => {
   stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
   return CF.describeStacksPromised({ StackName: stackName })
@@ -28,7 +27,7 @@ test.before(() => {
     });
 });
 
-test('a "without-slash" path should expose an accessible POST HTTP endpoint', () => {
+it('a "without-slash" path should expose an accessible POST HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/without-slash`;
 
   return fetch(testEndpoint, { method: 'POST' })
@@ -36,7 +35,7 @@ test('a "without-slash" path should expose an accessible POST HTTP endpoint', ()
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "without-slash" path should expose an accessible GET HTTP endpoint', () => {
+it('a "without-slash" path should expose an accessible GET HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/without-slash`;
 
   return fetch(testEndpoint)
@@ -44,7 +43,7 @@ test('a "without-slash" path should expose an accessible GET HTTP endpoint', () 
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "without-slash" path should expose an accessible PUT HTTP endpoint', () => {
+it('a "without-slash" path should expose an accessible PUT HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/without-slash`;
 
   return fetch(testEndpoint, { method: 'PUT' })
@@ -52,7 +51,7 @@ test('a "without-slash" path should expose an accessible PUT HTTP endpoint', () 
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "without-slash" path should expose an accessible DELETE HTTP endpoint', () => {
+it('a "without-slash" path should expose an accessible DELETE HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/without-slash`;
 
   return fetch(testEndpoint, { method: 'DELETE' })
@@ -60,7 +59,7 @@ test('a "without-slash" path should expose an accessible DELETE HTTP endpoint', 
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/with-slash" path should expose an accessible POST HTTP endpoint', () => {
+it('a "/with-slash" path should expose an accessible POST HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/with-slash`;
 
   return fetch(testEndpoint, { method: 'POST' })
@@ -68,7 +67,7 @@ test('a "/with-slash" path should expose an accessible POST HTTP endpoint', () =
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/with-slash" path should expose an accessible GET HTTP endpoint', () => {
+it('a "/with-slash" path should expose an accessible GET HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/with-slash`;
 
   return fetch(testEndpoint)
@@ -76,7 +75,7 @@ test('a "/with-slash" path should expose an accessible GET HTTP endpoint', () =>
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/with-slash" path should expose an accessible PUT HTTP endpoint', () => {
+it('a "/with-slash" path should expose an accessible PUT HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/with-slash`;
 
   return fetch(testEndpoint, { method: 'PUT' })
@@ -84,7 +83,7 @@ test('a "/with-slash" path should expose an accessible PUT HTTP endpoint', () =>
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/with-slash" path should expose an accessible DELETE HTTP endpoint', () => {
+it('a "/with-slash" path should expose an accessible DELETE HTTP endpoint', () => {
   const testEndpoint = `${endpoint}/with-slash`;
 
   return fetch(testEndpoint, { method: 'DELETE' })
@@ -92,7 +91,7 @@ test('a "/with-slash" path should expose an accessible DELETE HTTP endpoint', ()
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/" path should expose an accessible POST HTTP endpoint', () => {
+it('a "/" path should expose an accessible POST HTTP endpoint', () => {
   const testEndpoint = `${endpoint}`;
 
   return fetch(testEndpoint, { method: 'POST' })
@@ -100,7 +99,7 @@ test('a "/" path should expose an accessible POST HTTP endpoint', () => {
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/" path should expose an accessible GET HTTP endpoint', () => {
+it('a "/" path should expose an accessible GET HTTP endpoint', () => {
   const testEndpoint = `${endpoint}`;
 
   return fetch(testEndpoint)
@@ -108,7 +107,7 @@ test('a "/" path should expose an accessible GET HTTP endpoint', () => {
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/" path should expose an accessible PUT HTTP endpoint', () => {
+it('a "/" path should expose an accessible PUT HTTP endpoint', () => {
   const testEndpoint = `${endpoint}`;
 
   return fetch(testEndpoint, { method: 'PUT' })
@@ -116,7 +115,7 @@ test('a "/" path should expose an accessible PUT HTTP endpoint', () => {
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test('a "/" path should expose an accessible DELETE HTTP endpoint', () => {
+it('a "/" path should expose an accessible DELETE HTTP endpoint', () => {
   const testEndpoint = `${endpoint}`;
 
   return fetch(testEndpoint, { method: 'DELETE' })
@@ -124,6 +123,6 @@ test('a "/" path should expose an accessible DELETE HTTP endpoint', () => {
     .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
 });
 
-test.after(() => {
+afterAll(() => {
   Utils.removeService();
 });

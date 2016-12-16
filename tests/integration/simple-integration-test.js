@@ -1,6 +1,5 @@
 'use strict';
 
-const test = require('ava');
 const expect = require('chai').expect;
 const path = require('path');
 const fse = require('fs-extra');
@@ -25,7 +24,7 @@ const stackName = `${newServiceName}-dev`;
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
-test.serial('should create service in tmp directory', () => {
+it('should create service in tmp directory', () => {
   execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
   testUtils.replaceTextInFile('serverless.yml', templateName, newServiceName);
   testUtils.replaceTextInFile('serverless.yml', 'name: aws', 'name: aws\n  cfLogs: true');
@@ -35,14 +34,14 @@ test.serial('should create service in tmp directory', () => {
     .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
 });
 
-test.serial('should deploy service to aws', () => {
+it('should deploy service to aws', () => {
   execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
 
   return CF.describeStacksPromised({ StackName: stackName })
     .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE'));
 });
 
-test.serial('should invoke function from aws', () => {
+it('should invoke function from aws', () => {
   const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
   const result = JSON.parse(new Buffer(invoked, 'base64').toString());
   // parse it once again because the body is stringified to be LAMBDA-PROXY ready
@@ -50,7 +49,7 @@ test.serial('should invoke function from aws', () => {
   expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
 });
 
-test.serial('should deploy updated service to aws', () => {
+it('should deploy updated service to aws', () => {
   const newHandler =
     `
       'use strict';
@@ -64,33 +63,36 @@ test.serial('should deploy updated service to aws', () => {
   execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
 });
 
-test.serial('should invoke updated function from aws', () => {
+it('should invoke updated function from aws', () => {
   const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
   const result = JSON.parse(new Buffer(invoked, 'base64').toString());
   expect(result.message).to.be.equal('Service Update Succeeded');
 });
 
-test.serial('should list existing deployments and roll back to first deployment', () => {
-  let timestamp;
-  const listDeploys = execSync(`${serverlessExec} deploy list`);
-  const output = listDeploys.toString();
-  const match = output.match(new RegExp('Timestamp: (.+)'));
-  if (match) {
-    timestamp = match[1];
+it(
+  'should list existing deployments and roll back to first deployment',
+  () => {
+    let timestamp;
+    const listDeploys = execSync(`${serverlessExec} deploy list`);
+    const output = listDeploys.toString();
+    const match = output.match(new RegExp('Timestamp: (.+)'));
+    if (match) {
+      timestamp = match[1];
+    }
+    // eslint-disable-next-line no-unused-expressions
+    expect(timestamp).to.not.undefined;
+
+    execSync(`${serverlessExec} rollback -t ${timestamp}`);
+
+    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
+    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    // parse it once again because the body is stringified to be LAMBDA-PROXY ready
+    const message = JSON.parse(result.body).message;
+    expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   }
-  // eslint-disable-next-line no-unused-expressions
-  expect(timestamp).to.not.undefined;
+);
 
-  execSync(`${serverlessExec} rollback -t ${timestamp}`);
-
-  const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
-  const result = JSON.parse(new Buffer(invoked, 'base64').toString());
-  // parse it once again because the body is stringified to be LAMBDA-PROXY ready
-  const message = JSON.parse(result.body).message;
-  expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
-});
-
-test.serial('should remove service from aws', () => {
+it('should remove service from aws', () => {
   execSync(`${serverlessExec} remove`, { stdio: 'inherit' });
 
   return CF.describeStacksPromised({ StackName: stackName })

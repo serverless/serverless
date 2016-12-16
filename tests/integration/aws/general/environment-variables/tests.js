@@ -1,18 +1,17 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const execSync = require('child_process').execSync;
 
 const Utils = require('../../../../utils/index');
 
-test.before(() => {
+beforeAll(() => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });
 
-test('should expose environment variables', () => {
+it('should expose environment variables', () => {
   const invoked = execSync(`${Utils.serverlessExec} invoke --function hello --noGreeting true`);
 
   const result = JSON.parse(new Buffer(invoked, 'base64').toString());
@@ -27,6 +26,6 @@ test('should expose environment variables', () => {
     .to.be.equal('overwritten_by_function');
 });
 
-test.after(() => {
+afterAll(() => {
   Utils.removeService();
 });

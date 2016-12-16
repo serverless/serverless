@@ -1,16 +1,15 @@
 'use strict';
 
-const test = require('ava');
 const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-test.before('AWS - SNS: Single topic with multiple functions', () => {
+beforeAll('AWS - SNS: Single topic with multiple functions', () => {
   Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
   Utils.deployService();
 });
 
-test('should trigger function when new message is published', () => Utils
+it('should trigger function when new message is published', () => Utils
   .publishSnsMessage(process.env.TOPIC_1, 'hello world')
   .delay(60000)
   .then(() => {
@@ -24,6 +23,6 @@ test('should trigger function when new message is published', () => Utils
   })
 );
 
-test.after(() => {
+afterAll(() => {
   Utils.removeService();
 });
