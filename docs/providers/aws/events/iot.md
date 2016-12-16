@@ -14,7 +14,7 @@ layout: Doc
 
 ## Simple event definition
 
-This will enable your Lambda function to be called by a rule of AWS IoT.
+This will enable your Lambda function to be called by an AWS IoT rule.
 
 ```yml
 functions:
@@ -27,9 +27,9 @@ functions:
             enabled: true
 ```
 
-## Enabling/Disabling functions
+## Enabling / Disabling
 
-This will create and attach a iot event for the `myIoT` function which is disabled. If enabled you will set `true` on the `enabled` property.
+This will create and attach a disabled `iot` event for the `myIoT` function.
 
 ```yml
 functions:
@@ -44,7 +44,7 @@ functions:
 
 ## Specify Name and Description
 
-Name and Description can be specified for a iot event. These are not required properties.
+Name and Description can be specified with the help of the `name` and `description` properties.
 
 ```yml
 functions:
@@ -55,13 +55,12 @@ functions:
           name: "myIotEvent"
           rule:
             sql: "SELECT * FROM 'some_topic'"
-            enabled: true
             description: "My IoT Event Description"
 ```
 
 ## Specify SQL Versions
 
-[SQL Versions](http://docs.aws.amazon.com/iot/latest/developerguide/iot-rule-sql-version.html) can be specified for a iot event. These are not required properties.
+[SQL Versions](http://docs.aws.amazon.com/iot/latest/developerguide/iot-rule-sql-version.html) can be specified for an `iot` event. However the `sqlVersion` is not a required property.
 
 ```yml
 functions:
