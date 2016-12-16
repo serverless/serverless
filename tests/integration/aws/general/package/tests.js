@@ -29,7 +29,8 @@ it('should have create cloudformation files and functions zip', () => {
   const deployedFiles = fs.readdirSync(path.join(process.cwd(), '.serverless'));
   expect(deployedFiles[0]).to.equal('cloudformation-template-create-stack.json');
   expect(deployedFiles[1]).to.equal('cloudformation-template-update-stack.json');
-  expect(deployedFiles[2]).to.match(/test-[0-9]{6}-[0-9]{9}.zip/);
+  // Note: noticed the seconds section can vary a lot
+  expect(deployedFiles[2]).to.match(/test-[0-9]{1,}-[0-9]{9}.zip/);
 });
 
 it('should not found stack from AWS', (done) => {
