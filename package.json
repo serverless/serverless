@@ -50,11 +50,10 @@
     "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
     "lint": "eslint .",
     "docs": "node scripts/generate-readme.js",
-    "simple-integration-test": "ava tests/integration/simple-integration-test.js",
-    "complex-integration-test": "jest"
+    "simple-integration-test": "jest simple-suite",
+    "complex-integration-test": "jest integration"
   },
   "jest": {
-    "testPathDirs": ["<rootDir>/tests/integration/aws/api-gateway/integration-lambda-proxy/api-keys"],
     "testRegex": "(\\.|/)(tests)\\.js$",
     "setupTestFrameworkScriptFile": "<rootDir>/tests/setupTests.js"
   },
