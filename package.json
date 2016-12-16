@@ -51,10 +51,14 @@
     "lint": "eslint .",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "ava tests/integration/simple-integration-test.js",
-    "complex-integration-test": "ava -c 8 tests/integration/**/tests.js"
+    "complex-integration-test": "jest"
+  },
+  "jest": {
+    "testPathDirs": ["<rootDir>/tests/integration/aws/api-gateway/integration-lambda-proxy/api-keys"],
+    "testRegex": "(\\.|/)(tests)\\.js$",
+    "setupTestFrameworkScriptFile": "<rootDir>/tests/setupTests.js"
   },
   "devDependencies": {
-    "ava": "^0.16.0",
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
     "eslint": "^3.3.1",
