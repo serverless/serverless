@@ -25,6 +25,8 @@ functions:
 
 ## Enabling/Disabling functions
 
+Schedule events are enabled by default.
+
 This will create and attach a schedule event for the `aggregate` function which is disabled. If enabled it will call
 the `aggregate` function every 10 minutes.
 
