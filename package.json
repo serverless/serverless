@@ -50,8 +50,8 @@
     "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
     "lint": "eslint .",
     "docs": "node scripts/generate-readme.js",
-    "simple-integration-test": "jest --maxWorkers=8 simple-suite",
-    "complex-integration-test": "jest --maxWorkers=8 integration"
+    "simple-integration-test": "jest --maxWorkers=5 simple-suite",
+    "complex-integration-test": "jest --maxWorkers=5 single-event-single-function"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
