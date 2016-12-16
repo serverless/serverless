@@ -17,66 +17,67 @@ const APIG = new AWS.APIGateway({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(APIG, { suffix: 'Promised' });
 
-let stackName;
-let endpoint;
-let apiKey;
+describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
+  let stackName;
+  let endpoint;
+  let apiKey;
 
-// AWS - API Gateway (Integration: Lambda Proxy): API keys test
-beforeAll(() => {
-  stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+  beforeAll(() => {
+    stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
-  // replace name of the API key with something unique
-  const serverlessYmlFilePath = path.join(process.cwd(), 'serverless.yml');
-  let serverlessYmlFileContent = fse.readFileSync(serverlessYmlFilePath).toString();
+    // replace name of the API key with something unique
+    const serverlessYmlFilePath = path.join(process.cwd(), 'serverless.yml');
+    let serverlessYmlFileContent = fse.readFileSync(serverlessYmlFilePath).toString();
 
-  const apiKeyName = crypto.randomBytes(8).toString('hex');
+    const apiKeyName = crypto.randomBytes(8).toString('hex');
 
-  serverlessYmlFileContent = serverlessYmlFileContent
-    .replace(/WillBeReplacedBeforeDeployment/, apiKeyName);
+    serverlessYmlFileContent = serverlessYmlFileContent
+      .replace(/WillBeReplacedBeforeDeployment/, apiKeyName);
 
-  fse.writeFileSync(serverlessYmlFilePath, serverlessYmlFileContent);
+    fse.writeFileSync(serverlessYmlFilePath, serverlessYmlFileContent);
 
-  Utils.deployService();
-});
+    Utils.deployService();
+  });
 
-// should expose the endpoint(s) in the CloudFormation Outputs
-beforeAll(() => CF.describeStacksPromised({ StackName: stackName })
-    .then((result) => _.find(result.Stacks[0].Outputs,
-      { OutputKey: 'ServiceEndpoint' }).OutputValue)
-    .then((endpointOutput) => {
-      endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
-      endpoint = `${endpoint}/hello`;
+  it('should expose the endpoint(s) in the CloudFormation Outputs', () =>
+    CF.describeStacksPromised({ StackName: stackName })
+      .then((result) => _.find(result.Stacks[0].Outputs,
+        { OutputKey: 'ServiceEndpoint' }).OutputValue)
+      .then((endpointOutput) => {
+        endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+        endpoint = `${endpoint}/hello`;
+        // TODO set an expect here
+      })
+  );
+
+  it('should expose the API key(s) with its values when running the info command', () => {
+    const info = execSync(`${Utils.serverlessExec} info`);
+
+    const stringifiedOutput = (new Buffer(info, 'base64').toString());
+
+    // some regex magic to extract the first API key value from the info output
+    apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
+
+    expect(apiKey.length).to.be.above(0);
+  });
+
+  it('should reject a request with an invalid API Key', () => fetch(endpoint)
+    .then((response) => {
+      expect(response.status).to.equal(403);
     })
-);
+  );
 
-// should expose the API key(s) with its values when running the info command
-beforeAll(() => {
-  const info = execSync(`${Utils.serverlessExec} info`);
+  it('should succeed if correct API key is given', () =>
+    fetch(endpoint, { headers: { 'x-api-key': apiKey } })
+      .then(response => response.json())
+      .then((json) => {
+        expect(json.message).to.equal('Hello from API Gateway!');
+        expect(json.event.requestContext.identity.apiKey).to.equal(apiKey);
+        expect(json.event.headers['x-api-key']).to.equal(apiKey);
+      })
+  );
 
-  const stringifiedOutput = (new Buffer(info, 'base64').toString());
-
-  // some regex magic to extract the first API key value from the info output
-  apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
-
-  expect(apiKey.length).to.be.above(0);
-});
-
-it('should reject a request with an invalid API Key', () => fetch(endpoint)
-  .then((response) => {
-    expect(response.status).to.equal(403);
-  })
-);
-
-it('should succeed if correct API key is given', () =>
-  fetch(endpoint, { headers: { 'x-api-key': apiKey } })
-    .then(response => response.json())
-    .then((json) => {
-      expect(json.message).to.equal('Hello from API Gateway!');
-      expect(json.event.requestContext.identity.apiKey).to.equal(apiKey);
-      expect(json.event.headers['x-api-key']).to.equal(apiKey);
-    })
-);
-
-afterAll(() => {
-  Utils.removeService();
+  afterAll(() => {
+    Utils.removeService();
+  });
 });
