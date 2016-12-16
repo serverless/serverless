@@ -67,13 +67,14 @@ it('should reject a request with an invalid API Key', () => fetch(endpoint)
   })
 );
 
-it('should succeed if correct API key is given', () => fetch(endpoint, { headers: { 'x-api-key': apiKey } })
-  .then(response => response.json())
-  .then((json) => {
-    expect(json.message).to.equal('Hello from API Gateway!');
-    expect(json.event.requestContext.identity.apiKey).to.equal(apiKey);
-    expect(json.event.headers['x-api-key']).to.equal(apiKey);
-  })
+it('should succeed if correct API key is given', () =>
+  fetch(endpoint, { headers: { 'x-api-key': apiKey } })
+    .then(response => response.json())
+    .then((json) => {
+      expect(json.message).to.equal('Hello from API Gateway!');
+      expect(json.event.requestContext.identity.apiKey).to.equal(apiKey);
+      expect(json.event.headers['x-api-key']).to.equal(apiKey);
+    })
 );
 
 afterAll(() => {

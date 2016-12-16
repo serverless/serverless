@@ -37,19 +37,21 @@ it('should reject requests without authorization', () => fetch(endpoint)
   })
 );
 
-it('should reject requests with wrong authorization', () => fetch(endpoint, { headers: { Authorization: 'Bearer ShouldNotBeAuthorized' } })
-  .then((response) => {
-    expect(response.status).to.equal(401);
-  })
+it('should reject requests with wrong authorization', () =>
+  fetch(endpoint, { headers: { Authorization: 'Bearer ShouldNotBeAuthorized' } })
+    .then((response) => {
+      expect(response.status).to.equal(401);
+    })
 );
 
-it('should authorize requests with correct authorization', () => fetch(endpoint, { headers: { Authorization: 'Bearer ShouldBeAuthorized' } })
-  .then(response => response.json())
-  .then((json) => {
-    expect(json.message).to.equal('Successfully authorized!');
-    expect(json.event.principalId).to.equal('SomeRandomId');
-    expect(json.event.headers.Authorization).to.equal('Bearer ShouldBeAuthorized');
-  })
+it('should authorize requests with correct authorization', () =>
+  fetch(endpoint, { headers: { Authorization: 'Bearer ShouldBeAuthorized' } })
+    .then(response => response.json())
+    .then((json) => {
+      expect(json.message).to.equal('Successfully authorized!');
+      expect(json.event.principalId).to.equal('SomeRandomId');
+      expect(json.event.headers.Authorization).to.equal('Bearer ShouldBeAuthorized');
+    })
 );
 
 afterAll(() => {

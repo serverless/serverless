@@ -30,26 +30,28 @@ beforeAll(() => CF.describeStacksPromised({ StackName: stackName })
     })
 );
 
-it('should setup CORS support with simple string config', () => fetch(`${endpointBase}/simple-cors`, { method: 'OPTIONS' })
-  .then((response) => {
-    const headers = response.headers;
+it('should setup CORS support with simple string config', () =>
+  fetch(`${endpointBase}/simple-cors`, { method: 'OPTIONS' })
+    .then((response) => {
+      const headers = response.headers;
 
-    expect(headers.get('access-control-allow-headers'))
-      .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token');
-    expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
-    expect(headers.get('access-control-allow-origin')).to.equal('*');
-  })
+      expect(headers.get('access-control-allow-headers'))
+        .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token');
+      expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
+      expect(headers.get('access-control-allow-origin')).to.equal('*');
+    })
 );
 
-it('should setup CORS support with complex object config', () => fetch(`${endpointBase}/complex-cors`, { method: 'OPTIONS' })
-  .then((response) => {
-    const headers = response.headers;
+it('should setup CORS support with complex object config', () =>
+  fetch(`${endpointBase}/complex-cors`, { method: 'OPTIONS' })
+    .then((response) => {
+      const headers = response.headers;
 
-    expect(headers.get('access-control-allow-headers'))
-      .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token');
-    expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
-    expect(headers.get('access-control-allow-origin')).to.equal('*');
-  })
+      expect(headers.get('access-control-allow-headers'))
+        .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token');
+      expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
+      expect(headers.get('access-control-allow-origin')).to.equal('*');
+    })
 );
 
 afterAll(() => {

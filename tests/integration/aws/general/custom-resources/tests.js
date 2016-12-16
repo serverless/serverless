@@ -36,12 +36,13 @@ beforeAll(() => {
   Utils.deployService();
 });
 
-it('should add the custom outputs to the Outputs section', () => CF.describeStacksPromised({ StackName: stackName })
-  .then((result) => _.find(result.Stacks[0].Outputs,
-    { OutputKey: 'MyCustomOutput' }).OutputValue)
-  .then((endpointOutput) => {
-    expect(endpointOutput).to.equal('SomeValue');
-  })
+it('should add the custom outputs to the Outputs section', () =>
+  CF.describeStacksPromised({ StackName: stackName })
+    .then((result) => _.find(result.Stacks[0].Outputs,
+      { OutputKey: 'MyCustomOutput' }).OutputValue)
+    .then((endpointOutput) => {
+      expect(endpointOutput).to.equal('SomeValue');
+    })
 );
 
 it('should create the custom resources (a S3 bucket)', () => S3.listBucketsPromised()
