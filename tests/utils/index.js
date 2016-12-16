@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
@@ -18,10 +19,16 @@ const getTmpDirPath = () => path.join(os.tmpdir(),
 
 const getTmpFilePath = (fileName) => path.join(getTmpDirPath(), fileName);
 
+const replaceTextInFile = (filePath, subString, newSubString) => {
+  const fileContent = fs.readFileSync(filePath).toString();
+  fs.writeFileSync(filePath, fileContent.replace(subString, newSubString));
+};
+
 module.exports = {
   serverlessExec,
   getTmpDirPath,
   getTmpFilePath,
+  replaceTextInFile,
 
   createTestService: (templateName, testServiceDir) => {
     const serviceName = `service-${(new Date()).getTime().toString()}`;
@@ -40,6 +47,7 @@ module.exports = {
       fse.copySync(testServiceDir, tmpDir, { clobber: true, preserveTimestamps: true });
     }
 
+    replaceTextInFile('serverless.yml', templateName, serviceName);
     execSync(`sed -i.bak s/${templateName}/${serviceName}/g serverless.yml`);
 
     process.env.TOPIC_1 = `${serviceName}-1`;
