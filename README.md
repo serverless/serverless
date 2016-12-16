@@ -131,6 +131,10 @@ These consultants use the Serverless Framework and can help you build your serve
 
 ## Release History
 
+### 0.6.3
+* Fixed deployment error on empty or invalid VPC configuration (issue #6)
+* Use native AWS Lambda environment variables instead of injected ones (issue #5)
+
 ### 0.6.1
 * Changed the way Serverless sets up scheduled events: Instead of creating one rule per function
   it is now possible to create a single rule that triggers up to 5 Lambdas simultaneously. Simply
