@@ -44,9 +44,8 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
       .then((result) => _.find(result.Stacks[0].Outputs,
         { OutputKey: 'ServiceEndpoint' }).OutputValue)
       .then((endpointOutput) => {
-        endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
-        endpoint = `${endpoint}/hello`;
-        // TODO set an expect here
+        const matched = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+        endpoint = `${matched}/hello`;
       })
   );
 

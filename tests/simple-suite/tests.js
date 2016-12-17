@@ -70,28 +70,25 @@ describe('Service Lifecyle Integration Test', () => {
     expect(result.message).to.be.equal('Service Update Succeeded');
   });
 
-  it(
-    'should list existing deployments and roll back to first deployment',
-    () => {
-      let timestamp;
-      const listDeploys = execSync(`${serverlessExec} deploy list`);
-      const output = listDeploys.toString();
-      const match = output.match(new RegExp('Timestamp: (.+)'));
-      if (match) {
-        timestamp = match[1];
-      }
-      // eslint-disable-next-line no-unused-expressions
-      expect(timestamp).to.not.undefined;
-
-      execSync(`${serverlessExec} rollback -t ${timestamp}`);
-
-      const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
-      const result = JSON.parse(new Buffer(invoked, 'base64').toString());
-      // parse it once again because the body is stringified to be LAMBDA-PROXY ready
-      const message = JSON.parse(result.body).message;
-      expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
+  it('should list existing deployments and roll back to first deployment', () => {
+    let timestamp;
+    const listDeploys = execSync(`${serverlessExec} deploy list`);
+    const output = listDeploys.toString();
+    const match = output.match(new RegExp('Timestamp: (.+)'));
+    if (match) {
+      timestamp = match[1];
     }
-  );
+    // eslint-disable-next-line no-unused-expressions
+    expect(timestamp).to.not.undefined;
+
+    execSync(`${serverlessExec} rollback -t ${timestamp}`);
+
+    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
+    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    // parse it once again because the body is stringified to be LAMBDA-PROXY ready
+    const message = JSON.parse(result.body).message;
+    expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
+  });
 
   it('should remove service from aws', () => {
     execSync(`${serverlessExec} remove`, { stdio: 'inherit' });

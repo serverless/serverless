@@ -19,110 +19,118 @@ describe('AWS - API Gateway (Integration: Lambda): Simple API test', () => {
   beforeAll(() => {
     stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
+  });
 
-    return CF.describeStacksPromised({ StackName: stackName })
+  it('should expose the endpoint(s) in the CloudFormation Outputs', () =>
+    CF.describeStacksPromised({ StackName: stackName })
       .then((result) => _.find(result.Stacks[0].Outputs,
         { OutputKey: 'ServiceEndpoint' }).OutputValue)
       .then((endpointOutput) => {
         endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
         endpoint = `${endpoint}`;
-      });
+      })
+  );
+
+  describe('when having a "without-slash" path setup', () => {
+    it('should expose an accessible POST HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/without-slash`;
+
+      return fetch(testEndpoint, { method: 'POST' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
+
+    it('should expose an accessible GET HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/without-slash`;
+
+      return fetch(testEndpoint)
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
+
+    it('should expose an accessible PUT HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/without-slash`;
+
+      return fetch(testEndpoint, { method: 'PUT' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
+
+    it('should expose an accessible DELETE HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/without-slash`;
+
+      return fetch(testEndpoint, { method: 'DELETE' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
   });
 
-  it('a "without-slash" path should expose an accessible POST HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/without-slash`;
+  describe('when having a "/with-slash" path setup', () => {
+    it('should expose an accessible POST HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/with-slash`;
 
-    return fetch(testEndpoint, { method: 'POST' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+      return fetch(testEndpoint, { method: 'POST' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
+
+    it('should expose an accessible GET HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/with-slash`;
+
+      return fetch(testEndpoint)
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
+
+    it('should expose an accessible PUT HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/with-slash`;
+
+      return fetch(testEndpoint, { method: 'PUT' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
+
+    it('should expose an accessible DELETE HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}/with-slash`;
+
+      return fetch(testEndpoint, { method: 'DELETE' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
   });
 
-  it('a "without-slash" path should expose an accessible GET HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/without-slash`;
+  describe('when having a "/" path setup', () => {
+    it('should expose an accessible POST HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}`;
 
-    return fetch(testEndpoint)
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
+      return fetch(testEndpoint, { method: 'POST' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
 
-  it('a "without-slash" path should expose an accessible PUT HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/without-slash`;
+    it('should expose an accessible GET HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}`;
 
-    return fetch(testEndpoint, { method: 'PUT' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
+      return fetch(testEndpoint)
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
 
-  it('a "without-slash" path should expose an accessible DELETE HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/without-slash`;
+    it('should expose an accessible PUT HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}`;
 
-    return fetch(testEndpoint, { method: 'DELETE' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
+      return fetch(testEndpoint, { method: 'PUT' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
 
-  it('a "/with-slash" path should expose an accessible POST HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/with-slash`;
+    it('should expose an accessible DELETE HTTP endpoint', () => {
+      const testEndpoint = `${endpoint}`;
 
-    return fetch(testEndpoint, { method: 'POST' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
-
-  it('a "/with-slash" path should expose an accessible GET HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/with-slash`;
-
-    return fetch(testEndpoint)
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
-
-  it('a "/with-slash" path should expose an accessible PUT HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/with-slash`;
-
-    return fetch(testEndpoint, { method: 'PUT' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
-
-  it('a "/with-slash" path should expose an accessible DELETE HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}/with-slash`;
-
-    return fetch(testEndpoint, { method: 'DELETE' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
-
-  it('a "/" path should expose an accessible POST HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}`;
-
-    return fetch(testEndpoint, { method: 'POST' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
-
-  it('a "/" path should expose an accessible GET HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}`;
-
-    return fetch(testEndpoint)
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
-
-  it('a "/" path should expose an accessible PUT HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}`;
-
-    return fetch(testEndpoint, { method: 'PUT' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
-  });
-
-  it('a "/" path should expose an accessible DELETE HTTP endpoint', () => {
-    const testEndpoint = `${endpoint}`;
-
-    return fetch(testEndpoint, { method: 'DELETE' })
-      .then(response => response.json())
-      .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+      return fetch(testEndpoint, { method: 'DELETE' })
+        .then(response => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway!'));
+    });
   });
 
   afterAll(() => {
