@@ -39,6 +39,13 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
     Utils.deployService();
   });
 
+  beforeAll(() => {
+    const info = execSync(`${Utils.serverlessExec} info`);
+    const stringifiedOutput = (new Buffer(info, 'base64').toString());
+    // some regex magic to extract the first API key value from the info output
+    apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
+  });
+
   it('should expose the endpoint(s) in the CloudFormation Outputs', () =>
     CF.describeStacksPromised({ StackName: stackName })
       .then((result) => _.find(result.Stacks[0].Outputs,
@@ -50,13 +57,6 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
   );
 
   it('should expose the API key(s) with its values when running the info command', () => {
-    const info = execSync(`${Utils.serverlessExec} info`);
-
-    const stringifiedOutput = (new Buffer(info, 'base64').toString());
-
-    // some regex magic to extract the first API key value from the info output
-    apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
-
     expect(apiKey.length).to.be.above(0);
   });
 
