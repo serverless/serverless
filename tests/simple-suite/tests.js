@@ -1,17 +1,24 @@
 'use strict';
 
+const fs = require('fs');
 const expect = require('chai').expect;
 const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const execSync = require('child_process').execSync;
-const Serverless = require('../../lib/Serverless');
 const AWS = require('aws-sdk');
 const testUtils = require('../utils/index');
 
-const serverless = new Serverless();
-serverless.init();
-const serverlessExec = path.join(__dirname, '..', 'bin', 'serverless');
+const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
+
+const fileExistsSync = (filePath) => {
+  try {
+    const stats = fse.lstatSync(filePath);
+    return stats.isFile();
+  } catch (e) {
+    return false;
+  }
+};
 
 const tmpDir = testUtils.getTmpDirPath();
 fse.mkdirsSync(tmpDir);
@@ -29,10 +36,8 @@ describe('Service Lifecyle Integration Test', () => {
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
     testUtils.replaceTextInFile('serverless.yml', templateName, newServiceName);
     testUtils.replaceTextInFile('serverless.yml', 'name: aws', 'name: aws\n  cfLogs: true');
-    expect(serverless.utils
-      .fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
-    expect(serverless.utils
-      .fileExistsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
+    expect(fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
+    expect(fileExistsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
 
   it('should deploy service to aws', () => {
@@ -60,7 +65,7 @@ describe('Service Lifecyle Integration Test', () => {
         );
       `;
 
-    serverless.utils.writeFileSync(path.join(tmpDir, 'handler.js'), newHandler);
+    fs.writeFileSync(path.join(tmpDir, 'handler.js'), newHandler);
     execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
   });
 
@@ -95,9 +100,9 @@ describe('Service Lifecyle Integration Test', () => {
 
     return CF.describeStacksPromised({ StackName: stackName })
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('DELETE_COMPLETE'))
-      .catch(e => {
-        if (e.message.indexOf('does not exist') > -1) return BbPromise.resolve();
-        throw new serverless.classes.Error(e);
+      .catch(error => {
+        if (error.message.indexOf('does not exist') > -1) return BbPromise.resolve();
+        throw new Error(error);
       });
   });
 });
