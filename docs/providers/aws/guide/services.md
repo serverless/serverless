@@ -57,6 +57,7 @@ Here are the available runtimes for AWS Lambda:
 * aws-java-maven
 * aws-scala-sbt
 * aws-csharp
+* aws-fsharp
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
