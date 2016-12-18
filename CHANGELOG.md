@@ -2,7 +2,7 @@
 
 ## Features
 * [Alexa event support](https://github.com/serverless/serverless/issues/2875) (#2875)
-* [New C# service template](https://github.com/serverless/serverless/blob/master/docs/providers/aws/events/alexa-skill.md) (#2858)
+* [New C# service template](https://github.com/serverless/serverless/tree/master/docs/providers/aws/examples/hello-world/csharp) (#2858)
 * [Local Invoke Improvements](https://github.com/serverless/serverless/pull/2865) (#2865)
 * [Service wide metrics](https://github.com/serverless/serverless/blob/master/docs/providers/aws/cli-reference/metrics.md) (#2846)
 * [Install service by pointing to a Github directory](https://github.com/serverless/serverless/issues/2721) (#2721)
