@@ -11,15 +11,6 @@ const testUtils = require('../utils/index');
 
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
 
-const fileExistsSync = (filePath) => {
-  try {
-    const stats = fse.lstatSync(filePath);
-    return stats.isFile();
-  } catch (e) {
-    return false;
-  }
-};
-
 const tmpDir = testUtils.getTmpDirPath();
 fse.mkdirsSync(tmpDir);
 process.chdir(tmpDir);
@@ -36,8 +27,8 @@ describe('Service Lifecyle Integration Test', () => {
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
     testUtils.replaceTextInFile('serverless.yml', templateName, newServiceName);
     testUtils.replaceTextInFile('serverless.yml', 'name: aws', 'name: aws\n  cfLogs: true');
-    expect(fileExistsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
-    expect(fileExistsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
+    expect(fs.existsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
+    expect(fs.existsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
 
   it('should deploy service to aws', () => {

@@ -11,8 +11,8 @@ const logger = console;
 const pattern = process.env.MATCH || '(test)-[0-9]+-[0-9]+-dev.+';
 const regex = new RegExp(`^${pattern}/i`);
 
-function emptyS3Bucket(bucket) {
-  return S3.listObjectsPromised({ Bucket: bucket })
+const emptyS3Bucket = (bucket) => (
+  S3.listObjectsPromised({ Bucket: bucket })
     .then(data => {
       logger.log('Bucket', bucket, 'has', data.Contents.length, 'items');
       if (data.Contents.length) {
@@ -25,18 +25,18 @@ function emptyS3Bucket(bucket) {
         });
       }
       return Promise.resolve();
-    });
-}
+    })
+);
 
-function deleteS3Bucket(bucket) {
-  return emptyS3Bucket(bucket)
+const deleteS3Bucket = (bucket) => (
+  emptyS3Bucket(bucket)
     .then(() => {
       logger.log('Bucket', bucket, 'is now empty, deleting ...');
       return S3.deleteBucketPromised({ Bucket: bucket });
-    });
-}
+    })
+);
 
-function cleanupS3Buckets(token) {
+const cleanupS3Buckets = (token) => {
   logger.log('Looking through buckets ...');
 
   const params = {};
@@ -60,9 +60,9 @@ function cleanupS3Buckets(token) {
           return Promise.resolve();
         })
     );
-}
+};
 
-function cleanupCFStacks(token) {
+const cleanupCFStacks = (token) => {
   const params = {};
 
   if (token) {
@@ -88,6 +88,6 @@ function cleanupCFStacks(token) {
           return Promise.resolve();
         })
   );
-}
+};
 
 cleanupS3Buckets().then(cleanupCFStacks);
