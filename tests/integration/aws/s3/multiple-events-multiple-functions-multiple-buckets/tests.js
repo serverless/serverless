@@ -4,10 +4,8 @@ const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-describe('AWS - S3: Multiple events in multiple functions with multiple buckets', function () {
-  this.timeout(0);
-
-  before(() => {
+describe('AWS - S3: Multiple events in multiple functions with multiple buckets', () => {
+  beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -30,7 +28,7 @@ describe('AWS - S3: Multiple events in multiple functions with multiple buckets'
     })
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

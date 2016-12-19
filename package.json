@@ -50,8 +50,12 @@
     "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
     "lint": "eslint .",
     "docs": "node scripts/generate-readme.js",
-    "simple-integration-test": "mocha tests/integration/simple-integration-test",
-    "complex-integration-test": "mocha tests/integration/all"
+    "simple-integration-test": "jest --maxWorkers=5 simple-suite",
+    "complex-integration-test": "jest --maxWorkers=5 integration"
+  },
+  "jest": {
+    "testRegex": "(\\.|/)(tests)\\.js$",
+    "setupTestFrameworkScriptFile": "<rootDir>/tests/setupTests.js"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -63,6 +67,7 @@
     "eslint-plugin-jsx-a11y": "^2.1.0",
     "eslint-plugin-react": "^6.1.1",
     "istanbul": "^0.4.4",
+    "jest-cli": "^18.0.0",
     "jszip": "^3.1.2",
     "markdown-magic": "0.1.0",
     "mocha": "^3.0.2",

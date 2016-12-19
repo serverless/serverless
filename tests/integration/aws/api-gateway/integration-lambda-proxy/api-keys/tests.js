@@ -17,14 +17,12 @@ const APIG = new AWS.APIGateway({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(APIG, { suffix: 'Promised' });
 
-describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', function () {
-  this.timeout(0);
-
+describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
   let stackName;
   let endpoint;
   let apiKey;
 
-  before(() => {
+  beforeAll(() => {
     stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
     // replace name of the API key with something unique
@@ -41,24 +39,24 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', functio
     Utils.deployService();
   });
 
+  beforeAll(() => {
+    const info = execSync(`${Utils.serverlessExec} info`);
+    const stringifiedOutput = (new Buffer(info, 'base64').toString());
+    // some regex magic to extract the first API key value from the info output
+    apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
+  });
+
   it('should expose the endpoint(s) in the CloudFormation Outputs', () =>
     CF.describeStacksPromised({ StackName: stackName })
       .then((result) => _.find(result.Stacks[0].Outputs,
         { OutputKey: 'ServiceEndpoint' }).OutputValue)
       .then((endpointOutput) => {
-        endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
-        endpoint = `${endpoint}/hello`;
+        const matched = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+        endpoint = `${matched}/hello`;
       })
   );
 
   it('should expose the API key(s) with its values when running the info command', () => {
-    const info = execSync(`${Utils.serverlessExec} info`);
-
-    const stringifiedOutput = (new Buffer(info, 'base64').toString());
-
-    // some regex magic to extract the first API key value from the info output
-    apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
-
     expect(apiKey.length).to.be.above(0);
   });
 
@@ -79,7 +77,7 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', functio
       })
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

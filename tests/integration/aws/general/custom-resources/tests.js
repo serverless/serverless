@@ -15,13 +15,11 @@ const S3 = new AWS.S3({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(S3, { suffix: 'Promised' });
 
-describe('AWS - General: Custom resources test', function () {
-  this.timeout(0);
-
+describe('AWS - General: Custom resources test', () => {
   let stackName;
   let s3BucketName;
 
-  before(() => {
+  beforeAll(() => {
     stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
     // replace name of bucket which is created through custom resources with something unique
@@ -54,7 +52,7 @@ describe('AWS - General: Custom resources test', function () {
       .then((found) => expect(found).to.equal(true))
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });
