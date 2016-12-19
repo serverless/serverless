@@ -30,7 +30,7 @@ describe('AWS - General: Deployment with --noDeploy', () => {
     expect(deployedFiles[0]).to.equal('cloudformation-template-create-stack.json');
     expect(deployedFiles[1]).to.equal('cloudformation-template-update-stack.json');
     // Note: noticed the seconds section can vary a lot
-    expect(deployedFiles[2]).to.match(/test-[0-9]{1,}-[0-9]{9}.zip/);
+    expect(deployedFiles[2]).to.match(/test-[0-9]{1,}-[0-9]{1,}.zip/);
   });
 
   it('should not found stack from AWS', (done) => {
