@@ -22,8 +22,7 @@ functions:
     handler: myIoT.handler
     events:
       - iot:
-          rule:
-            sql: "SELECT * FROM 'some_topic'"
+          sql: "SELECT * FROM 'some_topic'"
 ```
 
 ## Enabling / Disabling
@@ -38,9 +37,8 @@ functions:
     handler: myIoT.handler
     events:
       - iot:
-          rule:
-            sql: "SELECT * FROM 'some_topic'"
-            enabled: false
+          sql: "SELECT * FROM 'some_topic'"
+          enabled: false
 ```
 
 ## Specify Name and Description
@@ -54,9 +52,8 @@ functions:
     events:
       - iot:
           name: "myIotEvent"
-          rule:
-            sql: "SELECT * FROM 'some_topic'"
-            description: "My IoT Event Description"
+          sql: "SELECT * FROM 'some_topic'"
+          description: "My IoT Event Description"
 ```
 
 ## Specify SQL Versions
@@ -69,7 +66,6 @@ functions:
     handler: myIoT.handler
     events:
       - iot:
-          rule:
-            sql: "SELECT * FROM 'some_topic'"
-            sqlVersion: "beta"
+          sql: "SELECT * FROM 'some_topic'"
+          sqlVersion: "beta"
 ```
