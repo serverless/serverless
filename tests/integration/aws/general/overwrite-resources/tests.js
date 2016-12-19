@@ -10,12 +10,10 @@ const Utils = require('../../../../utils/index');
 const Lambda = new AWS.Lambda({ region: 'us-east-1' });
 BbPromise.promisifyAll(Lambda, { suffix: 'Promised' });
 
-describe('AWS - General: Overwrite resources test', function () {
-  this.timeout(0);
-
+describe('AWS - General: Overwrite resources test', () => {
   let stackName;
 
-  before(() => {
+  beforeAll(() => {
     stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -38,7 +36,7 @@ describe('AWS - General: Overwrite resources test', function () {
       });
   });
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

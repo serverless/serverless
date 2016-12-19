@@ -6,10 +6,8 @@ const execSync = require('child_process').execSync;
 
 const Utils = require('../../../../utils/index');
 
-describe('AWS - General: Nested handlers test', function () {
-  this.timeout(0);
-
-  before(() => {
+describe('AWS - General: Nested handlers test', () => {
+  beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -21,7 +19,7 @@ describe('AWS - General: Nested handlers test', function () {
     expect(result.message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   });
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });
