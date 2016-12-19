@@ -67,7 +67,6 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |---                    |---                                                      | ---                           |
 | S3::Bucket            | S3Bucket{normalizedBucketName}                          | S3BucketMybucket              |
 |IAM::Role              | IamRoleLambdaExecution                                  | IamRoleLambdaExecution        |
-|IAM::Policy            | IamPolicyLambdaExecution                                | IamPolicyLambdaExecution      |
 |Lambda::Function       | {normalizedFunctionName}LambdaFunction                  | HelloLambdaFunction           |
 |Lambda::Version        | {normalizedFunctionName}LambdaVersion{sha256}                           | HelloLambdaVersionr3pgoTvv1xT4E4NiCL6JG02fl6vIyi7OS1aW0FwAI |
 |Logs::LogGroup         | {normalizedFunctionName}LogGroup                        | HelloLogGroup                 |
