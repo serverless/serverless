@@ -107,7 +107,11 @@ functions:
           enabled: false
       - alexaSkill
       - iot:
+          name: myIoTEvent
+          description: An IoT event
+          enabled: true
           sql: "SELECT * FROM 'some_topic'"
+          sqlVersion: beta
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
