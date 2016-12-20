@@ -4,10 +4,8 @@ const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-describe('AWS - S3: Single event in a single function with a single bucket', function () {
-  this.timeout(0);
-
-  before(() => {
+describe('AWS - S3: Single event in a single function with a single bucket', () => {
+  beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -22,7 +20,7 @@ describe('AWS - S3: Single event in a single function with a single bucket', fun
     })
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

@@ -12,13 +12,11 @@ const Utils = require('../../../../../utils/index');
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
-describe('AWS - API Gateway (Integration: Lambda Proxy): Simple API test', function () {
-  this.timeout(0);
-
+describe('AWS - API Gateway (Integration: Lambda Proxy): Simple API test', () => {
   let stackName;
   let endpoint;
 
-  before(() => {
+  beforeAll(() => {
     stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -135,7 +133,7 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): Simple API test', funct
     });
   });
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

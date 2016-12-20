@@ -4,10 +4,8 @@ const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-describe('AWS - SNS: Multiple topics with multiple functions', function () {
-  this.timeout(0);
-
-  before(() => {
+describe('AWS - SNS: Multiple topics with multiple functions', () => {
+  beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -27,7 +25,7 @@ describe('AWS - SNS: Multiple topics with multiple functions', function () {
     })
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });
