@@ -106,7 +106,7 @@ The following are services you can instantly install and use by running `serverl
 
 * [serverless-examples](https://github.com/serverless/examples)
 * [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
-* [CRUD with S3](https://github.com/tscanlin/serverless-s3-crud) - CRUD service interfacing with S3
+* [CRUD with S3](https://github.com/tscanlin/serverless-s3-crud) - CRUD service using S3
 * [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 * [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
 * [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
