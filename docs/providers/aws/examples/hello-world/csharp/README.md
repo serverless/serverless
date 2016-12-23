@@ -27,6 +27,19 @@ zip -r ./deploy-package.zip ./*
 popd
 ```
 
+Or use one of the provided build scripts:
+
+```
+# Linux or OSX
+chmod +x ./build.sh
+./build.sh
+```
+
+```
+# Windows
+./build.ps1
+```
+
 ## 3. Deploy
 `serverless deploy` or `sls deploy`. `sls` is shorthand for the Serverless CLI command
 
