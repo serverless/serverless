@@ -53,7 +53,7 @@
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
     "postinstall": "node ./scripts/postinstall.js",
-    "postuninstall": "node ./scripts/postuninstall.js"
+    "preuninstall": "node ./scripts/preuninstall.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
