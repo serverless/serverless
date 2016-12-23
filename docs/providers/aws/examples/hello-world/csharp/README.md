@@ -31,7 +31,6 @@ Or use one of the provided build scripts:
 
 ```
 # Linux or OSX
-chmod +x ./build.sh
 ./build.sh
 ```
 
