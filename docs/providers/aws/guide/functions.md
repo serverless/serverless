@@ -263,6 +263,8 @@ service: service-name
 provider:
   name: aws
   kmsKeyArn: [your KMS key ARN]
+  environment:
+    TABLE_NAME: tableName1
 
 functions:
   hello: # this function will INHERIT the service level environment config above
@@ -270,6 +272,8 @@ functions:
   users: # this function will OVERWRITE the service level environment config above
     handler: handler.users
     kmsKeyArn: [your KMS key ARN]
+    environment:
+      TABLE_NAME: tableName2
 ```
 
 ## Secrets using Environment Variables and KMS
