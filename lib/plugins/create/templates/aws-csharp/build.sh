@@ -9,6 +9,6 @@ apt-get -qq update
 apt-get -qq -y install zip
 
 #create deployment package
-pushd bin/Release/netcoreapp1.0/publish
+pushd bin/release/netcoreapp1.0/publish
 zip -r ./deploy-package.zip ./*
 popd
