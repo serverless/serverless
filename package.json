@@ -51,7 +51,9 @@
     "lint": "eslint .",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
-    "complex-integration-test": "jest --maxWorkers=5 integration"
+    "complex-integration-test": "jest --maxWorkers=5 integration",
+    "postinstall": "node ./scripts/postinstall.js",
+    "preuninstall": "node ./scripts/preuninstall.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
