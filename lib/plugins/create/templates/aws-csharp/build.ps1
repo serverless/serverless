@@ -11,7 +11,7 @@ dotnet restore
 dotnet publish -c release
 if ($LASTEXITCODE -ne 0) { return }
 
-$publishDirectory = "bin/Release/netcoreapp1.0/publish"
+$publishDirectory = "bin/release/netcoreapp1.0/publish"
 $packageName = "deploy-package.zip"
 
 rm "$publishDirectory/$packageName" -ErrorAction SilentlyContinue
