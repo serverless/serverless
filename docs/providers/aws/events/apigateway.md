@@ -196,6 +196,9 @@ functions:
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
 
 ### Setting API keys for your Rest API
+
+**Note:** Due to a CloudFormation restriction you need to wire up API Keys and usage plans manually in the AWS console.
+
 You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
 `provider` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require
 one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you
