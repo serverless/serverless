@@ -244,6 +244,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [PromptWorks](https://www.promptworks.com/serverless/)
 * [Craftship](https://craftship.io)
 * [EPX Labs](http://www.epxlabs.com/) - runs [Serverless NYC Meetup](https://www.meetup.com/Serverless-NYC/)
+* [Red Badger](https://red-badger.com)
 
 ----
 
