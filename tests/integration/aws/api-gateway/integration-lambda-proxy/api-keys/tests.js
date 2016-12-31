@@ -34,7 +34,7 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
     serverlessYmlFileContent = serverlessYmlFileContent
       .replace(/WillBeReplacedBeforeDeployment/, apiKeyName);
 
-    console.log('serverlessYmlFileContent', serverlessYmlFileContent, '\n');
+    console.log('serverlessYmlFileContent: ', serverlessYmlFileContent, '\n');
 
     fse.writeFileSync(serverlessYmlFilePath, serverlessYmlFileContent);
 
