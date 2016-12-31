@@ -99,7 +99,13 @@ module.exports = {
   },
 
   deployService() {
-    execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
+    console.log('serverlessExec', serverlessExec);
+    try {
+      execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
+    } catch (err) {
+      console.log('err', err);
+      throw err;
+    }
   },
 
   removeService() {
