@@ -99,11 +99,11 @@ module.exports = {
   },
 
   deployService() {
-    console.log('serverlessExec', serverlessExec);
+    console.log('serverlessExec ', serverlessExec);
     try {
       execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
     } catch (err) {
-      console.log('err', err);
+      console.log('err ', err);
       throw err;
     }
   },
