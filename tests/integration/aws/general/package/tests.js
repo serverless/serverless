@@ -10,12 +10,11 @@ const fs = require('fs');
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 const Utils = require('../../../../utils/index');
 
-describe('AWS - General: Deployment with --noDeploy', function () {
-  this.timeout(0);
+describe('AWS - General: Deployment with --noDeploy', () => {
   let serviceName;
   let deploy;
 
-  before(() => {
+  beforeAll(() => {
     serviceName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     deploy = execSync(`${Utils.serverlessExec} deploy --noDeploy`);
   });
@@ -30,7 +29,8 @@ describe('AWS - General: Deployment with --noDeploy', function () {
     const deployedFiles = fs.readdirSync(path.join(process.cwd(), '.serverless'));
     expect(deployedFiles[0]).to.equal('cloudformation-template-create-stack.json');
     expect(deployedFiles[1]).to.equal('cloudformation-template-update-stack.json');
-    expect(deployedFiles[2]).to.match(/service-[0-9]{13}.zip/);
+    // Note: noticed the seconds section can vary a lot
+    expect(deployedFiles[2]).to.match(/test-[0-9]{1,}-[0-9]{1,}.zip/);
   });
 
   it('should not found stack from AWS', (done) => {

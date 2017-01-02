@@ -6,10 +6,8 @@ const execSync = require('child_process').execSync;
 
 const Utils = require('../../../../utils/index');
 
-describe('AWS - General: Environment variables test', function () {
-  this.timeout(0);
-
-  before(() => {
+describe('AWS - General: Environment variables test', () => {
+  beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -29,7 +27,7 @@ describe('AWS - General: Environment variables test', function () {
       .to.be.equal('overwritten_by_function');
   });
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

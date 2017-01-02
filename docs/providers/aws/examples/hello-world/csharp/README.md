@@ -19,12 +19,13 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 ## 2. Build using .NET CLI tools and create zip package
 
 ```
-dotnet restore
-dotnet publish -c release
+# Linux or OSX
+./build.sh
+```
 
-pushd bin/Release/netcoreapp1.0/publish
-zip -r ./deploy-package.zip ./*
-popd
+```
+# Windows PowerShell
+./build.ps1
 ```
 
 ## 3. Deploy

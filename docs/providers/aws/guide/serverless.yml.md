@@ -47,7 +47,7 @@ provider:
          Fn::Join:
            - ''
            - - 'arn:aws:s3:::'
-           - Ref: ServerlessDeploymentBucket
+             - Ref: ServerlessDeploymentBucket
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
       Principal: "*"

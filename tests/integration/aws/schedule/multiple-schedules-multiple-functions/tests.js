@@ -5,10 +5,8 @@ const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 const BbPromise = require('bluebird');
 
-describe('AWS - Schedule: Multiple schedules with multiple functions', function () {
-  this.timeout(0);
-
-  before(() => {
+describe('AWS - Schedule: Multiple schedules with multiple functions', () => {
+  beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
   });
@@ -26,7 +24,7 @@ describe('AWS - Schedule: Multiple schedules with multiple functions', function 
     })
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

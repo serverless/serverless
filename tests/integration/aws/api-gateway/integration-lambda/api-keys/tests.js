@@ -17,14 +17,12 @@ const APIG = new AWS.APIGateway({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(APIG, { suffix: 'Promised' });
 
-describe('AWS - API Gateway (Integration: Lambda): API keys test', function () {
-  this.timeout(0);
-
+describe('AWS - API Gateway (Integration: Lambda): API keys test', () => {
   let stackName;
   let endpoint;
   let apiKey;
 
-  before(() => {
+  beforeAll(() => {
     stackName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
 
     // replace name of the API key with something unique
@@ -79,7 +77,7 @@ describe('AWS - API Gateway (Integration: Lambda): API keys test', function () {
       })
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
   });
 });

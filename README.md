@@ -106,6 +106,7 @@ The following are services you can instantly install and use by running `serverl
 
 * [serverless-examples](https://github.com/serverless/examples)
 * [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
+* [CRUD with S3](https://github.com/tscanlin/serverless-s3-crud) - CRUD service using S3
 * [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 * [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
 * [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
@@ -120,6 +121,7 @@ The following are services you can instantly install and use by running `serverl
 * [Boilerplate](https://github.com/eahefnawy/serverless-boilerplate) - Opinionated boilerplate
 * [ES6 + Jest](https://github.com/americansystems/serverless-es6-jest) - ES6 + Jest Boilerplate
 * [PHP](https://github.com/ZeroSharp/serverless-php) - Call a PHP function from your lambda
+* [Slack App](https://github.com/johnagan/serverless-slack-app) - Slack App Boilerplate with OAuth and Bot actions
 
 **Note**: the `serverless install` command will only work on V1.0 or later.
 
@@ -172,6 +174,7 @@ Use these plugins to extend or overwrite the Framework's functionality...
 | **[Serverless Resources Env](https://github.com/rurri/serverless-resources-env)** <br/> After Deploy, this plugin fetches cloudformation resource identifiers and sets them on AWS lambdas, and creates local .<state>-env file | [rurri](http://github.com/rurri) | 
 | **[Serverless Run Function Plugin](https://github.com/lithin/serverless-run-function-plugin)** <br/> Run serverless function locally | [lithin](http://github.com/lithin) | 
 | **[Serverless Scriptable Plugin](https://github.com/wei-xu-myob/serverless-scriptable-plugin)** <br/> Customize Serverless behavior without writing a plugin. | [wei-xu-myob](http://github.com/wei-xu-myob) | 
+| **[Serverless Step Functions](https://github.com/horike37/serverless-step-functions)** <br/> AWS Step Functions with Serverless Framework. | [horike37](https://github.com/horike37) | 
 | **[Serverless Subscription Filter](https://github.com/blackevil245/serverless-subscription-filter)** <br/> Serverless plugin to register subscription filter for Lambda logs. Register and pipe the logs of one lambda to another to process. | [blackevil245](http://github.com/blackevil245) | 
 | **[Serverless Webpack](https://github.com/elastic-coders/serverless-webpack)** <br/> Serverless plugin to bundle your lambdas with Webpack | [elastic-coders](http://github.com/elastic-coders) | 
 | **[Serverless Wsgi](https://github.com/logandk/serverless-wsgi)** <br/> Serverless plugin to deploy WSGI applications (Flask/Django/Pyramid etc.) and bundle Python packages | [logandk](http://github.com/logandk) |
@@ -241,6 +244,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [PromptWorks](https://www.promptworks.com/serverless/)
 * [Craftship](https://craftship.io)
 * [EPX Labs](http://www.epxlabs.com/) - runs [Serverless NYC Meetup](https://www.meetup.com/Serverless-NYC/)
+* [Red Badger](https://red-badger.com)
 
 ----
 

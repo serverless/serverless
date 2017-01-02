@@ -21,6 +21,8 @@ The Serverless framework provides a powerful variable system which allows you to
 - Recursively nest variable references within each other for ultimate flexibility
 - Combine multiple variable references to overwrite each other
 
+**Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
+
 ## Reference Properties In serverless.yml
 To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. This functionality is recursive, so you can go as deep in the object tree as you want.
 
@@ -107,8 +109,8 @@ In the above example, you're referencing the entire `myCustomFile.yml` file in t
 To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`.  Here's an example:
 
 ```js
-# myCustomFile.js
-module.exports.hello = function() {
+// myCustomFile.js
+module.exports.hello = () => {
    // Code that generates dynamic data
    return 'rate (10 minutes)';
 }
@@ -139,8 +141,8 @@ functions:
 ```
 
 ```js
-# myCustomFile.js
-module.exports.schedule = function() {
+// myCustomFile.js
+module.exports.schedule = () => {
    // Code that generates dynamic data
    return {
      ten: 'rate(10 minutes)',
