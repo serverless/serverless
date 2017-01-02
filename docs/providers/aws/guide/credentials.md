@@ -81,7 +81,7 @@ Here's an example how you can configure the `default` AWS profile:
 serverless config credentials --provider aws --key AKIAIOSFODNN7EXAMPLE --secret wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
-Take a look at the [`config` CLI reference](../cli-reference/config-credentials) for more information about credential configuration.
+Take a look at the [`config` CLI reference](../cli-reference/config-credentials.md) for more information about credential configuration.
 
 ##### Setup with the `aws-cli`
 
