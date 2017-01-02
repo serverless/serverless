@@ -54,7 +54,7 @@ To let the Serverless Framework access your AWS account, we're going to **create
 
 ### Using AWS Access Keys
 
-You can configure the Serverless Framework to use your AWS **API Key** & **Secret** two ways:
+You can configure the Serverless Framework to use your AWS **API Key** & **Secret** in two ways:
 
 #### Quick Setup
 
