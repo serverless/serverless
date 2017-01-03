@@ -43,3 +43,7 @@ services:
     image: microsoft/dotnet:1.0.1-sdk-projectjson
     volumes:
       - ./tmp/serverless-integration-test-aws-csharp:/app
+  aws-fsharp:
+    image: microsoft/dotnet:1.0.1-sdk-projectjson
+    volumes:
+      - ./tmp/serverless-integration-test-aws-fsharp:/app
