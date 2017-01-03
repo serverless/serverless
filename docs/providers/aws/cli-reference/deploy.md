@@ -21,8 +21,9 @@ serverless deploy
 ## Options
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
-- `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
+- `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
+- `--stackName` or `-a` The name under which the stack should be deployed.
 
 ## Artifacts
 
