@@ -1,3 +1,23 @@
+# 1.5.0 (05.01.2017)
+
+## Features
+* [Added IoT event source support](https://github.com/serverless/serverless/blob/master/docs/providers/aws/events/iot.md) (#2954)
+* [Cognito user pool authorizer](https://serverless.com/framework/docs/providers/aws/events/apigateway/#http-endpoints-with-custom-authorizers) (#2141)
+* Service installation with a name (#2616)
+
+## Bug Fixes
+* Fix VTL string escaping (#2993)
+* Scheduled events are enabled by default (#2940)
+* Update status code regex to match newlines (#2991)
+* Add check for preexistent service directory (#3014)
+* Deployment monitoring fixes (#2906)
+* Credential handling fixes (#2820)
+* Reduced policy statement size significantly (#2952)
+
+## Meta
+* [Github Milestone](https://github.com/serverless/serverless/milestone/20?closed=1)
+* [Comparison since last release](https://github.com/serverless/serverless/compare/v1.4.0...v1.5.0)
+
 # 1.4.0 (15.12.2016)
 
 ## Features
