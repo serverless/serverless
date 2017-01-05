@@ -34,6 +34,8 @@
   "files": [
     "bin",
     "lib",
+    "scripts/postinstall.js",
+    "scripts/preuninstall.js",
     "package.json",
     "npm-shrinkwrap.json",
     "README.md",
