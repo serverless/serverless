@@ -55,7 +55,8 @@
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
     "postinstall": "node ./scripts/postinstall.js",
-    "preuninstall": "node ./scripts/preuninstall.js"
+    "preuninstall": "node ./scripts/preuninstall.js",
+    "prepublish": "node ./scripts/generate-readme.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
