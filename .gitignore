@@ -40,3 +40,6 @@ admin.env
 tmp
 .coveralls.yml
 tmpdirs-serverless
+
+# ESLint cache
+.eslintcache
