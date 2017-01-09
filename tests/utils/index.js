@@ -91,6 +91,24 @@ module.exports = {
       });
   },
 
+  publishIotData(topic, message) {
+    const Iot = new AWS.Iot({ region: 'us-east-1' });
+    BbPromise.promisifyAll(Iot, { suffix: 'Promised' });
+
+    return Iot.describeEndpointPromised()
+      .then(data => {
+        const IotData = new AWS.IotData({ region: 'us-east-1', endpoint: data.endpointAddress });
+        BbPromise.promisifyAll(IotData, { suffix: 'Promised' });
+
+        const params = {
+          topic,
+          payload: new Buffer(message),
+        };
+
+        return IotData.publishPromised(params);
+      });
+  },
+
   getFunctionLogs(functionName) {
     const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`);
     const logsString = new Buffer(logs, 'base64').toString();
