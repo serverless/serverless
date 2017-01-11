@@ -32,7 +32,7 @@
         "dnxcore50"
       ]
     },
-    "Amazon.Lambda.Tools": "1.0.0-preview1"
+    "Amazon.Lambda.Tools": "1.0.4-preview1"
   },
 
   "frameworks": {
