@@ -147,6 +147,7 @@ provider:
              - ""
              - - "arn:aws:s3:::"
                - "Ref" : "ServerlessDeploymentBucket"
+               - "/*"
 
 functions:
   functionOne:

@@ -42,6 +42,7 @@ provider:
            - ""
            - - "arn:aws:s3:::"
              - Ref : "ServerlessDeploymentBucket"
+             - "/*"
 
 ```
 
