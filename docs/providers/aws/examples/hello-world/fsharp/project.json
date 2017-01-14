@@ -21,7 +21,7 @@
 
     "Amazon.Lambda.Tools" : {
       "type" :"build",
-      "version":"0.9.0-preview1"
+      "version":"1.0.4-preview1"
     }
   },
 
