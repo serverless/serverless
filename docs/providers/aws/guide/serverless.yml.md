@@ -127,7 +127,7 @@ functions:
             key1: value1
             key2: value2
             stageParams:
-              stage:dev
+              stage: dev
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
