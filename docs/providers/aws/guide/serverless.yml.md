@@ -112,6 +112,22 @@ functions:
           enabled: true
           sql: "SELECT * FROM 'some_topic'"
           sqlVersion: beta
+      - cloudwatch:
+          name: myCloudWatchEvent
+          description: An CloudWatch Event
+          event:
+            source: 
+              - "aws.ec2"
+            detail-type: 
+              - "EC2 Instance State-change Notification"
+            detail: 
+              state: 
+                - pending
+          input:
+            key1: value1
+            key2: value2
+            stageParams:
+              stage:dev
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
