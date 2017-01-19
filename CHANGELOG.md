@@ -1,3 +1,14 @@
+# 1.5.1 (19.01.2017)
+
+## Bug Fixes
+- Fix bug with multi line values is given in IoT events (#3095)
+- Add support of numeric template creation path (#3064)
+- Fix deployment bucket bug when using eu-west-1 (#3107)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.5.0...v1.5.1)
+
+
 # 1.5.0 (05.01.2017)
 
 ## Features
