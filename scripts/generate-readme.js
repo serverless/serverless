@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * adds content to the repos README.md file
  */
