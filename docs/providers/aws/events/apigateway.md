@@ -570,58 +570,6 @@ functions:
                       Content-Type: "'application/json+hal'"
 ```
 
-## Enabling CORS with the Lambda Integration Method
-
-```yml
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: user/create
-          method: get
-          integration: lambda
-          cors: true
-```
-
-You can equally set your own attributes:
-
-```yml
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: user/create
-          method: get
-          integration: lambda
-          cors:
-            origins:
-              - '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-```
-
-This example is the default setting and is exactly the same as the previous example. The `Access-Control-Allow-Methods` header is set automatically, based on the endpoints specified in your service configuration with CORS enabled.
-
-**Note:** If you are using the default lambda proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object otherwise CORS will fail.
-
-```
-module.exports.hello = (event, context, callback) => {
-  return callback(null, {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: 'Hello World!'
-  });
-}
-```
-
 ## Setting an HTTP Proxy on API Gateway
 
 To set up an HTTP proxy, you'll need two CloudFormation templates, one for the endpoint (known as resource in CF), and
