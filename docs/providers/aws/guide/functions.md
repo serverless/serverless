@@ -253,6 +253,33 @@ functions:
       TABLE_NAME: tableName2
 ```
 
+## KMS Key
+
+AWS Lambda uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest. You can override the default KMS key used by the Lambda function at the provider or function level:
+
+```yml
+# serverless.yml
+service: service-name
+provider:
+  name: aws
+  kmsKeyArn: [your KMS key ARN]
+  environment:
+    TABLE_NAME: tableName1
+
+functions:
+  hello: # this function will INHERIT the service level environment config above
+    handler: handler.hello
+  users: # this function will OVERWRITE the service level environment config above
+    handler: handler.users
+    kmsKeyArn: [your KMS key ARN]
+    environment:
+      TABLE_NAME: tableName2
+```
+
+## Secrets using Environment Variables and KMS
+
+When storing secrets in enviroment variables, AWS [strongly suggests](http://docs.aws.amazon.com/lambda/latest/dg/env_variables.html#env-storing-sensitive-data) encrypting sensitive information. AWS provides a [tutorial](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-env_console.html) on using KMS for this purpose.
+
 ## Log Group Resources
 
 By default, the framework does not create LogGroups for your Lambdas. However this behavior will be deprecated soon and we'll be adding CloudFormation LogGroups resources as part of the stack. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
