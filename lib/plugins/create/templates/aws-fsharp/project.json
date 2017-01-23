@@ -21,7 +21,7 @@
 
     "Amazon.Lambda.Tools" : {
       "type" :"build",
-      "version":"1.0.4-preview1"
+      "version":"1.1.0-preview1"
     }
   },
 
@@ -32,7 +32,7 @@
         "dnxcore50"
       ]
     },
-    "Amazon.Lambda.Tools": "1.0.4-preview1"
+    "Amazon.Lambda.Tools": "1.1.0-preview1"
   },
 
   "frameworks": {
