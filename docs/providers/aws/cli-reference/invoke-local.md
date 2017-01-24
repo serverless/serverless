@@ -37,11 +37,11 @@ This example will locally invoke your function.
 ### Local function invocation with data
 
 ```bash
-serverless invoke --function functionName --data "hello world"
+serverless invoke local --function functionName --data "hello world"
 ```
 
 ```bash
-serverless invoke --function functionName --data '{"a":"bar"}'
+serverless invoke local --function functionName --data '{"a":"bar"}'
 ```
 
 ### Local function invocation with data from standard input
