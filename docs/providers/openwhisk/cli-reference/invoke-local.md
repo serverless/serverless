@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Invoke Local
+title: Serverless Framework Commands - Apache OpenWhisk - Invoke Local
 menuText: Invoke Local
 menuOrder: 8
-description: Emulate an invocation of your AWS Lambda function locally using the Serverless Framework
+description: Emulate an invocation of your Apache OpenWhisk function locally using the Serverless Framework
 layout: Doc
 -->
 
@@ -12,7 +12,7 @@ layout: Doc
 
 # Invoke Local
 
-This runs your code locally by emulating the AWS Lambda environment. Please keep in mind, it's not a 100% perfect emulation, there may be some differences, but it works for the vast majority of users.  We mock the `context` with simple mock data.
+This runs your code locally by emulating the Apache OpenWhisk environment. Please keep in mind, it's not a 100% perfect emulation, there may be some differences, but it works for the vast majority of users. 
 
 ```bash
 serverless invoke local --function functionName
@@ -60,4 +60,4 @@ This example will pass the json data in the `lib/data.json` file (relative to th
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs and Python runtimes.
+Currently, `invoke local` only supports the NodeJs

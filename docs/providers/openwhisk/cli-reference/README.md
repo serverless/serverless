@@ -1,5 +1,5 @@
 <!--
-title: Serverless - AWS Lambda - CLI Reference
+title: Serverless - Apache OpenWhisk - CLI Reference
 menuText: AWS
 layout: Doc
 -->
@@ -8,10 +8,10 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/)
 <!-- DOCS-SITE-LINK:END -->
 
-# Serverless AWS Lambda CLI Reference
+# Serverless Apache OpenWhisk CLI Reference
 
-Welcome to the Serverless AWS Lambda CLI Reference!  Please select a section on the left to get started.
+Welcome to the Serverless Apache OpenWhisk CLI Reference!  Please select a section on the left to get started.
 
-**Note:** Before continuing [AWS system credentials](../guide/credentials.md) are required for using the CLI.
+**Note:** Before continuing [Apache OpenWhisk system credentials](../guide/credentials.md) are required for using the CLI.
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)

@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Install
+title: Serverless Framework Commands - Apache OpenWhisk - Install
 menuText: Install
 menuOrder: 3
-description: Install pre-written AWS Lambda Functions, Events and Resources with the Serverless Framework
+description: Install pre-written Apache OpenWhisk Functions, Events and Resources with the Serverless Framework
 layout: Doc
 -->
 

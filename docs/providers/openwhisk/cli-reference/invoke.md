@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Invoke
+title: Serverless Framework Commands - Apache OpenWhisk - Invoke
 menuText: Invoke
 menuOrder: 7
-description: Invoke an AWS Lambda Function using the Serverless Framework
+description: Invoke an Apache OpenWhisk Function using the Serverless Framework
 layout: Doc
 -->
 
@@ -20,8 +20,6 @@ serverless invoke [local] --function functionName
 
 ## Options
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
-- `--stage` or `-s` The stage in your service you want to invoke your function in.
-- `--region` or `-r` The region in your stage that you want to invoke your function in.
 - `--data` or `-d` String data to be passed as an event to your function. By default data is read from standard input.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
 - `--type` or `-t` The type of invocation. Either `RequestResponse`, `Event` or `DryRun`. Default is `RequestResponse`.
@@ -29,7 +27,6 @@ serverless invoke [local] --function functionName
 
 ## Provided lifecycle events
 - `invoke:invoke`
-
 
 # Invoke Local
 
@@ -47,31 +44,31 @@ root directory of the service. The json file should have event and context prope
 
 ## Examples
 
-### AWS
+### Apache OpenWhisk
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1
+serverless invoke --function functionName 
 ```
 
-This example will invoke your deployed function named `functionName` in region `us-east-1` in stage `dev`. This will
-output the result of the invocation in your terminal.
+This example will invoke your deployed function on the configured platform
+endpoint. This will output the result of the invocation in your terminal.
 
 #### Function invocation with data
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --data "hello world"
+serverless invoke --function functionName --data '{"name": "Bernie"}' 
 ```
 
 #### Function invocation with data from standard input
 
 ```bash
-node dataGenerator.js | serverless invoke --function functionName --stage dev --region us-east-1
+node dataGenerator.js | serverless invoke --function functionName 
 ```
 
 #### Function invocation with logging
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --log
+serverless invoke --function functionName --log
 ```
 
 Just like the first example, but will also outputs logging information about your invocation.
@@ -79,7 +76,7 @@ Just like the first example, but will also outputs logging information about you
 #### Function invocation with data passing
 
 ```bash
-serverless invoke --function functionName --stage dev --region us-east-1 --path lib/data.json
+serverless invoke --function functionName --path lib/data.json
 ```
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking

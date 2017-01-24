@@ -13,15 +13,14 @@ layout: Doc
 # Config Credentials
 
 ```bash
-serverless config credentials --provider provider --key key --secret secret
+serverless config credentials --provider provider --apihost apihost --auth auth 
 ```
 
 ## Options
 
 - `--provider` or `-p` The provider (in this case `aws`). **Required**.
-- `--key` or `-k` The `aws_access_key_id`. **Required**.
-- `--secret` or `-s` The `aws_secret_access_key`. **Required**.
-- `--profile` or `-n` The name of the profile which should be created.
+- `--apihost` or `-h` The `openwhisk_apihost`. **Required**.
+- `--auth` or `-a` The `openwhisk_auth`. **Required**.
 
 ## Provided lifecycle events
 
@@ -29,18 +28,10 @@ serverless config credentials --provider provider --key key --secret secret
 
 ## Examples
 
-### Configure the `default` profile
+### Configure the default profile
 
 ```bash
-serverless config credentials --provider aws --key 1234 --secret 5678
+serverless config credentials --provider aws --apihost openwhisk.ng.bluemix.net --auth username:password
 ```
 
-This example will configure the `default` profile with the `aws_access_key_id` of `1234` and the `aws_secret_access_key` of `5678`.
-
-### Configure a custom profile
-
-```bash
-serverless config credentials --provider aws --key 1234 --secret 5678 --profile custom-profile
-```
-
-This example create and configure a `custom-profile` profile with the `aws_access_key_id` of `1234` and the `aws_secret_access_key` of `5678`.
+Credentials are stored in `~/.wskprops`, which you can edit directly if needed.

@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Logs
+title: Serverless Framework Commands - Apache OpenWhisk - Logs
 menuText: Logs
 menuOrder: 9
-description: View logs of your AWS Lambda Function within your terminal using the Serverless Framework
+description: View logs of your Apache OpenWhisk Function within your terminal using the Serverless Framework
 layout: Doc
 -->
 
@@ -21,8 +21,6 @@ serverless logs -f hello
 ## Options
 
 - `--function` or `-f` The function you want to fetch the logs for. **Required**
-- `--stage` or `-s` The stage you want to view the function logs for. If not provided, the plugin will use the default stage listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `dev` stage.
-- `--region` or `-r` The region you want to view the function logs for. If not provided, the plugin will use the default region listed in `serverless.yml`. If that doesn't exist either it'll just fetch the logs from the `us-east-1` region.
 - `--startTime` A specific unit in time to start fetching logs from (ie: `2010-10-20` or `1469705761`). Here's a list of the supported string formats:
 
 ```bash
@@ -53,9 +51,7 @@ serverless logs -f hello
 
 ## Examples
 
-### AWS
-
-**Note:** There's a small lag between invoking the function and actually having the log event registered in CloudWatch. So it takes a few seconds for the logs to show up right after invoking the function.
+### Apache OpenWhisk
 
 ```bash
 serverless logs -f hello --startTime 5h
@@ -71,7 +67,7 @@ This will fetch the logs that happened starting at epoch `1469694264`.
 serverless logs -f hello -t
 ```
 
-Serverless will tail the CloudWatch log output and print new log messages coming in.
+Serverless will tail the platform log output and print new log messages coming in.
 
 ```bash
 serverless logs -f hello --filter serverless
