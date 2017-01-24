@@ -27,6 +27,7 @@ provider:
   runtime: nodejs4.3
   memorySize: 512 # optional, default is 1024
   timeout: 10 # optional, default is 6
+  versionFunctions: false # optional, default is false
 
 functions:
   hello:
@@ -265,3 +266,16 @@ provider:
 ```
 
 If you get a CloudFormation error saying that log group already exists, you have to remove it first from AWS console, then deploy, otherwise for new services this should work out of the box.
+
+## Versioning Deployed Functions
+
+By default, the framework does not create function versions for your Lambdas. This behavior is optional and does make it possible to invoke past versions of your functions. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
+
+To turn on this feature, set the provider-level option `versionFunctions`.
+
+```yml
+provider:
+  versionFunctions: true
+```
+
+From then on, versions will be created for each function. These won't be cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions.
