@@ -57,3 +57,7 @@ serverless invoke local --function functionName --path lib/data.json
 ```
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking the specified/deployed function.
+
+### Limitations
+
+Currently, `invoke local` only supports the NodeJs and Python runtimes.

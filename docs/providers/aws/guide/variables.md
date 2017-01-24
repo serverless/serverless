@@ -109,8 +109,8 @@ In the above example, you're referencing the entire `myCustomFile.yml` file in t
 To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`.  Here's an example:
 
 ```js
-# myCustomFile.js
-module.exports.hello = function() {
+// myCustomFile.js
+module.exports.hello = () => {
    // Code that generates dynamic data
    return 'rate (10 minutes)';
 }
@@ -141,8 +141,8 @@ functions:
 ```
 
 ```js
-# myCustomFile.js
-module.exports.schedule = function() {
+// myCustomFile.js
+module.exports.schedule = () => {
    // Code that generates dynamic data
    return {
      ten: 'rate(10 minutes)',

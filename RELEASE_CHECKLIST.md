@@ -16,7 +16,8 @@ milestone if still open
 - [ ] Run integration test repository against the current release
 - [ ] Look through the milestone and test all of the new major changes
 - [ ] Run "npm test"
-- [ ] Run "npm run integration-test"
+- [ ] Run "npm run simple-integration-test"
+- [ ] Run "npm run complex-integration-test"
 
 ## Prepare Package
 - [ ] Create a new branch to bump version in package.json
@@ -45,3 +46,6 @@ milestone if still open
 - [ ] Validate NPM install works (`npm install -g serverless@<TagForInstall>` or `npm install -g serverless` if latest is released)
 - [ ] Check Segment.com production data if events are coming in correctly with the new version
 - [ ] Make sure you run `git checkout .` to revert adding Segment write key
+
+## Post-Release
+- [ ] Run `./scripts/generate-release-contributors-list <old-tag> <new-tag>` and hand the generated list over to the release blog post author

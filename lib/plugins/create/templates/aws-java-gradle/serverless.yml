@@ -50,7 +50,7 @@ package:
 
 functions:
   hello:
-    handler: hello.Handler
+    handler: com.serverless.Handler
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -64,6 +64,8 @@ functions:
 #      - sns: greeter-topic
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
 #      - alexaSkill
+#      - iot:
+#          sql: "SELECT * FROM 'some_topic'"
 
 #    Define function environment variables here
 #    environment:

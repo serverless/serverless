@@ -16,9 +16,9 @@ Every AWS Lambda function needs permission to interact with other AWS infrastruc
 
 ## The Default IAM Role
 
-By default, one IAM Role is shared by all of the Lambda functions in your service. An IAM Policy is also created and is attached to that Role.  Also by default, your Lambda functions have permission create and write to CloudWatch logs, and if you have specified VPC security groups and subnets for your Functions to use then the EC2 rights necessary to attach to the VPC via an ENI will be added into the default IAM Policy.
+By default, one IAM Role is shared by all of the Lambda functions in your service. An IAM Policy is also created and is attached to that Role.  Also by default, your Lambda functions have permissions to create and write to CloudWatch logs, and if you have specified VPC security groups and subnets for your Functions to use, then the EC2 rights necessary to attach to the VPC via an ENI will be added into the default IAM Policy.
 
-To add specific rights to this service-wide Role, define statements in `provider.iamRoleStatements` which will be merged into the generated policy.  As those statements will be merged into the CloudFormation template you can use `Join`, `Ref` or any other CloudFormation method or feature.
+To add specific rights to this service-wide Role, define statements in `provider.iamRoleStatements` which will be merged into the generated policy.  As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
 
 ```yml
 service: new-service
@@ -51,7 +51,7 @@ provider:
 
 That means that `iamRoleStatements` you've defined on the `provider` level won't be applied anymore. Furthermore, you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
 
-Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis. To do this you must declare a `role` attribute at the level at which you would like the role to be applied.
+Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis. To do this, you must declare a `role` attribute at the level at which you would like the role to be applied.
 
 Defining it on the provider will make the role referenced by the `role` value the default role for any Lambda without its own `role` declared. This is to say that defining a `role` attribute on individual functions will override any provider level declared role. If every function within your service has a role assigned to it (either via provider level `role` declaration, individual declarations, or a mix of the two) then the default role and policy will not be generated and added to your Cloud Formation Template.
 

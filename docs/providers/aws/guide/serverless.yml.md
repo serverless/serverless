@@ -48,7 +48,7 @@ provider:
          Fn::Join:
            - ''
            - - 'arn:aws:s3:::'
-           - Ref: ServerlessDeploymentBucket
+             - Ref: ServerlessDeploymentBucket
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
       Principal: "*"
@@ -107,6 +107,12 @@ functions:
           startingPosition: LATEST
           enabled: false
       - alexaSkill
+      - iot:
+          name: myIoTEvent
+          description: An IoT event
+          enabled: true
+          sql: "SELECT * FROM 'some_topic'"
+          sqlVersion: beta
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:

@@ -1,6 +1,10 @@
 *.class
 .gradle
 /build/
+/bin/
+/.settings/
+.project
+.classpath
 
 # Package Files
 *.jar
@@ -9,3 +13,4 @@
 
 # Serverless directories
 .serverless
+

@@ -249,7 +249,7 @@ class ProviderDeploy {
     this.options = options;
 
     // set the providers name here
-    this.provider = 'providerName';
+    this.provider = this.serverless.getProvider('providerName');
 
     this.commands = {
       deploy: {
