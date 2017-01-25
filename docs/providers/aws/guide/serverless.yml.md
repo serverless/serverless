@@ -37,6 +37,7 @@ provider:
     - myFirstKey
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
+  stackName: ${self:service}-${opt:stage} # Optional CloudFormation stack name. Re-deploying an existing service with a different stack name will re-create the whole Stack
   stackTags: # Optional CF stack tags
    key: value
   iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
