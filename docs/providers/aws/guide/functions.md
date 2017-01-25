@@ -220,7 +220,7 @@ Then, when you run `serverless deploy`, VPC configuration will be deployed along
 
 ## Environment Variables
 
-You can add Environment Variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a a key/value collection of string:string:
+You can add Environment Variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of string:
 
 ```yml
 # serverless.yml
