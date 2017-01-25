@@ -29,7 +29,7 @@ Using the framework with the OpenWhisk platform needs you to install the provide
 ####  Install the provider plugin
 
 ```
-$ sudo npm install --global serverless-openwhisk
+$ npm install --global serverless-openwhisk
 ```
 
 *Due to an [outstanding issue](https://github.com/serverless/serverless/issues/2895) with provider plugins, the [OpenWhisk provider](https://github.com/serverless/serverless-openwhisk) must be installed as a global module.*
@@ -56,3 +56,11 @@ Use the `serverless` command to deploy your service. The sample `handler.js` fil
 ```shell
 serverless deploy
 ```
+
+
+
+### Issues / Feedback / Feature Requests?
+
+If you have any issues, comments or want to see new features, please file an issue in the project repository:
+
+https://github.com/serverless/serverless-openwhisk
