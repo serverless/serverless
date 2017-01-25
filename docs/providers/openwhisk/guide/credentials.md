@@ -25,7 +25,6 @@ IBM's Bluemix cloud platform provides a hosted serverless solution based upon Ap
 Here's how to get started… 
 
 - Sign up for a free account @ [https://bluemix.net](https://console.ng.bluemix.net/registration/)
-  ​
 
 IBM Bluemix comes with a [free trial](https://www.ibm.com/cloud-computing/bluemix/pricing?cm_mc_uid=22424350960514851832143&cm_mc_sid_50200000=1485183214) that doesn't need credit card details for the first 30 days. Following the trial, developers have to enrol using a credit card but get a free tier for the platform and services.
 
@@ -105,18 +104,6 @@ serverless deploy
 #### Using Configuration File
 
 For a more permanent solution you can also set up credentials through a configuration file. Here are different methods you can use to do so.
-
-##### Setup with `serverless config credentials` command
-
-Serverless provides a convenient way to configure OpenWhisk credentials with the help of the `serverless config credentials` command.
-
-Here's an example how you can configure the `default` AWS profile:
-
-```bash
-serverless config credentials --provider openwhisk --auth USER_AUTH_KEY --apihost PLATFORM_API_HOST
-```
-
-Take a look at the [`config` CLI reference](../cli-reference/config-credentials.md) for more information about credential configuration.
 
 ##### Setup with the `wsk` cli
 

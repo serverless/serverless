@@ -18,7 +18,7 @@ serverless config credentials --provider provider --apihost apihost --auth auth
 
 ## Options
 
-- `--provider` or `-p` The provider (in this case `aws`). **Required**.
+- `--provider` or `-p` The provider (in this case `openwhisk`). **Required**.
 - `--apihost` or `-h` The `openwhisk_apihost`. **Required**.
 - `--auth` or `-a` The `openwhisk_auth`. **Required**.
 

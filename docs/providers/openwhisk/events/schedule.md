@@ -12,23 +12,35 @@ layout: Doc
 
 # Schedule
 
-The following config will attach a schedule event and causes the function `crawl` to be called every 2 hours. The configuration allows you to attach multiple schedules to the same function. You can either use the `rate` or `cron` syntax. Take a look at the [AWS schedule syntax documentation](http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for more details.
+This event allows you to set up scheduled invocations of your function. 
+
+The plugin automatically configures a trigger and rule to connect your function
+to the trigger feed from the [alarm package](https://github.com/openwhisk/openwhisk/blob/master/docs/catalog.md#using-the-alarm-package).
+
+## Configuration 
+
+The `schedule` event configuration is controlled by a string, based on the UNIX
+crontab syntax, in the format `cron(X X X X X)`. This can either be passed in
+as a native string or through the `rate` parameter.
+
+### Simple
+
+The following config will attach a schedule event and causes the function `crawl` to be called every minute. 
 
 ```yaml
 functions:
   crawl:
     handler: crawl
     events:
-      - schedule: rate(2 hours)
-      - schedule: cron(0 12 * * ? *)
+      - schedule: cron(* * * * * *) // run every minute
 ```
 
-## Enabling / Disabling
+This automatically generates a new trigger (``${service}_crawl_schedule_trigger`)
+and rule (`${service}_crawl_schedule_rule`) during deployment.
 
-**Note:** `schedule` events are enabled by default.
+### Customise Parameters
 
-This will create and attach a schedule event for the `aggregate` function which is disabled. If enabled it will call
-the `aggregate` function every 10 minutes.
+Other schedule event parameters can be manually configured, e.g trigger or rule names.
 
 ```yaml
 functions:
@@ -36,27 +48,10 @@ functions:
     handler: statistics.handler
     events:
       - schedule:
-          rate: rate(10 minutes)
-          enabled: false
-          input:
-            key1: value1
-            key2: value2
-            stageParams:
-              stage: dev
-      - schedule:
-          rate: cron(0 12 * * ? *)
-          enabled: false
-          inputPath: '$.stageVariables'
-```
-
-## Specify Name and Description
-
-Name and Description can be specified for a schedule event. These are not required properties.
-
-```yaml
-events:
-  - schedule:
-      name: your-scheduled-rate-event-name
-      description: 'your scheduled rate event description'
-      rate: rate(2 hours)
+          rate: cron(0 * * * *) // call once an hour
+          trigger: triggerName
+          rule: ruleName
+          max: 10000 // max invocations, default: 1000, max: 10000
+          params: // event params for invocation
+            hello: world
 ```
