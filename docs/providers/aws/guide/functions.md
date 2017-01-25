@@ -27,7 +27,7 @@ provider:
   runtime: nodejs4.3
   memorySize: 512 # optional, default is 1024
   timeout: 10 # optional, default is 6
-  versionFunctions: false # optional, default is false
+  versionFunctions: false # optional, default is true
 
 functions:
   hello:
@@ -269,13 +269,13 @@ If you get a CloudFormation error saying that log group already exists, you have
 
 ## Versioning Deployed Functions
 
-By default, the framework does not create function versions for your Lambdas. This behavior is optional and does make it possible to invoke past versions of your functions. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
+By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
 
-To turn on this feature, set the provider-level option `versionFunctions`.
+To turn off this feature, set the provider-level option `versionFunctions`.
 
 ```yml
 provider:
-  versionFunctions: true
+  versionFunctions: false
 ```
 
-From then on, versions will be created for each function. These won't be cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions.
+These versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
