@@ -5,20 +5,18 @@ const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 const uuid = require('uuid');
 
-describe('AWS - SNS: Existing topic with single function', function () {
-  this.timeout(0);
-
+describe('AWS - SNS: Existing topic with single function', () => {
   const snsTopic = uuid.v4();
 
-  before(() => Utils.createSnsTopic(snsTopic)
+  beforeAll(() => Utils.createSnsTopic(snsTopic)
     .then((result) => {
       process.env.EXISTING_TOPIC_ARN = result.TopicArn;
-    }));
-
-  before(() => {
-    Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
-    Utils.deployService();
-  });
+    })
+    .then(() => {
+      Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
+      Utils.deployService();
+    })
+  );
 
   it('should trigger function when new message is published', () => Utils
     .publishSnsMessage(snsTopic, 'hello world')
@@ -30,11 +28,8 @@ describe('AWS - SNS: Existing topic with single function', function () {
     })
   );
 
-  after(() => {
+  afterAll(() => {
     Utils.removeService();
-  });
-
-  after(() => {
     Utils.removeSnsTopic(snsTopic);
   });
 });
