@@ -39,16 +39,16 @@ provider:
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
   stackTags: # Optional CF stack tags
-   key: value
+    key: value
   iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
-    -  Effect: 'Allow'
-       Action:
-         - 's3:ListBucket'
-       Resource:
-         Fn::Join:
-           - ''
-           - - 'arn:aws:s3:::'
-             - Ref: ServerlessDeploymentBucket
+    - Effect: 'Allow'
+        Action:
+          - 's3:ListBucket'
+        Resource:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: ServerlessDeploymentBucket
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
       Principal: "*"
