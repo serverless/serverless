@@ -28,25 +28,25 @@ functions:
     events:
       - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
       - stream:
-        type: dynamodb
-        arn:
-          Fn::GetAtt:
-            - MyDynamoDbTable
-            - Arn
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - MyDynamoDbTable
+              - Arn
       - stream:
-        type: dynamodb
-        arn:
-          Fn::ImportValue: MyExportedDynamoDbStreamArnId
+          type: dynamodb
+          arn:
+            Fn::ImportValue: MyExportedDynamoDbStreamArnId
       - stream:
-        type: kinesis
-        arn:
-          Fn::GetAtt:
-            - MyKinesisStream
-            - Arn
+          type: kinesis
+          arn:
+            Fn::GetAtt:
+              - MyKinesisStream
+              - Arn
       - stream:
-        type: kinesis
-        arn:
-          Fn::ImportValue: MyExportedKinesisStreamArnId
+          type: kinesis
+          arn:
+            Fn::ImportValue: MyExportedKinesisStreamArnId
 ```
 
 ## Setting the BatchSize and StartingPosition
