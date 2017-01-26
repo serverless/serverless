@@ -73,6 +73,34 @@ module.exports = {
       });
   },
 
+  createSnsTopic(topicName) {
+    const SNS = new AWS.SNS({ region: 'us-east-1' });
+    BbPromise.promisifyAll(SNS, { suffix: 'Promised' });
+
+    const params = {
+      Name: topicName,
+    };
+
+    return SNS.createTopicPromised(params);
+  },
+
+  removeSnsTopic(topicName) {
+    const SNS = new AWS.SNS({ region: 'us-east-1' });
+    BbPromise.promisifyAll(SNS, { suffix: 'Promised' });
+
+    return SNS.listTopicsPromised()
+      .then(data => {
+        const topicArn = data.Topics.find(topic => RegExp(topicName, 'g')
+          .test(topic.TopicArn)).TopicArn;
+
+        const params = {
+          TopicArn: topicArn,
+        };
+
+        return SNS.deleteTopicPromised(params);
+      });
+  },
+
   publishSnsMessage(topicName, message) {
     const SNS = new AWS.SNS({ region: 'us-east-1' });
     BbPromise.promisifyAll(SNS, { suffix: 'Promised' });

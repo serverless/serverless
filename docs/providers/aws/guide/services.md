@@ -93,6 +93,7 @@ provider:
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+  versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
