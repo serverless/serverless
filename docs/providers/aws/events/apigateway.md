@@ -99,7 +99,31 @@ functions:
           cors: true
 ```
 
-If you want to use CORS with the lambda-proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object, like this:
+Setting `cors` to `true` assumes a default configuration which is equivalent to:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origins:
+              - '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: false  
+```
+
+Configuring the `cors` property sets  [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
+
+If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:
 
 ```javascript
 // handler.js
@@ -111,7 +135,8 @@ module.exports.hello = function(event, context, callback) {
     const response = {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin" : "*" // Required for CORS support to work
+        "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
       },
       body: JSON.stringify({ "message": "Hello World!" })
     };
@@ -543,58 +568,6 @@ functions:
                       application/xml: $input.path("$.body.errorMessage") # XML return object
                     headers:
                       Content-Type: "'application/json+hal'"
-```
-
-## Enabling CORS with the Lambda Integration Method
-
-```yml
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: user/create
-          method: get
-          integration: lambda
-          cors: true
-```
-
-You can equally set your own attributes:
-
-```yml
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: user/create
-          method: get
-          integration: lambda
-          cors:
-            origins:
-              - '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-```
-
-This example is the default setting and is exactly the same as the previous example. The `Access-Control-Allow-Methods` header is set automatically, based on the endpoints specified in your service configuration with CORS enabled.
-
-**Note:** If you are using the default lambda proxy integration, remember to include `Access-Control-Allow-Origin` in your returned headers object otherwise CORS will fail.
-
-```
-module.exports.hello = (event, context, callback) => {
-  return callback(null, {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: 'Hello World!'
-  });
-}
 ```
 
 ## Setting an HTTP Proxy on API Gateway
