@@ -1,3 +1,5 @@
+'use strict';
+
 const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless();
