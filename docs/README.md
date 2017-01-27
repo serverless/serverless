@@ -10,7 +10,7 @@ layout: Doc
 
 # Documentation
 
-The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud.  We currently support Amazon Web Service's Lambda, and are expanding to support other cloud providers.
+The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud. We currently support AWS Lambda, IBM OpenWhisk, and are expanding to support other cloud providers.
 
 <div class="docsSections">
   <div class="docsSection">
