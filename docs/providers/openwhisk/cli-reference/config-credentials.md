@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/config-credentials)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/config-credentials)
 <!-- DOCS-SITE-LINK:END -->
 
 # Config Credentials
@@ -31,7 +31,7 @@ serverless config credentials --provider provider --apihost apihost --auth auth
 ### Configure the default profile
 
 ```bash
-serverless config credentials --provider aws --apihost openwhisk.ng.bluemix.net --auth username:password
+serverless config credentials --provider openwhisk --apihost openwhisk.ng.bluemix.net --auth username:password
 ```
 
 Credentials are stored in `~/.wskprops`, which you can edit directly if needed.

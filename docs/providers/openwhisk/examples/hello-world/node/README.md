@@ -14,7 +14,7 @@ layout: Doc
 Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
 
 ## 1. Create a service
-`serverless create --template aws-nodejs --path myService` or `sls create --template aws-nodejs --path myService`, where 'myService' is a new folder to be created with template service files.  Change directories into this new folder.
+`serverless create --template openwhisk-nodejs --path myService` or `sls create --template openwhisk-nodejs --path myService`, where 'myService' is a new folder to be created with template service files.  Change directories into this new folder.
 
 ## 2. Install Provider Plugin
 `npm install -g serverless-openwhisk` followed by `npm install` in the service directory.

@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/services)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/services)
 <!-- DOCS-SITE-LINK:END -->
 
 # Services
@@ -93,8 +93,6 @@ functions:
       - http: delete /users/delete
 ```
 
-Every `serverless.yml` translates to a single AWS CloudFormation template and a CloudFormation stack is created from that resulting CloudFormation template.
-
 ### handler.js
 
 The `handler.js` file contains your function code. The function definition in `serverless.yml` will point to this `handler.js` file and the function exported here.
@@ -115,7 +113,7 @@ To deploy a service, use the `deploy` command:
 serverless deploy
 ```
 
-Check out the [deployment guide](https://serverless.com/framework/docs/providers/aws/guide/deploying/) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
+Check out the [deployment guide](https://serverless.com/framework/docs/providers/openwhisk/guide/deploying/) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
 
 ## Removal
 

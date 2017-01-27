@@ -62,7 +62,7 @@ The provider which is used for deployment later on is Apache OpenWhisk.
 serverless create --template openwhisk-nodejs --path my-new-service
 ```
 
-This example will generate scaffolding for a service with `AWS` as a provider and `nodejs` as runtime. The scaffolding
+This example will generate scaffolding for a service with `openwhisk` as a provider and `nodejs` as runtime. The scaffolding
 will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless
 will use the already present directory.
 

@@ -2,12 +2,12 @@
 title: Serverless Framework - Apache OpenWhisk Events - API Gateway
 menuText: API Gateway
 menuOrder: 1
-description: Setting up AWS API Gateway Events with Apache OpenWhisk via the Serverless Framework
+description: Setting up API Gateway Events with Apache OpenWhisk via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/apigateway)
 <!-- DOCS-SITE-LINK:END -->
 
 # API Gateway

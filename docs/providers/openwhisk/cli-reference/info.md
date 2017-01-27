@@ -2,12 +2,12 @@
 title: Serverless Framework Commands - Apache OpenWhisk - Info
 menuText: Info
 menuOrder: 11
-description: Display information about your deployed service and the Apache OpenWhisk Functions, Events and AWS Resources it contains.
+description: Display information about your deployed service and the Apache OpenWhisk Functions, Events and Resources it contains.
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/info)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/info)
 <!-- DOCS-SITE-LINK:END -->
 
 # Info

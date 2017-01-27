@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/variables)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/variables)
 <!-- DOCS-SITE-LINK:END -->
 
 # Variables
@@ -28,9 +28,9 @@ To self-reference properties in `serverless.yml`, use the `${self:someProperty}`
 
 ```yml
 service: new-service
-provider: aws
+provider: openwhisk
 custom:
-  globalSchedule: rate(10 minutes)
+  globalSchedule: cron(0 * * * *)
 
 functions:
   hello:
@@ -50,7 +50,7 @@ To reference environment variables, use the `${env:SOME_VAR}` syntax in your `se
 
 ```yml
 service: new-service
-provider: aws
+provider: openwhisk
 functions:
   hello:
       name: ${env:FUNC_PREFIX}-hello
@@ -67,7 +67,7 @@ To reference CLI options that you passed, use the `${opt:some_option}` syntax in
 
 ```yml
 service: new-service
-provider: aws
+provider: openwhisk
 functions:
   hello:
       name: ${opt:stage}-hello
@@ -84,7 +84,7 @@ To reference variables in other YAML or JSON files, use the `${file(./myFile.yml
 
 ```yml
 # myCustomFile.yml
-globalSchedule: rate(10 minutes)
+globalSchedule: cron(0 * * * *)
 ```
 
 ```yml
@@ -112,7 +112,7 @@ To add dynamic data into your variables, reference javascript files by putting `
 // myCustomFile.js
 module.exports.hello = () => {
    // Code that generates dynamic data
-   return 'rate (10 minutes)';
+   return 'cron(0 * * * *)';
 }
 ```
 
@@ -132,12 +132,12 @@ You can also return an object and reference a specific property.  Just make sure
 ```yml
 # serverless.yml
 service: new-service
-provider: aws
+provider: openwhisk
 functions:
   scheduledFunction:
       handler: handler.scheduledFunction
       events:
-        - schedule: ${file(./myCustomFile.js):schedule.ten}
+        - schedule: ${file(./myCustomFile.js):schedule.hour}
 ```
 
 ```js
@@ -145,9 +145,7 @@ functions:
 module.exports.schedule = () => {
    // Code that generates dynamic data
    return {
-     ten: 'rate(10 minutes)',
-     twenty: 'rate(20 minutes)',
-     thirty: 'rate(30 minutes)'
+     hour: 'cron(0 * * * *)'
    };
 }
 ```
@@ -158,17 +156,17 @@ Adding many custom resources to your `serverless.yml` file could bloat the whole
 
 ```yml
 resources:
-  Resources: ${file(cloudformation-resources.json)}
+  Resources: ${file(openwhisk-resources.json)}
 ```
 
-The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded into the `Resources` section.
+The corresponding resources which are defined inside the `openwhisk-resources.json` file will be resolved and loaded into the `Resources` section.
 
 ## Nesting Variable References
 The Serverless variable system allows you to nest variable references within each other for ultimate flexibility. So you can reference certain variables based on other variables. Here's an example:
 
 ```yml
 service: new-service
-provider: aws
+provider: openwhisk
 custom:
   myFlexibleArn: ${env:${opt:stage}_arn}
 
@@ -187,7 +185,7 @@ For example, if you want to reference the stage you're deploying to, but you don
 ```yml
 service: new-service
 provider:
-  name: aws
+  name: openwhisk 
   stage: dev
 custom:
   myStage: ${opt:stage, self:provider.stage}

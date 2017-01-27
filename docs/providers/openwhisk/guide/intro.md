@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/intro)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/intro)
 <!-- DOCS-SITE-LINK:END -->
 
 # Introduction
@@ -72,6 +72,6 @@ You can overwrite or extend the functionality of the Framework using **Plugins**
 # serverless.yml
 
 plugins:
-  - serverless-offline
-  - serverless-secrets
+  - serverless-plugin-identifier
+  - serverless-another-plugin
 ```

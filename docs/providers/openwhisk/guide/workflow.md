@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/workflow)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/workflow)
 <!-- DOCS-SITE-LINK:END -->
 
 # Workflow
@@ -19,7 +19,7 @@ Intro. Quick recommendations and tips for various processes.
 1. Write your functions
 2. Use `serverless deploy` only when you've made changes to `serverless.yml` and in CI/CD systems.
 3. Use `serverless deploy function -f myFunction` to rapidly deploy changes when you are working on a specific Apache OpenWhisk Function.
-4. Use `serverless invoke -f myFunction -l` to test your Apache OpenWhisk Functions on AWS.
+4. Use `serverless invoke -f myFunction -l` to test your Apache OpenWhisk Functions.
 5. Open up a separate tab in your console and stream logs in there via `serverless logs -f myFunction -t`.
 6. Write tests to run locally.
 

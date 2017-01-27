@@ -1,4 +1,4 @@
-# Hello World for AWS Lambda
+# Hello World for Apache OpenWhisk
 service: hello-world # Service Name
 
 provider:

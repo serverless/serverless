@@ -1,13 +1,13 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Scheduled & Recurring
+title: Serverless Framework - Apache OpenWhisk Events - Scheduled & Recurring
 menuText: Schedule
 menuOrder: 4
-description: Setting up Scheduled, Recurring, CRON Task Events with AWS Lambda via the Serverless Framework
+description: Setting up Scheduled, Recurring, CRON Task Events with Apache OpenWhisk via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/schedule)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/schedule)
 <!-- DOCS-SITE-LINK:END -->
 
 # Schedule

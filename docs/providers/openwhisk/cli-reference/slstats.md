@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Serverless Stats
+title: Serverless Framework Commands - Apache OpenWhisk - Serverless Stats
 menuText: Serverless Stats
 menuOrder: 14
 description: Enables or disables Serverless Statistic logging within the Serverless Framework.
@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/slstats)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/slstats)
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Statistics
