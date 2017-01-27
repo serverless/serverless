@@ -3,7 +3,6 @@ service: aws-nodejs
 provider:
   name: aws
   runtime: nodejs4.3
-  cfLogs: true
 
 functions:
   hello:
