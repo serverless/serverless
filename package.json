@@ -36,6 +36,7 @@
     "lib",
     "scripts/postinstall.js",
     "scripts/preuninstall.js",
+    "scripts/generate-readme.js"
     "package.json",
     "npm-shrinkwrap.json",
     "README.md",
