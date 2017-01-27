@@ -11,14 +11,6 @@
         {
           "Effect": "Allow",
           "Action": [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream"
-          ],
-          "Resource": []
-        },
-        {
-          "Effect": "Allow",
-          "Action": [
             "logs:PutLogEvents"
           ],
           "Resource": []
