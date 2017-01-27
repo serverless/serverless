@@ -5,6 +5,10 @@
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 
+BbPromise.config({
+  longStackTraces: true,
+});
+
 process.on('unhandledRejection', (e) => logError(e));
 process.noDeprecation = true;
 
