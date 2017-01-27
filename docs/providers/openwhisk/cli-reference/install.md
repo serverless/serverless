@@ -30,23 +30,24 @@ serverless install --url https://github.com/some/service
 ### Installing a service from a GitHub URL
 
 ```bash
-serverless install --url https://github.com/pmuens/serverless-crud
+serverless install --url https://github.com/jthomas/serverless-openwhisk-boilerplate
 ```
 
-This example will download the .zip file of the `serverless-crud` service from GitHub, create a new directory with the name `serverless-crud` in the current working directory and unzips the files in this directory.
+This example will download the .zip file of the `serverless-openwhisk-boilerplate` service from GitHub, create a new directory with the name `serverless-openwhisk-boilerplate` in the current working directory and unzips the files in this directory.
 
 ### Installing a service from a GitHub URL with a new service name
 
 ```bash
-serverless install --url https://github.com/pmuens/serverless-crud --name my-crud
+serverless install --url https://github.com/jthomas/serverless-openwhisk-boilerplate --name my-app
 ```
 
-This example will download the .zip file of the `serverless-crud` service from GitHub, create a new directory with the name `my-crud` in the current working directory and unzips the files in this directory and renames the service to `my-crud` if `serverless.yml` exists in the service root.
+This example will download the .zip file of the `serverless-openwhisk-boilerplate` service from GitHub, create a new directory with the name `my-app` in the current working directory and unzips the files in this directory and renames the service to `my-app` if `serverless.yml` exists in the service root.
 
 ### Installing a service from a directory in a GitHub URL
 
 ```bash
-serverless install --url https://github.com/serverless/examples/tree/master/rest-api-with-dynamodb
+serverless install --url
+https://github.com/serverless/examples/tree/master/openwhisk-node-simple
 ```
 
-This example will download the `rest-api-with-dynamodb` service from GitHub.
+This example will download the `openwhisk-node-simple` service from GitHub.
