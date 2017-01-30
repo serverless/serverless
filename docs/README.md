@@ -20,6 +20,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div class="test">
+      <h3>AWS Guide</h3>
       <ul>
         <li><a href="./providers/aws/guide/intro.md">Intro</a></li>
         <li><a href="./providers/aws/guide/installation.md">Installation</a></li>
@@ -47,6 +48,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div>
+      <h3>AWS CLI Reference</h3>
       <ul>
         <li><a href="./providers/aws/cli-reference/config-credentials.md">Config Credentials</a></li>
         <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
@@ -73,6 +75,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div>
+      <h3>AWS Events</h3>
       <ul>
         <li><a href="./providers/aws/events/apigateway.md">API Gateway</a></li>
         <li><a href="./providers/aws/events/streams.md">Streams</a></li>
@@ -97,6 +100,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
           <li><a href="./providers/aws/examples/hello-world">Hello World</a></li>
         </ul>
       </div>
+      <h3>AWS Examples</h3>
     </div>
   </div>
 </div>
@@ -109,6 +113,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div class="test">
+      <h3>OpenWisk Guide</h3>
       <ul>
         <li><a href="./providers/openwhisk/guide/intro.md">Intro</a></li>
         <li><a href="./providers/openwhisk/guide/installation.md">Installation</a></li>
@@ -134,6 +139,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div>
+      <h3>OpenWisk CLI Reference</h3>
       <ul>
         <li><a href="./providers/openwhisk/cli-reference/config-credentials.md">Config Credentials</a></li>
         <li><a href="./providers/openwhisk/cli-reference/create.md">Create</a></li>
@@ -157,6 +163,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div>
+      <h3>OpenWisk Events</h3>
       <ul>
         <li><a href="./providers/openwhisk/events/apigateway.md">API Gateway</a></li>
         <li><a href="./providers/openwhisk/events/schedule.md">Schedule</a></li>
@@ -177,6 +184,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
           <li><a href="./providers/openwhisk/examples/hello-world">Hello World</a></li>
         </ul>
       </div>
+      <h3>OpenWisk Examples</h3>
     </div>
   </div>
 </div>
