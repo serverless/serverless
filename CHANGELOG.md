@@ -20,9 +20,6 @@ This is a breaking change for plugin authors only. If your plugin used the `prov
 ### Removed the `defaults` property from `serverless.yml`
 We've finally dropped support for the `defaults` property which we introduced in v1. All child properties should now be moved to the `provider` object instead.
 
-### Function version resources are now optional
-In version 1.5.0, we've introduced support for lambda versioning, which means on every deploy, a new version resource for each function is added to the stack. In this release, we're making it optional with the `--versionFunctions` flag in `serverless.yml` so that the stack wouldn't be too bloated by default.
-
 ## Non-breaking changes
 - Reduce memory consumption on deploy by at least 50% (#3145)
 - Added openwhisk template to `sls create` command (#3122)
