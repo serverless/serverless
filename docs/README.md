@@ -95,12 +95,10 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div>
-      <div>
-        <ul>
-          <li><a href="./providers/aws/examples/hello-world">Hello World</a></li>
-        </ul>
-      </div>
       <h3>AWS Examples</h3>
+      <ul>
+        <li><a href="./providers/aws/examples/hello-world">Hello World</a></li>
+      </ul>
     </div>
   </div>
 </div>
@@ -179,12 +177,10 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       </a>
     </div>
     <div>
-      <div>
-        <ul>
-          <li><a href="./providers/openwhisk/examples/hello-world">Hello World</a></li>
-        </ul>
-      </div>
       <h3>OpenWisk Examples</h3>
+      <ul>
+        <li><a href="./providers/openwhisk/examples/hello-world">Hello World</a></li>
+      </ul>
     </div>
   </div>
 </div>
