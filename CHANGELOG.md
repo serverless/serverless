@@ -1,3 +1,6 @@
+# 1.6.1 (31.01.2017)
+A minimal patch release that fixes an issue with rendering README.md on npm registry.
+
 # 1.6.0 (30.01.2017)
 
 **Important Note:** This release includes breaking changes. If your services stopped working after upgrading to v1.6.0, please read the following section.
