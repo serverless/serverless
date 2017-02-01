@@ -105,7 +105,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_whisk_guide.png" alt="Serverless Framework IBM OpenWhisk Guide" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk Guide" width="250" draggable="false"/>
       </a>
     </div>
     <div class="test">
@@ -130,7 +130,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_whisk_cli.png" alt="Serverless Framework IBM OpenWhisk CLI Reference" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk CLI Reference" width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -153,7 +153,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_whisk_events.png" alt="Serverless Framework IBM OpenWhisk Events"  width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk Events"  width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -168,7 +168,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_whisk_examples.png" alt="Serverless Framework IBM OpenWhisk Examples" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk Examples" width="250" draggable="false"/>
       </a>
     </div>
     <div>
