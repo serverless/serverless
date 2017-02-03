@@ -1,16 +1,16 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - CloudWatch
-menuText: CloudWatch
+title: Serverless Framework - AWS Lambda Events - CloudWatch Event
+menuText: CloudWatch Event
 menuOrder: 8
 description:  Setting up AWS CloudWatch Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cloudwatch)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cloudwatch-event)
 <!-- DOCS-SITE-LINK:END -->
 
-# CloudWatch
+# CloudWatch Event
 
 ## Simple event definition
 
@@ -22,36 +22,36 @@ functions:
   myCloudWatch:
     handler: myCloudWatch.handler
     events:
-      - cloudwatch:
+      - cloudwatchEvent:
           event:
-            source: 
+            source:
               - "aws.ec2"
-            detail-type: 
+            detail-type:
               - "EC2 Instance State-change Notification"
-            detail: 
-              state: 
+            detail:
+              state:
                 - pending
 ```
 
 ## Enabling / Disabling
 
-**Note:** `cloudwatch` events are enabled by default.
+**Note:** `cloudwatchEvent` events are enabled by default.
 
-This will create and attach a disabled `cloudwatch` event for the `myCloudWatch` function.
+This will create and attach a disabled `cloudwatchEvent` event for the `myCloudWatch` function.
 
 ```yml
 functions:
   myCloudWatch:
     handler: myCloudWatch.handler
     events:
-      - cloudwatch:
+      - cloudwatchEvent:
           event:
-            source: 
+            source:
               - "aws.ec2"
-            detail-type: 
+            detail-type:
               - "EC2 Instance State-change Notification"
-            detail: 
-              state: 
+            detail:
+              state:
                 - pending
           enabled: false
 ```
@@ -65,16 +65,16 @@ functions:
   myCloudWatch:
     handler: myCloudWatch.handler
     events:
-      - cloudwatch:
+      - cloudwatchEvent:
           name: "myCloudWatchEvent"
           description: "My CloudWatch Event Description"
           event:
-            source: 
+            source:
               - "aws.ec2"
-            detail-type: 
+            detail-type:
               - "EC2 Instance State-change Notification"
-            detail: 
-              state: 
+            detail:
+              state:
                 - pending
 ```
 
@@ -87,28 +87,28 @@ functions:
   myCloudWatch:
     handler: myCloudWatch.handler
     events:
-      - cloudwatch:
+      - cloudwatchEvent:
           event:
-            source: 
+            source:
               - "aws.ec2"
-            detail-type: 
+            detail-type:
               - "EC2 Instance State-change Notification"
-            detail: 
-              state: 
+            detail:
+              state:
                 - pending
           input:
             key1: value1
             key2: value2
             stageParams:
               stage: dev
-      - cloudwatch:
+      - cloudwatchEvent:
           event:
-            source: 
+            source:
               - "aws.ec2"
-            detail-type: 
+            detail-type:
               - "EC2 Instance State-change Notification"
-            detail: 
-              state: 
+            detail:
+              state:
                 - pending
           inputPath: '$.stageVariables'
 ```
