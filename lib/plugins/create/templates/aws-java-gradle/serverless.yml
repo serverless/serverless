@@ -66,15 +66,15 @@ functions:
 #      - alexaSkill
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatch:
-#         event:
-#           source: 
-#             - "aws.ec2"
-#           detail-type: 
-#             - "EC2 Instance State-change Notification"
-#           detail: 
-#             state: 
-#               - pending
+#      - cloudwatchEvent:
+#          event:
+#            source:
+#              - "aws.ec2"
+#            detail-type:
+#              - "EC2 Instance State-change Notification"
+#            detail:
+#              state:
+#                - pending
 
 #    Define function environment variables here
 #    environment:

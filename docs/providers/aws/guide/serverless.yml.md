@@ -113,16 +113,16 @@ functions:
           enabled: true
           sql: "SELECT * FROM 'some_topic'"
           sqlVersion: beta
-      - cloudwatch:
+      - cloudwatchEvent:
           name: myCloudWatchEvent
           description: An CloudWatch Event
           event:
-            source: 
+            source:
               - "aws.ec2"
-            detail-type: 
+            detail-type:
               - "EC2 Instance State-change Notification"
-            detail: 
-              state: 
+            detail:
+              state:
                 - pending
           input:
             key1: value1
