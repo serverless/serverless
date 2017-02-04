@@ -23,7 +23,7 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 `serverless deploy` or `sls deploy`. `sls` is shorthand for the Serverless CLI command
 
 ## 4. Invoke deployed function
-`serverless invoke --function helloWorld` or `serverless invoke -f helloWorld`
+`serverless invoke --function hello` or `serverless invoke -f hello`
 
 `-f` is shorthand for `--function`
 
