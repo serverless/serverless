@@ -37,11 +37,11 @@ This example will locally invoke your function.
 ### Local function invocation with data
 
 ```bash
-serverless invoke --function functionName --data "hello world"
+serverless invoke local --function functionName --data "hello world"
 ```
 
 ```bash
-serverless invoke --function functionName --data '{"a":"bar"}'
+serverless invoke local --function functionName --data '{"a":"bar"}'
 ```
 
 ### Local function invocation with data from standard input
@@ -57,3 +57,7 @@ serverless invoke local --function functionName --path lib/data.json
 ```
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking the specified/deployed function.
+
+### Limitations
+
+Currently, `invoke local` only supports the NodeJs and Python runtimes.

@@ -38,9 +38,9 @@ functions:
 
 This will run both functions for a message sent to the dispatch topic.
 
-## Creating the permission for a pre-existing topic
+## Using a pre-existing topic
 
-If you want to run a function from a preexisting SNS topic you need to connect the topic to a Lambda function yourself. By defining a topic arn inside of the SNS topic we're able to set up the Lambda Permission so SNS is allowed to call this function.
+If an `arn:` is specified, the framework will give permission to the topic to invoke the function and subscribe the function to the topic.
 
 ```yml
 functions:
@@ -49,8 +49,6 @@ functions:
     events:
       - sns: arn:xxx
 ```
-
-Just make sure your function is already subscribed to the topic, as there's no way to add subscriptions to pre-existing topics in CF. The framework will just give permission to SNS to invoke the function.
 
 ## Setting a display name
 
