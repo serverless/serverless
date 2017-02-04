@@ -56,28 +56,6 @@ functions:
           enabled: false
 ```
 
-## Specify Name and Description
-
-Name and Description can be specified with the help of the `name` and `description` properties.
-
-```yml
-functions:
-  myCloudWatch:
-    handler: myCloudWatch.handler
-    events:
-      - cloudwatchEvent:
-          name: "myCloudWatchEvent"
-          description: "My CloudWatch Event Description"
-          event:
-            source:
-              - "aws.ec2"
-            detail-type:
-              - "EC2 Instance State-change Notification"
-            detail:
-              state:
-                - pending
-```
-
 ## Specify Input or Inputpath
 
 You can specify input values ​​to the Lambda function.

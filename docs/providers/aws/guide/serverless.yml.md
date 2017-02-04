@@ -114,8 +114,6 @@ functions:
           sql: "SELECT * FROM 'some_topic'"
           sqlVersion: beta
       - cloudwatchEvent:
-          name: myCloudWatchEvent
-          description: An CloudWatch Event
           event:
             source:
               - "aws.ec2"
