@@ -122,11 +122,13 @@ functions:
             detail:
               state:
                 - pending
+          # Note: you can either use "input" or "inputPath"
           input:
             key1: value1
             key2: value2
             stageParams:
               stage: dev
+          inputPath: '$.stageVariables'
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
