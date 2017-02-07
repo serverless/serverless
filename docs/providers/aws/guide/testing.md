@@ -12,7 +12,7 @@ layout: Doc
 
 # Testing
 
-While the Serverless Architecture introduces a lot of simplicity when it comes to serving business logic, some of its characteristics that present challenges for testing.  They are:
+While the Serverless Architecture introduces a lot of simplicity when it comes to serving business logic, some of its characteristics present challenges for testing.  They are:
 
 * The Serverless Architecture is an integration of separate, distributed services, which must be tested both independently, and together.
 * The Serverless Architecture is dependent on internet/cloud services, which are hard to emulate locally.

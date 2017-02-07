@@ -1,7 +1,9 @@
 version: '2'
 services:
   serverless-node:
-    image: node:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
     working_dir: /app
     volumes:
       - .:/app
