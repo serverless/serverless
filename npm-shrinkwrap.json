@@ -531,6 +531,11 @@
       "from": "normalize-path@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/normalize-path/-/normalize-path-2.0.1.tgz"
     },
+    "ntp-client": {
+      "version": "0.5.3",
+      "from": "ntp-client@latest",
+      "resolved": "https://registry.npmjs.org/ntp-client/-/ntp-client-0.5.3.tgz"
+    },
     "object-assign": {
       "version": "4.1.0",
       "from": "object-assign@>=4.0.1 <5.0.0",
