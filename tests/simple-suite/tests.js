@@ -26,7 +26,6 @@ describe('Service Lifecyle Integration Test', () => {
   it('should create service in tmp directory', () => {
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
     testUtils.replaceTextInFile('serverless.yml', templateName, newServiceName);
-    testUtils.replaceTextInFile('serverless.yml', 'name: aws', 'name: aws\n  cfLogs: true');
     expect(fs.existsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(fs.existsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });

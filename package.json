@@ -1,10 +1,11 @@
 {
   "name": "serverless",
-  "version": "1.5.0",
+  "version": "1.6.1",
   "engines": {
     "node": ">=4.0"
   },
   "preferGlobal": true,
+  "homepage": "https://github.com/serverless/serverless#readme",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "author": "serverless.com",
   "license": "MIT",
@@ -50,7 +51,7 @@
   },
   "scripts": {
     "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
-    "lint": "eslint .",
+    "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",

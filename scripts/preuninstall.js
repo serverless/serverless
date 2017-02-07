@@ -1,10 +1,11 @@
-const BbPromise = require('bluebird');
+'use strict';
+
 const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless();
 
 (() => {
   serverless.init().then(() => {
-    serverless.utils.logStat(serverless, 'uninstall').catch(() => BbPromise.resolve());
+    serverless.utils.logStat(serverless, 'uninstall').catch(() => Promise.resolve());
   });
 })();
