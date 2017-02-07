@@ -97,6 +97,22 @@ The body of the incoming request is parsed as JSON and passed as the
 The returned JavaScript object will be serialised as JSON and returned in the
 HTTP response body.
 
+### HTTP Endpoint with Extended Options
+
+Here we've defined an POST endpoint for the path `posts/create`.
+
+```yml
+# serverless.yml
+
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+```
+
 ### CORS Support
 
 **Note:** All HTTP endpoints defined in this manner have cross-site requests
