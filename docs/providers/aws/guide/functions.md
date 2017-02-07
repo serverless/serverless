@@ -27,6 +27,7 @@ provider:
   runtime: nodejs4.3
   memorySize: 512 # optional, default is 1024
   timeout: 10 # optional, default is 6
+  versionFunctions: false # optional, default is true
 
 functions:
   hello:
@@ -220,7 +221,7 @@ Then, when you run `serverless deploy`, VPC configuration will be deployed along
 
 ## Environment Variables
 
-You can add Environment Variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a a key/value collection of string:string:
+You can add Environment Variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of string:
 
 ```yml
 # serverless.yml
@@ -255,13 +256,18 @@ functions:
 
 ## Log Group Resources
 
-By default, the framework does not create LogGroups for your Lambdas. However this behavior will be deprecated soon and we'll be adding CloudFormation LogGroups resources as part of the stack. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
+By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
 
-To opt in for this feature now to avoid breaking changes later, add the following to your provider config in serverless.yml:
+
+## Versioning Deployed Functions
+
+By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
+
+To turn off this feature, set the provider-level option `versionFunctions`.
 
 ```yml
 provider:
-  cfLogs: true
+  versionFunctions: false
 ```
 
-If you get a CloudFormation error saying that log group already exists, you have to remove it first from AWS console, then deploy, otherwise for new services this should work out of the box.
+These versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.

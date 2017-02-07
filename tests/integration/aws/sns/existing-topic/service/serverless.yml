@@ -1,0 +1,11 @@
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - sns: ${env:EXISTING_TOPIC_ARN}
