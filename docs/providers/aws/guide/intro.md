@@ -36,7 +36,7 @@ You can perform multiple jobs in your code, but we don't recommend doing that wi
 
 Anything that triggers an AWS Lambda Function to execute is regarded by the Framework as an **Event**.  Events are infrastructure events on AWS such as:
 
-* *An AWS API Gateway HTTP endpoint (e.g., for a REST API)*
+* *An AWS API Gateway HTTP endpoint request (e.g., for a REST API)*
 * *An AWS S3 bucket upload (e.g., for an image)*
 * *A CloudWatch timer (e.g., run every 5 minutes)*
 * *An AWS SNS topic (e.g., a message)*
