@@ -44,7 +44,7 @@ functions:
   world:
       handler: handler.world
       events:
-        - schedule: ${self:custom.newService.custom.globalSchedule}
+        - schedule: ${self:custom.globalSchedule}
 resources:
   Outputs:
     NewServiceExport:
@@ -56,7 +56,7 @@ resources:
 In the above example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
 
 ## Referencing Environment Variables
-To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.
+To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.  `${env:}` references the environment variable hive.
 
 ```yml
 service: new-service
@@ -73,7 +73,7 @@ functions:
 In the above example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
 
 ## Referencing CLI Options
-To reference CLI options that you passed, use the `${opt:some_option}` syntax in your `serverless.yml` configuration file.
+To reference CLI options that you passed, use the `${opt:some_option}` syntax in your `serverless.yml` configuration file.    `${opt:}` references the options hive.
 
 ```yml
 service: new-service
