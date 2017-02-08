@@ -24,13 +24,17 @@ The Serverless framework provides a powerful variable system which allows you to
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
 ## Reference Properties In serverless.yml
-To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. This functionality is recursive, so you can go as deep in the object tree as you want.
+To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. `someProperty` can contain the empty string for a top-level self-reference or a dotted attribute reference to any depth of attribute, so you can go as shallow or deep in the object tree as you want.
 
 ```yml
 service: new-service
 provider: aws
 custom:
   globalSchedule: rate(10 minutes)
+  newService: ${self:}
+  # the following will resolve identically in other serverless.yml files so long as they define
+  # `custom.newService: ${file(<relative-path-to-this-file>/serverless.yml)}`
+  exportName: ${self:custom.newService.service}-export
 
 functions:
   hello:
@@ -40,7 +44,13 @@ functions:
   world:
       handler: handler.world
       events:
-        - schedule: ${self:custom.globalSchedule}
+        - schedule: ${self:custom.newService.custom.globalSchedule}
+resources:
+  Outputs:
+    NewServiceExport:
+      Value: 'A Value To Export'
+      Export:
+        Name: ${self:custom.exportName}
 ```
 
 In the above example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
