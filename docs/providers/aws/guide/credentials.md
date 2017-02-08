@@ -104,6 +104,28 @@ provider:
   profile: devProfile
 ```
 
+##### Use an existing AWS Profile
+
+To easily switch between projects without the need to do `aws configure` every time you can use environment variables.
+For example you define different profiles in `~/.aws/credentials`
+
+```ini
+[profileName1]
+aws_access_key_id=***************
+aws_secret_access_key=***************
+
+[profileName2]
+aws_access_key_id=***************
+aws_secret_access_key=***************
+```
+
+Now you can switch per project (/ API) by executing once when you start your project:
+
+`export AWS_PROFILE="profileName2" && export AWS_REGION=eu-west-1`.
+
+in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`. 
+The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
+
 #### Per Stage Profiles
 
 As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](https://serverless.com/framework/docs/providers/aws/guide/variables) and the provider profile setting.

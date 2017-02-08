@@ -1,3 +1,42 @@
+# 1.6.1 (31.01.2017)
+A minimal patch release that fixes an issue with rendering README.md on npm registry.
+
+# 1.6.0 (30.01.2017)
+
+**Important Note:** This release includes breaking changes. If your services stopped working after upgrading to v1.6.0, please read the following section.
+
+## Breaking Changes
+
+### CloudWatch logs are created explicitly
+Up until this release, CloudWatch log groups were created implicitly by AWS/Lambda by default and were not included in your service stack. However, some users were able to easily reach the CloudWatch log group limits (currently at 500 log groups), and it wasn't an easy task to clear them all. Because of that we decided to explicitly create the log groups using CloudFormation so that you can easily remove them with `sls remove`. This was also optionally possible with the `cfLogs: true` config option.
+
+If your service doesn't have the `cfLogs: true` set, and one of the function has been invoked at least once (hence the log groups were created implicitly by AWS), then it's very likely that you'll receive a "log group already exists" error after upgrading to v1.6.0. That's because CF is now trying to create the already created log groups from scratch to include it in the stack resources. **To fix this breaking change,** simply delete the old log group, or rename your service if you **must** keep the old logs.
+
+### Removed function Arns from CloudFormation outputs
+Up until this release, the output section of the generated CloudFormation template included an output resource for each function Arn. This caused deploying big services to fail because users were hitting the 60 outputs per stack limit. This effectively means that you can't have a service that has more than 60 functions. To avoid this AWS limit, we decided to remove those function output resources completely, to keep the stack clean. This also means removing the function Arns from the `sls info` command, and at the end of the deployment command.
+
+This is a breaking change for your project if you're depending on those function output resources in anyway, or if you're depending on function arn outputs from the deploy or info commands. Otherwise, your project shouldn't be affected by this change. Fixing this issue depends on your needs, but just remember that you can always create your own CF outputs in `serverless.yml`.
+
+### Moved `getStackName()` method
+This is a breaking change for plugin authors only. If your plugin used the `provider.getStackName()` method, it has been moved to `naming.js`, and should be referenced with `provider.naming.getStackName()` instead.
+
+### Removed the `defaults` property from `serverless.yml`
+We've finally dropped support for the `defaults` property which we introduced in v1. All child properties should now be moved to the `provider` object instead.
+
+## Non-breaking changes
+- Reduce memory consumption on deploy by at least 50% (#3145)
+- Added openwhisk template to `sls create` command (#3122)
+- Allow Role 'Fn::GetAtt' for Lambda `role` (#3083)
+- Added Access-Control-Allow-Credentials for CORS settings (#2736)
+- add Support for SNS Subscription to existing topics (#2796)
+- Function version resources are now optional. (#3042)
+- Invoke local now supports python runtime. (#2937)
+- Fixed "deployment bucket doesn't exist" error (#3107)
+- Allowed function events value to be variables (#2434)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.5.1...v1.6.0)
+
 # 1.5.1 (19.01.2017)
 
 ## Bug Fixes

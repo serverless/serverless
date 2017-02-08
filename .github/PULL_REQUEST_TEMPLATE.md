@@ -6,7 +6,7 @@
 
 ## What did you implement:
 
-Closes #12345
+Closes #XXXXX
 
 <!--
 Briefly describe the feature if no issue exists for this PR
@@ -32,17 +32,15 @@ Examples:
 * Other - Anything else that comes to mind to help us evaluate
 -->
 
-
 ## Todos:
 
 - [ ] Write tests
 - [ ] Write documentation
 - [ ] Fix linting errors
 - [ ] Make sure code coverage hasn't dropped
-- [ ] Provide verification config/commands/resources
-- [ ] Enable ["Allow edits from maintainers"](https://help.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/) for this PR
-- [ ] Change ready for review message below
-
+- [ ] Provide verification config / commands / resources
+- [ ] Enable "Allow edits from maintainers" for this PR
+- [ ] Update the messages below
 
 ***Is this ready for review?:*** NO
 ***Is it a breaking change?:*** NO
