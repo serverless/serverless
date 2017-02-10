@@ -79,6 +79,7 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |ApiGateway::Method     | ApiGatewayResource{normalizedPath}{normalizedMethod}    | ApiGatewayResourceUsersGet    |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
 |ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
+|ApiGateway::Stage      | ApiGatewayStage                                         | ApiGatewayStage               |
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
 |SNS::Subscription      | {normalizedFunctionName}SnsSubscription{normalizedTopicName}   | HelloSnsSubscriptionSomeTopic             |
