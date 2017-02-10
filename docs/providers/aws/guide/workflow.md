@@ -63,7 +63,7 @@ serverless deploy function -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME]
 ##### Invoke Function
 Invokes an AWS Lambda Function on AWS and returns logs.
 ```
-serverless invoke function -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME] -l
+serverless invoke -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME] -l
 ```
 
 ##### Streaming Logs
