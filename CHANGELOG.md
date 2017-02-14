@@ -1,3 +1,13 @@
+# 1.7.0 (14.02.2017)
+- Added CloudWatch event source (#3102)
+- Fixed average functions duration calculation in "sls metrics" output (#3067)
+- Added SLS_IGNORE_WARNINGS flag and logging upcoming breaking changes (#3217)
+- Reduced memory consumption during zipping process (#3220)
+- Fixed bug when using LogGroup resources with custom roles (#3213)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.6.1...v1.7.0)
+
 # 1.6.1 (31.01.2017)
 A minimal patch release that fixes an issue with rendering README.md on npm registry.
 
