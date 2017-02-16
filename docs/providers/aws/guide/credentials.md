@@ -18,13 +18,15 @@ Here we'll provide setup instructions for different cloud provider accounts. Jus
 
 At this time, the Serverless Framework supports only Amazon Web Services, but support for other providers is in the works.
 
+[Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
+
 ## Amazon Web Services
 
 **[Video Guide Available Here](https://www.youtube.com/watch?v=bFHmgqbAh4M)**
 
 Here's how to set up the Serverless Framework with your Amazon Web Services account.
 
-If you're new to Amazon Web Services, make sure you put in a credit card.  
+If you're new to Amazon Web Services, make sure you put in a credit card.
 
 All AWS users get access to the Free Tier for [AWS Lambda](https://aws.amazon.com/lambda/pricing/). AWS Lambda is part of the non-expiring [AWS Free Tier](https://aws.amazon.com/free/#AWS_FREE_TIER).
 
@@ -123,7 +125,7 @@ Now you can switch per project (/ API) by executing once when you start your pro
 
 `export AWS_PROFILE="profileName2" && export AWS_REGION=eu-west-1`.
 
-in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`. 
+in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
 The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
 
 #### Per Stage Profiles
