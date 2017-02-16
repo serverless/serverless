@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# !!! use with caution !!!
+# source: https://techoverflow.net/blog/2013/10/22/docker-remove-all-images-and-containers/
+
+# delete all containers
+docker rm -f $(docker ps -a -q)
+
+# delete all images
+docker rmi -f $(docker images -q)
