@@ -1,0 +1,23 @@
+# Hello World for Azure Functions
+service: hello-world # Service Name
+
+provider:
+  name: azure
+  subscriptionId: YourAzureSubscriptionID
+  servicePrincipalTenantId: servicePrincipalTenantId
+  servicePrincipalClientId: servicePrincipalClientId
+  servicePrincipalPassword: servicePrincipalPassword
+  location: West US
+
+plugins:
+  - serverless-azure-functions
+
+functions:
+  hello: 
+     handler: templates/handler.hello
+     events: 
+       - http: true
+         x-azure-settings:
+           authLevel : anonymous
+     
+ 
