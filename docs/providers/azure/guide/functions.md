@@ -24,10 +24,6 @@ service: azfx-node-http
 
 provider:
   name: azure
-  subscriptionId: YourAzureSubscriptionID
-  servicePrincipalTenantId: servicePrincipalTenantId
-  servicePrincipalClientId: servicePrincipalClientId
-  servicePrincipalPassword: servicePrincipalPassword
   location: West US
 
 plugins:

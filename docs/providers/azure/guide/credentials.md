@@ -64,28 +64,20 @@ If you're using non-public Azure, such as national clouds or Azure Stack, be sur
 
 5. Set up environment variables
 
-    Based on the settings in your `serverless.yml`, you need to set up environment variables for your subscription id, tenant id, service principal name, and password. You can change the names to whatever you'd prefer.
-
-    ```yaml
-    # serverless.yml
-    subscriptionId: YourAzureSubscriptionID
-    servicePrincipalTenantId: servicePrincipalTenantId
-    servicePrincipalClientId: servicePrincipalClientId
-    servicePrincipalPassword: servicePrincipalPassword
-    ```
+    You need to set up environment variables for your subscription id, tenant id, service principal name, and password. 
 
     ```bash
     # bash
-    export YourAzureSubscriptionID='<subscriptionId>'
-    export servicePrincipalTenantId='<tenantId>'
-    export servicePrincipalClientId='<servicePrincipalName>'
-    export servicePrincipalPassword='<password>'
+    export azureSubId='<subscriptionId>'
+    export azureServicePrincipalTenantId='<tenantId>'
+    export azureServicePrincipalClientId='<servicePrincipalName>'
+    export azureServicePrincipalPassword='<password>'
     ```
 
     ```powershell
     # PowerShell
-    $env:YourAzureSubscriptionID='<subscriptionId>'
-    $env:servicePrincipalTenantId='<tenantId>'
-    $env:servicePrincipalClientId='<servicePrincipalName>'
-    $env:servicePrincipalPassword='<password>'
+    $env:azureSubId='<subscriptionId>'
+    $env:azureServicePrincipalTenantId='<tenantId>'
+    $env:azureServicePrincipalClientId='<servicePrincipalName>'
+    $env:azureServicePrincipalPassword='<password>'
     ```
