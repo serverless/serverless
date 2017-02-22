@@ -54,13 +54,19 @@ If you're using non-public Azure, such as national clouds or Azure Stack, be sur
 
     Save the subcription and tenant id for later
 
-4. Create a service principal for a given `<name>` and `<password>`
+4. Create a service principal for a given `<name>` and `<password>` and add contributor role.
 
     ```
     azure ad sp create -n <name> -p <password>
     ```
 
-    This should return an object which has the `servicePrincipalNames` property on it. Save one of the names in the array and the password you provided for later. If you need to look up your service principal later, you can use `azure ad sp -c <name>` where `<name>` is the name provided originally. Note that the `<name>` you provided is not the name you'll provide later, it is a name in the `servicePrincipalNames` array.
+    This should return an object which has the `servicePrincipalNames` property on it and an ObjectId. Save the Object Id and one of the names in the array and the password you provided for later. If you need to look up your service principal later, you can use `azure ad sp -c <name>` where `<name>` is the name provided originally. Note that the `<name>` you provided is not the name you'll provide later, it is a name in the `servicePrincipalNames` array.
+
+    Then grant the SP contributor access with the ObjectId
+
+    ```bash
+    azure role assignment create --objectId <objectIDFromCreateStep> -o Contributor
+    ```
 
 5. Set up environment variables
 
