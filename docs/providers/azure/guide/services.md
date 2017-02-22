@@ -96,7 +96,7 @@ Create this file and add event data so you can invoke your function with the dat
 
 ## Deployment
 
-When you deploy a Service, all of the Functions, Events and Resources in your `serverless.yml` are translated into calls to the platform API to dynamically define those resources.
+When you deploy a Service, all of the Functions, and Events in your `serverless.yml` are translated into calls to the platform API to dynamically define those resources.
 
 To deploy a service, use the `deploy` command:
 
