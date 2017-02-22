@@ -24,7 +24,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 provider:
   name: openwhisk
   runtime: nodejs:default
-  memory: 256 # Overwrite default memory size. Default is 512.
+  memorySize: 256 # Overwrite default memory size. Default is 512.
   timeout: 10 # The default is 60  
   overwrite: true # Can we overwrite deployed functions? default is true
   namespace: 'custom' # use custom namespace, defaults to '_'
@@ -36,7 +36,7 @@ functions:
     	- function_a
     	- function_b
     	- function_c
-    memory: 256 # memorySize for this specific function.
+    memorySize: 256 # memorySize for this specific function.
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.  
     runtime: nodejs:6
     overwrite: false # Can we overwrite deployed function? 
