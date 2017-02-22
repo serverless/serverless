@@ -58,9 +58,9 @@ serverless deploy function -f [FUNCTION NAME]
 ```
 
 ##### Invoke Function
-Invokes an Azure Function and returns logs.
+Invokes an Azure Function
 ```
-serverless invoke function -f [FUNCTION NAME] -l
+serverless invoke function -f [FUNCTION NAME]
 ```
 
 ##### Streaming Logs
