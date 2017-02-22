@@ -80,7 +80,7 @@ service: users
 provider:
   name: openwhisk
   runtime: nodejs:6
-  memory: 512 # Overwrite the default memory size. Default is 256
+  memorySize: 512 # Overwrite the default memory size. Default is 256
   
 functions:
   usersCreate: # A Function
