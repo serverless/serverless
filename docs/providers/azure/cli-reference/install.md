@@ -30,7 +30,7 @@ serverless install --url https://github.com/some/service
 ### Installing a service from a GitHub URL
 
 ```bash
-serverless install --url https://github.com/pragnagopa/boilerplate-azurefunctions
+serverless install --url https://github.com/azure/boilerplate-azurefunctions
 ```
 
 This example will download the .zip file of the `serverless-azure-boilerplate` service from GitHub, create a new directory with the name `serverless-azure-boilerplate` in the current working directory and unzips the files in this directory.
@@ -38,10 +38,10 @@ This example will download the .zip file of the `serverless-azure-boilerplate` s
 ### Installing a service from a GitHub URL with a new service name
 
 ```bash
-serverless install --url https://github.com/jthomas/serverless-azure-boilerplate --name my-app
+serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app
 ```
 
-This example will download the .zip file of the `serverless-azure-boilerplate` service from GitHub, create a new directory with the name `my-app` in the current working directory and unzips the files in this directory and renames the service to `my-app` if `serverless.yml` exists in the service root.
+This example will download the .zip file of the `boilerplate-azurefunctions` service from GitHub, create a new directory with the name `my-app` in the current working directory and unzips the files in this directory and renames the service to `my-app` if `serverless.yml` exists in the service root.
 
 ### Installing a service from a directory in a GitHub URL
 

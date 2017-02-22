@@ -39,10 +39,10 @@ This makes sense since related functions usually use common infrastructure resou
 
 ## Creation
 
-There isn't yet a `serverless create` command, so to get started you can instead start by cloning an example from GitHub.
+There isn't yet a `serverless create` command, so to get started you can instead start by installing the boilerplate from GitHub.
 
 ```bash
-git clone https://github.com/pragnagopa/boilerplate-azurefunctions
+serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app
 ```
 
 ## Contents

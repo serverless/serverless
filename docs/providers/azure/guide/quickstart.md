@@ -18,10 +18,10 @@ This guide is designed to help you get started as quick as possible.
 
 To setup the boilerplate, follow these instructions:
 
-1. Clone the boilerplate
+1. Install the boilerplate
 
     ```bash
-    git clone https://github.com/pragnagopa/boilerplate-azurefunctions.git
+    serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app
     ```
 
 2. Install the dependencies
@@ -91,7 +91,6 @@ We'll set up an Azure Subscription and our service principal. You can learn more
     $env:azureServicePrincipalClientId='<servicePrincipalName>'
     $env:azureServicePrincipalPassword='<password>'
     ```
-
 
 # 3. Deploy to Azure
 

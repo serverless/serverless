@@ -33,10 +33,10 @@ A handy list of commands to use when developing with the Serverless Framework.
 
 ##### Create A Service:
 
-We don't have a create template for Functions yet, so you can use this boilerplate example:
+Install the boilerplate application.
 
 ```bash
-git clone https://github.com/pragnagopa/boilerplate-azurefunctions.git
+serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app
 ```
 
 ##### Install A Service

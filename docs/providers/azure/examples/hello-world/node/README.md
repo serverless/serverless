@@ -15,15 +15,18 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 
 ## 1. Create a service
 
-`git clone https://github.com/pragnagopa/boilerplate-azurefunctions.git`
+`serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app`
 
 ## 2. Install Provider Plugin
+
 `npm install -g serverless-azure` followed by `npm install` in the service directory.
 
 ## 3. Deploy
+
 `serverless deploy` or `sls deploy`. `sls` is shorthand for the Serverless CLI command
 
 ## 4. Invoke deployed function
+
 `serverless invoke --function helloWorld` or `serverless invoke -f helloWorld`
 
 `-f` is shorthand for `--function`
