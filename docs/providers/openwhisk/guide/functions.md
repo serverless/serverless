@@ -33,7 +33,7 @@ functions:
     handler: handler.hello # required, handler set in Apache OpenWhisk
     name: some_custom_name # optional, default is ${service}_${function}
     runtime: nodejs # optional overwrite, default is provider runtime
-    memory: 512 # optional overwrite, default is 256
+    memorySize: 512 # optional overwrite, default is 256
     timeout: 10 # optional overwrite, default is 60
 ```
 
@@ -73,7 +73,7 @@ service: myService
 provider:
   name: openwhisk
   runtime: nodejs:6
-  memory: 512 # will be inherited by all functions
+  memorySize: 512 # will be inherited by all functions
 
 functions:
   functionOne:
@@ -93,5 +93,5 @@ provider:
 functions:
   functionOne:
     handler: handler.functionOne
-    memory: 512 # function specific
+    memorySize: 512 # function specific
 ```
