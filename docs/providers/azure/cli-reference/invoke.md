@@ -15,7 +15,7 @@ layout: Doc
 Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
 
 ```bash
-serverless invoke [local] --function functionName
+serverless invoke --function functionName
 ```
 
 ## Options
