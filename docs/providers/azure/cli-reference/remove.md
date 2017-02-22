@@ -23,7 +23,7 @@ serverless remove
 
 ## Examples
 
-### Removal of service in specific stage and region
+### Removal of service 
 
 ```bash
 serverless remove 
