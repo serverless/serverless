@@ -57,10 +57,20 @@ service: users
 functions: # Your "Functions"
   usersCreate:
     events: # The "Events" that trigger this function
-      - http: post /users/create
+      - http: true
+        x-azure-settings:
+          name: req
+          methods:
+           - POST
+          route: /users/create
   usersDelete:
     events:
-      - http: delete /users/delete
+      - http: true
+        x-azure-settings:
+          name: req
+          methods:
+           - DELETE
+          route: /users/delete
 ```
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
 
