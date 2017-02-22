@@ -28,7 +28,7 @@ After the `serverless deploy` command runs all created deployment artifacts are 
 
 ## Examples
 
-### Deployment without stage and region options
+### Deployment
 
 ```bash
 serverless deploy
@@ -38,11 +38,6 @@ This is the simplest deployment usage possible. With this command Serverless wil
 Azure platform endpoints.
 
 ## Provided lifecycle events
-- `deploy:cleanup`
-- `deploy:initialize`
-- `deploy:setupProviderConfiguration`
-- `deploy:createDeploymentArtifacts`
-- `deploy:compileFunctions`
-- `deploy:compileEvents`
+
 - `deploy:deploy`
 - `deploy:function:deploy`
