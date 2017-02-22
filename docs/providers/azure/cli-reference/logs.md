@@ -29,5 +29,5 @@ serverless logs -f hello
 ```bash
 serverless logs -f hello
 ```
-This will fetch the logs that happened in the past 5 hours.
+This will stream all future logs for a given Function.
 
