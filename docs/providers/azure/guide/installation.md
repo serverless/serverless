@@ -48,10 +48,10 @@ serverless --version
 
 ### Installing Azure Functions Provider Plugin
 
-Azure Functions is not yet on npm. To install, install directly from GitHub.
+To install, install the latest package from npm, run:
 
 ```
-npm i --save serverless/serverless-azure-functions#dev
+npm i --save serverless-azure-functions
 ```
 
 ### Setting up Azure Functions
