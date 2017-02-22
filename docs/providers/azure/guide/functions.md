@@ -38,7 +38,7 @@ functions:
            authLevel : anonymous
 ```
 
-The `handler` property points to the file and module containing the code you want to run in your function.
+The `handler` property points to the file (default filename: handler.js) and module containing the code you want to run in your function.
 
 ```javascript
 // handler.js
