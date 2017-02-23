@@ -29,6 +29,7 @@ node_modules
 
 # IDE stuff
 **/.idea
+*.swp
 
 # OS stuff
 .DS_Store
