@@ -1,6 +1,6 @@
 <!--
 title: Serverless - AWS Lambda - Examples
-menuText: AWS
+menuText: Examples
 layout: Doc
 -->
 

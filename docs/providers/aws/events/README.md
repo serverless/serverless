@@ -1,6 +1,6 @@
 <!--
 title: Serverless - AWS Lambda - Events
-menuText: AWS
+menuText: AWS Events
 layout: Doc
 -->
 

@@ -2,6 +2,10 @@
 title: Serverless Framework Documentation
 menuText: Docs
 layout: Doc
+menuItems:
+  - {menuText: AWS, path: /framework/docs/providers/aws/}
+  - {menuText: Azure, path: /framework/docs/providers/azure/}
+  - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

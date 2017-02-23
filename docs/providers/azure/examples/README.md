@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Azure Functions - Examples
-menuText: azure
+menuText: Examples
 layout: Doc
 -->
 

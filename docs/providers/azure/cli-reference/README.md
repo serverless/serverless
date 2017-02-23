@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Azure Functions - CLI Reference
-menuText: Azure
+menuText: CLI Reference
 layout: Doc
 -->
 
