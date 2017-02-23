@@ -76,7 +76,7 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |AWS::IoT::TopicRule    | {normalizedFuntionName}IotTopicRule{SequentialID}       | HelloIotTopicRule1            |
 |ApiGateway::RestApi    | ApiGatewayRestApi                                       | ApiGatewayRestApi             |
 |ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | ApiGatewayResourceUsers       |
-|ApiGateway::Method     | ApiGatewayResource{normalizedPath}{normalizedMethod}    | ApiGatewayResourceUsersGet    |
+|ApiGateway::Method     | ApiGatewayMethod{normalizedPath}{normalizedMethod}      | ApiGatewayMethodUsersGet      |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
 |ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
