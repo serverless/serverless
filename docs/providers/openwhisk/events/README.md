@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Apache OpenWhisk - Events
-menuText: OpenWhisk 
+menuText: OpenWhisk Events 
 layout: Doc
 -->
 
