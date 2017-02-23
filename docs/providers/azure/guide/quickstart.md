@@ -21,14 +21,14 @@ To setup the boilerplate, follow these instructions:
 1. Install the boilerplate
 
     ```bash
-    serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app
+    serverless install --url https://github.com/azure/boilerplate-azurefunctions --name <my-app>
     ```
 
 2. Install the dependencies
 
     ```bash
-    cd boilerplate-azurefunctions
-    npm Install
+    cd <my-app>
+    npm install
     ```
 
 ## 2. Set up credentials
@@ -39,7 +39,7 @@ We'll set up an Azure Subscription and our service principal. You can learn more
 
     Sign up for a free account @ [https://azure.com](https://azure.microsoft.com/en-us/services/functions/).
 
-    Azure comes with a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit. 
+    Azure comes with a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit.
 
 
 2. . Get the Azure CLI
@@ -74,7 +74,7 @@ We'll set up an Azure Subscription and our service principal. You can learn more
 
 6. Set up environment variables
 
-     You need to set up environment variables for your subscription id, tenant id, service principal name, and password. 
+     You need to set up environment variables for your subscription id, tenant id, service principal name, and password.
 
     ```bash
     # bash
