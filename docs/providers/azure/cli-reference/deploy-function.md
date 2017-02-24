@@ -2,7 +2,7 @@
 title: Serverless Framework Commands - Azure Functions - Deploy Function
 menuText: Deploy Function
 menuOrder: 5
-description: Deploy your Azure Functions functions quickly 
+description: Deploy your Azure Functions functions quickly
 layout: Doc
 -->
 
@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/deploy-function)
 <!-- DOCS-SITE-LINK:END -->
 
-# Deploy Function
+# Azure - Deploy Function
 
 The `sls deploy function` command deploys an individual function.  This command simply compiles a deployment package with a single function handler. This is a much faster way of deploying changes in code.
 

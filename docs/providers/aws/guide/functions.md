@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/functions)
 <!-- DOCS-SITE-LINK:END -->
 
-# Functions
+# AWS - Functions
 
 If you are using AWS as a provider, all *functions* inside the service are AWS Lambda functions.
 

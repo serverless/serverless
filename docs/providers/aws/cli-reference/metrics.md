@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/metrics)
 <!-- DOCS-SITE-LINK:END -->
 
-# Metrics
+# AWS - Metrics
 
 Lets you watch the metrics of a specific function.
 

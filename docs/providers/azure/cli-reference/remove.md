@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/remove)
 <!-- DOCS-SITE-LINK:END -->
 
-# Remove
+# Azure - Remove
 
 The `sls remove` command will remove the deployed service, defined in your current working directory, from the provider.
 
@@ -23,10 +23,10 @@ serverless remove
 
 ## Examples
 
-### Removal of service 
+### Removal of service
 
 ```bash
-serverless remove 
+serverless remove
 ```
 
 This example will remove the deployed service of your current working directory from the current platform endpoint.

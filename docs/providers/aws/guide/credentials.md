@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Credentials
+# AWS - Credentials
 
 The Serverless Framework needs access to your cloud provider's account so that it can create and manage resources on your behalf.
 

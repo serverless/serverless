@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/events)
 <!-- DOCS-SITE-LINK:END -->
 
-# Events
+# AWS - Events
 
 Simply put, events are the things that trigger your functions to run.
 

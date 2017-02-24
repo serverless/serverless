@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/deploy-function)
 <!-- DOCS-SITE-LINK:END -->
 
-# Deploy Function
+# AWS - Deploy Function
 
 The `sls deploy function` command deploys an individual function without AWS CloudFormation.  This command simply swaps out the zip file that your CloudFormation stack is pointing toward.  This is a much faster way of deploying changes in code.
 
