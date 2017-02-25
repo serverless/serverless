@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke)
 <!-- DOCS-SITE-LINK:END -->
 
-# Invoke
+# AWS - Invoke
 
 Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
 

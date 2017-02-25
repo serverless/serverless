@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/logs)
 <!-- DOCS-SITE-LINK:END -->
 
-# Logs
+# Azure - Logs
 
 Lets you watch the logs of a specific function.
 
@@ -30,4 +30,3 @@ serverless logs -f hello
 serverless logs -f hello
 ```
 This will stream all future logs for a given Function.
-

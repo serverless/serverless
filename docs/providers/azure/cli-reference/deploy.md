@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/deploy)
 <!-- DOCS-SITE-LINK:END -->
 
-# Deploy
+# Azure - Deploy
 
 The `sls deploy` command deploys your entire service via the Azure Resource Manager API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).  Use `serverless deploy function -f myFunction` when you have made code changes and you want to quickly upload your updated code to Azure Functions.
 

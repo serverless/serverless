@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/invoke)
 <!-- DOCS-SITE-LINK:END -->
 
-# Invoke
+# OpenWhisk - Invoke
 
 Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
 
@@ -47,7 +47,7 @@ root directory of the service. The json file should have event and context prope
 ### Apache OpenWhisk
 
 ```bash
-serverless invoke --function functionName 
+serverless invoke --function functionName
 ```
 
 This example will invoke your deployed function on the configured platform
@@ -56,13 +56,13 @@ endpoint. This will output the result of the invocation in your terminal.
 #### Function invocation with data
 
 ```bash
-serverless invoke --function functionName --data '{"name": "Bernie"}' 
+serverless invoke --function functionName --data '{"name": "Bernie"}'
 ```
 
 #### Function invocation with data from standard input
 
 ```bash
-node dataGenerator.js | serverless invoke --function functionName 
+node dataGenerator.js | serverless invoke --function functionName
 ```
 
 #### Function invocation with logging
