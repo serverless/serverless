@@ -26,7 +26,6 @@
             {
               "Effect": "Allow",
               "Action": [
-                "logs:CreateLogGroup",
                 "logs:CreateLogStream"
               ],
               "Resource": []
