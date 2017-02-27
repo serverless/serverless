@@ -105,5 +105,5 @@ serverless deploy
 Run the [invoke command](../cli-reference/invoke.md)
 
 ```bash
-serverless invoke function -f httpjs
+serverless invoke -f httpjs
 ```
