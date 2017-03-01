@@ -50,7 +50,7 @@ You can overwrite/attach any kind of resource to your CloudFormation stack. You 
 
 ## AWS CloudFormation Resource Reference
 
-To have consistent naming in the Cloudformation Templates that get deployed we use a standard pattern:
+To have consistent naming in the CloudFormation Templates that get deployed we use a standard pattern:
 
 `{Function Name}{Cloud Formation Resource Type}{ResourceName}{SequentialID or Random String}`
 
@@ -83,22 +83,18 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |SNS::Subscription      | {normalizedFunctionName}SnsSubscription{normalizedTopicName}   | HelloSnsSubscriptionSomeTopic             |
 |AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB:** {normalizedFunctionName}EventSourceMappingDynamodb{tableName}</li><li>**Kinesis:** {normalizedFunctionName}EventSourceMappingKinesis{streamName}</li></ul> | <ul><li>**DynamoDB:** HelloLambdaEventSourceMappingDynamodbUsers</li><li>**Kinesis:** HelloLambdaEventSourceMappingKinesisMystream</li></ul> |
 
-
 ## Override AWS CloudFormation Resource
 
 You can override the specific CloudFormation resource to apply your own options. For example, if you want to set `AWS::Logs::LogGroup` retention time to 30 days, override it with above table's `Name Template`.
 
 When you do overriding the basic resources, the important part is `normalizedFunctionName`. There are two rules.
 
-* Should start with uppercase character.
-* The `-` wIll be changed to `Dash`, `_` will be changed to `Underscore`.
+- Should start with uppercase character.
+- The `-` will be changed to `Dash`, `_` will be changed to `Underscore`.
 
-Below is the example
+Here's an example:
 
 ```yml
-# serverless.yml
-...
-
 functions:
   write-post:
     handler: handler.writePost
