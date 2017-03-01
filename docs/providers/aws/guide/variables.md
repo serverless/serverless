@@ -24,13 +24,17 @@ The Serverless framework provides a powerful variable system which allows you to
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
 ## Reference Properties In serverless.yml
-To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. This functionality is recursive, so you can go as deep in the object tree as you want.
+To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. `someProperty` can contain the empty string for a top-level self-reference or a dotted attribute reference to any depth of attribute, so you can go as shallow or deep in the object tree as you want.
 
 ```yml
 service: new-service
 provider: aws
 custom:
   globalSchedule: rate(10 minutes)
+  newService: ${self:}
+  # the following will resolve identically in other serverless.yml files so long as they define
+  # `custom.newService: ${file(<relative-path-to-this-file>/serverless.yml)}`
+  exportName: ${self:custom.newService.service}-export
 
 functions:
   hello:
@@ -41,12 +45,21 @@ functions:
       handler: handler.world
       events:
         - schedule: ${self:custom.globalSchedule}
+resources:
+  Outputs:
+    NewServiceExport:
+      Value: 'A Value To Export'
+      Export:
+        Name: ${self:custom.exportName}
 ```
 
 In the above example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
 
 ## Referencing Environment Variables
-To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.
+To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.  It is valid to use the empty string in place of `SOME_VAR`.  This looks like "`${env:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `process.env` object (i.e. all the variables defined in your environment).
+
+**WARNING!**
+If you use use the environment to provide sensitive data such as credentials or private keys to your project, there is a risk that this sensitive information could be written into less protected or publicly accessible build logs, CloudFormation templates, et cetera. Consider accordingly!
 
 ```yml
 service: new-service
@@ -63,7 +76,7 @@ functions:
 In the above example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
 
 ## Referencing CLI Options
-To reference CLI options that you passed, use the `${opt:some_option}` syntax in your `serverless.yml` configuration file.
+To reference CLI options that you passed, use the `${opt:some_option}` syntax in your `serverless.yml` configuration file.  It is valid to use the empty string in place of `some_option`.  This looks like "`${opt:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `options` object (i.e. all the command line options from your `serverless` command).
 
 ```yml
 service: new-service
