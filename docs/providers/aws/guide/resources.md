@@ -104,7 +104,6 @@ functions:
           path: ${self:service}/api/posts/new
           cors: true
 
-
 resources:
   Resources:
     WriteDashPostLogGroup:
