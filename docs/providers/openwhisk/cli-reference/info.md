@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/info)
 <!-- DOCS-SITE-LINK:END -->
 
-# Info
+# OpenWhisk - Info
 
 Displays information about the deployed service.
 
@@ -52,5 +52,5 @@ my-hello-world-event-rule
 
 endpoints:
 https://xyz1234-gws.api-gw.mybluemix.net
-/hello-world GET -> hello-world 
+/hello-world GET -> hello-world
 ```

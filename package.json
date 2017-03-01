@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.6.1",
+  "version": "1.8.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -27,7 +27,7 @@
     "azure",
     "azure functions",
     "google cloud functions",
-    "ibm open whisk",
+    "apache open whisk",
     "iot",
     "internet of things",
     "serverless.com"

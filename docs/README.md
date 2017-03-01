@@ -2,6 +2,10 @@
 title: Serverless Framework Documentation
 menuText: Docs
 layout: Doc
+menuItems:
+  - {menuText: AWS, path: /framework/docs/providers/aws/}
+  - {menuText: Azure, path: /framework/docs/providers/azure/}
+  - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -10,7 +14,7 @@ layout: Doc
 
 # Documentation
 
-The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud. We currently support AWS Lambda, IBM OpenWhisk, and are expanding to support other cloud providers.
+The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud. We currently support AWS Lambda, Apache OpenWhisk, Microsoft Azure, and are expanding to support other cloud providers.
 
 <div class="docsSections">
   <div class="docsSection">
@@ -81,6 +85,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/events/sns.md">SNS</a></li>
         <li><a href="./providers/aws/events/alexa-skill.md">Alexa Skill</a></li>
         <li><a href="./providers/aws/events/iot.md">IoT</a></li>
+        <li><a href="./providers/aws/events/cloudwatch-event.md">CloudWatch Event</a></li>
       </ul>
     </div>
   </div>
@@ -105,7 +110,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk Guide" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk Guide" width="250" draggable="false"/>
       </a>
     </div>
     <div class="test">
@@ -130,7 +135,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk CLI Reference" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk CLI Reference" width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -153,7 +158,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk Events"  width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk Events"  width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -168,13 +173,91 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./providers/openwhisk/examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_openwhisk.jpg" alt="Serverless Framework IBM OpenWhisk Examples" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk Examples" width="250" draggable="false"/>
       </a>
     </div>
     <div>
       <div>
         <ul>
           <li><a href="./providers/openwhisk/examples/hello-world">Hello World</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="docsSections">
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/azure/guide/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_azure.jpg" alt="Serverless Framework Microsoft Azure Guide" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div class="test">
+      <ul>
+        <li><a href="./providers/azure/guide/intro.md">Intro</a></li>
+        <li><a href="./providers/azure/guide/quickstart.md">Quickstart</a></li>
+        <li><a href="./providers/azure/guide/installation.md">Installation</a></li>
+        <li><a href="./providers/azure/guide/credentials.md">Credentials</a></li>
+        <li><a href="./providers/azure/guide/services.md">Services</a></li>
+        <li><a href="./providers/azure/guide/functions.md">Functions</a></li>
+        <li><a href="./providers/azure/guide/events.md">Events</a></li>
+        <li><a href="./providers/azure/guide/deploying.md">Deploying</a></li>
+        <li><a href="./providers/azure/guide/testing.md">Testing</a></li>
+        <li><a href="./providers/azure/guide/variables.md">Variables</a></li>
+        <li><a href="./providers/azure/guide/plugins.md">Plugins</a></li>
+        <li><a href="./providers/azure/guide/workflow.md">Workflow</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/azure/cli-reference/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_azure.jpg" alt="Serverless Framework Microsoft Azure CLI Reference" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/azure/cli-reference/install.md">Install</a></li>
+        <li><a href="./providers/azure/cli-reference/deploy.md">Deploy</a></li>
+        <li><a href="./providers/azure/cli-reference/deploy-function.md">Deploy Function</a></li>
+        <li><a href="./providers/azure/cli-reference/invoke.md">Invoke</a></li>
+        <li><a href="./providers/azure/cli-reference/logs.md">Logs</a></li>
+        <li><a href="./providers/azure/cli-reference/remove.md">Remove</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/azure/events/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_azure.jpg" alt="Serverless Framework Microsoft Azure Events"  width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/azure/events/http.md">HTTP</a></li>
+        <li><a href="./providers/azure/events/timer.md">Timer</a></li>
+        <li><a href="./providers/azure/events/queuestorage.md">Queue Storage</a></li>
+        <li><a href="./providers/azure/events/servicebus.md">Service Bus</a></li>
+        <li><a href="./providers/azure/events/eventhubs.md">Event Hubs</a></li>
+        <li><a href="./providers/azure/events/blobstorage.md">Blob Storage</a></li>
+        <li><a href="./providers/azure/events/other.md">Other Bindings</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/azure/examples/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_azure.jpg" alt="Serverless Framework Microsoft Azure Examples" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <div>
+        <ul>
+          <li><a href="./providers/azure/examples/hello-world">Hello World</a></li>
         </ul>
       </div>
     </div>

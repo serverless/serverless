@@ -39,6 +39,7 @@ provider:
 #          - ""
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
+#            - "/*"
 
 # you can define service wide environment variables here
 #  environment:
@@ -66,6 +67,15 @@ functions:
 #      - alexaSkill
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
+#      - cloudwatchEvent:
+#          event:
+#            source:
+#              - "aws.ec2"
+#            detail-type:
+#              - "EC2 Instance State-change Notification"
+#            detail:
+#              state:
+#                - pending
 
 #    Define function environment variables here
 #    environment:

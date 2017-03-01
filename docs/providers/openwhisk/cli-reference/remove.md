@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/remove)
 <!-- DOCS-SITE-LINK:END -->
 
-# Remove
+# OpenWhisk - Remove
 
 The `sls remove` command will remove the deployed service, defined in your current working directory, from the provider.
 
@@ -26,7 +26,7 @@ serverless remove
 ### Removal of service in specific stage and region
 
 ```bash
-serverless remove 
+serverless remove
 ```
 
 This example will remove the deployed service of your current working directory from the current platform endpoint.

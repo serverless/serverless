@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/install)
 <!-- DOCS-SITE-LINK:END -->
 
-# Install
+# OpenWhisk - Install
 
 Installs a service from a GitHub URL in the current working directory.
 

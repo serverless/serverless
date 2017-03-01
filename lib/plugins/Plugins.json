@@ -29,6 +29,7 @@
     "./aws/deploy/compile/events/stream/index.js",
     "./aws/deploy/compile/events/alexaSkill/index.js",
     "./aws/deploy/compile/events/iot/index.js",
+    "./aws/deploy/compile/events/cloudWatchEvent/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
     "./aws/invokeLocal/index.js"
