@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/intro)
 <!-- DOCS-SITE-LINK:END -->
 
-# Introduction
+# AWS - Introduction
 
 The Serverless Framework helps you develop and deploy your AWS Lambda functions, along with the AWS infrastructure resources they require.  It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
 
@@ -36,7 +36,7 @@ You can perform multiple jobs in your code, but we don't recommend doing that wi
 
 Anything that triggers an AWS Lambda Function to execute is regarded by the Framework as an **Event**.  Events are infrastructure events on AWS such as:
 
-* *An AWS API Gateway HTTP endpoint (e.g., for a REST API)*
+* *An AWS API Gateway HTTP endpoint request (e.g., for a REST API)*
 * *An AWS S3 bucket upload (e.g., for an image)*
 * *A CloudWatch timer (e.g., run every 5 minutes)*
 * *An AWS SNS topic (e.g., a message)*

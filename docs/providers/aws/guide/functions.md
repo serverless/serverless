@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/functions)
 <!-- DOCS-SITE-LINK:END -->
 
-# Functions
+# AWS - Functions
 
 If you are using AWS as a provider, all *functions* inside the service are AWS Lambda functions.
 
@@ -148,6 +148,7 @@ provider:
              - ""
              - - "arn:aws:s3:::"
                - "Ref" : "ServerlessDeploymentBucket"
+               - "/*"
 
 functions:
   functionOne:
@@ -218,6 +219,10 @@ functions:
 ```
 
 Then, when you run `serverless deploy`, VPC configuration will be deployed along with your lambda function.
+
+**VPC IAM permissions**
+
+The Lambda function execution role must have permissions to create, describe and delete [Elastic Network Interfaces](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ElasticNetworkInterfaces.html) (ENI). When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated with your Lambda execution role. In case custom roles are provided be sure to include the proper [ManagedPolicyArns](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html#cfn-iam-role-managepolicyarns). For more information please check [configuring a Lambda Function for Amazon VPC Access](http://docs.aws.amazon.com/lambda/latest/dg/vpc.html)
 
 ## Environment Variables
 

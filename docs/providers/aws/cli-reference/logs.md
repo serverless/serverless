@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/logs)
 <!-- DOCS-SITE-LINK:END -->
 
-# Logs
+# AWS - Logs
 
 Lets you watch the logs of a specific function.
 

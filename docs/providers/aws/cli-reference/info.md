@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/info)
 <!-- DOCS-SITE-LINK:END -->
 
-# Info
+# AWS - Info
 
 Displays information about the deployed service.
 

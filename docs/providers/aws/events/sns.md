@@ -52,7 +52,7 @@ functions:
 
 ## Setting a display name
 
-This event definition ensures that the `aggregator` function get's called every time a message is sent to the
+This event definition ensures that the `aggregator` function gets called every time a message is sent to the
 `aggregate` topic. `Data aggregation pipeline` will be shown in the AWS console so that the user can understand what the
 SNS topic is used for.
 
