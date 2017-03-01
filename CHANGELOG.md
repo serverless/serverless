@@ -1,3 +1,22 @@
+# 1.8.0 (28.02.2017)
+## Non-Breaking Changes
+
+- Fixed bug with deployment progress monitoring (#3297)
+- Fixed "too many open files" error (#3310)
+- Fixed bug with functions lists loaded from a separate file using Serverless Variables (#3186)
+
+## Breaking Changes
+
+#### Removed IamPolicyLambdaExecution Resource
+We've removed the `IamPolicyLambdaExecution` resource template and replaced it with inline policy within the role as it's been causing issues with VPC and bloating the CF template. This is a breaking change only for users who are depending on that resource with `Ref` or similar CF intrinsic functions.
+
+#### Changed displayed function name for `sls info`
+The function name displayed when you run `sls info` is now the short function name as found in `serverless.yml` rather than the actual lambda name to keep it more provider agnostic. This could be breaking for any user who is depending or parsing the CLI output.
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.7.0...v1.8.0)
+
 # 1.7.0 (14.02.2017)
 - Added CloudWatch event source (#3102)
 - Fixed average functions duration calculation in "sls metrics" output (#3067)
