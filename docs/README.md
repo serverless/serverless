@@ -5,6 +5,7 @@ layout: Doc
 menuItems:
   - {menuText: AWS, path: /framework/docs/providers/aws/}
   - {menuText: Azure, path: /framework/docs/providers/azure/}
+  - {menuText: Google, path: /framework/docs/providers/google/}
   - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
 -->
 
@@ -14,7 +15,7 @@ menuItems:
 
 # Documentation
 
-The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud. We currently support AWS Lambda, Apache OpenWhisk, Microsoft Azure, and are expanding to support other cloud providers.
+The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud. We currently support AWS Lambda, Apache OpenWhisk, Microsoft Azure, Google Cloud Functions and are expanding to support other cloud providers.
 
 <div class="docsSections">
   <div class="docsSection">
@@ -258,6 +259,78 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
       <div>
         <ul>
           <li><a href="./providers/azure/examples/hello-world">Hello World</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="docsSections">
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/google/guide/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_google.jpg" alt="Serverless Framework Google Cloud Functions Guide" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div class="test">
+      <ul>
+        <li><a href="./providers/google/guide/intro.md">Intro</a></li>
+        <li><a href="./providers/google/guide/quickstart.md">Quickstart</a></li>
+        <li><a href="./providers/google/guide/installation.md">Installation</a></li>
+        <li><a href="./providers/google/guide/credentials.md">Credentials</a></li>
+        <li><a href="./providers/google/guide/services.md">Services</a></li>
+        <li><a href="./providers/google/guide/functions.md">Functions</a></li>
+        <li><a href="./providers/google/guide/events.md">Events</a></li>
+        <li><a href="./providers/google/guide/deploying.md">Deploying</a></li>
+        <li><a href="./providers/google/guide/variables.md">Variables</a></li>
+        <li><a href="./providers/google/guide/plugins.md">Plugins</a></li>
+        <li><a href="./providers/google/guide/workflow.md">Workflow</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/google/cli-reference/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_google.jpg" alt="Serverless Framework Google Cloud Functions CLI Reference" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/google/cli-reference/install.md">Install</a></li>
+        <li><a href="./providers/google/cli-reference/deploy.md">Deploy</a></li>
+        <li><a href="./providers/google/cli-reference/info.md">Info</a></li>
+        <li><a href="./providers/google/cli-reference/invoke.md">Invoke</a></li>
+        <li><a href="./providers/google/cli-reference/logs.md">Logs</a></li>
+        <li><a href="./providers/google/cli-reference/remove.md">Remove</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/google/events/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_google.jpg" alt="Serverless Framework Google Cloud Functions EventsEvents"  width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/google/events/http.md">HTTP</a></li>
+        <li><a href="./providers/google/events/event.md">Event</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/google/examples/">
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_google.jpg" alt="Serverless Framework Microsoft Google Cloud Functions Examples" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <div>
+        <ul>
+          <li><a href="./providers/google/examples/hello-world">Hello World</a></li>
         </ul>
       </div>
     </div>
