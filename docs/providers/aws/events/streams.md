@@ -18,7 +18,6 @@ This setup specifies that the `compute` function should be triggered whenever:
 
 The ARN for the stream can be specified as a string, the reference to the ARN of a resource by logical ID, or the import of an ARN that was exported by a different service or CloudFormation stack.
 
-This is shown in each of the valid
 **Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
 
 ```yml
@@ -32,7 +31,7 @@ functions:
           arn:
             Fn::GetAtt:
               - MyDynamoDbTable
-              - Arn
+              - StreamArn
       - stream:
           type: dynamodb
           arn:
