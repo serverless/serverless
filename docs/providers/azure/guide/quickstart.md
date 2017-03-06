@@ -21,7 +21,7 @@ To setup the boilerplate, follow these instructions:
 1. Install the boilerplate
 
     ```bash
-    serverless install --url https://github.com/azure/boilerplate-azurefunctions --name <my-app>
+    serverless create -t azure-nodejs --path <my-app>
     ```
 
 2. Install the dependencies
@@ -105,5 +105,5 @@ serverless deploy
 Run the [invoke command](../cli-reference/invoke.md)
 
 ```bash
-serverless invoke -f httpjs
+serverless invoke -f hello
 ```
