@@ -59,6 +59,28 @@ functions:
     handler: otherHandler
 ```
 
+## Memory size and timeout
+
+The `memorySize` and `timeout` for the functions can be specified on the provider or function level. The provider wide definition causes all functions to share this config, whereas the function wide definition means that this configuration is only valid for the function.
+
+The default `memorySize` is 256 and the default timeout is `60s` if not specified.
+
+```yml
+# serverless.yml
+
+provider:
+  memorySize: 1024
+  timeout: 90s
+
+functions:
+  first:
+    handler: first
+  second:
+    handler: second
+    memorySize: 512
+    timeout: 120s
+```
+
 ## Handler signatures
 
 Google Cloud Functions have different handler signatures dependent on the event type which will trigger them.
