@@ -52,7 +52,7 @@ You can overwrite/attach any kind of resource to your CloudFormation stack. You 
 
 To have consistent naming in the CloudFormation Templates that get deployed we use a standard pattern:
 
-`{Function Name}{Cloud Formation Resource Type}{ResourceName}{SequentialID or Random String}`
+`{Function Name}{Cloud Formation Resource Type}{Resource Name}{SequentialID or Random String}`
 
 * `Function Name` - This is optional for Resources that should be recreated when the function name gets changed. Those resources are also called *function bound*
 * `Cloud Formation Resource Type` - E.g., S3Bucket
