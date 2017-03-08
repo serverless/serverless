@@ -137,6 +137,28 @@ module.exports = {
       });
   },
 
+  stopEc2(instanceId) {
+    const Ec2 = new AWS.EC2({ region: 'us-east-1' });
+    BbPromise.promisifyAll(Ec2, { suffix: 'Promised' });
+    const params = {
+      InstanceIds: [
+        instanceId,
+      ],
+    };
+    return Ec2.stopInstancesPromised(params);
+  },
+
+  startEc2(instanceId) {
+    const Ec2 = new AWS.EC2({ region: 'us-east-1' });
+    BbPromise.promisifyAll(Ec2, { suffix: 'Promised' });
+    const params = {
+      InstanceIds: [
+        instanceId,
+      ],
+    };
+    return Ec2.startInstancesPromised(params);
+  },
+
   getFunctionLogs(functionName) {
     const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`);
     const logsString = new Buffer(logs, 'base64').toString();
