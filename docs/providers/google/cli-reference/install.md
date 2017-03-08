@@ -28,7 +28,7 @@ serverless install --url https://github.com/some/service
 ### Installing a service from a GitHub URL
 
 ```bash
-serverless install --url https://github.com/pmuens/boilerplate-googlecloudfunctions-nodejs
+serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs
 ```
 
 This example will download the .zip file of the `boilerplate-googlecloudfunctions-nodejs` service from GitHub, create a new directory with the name `boilerplate-googlecloudfunctions-nodejs` in the current working directory and unzips the files in this directory.
@@ -36,7 +36,7 @@ This example will download the .zip file of the `boilerplate-googlecloudfunction
 ### Installing a service from a GitHub URL with a new service name
 
 ```bash
-serverless install --url https://github.com/pmuens/boilerplate-googlecloudfunctions-nodejs --name my-gcloud-service
+serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name my-gcloud-service
 ```
 
 This example will download the .zip file of the `boilerplate-googlecloudfunctions-nodejs` service from GitHub, create a new directory with the name `my-gcloud-service` in the current working directory and unzips the files in this directory and renames the service to `my-gcloud-service` if `serverless.yml` exists in the service root.

@@ -43,7 +43,7 @@ This makes sense since related functions usually use common infrastructure resou
 There isn't yet a `serverless create` command, so to get started you can instead start by installing the boilerplate from GitHub.
 
 ```bash
-serverless install --url https://github.com/pmuens/boilerplate-googlecloudfunctions-nodejs --name <my-service>
+serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>
 ```
 
 ## Contents

@@ -37,7 +37,7 @@ A handy list of commands to use when developing with the Serverless Framework.
 Install the boilerplate application.
 
 ```bash
-serverless install --url https://github.com/pmuens/boilerplate-googlecloudfunctions-nodejs --name <my-service>
+serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>
 ```
 
 ### Install A Service

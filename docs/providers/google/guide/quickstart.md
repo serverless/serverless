@@ -21,7 +21,7 @@ To setup the boilerplate, follow these instructions:
 1. Install the boilerplate
 
 ```bash
-serverless install --url https://github.com/pmuens/boilerplate-googlecloudfunctions-nodejs --name <my-service>
+serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>
 ```
 
 2. Install the dependencies
