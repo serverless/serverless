@@ -10,7 +10,7 @@ const Utils = require('../../../../utils/index');
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 
-describe('AWS - CloudWathEvent: Single event with multiple functions', () => {
+describe('AWS - CloudWatch Event: Single event with multiple functions', () => {
   let stackName;
   let instanceId;
 
