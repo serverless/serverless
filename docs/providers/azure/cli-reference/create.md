@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/deploy)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/create)
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Create
