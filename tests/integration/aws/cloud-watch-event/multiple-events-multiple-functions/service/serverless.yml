@@ -44,7 +44,7 @@ resources:
     EC2Instance:
       Type: AWS::EC2::Instance
       Properties:
-        InstanceType: t2.micro
+        InstanceType: t2.nano
         ImageId: ami-6869aa05
         SubnetId:
           Ref: Subnet
