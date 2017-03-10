@@ -322,10 +322,10 @@
       "from": "glob@>=7.0.0 <8.0.0",
       "resolved": "https://registry.npmjs.org/glob/-/glob-7.1.1.tgz"
     },
-    "glob-all": {
-      "version": "3.1.0",
-      "from": "glob-all@>=3.1.0 <4.0.0",
-      "resolved": "https://registry.npmjs.org/glob-all/-/glob-all-3.1.0.tgz"
+    "globby": {
+      "version": "6.1.0",
+      "from": "globby@>=6.1.0 <7.0.0",
+      "resolved": "https://registry.npmjs.org/globby/-/globby-6.1.0.tgz"
     },
     "got": {
       "version": "6.6.3",
