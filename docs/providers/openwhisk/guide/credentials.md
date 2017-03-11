@@ -70,6 +70,17 @@ cd openwhisk/tools/vagrant
 
 This platform will now be running inside a virtual machine at the following IP address: `192.168.33.13`
 
+**Please note:** *If you are using a self-hosted platform, the `ignore_certs` property in `serverless.yaml` needs to be `true`. This allows the client to be used against local deployments of OpenWhisk with a self-signed certificate.* 
+
+```yaml
+service: testing
+provider:
+  name: openwhisk
+  ignore_certs: true
+functions:
+  ...
+```
+
 ### Access Account Credentials
 
 The default environment has a guest account configured with the authentication key available here: https://github.com/openwhisk/openwhisk/blob/master/ansible/files/auth.guest

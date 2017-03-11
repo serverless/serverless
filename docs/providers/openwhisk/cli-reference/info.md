@@ -51,6 +51,5 @@ rules:
 my-hello-world-event-rule
 
 endpoints:
-https://xyz1234-gws.api-gw.mybluemix.net
-/hello-world GET -> hello-world
+GET https://xxx-gws.api-gw.mybluemix.net/api/path --> hello-world-dev-helloWorld
 ```

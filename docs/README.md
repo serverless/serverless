@@ -126,6 +126,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/openwhisk/guide/variables.md">Variables</a></li>
         <li><a href="./providers/openwhisk/guide/packaging.md">Packaging</a></li>
         <li><a href="./providers/openwhisk/guide/plugins.md">Plugins</a></li>
+        <li><a href="./providers/openwhisk/guide/web-actions.md">Web Actions</a></li>
         <li><a href="./providers/openwhisk/guide/workflow.md">Workflow</a></li>
         <li><a href="./providers/openwhisk/guide/serverless.yml.md">Serverless.yml</a></li>
       </ul>
@@ -164,6 +165,8 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
     <div>
       <ul>
         <li><a href="./providers/openwhisk/events/apigateway.md">API Gateway</a></li>
+        <li><a href="./providers/openwhisk/events/cloudant.md">Cloudant DB</a></li>
+        <li><a href="./providers/openwhisk/events/messagehub.md">Message Hub</a></li>
         <li><a href="./providers/openwhisk/events/schedule.md">Schedule</a></li>
         <li><a href="./providers/openwhisk/events/triggers.md">Triggers</a></li>
       </ul>
