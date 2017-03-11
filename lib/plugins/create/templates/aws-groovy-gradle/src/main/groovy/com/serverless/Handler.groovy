@@ -19,7 +19,7 @@ class Handler implements RequestHandler<Map<String, Object>, ApiGatewayResponse>
         .build()
     return ApiGatewayResponse.builder()
         .statusCode(200)
-        .body(responseBody)
+        .body(responseBody.toJson())
         .headers(['X-Powered-By': 'AWS Lambda & serverless'])
         .build()
   }

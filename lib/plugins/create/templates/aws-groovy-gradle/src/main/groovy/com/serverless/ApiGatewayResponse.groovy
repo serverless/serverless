@@ -7,6 +7,6 @@ import groovy.transform.builder.Builder
 @CompileStatic
 class ApiGatewayResponse {
   int statusCode
-  Response body
+  String body
   Map<String, String> headers
 }
