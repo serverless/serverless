@@ -84,6 +84,14 @@ module.exports = {
     return SNS.createTopicPromised(params);
   },
 
+  installPlugin: (installDir, PluginClass) => {
+    const pluginPkg = { name: path.basename(installDir), version: '0.0.0' };
+    const className = (new PluginClass()).constructor.name;
+    fse.outputFileSync(path.join(installDir, 'package.json'), JSON.stringify(pluginPkg), 'utf8');
+    fse.outputFileSync(path.join(installDir, 'index.js'),
+      `"use strict";\n${PluginClass.toString()}\nmodule.exports = ${className}`, 'utf8');
+  },
+
   removeSnsTopic(topicName) {
     const SNS = new AWS.SNS({ region: 'us-east-1' });
     BbPromise.promisifyAll(SNS, { suffix: 'Promised' });
