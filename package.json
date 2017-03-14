@@ -86,6 +86,7 @@
     "async": "^1.5.2",
     "aws-sdk": "^2.7.13",
     "bluebird": "^3.4.0",
+    "bluebird-queue": "0.0.8",
     "chalk": "^1.1.1",
     "download": "^5.0.2",
     "filesize": "^3.3.0",
