@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "dependencies": {
     "agent-base": {
       "version": "2.0.1",
@@ -45,6 +45,16 @@
       "version": "1.0.9",
       "from": "argparse@>=1.0.7 <2.0.0",
       "resolved": "https://registry.npmjs.org/argparse/-/argparse-1.0.9.tgz"
+    },
+    "array-union": {
+      "version": "1.0.2",
+      "from": "array-union@>=1.0.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/array-union/-/array-union-1.0.2.tgz"
+    },
+    "array-uniq": {
+      "version": "1.0.3",
+      "from": "array-uniq@>=1.0.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/array-uniq/-/array-uniq-1.0.3.tgz"
     },
     "async": {
       "version": "1.5.2",
@@ -818,18 +828,6 @@
       "version": "4.0.1",
       "from": "xtend@>=4.0.0 <5.0.0",
       "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.1.tgz"
-    },
-    "yargs": {
-      "version": "1.2.6",
-      "from": "yargs@>=1.2.6 <1.3.0",
-      "resolved": "https://registry.npmjs.org/yargs/-/yargs-1.2.6.tgz",
-      "dependencies": {
-        "minimist": {
-          "version": "0.1.0",
-          "from": "minimist@>=0.1.0 <0.2.0",
-          "resolved": "https://registry.npmjs.org/minimist/-/minimist-0.1.0.tgz"
-        }
-      }
     },
     "yauzl": {
       "version": "2.7.0",
