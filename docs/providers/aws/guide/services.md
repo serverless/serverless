@@ -94,6 +94,7 @@ provider:
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
   versionFunctions: false # Optional function versioning
+  cfRoleArn: 'arn:aws:iam:.....' # ARN of role to assume during provisioning
   stackTags: # Optional CF stack tags
    key: value
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
