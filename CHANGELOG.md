@@ -1,3 +1,16 @@
+# 1.9.0 (14.03.2017)
+- Fixed bug with serverless plugins lookup (#3180)
+- Fixed bug with `serverless create` generated .gitignore (#3355)
+- Fixed bug with authorizer claims (#3187)
+- Added support for CloudFormation service roles  (#3147)
+- Improvements for invoke local plugin (#3037)
+- Added Azure Functions Node.js template in `serverless create` (#3334)
+- Allow DynamoDB and Kinesis streams to use GetAtt/ImportValue (#3111)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.8.0...v1.9.0)
+
+
 # 1.8.0 (28.02.2017)
 ## Non-Breaking Changes
 
