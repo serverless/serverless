@@ -133,6 +133,7 @@ You can also return an object and reference a specific property.  Just make sure
 # serverless.yml
 service: new-service
 provider: openwhisk
+custom: ${file(../myCustomFile.js)} # You can reference the entire file
 functions:
   scheduledFunction:
       handler: handler.scheduledFunction
@@ -185,7 +186,7 @@ For example, if you want to reference the stage you're deploying to, but you don
 ```yml
 service: new-service
 provider:
-  name: openwhisk 
+  name: openwhisk
   stage: dev
 custom:
   myStage: ${opt:stage, self:provider.stage}
