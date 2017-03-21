@@ -156,7 +156,7 @@ module.exports = Deploy;
 
 ### Nesting Commands
 
-You can also nest commands, e.g. if you want to provide a command `serverless deploy single`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
+You can also nest commands, e.g. if you want to provide a command `serverless deploy function`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
 
 ```javascript
 'use strict';
