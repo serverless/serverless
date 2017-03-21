@@ -71,7 +71,7 @@ In this case `plugin1` is loaded before `plugin2`.
 
 #### Plugin
 
-Code which defines *Commands*, any *Events* within a *Command*, and any *Hooks* assigned to an *Lifecycle Event*.
+Code which defines *Commands*, any *Events* within a *Command*, and any *Hooks* assigned to a *Lifecycle Event*.
 
 * Command // CLI configuration, commands, subcommands, options
   * LifecycleEvent(s) // Events that happen sequentially when the command is run
@@ -102,7 +102,7 @@ module.exports = MyPlugin;
 
 #### Lifecycle Events
 
-Events that fire sequentially during a Command.  The above example list two Events.  However, for each Event, and additional `before` and `after` event is created.  Therefore, six Events exist in the above example:
+Events that fire sequentially during a Command.  The above example lists two Events.  However, for each Event, an additional `before` and `after` event is created.  Therefore, six Events exist in the above example:
 
 - `before:deploy:resources`
 - `deploy:resources`
@@ -156,7 +156,7 @@ module.exports = Deploy;
 
 ### Nesting Commands
 
-You can also nest commands, e.g. if you want to provide a command `serverless deploy single`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
+You can also nest commands, e.g. if you want to provide a command `serverless deploy function`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
 
 ```javascript
 'use strict';
