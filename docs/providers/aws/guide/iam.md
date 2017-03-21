@@ -41,7 +41,7 @@ provider:
          Fn::Join:
            - ""
            - - "arn:aws:s3:::"
-             - Ref : "ServerlessDeploymentBucket"
+             - Ref: ServerlessDeploymentBucket
              - "/*"
 
 ```
