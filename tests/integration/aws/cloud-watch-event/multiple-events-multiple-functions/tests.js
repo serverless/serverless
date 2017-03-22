@@ -4,7 +4,7 @@ const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-describe('AWS - CloudWathEvent: Multiple events with multiple functions', () => {
+describe('AWS - CloudWatch Event: Multiple events with multiple functions', () => {
   beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
     Utils.deployService();
