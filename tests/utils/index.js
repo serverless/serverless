@@ -137,26 +137,22 @@ module.exports = {
       });
   },
 
-  stopEc2(instanceId) {
-    const Ec2 = new AWS.EC2({ region: 'us-east-1' });
-    BbPromise.promisifyAll(Ec2, { suffix: 'Promised' });
-    const params = {
-      InstanceIds: [
-        instanceId,
-      ],
-    };
-    return Ec2.stopInstancesPromised(params);
-  },
+  putCloudWatchEvents(sources) {
+    const cwe = new AWS.CloudWatchEvents({ region: 'us-east-1' });
+    BbPromise.promisifyAll(cwe, { suffix: 'Promised' });
 
-  startEc2(instanceId) {
-    const Ec2 = new AWS.EC2({ region: 'us-east-1' });
-    BbPromise.promisifyAll(Ec2, { suffix: 'Promised' });
+    const entries = [];
+    sources.forEach(source => {
+      entries.push({
+        Source: source,
+        DetailType: 'serverlessDetailType',
+        Detail: '{ "key1": "value1" }',
+      });
+    });
     const params = {
-      InstanceIds: [
-        instanceId,
-      ],
+      Entries: entries,
     };
-    return Ec2.startInstancesPromised(params);
+    return cwe.putEventsPromised(params);
   },
 
   getFunctionLogs(functionName) {

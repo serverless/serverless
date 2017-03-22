@@ -11,42 +11,11 @@ functions:
       - cloudwatchEvent:
           event:
             source:
-              - aws.ec2
-            detail:
-              state:
-                - stopping
+              - serverless.testapp1
   cwe2:
     handler: handler.cwe2
     events:
       - cloudwatchEvent:
           event:
             source:
-              - aws.ec2
-            detail:
-              state:
-                - stopping
-resources:
-  Resources:
-    EC2Instance:
-      Type: AWS::EC2::Instance
-      Properties:
-        InstanceType: t2.micro
-        ImageId: ami-6869aa05
-        SubnetId:
-          Ref: Subnet
-    VPC:
-     Type: AWS::EC2::VPC
-     Properties:
-      CidrBlock: 10.0.0.0/16
-    Subnet:
-      Type: AWS::EC2::Subnet
-      Properties:
-        CidrBlock: 10.0.0.0/24
-        AvailabilityZone:  us-east-1a
-        VpcId:
-          Ref: VPC
-  Outputs:
-    InstanceId:
-      Description: InstanceId of the newly created EC2 instance
-      Value:
-        Ref: EC2Instance
+              - serverless.testapp1
