@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.6.1",
+  "version": "1.9.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -27,7 +27,7 @@
     "azure",
     "azure functions",
     "google cloud functions",
-    "ibm open whisk",
+    "apache open whisk",
     "iot",
     "internet of things",
     "serverless.com"
@@ -55,8 +55,7 @@
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
-    "postinstall": "node ./scripts/postinstall.js",
-    "preuninstall": "node ./scripts/preuninstall.js"
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
@@ -64,7 +63,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "coveralls": "^2.11.12",
+    "coveralls": "^2.12.0",
     "eslint": "^3.3.1",
     "eslint-config-airbnb": "^10.0.1",
     "eslint-config-airbnb-base": "^5.0.2",
@@ -92,7 +91,7 @@
     "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
     "get-stdin": "^5.0.1",
-    "glob-all": "^3.1.0",
+    "globby": "^6.1.0",
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",

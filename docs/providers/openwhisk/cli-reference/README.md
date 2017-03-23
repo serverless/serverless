@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Apache OpenWhisk - CLI Reference
-menuText: OpenWhisk
+menuText: CLI Reference
 layout: Doc
 -->
 

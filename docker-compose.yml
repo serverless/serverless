@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/app
       - ~/.aws/:/root/.aws
+      - ~/.gcloud/:/root/.gcloud
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -30,6 +31,10 @@ services:
     image: java:8
     volumes:
       - ./tmp/serverless-integration-test-aws-java-gradle:/app
+  aws-groovy-gradle:
+    image: java:8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-groovy-gradle:/app
   aws-scala-sbt:
     image: hseeberger/scala-sbt
     volumes:

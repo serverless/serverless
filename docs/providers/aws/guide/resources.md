@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/resources)
 <!-- DOCS-SITE-LINK:END -->
 
-# Resources
+# AWS - Resources
 
 If you are using AWS as a provider for your Service, all *Resources* are other AWS infrastructure resources which the AWS Lambda functions in your *Service* depend on, like AWS DynamoDB or AWS S3.
 
@@ -50,9 +50,9 @@ You can overwrite/attach any kind of resource to your CloudFormation stack. You 
 
 ## AWS CloudFormation Resource Reference
 
-To have consistent naming in the Cloudformation Templates that get deployed we use a standard pattern:
+To have consistent naming in the CloudFormation Templates that get deployed we use a standard pattern:
 
-`{Function Name}{Cloud Formation Resource Type}{ResourceName}{SequentialID or Random String}`
+`{Function Name}{Cloud Formation Resource Type}{Resource Name}{SequentialID or Random String}`
 
 * `Function Name` - This is optional for Resources that should be recreated when the function name gets changed. Those resources are also called *function bound*
 * `Cloud Formation Resource Type` - E.g., S3Bucket
@@ -67,19 +67,46 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |---                    |---                                                      | ---                           |
 | S3::Bucket            | S3Bucket{normalizedBucketName}                          | S3BucketMybucket              |
 |IAM::Role              | IamRoleLambdaExecution                                  | IamRoleLambdaExecution        |
-|IAM::Policy            | IamPolicyLambdaExecution                                | IamPolicyLambdaExecution      |
 |Lambda::Function       | {normalizedFunctionName}LambdaFunction                  | HelloLambdaFunction           |
 |Lambda::Version        | {normalizedFunctionName}LambdaVersion{sha256}                           | HelloLambdaVersionr3pgoTvv1xT4E4NiCL6JG02fl6vIyi7OS1aW0FwAI |
 |Logs::LogGroup         | {normalizedFunctionName}LogGroup                        | HelloLogGroup                 |
-|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index}</li><li>**IoT**: {normalizedFunctionName}LambdaPermissionIotTopicRule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermission{normalizedBucketName}S3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}SNS</li><li>**Alexa Skill**: {normalizedFunctionName}LambdaPermissionAlexaSkill</li> </ul> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1</li><li>**IoT**: HelloLambdaPermissionIotTopicRule1 </li><li>**S3**: HelloLambdaPermissionBucketS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionTopicSNS</li><li>**Alexa Skill**: HelloLambdaPermissionAlexaSkill</li> </ul>|
-|Events::Rule           | {normalizedFuntionName}EventsRuleSchedule{SequentialID} | HelloEventsRuleSchedule1      |
+|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index}</li><li>**CloudWatch Event**: {normalizedFunctionName}LambdaPermissionEventsRuleCloudWatchEvent{index}</li><li>**IoT**: {normalizedFunctionName}LambdaPermissionIotTopicRule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermission{normalizedBucketName}S3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}SNS</li><li>**Alexa Skill**: {normalizedFunctionName}LambdaPermissionAlexaSkill</li> </ul> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1</li><li>**CloudWatch Event**: HelloLambdaPermissionEventsRuleCloudWatchEvent1</li><li>**IoT**: HelloLambdaPermissionIotTopicRule1 </li><li>**S3**: HelloLambdaPermissionBucketS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionTopicSNS</li><li>**Alexa Skill**: HelloLambdaPermissionAlexaSkill</li> </ul>|
+|Events::Rule           | <ul><li>**Schedule**: {normalizedFuntionName}EventsRuleSchedule{SequentialID}</li><li>**CloudWatch Event**: {normalizedFuntionName}EventsRuleCloudWatchEvent{SequentialID}</li> </ul> | <ul><li>**Schedule**: HelloEventsRuleSchedule1</li><li>**CloudWatch Event**: HelloEventsRuleCloudWatchEvent1</li></ul>      |
 |AWS::IoT::TopicRule    | {normalizedFuntionName}IotTopicRule{SequentialID}       | HelloIotTopicRule1            |
 |ApiGateway::RestApi    | ApiGatewayRestApi                                       | ApiGatewayRestApi             |
 |ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | ApiGatewayResourceUsers       |
-|ApiGateway::Method     | ApiGatewayResource{normalizedPath}{normalizedMethod}    | ApiGatewayResourceUsersGet    |
+|ApiGateway::Method     | ApiGatewayMethod{normalizedPath}{normalizedMethod}      | ApiGatewayMethodUsersGet      |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
 |ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
 |SNS::Subscription      | {normalizedFunctionName}SnsSubscription{normalizedTopicName}   | HelloSnsSubscriptionSomeTopic             |
 |AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB:** {normalizedFunctionName}EventSourceMappingDynamodb{tableName}</li><li>**Kinesis:** {normalizedFunctionName}EventSourceMappingKinesis{streamName}</li></ul> | <ul><li>**DynamoDB:** HelloLambdaEventSourceMappingDynamodbUsers</li><li>**Kinesis:** HelloLambdaEventSourceMappingKinesisMystream</li></ul> |
+
+## Override AWS CloudFormation Resource
+
+You can override the specific CloudFormation resource to apply your own options. For example, if you want to set `AWS::Logs::LogGroup` retention time to 30 days, override it with above table's `Name Template`.
+
+When you do overriding the basic resources, the important part is `normalizedFunctionName`. There are two rules.
+
+- Should start with uppercase character.
+- The `-` will be changed to `Dash`, `_` will be changed to `Underscore`.
+
+Here's an example:
+
+```yml
+functions:
+  write-post:
+    handler: handler.writePost
+    events:
+      - http:
+          method: post
+          path: ${self:service}/api/posts/new
+          cors: true
+
+resources:
+  Resources:
+    WriteDashPostLogGroup:
+      Properties:
+        RetentionInDays: "30"
+```

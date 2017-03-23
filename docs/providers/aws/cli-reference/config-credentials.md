@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/config-credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Config Credentials
+# AWS - Config Credentials
 
 ```bash
 serverless config credentials --provider provider --key key --secret secret

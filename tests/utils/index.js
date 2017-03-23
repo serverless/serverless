@@ -84,6 +84,14 @@ module.exports = {
     return SNS.createTopicPromised(params);
   },
 
+  installPlugin: (installDir, PluginClass) => {
+    const pluginPkg = { name: path.basename(installDir), version: '0.0.0' };
+    const className = (new PluginClass()).constructor.name;
+    fse.outputFileSync(path.join(installDir, 'package.json'), JSON.stringify(pluginPkg), 'utf8');
+    fse.outputFileSync(path.join(installDir, 'index.js'),
+      `"use strict";\n${PluginClass.toString()}\nmodule.exports = ${className}`, 'utf8');
+  },
+
   removeSnsTopic(topicName) {
     const SNS = new AWS.SNS({ region: 'us-east-1' });
     BbPromise.promisifyAll(SNS, { suffix: 'Promised' });
@@ -117,6 +125,42 @@ module.exports = {
 
         return SNS.publishPromised(params);
       });
+  },
+
+  publishIotData(topic, message) {
+    const Iot = new AWS.Iot({ region: 'us-east-1' });
+    BbPromise.promisifyAll(Iot, { suffix: 'Promised' });
+
+    return Iot.describeEndpointPromised()
+      .then(data => {
+        const IotData = new AWS.IotData({ region: 'us-east-1', endpoint: data.endpointAddress });
+        BbPromise.promisifyAll(IotData, { suffix: 'Promised' });
+
+        const params = {
+          topic,
+          payload: new Buffer(message),
+        };
+
+        return IotData.publishPromised(params);
+      });
+  },
+
+  putCloudWatchEvents(sources) {
+    const cwe = new AWS.CloudWatchEvents({ region: 'us-east-1' });
+    BbPromise.promisifyAll(cwe, { suffix: 'Promised' });
+
+    const entries = [];
+    sources.forEach(source => {
+      entries.push({
+        Source: source,
+        DetailType: 'serverlessDetailType',
+        Detail: '{ "key1": "value1" }',
+      });
+    });
+    const params = {
+      Entries: entries,
+    };
+    return cwe.putEventsPromised(params);
   },
 
   getFunctionLogs(functionName) {

@@ -16,7 +16,7 @@ Every AWS Lambda function needs permission to interact with other AWS infrastruc
 
 ## The Default IAM Role
 
-By default, one IAM Role is shared by all of the Lambda functions in your service. An IAM Policy is also created and is attached to that Role.  Also by default, your Lambda functions have permissions to create and write to CloudWatch logs, and if you have specified VPC security groups and subnets for your Functions to use, then the EC2 rights necessary to attach to the VPC via an ENI will be added into the default IAM Policy.
+By default, one IAM Role is shared by all of the Lambda functions in your service. Also by default, your Lambda functions have permission to create and write to CloudWatch logs. When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated in order to communicate with your VPC resources.
 
 To add specific rights to this service-wide Role, define statements in `provider.iamRoleStatements` which will be merged into the generated policy.  As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
 
@@ -41,7 +41,8 @@ provider:
          Fn::Join:
            - ""
            - - "arn:aws:s3:::"
-             - Ref : "ServerlessDeploymentBucket"
+             - Ref: ServerlessDeploymentBucket
+             - "/*"
 
 ```
 
@@ -95,6 +96,9 @@ resources:
                 Service:
                   - lambda.amazonaws.com
               Action: sts:AssumeRole
+        # note that these rights are needed if you want your function to be able to communicate with resources within your vpc
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
         Policies:
           - PolicyName: myPolicyName
             PolicyDocument:

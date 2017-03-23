@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/intro)
 <!-- DOCS-SITE-LINK:END -->
 
-# Introduction
+# AWS - Introduction
 
 The Serverless Framework helps you develop and deploy your AWS Lambda functions, along with the AWS infrastructure resources they require.  It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
 
