@@ -145,6 +145,24 @@ module.exports = {
       });
   },
 
+  putCloudWatchEvents(sources) {
+    const cwe = new AWS.CloudWatchEvents({ region: 'us-east-1' });
+    BbPromise.promisifyAll(cwe, { suffix: 'Promised' });
+
+    const entries = [];
+    sources.forEach(source => {
+      entries.push({
+        Source: source,
+        DetailType: 'serverlessDetailType',
+        Detail: '{ "key1": "value1" }',
+      });
+    });
+    const params = {
+      Entries: entries,
+    };
+    return cwe.putEventsPromised(params);
+  },
+
   getFunctionLogs(functionName) {
     const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`);
     const logsString = new Buffer(logs, 'base64').toString();
