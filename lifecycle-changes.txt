@@ -11,5 +11,12 @@ aws:common:cleanupTempDir                  | Removes the Serverless temporary fo
 
 
 
-Hookable lifecycle events:
+Hookable lifecycle events
+
+aws:common:cleanupTempDir:cleanup
+---------------------------------
+  Triggered when the temporary '.serverless' directory is removed. Plugins can hook
+  before to make sure they can access things the very last time (an example would be
+  to generate or grab statistics from the directory).
+
 
