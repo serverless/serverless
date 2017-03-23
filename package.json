@@ -50,7 +50,7 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- -R spec --recursive",
+    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- --require=sinon-bluebird -R spec --recursive",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
@@ -78,7 +78,8 @@
     "mocha-lcov-reporter": "^1.2.0",
     "mock-require": "^1.3.0",
     "proxyquire": "^1.7.10",
-    "sinon": "^1.17.5"
+    "sinon": "^1.17.5",
+    "sinon-bluebird": "^3.1.0"
   },
   "dependencies": {
     "archiver": "^1.1.0",
