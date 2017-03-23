@@ -9,6 +9,7 @@ function integration-test {
 }
 
 integration-test aws-csharp 'apt-get -qq update && apt-get -qq -y install zip && dotnet restore && dotnet publish -c release && pushd bin/release/netcoreapp1.0/publish && zip -r ./deploy-package.zip ./* && popd'
+integration-test aws-groovy-gradle ./gradlew build
 integration-test aws-java-gradle ./gradlew build
 integration-test aws-java-maven mvn package
 integration-test aws-scala-sbt sbt assembly

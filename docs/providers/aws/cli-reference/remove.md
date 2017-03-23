@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/remove)
 <!-- DOCS-SITE-LINK:END -->
 
-# Remove
+# AWS - Remove
 
 The `sls remove` command will remove the deployed service, defined in your current working directory,  from the provider.
 

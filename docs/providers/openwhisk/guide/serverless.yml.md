@@ -28,6 +28,7 @@ provider:
   timeout: 10 # The default is 60  
   overwrite: true # Can we overwrite deployed functions? default is true
   namespace: 'custom' # use custom namespace, defaults to '_'
+  ignore_certs: true # ignore ssl verification issues - used for local deploys
   
 functions:
   usersCreate: # A Function
@@ -41,6 +42,8 @@ functions:
     runtime: nodejs:6
     overwrite: false # Can we overwrite deployed function? 
     namespace: 'custom' # use custom namespace, defaults to '_'
+    annotations:
+        parameter_name: value
     events: # The Events that trigger this Function
     # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
       - http: METHOD /path/to/url
@@ -61,5 +64,4 @@ resources:
       feed: /whisk.system/alarms/alarm
       feed_parameters: 
         cron: '*/8 * * * * *'
-
 ```

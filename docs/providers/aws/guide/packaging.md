@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/packaging)
 <!-- DOCS-SITE-LINK:END -->
 
-# Packaging
+# AWS - Packaging
 
 Sometimes you might like to have more control over your function artifacts and how they are packaged.
 

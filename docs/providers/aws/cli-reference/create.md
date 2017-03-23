@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/create)
 <!-- DOCS-SITE-LINK:END -->
 
-# Create
+# AWS - Create
 
 Creates a new service in the current working directory based on the provided template.
 
@@ -42,6 +42,7 @@ Most commonly used templates:
 
 - aws-nodejs
 - aws-python
+- aws-groovy-gradle
 - aws-java-maven
 - aws-java-gradle
 - aws-scala-sbt

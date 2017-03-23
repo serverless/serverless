@@ -10,10 +10,10 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/config-credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Config Credentials
+# OpenWhisk - Config Credentials
 
 ```bash
-serverless config credentials --provider provider --apihost apihost --auth auth 
+serverless config credentials --provider provider --apihost apihost --auth auth
 ```
 
 ## Options

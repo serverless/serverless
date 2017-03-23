@@ -1,0 +1,18 @@
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+
+functions:
+  cwe1:
+    handler: handler.cwe1
+    events:
+      - cloudwatchEvent:
+          event:
+            source:
+              - serverless.testapp1
+      - cloudwatchEvent:
+          event:
+            source:
+              - serverless.testapp2

@@ -10,13 +10,15 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Credentials
+# AWS - Credentials
 
-The Serverless Framework needs access to your cloud providers account so that it can create and manage resources on your behalf.
+The Serverless Framework needs access to your cloud provider's account so that it can create and manage resources on your behalf.
 
 Here we'll provide setup instructions for different cloud provider accounts. Just pick the one for your provider and follow the steps to get everything in place for Serverless.
 
 At this time, the Serverless Framework supports only Amazon Web Services, but support for other providers is in the works.
+
+[Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
 
 ## Amazon Web Services
 
@@ -24,7 +26,7 @@ At this time, the Serverless Framework supports only Amazon Web Services, but su
 
 Here's how to set up the Serverless Framework with your Amazon Web Services account.
 
-If you're new to Amazon Web Services, make sure you put in a credit card.  
+If you're new to Amazon Web Services, make sure you put in a credit card.
 
 All AWS users get access to the Free Tier for [AWS Lambda](https://aws.amazon.com/lambda/pricing/). AWS Lambda is part of the non-expiring [AWS Free Tier](https://aws.amazon.com/free/#AWS_FREE_TIER).
 
@@ -123,7 +125,7 @@ Now you can switch per project (/ API) by executing once when you start your pro
 
 `export AWS_PROFILE="profileName2" && export AWS_REGION=eu-west-1`.
 
-in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`. 
+in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
 The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
 
 #### Per Stage Profiles
@@ -145,3 +147,10 @@ custom:
     dev: devProfile
     prod: prodProfile
 ```
+
+#### Profile in place with the 'invoke local' command
+
+**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yaml` configuration file.
+Thus, most likely, a different set of permissions will be in place, altering the interaction between your lambda functions and others AWS resources.
+
+*Please, refer to the `invoke local` CLI command documentation for more details.*
