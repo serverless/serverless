@@ -69,10 +69,11 @@ In general, the addition of event deprecation enables all plugin authors (may it
 be the Serverless team or external ones) to get rid of old implementations over
 time and encourage people to adapt and use new technologies.
 
-#### Decaring events as deprecated
+#### Declaring events as deprecated
 
 To declare an event as deprecated, simply prefix it with `deprecated#` and optionally
-add the new event that it will be redirected to with `->` at the end. This allows you even to "redirect" deprecated events to completely different events in
+add the new event that it will be redirected to with `->` at the end. This allows you
+even to "redirect" deprecated events to completely different events in
 different commands.
 
 I know that this looks really ugly in the lifecycle array, but this is intentional.
@@ -214,6 +215,8 @@ the `deploy`command.
 
 **package:compileFunctions**
 
+**package:compileEvents**
+
 **package:finalize**
 
     -> aws:package:finalize:mergeCustomProviderResources
@@ -256,6 +259,10 @@ aws:common:validate | Performs the global validation (../lib/validate)
   * Unit tests for new spawn() call signature
     spawn() now accepts specifying commands as string ('cmd:subcmd:subcmd').
     We need a unit test for that.
+* Deploy
+  * Unit tests for extended validation
+    * Check state restore and save
+    * Check file exist checks
 
 # Sample lifecycle implementation (AWS deploy)
 
