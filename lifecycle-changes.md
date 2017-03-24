@@ -185,17 +185,30 @@ the `deploy`command.
 
 ## Lifecycle events (outer events in bold, complete graph)
 
-**package:createDeploymentArtifacts**
+'cleanup',
+'initialize',
+'createDeploymentArtifacts',
+'compileFunctions',
+'compileEvents',
+'packageService',
+'finalize',
 
-    -> aws:package:createDeploymentArtifacts:validate
-       -> aws:common:validate:validate
-    -> aws:package:createDeploymentArtifacts:packageService
+**package:cleanup**
+
+    -> aws:common:validate:validate
+    -> aws:common:cleanupTempDir
 
 **package:initialize**
 
     -> aws:package:initialize:generateCoreTemplate
     -> aws:package:initialize:mergeIamTemplates
     -> aws:package:initialize:generateArtifactDirectoryName
+
+**package:createDeploymentArtifacts**
+
+    -> aws:package:createDeploymentArtifacts:validate
+       -> aws:common:validate:validate
+    -> aws:package:createDeploymentArtifacts:packageService
 
 **package:compileFunctions**
 
