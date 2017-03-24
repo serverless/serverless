@@ -112,9 +112,9 @@ project we have.
 #### Test 1: Plain sample project
 OK
 #### Test 2: Sample project with webpack
-IN PROGRESS
+OK
 #### Test 3: Sample project with webpack and alias plugin
-IN PROGRESS
+OK - serverless deploy, severless package --package=out, serverless deploy --package=out
 #### Test 4: Complex production project with webpack and alias plugin
 NOT STARTED
 
