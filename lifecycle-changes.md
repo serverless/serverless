@@ -28,9 +28,19 @@ as each command can spawn the well known lifecycles that are already used by plu
 guarantees that everyone who depends e.g. on `deploy:deploy` hooks will be triggered,
 regardless, if the user run a packaged or full deploy.
 
-### Serverless state
+### Commands / Invocations
 
-The package command will, shortly said, store the compiled CF template and the deploy
+#### Serverless deploy
+
+The `serverless deploy` command is completely non-breaking. The complete serverless
+internal state is kept along the package and deploy stages of the invocation.
+
+Lifecycle events that have been moved to the package stage are redirected automatically
+and tagged as deprecated (see below).
+
+### Serverless package / deploy
+
+The package command will, shortly said, store the Serverless service state and the deploy
 command will reload it and continue with the loaded state. Plugins hooked into `before:deploy:deploy`
 will have the same state as before the change and will continue to work as before. This also
 applies to plugins that hooked `deploy:initialize`.
@@ -200,25 +210,14 @@ the `deploy`command.
 
 **package:initialize**
 
-    -> aws:package:initialize:generateCoreTemplate
-    -> aws:package:initialize:mergeIamTemplates
-    -> aws:package:initialize:generateArtifactDirectoryName
-
 **package:createDeploymentArtifacts**
 
-    -> aws:package:createDeploymentArtifacts:validate
-       -> aws:common:validate:validate
-    -> aws:package:createDeploymentArtifacts:packageService
-
 **package:compileFunctions**
-
-**package:compileEvents**
 
 **package:finalize**
 
     -> aws:package:finalize:mergeCustomProviderResources
-    -> aws:package:finalize:saveCompiledTemplate
-
+    -> aws:package:finalize:saveServiceState
 
 # Common
 
