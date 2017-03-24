@@ -76,6 +76,8 @@ functions:
 #            detail:
 #              state:
 #                - pending
+#      - cloudwatchLog:
+#          logGroup: '/aws/lambda/hello'
 
 #    Define function environment variables here
 #    environment:
