@@ -169,13 +169,8 @@ artifacts are uploaded to S3 to add their own files for example.
 
 ## Lifecycle events (outer events in bold, complete graph)
 
-**deploy:initialize**
-
-    -> aws:deploy:initialize:validate
-       -> aws:common:validate:validate
-    -> aws:deploy:initialize:package
-       -> package:package (if packaging is needed the package command lifecycle is spawned here)
-    -> aws:deploy:initialize:validatePackage
+If the deploy command is run without the --package option, it will
+spawn the package command first.
 
 **deploy:deploy**
 
@@ -196,14 +191,6 @@ the `deploy`command.
 
 ## Lifecycle events (outer events in bold, complete graph)
 
-'cleanup',
-'initialize',
-'createDeploymentArtifacts',
-'compileFunctions',
-'compileEvents',
-'packageService',
-'finalize',
-
 **package:cleanup**
 
     -> aws:common:validate:validate
@@ -221,6 +208,7 @@ the `deploy`command.
 
     -> aws:package:finalize:mergeCustomProviderResources
     -> aws:package:finalize:saveServiceState
+    -> aws:common:moveArtifactsToPackage:move
 
 # Common
 
