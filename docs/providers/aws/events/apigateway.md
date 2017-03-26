@@ -38,7 +38,9 @@ functions:
   index:
     handler: handler.hello
     events:
-      - http: GET hello
+      - http:
+          path: hello
+          method: GET
 ```
 
 ```javascript

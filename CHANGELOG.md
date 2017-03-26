@@ -1,3 +1,18 @@
+# 1.10.0
+## Breaking Changes
+### Removed string representation of http event
+We have removed string representation of of http event(http: GET myPath). It should be specified in object format.
+```yml
+# serverless.yml
+functions:
+  index:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: GET
+```
+
 # 1.9.0 (14.03.2017)
 - Fixed bug with serverless plugins lookup (#3180)
 - Fixed bug with `serverless create` generated .gitignore (#3355)
