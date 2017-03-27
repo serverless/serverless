@@ -25,9 +25,10 @@ functions:
           logGroup: '/aws/lambda/hello'
 ```
 
-## Specify filter
+## Specifying a filter
 
-You can specify a filter rule.
+Here's an example how you can specify a filter rule.
+
 For more information about the filter pattern syntax, see [Filter and Pattern Syntax](http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html)
 
 ```yml
