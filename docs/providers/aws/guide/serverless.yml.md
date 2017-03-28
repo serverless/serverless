@@ -23,7 +23,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   profile: production # The default profile to use with this service

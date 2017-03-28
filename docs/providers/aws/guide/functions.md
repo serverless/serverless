@@ -24,7 +24,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   memorySize: 512 # optional, default is 1024
   timeout: 10 # optional, default is 6
   versionFunctions: false # optional, default is true
@@ -55,7 +55,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
 
 functions:
   functionOne:
@@ -75,7 +75,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   memorySize: 512 # will be inherited by all functions
 
 functions:
@@ -91,7 +91,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
 
 functions:
   functionOne:
@@ -109,7 +109,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   iamRoleStatements: # permissions for all of your functions can be set here
     - Effect: Allow
       Action: # Gives permission to DynamoDB tables in a specific region
