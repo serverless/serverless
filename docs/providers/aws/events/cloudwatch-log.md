@@ -21,8 +21,7 @@ functions:
   myCloudWatchLog:
     handler: myCloudWatchLog.handler
     events:
-      - cloudwatchLog:
-          logGroup: '/aws/lambda/hello'
+      - cloudwatchLog: '/aws/lambda/hello'
 ```
 
 ## Specifying a filter
