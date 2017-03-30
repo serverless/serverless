@@ -150,7 +150,7 @@ custom:
 
 #### Profile in place with the 'invoke local' command
 
-**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yaml` configuration file.
+**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yml` configuration file.
 Thus, most likely, a different set of permissions will be in place, altering the interaction between your lambda functions and others AWS resources.
 
 *Please, refer to the `invoke local` CLI command documentation for more details.*
