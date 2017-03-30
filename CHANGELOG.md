@@ -1,3 +1,10 @@
+# 1.10.1 (30.03.2017)
+- Update serverless-alpha detection (#3423)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.10.0...v1.10.1)
+
+
 # 1.10.0 (29.03.2017)
 - Fixed bug with ANY http method (#3304)
 - Reduced unit test time significantly (#3359)
