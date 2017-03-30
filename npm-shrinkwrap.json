@@ -626,6 +626,11 @@
       "from": "replaceall@>=0.1.6 <0.2.0",
       "resolved": "https://registry.npmjs.org/replaceall/-/replaceall-0.1.6.tgz"
     },
+    "resolve-from": {
+      "version": "2.0.0",
+      "from": "resolve-from@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/resolve-from/-/resolve-from-2.0.0.tgz"
+    },
     "rimraf": {
       "version": "2.5.4",
       "from": "rimraf@>=2.2.8 <3.0.0",
