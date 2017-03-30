@@ -68,7 +68,7 @@ provider:
 functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function.
-    description: # The description of your function.
+    description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which which will be used for this function
