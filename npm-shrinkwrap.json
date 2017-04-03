@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "dependencies": {
     "agent-base": {
       "version": "2.0.1",

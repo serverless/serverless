@@ -1,3 +1,6 @@
+# 1.10.2 (3.04.2017)
+- Add support for packaging functions individually at the function level (#3433)
+
 # 1.10.1 (30.03.2017)
 - Update serverless-alpha detection (#3423)
 
