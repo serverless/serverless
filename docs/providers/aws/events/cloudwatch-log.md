@@ -1,3 +1,5 @@
+ss
+
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudWatch Log
 menuText: CloudWatch Log
@@ -11,6 +13,41 @@ layout: Doc
 <!-- DOCS-SITE-LINK:END -->
 
 # CloudWatch Log
+
+## Current gotchas
+
+We have one problem on this event.
+If you replace the same logGroup name with another function statement in serverless.yml and run `sls deploy`, the deployment will fail with an error.
+We will fix it in an upcoming release, please be careful of this note when using this event.
+
+Here's step to reproduce.
+First, write serverless.yml as follow and run `sls deply`.
+
+```yml
+functions:
+  hello1:
+    handler: handler.hello1
+    events:
+      - cloudwatchLog: '/aws/lambda/hello1'
+  hello2:
+    handler: handler.hello2
+    events:
+      - cloudwatchLog: '/aws/lambda/hello2'
+```
+
+Next, edit serverless.yml(replace logGroup name) as follow and run `sls deploy` again, then the deployment would fail.
+
+```yml
+functions:
+  hello1:
+    handler: handler.hello1
+    events:
+      - cloudwatchLog: '/aws/lambda/hello2'
+  hello2:
+    handler: handler.hello2
+    events:
+      - cloudwatchLog: '/aws/lambda/hello1'
+```
 
 ## Simple event definition
 
