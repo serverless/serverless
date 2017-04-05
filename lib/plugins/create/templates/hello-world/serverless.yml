@@ -19,6 +19,6 @@ functions:
     # The `events` block defines how to trigger the handler.helloWorld code
     events:
       - http:
-          path: hello
+          path: hello-world
           method: get
           cors: true
