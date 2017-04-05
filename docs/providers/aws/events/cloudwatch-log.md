@@ -1,5 +1,3 @@
-ss
-
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudWatch Log
 menuText: CloudWatch Log
