@@ -131,6 +131,9 @@ functions:
             stageParams:
               stage: dev
           inputPath: '$.stageVariables'
+      - cloudwatchLog:
+          logGroup: '/aws/lambda/hello'
+          filter: '{$.userIdentity.type = Root}'
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
