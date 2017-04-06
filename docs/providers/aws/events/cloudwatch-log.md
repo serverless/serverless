@@ -12,41 +12,6 @@ layout: Doc
 
 # CloudWatch Log
 
-## Current gotchas
-
-We have one problem on this event.
-If you replace the same logGroup name with another function statement in serverless.yml and run `sls deploy`, the deployment will fail with an error.
-We will fix it in an upcoming release, please be careful of this note when using this event.
-
-Here's step to reproduce.
-First, write serverless.yml as follow and run `sls deply`.
-
-```yml
-functions:
-  hello1:
-    handler: handler.hello1
-    events:
-      - cloudwatchLog: '/aws/lambda/hello1'
-  hello2:
-    handler: handler.hello2
-    events:
-      - cloudwatchLog: '/aws/lambda/hello2'
-```
-
-Next, edit serverless.yml(replace logGroup name) as follow and run `sls deploy` again, then the deployment would fail.
-
-```yml
-functions:
-  hello1:
-    handler: handler.hello1
-    events:
-      - cloudwatchLog: '/aws/lambda/hello2'
-  hello2:
-    handler: handler.hello2
-    events:
-      - cloudwatchLog: '/aws/lambda/hello1'
-```
-
 ## Simple event definition
 
 This will enable your Lambda function to be called by an Log Stream.
@@ -73,4 +38,44 @@ functions:
       - cloudwatchLog:
           logGroup: '/aws/lambda/hello'
           filter: '{$.userIdentity.type = Root}'
+```
+
+## Current gotchas
+
+There's currently one gotcha you might face if you use this event definition.
+
+The deployment will fail with an error that a resource limit exceeded if you replace the `logGroup` name of one function with the `logGroup` name of another function in your `serverless.yml` file and run `serverless deploy` (see below for an in-depth example).
+
+This is caused by the fact that CloudFormation tries to attach the new subscription filter before detaching the old one. CloudWatch Logs only support one subscription fitlter per log group as you can read in the documentation about [CloudWatch Logs Limits](http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html).
+
+Please keep this gotcha in mind when using this event. We will fix it in an upcoming release.
+
+### Example
+
+Update your `serverless.yml` file as follows and run `serverless deploy`.
+
+```yml
+functions:
+  hello1:
+    handler: handler.hello1
+    events:
+      - cloudwatchLog: '/aws/lambda/hello1'
+  hello2:
+    handler: handler.hello2
+    events:
+      - cloudwatchLog: '/aws/lambda/hello2'
+```
+
+Next up, edit `serverless.yml` and swap out the `logGroup` names. After that run `serverless deploy` again (the dpeloyment will fail).
+
+```yml
+functions:
+  hello1:
+    handler: handler.hello1
+    events:
+      - cloudwatchLog: '/aws/lambda/hello2'
+  hello2:
+    handler: handler.hello2
+    events:
+      - cloudwatchLog: '/aws/lambda/hello1'
 ```
