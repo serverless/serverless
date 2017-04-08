@@ -4,25 +4,17 @@ const path = require('path');
 const expect = require('chai').expect;
 const execSync = require('child_process').execSync;
 const AWS = require('aws-sdk');
-const EOL = require('os').EOL;
 const fs = require('fs');
 
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 const Utils = require('../../../../utils/index');
 
-describe('AWS - General: Deployment with --noDeploy', () => {
+describe('AWS - General: package', () => {
   let serviceName;
-  let deploy;
 
   beforeAll(() => {
     serviceName = Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
-    deploy = execSync(`${Utils.serverlessExec} deploy --noDeploy`);
-  });
-
-  it('should deploy package with --noDeploy flag', () => {
-    const result = new Buffer(deploy, 'base64').toString();
-    const resultLines = result.split(EOL);
-    expect(resultLines[1]).to.have.string('--noDeploy');
+    execSync(`${Utils.serverlessExec} package`);
   });
 
   it('should have create cloudformation files and functions zip', () => {
