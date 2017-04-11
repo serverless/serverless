@@ -95,3 +95,18 @@ functions:
     handler: handler.functionOne
     memory: 512 # function specific
 ```
+
+## Runtimes
+
+The OpenWhisk provider plugin supports the following runtimes. 
+
+- Node.js
+- Python
+- Swift
+- Binary
+- Docker
+
+Please see the following repository for sample projects using those runtimes. 
+
+[https://github.com/serverless/examples/](https://github.com/serverless/examples/)
+
