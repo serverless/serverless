@@ -34,6 +34,7 @@ milestone if still open
 
 ## Segment Configuration
 - [ ] Update Segment.io key in Utils.js (never push the key to GitHub and revert afterwards with `git checkout .`)
+- [ ] Check twice if you've used the correct key (**if in doubt ask which one to pick!**)
 - [ ] Run `./bin/serverless help` and filter for this new version in the Segment debugger to make sure data is sent to Segment for this new version
 
 ## Release to NPM
