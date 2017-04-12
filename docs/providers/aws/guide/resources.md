@@ -111,3 +111,40 @@ resources:
       Properties:
         RetentionInDays: "30"
 ```
+
+
+## Override S3 Bucket Resource
+S3 buckets can be overridden by using a matching bucket name in the s3 event and resources section:
+```yml
+functions:
+ upload-hook:
+    handler: api/upload-hook/index.handler
+    events:
+      - s3:
+          bucket: ${self:service}.${self:custom.stage}.assets
+          event: s3:ObjectCreated:*
+
+resources:
+  Resources:
+    AssetsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: Private
+        BucketName: "${self:service}.${self:custom.stage}.assets"
+        CorsConfiguration:
+          CorsRules:
+          - AllowedOrigins:
+              - http://example.dev:3001
+            AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+              - GET
+          - AllowedOrigins:
+              - https://dev.example.com
+            AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+              - GET
+```
