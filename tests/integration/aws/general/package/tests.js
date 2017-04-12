@@ -9,7 +9,7 @@ const fs = require('fs');
 const CF = new AWS.CloudFormation({ region: 'us-east-1' });
 const Utils = require('../../../../utils/index');
 
-describe('AWS - General: package', () => {
+describe('AWS - General: Package', () => {
   let serviceName;
 
   beforeAll(() => {
