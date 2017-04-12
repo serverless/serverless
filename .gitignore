@@ -44,3 +44,6 @@ tmpdirs-serverless
 
 # ESLint cache
 .eslintcache
+
+# Misc
+jest
