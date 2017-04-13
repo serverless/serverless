@@ -1,0 +1,13 @@
+{
+  "name": "openwhisk-swift",
+  "version": "1.0.0",
+  "description": "Sample OpenWhisk Swift serverless framework service.",
+  "main": "handler.js",
+  "scripts": {
+    "postinstall": "npm link serverless-openwhisk"
+  },
+  "keywords": [
+    "serverless",
+    "openwhisk"
+  ]
+}
