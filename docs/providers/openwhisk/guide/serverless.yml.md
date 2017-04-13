@@ -44,6 +44,8 @@ functions:
     namespace: 'custom' # use custom namespace, defaults to '_'
     annotations:
         parameter_name: value
+    parameters:
+    	parameter_name: value
     events: # The Events that trigger this Function
     # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
       - http: METHOD /path/to/url

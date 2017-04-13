@@ -18,6 +18,8 @@ This runs your code locally by emulating the Apache OpenWhisk environment. Pleas
 serverless invoke local --function functionName
 ```
 
+__*Please note that only the JavaScript and Python runtimes are supported with this command.*__
+
 ## Options
 
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
@@ -60,4 +62,4 @@ This example will pass the json data in the `lib/data.json` file (relative to th
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs
+Currently, `invoke local` only supports the NodeJs and Python runtimes.
