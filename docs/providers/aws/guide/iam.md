@@ -109,7 +109,14 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resource: arn:aws:logs:${region}:${accountId}:log-group:/aws/lambda/*:*:*
+                  Resources:
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*:*'
                 -  Effect: "Allow"
                    Action:
                      - "s3:PutObject"
