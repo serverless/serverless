@@ -1,3 +1,12 @@
+# 1.11.0 (12.04.2017)
+- Add CloudWatch Logs Event Source (#3407)
+- Add version description from function (#3429)
+- Add support for packaging functions individually (#3433)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.10.2...v1.11.0)
+
+
 # 1.10.2 (3.04.2017)
 - Add support for packaging functions individually at the function level (#3433)
 

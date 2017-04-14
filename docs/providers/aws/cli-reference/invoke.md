@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke
 menuText: Invoke
-menuOrder: 7
+menuOrder: 8
 description: Invoke an AWS Lambda Function using the Serverless Framework
 layout: Doc
 -->

@@ -1,7 +1,7 @@
 <!--
 title: Hello World Example
 menuText: Hello World Example
-description: Example of creating a Hello World function in Node.js with the Serverless framework
+description: Example of creating Hello World functions with the Serverless framework
 layout: Doc
 -->
 
@@ -16,5 +16,7 @@ Welcome to the Hello World example.
 Pick your language of choice:
 
 * [JavaScript](./node)
+* [Python](./python)
+* [Swift](./swift)
 
 [View all examples](https://www.serverless.com/framework/docs/providers/openwhisk/examples/)

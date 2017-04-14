@@ -41,6 +41,8 @@ To see a list of available templates run `serverless create --help`
 Most commonly used templates:
 
 - openwhisk-nodejs
+- openwhisk-python
+- openwhisk-swift
 - plugin
 
 ## Examples
@@ -51,8 +53,7 @@ Most commonly used templates:
 serverless create --template openwhisk-nodejs --name my-special-service
 ```
 
-This example will generate scaffolding for a service with `openwhisk` as a provider and `nodejs:6` as runtime. The scaffolding
-will be generated in the current working directory.
+This example will generate scaffolding for a service with `openwhisk` as a provider and `nodejs:6` as runtime. The scaffolding will be generated in the current working directory.
 
 The provider which is used for deployment later on is Apache OpenWhisk.
 
@@ -62,12 +63,9 @@ The provider which is used for deployment later on is Apache OpenWhisk.
 serverless create --template openwhisk-nodejs --path my-new-service
 ```
 
-This example will generate scaffolding for a service with `openwhisk` as a provider and `nodejs` as runtime. The scaffolding
-will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless
-will use the already present directory.
+This example will generate scaffolding for a service with `openwhisk` as a provider and `nodejs` as runtime. The scaffolding will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless will use the already present directory.
 
-Additionally Serverless will rename the service according to the path you provide. In this example the service will be
-renamed to `my-new-service`.
+Additionally Serverless will rename the service according to the path you provide. In this example the service will be renamed to `my-new-service`.
 
 ### Creating a new plugin
 
