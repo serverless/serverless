@@ -37,7 +37,7 @@ functions:
 
 Events are objects, which can contain event-specific information.
 
-The `events` property is an array, because it's possible for functions to be triggered by multple events, as shown
+The `events` property is an array, because it's possible for functions to be triggered by multiple events, as shown.
 
 You can set multiple Events per Function, as long as that is supported by AWS.
 

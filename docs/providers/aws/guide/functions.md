@@ -24,7 +24,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   memorySize: 512 # optional, default is 1024
   timeout: 10 # optional, default is 6
   versionFunctions: false # optional, default is true
@@ -55,7 +55,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
 
 functions:
   functionOne:
@@ -75,7 +75,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   memorySize: 512 # will be inherited by all functions
 
 functions:
@@ -91,7 +91,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
 
 functions:
   functionOne:
@@ -109,7 +109,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   iamRoleStatements: # permissions for all of your functions can be set here
     - Effect: Allow
       Action: # Gives permission to DynamoDB tables in a specific region
@@ -226,7 +226,7 @@ The Lambda function execution role must have permissions to create, describe and
 
 ## Environment Variables
 
-You can add Environment Variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of string:
+You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of strings:
 
 ```yml
 # serverless.yml
@@ -240,7 +240,7 @@ functions:
       TABLE_NAME: tableName
 ```
 
-Or if you want to apply Environment Variable configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Environment Variable configured at the function level are overwriting the ones defined at the service level. For example:
+Or if you want to apply environment variable configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Environment variables configured at the function level are merged with those at the provider level, so your function with specific environment variables will also have access to the environment variables defined at the provider level. If an environment variable with the same key is defined at both the function and provider levels, the function-specific value overrides the provider-level default value. For example:
 
 ```yml
 # serverless.yml
@@ -248,12 +248,16 @@ service: service-name
 provider:
   name: aws
   environment:
+    SYSTEM_NAME: mySystem
     TABLE_NAME: tableName1
 
 functions:
-  hello: # this function will INHERIT the service level environment config above
+  hello:
+    # this function will have SYSTEM_NAME=mySystem and TABLE_NAME=tableName1 from the provider-level environment config above
     handler: handler.hello
-  users: # this function will OVERWRITE the service level environment config above
+  users:
+    # this function will have SYSTEM_NAME=mySystem from the provider-level environment config above
+    # but TABLE_NAME will be tableName2 because this more specific config will override the default above
     handler: handler.users
     environment:
       TABLE_NAME: tableName2

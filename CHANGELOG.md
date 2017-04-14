@@ -1,3 +1,38 @@
+# 1.11.0 (12.04.2017)
+- Add CloudWatch Logs Event Source (#3407)
+- Add version description from function (#3429)
+- Add support for packaging functions individually (#3433)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.10.2...v1.11.0)
+
+
+# 1.10.2 (3.04.2017)
+- Add support for packaging functions individually at the function level (#3433)
+
+# 1.10.1 (30.03.2017)
+- Update serverless-alpha detection (#3423)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.10.0...v1.10.1)
+
+
+# 1.10.0 (29.03.2017)
+- Fixed bug with ANY http method (#3304)
+- Reduced unit test time significantly (#3359)
+- Added AWS Groovy Gradle Template (#3353)
+- Reduce dependency tree depth between IAM & Log Groups (#3360)
+- Added entrypoints for plugins (#3327)
+- Removed pre-install script (#3385)
+- Expose plugin hooks  (#2985)
+- Add support for Node 6 runtime in invoke local (#3403)
+- Updated Node.js templates to include Node 6 runtime by default (#3406)
+- Removed breaking changes warnings (#3418)
+- Auto loading serverless-alpha plugin (#3373)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.9.0...v1.10.0)
+
 # 1.9.0 (14.03.2017)
 - Fixed bug with serverless plugins lookup (#3180)
 - Fixed bug with `serverless create` generated .gitignore (#3355)

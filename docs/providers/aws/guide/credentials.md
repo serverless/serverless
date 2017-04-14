@@ -101,7 +101,7 @@ You can even set up different profiles for different accounts, which can be used
 service: new-service
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: dev
   profile: devProfile
 ```
@@ -138,7 +138,7 @@ This example `serverless.yml` snippet will load the profile depending upon the s
 service: new-service
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.profiles.${self:provider.stage}}
 custom:
@@ -150,7 +150,7 @@ custom:
 
 #### Profile in place with the 'invoke local' command
 
-**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yaml` configuration file.
+**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yml` configuration file.
 Thus, most likely, a different set of permissions will be in place, altering the interaction between your lambda functions and others AWS resources.
 
 *Please, refer to the `invoke local` CLI command documentation for more details.*

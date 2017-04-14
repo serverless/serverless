@@ -55,6 +55,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/cli-reference/config-credentials.md">Config Credentials</a></li>
         <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
         <li><a href="./providers/aws/cli-reference/install.md">Install</a></li>
+        <li><a href="./providers/aws/cli-reference/package.md">Package</a></li>
         <li><a href="./providers/aws/cli-reference/deploy.md">Deploy</a></li>
         <li><a href="./providers/aws/cli-reference/deploy-function.md">Deploy Function</a></li>
         <li><a href="./providers/aws/cli-reference/deploy-list.md">Deploy List</a></li>
@@ -86,6 +87,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/events/alexa-skill.md">Alexa Skill</a></li>
         <li><a href="./providers/aws/events/iot.md">IoT</a></li>
         <li><a href="./providers/aws/events/cloudwatch-event.md">CloudWatch Event</a></li>
+        <li><a href="./providers/aws/events/cloudwatch-log.md">CloudWatch Log</a></li>
       </ul>
     </div>
   </div>

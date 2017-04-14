@@ -23,7 +23,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   profile: production # The default profile to use with this service
@@ -68,6 +68,7 @@ provider:
 functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function.
+    description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which which will be used for this function
@@ -130,6 +131,9 @@ functions:
             stageParams:
               stage: dev
           inputPath: '$.stageVariables'
+      - cloudwatchLog:
+          logGroup: '/aws/lambda/hello'
+          filter: '{$.userIdentity.type = Root}'
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:

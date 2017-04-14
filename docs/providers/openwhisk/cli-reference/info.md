@@ -52,4 +52,7 @@ my-hello-world-event-rule
 
 endpoints:
 GET https://xxx-gws.api-gw.mybluemix.net/api/path --> hello-world-dev-helloWorld
+
+endpoints (web actions):
+**no web actions deployed**
 ```
