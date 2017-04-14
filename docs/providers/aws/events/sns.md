@@ -50,7 +50,7 @@ functions:
       - sns: arn:xxx
 ```
 
-Or with intrinsic cloud formation function like `Fn::Join` or `Fn::GetAtt`,
+Or with intrinsic CloudFormation function like `Fn::Join` or `Fn::GetAtt`.
 
 ```yml
 functions:
