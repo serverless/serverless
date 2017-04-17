@@ -25,6 +25,7 @@
     "./aws/rollback/index.js",
     "./aws/package/compile/functions/index.js",
     "./aws/package/compile/imports/imports.js",
+    "./aws/package/compile/exports/exports.js",
     "./aws/package/compile/events/schedule/index.js",
     "./aws/package/compile/events/s3/index.js",
     "./aws/package/compile/events/apiGateway/index.js",
