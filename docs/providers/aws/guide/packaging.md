@@ -76,7 +76,7 @@ package:
 
 ## Packaging functions separately
 
-If you want even more controls over your functions for deployment you can configure them to be packaged independently. This allows you more control for optimizing your deployment. To enable individual packaging set `individually` to true in the service wide packaging settings.
+If you want even more controls over your functions for deployment you can configure them to be packaged independently. This allows you more control for optimizing your deployment. To enable individual packaging set `individually` to true in the service or function wide packaging settings.
 
 Then for every function you can use the same `exclude`, `include` or `artifact` config options as you can service wide. The `exclude` and `include` option will be merged with the service wide options to create one `exclude` and `include` config per function during packaging.
 
@@ -98,4 +98,16 @@ functions:
     package:
       exclude:
         - some-file.js
+```
+You can also select which functions to be packaged separately, and have the rest use the service package by setting the `individually` flag at the function level:
+
+```yml
+service: my-service
+functions:
+  hello:
+    handler: handler.hello
+  world:
+    handler: handler.hello
+    package:
+      individually: true
 ```
