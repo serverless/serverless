@@ -116,11 +116,15 @@ functions:
   usersCreate: # A Function
     handler: users.create
     events: # The Events that trigger this Function
-      - http: post users/create
+      - http:
+          method: POST
+          path: users/create
   usersDelete: # A Function
     handler: users.delete
     events:  # The Events that trigger this Function
-      - http: delete users/delete
+      - http:
+          method: DELETE
+          path: users/delete
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
