@@ -23,6 +23,10 @@ services:
     image: python:2.7
     volumes:
       - ./tmp/serverless-integration-test-aws-python:/app
+  aws-python3:
+    image: python:3.6
+    volumes:
+      - ./tmp/serverless-integration-test-aws-python3:/app
   aws-java-maven:
     image: maven:3-jdk-8
     volumes:

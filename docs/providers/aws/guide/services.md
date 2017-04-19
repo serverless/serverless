@@ -52,6 +52,7 @@ Here are the available runtimes for AWS Lambda:
 
 * aws-nodejs
 * aws-python
+* aws-python3
 * aws-groovy-gradle
 * aws-java-gradle
 * aws-java-maven
