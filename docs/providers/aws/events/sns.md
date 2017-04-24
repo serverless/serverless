@@ -50,6 +50,15 @@ functions:
       - sns: arn:xxx
 ```
 
+```yml
+functions:
+  dispatcher:
+    handler: dispatcher.dispatch
+    events:
+      - sns:
+          arn: arn:xxx
+```
+
 Or with intrinsic CloudFormation function like `Fn::Join` or `Fn::GetAtt`.
 
 ```yml
