@@ -42,31 +42,31 @@ Serverless: -------------
 Serverless: Timestamp: 1476790110568
 Serverless: Datetime: 2016-10-18T11:28:30.568Z
 Serverless: Files:
-Serverless: - cloudformation-template-update-stack.json
+Serverless: - compiled-cloudformation-template.json
 Serverless: - mail-service.zip
 Serverless: -------------
 Serverless: Timestamp: 1476889476243
 Serverless: Datetime: 2016-10-19T15:04:36.243Z
 Serverless: Files:
-Serverless: - cloudformation-template-update-stack.json
+Serverless: - compiled-cloudformation-template.json
 Serverless: - mail-service.zip
 Serverless: -------------
 Serverless: Timestamp: 1476893957131
 Serverless: Datetime: 2016-10-19T16:19:17.131Z
 Serverless: Files:
-Serverless: - cloudformation-template-update-stack.json
+Serverless: - compiled-cloudformation-template.json
 Serverless: - mail-service.zip
 Serverless: -------------
 Serverless: Timestamp: 1476895175540
 Serverless: Datetime: 2016-10-19T16:39:35.540Z
 Serverless: Files:
-Serverless: - cloudformation-template-update-stack.json
+Serverless: - compiled-cloudformation-template.json
 Serverless: - mail-service.zip
 Serverless: -------------
 Serverless: Timestamp: 1476993293402
 Serverless: Datetime: 2016-10-20T19:54:53.402Z
 Serverless: Files:
-Serverless: - cloudformation-template-update-stack.json
+Serverless: - compiled-cloudformation-template.json
 Serverless: - mail-service.zip
 
 $ serverless rollback -t 1476893957131
