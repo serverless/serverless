@@ -47,7 +47,16 @@ custom:
 
 ## Service local plugin
 
-If you are working on a plugin or have a plugin that is just designed for one project you can add them to the `.serverless_plugins` directory at the root of your service, and in the `plugins` array in `serverless.yml`.
+If you are working on a plugin or have a plugin that is just designed for one project you can add them to the `.serverless_plugins` directory at the root of your service, and in the `plugins` array in `serverless.yml`. You can change the directory in which Serverless looks for plugins by setting the `plugins_directory` variable:
+
+```yml
+# serverless.yml
+
+plugins_directory: plugins/
+
+plugins:
+  - custom-serverless-plugin
+```
 
 The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin\index.js` in the root of `.serverless_plugins` folder.
 
