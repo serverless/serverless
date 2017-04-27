@@ -1,3 +1,13 @@
+# 1.12.0 (26.04.2017)
+- Separated packaging and deployment with a new package command (#3344)
+- Extend OpenWhisk runtime support (#3454)
+- Upgrade gradle wrapper to 3.5 (#3466)
+- Fixed bug when using event streams with custom roles (#3457)
+- Fixed bug with SNS events (#3443)
+- Fixed bug when using custom deployment bucket (#3479)
+- Added support for Python 3.6 for Lambda (#3483)
+- Added new syntax to specify ARN for SNS events (#3505)
+
 # 1.11.0 (12.04.2017)
 - Add CloudWatch Logs Event Source (#3407)
 - Add version description from function (#3429)

@@ -142,7 +142,9 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="v1-plugins"></a>Plugins (V1.0)
 
-Use these plugins to extend or overwrite the Framework's functionality...
+Use these plugins to extend or overwrite the Framework's functionality.
+
+[Add a plugin to this list](https://github.com/serverless/community-plugins/blob/master/plugins.json)
 
 <!-- AUTO-GENERATED-CONTENT:START (GENERATE_SERVERLESS_PLUGIN_TABLE)
 This table is generated from https://github.com/serverless/plugins/blob/master/plugins.json please make additions there
@@ -201,8 +203,6 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 | **[Serverless Webpack](https://github.com/elastic-coders/serverless-webpack)** <br/> Serverless plugin to bundle your lambdas with Webpack | [elastic-coders](http://github.com/elastic-coders) | 
 | **[Serverless Wsgi](https://github.com/logandk/serverless-wsgi)** <br/> Serverless plugin to deploy WSGI applications (Flask/Django/Pyramid etc.) and bundle Python packages | [logandk](http://github.com/logandk) |
 <!-- AUTO-GENERATED-CONTENT:END This table is generated from https://github.com/serverless/plugins/blob/master/plugins.json please make additions there -->
-
-[Add a plugin to this list](https://github.com/serverless/community-plugins/blob/master/plugins.json)
 
 ## <a name="v1-projects"></a>Example Projects (V1.0)
 
