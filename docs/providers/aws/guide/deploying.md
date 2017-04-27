@@ -82,3 +82,14 @@ serverless deploy function --function myFunction
 * During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
+
+## Deploy Package
+
+This deployment option takes a deployment directory that has already been created with `serverless deploy package` and deploys that out. This allows you to easier integrate CI/CD workflows with the Serverless Framework.
+
+```bash
+serverless deploy --package package-name
+```
+### How It Works
+- The argument to the `--package` flag is a directory that has been previously packaged by Serverless.
+- The deploy process bypasses the package step and uses the existing package to deploy and update CloudFormation stacks.
