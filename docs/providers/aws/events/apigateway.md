@@ -14,11 +14,16 @@ layout: Doc
 
 To create HTTP endpoints as Event sources for your AWS Lambda Functions, use the Serverless Framework's easy AWS API Gateway Events syntax.
 
-There are two ways you can configure your HTTP endpoints to integrate with your AWS Lambda Functions:
-* lambda-proxy (Recommended)
-* lambda
+There are five ways you can configure your HTTP endpoints to integrate with your AWS Lambda Functions:
+* `lambda-proxy` / `aws-proxy` / `aws_proxy` (Recommended)
+* `lambda` / `aws`
+* `http`
+* `http-proxy` / `http_proxy`
+* `mock`
 
-The difference between these is `lambda-proxy` automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function.  Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code).  We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
+The difference between these is `lambda-proxy` (alternative writing styles are `aws-proxy` and `aws_proxy` for compatibility with the standard AWS integration type naming) automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function.  Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code).  We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
+
+Use `http` for integrating with an HTTP back end, `http-proxy` for integrating with the HTTP proxy integration or `mock` for testing without actually invoking the back end.
 
 By default, the Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda), and nothing is required by you to enable it.
 
@@ -118,7 +123,7 @@ functions:
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
-            allowCredentials: false  
+            allowCredentials: false
 ```
 
 Configuring the `cors` property sets  [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
@@ -136,13 +141,42 @@ module.exports.hello = function(event, context, callback) {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
       },
       body: JSON.stringify({ "message": "Hello World!" })
     };
 
     callback(null, response);
 };
+```
+
+### HTTP Endpoints with `AWS_IAM` Authorizers
+
+If you want to require that the caller submit the IAM user's access keys in order to be authenticated to invoke your Lambda Function, set the authorizer to `AWS_IAM` as shown in the following example:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer: aws_iam
+```
+
+Which is the short hand notation for:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            type: aws_iam
 ```
 
 ### HTTP Endpoints with Custom Authorizers
