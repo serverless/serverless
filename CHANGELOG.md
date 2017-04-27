@@ -1,3 +1,10 @@
+# 1.12.1 (27.04.2017)
+- Fix bug when using the package command with the variable system (#3527)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.12.0...v1.12.1)
+
+
 # 1.12.0 (26.04.2017)
 - Separated packaging and deployment with a new package command (#3344)
 - Extend OpenWhisk runtime support (#3454)
