@@ -26,12 +26,12 @@ Use this method when you have updated your Function, Event or Resource configura
 
 ### How It Works
 
-The Serverless Framework translates all syntax in `serverless.yml` to [platform API](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/whiskswagger.json) calls to provision your Actions, Triggers, Rules and APIs. 
+The Serverless Framework translates all syntax in `serverless.yml` to [platform API](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/whiskswagger.json) calls to provision your Actions, Triggers, Rules and APIs.
 
 * Provider plugin parses `serverless.yml` configuration and translates to OpenWhisk resources.
 * The code of your Functions is then packaged into zip files.
 * Resources are deployed in the following order: *Functions, Function Sequences, API Routes, Triggers, Feeds, Rules.*
-* Resources stages are deployed sequentially due to potential dependencies between the stages. 
+* Resources stages are deployed sequentially due to potential dependencies between the stages.
 * Resources within a stage are deployed in parallel.
 * Stages without any resources defined will be skipped.
 
@@ -61,3 +61,16 @@ serverless deploy function --function myFunction
 * During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
+
+## Deploying a package
+
+This deployment option takes a deployment directory that has already been created with `serverless package` and deploys it to the cloud provider. This allows you to easier integrate CI / CD workflows with the Serverless Framework.
+
+```bash
+serverless deploy --package path-to-package
+```
+
+### How It Works
+
+- The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
+- The deploy process bypasses the package step and uses the existing package to deploy and update Resources.
