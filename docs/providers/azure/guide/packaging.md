@@ -1,20 +1,20 @@
 <!--
-title: Serverless Framework Guide - AWS Lambda Guide - Packaging
+title: Serverless Framework Guide - Azure Functions Guide - Packaging
 menuText: Packaging
 menuOrder: 11
-description: How the Serverless Framework packages your AWS Lambda functions and other available options
+description: How the Serverless Framework packages your Azure Functions and other available options
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/packaging)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/packaging)
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Packaging
+# Azure - Packaging
 
 ## Package CLI Command
 
-Using the Serverless CLI tool, you can package your project without deploying it to AWS. This is best used with CI / CD workflows to ensure consistent deployable artifacts.
+Using the Serverless CLI tool, you can package your project without deploying it to Azure. This is best used with CI / CD workflows to ensure consistent deployable artifacts.
 
 Running the following command will build and save all of the deployment artifacts in the service's .serverless directory:
 
@@ -27,6 +27,7 @@ However, you can also use the --package option to add a destination path and Ser
 ```bash
 serverless package --package my-artifacts
 ```
+
 
 ## Package Configuration
 
@@ -117,7 +118,6 @@ functions:
       exclude:
         - some-file.js
 ```
-
 You can also select which functions to be packaged separately, and have the rest use the service package by setting the `individually` flag at the function level:
 
 ```yml
