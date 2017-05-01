@@ -210,6 +210,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/azure/guide/deploying.md">Deploying</a></li>
         <li><a href="./providers/azure/guide/testing.md">Testing</a></li>
         <li><a href="./providers/azure/guide/variables.md">Variables</a></li>
+        <li><a href="./providers/azure/guide/packaging.md">Packaging</a></li>
         <li><a href="./providers/azure/guide/plugins.md">Plugins</a></li>
         <li><a href="./providers/azure/guide/workflow.md">Workflow</a></li>
       </ul>
