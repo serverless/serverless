@@ -464,6 +464,11 @@
       "from": "lodash@>=4.13.1 <5.0.0",
       "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.2.tgz"
     },
+    "lodash-deep": {
+      "version": "2.0.0",
+      "from": "lodash-deep@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/lodash-deep/-/lodash-deep-2.0.0.tgz"
+    },
     "lowercase-keys": {
       "version": "1.0.0",
       "from": "lowercase-keys@>=1.0.0 <2.0.0",

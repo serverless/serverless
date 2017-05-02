@@ -96,6 +96,7 @@
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
     "lodash": "^4.13.1",
+    "lodash-deep": "^2.0.0",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
     "node-fetch": "^1.5.3",
