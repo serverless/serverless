@@ -71,7 +71,7 @@ functions:
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
-    role: arn:aws:iam::XXXXXX:role/role # IAM role which which will be used for this function
+    role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
     environment: # Function level environment variables
       functionEnvVar: 12345678
     events: # The Events that trigger this Function
