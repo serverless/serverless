@@ -263,6 +263,26 @@ functions:
       TABLE_NAME: tableName2
 ```
 
+## Tags
+
+Using the `tags` configuration makes it opssible to add `key` / `value` tags to your functions.
+
+Those tags will appear in your AWS console and makes it easier for you to group functions by tag or find functions with a common tag.
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    tags:
+      foo: bar
+```
+
+Real-world use cases where tagging your functions is helpful include:
+
+- Cost estimations (tag functions with an environemnt tag: `environment: Production`)
+- Keeping track of legacy code (e.g. tag functions which use outdated runtimes: `runtime: nodejs0.10`)
+- ...
+
 ## Log Group Resources
 
 By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.

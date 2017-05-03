@@ -74,6 +74,8 @@ functions:
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
     environment: # Function level environment variables
       functionEnvVar: 12345678
+    tags: # Function specific tags
+      foo: bar
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
