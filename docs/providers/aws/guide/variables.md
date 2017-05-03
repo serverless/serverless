@@ -146,6 +146,7 @@ You can also return an object and reference a specific property.  Just make sure
 # serverless.yml
 service: new-service
 provider: aws
+custom: ${file(../myCustomFile.js)} # You can reference the entire file
 functions:
   scheduledFunction:
       handler: handler.scheduledFunction
