@@ -12,7 +12,7 @@ layout: Doc
 
 # AWS - package
 
-The `sls package` command packages your entire infrastructure into the `.serverless` directory by default and make it ready for deployment. You can specify another packaging directory by passing the `--path` option.
+The `sls package` command packages your entire infrastructure into the `.serverless` directory by default and make it ready for deployment. You can specify another packaging directory by passing the `--package` option.
 
 ```bash
 serverless package
