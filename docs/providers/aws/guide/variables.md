@@ -164,7 +164,7 @@ module.exports.schedule = () => {
    };
 }
 ```
-If your use case requires handling with dynamic/async data sources (ie. DynamoDB, API calls...etc), you can also return a promise that would be resolved as the value of the variable:
+If your use case requires handling with dynamic/async data sources (ie. DynamoDB, API calls...etc), you can also return a Promise that would be resolved as the value of the variable:
 
 # serverless.yml
 service: new-service
