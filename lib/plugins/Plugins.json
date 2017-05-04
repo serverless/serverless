@@ -8,6 +8,7 @@
     "./invoke/invoke.js",
     "./info/info.js",
     "./logs/logs.js",
+    "./login/login.js",
     "./metrics/metrics.js",
     "./remove/remove.js",
     "./rollback/index.js",
