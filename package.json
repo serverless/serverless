@@ -96,6 +96,7 @@
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
     "lodash": "^4.13.1",
+    "lodash-deep": "^2.0.0",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
     "node-fetch": "^1.5.3",
@@ -104,7 +105,6 @@
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
-    "traverse": "^0.6.6",
     "uuid": "^2.0.2"
   }
 }

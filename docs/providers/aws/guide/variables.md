@@ -164,6 +164,25 @@ module.exports.schedule = () => {
    };
 }
 ```
+If your use case requires handling with dynamic/async data sources (ie. DynamoDB, API calls...etc), you can also return a Promise that would be resolved as the value of the variable:
+
+# serverless.yml
+service: new-service
+provider: aws
+functions:
+  scheduledFunction:
+      handler: handler.scheduledFunction
+      events:
+        - schedule: ${file(./myCustomFile.js):promised}
+```
+
+```js
+// myCustomFile.js
+module.exports.promised = () => {
+   // Async code that fetches the rate config...
+   return Promise.resolve('rate(10 minutes)');
+}
+```
 
 ## Multiple Configuration Files
 
