@@ -35,6 +35,8 @@ xdescribe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => 
     serverlessYmlFileContent = serverlessYmlFileContent
       .replace(/WillBeReplacedBeforeDeployment/, apiKeyName);
 
+    console.log('serverlessYmlFileContent: ', serverlessYmlFileContent, '\n');
+
     fse.writeFileSync(serverlessYmlFilePath, serverlessYmlFileContent);
 
     Utils.deployService();
@@ -68,15 +70,16 @@ xdescribe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => 
       })
   );
 
-  it('should succeed if correct API key is given', () =>
+  it('should succeed if correct API key is given', () => {
+    console.log('integration-lambda-proxy apiKey', apiKey, '\n');
     fetch(endpoint, { headers: { 'x-api-key': apiKey } })
       .then(response => response.json())
       .then((json) => {
         expect(json.message).to.equal('Hello from API Gateway!');
         expect(json.event.requestContext.identity.apiKey).to.equal(apiKey);
         expect(json.event.headers['x-api-key']).to.equal(apiKey);
-      })
-  );
+      });
+  });
 
   afterAll(() => {
     Utils.removeService();

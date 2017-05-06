@@ -171,6 +171,7 @@ module.exports = {
   },
 
   deployService() {
+    console.log('SERVICE NAME: ', fs.readFileSync('serverless.yml').toString().split('\n')[0]);
     execSync(`${serverlessExec} deploy`, { stdio: 'inherit' });
   },
 
