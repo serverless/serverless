@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy Function
-menuText: Deploy Function
+menuText: deploy function
 menuOrder: 6
 description: Deploy your AWS Lambda functions quickly without cloudformation
 layout: Doc

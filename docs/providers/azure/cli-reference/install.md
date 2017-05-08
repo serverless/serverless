@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Install
-menuText: Install
+menuText: install
 menuOrder: 3
 description: Install pre-written Azure Functions Functions, Events and Resources with the Serverless Framework
 layout: Doc

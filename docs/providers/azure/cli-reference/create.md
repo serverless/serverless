@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Create
-menuText: Create
+menuText: create
 menuOrder: 2
 description: Creates a new Service in your current working directory
 layout: Doc

@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Install
-menuText: Install
+menuText: install
 menuOrder: 3
 description: Install pre-written Apache OpenWhisk Functions, Events and Resources with the Serverless Framework
 layout: Doc

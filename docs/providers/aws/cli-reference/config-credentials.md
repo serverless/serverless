@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Config Credentials
-menuText: Config Credentials
+menuText: config credentials
 menuOrder: 1
 description: Configure Serverless credentials
 layout: Doc
