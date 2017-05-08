@@ -23,6 +23,7 @@
     "./aws/metrics/awsMetrics.js",
     "./aws/remove/index.js",
     "./aws/rollback/index.js",
+    "./aws/rollbackFunction/index.js",
     "./aws/package/compile/functions/index.js",
     "./aws/package/compile/events/schedule/index.js",
     "./aws/package/compile/events/s3/index.js",
