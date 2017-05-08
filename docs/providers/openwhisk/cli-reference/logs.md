@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Logs
-menuText: Logs
+menuText: logs
 menuOrder: 9
 description: View logs of your Apache OpenWhisk Function within your terminal using the Serverless Framework
 layout: Doc
