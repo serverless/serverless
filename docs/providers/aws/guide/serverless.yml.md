@@ -64,6 +64,7 @@ provider:
         StringEquals:
           ResourceType:
             - AWS::EC2::Instance
+  preV1Resources: true # Optionally adds a -r to calculated CloudFormation stacknames in order to migrate pre v0.x CloudFormation resources towards v1.x
 
 functions:
   usersCreate: # A Function
