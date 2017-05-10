@@ -3,6 +3,7 @@ title: Serverless Framework Documentation
 menuText: Docs
 layout: Doc
 menuItems:
+  - {menuText: Getting Started, path: /framework/docs/getting-started/}
   - {menuText: AWS, path: /framework/docs/providers/aws/}
   - {menuText: Azure, path: /framework/docs/providers/azure/}
   - {menuText: Google, path: /framework/docs/providers/google/}
@@ -16,6 +17,10 @@ menuItems:
 The Serverless Framework is a CLI tool that allows users to build & deploy auto-scaling, pay-per-execution, event-driven functions.
 
 Write your code as functions, configure events to trigger your functions, then deploy & run those functions to your [cloud provider](#Supported-Providers) via the **serverless CLI**
+
+Getting started with serverless? **[Start here](./getting-started.md)**
+
+Already using AWS or another cloud provider? Read on.
 
 ## Serverless Cloud Providers
 
