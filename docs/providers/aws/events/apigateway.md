@@ -162,7 +162,7 @@ functions:
           method: post
           authorizer: authorizerFunc
   authorizerFunc:
-    handler: handlers.authorizerFunc
+    handler: handler.authorizerFunc
 ```
 Or, if you want to configure the Authorizer with more options, you can turn the `authorizer` property into an object as
 shown in the following example:
@@ -181,7 +181,7 @@ functions:
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
   authorizerFunc:
-    handler: handlers.authorizerFunc
+    handler: handler.authorizerFunc
 ```
 
 If the Authorizer function does not exist in your service but exists in AWS, you can provide the ARN of the Lambda

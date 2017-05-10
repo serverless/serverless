@@ -14,6 +14,9 @@ layout: Doc
 
 A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework.  The Serverless Framework is merely a group of Plugins that are provided in the core.  If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs.  External Plugins are written exactly the same way as the core Plugins.
 
+- [How to create serverless plugins - Part 1](https://serverless.com/blog/writing-serverless-plugins/)
+- [How to create serverless plugins - Part 2](https://serverless.com/blog/writing-serverless-plugins-2/)
+
 ## Installing Plugins
 
 External Plugins are added on a per service basis and are not applied globally.  Make sure you are in your Service's root directory, then install the corresponding Plugin with the help of NPM:
@@ -68,7 +71,7 @@ In this case `plugin1` is loaded before `plugin2`.
 
 #### Plugin
 
-Code which defines *Commands*, any *Events* within a *Command*, and any *Hooks* assigned to an *Lifecycle Event*.
+Code which defines *Commands*, any *Events* within a *Command*, and any *Hooks* assigned to a *Lifecycle Event*.
 
 * Command // CLI configuration, commands, subcommands, options
   * LifecycleEvent(s) // Events that happen sequentially when the command is run
@@ -99,7 +102,7 @@ module.exports = MyPlugin;
 
 #### Lifecycle Events
 
-Events that fire sequentially during a Command.  The above example list two Events.  However, for each Event, and additional `before` and `after` event is created.  Therefore, six Events exist in the above example:
+Events that fire sequentially during a Command.  The above example lists two Events.  However, for each Event, an additional `before` and `after` event is created.  Therefore, six Events exist in the above example:
 
 - `before:deploy:resources`
 - `deploy:resources`
@@ -153,7 +156,7 @@ module.exports = Deploy;
 
 ### Nesting Commands
 
-You can also nest commands, e.g. if you want to provide a command `serverless deploy single`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
+You can also nest commands, e.g. if you want to provide a command `serverless deploy function`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
 
 ```javascript
 'use strict';
@@ -190,7 +193,7 @@ Options are passed in with a double dash (`--`) like this: `serverless function 
 
 Option Shortcuts are passed in with a single dash (`-`) like this: `serverless function deploy -f functionName`.
 
-The `options` object will be passed in as the second parameter to the constructor of your plugin.  
+The `options` object will be passed in as the second parameter to the constructor of your plugin.
 
 In it, you can optionally add a `shortcut` property, as well as a `required` property.  The Framework will return an error if a `required` Option is not included.
 
@@ -316,3 +319,24 @@ module.exports = MyPlugin;
 ### Command Naming
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. If you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
+
+### Extending the `info` command
+
+The `info` command which is used to display information about the deployment has detailed `lifecycleEvents` you can hook into to add and display custom information.
+
+Here's an example overview of the info lifecycle events the AWS implementation exposes:
+
+```
+-> info:info
+  -> aws:info:validate
+  -> aws:info:gatherData
+  -> aws:info:displayServiceInfo
+  -> aws:info:displayApiKeys
+  -> aws:info:displayEndpoints
+  -> aws:info:displayFunctions
+  -> aws:info:displayStackOutputs
+```
+
+Here you could e.g. hook into `after:aws:info:gatherData` and implement your own data collection and display it to the user.
+
+**Note:** Every provider implements its own `info` plugin so you might want to take a look into the `lifecycleEvents` the provider `info` plugin exposes.

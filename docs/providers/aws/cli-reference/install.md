@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Install
-menuText: Install
+menuText: install
 menuOrder: 3
 description: Install pre-written AWS Lambda Functions, Events and Resources with the Serverless Framework
 layout: Doc
@@ -46,7 +46,7 @@ This example will download the .zip file of the `serverless-crud` service from G
 ### Installing a service from a directory in a GitHub URL
 
 ```bash
-serverless install --url https://github.com/serverless/examples/tree/master/rest-api-with-dynamodb
+serverless install --url https://github.com/serverless/examples/tree/master/aws-node-rest-api-with-dynamodb
 ```
 
-This example will download the `rest-api-with-dynamodb` service from GitHub.
+This example will download the `aws-node-rest-api-with-dynamodb` service from GitHub.

@@ -55,6 +55,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/cli-reference/config-credentials.md">Config Credentials</a></li>
         <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
         <li><a href="./providers/aws/cli-reference/install.md">Install</a></li>
+        <li><a href="./providers/aws/cli-reference/package.md">Package</a></li>
         <li><a href="./providers/aws/cli-reference/deploy.md">Deploy</a></li>
         <li><a href="./providers/aws/cli-reference/deploy-function.md">Deploy Function</a></li>
         <li><a href="./providers/aws/cli-reference/deploy-list.md">Deploy List</a></li>
@@ -86,6 +87,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/aws/events/alexa-skill.md">Alexa Skill</a></li>
         <li><a href="./providers/aws/events/iot.md">IoT</a></li>
         <li><a href="./providers/aws/events/cloudwatch-event.md">CloudWatch Event</a></li>
+        <li><a href="./providers/aws/events/cloudwatch-log.md">CloudWatch Log</a></li>
       </ul>
     </div>
   </div>
@@ -126,6 +128,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/openwhisk/guide/variables.md">Variables</a></li>
         <li><a href="./providers/openwhisk/guide/packaging.md">Packaging</a></li>
         <li><a href="./providers/openwhisk/guide/plugins.md">Plugins</a></li>
+        <li><a href="./providers/openwhisk/guide/web-actions.md">Web Actions</a></li>
         <li><a href="./providers/openwhisk/guide/workflow.md">Workflow</a></li>
         <li><a href="./providers/openwhisk/guide/serverless.yml.md">Serverless.yml</a></li>
       </ul>
@@ -164,6 +167,8 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
     <div>
       <ul>
         <li><a href="./providers/openwhisk/events/apigateway.md">API Gateway</a></li>
+        <li><a href="./providers/openwhisk/events/cloudant.md">Cloudant DB</a></li>
+        <li><a href="./providers/openwhisk/events/messagehub.md">Message Hub</a></li>
         <li><a href="./providers/openwhisk/events/schedule.md">Schedule</a></li>
         <li><a href="./providers/openwhisk/events/triggers.md">Triggers</a></li>
       </ul>
@@ -205,6 +210,7 @@ The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, e
         <li><a href="./providers/azure/guide/deploying.md">Deploying</a></li>
         <li><a href="./providers/azure/guide/testing.md">Testing</a></li>
         <li><a href="./providers/azure/guide/variables.md">Variables</a></li>
+        <li><a href="./providers/azure/guide/packaging.md">Packaging</a></li>
         <li><a href="./providers/azure/guide/plugins.md">Plugins</a></li>
         <li><a href="./providers/azure/guide/workflow.md">Workflow</a></li>
       </ul>

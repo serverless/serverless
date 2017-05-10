@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Create
-menuText: Create
+menuText: create
 menuOrder: 2
 description: Creates a new Service in your current working directory
 layout: Doc
@@ -42,6 +42,8 @@ Most commonly used templates:
 
 - aws-nodejs
 - aws-python
+- aws-python3
+- aws-groovy-gradle
 - aws-java-maven
 - aws-java-gradle
 - aws-scala-sbt

@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Invoke Local
-menuText: Invoke Local
+menuText: invoke local
 menuOrder: 8
 description: Emulate an invocation of your Apache OpenWhisk function locally using the Serverless Framework
 layout: Doc
@@ -17,6 +17,8 @@ This runs your code locally by emulating the Apache OpenWhisk environment. Pleas
 ```bash
 serverless invoke local --function functionName
 ```
+
+__*Please note that only the JavaScript and Python runtimes are supported with this command.*__
 
 ## Options
 
@@ -60,4 +62,4 @@ This example will pass the json data in the `lib/data.json` file (relative to th
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs
+Currently, `invoke local` only supports the NodeJs and Python runtimes.

@@ -52,6 +52,8 @@ Here are the available runtimes for AWS Lambda:
 
 * aws-nodejs
 * aws-python
+* aws-python3
+* aws-groovy-gradle
 * aws-java-gradle
 * aws-java-maven
 * aws-scala-sbt
@@ -87,7 +89,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   profile: production # The default profile to use with this service
@@ -202,7 +204,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   memorySize: 512
 
 …
@@ -219,7 +221,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   memorySize: 512
 
 …

@@ -5,9 +5,9 @@ This checklist should be worked through when releasing a new Serverless version.
 ## Pre-Release
 - [ ] Look through all open issues and PRs (if any) of that milestone and close them / move them to another
 milestone if still open
-- [ ] Look through all closed issues and PRs of that milestone to see what has changed. Run `./scripts/pr-since-last tag` or if you want to run against a specific tag `./scripts/pr-since-last tag v1.0.3` to get a list of all merged PR's since a specific tag.
+- [ ] Look through all closed issues and PRs of that milestone to see what has changed. Run `./scripts/pr-since-last tag` or if you want to run against a specific tag `./scripts/pr-since-last tag v1.0.3` to get a list of all merged PR's since a specific tag
 - [ ] Close milestone on Github
-- [ ] Create a new release in GitHub for Release Notes.
+- [ ] Create a new release in GitHub for Release Notes (including breaking changes)
 
 # Testing
 - [ ] Create a Serverless service (with some events), deploy and test it intensively
@@ -21,9 +21,8 @@ milestone if still open
 - [ ] Create a new branch to bump version in package.json
 - [ ] Install the latest NPM version or Docker container with latest Node and NPM
 - [ ] Bump version in package.json, remove `node_modules` folder and run `npm install` and `npm prune --production && npm shrinkwrap`
-- [ ] Update CHANGELOG.md
-- [ ] Update upcoming breaking changes list in the CLI
-- [ ] Make sure all files that need to be pushed are included in `package.json->files`
+- [ ] Update CHANGELOG.md (including breaking changes)
+- [ ] Make sure all files that need to be pushed are included in `package.json -> files`
 - [ ] Send PR and merge PR with new version to be released
 - [ ] Go back to branch you want to release from (e.g. master or v1) and pull bumped version changes from Github
 - [ ] Make sure there are no local changes to your repository (or reset with `git reset --hard HEAD`)
@@ -35,6 +34,7 @@ milestone if still open
 
 ## Segment Configuration
 - [ ] Update Segment.io key in Utils.js (never push the key to GitHub and revert afterwards with `git checkout .`)
+- [ ] Check twice if you've used the correct key (**if in doubt ask which one to pick!**)
 - [ ] Run `./bin/serverless help` and filter for this new version in the Segment debugger to make sure data is sent to Segment for this new version
 
 ## Release to NPM

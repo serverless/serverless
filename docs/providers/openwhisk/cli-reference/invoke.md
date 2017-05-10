@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Invoke
-menuText: Invoke
+menuText: invoke
 menuOrder: 7
 description: Invoke an Apache OpenWhisk Function using the Serverless Framework
 layout: Doc
