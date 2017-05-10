@@ -1,9 +1,19 @@
+# 1.13.0 (10.05.2017)
+- Added support for cross service communication via CloudFormation outputs (#3575)
+- Add Lambda tagging functionality (#3548)
+- Added support for Promises in the variable system (#3554)
+- Added hello-world template (#3445)
+- Improved Info plugins lifecylce events for plugin authors (#3507)
+- Allow service to be specified as object in serverless.yml (#3521)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.12.0...v1.13.0)
+
 # 1.12.1 (27.04.2017)
 - Fix bug when using the package command with the variable system (#3527)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.12.0...v1.12.1)
-
 
 # 1.12.0 (26.04.2017)
 - Separated packaging and deployment with a new package command (#3344)
