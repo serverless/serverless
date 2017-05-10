@@ -26,7 +26,7 @@ const emptyS3Bucket = (bucket) => (
           },
         });
       }
-      return Promise.resolve();
+      return BbPromise.resolve();
     })
 );
 
@@ -54,12 +54,12 @@ const cleanupS3Buckets = (token) => {
           return memo.then(() => deleteS3Bucket(bucket.Name));
         }
         return memo;
-      }, Promise.resolve())
+      }, BbPromise.resolve())
         .then(() => {
           if (response.NextToken) {
             return cleanupS3Buckets(response.NextToken);
           }
-          return Promise.resolve();
+          return BbPromise.resolve();
         })
     );
 };
@@ -82,12 +82,12 @@ const cleanupCFStacks = (token) => {
           }
         }
         return memo;
-      }, Promise.resolve())
+      }, BbPromise.resolve())
         .then(() => {
           if (response.NextToken) {
             return cleanupCFStacks(response.NextToken);
           }
-          return Promise.resolve();
+          return BbPromise.resolve();
         })
   );
 };
