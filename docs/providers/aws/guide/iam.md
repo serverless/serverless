@@ -109,7 +109,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resources:
+                  Resource:
                     - 'Fn::Join':
                       - ':'
                       -
