@@ -18,7 +18,7 @@ menuItems:
 
 The Serverless Framework is a CLI tool that allows users to build & deploy auto-scaling, pay-per-execution, event-driven functions.
 
-Write your code as functions, configure events to trigger your functions, then deploy & run those functions to your [cloud provider](#Supported-Providers) via the **serverless CLI**
+Write your code, configure events to trigger your functions, then deploy & run those functions to your [cloud provider](#Supported-Providers) via the **serverless CLI**.
 
 Getting started with serverless? **[Start here](./getting-started.md)**
 
@@ -35,7 +35,8 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/aws/guide">AWS Guide</a></li>
+        <li><a href="./providers/aws/guide/quick-start">AWS QuickStart</a></li>
+        <li><a href="./providers/aws/guide">Guide</a></li>
         <li><a href="./providers/aws/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/aws/events">Events</a></li>
         <li><a href="./providers/aws/examples">Examples</a></li>
@@ -50,7 +51,8 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/azure/guide">Azure Guide</a></li>
+        <li><a href="./providers/azure/guide/quick-start">Azure QuickStart</a></li>
+        <li><a href="./providers/azure/guide">Guide</a></li>
         <li><a href="./providers/azure/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/azure/events">Events</a></li>
         <li><a href="./providers/azure/examples">Examples</a></li>
@@ -65,7 +67,8 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/openwhisk/guide">OpenWhisk Guide</a></li>
+        <li><a href="./providers/openwhisk/guide/quick-start">OpenWhisk QuickStart</a></li>
+        <li><a href="./providers/openwhisk/guide">Guide</a></li>
         <li><a href="./providers/openwhisk/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/openwhisk/events">Events</a></li>
         <li><a href="./providers/openwhisk/examples">Examples</a></li>
@@ -80,7 +83,8 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/google/guide">GCF Guide</a></li>
+        <li><a href="./providers/google/guide/quick-start">Google CF QuickStart</a></li>
+        <li><a href="./providers/google/guide">Guide</a></li>
         <li><a href="./providers/google/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/google/events">Events</a></li>
         <li><a href="./providers/google/examples">Examples</a></li>
