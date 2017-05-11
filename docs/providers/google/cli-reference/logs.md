@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Logs
+title: Google Cloud Functions Serverless logs command
 menuText: Logs
 menuOrder: 9
 description: View logs of your Google Cloud Functions Function within your terminal using the Serverless Framework
