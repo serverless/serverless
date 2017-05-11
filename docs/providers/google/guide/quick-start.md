@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/intro)
 <!-- DOCS-SITE-LINK:END -->
 
-# Quickstart
+# Google - Quickstart
 
 This guide is designed to help you get started as quick as possible.
 

@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/workflow)
 <!-- DOCS-SITE-LINK:END -->
 
-# Workflow
+# OpenWhisk - Workflow
 
 Intro. Quick recommendations and tips for various processes.
 
@@ -52,7 +52,7 @@ serverless deploy
 ##### Deploy Function
 Use this to quickly overwrite your OpenWhisk Actions, allowing you to develop faster.
 ```
-serverless deploy function -f [FUNCTION NAME] 
+serverless deploy function -f [FUNCTION NAME]
 ```
 
 ##### Invoke Function

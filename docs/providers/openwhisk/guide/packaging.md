@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/packaging)
 <!-- DOCS-SITE-LINK:END -->
 
-# Packaging
+# OpenWhisk - Packaging
 
 ## Package CLI Command
 

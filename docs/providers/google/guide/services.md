@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/services)
 <!-- DOCS-SITE-LINK:END -->
 
-# Services
+# Google - Services
 
 A `service` is like a project. It's where you define your Google Cloud Functions, the `events` that trigger them and any `resources` they require, all in a file called `serverless.yml`.
 

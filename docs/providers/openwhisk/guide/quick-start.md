@@ -6,12 +6,12 @@ description: Getting started with the Serverless Framework on IBM Openwhisk
 layout: Doc
 -->
 
-# Quick Start
+# OpenWhisk - Quick Start
 
 ## Pre-requisites
 
 1. Node.js `v6.5.0` or later.
-2. Serverless CLI `v1.9.0` or later. You can run 
+2. Serverless CLI `v1.9.0` or later. You can run
 `npm install -g serverless` to install it.
 3. An IBM Bluemix account. If you don't already have one, you can sign up for an [account](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) and then follow the instructions for getting access to [OpenWhisk on Bluemix](https://console.ng.bluemix.net/openwhisk/).
 4. **Set-up your [Provider Credentials](./credentials.md)**.
@@ -34,7 +34,7 @@ $ cd my-service
 # Install npm dependencies
 $ npm install
 ```
-**Using a self-hosted version of the platform?** 
+**Using a self-hosted version of the platform?**
 
 Ensure you set the `ignore_certs` option in the `serverless.yaml` prior to deployment.
 
@@ -49,7 +49,7 @@ provider:
 1. **Deploy the Service**
 
   Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
-  
+
   ```bash
   serverless deploy -v
   ```
@@ -57,7 +57,7 @@ provider:
 2. **Deploy the Function**
 
   Use this to quickly upload and overwrite your function code, allowing you to develop faster.
-  
+
   ```bash
   serverless deploy function -f hello
   ```
@@ -65,14 +65,14 @@ provider:
 3. **Invoke the Function**
 
   Invokes the Function and returns results.
-  
+
   ```bash
   serverless invoke --function hello
   # results
   {
     "payload": "Hello, World!"
   }
-  
+
   serverless invoke --function hello --data '{"name": "OpenWhisk"}'
   #results
   {

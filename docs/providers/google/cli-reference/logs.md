@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/logs)
 <!-- DOCS-SITE-LINK:END -->
 
-# Logs
+# Google - Logs
 
 Lets you watch the logs of a specific function.
 
