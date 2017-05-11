@@ -154,6 +154,7 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 |:-------|:------:|
 | **[Raml Serverless](https://github.com/andrewcurioso/raml-serverless)** <br/> Serverless plugin to work with RAML API spec documents | [andrewcurioso](http://github.com/andrewcurioso) | 
 | **[Serverless Alexa Plugin](https://github.com/rajington/serverless-alexa-plugin)** <br/> Serverless plugin to support Alexa Lambda events | [rajington](http://github.com/rajington) | 
+| **[Serverless API Stage](https://github.com/leftclickben/serverless-api-stage)** <br/> Serverless API Stage plugin, enables stage variables and logging for AWS API Gateway. | [leftclickben](http://github.com/leftclickben) | 
 | **[Serverless Aws Alias](https://github.com/HyperBrain/serverless-aws-alias)** <br/> This plugin enables use of AWS aliases on Lambda functions. | [HyperBrain](http://github.com/HyperBrain) | 
 | **[Serverless Aws Documentation](https://github.com/9cookies/serverless-aws-documentation)** <br/> Serverless plugin to add documentation and models to the serverless generated API Gateway | [9cookies](http://github.com/9cookies) | 
 | **[Serverless Build Plugin](https://github.com/nfour/serverless-build-plugin)** <br/> A Node.js focused build plugin for serverless. | [nfour](http://github.com/nfour) | 
