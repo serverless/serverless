@@ -37,3 +37,16 @@ The Serverless Framework translates all syntax in `serverless.yml` to a Google D
 - Use this in your CI/CD systems, as it is the safest method of deployment.
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
+
+## Deploying a package
+
+This deployment option takes a deployment directory that has already been created with `serverless package` and deploys it to the cloud provider. This allows you to easier integrate CI / CD workflows with the Serverless Framework.
+
+```bash
+serverless deploy --package path-to-package
+```
+
+### How It Works
+
+- The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
+- The deploy process bypasses the package step and uses the existing package to deploy and update DeploymentManager deployments.
