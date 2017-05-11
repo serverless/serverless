@@ -23,6 +23,7 @@ The Serverless framework provides a powerful variable system which allows you to
 - Recursively nest variable references within each other for ultimate flexibility
 - Combine multiple variable references to overwrite each other
 - Define your own variable syntax if it conflicts with CF syntax
+- Reference & load variables from S3
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
@@ -110,6 +111,17 @@ functions:
 ```
 In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
 
+## Referencing S3 Options
+You can reference S3 values as the source of your variables to use in your service with the `s3:bucketName/key` syntax. For example:
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+      name: ${s3:myBucket/myKey}-hello
+      handler: handler.hello
+```
+In the above example, the value for `myKey` in the `myBucket` S3 bucket will be looked up and used to populate the variable.
 ## Reference Variables in Other Files
 To reference variables in other YAML or JSON files, use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
 
