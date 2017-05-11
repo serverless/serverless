@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Install
+title: Google Cloud Functions Serverless install command
 menuText: Install
 menuOrder: 3
 description: Install pre-written Google Cloud Functions Functions, Events and Resources with the Serverless Framework

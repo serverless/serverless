@@ -1,6 +1,6 @@
 <!--
-title: Serverless - Google Cloud Functions - Events
-menuText: Google Cloud Functions Events
+title: Google Cloud Functions Serverless Events
+menuText: Google Functions Events
 layout: Doc
 -->
 

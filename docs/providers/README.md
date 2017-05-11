@@ -1,5 +1,5 @@
 <!--
-title: Serverless - Infrastructure Providers
+title: Serverless - Infrastructure & Compute Providers
 menuText: Providers
 layout: Doc
 -->

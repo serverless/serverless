@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Remove
+title: Google Cloud Functions Serverless remove command
 menuText: Remove
 menuOrder: 13
 description: Remove a deployed Service and all of its Google Cloud Functions Functions, Events and Resources

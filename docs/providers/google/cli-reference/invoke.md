@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Invoke
+title: Google Cloud Functions Serverless invoke command
 menuText: Invoke
 menuOrder: 7
 description: Invoke an Google Cloud Functions Function using the Serverless Framework

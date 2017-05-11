@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Info
+title: Google Cloud Functions Serverless Info Commands
 menuText: Info
 menuOrder: 5
 description: Get information about your deployed service
