@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/variables)
 <!-- DOCS-SITE-LINK:END -->
 
-# Variables
+# OpenWhisk - Variables
 
 The Serverless framework provides a powerful variable system which allows you to add dynamic data into your `serverless.yml`. With Serverless Variables, you'll be able to do the following:
 
@@ -185,7 +185,7 @@ For example, if you want to reference the stage you're deploying to, but you don
 ```yml
 service: new-service
 provider:
-  name: openwhisk 
+  name: openwhisk
   stage: dev
 custom:
   myStage: ${opt:stage, self:provider.stage}

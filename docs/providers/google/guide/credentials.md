@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Credentials
+# Google - Credentials
 
 The Serverless Framework needs access to account credentials for your Google Cloud account so that it can create and manage resources on your behalf.
 

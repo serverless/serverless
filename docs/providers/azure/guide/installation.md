@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/installation)
 <!-- DOCS-SITE-LINK:END -->
 
-# Installation
+# Azure - Installation
 
 ### Installing Node.js
 

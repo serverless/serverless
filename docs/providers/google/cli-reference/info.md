@@ -1,6 +1,6 @@
 <!--
-title: Google Cloud Functions Serverless Info Commands
-menuText: info
+title: Google Cloud Functions Serverless info command
+menuText: Info
 menuOrder: 5
 description: Get information about your deployed service
 layout: Doc
@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/info)
 <!-- DOCS-SITE-LINK:END -->
 
-# Info
+# Google - Info
 
 The `serverless info` command displays information about the deployed service. Make sure to run this command in your services directory.
 

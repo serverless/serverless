@@ -6,15 +6,15 @@ description: Getting started with the Serverless Framework on Azure Functions
 layout: Doc
 -->
 
-# Quick Start
+# Azure - Quick Start
 
 ## Pre-requisites
 
 1. Node.js `v6.5.0` or later. *(this is the runtime version supported by Azure Functions)*
-2. Serverless CLI `v1.9.0` or later. You can run 
+2. Serverless CLI `v1.9.0` or later. You can run
 `npm install -g serverless` to install it.
 3. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit.
-4. **Set-up your [Provider Credentials](./credentials.md)**. 
+4. **Set-up your [Provider Credentials](./credentials.md)**.
 
 ## Create a new service
 
@@ -32,7 +32,7 @@ $ npm install
 ## Deploy, test and diagnose your service
 
 1. **Deploy the Service:**
-  
+
   Deploy your new service to Azure! The first time you do this, you will be asked to authenticate with your Azure account, so the `serverless` CLI can manage Functions on your behalf. Simply follow the provided instructions, and the deployment will continue as soon as the authentication process is completed.
 
   ```bash
@@ -44,13 +44,13 @@ $ npm install
 2. **Deploy the Function**
 
   Use this to quickly upload and overwrite your function code,  allowing you to develop faster. If you're working on a single function, you can simply deploy the specified function instead of the entire service.
-  
+
   ```bash
   serverless deploy function -f hello
   ```
 
 3. **Invoke the Function**
-  
+
   Invoke a function, in order to test that it works:
 
   ```bash
@@ -71,7 +71,7 @@ If at any point, you no longer need your service, you can run the following comm
 
 ```bash
 serverless remove
-``` 
+```
 
 Check out the [Serverless Framework Guide](./README.md) for more information.
 
@@ -94,5 +94,3 @@ $env:azureServicePrincipalTenantId='<tenantId>'
 $env:azureServicePrincipalClientId='<servicePrincipalName>'
 $env:azureServicePrincipalPassword='<password>'
 ```
-
-

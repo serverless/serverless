@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/testing)
 <!-- DOCS-SITE-LINK:END -->
 
-# Testing
+# OpenWhisk - Testing
 
 While the Serverless Architecture introduces a lot of simplicity when it comes to serving business logic, some of its characteristics present challenges for testing.  They are:
 

@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/services)
 <!-- DOCS-SITE-LINK:END -->
 
-# Services
+# OpenWhisk - Services
 
 A `service` is like a project.  It's where you define your Apache OpenWhisk Functions, the `events` that trigger them and any  `resources` they require, all in a file called `serverless.yml`.
 
@@ -81,7 +81,7 @@ provider:
   name: openwhisk
   runtime: nodejs:6
   memory: 512 # Overwrite the default memory size. Default is 256
-  
+
 functions:
   usersCreate: # A Function
     handler: users.create

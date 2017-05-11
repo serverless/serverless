@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/functions)
 <!-- DOCS-SITE-LINK:END -->
 
-# Functions
+# Google - Functions
 
 If you are using Google Cloud Functions as a provider, all *functions* inside the service are Google Cloud Functions.
 

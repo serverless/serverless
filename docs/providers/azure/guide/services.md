@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/services)
 <!-- DOCS-SITE-LINK:END -->
 
-# Services
+# Azure - Services
 
 A `service` is like a project.  It's where you define your Azure Functions, the `events` that trigger them and any  `resources` they require, all in a file called `serverless.yml`.
 
@@ -80,9 +80,9 @@ plugins:
   - serverless-azure-functions
 
 functions:
-  hello: 
+  hello:
      handler: handler.hello
-     events: 
+     events:
        - http: true
          x-azure-settings:
            authLevel : anonymous

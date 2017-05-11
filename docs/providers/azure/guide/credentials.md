@@ -10,21 +10,21 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Credentials
+# Azure - Credentials
 
-The Serverless Framework needs access to account credentials for your Azure account so that it can create and manage resources on your behalf. 
+The Serverless Framework needs access to account credentials for your Azure account so that it can create and manage resources on your behalf.
 
-Here we'll provide setup instructions for both options, just pick the one that you're using. 
+Here we'll provide setup instructions for both options, just pick the one that you're using.
 
 ## Register with Azure
 
 Azure provides a hosted serverless computing solution based upon Azure Functions.
 
-Here's how to get started… 
+Here's how to get started…
 
 - Sign up for a free account @ [https://azure.com](https://azure.microsoft.com/en-us/services/functions/)
 
-Azure comes with a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit. 
+Azure comes with a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit.
 
 ### Azure Account Credentials
 
@@ -70,7 +70,7 @@ If you're using non-public Azure, such as national clouds or Azure Stack, be sur
 
 5. Set up environment variables
 
-    You need to set up environment variables for your subscription id, tenant id, service principal name, and password. 
+    You need to set up environment variables for your subscription id, tenant id, service principal name, and password.
 
     ```bash
     # bash

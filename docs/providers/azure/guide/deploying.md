@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/deploying)
 <!-- DOCS-SITE-LINK:END -->
 
-# Deploying
+# Azure - Deploying
 
 The Serverless Framework was designed to provision your Azure Functions Functions, Triggers and Rules safely and quickly.  It does this via a couple of methods designed for different types of deployments.
 

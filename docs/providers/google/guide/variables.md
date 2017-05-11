@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/variables)
 <!-- DOCS-SITE-LINK:END -->
 
-# Variables
+# Google - Variables
 
 The Serverless framework provides a powerful variable system which allows you to add dynamic data into your `serverless.yml`. With Serverless Variables, you'll be able to do the following:
 
