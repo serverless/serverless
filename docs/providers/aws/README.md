@@ -10,7 +10,7 @@ layout: Doc
 
 # AWS Provider Documentation
 
-Welcome to the Serverless Azure Functions documentation!
+Welcome to the Serverless AWS Functions documentation!
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
 
