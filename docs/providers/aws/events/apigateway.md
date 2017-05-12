@@ -123,6 +123,7 @@ functions:
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
+              - X-Amz-User-Agent
             allowCredentials: false
 ```
 
