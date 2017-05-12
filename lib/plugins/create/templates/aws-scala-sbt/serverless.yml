@@ -47,7 +47,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: target/scala-2.11/hello.jar
+  artifact: target/scala-2.12/hello.jar
 
 functions:
   hello:
