@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - IBM Openwhisk Guide - Quick Start
+title: Serverless Framework - Apache Openwhisk Guide - Quick Start
 menuText: Quick Start
 menuOrder: 1
-description: Getting started with the Serverless Framework on IBM Openwhisk
+description: Getting started with the Serverless Framework on Apache Openwhisk
 layout: Doc
 -->
 
