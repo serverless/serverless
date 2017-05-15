@@ -19,6 +19,8 @@ Rollback a function service to a specific version.
 serverless rollback function --name <name> --version <version>
 ```
 
+**Note:** You can only rollback a function which was previously deployed through `serverless deploy`. Functions are not versioned when running `serverless deploy function`.
+
 ## Options
 
 - `--name` or `-n` The name of the function which should be rolled-back
