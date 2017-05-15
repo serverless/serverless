@@ -1,3 +1,11 @@
+# 1.13.1 (12.05.2017)
+- Fixed bug when referencing variables from other variable object values (#3604)
+- Fixed bug when packaging a functions-free service (#3598)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.0...v1.13.1)
+
+
 # 1.13.0 (10.05.2017)
 - Added support for cross service communication via CloudFormation outputs (#3575)
 - Add Lambda tagging functionality (#3548)

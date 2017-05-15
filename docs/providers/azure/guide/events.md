@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/events)
 <!-- DOCS-SITE-LINK:END -->
 
-# Events
+# Azure - Events
 
 Simply put, events are the things that trigger your functions to run.
 
@@ -36,9 +36,9 @@ functions:
 The events property is an array, in this case, because I can also use it do define my input and output bindings.
 
 ```yml
-queuejs: 
+queuejs:
   handler: templates/handler.helloQueue
-  events: 
+  events:
     - queue: YourQueueName
       x-azure-settings:
         connection : StorageAppSettingName

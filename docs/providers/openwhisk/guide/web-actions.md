@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/web-actions)
 <!-- DOCS-SITE-LINK:END -->
 
-# Web Actions
+# OpenWhisk - Web Actions
 
 Functions can be turned into ["*web actions*"](https://github.com/openwhisk/openwhisk/blob/master/docs/actions.md) which return HTTP content without use of an API Gateway. This feature is enabled by setting an annotation (`web-export`) in the configuration file.
 
@@ -59,7 +59,7 @@ Here is an example of returning binary data:
 ```javascript
 function main() {
    let png = <base 64 encoded string>
-   return { 
+   return {
       headers: { "Content-Type": "image/png" },
       body: png };
 }

@@ -6,7 +6,7 @@
 const path = require('path');
 const url = require('url');
 const markdownMagic = require('markdown-magic');
-const remoteRequest = require('markdown-magic/lib/transforms/remote').remoteRequest;
+const remoteRequest = require('markdown-magic/lib/utils/remoteRequest');
 
 function toTitleCase(str) {
   return str.replace(/\w\S*/g, txt =>

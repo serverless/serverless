@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/events)
 <!-- DOCS-SITE-LINK:END -->
 
-# Events
+# OpenWhisk - Events
 
 Simply put, events are the things that trigger your functions to run.
 

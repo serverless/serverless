@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/workflow)
 <!-- DOCS-SITE-LINK:END -->
 
-# Workflow
+# Azure - Workflow
 
 Intro. Quick recommendations and tips for various processes.
 
@@ -54,7 +54,7 @@ serverless deploy
 ##### Deploy Function
 Use this to quickly overwrite your Azure Functions, allowing you to develop faster.
 ```
-serverless deploy function -f [FUNCTION NAME] 
+serverless deploy function -f [FUNCTION NAME]
 ```
 
 ##### Invoke Function

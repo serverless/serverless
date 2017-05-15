@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/functions)
 <!-- DOCS-SITE-LINK:END -->
 
-# Functions
+# Azure - Functions
 
 If you are using Azure Functions as a provider, all *functions* inside the service are Azure Functions.
 
@@ -30,9 +30,9 @@ plugins:
   - serverless-azure-functions
 
 functions:
-  hello: 
+  hello:
      handler: templates/handler.hello
-     events: 
+     events:
        - http: true
          x-azure-settings:
            authLevel : anonymous
