@@ -300,3 +300,41 @@ provider:
 ```
 
 These versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
+
+## DeadLetterConfig
+
+You can setup `DeadLetterConfig` with the help of a SNS topic / SQS queue and the `onError` config parameter.
+
+The SNS topic / SQS queue needs to be created beforehand and provided as an `arn` on the function level.
+
+**Note:** You can only provide one `onError` config per function.
+
+### DLQ with SNS
+
+```yml
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  hello:
+    handler: handler.hello
+    onError: arn:aws:sns:us-east-1:XXXXXX:test
+```
+
+### DLQ with SQS
+
+```yml
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  hello:
+    handler: handler.hello
+    onError: arn:aws:sqs:us-east-1:XXXXXX:test
+```
