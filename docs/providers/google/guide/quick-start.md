@@ -1,6 +1,6 @@
 <!--
-title: Serverless Framework - Google Cloud Functions Guide - Quickstart
-menuText: Quickstart
+title: Serverless Framework - Google Cloud Functions Guide - Quick Start
+menuText: Quick Start
 menuOrder: 2
 description: Get started with Google Cloud Functions in 5 minutes or less
 layout: Doc
