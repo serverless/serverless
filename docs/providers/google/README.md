@@ -49,6 +49,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
     </div>
     <div>
       <ul>
+        <li><a href="./cli-reference/create.md">Create</a></li>
         <li><a href="./cli-reference/install.md">Install</a></li>
         <li><a href="./cli-reference/deploy.md">Deploy</a></li>
         <li><a href="./cli-reference/info.md">Info</a></li>

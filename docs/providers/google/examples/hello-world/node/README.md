@@ -15,7 +15,7 @@ Make sure [`serverless` is installed](../../../guide/installation.md) and you ha
 
 ## 1. Create a service
 
-`serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>`
+`serverless create --template google-nodejs --path my-service`
 
 ## 2. Install Provider Plugin
 
