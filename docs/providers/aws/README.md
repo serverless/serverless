@@ -65,6 +65,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/metrics.md">Metrics</a></li>
         <li><a href="./cli-reference/info.md">Info</a></li>
         <li><a href="./cli-reference/rollback.md">Rollback</a></li>
+        <li><a href="./cli-reference/rollback-function.md">Rollback Function</a></li>
         <li><a href="./cli-reference/remove.md">Remove</a></li>
         <li><a href="./cli-reference/slstats.md">Serverless Stats</a></li>
       </ul>
