@@ -61,19 +61,20 @@ In the above example you're setting a global schedule for all functions by refer
 ## Referencing Environment Variables
 To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.  It is valid to use the empty string in place of `SOME_VAR`.  This looks like "`${env:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `process.env` object (i.e. all the variables defined in your environment).
 
-**WARNING!**
-If you use use the environment to provide sensitive data such as credentials or private keys to your project, there is a risk that this sensitive information could be written into less protected or publicly accessible build logs, CloudFormation templates, et cetera. Consider accordingly!
+**Note:**
+
+Keep in mind that sensitive information which is provided through environment variables can be written into less protected or publicly accessible build logs, CloudFormation templates, et cetera.
 
 ```yml
 service: new-service
 provider: aws
 functions:
   hello:
-      name: ${env:FUNC_PREFIX}-hello
-      handler: handler.hello
+    name: ${env:FUNC_PREFIX}-hello
+    handler: handler.hello
   world:
-      name: ${env:FUNC_PREFIX}-world
-      handler: handler.world
+    name: ${env:FUNC_PREFIX}-world
+    handler: handler.world
 ```
 
 In the above example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
