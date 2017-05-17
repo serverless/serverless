@@ -48,6 +48,7 @@ Most commonly used templates:
 - aws-java-gradle
 - aws-scala-sbt
 - aws-csharp
+- aws-fsharp
 - plugin
 
 ## Examples
