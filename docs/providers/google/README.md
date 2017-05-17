@@ -26,7 +26,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
     <div class="test">
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
-        <li><a href="./guide/quickstart.md">Quickstart</a></li>
+        <li><a href="./guide/quick-start.md">Quickstart</a></li>
         <li><a href="./guide/installation.md">Installation</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
         <li><a href="./guide/services.md">Services</a></li>
