@@ -34,11 +34,22 @@ A handy list of commands to use when developing with the Serverless Framework.
 
 ### Create A Service:
 
-Install the boilerplate application.
+1. Create a new service with the `google-nodejs` template
 
 ```bash
-serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>
+serverless create --template google-nodejs --path my-service
 ```
+
+2. Install the dependencies
+
+```bash
+cd my-service
+npm install
+```
+
+3. Update `serverlesss.yml`
+
+Update the `project` and `credentials` in your projects `serverless.yml`
 
 ### Install A Service
 

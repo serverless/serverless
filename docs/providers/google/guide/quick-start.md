@@ -6,28 +6,22 @@ description: Get started with Google Cloud Functions in 5 minutes or less
 layout: Doc
 -->
 
-<!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/intro)
-<!-- DOCS-SITE-LINK:END -->
-
-# Google - Quickstart
+# Google - Quick Start
 
 This guide is designed to help you get started as quick as possible.
 
-## 1. Set up boilerplate
+## 1. Create a new service
 
-To setup the boilerplate, follow these instructions:
-
-1. Install the boilerplate
+1. Create a new service with the `google-nodejs` template
 
 ```bash
-serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>
+serverless create --template google-nodejs --path my-service
 ```
 
 2. Install the dependencies
 
 ```bash
-cd <my-service>
+cd my-service
 npm install
 ```
 
@@ -35,7 +29,11 @@ npm install
 
 Read through [credentials doc](./credentials.md) to setup the credentials.
 
-# 3. Deploy
+## 3. Update `serverlesss.yml`
+
+Update the `project` and `credentials` in your projects `serverless.yml`
+
+## 4. Deploy
 
 Run the [deploy command](../cli-reference/deploy.md)
 
@@ -43,7 +41,7 @@ Run the [deploy command](../cli-reference/deploy.md)
 serverless deploy
 ```
 
-# 4. Invoke
+## 5. Invoke
 
 Run the [invoke command](../cli-reference/invoke.md)
 

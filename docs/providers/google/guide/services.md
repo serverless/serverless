@@ -40,11 +40,18 @@ This makes sense since related functions usually use common infrastructure resou
 
 ## Creation
 
-There isn't yet a `serverless create` command, so to get started you can instead start by installing the boilerplate from GitHub.
+To create a service, use the `create` command. You can also pass in a path to create a directory and auto-name your service:
 
 ```bash
-serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>
+# Create service with Node.js template in the folder ./my-service
+serverless create --template google-nodejs --path my-service
 ```
+
+Here are the available runtimes for Google Cloud Functions:
+
+* google-nodejs
+
+Check out the [create command docs](../cli-reference/create) for all the details and options.
 
 ## Contents
 

@@ -3,7 +3,7 @@ service: hello-world # NOTE: Don't put the word "google" in here
 provider:
   name: google
   runtime: nodejs
-  project: my-project-1234
+  project: my-project
   # the path to the credentials file needs to be absolute
   credentials: ~/.gcloud/keyfile.json
 

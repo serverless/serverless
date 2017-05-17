@@ -47,3 +47,7 @@ services:
     image: microsoft/dotnet:1.0.1-sdk-projectjson
     volumes:
       - ./tmp/serverless-integration-test-aws-csharp:/app
+  google-nodejs:
+    image: node:6.9.1
+    volumes:
+      - ./tmp/serverless-integration-test-google-nodejs:/app
