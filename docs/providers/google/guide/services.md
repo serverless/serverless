@@ -56,6 +56,7 @@ Check out the [create command docs](../cli-reference/create) for all the details
 ## Contents
 
 You'll see the following files in your working directory:
+
 - `serverless.yml`
 - `index.js`
 
@@ -93,7 +94,7 @@ functions:
 
 ### index.js
 
-The `index.js` file contains your function code. The function definition in `serverless.yml` will point to this `index.js` file and the function exported here.
+The `index.js` file contains your exported functions.
 
 ## Deployment
 
