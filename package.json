@@ -117,5 +117,6 @@
     "tabtab": "^2.2.2",
     "uuid": "^2.0.2",
     "write-file-atomic": "^2.1.0"
+    "traverse": "^0.6.6",
   }
 }
