@@ -66,3 +66,18 @@ functions:
           startingPosition: LATEST
           enabled: false
 ```
+
+If using the `AT_TIMESTAMP` StartingPosition for Kinesis streams, use `startingPositionTimestamp` to define a valid timestamp:
+
+  ```yml
+  functions:
+    startAtTime:
+      handler: handler.startAtTime
+      events:
+        - stream:
+            arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+            batchSize: 100
+            startingPosition: AT_TIMESTAMP
+            startingPositionTimestamp: 1495256272053.000 # or '2017-05-20T04:57:52.053Z'
+            enabled: false
+  ```
