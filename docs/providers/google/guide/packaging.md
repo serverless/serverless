@@ -21,9 +21,3 @@ Running the following command will build and save all of the deployment artifact
 ```bash
 serverless package
 ```
-
-However, you can also use the --package option to add a destination path and Serverless will store your deployment artifacts there (./my-artifacts in the following case):
-
-```bash
-serverless package --package my-artifacts
-```
