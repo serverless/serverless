@@ -16,7 +16,6 @@ package:
   exclude:
     - node_modules/**
     - .gitignore
-    - package.json
     - .git/**
 
 functions:
