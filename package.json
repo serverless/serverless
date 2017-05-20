@@ -1,5 +1,5 @@
 {
-  "name": "serverless",
+  "name": "@impulse/serverless",
   "version": "1.13.2",
   "engines": {
     "node": ">=4.0"
