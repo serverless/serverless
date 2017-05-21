@@ -89,6 +89,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./events/iot.md">IoT</a></li>
         <li><a href="./events/cloudwatch-event.md">CloudWatch Event</a></li>
         <li><a href="./events/cloudwatch-log.md">CloudWatch Log</a></li>
+        <li><a href="./events/cognito-user-pool-trigger.md">Cognito User Pool Trigger</a></li>
       </ul>
     </div>
   </div>

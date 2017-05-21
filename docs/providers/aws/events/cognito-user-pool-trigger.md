@@ -1,0 +1,139 @@
+<!--
+title: Serverless Framework - AWS Lambda Events - CloudWatch Log
+menuText: Cognito User Pool Trigger
+menuOrder: 10
+description:  Setting up AWS Cognito User Pool Triggers with AWS Lambda via the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/)
+<!-- DOCS-SITE-LINK:END -->
+
+# Cognito User Pool Trigger
+
+## Valid Triggers
+
+Serverless supports all Cognito User Pool Triggers as specified [here][aws-triggers-list].
+
+## Simple event definition
+
+This will create a Cognito User Pool with the specified name. You can reference the same pool multiple times.
+
+```yml
+functions:
+  preSignUp:
+    handler: preSignUp.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: PreSignUp
+  customMessage:
+    handler: customMessage.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: CustomMessage
+```
+
+## Multiple pools event definitions
+
+This will create multiple Cognito User Pools with their specified names:
+
+```yml
+functions:
+  preSignUpForPool1:
+    handler: preSignUp.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool1
+          trigger: PreSignUp
+  preSignUpForPool2:
+    handler: preSignUp.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool2
+          trigger: PreSignUp
+```
+
+You can also deploy the same function for different user pools:
+
+```yml
+functions:
+  preSignUp:
+    handler: preSignUp.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool1
+          trigger: PreSignUp
+      - cognitoUserPool:
+          pool: MyUserPool2
+          trigger: PreSignUp
+```
+
+## Custom message trigger handlers
+
+For custom messages, you will need to check `event.triggerSource` type inside your handler function:
+
+```js
+// customMessage.js
+function handler(event, context, callback) {
+  if (event.triggerSource === 'CustomMessage_AdminCreateUser') {
+    // ...
+  }
+  if (event.triggerSource === 'CustomMessage_ResendCode') {
+    // ...
+  }
+}
+```
+
+## Referencing a User Pool from the current stack
+
+You can attach the functions as events on a Cognito User Pool defined in the `Resources` section.
+
+```yml
+functions:
+  preSignUp:
+    handler: preSignUpForPool1.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPoolFromResources
+          trigger: PreSignUp
+  postConfirmation:
+    handler: postConfirmation.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPoolFromResources
+          trigger: PostConfirmation
+resources:
+  Resources:
+    MyUserPoolFromResources:
+      Type: AWS::Cognito::UserPool
+```
+
+## Overriding a generated User Pool
+
+A Cognito User Pool created by an event can be overridden by using the [logical resource name][logical-resource-names] in `Resources`:
+
+```yml
+functions:
+  preSignUp:
+    handler: preSignUpForPool1.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: PreSignUp
+  postConfirmation:
+    handler: postConfirmation.handler
+    events:
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: PostConfirmation
+resources:
+  Resources:
+    CognitoUserPoolMyUserPool:
+      Type: AWS::Cognito::UserPool
+```
+
+[aws-triggers-list]: http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools-working-with-aws-lambda-triggers.html#cognito-user-pools-lambda-trigger-syntax-shared
+[logical-resource-names]: https://serverless.com/framework/docs/providers/aws/guide/resources#aws-cloudformation-resource-reference

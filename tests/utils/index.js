@@ -51,6 +51,8 @@ module.exports = {
     process.env.TOPIC_2 = `${serviceName}-1`;
     process.env.BUCKET_1 = `${serviceName}-1`;
     process.env.BUCKET_2 = `${serviceName}-2`;
+    process.env.COGNITO_USER_POOL_1 = `${serviceName}-1`;
+    process.env.COGNITO_USER_POOL_2 = `${serviceName}-2`;
 
     // return the name of the CloudFormation stack
     return `${serviceName}-dev`;
@@ -161,6 +163,18 @@ module.exports = {
       Entries: entries,
     };
     return cwe.putEventsPromised(params);
+  },
+
+  createCognitoUser(userPoolId, username, password) {
+    const cisp = new AWS.CognitoIdentityServiceProvider({ region: 'us-east-1' });
+    BbPromise.promisifyAll(cisp, { suffix: 'Promised' });
+
+    const params = {
+      UserPoolId: userPoolId,
+      Username: username,
+      TemporaryPassword: password,
+    };
+    return cisp.adminCreateUserPromised(params);
   },
 
   getFunctionLogs(functionName) {
