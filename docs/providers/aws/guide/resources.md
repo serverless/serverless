@@ -85,6 +85,7 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
 |SNS::Subscription      | {normalizedFunctionName}SnsSubscription{normalizedTopicName}   | HelloSnsSubscriptionSomeTopic             |
 |AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB:** {normalizedFunctionName}EventSourceMappingDynamodb{tableName}</li><li>**Kinesis:** {normalizedFunctionName}EventSourceMappingKinesis{streamName}</li></ul> | <ul><li>**DynamoDB:** HelloLambdaEventSourceMappingDynamodbUsers</li><li>**Kinesis:** HelloLambdaEventSourceMappingKinesisMystream</li></ul> |
+|AWS::CloudFormation::Stack | NestedStack{SequentialID}       | NestedStack1            |
 |Cognito::UserPool      | CognitoUserPool{normalizedPoolId}                       | CognitoUserPoolPoolId         |
 
 ## Override AWS CloudFormation Resource
