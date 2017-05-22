@@ -165,6 +165,20 @@ module.exports = {
     return cwe.putEventsPromised(params);
   },
 
+  getCognitoUserPoolId(userPoolName) {
+    const cisp = new AWS.CognitoIdentityServiceProvider({ region: 'us-east-1' });
+    BbPromise.promisifyAll(cisp, { suffix: 'Promised' });
+
+    const params = {
+      MaxResults: 1,
+    };
+
+    return cisp.listUserPoolsPromised(params)
+      .then((data) => data.UserPools.find((userPool) =>
+        RegExp(userPoolName, 'g').test(userPool.Name)).Id
+      );
+  },
+
   createCognitoUser(userPoolId, username, password) {
     const cisp = new AWS.CognitoIdentityServiceProvider({ region: 'us-east-1' });
     BbPromise.promisifyAll(cisp, { suffix: 'Promised' });
