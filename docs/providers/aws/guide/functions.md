@@ -265,9 +265,9 @@ functions:
 
 ## Tags
 
-Using the `tags` configuration makes it opssible to add `key` / `value` tags to your functions.
+Using the `tags` configuration makes it possible to add `key` / `value` tags to your functions.
 
-Those tags will appear in your AWS console and makes it easier for you to group functions by tag or find functions with a common tag.
+Those tags will appear in your AWS console and make it easier for you to group functions by tag or find functions with a common tag.
 
 ```yml
 functions:
