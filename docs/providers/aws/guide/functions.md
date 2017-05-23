@@ -303,9 +303,9 @@ These versions are not cleaned up by serverless, so make sure you use a plugin o
 
 ## DeadLetterConfig
 
-You can setup `DeadLetterConfig` with the help of a SNS topic / SQS queue and the `onError` config parameter.
+You can setup `DeadLetterConfig` with the help of a SNS topic and the `onError` config parameter.
 
-The SNS topic / SQS queue needs to be created beforehand and provided as an `arn` on the function level.
+The SNS topic needs to be created beforehand and provided as an `arn` on the function level.
 
 **Note:** You can only provide one `onError` config per function.
 
@@ -326,15 +326,6 @@ functions:
 
 ### DLQ with SQS
 
-```yml
-service: service
+The `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
 
-provider:
-  name: aws
-  runtime: nodejs6.10
-
-functions:
-  hello:
-    handler: handler.hello
-    onError: arn:aws:sqs:us-east-1:XXXXXX:test
-```
+We're working on a fix so that SQS queue arns are be supported in the future.
