@@ -98,15 +98,19 @@
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
+    "jwt-decode": "^2.2.0",
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
     "node-fetch": "^1.6.0",
+    "opn": "^5.0.0",
+    "rc": "^1.1.6",
     "replaceall": "^0.1.6",
     "resolve-from": "^2.0.0",
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
-    "uuid": "^2.0.2"
+    "uuid": "^2.0.2",
+    "write-file-atomic": "^2.1.0"
   }
 }
