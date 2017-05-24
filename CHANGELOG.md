@@ -1,3 +1,18 @@
+# 1.14.0 (24.05.2017)
+- Added login command - #3558
+- Added support for DeadLetter Config with SNS - #3609
+- Added support for S3 variables - #3592
+- Added rollback function command - #3571
+- Added `X-Amz-User-Agent` to list of allowed headers in CORS - #3614
+- Added support for HTTP_PROXY API Gateway integration - #3534
+- Added IS_LOCAL environment variable with invoke local command - #3642
+- Removed package.json in exclude rules - #3644
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.2...v1.14.0)
+
+
 # 1.13.2 (15.05.2017)
 - Fixed a bug when using dot notation in YAML keys (#3620)
 
