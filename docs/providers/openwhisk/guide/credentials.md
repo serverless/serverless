@@ -48,7 +48,15 @@ wsk property set --apihost openwhisk.ng.bluemix.net --auth XXX:YYY
 
 The command-line utility is linked from [the previous page](https://console.ng.bluemix.net/openwhisk/learn/cli). Download and install the binary into a location in your [shell path](http://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
 
+### (optional) Authenticate with API gateway
 
+OpenWhisk on IBM Bluemix uses a third-party API gateway service. An access token is needed to add HTTP endpoints to your functions. This can be retrieved automatically using the `wsk` command-line.
+
+```
+wsk bluemix login
+```
+
+After running the login command, you will be prompted to enter your authentication credentials. The access token will be stored in the `.wskprops` file under your home directory, using the key (`APIGW_ACCESS_TOKEN`).
 
 ## Register with OpenWhisk platform (Self-Hosted)
 
@@ -106,9 +114,12 @@ You can configure the Serverless Framework to use your OpenWhisk credentials in 
 As a quick setup to get started you can export them as environment variables so they would be accessible to Serverless Framework:
 
 ```bash
+# mandatory parameters
 export OW_AUTH=<your-key-here>
 export OW_APIHOST=<your-api-host>
-# OW_AUTH and OW_APIHOST are now available for serverless to use
+# optional parameters
+export OW_APIGW_ACCESS_TOKEN=<your-access-token>
+# OW_AUTH, OW_APIHOST and OW_APIGW_ACCESS_TOKEN are now available for serverless to use
 serverless deploy
 ```
 
@@ -122,15 +133,18 @@ If you have followed the instructions above to install the `wsk` command-line ut
 
 ```bash
 $ wsk property set --apihost PLATFORM_API_HOST --auth USER_AUTH_KEY
+// followed by this command if you want to use the api gateway on bluemix
+$ wsk bluemix login
 ```
 
 Credentials are stored in `~/.wskprops`, which you can edit directly if needed.
 
 ##### Edit file manually
 
-The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST` and `USER_AUTH_KEY` values will the  credentials from above.
+The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST`, `USER_AUTH_KEY` and (optionally) `ACCESS_TOKEN` values will the  credentials from above.
 
 ```
 APIHOST=PLATFORM_API_HOST
 AUTH=USER_AUTH_KEY
+APIGW_ACCESS_TOKEN==ACCESS_TOKEN # optional
 ```
