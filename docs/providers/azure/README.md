@@ -54,6 +54,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/deploy.md">Deploy</a></li>
         <li><a href="./cli-reference/deploy-function.md">Deploy Function</a></li>
         <li><a href="./cli-reference/invoke.md">Invoke</a></li>
+        <li><a href="./cli-reference/login.md">Login</a></li>
         <li><a href="./cli-reference/logs.md">Logs</a></li>
         <li><a href="./cli-reference/remove.md">Remove</a></li>
       </ul>
