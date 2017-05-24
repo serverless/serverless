@@ -33,7 +33,6 @@ provider:
   role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
   cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   versionFunctions: false # Optional function versioning
-  onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn which will be used for the DeadLetterConfig
   environment: # Service wide environment variables
     serviceEnvVar: 123456789
   apiKeys: # List of API keys to be used by your service API Gateway REST API
@@ -73,6 +72,7 @@ functions:
     memorySize: 512 # memorySize for this specific function.
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
+    onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn which will be used for the DeadLetterConfig
     environment: # Function level environment variables
       functionEnvVar: 12345678
     tags: # Function specific tags
