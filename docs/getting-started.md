@@ -19,6 +19,15 @@ First things first, let's get the Serverless framework installed on your machine
 npm install serverless -g
 ```
 
+## Installing Serverless in an existing project
+
+If you already have a Serverless project, and would prefer to lock down the framework version using `package.json`, then you can install Serverless as follows:
+
+```bash
+# From a project
+npm install serverless --save-dev
+```
+
 ## Choose your compute provider
 
 <div class="docsSections">
