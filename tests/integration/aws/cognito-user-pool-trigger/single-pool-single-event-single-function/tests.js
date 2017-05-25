@@ -12,7 +12,7 @@ describe('AWS - Cognito User Pool Trigger: Single User Pool with single ' +
   });
 
   it('should call the specified function when PreSignUp event is triggered', () => Utils
-    .getCognitoUserPoolId('CognitoUserPoolAwsnodejs-1')
+    .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_1)
     .then((poolId) =>
       Utils.createCognitoUser(poolId, 'test@test.com', 'Password123!')
     )

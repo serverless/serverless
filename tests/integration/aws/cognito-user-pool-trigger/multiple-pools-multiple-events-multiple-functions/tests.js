@@ -13,7 +13,7 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with multiple ' +
 
   it('should call the specified function on the first User Pool when PreSignUp ' +
     'event is triggered', () => Utils
-    .getCognitoUserPoolId('CognitoUserPoolAwsnodejs-1')
+    .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_1)
     .then((poolId) =>
       Promise.all([
         poolId,
@@ -23,7 +23,8 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with multiple ' +
     .delay(60000)
     .then((promiseResponse) => {
       const poolId = promiseResponse[0];
-      const logs = Utils.getFunctionLogs('preSignUp');
+      const logs = Utils.getFunctionLogs('preSignUp1');
+
       expect(RegExp(`"userPoolId":"${poolId}"`, 'g').test(logs)).to.equal(true);
       expect(/"triggerSource":"PreSignUp_\w+"/g.test(logs)).to.equal(true);
     })
@@ -31,9 +32,9 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with multiple ' +
 
   it('should call the specified function on the first User Pool when CustomMessage ' +
     'event is triggered', () => Utils
-    .getCognitoUserPoolId('CognitoUserPoolAwsnodejs-1')
+    .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_1)
     .then((poolId) => {
-      const logs = Utils.getFunctionLogs('customMessage');
+      const logs = Utils.getFunctionLogs('customMessage1');
 
       expect(RegExp(`"userPoolId":"${poolId}"`, 'g').test(logs)).to.equal(true);
       expect(/"triggerSource":"CustomMessage_AdminCreateUser"/g.test(logs)).to.equal(true);
@@ -42,7 +43,7 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with multiple ' +
 
   it('should call the specified function on the second User Pool when PreSignUp ' +
     'event is triggered', () => Utils
-    .getCognitoUserPoolId('CognitoUserPoolAwsnodejs-2')
+    .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_2)
     .then((poolId) =>
       Promise.all([
         poolId,
@@ -52,7 +53,7 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with multiple ' +
     .delay(60000)
     .then((promiseResponse) => {
       const poolId = promiseResponse[0];
-      const logs = Utils.getFunctionLogs('preSignUp');
+      const logs = Utils.getFunctionLogs('preSignUp2');
 
       expect(RegExp(`"userPoolId":"${poolId}"`, 'g').test(logs)).to.equal(true);
       expect(/"triggerSource":"PreSignUp_\w+"/g.test(logs)).to.equal(true);
@@ -61,9 +62,9 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with multiple ' +
 
   it('should call the specified function on the second User Pool when CustomMessage ' +
     'event is triggered', () => Utils
-    .getCognitoUserPoolId('CognitoUserPoolAwsnodejs-2')
+    .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_2)
     .then((poolId) => {
-      const logs = Utils.getFunctionLogs('customMessage');
+      const logs = Utils.getFunctionLogs('customMessage2');
 
       expect(RegExp(`"userPoolId":"${poolId}"`, 'g').test(logs)).to.equal(true);
       expect(/"triggerSource":"CustomMessage_AdminCreateUser"/g.test(logs)).to.equal(true);

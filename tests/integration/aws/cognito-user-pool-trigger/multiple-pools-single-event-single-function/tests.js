@@ -13,7 +13,7 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with single ' +
 
   it('should call the specified function on the first User Pool when PreSignUp ' +
     'event is triggered', () => Utils
-    .getCognitoUserPoolId('CognitoUserPoolAwsnodejs-1')
+    .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_1)
     .then((poolId) =>
       Promise.all([
         poolId,
@@ -31,7 +31,7 @@ describe('AWS - Cognito User Pool Trigger: Multiple User Pools with single ' +
 
   it('should call the specified function on the second User Pool when PreSignUp ' +
     'event is triggered', () => Utils
-    .getCognitoUserPoolId('CognitoUserPoolAwsnodejs-2')
+    .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_2)
     .then((poolId) =>
       Promise.all([
         poolId,
