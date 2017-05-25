@@ -136,6 +136,9 @@ functions:
       - cloudwatchLog:
           logGroup: '/aws/lambda/hello'
           filter: '{$.userIdentity.type = Root}'
+      - cognitoUserPool:
+          pool: MyUserPool
+          trigger: PreSignUp
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:

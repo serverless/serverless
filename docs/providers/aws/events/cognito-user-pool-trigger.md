@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - CloudWatch Log
+title: Serverless Framework - AWS Lambda Events - Cognito User Pool Trigger
 menuText: Cognito User Pool Trigger
 menuOrder: 10
 description:  Setting up AWS Cognito User Pool Triggers with AWS Lambda via the Serverless Framework
@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cognito-user-pool-trigger)
 <!-- DOCS-SITE-LINK:END -->
 
 # Cognito User Pool Trigger
@@ -129,6 +129,7 @@ functions:
       - cognitoUserPool:
           pool: MyUserPool
           trigger: PostConfirmation
+
 resources:
   Resources:
     CognitoUserPoolMyUserPool:
@@ -136,4 +137,4 @@ resources:
 ```
 
 [aws-triggers-list]: http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools-working-with-aws-lambda-triggers.html#cognito-user-pools-lambda-trigger-syntax-shared
-[logical-resource-names]: https://serverless.com/framework/docs/providers/aws/guide/resources#aws-cloudformation-resource-reference
+[logical-resource-names]: ../guide/resources#aws-cloudformation-resource-reference
