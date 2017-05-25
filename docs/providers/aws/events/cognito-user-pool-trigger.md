@@ -105,6 +105,7 @@ functions:
       - cognitoUserPool:
           pool: MyUserPoolFromResources
           trigger: PostConfirmation
+
 resources:
   Resources:
     MyUserPoolFromResources:
