@@ -37,6 +37,7 @@ functions:
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
+    KmsKeyArn: arn:aws:kms:ap-southeast-2:1234567890:key/111111111111-1111-1111-111111111 # optional, used to decrypt variables
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
