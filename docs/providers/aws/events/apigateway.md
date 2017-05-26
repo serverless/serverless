@@ -115,8 +115,7 @@ functions:
           path: hello
           method: get
           cors:
-            origins:
-              - '*'
+            origin: '*'
             headers:
               - Content-Type
               - X-Amz-Date
