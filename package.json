@@ -55,7 +55,8 @@
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
-    "postinstall": "node ./scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.js",
+    "install": "tabtab install --auto"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
@@ -111,6 +112,7 @@
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
+    "tabtab": "https://registry.npmjs.org/tabtab/-/tabtab-2.2.2.tgz",
     "uuid": "^2.0.2",
     "write-file-atomic": "^2.1.0"
   }
