@@ -12,7 +12,7 @@ layout: Doc
 
 # Triggers
 
-Functions are connected to event sources in OpenWhisk [using triggers and rules](https://github.com/openwhisk/openwhisk/blob/master/docs/triggers_rules.md).
+Functions are connected to event sources in OpenWhisk [using triggers and rules](https://github.com/apache/incubator-openwhisk/blob/master/docs/triggers_rules.md).
 Triggers create a named event stream within the system. Triggers can be fired
 manually or connected to external data sources, like databases or message
 queues. 
@@ -34,7 +34,7 @@ This configuration will create a trigger called `servicename-my_trigger` with an
 
 ## Customising Rules
 
-Rule names default to the following format `servicename-trigger-to-action`. These names be explicitly set through configuration.
+Rule names default to the following format `servicename-trigger-to-action`. These names can be explicitly set through configuration.
 
 ```yaml
 functions:
@@ -46,7 +46,7 @@ functions:
         rule: "rule_name"
 ```
 
-## Customing Triggers
+## Customising Triggers
 
 Triggers can be defined as separate resources in the `serverless.yaml` file. This allows you to set up trigger properties like default parameters.
 
