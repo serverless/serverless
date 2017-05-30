@@ -12,7 +12,7 @@ menuItems:
 
 # Getting Started with Serverless
 
-First things first, lets get the serverless framework installed on your machine.
+First things first, let's get the Serverless framework installed on your machine.
 
 ```bash
 # Installing the serverless cli
