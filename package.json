@@ -108,7 +108,6 @@
     "opn": "^5.0.0",
     "rc": "^1.1.6",
     "replaceall": "^0.1.6",
-    "resolve-from": "^2.0.0",
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
