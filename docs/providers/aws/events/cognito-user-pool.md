@@ -1,6 +1,6 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - Cognito User Pool Trigger
-menuText: Cognito User Pool Trigger
+title: Serverless Framework - AWS Lambda Events - Cognito User Pool
+menuText: Cognito User Pool
 menuOrder: 10
 description:  Setting up AWS Cognito User Pool Triggers with AWS Lambda via the Serverless Framework
 layout: Doc
@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cognito-user-pool)
 <!-- DOCS-SITE-LINK:END -->
 
-# Cognito User Pool Trigger
+# Cognito User Pool
 
 ## Valid Triggers
 
