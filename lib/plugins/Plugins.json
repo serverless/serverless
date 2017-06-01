@@ -10,6 +10,7 @@
     "./logs/logs.js",
     "./login/login.js",
     "./logout/logout.js",
+    "./platform/platform.js",
     "./metrics/metrics.js",
     "./remove/remove.js",
     "./rollback/index.js",
