@@ -62,6 +62,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/invoke.md">Invoke</a></li>
         <li><a href="./cli-reference/invoke-local.md">Invoke Local</a></li>
         <li><a href="./cli-reference/logs.md">Logs</a></li>
+        <li><a href="./cli-reference/login.md">Login</a></li>
         <li><a href="./cli-reference/metrics.md">Metrics</a></li>
         <li><a href="./cli-reference/info.md">Info</a></li>
         <li><a href="./cli-reference/rollback.md">Rollback</a></li>

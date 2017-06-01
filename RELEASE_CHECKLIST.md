@@ -33,7 +33,7 @@ milestone if still open
 - [ ] Push the git tag (`git push origin <VersionName>`)
 
 ## Segment Configuration
-- [ ] Update Segment.io key in Utils.js (never push the key to GitHub and revert afterwards with `git checkout .`)
+- [ ] Update Segment.io key in [segment.js file](https://github.com/serverless/serverless/blob/d31057239d232181128d978c392bdecbcb9fcf1b/lib/utils/segment.js#L7) (never push the key to GitHub and revert afterwards with `git checkout .`)
 - [ ] Check twice if you've used the correct key (**if in doubt ask which one to pick!**)
 - [ ] Run `./bin/serverless help` and filter for this new version in the Segment debugger to make sure data is sent to Segment for this new version
 

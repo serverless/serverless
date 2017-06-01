@@ -29,7 +29,7 @@ npm install
 
 Read through [credentials doc](./credentials.md) to setup the credentials.
 
-## 3. Update `serverlesss.yml`
+## 3. Update `serverless.yml`
 
 Update the `project` and `credentials` in your projects `serverless.yml`
 

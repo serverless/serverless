@@ -72,6 +72,7 @@ functions:
     memorySize: 512 # memorySize for this specific function.
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
+    onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn which will be used for the DeadLetterConfig
     environment: # Function level environment variables
       functionEnvVar: 12345678
     tags: # Function specific tags

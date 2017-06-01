@@ -265,9 +265,9 @@ functions:
 
 ## Tags
 
-Using the `tags` configuration makes it opssible to add `key` / `value` tags to your functions.
+Using the `tags` configuration makes it possible to add `key` / `value` tags to your functions.
 
-Those tags will appear in your AWS console and makes it easier for you to group functions by tag or find functions with a common tag.
+Those tags will appear in your AWS console and make it easier for you to group functions by tag or find functions with a common tag.
 
 ```yml
 functions:
@@ -300,3 +300,32 @@ provider:
 ```
 
 These versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
+
+## DeadLetterConfig
+
+You can setup `DeadLetterConfig` with the help of a SNS topic and the `onError` config parameter.
+
+The SNS topic needs to be created beforehand and provided as an `arn` on the function level.
+
+**Note:** You can only provide one `onError` config per function.
+
+### DLQ with SNS
+
+```yml
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  hello:
+    handler: handler.hello
+    onError: arn:aws:sns:us-east-1:XXXXXX:test
+```
+
+### DLQ with SQS
+
+The `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
+
+We're working on a fix so that SQS queue arns are be supported in the future.
