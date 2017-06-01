@@ -87,31 +87,6 @@ function handler(event, context, callback) {
 }
 ```
 
-## Referencing a User Pool from the current stack
-
-You can attach the functions as events on a Cognito User Pool defined in the `Resources` section.
-
-```yml
-functions:
-  preSignUp:
-    handler: preSignUpForPool1.handler
-    events:
-      - cognitoUserPool:
-          pool: MyUserPoolFromResources
-          trigger: PreSignUp
-  postConfirmation:
-    handler: postConfirmation.handler
-    events:
-      - cognitoUserPool:
-          pool: MyUserPoolFromResources
-          trigger: PostConfirmation
-
-resources:
-  Resources:
-    MyUserPoolFromResources:
-      Type: AWS::Cognito::UserPool
-```
-
 ## Overriding a generated User Pool
 
 A Cognito User Pool created by an event can be overridden by using the [logical resource name][logical-resource-names] in `Resources`:
