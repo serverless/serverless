@@ -170,7 +170,7 @@ module.exports = {
     BbPromise.promisifyAll(cisp, { suffix: 'Promised' });
 
     const params = {
-      MaxResults: 5,
+      MaxResults: 50,
     };
 
     return cisp.listUserPoolsPromised(params)

@@ -26,7 +26,7 @@ describe('AWS - Cognito User Pool Trigger: Single User Pool with multiple ' +
   it('should call the specified function when CustomMessage event is triggered', () => Utils
     .getCognitoUserPoolId(process.env.COGNITO_USER_POOL_1)
     .then((poolId) => {
-      const logs = Utils.getFunctionLogs('customMessage1');
+      const logs = Utils.getFunctionLogs('customMessage');
 
       expect(RegExp(`"userPoolId":"${poolId}"`, 'g').test(logs)).to.equal(true);
       expect(/"triggerSource":"CustomMessage_AdminCreateUser"/g.test(logs)).to.equal(true);
