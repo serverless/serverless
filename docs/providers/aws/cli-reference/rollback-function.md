@@ -1,7 +1,7 @@
 <!--
 title: Serverless Rollback Function CLI Command
 menuText: rollback function
-menuOrder: 16
+menuOrder: 14
 description: Rollback a function to a specific version
 layout: Doc
 -->
@@ -16,14 +16,14 @@ layout: Doc
 Rollback a function service to a specific version.
 
 ```bash
-serverless rollback function --name <name> --version <version>
+serverless rollback function --function <name> --version <version>
 ```
 
 **Note:** You can only rollback a function which was previously deployed through `serverless deploy`. Functions are not versioned when running `serverless deploy function`.
 
 ## Options
 
-- `--name` or `-n` The name of the function which should be rolled-back
+- `--function` or `-f` The name of the function which should be rolled back
 - `--version` or `-v` The version to which the function should be rolled back
 
 ## Examples

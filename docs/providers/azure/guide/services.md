@@ -149,3 +149,22 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 
 …
 ```
+
+
+## Installing Serverless in an existing service
+
+If you already have a Serverless service, and would prefer to lock down the framework version using `package.json`, then you can install Serverless as follows:
+
+```bash
+# from within a service
+npm install serverless --save-dev
+```
+
+### Invoking Serverless locally
+
+To execute the locally installed Serverless executable you have to reference the binary out of the node modules directory.
+
+Example:
+```
+node ./node_modules/serverless/bin/serverless deploy
+```
