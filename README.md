@@ -299,6 +299,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [SC5 Online](https://sc5.io)
 * [Carrot Creative](https://carrot.is)
 * [microapps](http://microapps.com)
+* [Obie Fernandez](http://obiefernandez.com) author of the definitive serverless [book](https://leanpub.com/serverless)
 * [Apiwise](http://www.apiwise.nl)
 * [Useful IO](http://useful.io) - and [Hail Messaging](http://hail.io)
 * [WhaleTech](https://whaletech.co/)
