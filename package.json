@@ -105,6 +105,7 @@
     "node-fetch": "^1.6.0",
     "opn": "^5.0.0",
     "rc": "^1.1.6",
+    "raven": "^1.2.1",
     "replaceall": "^0.1.6",
     "resolve-from": "^2.0.0",
     "semver": "^5.0.3",
