@@ -106,9 +106,7 @@ functions:
             key2: value2
             stageParams:
               stage: dev
-      - sns:
-          topicName: aggregate
-          displayName: Data aggregation pipeline
+      - sns: arn:aws:sns:REGION:XXXXXX:TopicName
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
