@@ -128,6 +128,14 @@ Now you can switch per project (/ API) by executing once when you start your pro
 in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
 The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
 
+##### Using the `aws-profile` option
+
+You can always speficy the profile which should be used via the `aws-profile` option like this:
+
+```bash
+serverless deploy --aws-profile devProfile
+```
+
 #### Per Stage Profiles
 
 As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](https://serverless.com/framework/docs/providers/aws/guide/variables) and the provider profile setting.

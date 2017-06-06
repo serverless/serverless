@@ -21,11 +21,11 @@ There are five ways you can configure your HTTP endpoints to integrate with your
 * `http-proxy` / `http_proxy`
 * `mock`
 
+**The Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda) by default unless another method is supplied by the user**
+
 The difference between these is `lambda-proxy` (alternative writing styles are `aws-proxy` and `aws_proxy` for compatibility with the standard AWS integration type naming) automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function.  Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code).  We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
 
 Use `http` for integrating with an HTTP back end, `http-proxy` for integrating with the HTTP proxy integration or `mock` for testing without actually invoking the back end.
-
-By default, the Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda), and nothing is required by you to enable it.
 
 ## Lambda Proxy Integration
 
