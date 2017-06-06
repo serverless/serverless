@@ -4,7 +4,7 @@ const path = require('path');
 const expect = require('chai').expect;
 const Utils = require('../../../../utils/index');
 
-describe('AWS - Cognito User Pool Trigger: Single User Pool with multiple ' +
+describe('AWS - Cognito User Pool: Single User Pool with multiple ' +
   'events with multiple functions', () => {
   beforeAll(() => {
     Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));
