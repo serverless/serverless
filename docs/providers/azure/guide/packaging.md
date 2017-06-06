@@ -151,3 +151,9 @@ functions:
     package:
       individually: true
 ```
+
+### Development dependencies
+
+Serverless will auto-detect and exclude development dependencies based on the runtime your service is using.
+
+This ensures that only the production relevant packages and modules are included in your zip file. Doing this drastically reduces the overall size of the deployment package which will be uploaded to the cloud provider.
