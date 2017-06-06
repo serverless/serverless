@@ -25,7 +25,7 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 
 ```
 # Windows PowerShell
-./build.ps1
+./build.cmd
 ```
 
 ## 3. Deploy

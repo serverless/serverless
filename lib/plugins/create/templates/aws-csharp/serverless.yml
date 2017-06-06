@@ -47,7 +47,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: bin/release/netcoreapp1.0/publish/deploy-package.zip
+  artifact: bin/release/netcoreapp1.0/deploy-package.zip
 #  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**
