@@ -331,3 +331,33 @@ functions:
 The `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
 
 We're working on a fix so that SQS queue arns are be supported in the future.
+
+## KMS Keys
+
+AWS Lambda uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
+
+The `awsKmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
+
+```yml
+service:
+  name: service-name
+  awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
+
+provider:
+  name: aws
+  environment:
+    TABLE_NAME: tableName1
+
+functions:
+  hello: # this function will OVERWRITE the service level environment config above
+    handler: handler.hello
+    awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash
+    environment:
+      TABLE_NAME: tableName2
+  goodbye: # this function will INHERIT the service level environment config above
+    handler: handler.goodbye
+```
+
+### Secrets using environment variables and KMS
+
+When storing secrets in environment variables, AWS [strongly suggests](http://docs.aws.amazon.com/lambda/latest/dg/env_variables.html#env-storing-sensitive-data) encrypting sensitive information. AWS provides a [tutorial](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-env_console.html) on using KMS for this purpose.
