@@ -44,7 +44,7 @@ provider:
 functions:
   hello:
     handler: handler.hello
-##● 'events' are what trigger this function.
+##● 'events' are what trigger this function. For a list of AWS events see: http://bit.ly/2sBUS90
 #     events:
 #       - http:
 #           path: users/create
@@ -60,7 +60,7 @@ functions:
 #       - cognitoUserPool:
 #           pool: MyUserPool
 #           trigger: PreSignUp
-#       - alexaSkill # For a list of AWS events see: http://bit.ly/2sBUS90
+#       - alexaSkill
 ##● Optionally you can define environment variables for this function here
 #     environment:
 #       variable2: value2
