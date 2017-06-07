@@ -193,6 +193,11 @@
       "from": "concat-stream@>=1.4.7 <2.0.0",
       "resolved": "https://registry.npmjs.org/concat-stream/-/concat-stream-1.6.0.tgz"
     },
+    "cookie": {
+      "version": "0.3.1",
+      "from": "cookie@0.3.1",
+      "resolved": "https://registry.npmjs.org/cookie/-/cookie-0.3.1.tgz"
+    },
     "cookiejar": {
       "version": "2.1.1",
       "from": "cookiejar@>=2.0.6 <3.0.0",
@@ -539,6 +544,11 @@
         }
       }
     },
+    "json-stringify-safe": {
+      "version": "5.0.1",
+      "from": "json-stringify-safe@>=5.0.1 <5.1.0",
+      "resolved": "https://registry.npmjs.org/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz"
+    },
     "jsonfile": {
       "version": "2.4.0",
       "from": "jsonfile@>=2.1.0 <3.0.0",
@@ -593,6 +603,11 @@
       "version": "1.0.0",
       "from": "lowercase-keys@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/lowercase-keys/-/lowercase-keys-1.0.0.tgz"
+    },
+    "lsmod": {
+      "version": "1.0.0",
+      "from": "lsmod@1.0.0",
+      "resolved": "https://registry.npmjs.org/lsmod/-/lsmod-1.0.0.tgz"
     },
     "make-dir": {
       "version": "1.0.0",
@@ -765,6 +780,23 @@
       "version": "0.2.0",
       "from": "querystring@0.2.0",
       "resolved": "https://registry.npmjs.org/querystring/-/querystring-0.2.0.tgz"
+    },
+    "raven": {
+      "version": "1.2.1",
+      "from": "raven@>=1.2.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/raven/-/raven-1.2.1.tgz",
+      "dependencies": {
+        "stack-trace": {
+          "version": "0.0.9",
+          "from": "stack-trace@0.0.9",
+          "resolved": "https://registry.npmjs.org/stack-trace/-/stack-trace-0.0.9.tgz"
+        },
+        "uuid": {
+          "version": "3.0.0",
+          "from": "uuid@3.0.0",
+          "resolved": "https://registry.npmjs.org/uuid/-/uuid-3.0.0.tgz"
+        }
+      }
     },
     "rc": {
       "version": "1.2.1",
