@@ -2,16 +2,14 @@
 
 ## The serverless.yml file is the main config file for your service.
 
-#############
-# `service` - The service block is the name of the service. It can be a String or Object
-#############
-
+##----------------------------------------
+## `service` - The service block is the name of the service. It can be a String or Object
+##----------------------------------------
 service: aws-nodejs
 
-#############
-# `provider` - The provider block defines where your service will be deployed
-#############
-
+##----------------------------------------
+## `provider` - The provider block defines where your service will be deployed
+##----------------------------------------
 provider:
   name: aws
   runtime: nodejs6.10
@@ -38,11 +36,10 @@ provider:
 #             - "/*"
 
 
-#############
-# `functions` - The functions block defines what code to deploy
-# Functions are triggered by `events`. For a list of AWS events see: http://bit.ly/2sBUS90
-#############
-
+##----------------------------------------
+## `functions` - The functions block defines what code to deploy
+## Functions are triggered by `events`. For a list of AWS events see: http://bit.ly/2sBUS90
+##----------------------------------------
 functions:
   hello:
     handler: handler.hello
@@ -68,10 +65,9 @@ functions:
 #       variable2: value2
 
 
-#############
+##----------------------------------------
 # `resources` - The resources block defines addition CloudFormation resources you want to setup for the service
-#############
-
+##----------------------------------------
 #resources:
 #  Resources:
 #    NewResource:
@@ -84,10 +80,9 @@ functions:
 #       Value: "Some output value"
 
 
-#############
+##----------------------------------------
 # `package` - Include or Exclude artifacts in your service http://bit.ly/2rJBhU9
-#############
-
+##----------------------------------------
 #package:
 #  include:
 #    - include-me.js
