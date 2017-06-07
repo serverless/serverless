@@ -14,13 +14,13 @@ service:
 provider:
   name: aws
   runtime: nodejs6.10
-##──Define additional provider properties to overwrite the defaults
+##► Define additional provider properties to overwrite the defaults
 #   stage: dev
 #   region: us-east-1
-##──Service wide environment variables can be defined here
+##◫ Service wide environment variables can be defined here
 #   environment:
 #     variable1: value1
-##──Custom IAM statements can be added to the functions in this service here
+##◇ Custom IAM statements can be added to the functions in this service here
 #   iamRoleStatements:
 #     - Effect: "Allow"
 #       Action:
@@ -44,7 +44,7 @@ provider:
 functions:
   hello:
     handler: handler.hello
-##──'events' are what trigger this function.
+##► 'events' are what trigger this function.
 #     events:
 #       - http:
 #           path: users/create
@@ -61,7 +61,7 @@ functions:
 #           pool: MyUserPool
 #           trigger: PreSignUp
 #       - alexaSkill # For a list of AWS events see: http://bit.ly/2sBUS90
-##──Optionally you can define environment variables for this function here
+##▹ Optionally you can define environment variables for this function here
 #     environment:
 #       variable2: value2
 
