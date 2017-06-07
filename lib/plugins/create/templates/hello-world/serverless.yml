@@ -1,8 +1,7 @@
 # Welcome to serverless. Read the docs
 # https://serverless.com/framework/docs/
 
-# Serverless.yml is the configuration the CLI
-# uses to deploy your code to your provider of choice
+# serverless.yml is the configuration the CLI uses to deploy your code to your provider of choice
 
 # The `service` block is the name of the service
 service: serverless-hello-world
