@@ -3,13 +3,13 @@
 ## ───── Serverless docs https://serverless.com/framework/docs/ ─────
 
 ##───────────────────────────────────────────────────────────────────────
-## `service` - The name of the service and addition meta information
+## 'service' - The name of the service and addition meta information
 ##───────────────────────────────────────────────────────────────────────
 service:
   name: aws-nodejs
 
 ##───────────────────────────────────────────────────────────────────────
-## `provider` - Defines where your service will be deployed. ('aws', 'azure', 'etc')
+## 'provider' - Defines where your service will be deployed. ('aws', 'azure', 'etc')
 ##───────────────────────────────────────────────────────────────────────
 provider:
   name: aws
@@ -38,7 +38,7 @@ provider:
 
 
 ##───────────────────────────────────────────────────────────────────────
-## `functions` - Defines the functions to deploy & the events that trigger them
+## 'functions' - Defines the functions to deploy & the events that trigger them
 ## For a list of AWS events see: http://bit.ly/2sBUS90
 ##───────────────────────────────────────────────────────────────────────
 functions:
@@ -67,7 +67,7 @@ functions:
 
 
 ##───────────────────────────────────────────────────────────────────────
-## `resources` - Defines addition CloudFormation resources you want to setup for the service
+## 'resources' - Defines addition CloudFormation resources you want to setup for the service
 ##───────────────────────────────────────────────────────────────────────
 #resources:
 #  Resources:
@@ -82,7 +82,7 @@ functions:
 
 
 ##───────────────────────────────────────────────────────────────────────
-## `package` - Include or Exclude artifacts in your service http://bit.ly/2rJBhU9
+## 'package' - Include or Exclude artifacts in your service http://bit.ly/2rJBhU9
 ##───────────────────────────────────────────────────────────────────────
 #package:
 #  include:
