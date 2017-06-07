@@ -12,7 +12,7 @@ const serverless = new Serverless();
       execSync('./node_modules/tabtab/bin/tabtab install --name serverless --auto');
     } catch (e) {
       execSync('./node_modules/tabtab/bin/tabtab install --name serverless --stdout');
-      serverless.cli.consoleLog('Could not auto-install serverless autocompletion script.');
+      serverless.cli.consoleLog('Could not auto-install serverless autocomplete script.');
       serverless.cli.consoleLog('Please copy/paste the script above into your shell.');
     }
     serverless.utils.logStat(serverless, 'install').catch(() => Promise.resolve());
