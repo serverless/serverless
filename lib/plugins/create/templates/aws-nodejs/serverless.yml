@@ -1,26 +1,26 @@
-## Welcome to serverless. Read the docs https://serverless.com/framework/docs/
-
 ## The serverless.yml file is the main config file for your service.
+## To see all available serverless.yml properties see the docs http://bit.ly/2rJJjMV
+## ───── Serverless docs https://serverless.com/framework/docs/ ─────
 
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 ## `service` - The name of the service and addition meta information
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 service:
   name: aws-nodejs
 
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 ## `provider` - Defines where your service will be deployed. ('aws', 'azure', 'etc')
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 provider:
   name: aws
   runtime: nodejs6.10
-## Define additional provider properties to overwrite the defaults
+##──Define additional provider properties to overwrite the defaults
 #   stage: dev
 #   region: us-east-1
-## Service wide environment variables can be defined here
+##──Service wide environment variables can be defined here
 #   environment:
 #     variable1: value1
-## Custom IAM statements can be added to the functions in this service here
+##──Custom IAM statements can be added to the functions in this service here
 #   iamRoleStatements:
 #     - Effect: "Allow"
 #       Action:
@@ -37,14 +37,14 @@ provider:
 #             - "/*"
 
 
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 ## `functions` - Defines the functions to deploy & the events that trigger them
 ## For a list of AWS events see: http://bit.ly/2sBUS90
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 functions:
   hello:
     handler: handler.hello
-## `events` are what trigger this function.
+##──'events' are what trigger this function.
 #     events:
 #       - http:
 #           path: users/create
@@ -54,21 +54,21 @@ functions:
 #       - schedule: rate(10 minutes)
 #       - sns: greeter-topic
 #       - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#       - alexaSkill
 #       - iot:
 #           sql: "SELECT * FROM 'some_topic'"
 #       - cloudwatchLog: '/aws/lambda/hello'
 #       - cognitoUserPool:
 #           pool: MyUserPool
 #           trigger: PreSignUp
-## Optionally you can define environment variables for this function here
+#       - alexaSkill # For a list of AWS events see: http://bit.ly/2sBUS90
+##──Optionally you can define environment variables for this function here
 #     environment:
 #       variable2: value2
 
 
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 ## `resources` - Defines addition CloudFormation resources you want to setup for the service
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 #resources:
 #  Resources:
 #    NewResource:
@@ -81,9 +81,9 @@ functions:
 #       Value: "Some output value"
 
 
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 ## `package` - Include or Exclude artifacts in your service http://bit.ly/2rJBhU9
-##----------------------------------------
+##───────────────────────────────────────────────────────────────────────
 #package:
 #  include:
 #    - include-me.js
