@@ -1,31 +1,27 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
+## Welcome to serverless. Read the docs https://serverless.com/framework/docs/
 
-service: aws-nodejs # NOTE: update this with your service name
+## The serverless.yml file is the main config file for your service.
 
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
+#############
+# `service` - The service block is the name of the service. It can be a String or Object
+#############
+
+service: aws-nodejs
+
+#############
+# `provider` - The provider block defines where your service will be deployed
+#############
 
 provider:
   name: aws
   runtime: nodejs6.10
-
-# you can overwrite defaults here
+## Define additional provider properties to overwrite the defaults
 #  stage: dev
 #  region: us-east-1
-
-# you can add statements to the Lambda function's IAM Role here
+## Service wide environment variables can be defined here
+#  environment:
+#    variable1: value1
+## Custom IAM statements can be added to the functions in this service here
 #  iamRoleStatements:
 #    - Effect: "Allow"
 #      Action:
@@ -41,30 +37,21 @@ provider:
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
 
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
 
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+#############
+# `functions` - The functions block defines what code to deploy
+# Functions are triggered by `events`. For a list of AWS events see: http://bit.ly/2sBUS90
+#############
 
 functions:
   hello:
     handler: handler.hello
-
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
+## `events` are what trigger this function.
 #    events:
 #      - http:
 #          path: users/create
 #          method: get
+#          cors: true
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
@@ -72,25 +59,19 @@ functions:
 #      - alexaSkill
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
 #      - cloudwatchLog: '/aws/lambda/hello'
 #      - cognitoUserPool:
 #          pool: MyUserPool
 #          trigger: PreSignUp
-
-#    Define function environment variables here
+## Optionally you can define environment variables for this function here
 #    environment:
 #      variable2: value2
 
-# you can add CloudFormation resource templates here
+
+#############
+# `resources` - The resources block defines addition CloudFormation resources you want to setup for the service
+#############
+
 #resources:
 #  Resources:
 #    NewResource:
@@ -101,3 +82,16 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+
+
+#############
+# `package` - Include or Exclude artifacts in your service http://bit.ly/2rJBhU9
+#############
+
+#package:
+#  include:
+#    - include-me.js
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.js
+#    - exclude-me-dir/**
