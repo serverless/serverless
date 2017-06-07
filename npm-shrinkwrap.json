@@ -3,15 +3,9 @@
   "version": "1.14.0",
   "dependencies": {
     "agent-base": {
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
       "version": "2.1.1",
       "from": "agent-base@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/agent-base/-/agent-base-2.1.1.tgz",
-=======
-      "version": "2.0.1",
-      "from": "agent-base@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/agent-base/-/agent-base-2.0.1.tgz",
->>>>>>> update shrinkwrap
       "dependencies": {
         "semver": {
           "version": "5.0.3",
@@ -88,15 +82,9 @@
       "resolved": "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz"
     },
     "aws-sdk": {
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
       "version": "2.63.0",
       "from": "aws-sdk@>=2.7.13 <3.0.0",
       "resolved": "https://registry.npmjs.org/aws-sdk/-/aws-sdk-2.63.0.tgz",
-=======
-      "version": "2.56.0",
-      "from": "aws-sdk@>=2.7.13 <3.0.0",
-      "resolved": "https://registry.npmjs.org/aws-sdk/-/aws-sdk-2.56.0.tgz",
->>>>>>> update shrinkwrap
       "dependencies": {
         "uuid": {
           "version": "3.0.1",
@@ -140,14 +128,6 @@
       "from": "buffer-crc32@>=0.2.1 <0.3.0",
       "resolved": "https://registry.npmjs.org/buffer-crc32/-/buffer-crc32-0.2.13.tgz"
     },
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
-=======
-    "buffer-shims": {
-      "version": "1.0.0",
-      "from": "buffer-shims@>=1.0.0 <1.1.0",
-      "resolved": "https://registry.npmjs.org/buffer-shims/-/buffer-shims-1.0.0.tgz"
-    },
->>>>>>> update shrinkwrap
     "capture-stack-trace": {
       "version": "1.0.0",
       "from": "capture-stack-trace@>=1.0.0 <2.0.0",
@@ -163,14 +143,6 @@
       "from": "chalk@>=1.1.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/chalk/-/chalk-1.1.3.tgz"
     },
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
-=======
-    "charenc": {
-      "version": "0.0.2",
-      "from": "charenc@>=0.0.1 <0.1.0",
-      "resolved": "https://registry.npmjs.org/charenc/-/charenc-0.0.2.tgz"
-    },
->>>>>>> update shrinkwrap
     "ci-info": {
       "version": "1.0.0",
       "from": "ci-info@>=1.0.0 <2.0.0",
@@ -246,14 +218,6 @@
       "from": "create-error-class@>=3.0.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/create-error-class/-/create-error-class-3.0.2.tgz"
     },
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
-=======
-    "crypt": {
-      "version": "0.0.2",
-      "from": "crypt@>=0.0.1 <0.1.0",
-      "resolved": "https://registry.npmjs.org/crypt/-/crypt-0.0.2.tgz"
-    },
->>>>>>> update shrinkwrap
     "crypto-browserify": {
       "version": "1.0.9",
       "from": "crypto-browserify@1.0.9",
@@ -285,15 +249,9 @@
       "resolved": "https://registry.npmjs.org/decompress-targz/-/decompress-targz-4.1.0.tgz",
       "dependencies": {
         "file-type": {
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
           "version": "4.4.0",
           "from": "file-type@>=4.3.0 <5.0.0",
           "resolved": "https://registry.npmjs.org/file-type/-/file-type-4.4.0.tgz"
-=======
-          "version": "4.3.0",
-          "from": "file-type@>=4.3.0 <5.0.0",
-          "resolved": "https://registry.npmjs.org/file-type/-/file-type-4.3.0.tgz"
->>>>>>> update shrinkwrap
         }
       }
     },
@@ -519,14 +477,6 @@
       "from": "inquirer@>=1.0.2 <2.0.0",
       "resolved": "https://registry.npmjs.org/inquirer/-/inquirer-1.2.3.tgz"
     },
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
-=======
-    "is-buffer": {
-      "version": "1.1.5",
-      "from": "is-buffer@>=1.1.5 <2.0.0",
-      "resolved": "https://registry.npmjs.org/is-buffer/-/is-buffer-1.1.5.tgz"
-    },
->>>>>>> update shrinkwrap
     "is-fullwidth-code-point": {
       "version": "1.0.0",
       "from": "is-fullwidth-code-point@>=1.0.0 <2.0.0",
@@ -649,14 +599,6 @@
       "from": "make-dir@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/make-dir/-/make-dir-1.0.0.tgz"
     },
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
-=======
-    "md5": {
-      "version": "2.2.1",
-      "from": "md5@>=2.2.1 <3.0.0",
-      "resolved": "https://registry.npmjs.org/md5/-/md5-2.2.1.tgz"
-    },
->>>>>>> update shrinkwrap
     "methods": {
       "version": "1.1.2",
       "from": "methods@>=1.1.1 <2.0.0",
@@ -720,15 +662,9 @@
       "resolved": "https://registry.npmjs.org/native-promise-only/-/native-promise-only-0.8.1.tgz"
     },
     "node-fetch": {
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
       "version": "1.7.1",
       "from": "node-fetch@>=1.6.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.7.1.tgz"
-=======
-      "version": "1.7.0",
-      "from": "node-fetch@>=1.6.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.7.0.tgz"
->>>>>>> update shrinkwrap
     },
     "normalize-path": {
       "version": "2.1.1",
@@ -836,15 +772,9 @@
       "resolved": "https://registry.npmjs.org/rc/-/rc-1.2.1.tgz"
     },
     "readable-stream": {
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
       "version": "2.2.10",
       "from": "readable-stream@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.2.10.tgz"
-=======
-      "version": "2.2.9",
-      "from": "readable-stream@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.2.9.tgz"
->>>>>>> update shrinkwrap
     },
     "remove-trailing-separator": {
       "version": "1.0.1",
@@ -882,15 +812,9 @@
       "resolved": "https://registry.npmjs.org/rx/-/rx-4.1.0.tgz"
     },
     "safe-buffer": {
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
       "version": "5.1.0",
       "from": "safe-buffer@>=5.0.1 <6.0.0",
       "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.0.tgz"
-=======
-      "version": "5.0.1",
-      "from": "safe-buffer@>=5.0.1 <6.0.0",
-      "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.0.1.tgz"
->>>>>>> update shrinkwrap
     },
     "sax": {
       "version": "1.2.1",
@@ -979,11 +903,7 @@
     },
     "tabtab": {
       "version": "2.2.2",
-<<<<<<< e2cc1451a5da76d79236014ae413140e901928bc
       "from": "tabtab@>=2.2.2 <3.0.0",
-=======
-      "from": "https://registry.npmjs.org/tabtab/-/tabtab-2.2.2.tgz",
->>>>>>> update shrinkwrap
       "resolved": "https://registry.npmjs.org/tabtab/-/tabtab-2.2.2.tgz"
     },
     "tar-stream": {
