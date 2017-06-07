@@ -17,7 +17,7 @@ provider:
 ##● Define additional provider properties to overwrite the defaults
 #   stage: dev
 #   region: us-east-1
-##▪ Service wide environment variables can be defined here
+##● Service wide environment variables can be defined here
 #   environment:
 #     variable1: value1
 ##● Custom IAM statements can be added to the functions in this service here
