@@ -23,8 +23,8 @@ describe('AWS - General: Xray tracing test', () => {
     return Lambda.getFunctionPromised({ FunctionName: helloFunctionName })
       .then(data => {
         const tracingConfig = data.Configuration.TracingConfig;
-        expect(tracingConfig).to.not.be.undefined;
-        expect(tracingConfig.Mode).to.equal('Active')
+        expect(tracingConfig).to.be.an('object');
+        expect(tracingConfig.Mode).to.equal('Active');
       });
   });
 
