@@ -68,10 +68,14 @@ service: users
 functions: # Your "Functions"
   usersCreate:
     events: # The "Events" that trigger this function
-      - http: post users/create
+      - http:
+          method: POST
+          path: users/create
   usersDelete:
     events:
-      - http: delete users/delete
+      - http:
+          method: DELETE
+          path: users/delete
 
 resources: # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 ```

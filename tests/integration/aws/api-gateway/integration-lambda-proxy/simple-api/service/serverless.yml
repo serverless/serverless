@@ -9,8 +9,12 @@ functions:
     handler: handler.hello
     events:
       # paths without a slash
-      - http: POST without-slash
-      - http: GET without-slash
+      - http:
+          method: POST
+          path: without-slash
+      - http:
+          method: GET
+          path: without-slash
       - http:
           method: PUT
           path: without-slash
@@ -18,8 +22,12 @@ functions:
           method: DELETE
           path: without-slash
       # paths with a slash
-      - http: POST /with-slash
-      - http: GET /with-slash
+      - http:
+          method: POST
+          path: /with-slash
+      - http:
+          method: GET
+          path: /with-slash
       - http:
           method: PUT
           path: /with-slash
@@ -27,8 +35,12 @@ functions:
           method: DELETE
           path: /with-slash
       # root only paths
-      - http: POST /
-      - http: GET /
+      - http:
+          method: POST
+          path: /
+      - http:
+          method: GET
+          path: /
       - http:
           method: PUT
           path: /
