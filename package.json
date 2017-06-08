@@ -111,6 +111,7 @@
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
+    "tabtab": "^2.2.2",
     "uuid": "^2.0.2",
     "write-file-atomic": "^2.1.0"
   }
