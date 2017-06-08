@@ -12,13 +12,17 @@ layout: Doc
 
 # Blob Storage Trigger
 
-Azure Functions Blob Storage trigger lets you listen on Azure Blob Storage. Full documentation can be found on [azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob).
+Azure Functions Blob Storage trigger lets you listen on Azure Blob Storage. Full
+documentation can be found on
+[azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob).
 
 ## Blob Storage Events
 
 ### Blob Storage Trigger
 
-This setup specifies that the `hello` function should be run when a new Blob Storage item appears on the blob container "hello/{name}", where `{name}` is the name of the blob uploaded..
+This setup specifies that the `hello` function should be run when a new Blob
+Storage item appears on the blob container "hello/{name}", where `{name}` is the
+name of the blob uploaded..
 
 Here's an example:
 
@@ -29,7 +33,7 @@ functions:
   example:
     handler: handler.hello
     events:
-      - blob: 
+      - blob:
         x-azure-settings:
             name: item #<string>, default - "myBlob", specifies which name it's available on `context.bindings`
             path: hello/{name}

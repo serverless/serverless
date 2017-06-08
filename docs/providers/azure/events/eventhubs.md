@@ -12,13 +12,16 @@ layout: Doc
 
 # Event Hubs Trigger
 
-Azure Functions Event Hubs trigger lets you listen on Azure Event Hubs. Full documentation can be found on [azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-event-hubs).
+Azure Functions Event Hubs trigger lets you listen on Azure Event Hubs. Full
+documentation can be found on
+[azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-event-hubs).
 
 ## Event Hubs Events
 
 ### Event Hubs Trigger
 
-This setup specifies that the `hello` function should be run when a new Event Hubs item appears on the path "hello".
+This setup specifies that the `hello` function should be run when a new Event
+Hubs item appears on the path "hello".
 
 Here's an example:
 
@@ -31,7 +34,7 @@ functions:
     events:
       - eventHub:
         x-azure-settings:
-            name: item #<string>, default - "myEventHubMessage", specifies which name it's available on `context.bindings` 
+            name: item #<string>, default - "myEventHubMessage", specifies which name it's available on `context.bindings`
             path: hello #<string>, specifies the Name of the Event Hub
             consumerGroup: $Default #<string>, default - "$Default", specifies the consumerGroup to listen with
             connection: EventHubsConnection #<string>, App Setting/environment variable which contains Event Hubs Namespace Connection String

@@ -12,7 +12,9 @@ layout: Doc
 
 # Azure - Deploy Function
 
-The `sls deploy function` command deploys an individual function.  This command simply compiles a deployment package with a single function handler. This is a much faster way of deploying changes in code.
+The `serverless deploy function` command deploys an individual function.  This
+command simply compiles a deployment package with a single function handler. This
+is a much faster way of deploying changes in code.
 
 ```bash
 serverless deploy function -f functionName
