@@ -1,3 +1,16 @@
+# 1.15.0 (08.06.2017)
+- Added autocomplete support to the CLI - #3753
+- Added KMS key support - #3672
+- Added Cognito User pool support - #3668
+- Added serverless.json support - #3647
+- Added aws-profile support - #3701
+- Added CloudFormation validation support - #3657
+- Fixed S3 event race condition bug - #3705
+- Fixed CORS origin config bug - #3692
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.14.0...v1.15.0)
+
 # 1.14.0 (24.05.2017)
 - Added login command - #3558
 - Added support for DeadLetter Config with SNS - #3609
