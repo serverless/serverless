@@ -29,7 +29,7 @@ functions:
   example:
     handler: handler.hello
     events:
-      - eventHub:
+      - serviceBus:
         x-azure-settings:
             name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings`
             queueName: hello #<string>, specifies the queue name to listen on
@@ -61,7 +61,7 @@ functions:
   example:
     handler: handler.hello
     events:
-      - eventHub:
+      - serviceBus:
         x-azure-settings:
             name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings` 
             topicName: "hello" #<string>, topic to listen on
