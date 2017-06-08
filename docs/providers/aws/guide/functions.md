@@ -20,7 +20,9 @@ All of the Lambda functions in your serverless service can be found in `serverle
 
 ```yml
 # serverless.yml
-service: myService
+service:
+  name: myService
+  awsTracingConfigMode: Active # optional, can be 'Active' or 'PassThrough'
 
 provider:
   name: aws
@@ -28,7 +30,6 @@ provider:
   memorySize: 512 # optional, default is 1024
   timeout: 10 # optional, default is 6
   versionFunctions: false # optional, default is true
-  tracingConfigMode: Active # optional, can be 'Active' or 'PassThrough'
 
 functions:
   hello:
@@ -38,7 +39,7 @@ functions:
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, default is 1024
     timeout: 10 # optional, default is 6
-    tracingConfigMode: PassThrough # optional overwrite, can be 'Active' or 'PassThrough'
+    awsTracingConfigMode: PassThrough # optional overwrite, can be 'Active' or 'PassThrough'
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
@@ -366,23 +367,22 @@ When storing secrets in environment variables, AWS [strongly suggests](http://do
 
 ## AWS X-Ray Tracing
 
-You can enable [AWS X-Ray Tracing](http://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the `tracingConfigMode` config variable:
+You can enable [AWS X-Ray Tracing](http://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the optional `awsTracingConfigMode` config variable:
 
 ```yml
-provider:
-  name: aws
-  runtime: nodejs6.10
-    tracingConfigMode: Active
+service:
+  name: myService
+  awsTracingConfigMode: Active
 ```
 
-You can also set this variable on a per-function basis:
+You can also set this variable on a per-function basis. This will override the service level setting if it is present:
 
 ```yml
 functions:
   hello:
     handler: handler.hello
-    tracingConfigMode: Active
+    awsTracingConfigMode: Active
   goodbye:
     handler: handler.goodbye
-    tracingConfigMode: PassThrough
+    awsTracingConfigMode: PassThrough
 ```

@@ -20,6 +20,7 @@ Here is a list of all available properties in `serverless.yml` when the provider
 service:
   name: myService
   awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption for all functions
+  awsTracingConfigMode: Active # optional, can be 'Active' or 'PassThrough'
 
 frameworkVersion: ">=1.0.0 <2.0.0"
 
@@ -76,6 +77,7 @@ functions:
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
     onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn which will be used for the DeadLetterConfig
     awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption (overwrites the one defined on the service level)
+    awsTracingConfigMode: Active # optional, can be 'Active' or 'PassThrough (overwrites the one defined on the service level)'
     environment: # Function level environment variables
       functionEnvVar: 12345678
     tags: # Function specific tags
