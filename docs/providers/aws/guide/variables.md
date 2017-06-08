@@ -24,6 +24,7 @@ The Serverless framework provides a powerful variable system which allows you to
 - Combine multiple variable references to overwrite each other
 - Define your own variable syntax if it conflicts with CF syntax
 - Reference & load variables from S3
+- Encrypted environment variables using [serverless-plugin-encrypted](https://github.com/nalbion/serverless-plugin-encrypted)
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
