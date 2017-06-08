@@ -17,6 +17,6 @@ const serverless = new Serverless();
       serverless.cli.consoleLog('Could not auto-install serverless autocomplete script.');
       serverless.cli.consoleLog('Please copy/paste the script above into your shell.');
     }
-    serverless.utils.logStat(serverless, 'install').catch(() => Promise.resolve());
+    return serverless.utils.logStat(serverless, 'install').catch(() => Promise.resolve());
   });
 })();
