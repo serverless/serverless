@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Create
 menuText: create
-menuOrder: 2
+menuOrder: 1
 description: Creates a new Service in your current working directory
 layout: Doc
 -->

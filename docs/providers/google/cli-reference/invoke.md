@@ -1,7 +1,7 @@
 <!--
 title: Google Cloud Functions Serverless invoke command
 menuText: invoke
-menuOrder: 7
+menuOrder: 6
 description: Invoke an Google Cloud Functions Function using the Serverless Framework
 layout: Doc
 -->
