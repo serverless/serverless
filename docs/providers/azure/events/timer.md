@@ -12,7 +12,9 @@ layout: Doc
 
 # Timer Trigger
 
-Azure Functions Timer trigger lets you listen on Azure Timer. Full documentation can be found on [azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer).
+Azure Functions Timer trigger lets you listen on Azure Timer. Full documentation
+can be found on
+[azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer).
 
 ## Timer Events
 
@@ -29,9 +31,9 @@ functions:
   example:
     handler: handler.hello
     events:
-      - timer: 
+      - timer:
         x-azure-settings:
-            name: item #<string>, default - "myQueueItem", specifies which name it's available on `context.bindings` 
+            name: item #<string>, default - "myQueueItem", specifies which name it's available on `context.bindings`
             schedule: 0 */5 * * * * #<string>, cron expression to run on
 ```
 
