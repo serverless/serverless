@@ -82,6 +82,9 @@ functions:
 #              state:
 #                - pending
 #      - cloudwatchLog: '/aws/lambda/hello'
+#      - cognitoUserPool:
+#          pool: MyUserPool
+#          trigger: PreSignUp
 
 #    Define function environment variables here
 #    environment:

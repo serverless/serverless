@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -105,11 +105,13 @@
     "node-fetch": "^1.6.0",
     "opn": "^5.0.0",
     "rc": "^1.1.6",
+    "raven": "^1.2.1",
     "replaceall": "^0.1.6",
     "resolve-from": "^2.0.0",
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
+    "tabtab": "^2.2.2",
     "uuid": "^2.0.2",
     "write-file-atomic": "^2.1.0"
   }
