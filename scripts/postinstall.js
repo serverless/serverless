@@ -1,22 +1,35 @@
 'use strict';
 
-const execSync = require('child_process').execSync;
+/* eslint-disable no-console */
+/* eslint-disable no-use-before-define */
 
 const Serverless = require('../lib/Serverless');
+const execSync = require('child_process').execSync;
 
-const serverless = new Serverless();
+try {
+  const serverless = new Serverless();
 
-(() => {
-  serverless.init().then(() => {
+  (() => serverless.init()
+    .then(() => serverless.utils.logStat(serverless, 'install'))
+    .then(() => setupAutocomplete())
+    .catch(() => Promise.resolve())
+  )();
+} catch (error) {
+  // fail silently
+}
+
+function setupAutocomplete() {
+  return new Promise((resolve, reject) => {
     try {
-      execSync('./node_modules/tabtab/bin/tabtab install --name serverless --auto');
-      execSync('./node_modules/tabtab/bin/tabtab install --name sls --auto');
-    } catch (e) {
-      execSync('./node_modules/tabtab/bin/tabtab install --name serverless --stdout');
-      execSync('./node_modules/tabtab/bin/tabtab install --name sls --stdout');
-      serverless.cli.consoleLog('Could not auto-install serverless autocomplete script.');
-      serverless.cli.consoleLog('Please copy/paste the script above into your shell.');
+      execSync('node ./node_modules/tabtab/src/cli.js install --name serverless --auto');
+      execSync('node ./node_modules/tabtab/src/cli.js install --name sls --auto');
+      return resolve();
+    } catch (error) {
+      execSync('node ./node_modules/tabtab/src/cli.js install --name serverless --stdout');
+      execSync('node ./node_modules/tabtab/src/cli.js install --name sls --stdout');
+      console.log('Could not auto-install serverless autocomplete script.');
+      console.log('Please copy / paste the script above into your shell.');
+      return reject(error);
     }
-    return serverless.utils.logStat(serverless, 'install').catch(() => Promise.resolve());
   });
-})();
+}
