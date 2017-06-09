@@ -1,10 +1,10 @@
 # 1.15.0 (08.06.2017)
 - Added autocomplete support to the CLI - #3753
 - Added KMS key support - #3672
-- Added Cognito User pool support - #3668
+- Added Cognito User pool support - #3657
 - Added serverless.json support - #3647
 - Added aws-profile support - #3701
-- Added CloudFormation validation support - #3657
+- Added CloudFormation validation support - #3668
 - Fixed S3 event race condition bug - #3705
 - Fixed CORS origin config bug - #3692
 
