@@ -1,3 +1,10 @@
+# 1.15.2 (10.06.2017)
+- Fixed installation error - #3763
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.0...v1.15.2)
+
+
 # 1.15.0 (08.06.2017)
 - Added autocomplete support to the CLI - #3753
 - Added KMS key support - #3672

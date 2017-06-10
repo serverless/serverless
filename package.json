@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.15.0",
+  "version": "1.15.2",
   "engines": {
     "node": ">=4.0"
   },
@@ -38,7 +38,7 @@
     "scripts/postinstall.js",
     "scripts/preuninstall.js",
     "package.json",
-    "npm-shrinkwrap.json",
+    "package-lock.json",
     "README.md",
     "LICENSE.txt",
     "CHANGELOG.md"
