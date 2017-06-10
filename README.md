@@ -152,6 +152,7 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 -->
 | Plugin | Author |
 |:-------|:------:|
+| **[API GW binary support](https://github.com/maciejtreder/serverless-apigw-binary)** <br/> Serverless plugin to enable binary support in AWS API Gateway. | [maciejtreder](https://github.com/maciejtreder) | 
 | **[Raml Serverless](https://github.com/andrewcurioso/raml-serverless)** <br/> Serverless plugin to work with RAML API spec documents | [andrewcurioso](http://github.com/andrewcurioso) | 
 | **[Serverless Alexa Plugin](https://github.com/rajington/serverless-alexa-plugin)** <br/> Serverless plugin to support Alexa Lambda events | [rajington](http://github.com/rajington) | 
 | **[Serverless Api Stage](https://github.com/leftclickben/serverless-api-stage)** <br/> Serverless API Stage plugin, enables stage variables and logging for AWS API Gateway. | [leftclickben](http://github.com/leftclickben) | 
