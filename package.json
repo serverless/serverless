@@ -38,7 +38,7 @@
     "scripts/postinstall.js",
     "scripts/preuninstall.js",
     "package.json",
-    "npm-shrinkwrap.json",
+    "package-lock.json",
     "README.md",
     "LICENSE.txt",
     "CHANGELOG.md"
