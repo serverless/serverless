@@ -18,5 +18,8 @@ The `sls deploy function` command deploys an individual function.  This command 
 serverless deploy function -f functionName
 ```
 
+**Note:** Because this command is only deploying the function code, function
+properties such as environment variables and events will **not** be deployed.
+
 ## Options
 - `--function` or `-f` The name of the function which should be deployed
