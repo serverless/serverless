@@ -37,7 +37,6 @@ provider:
   role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
   cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   versionFunctions: false # Optional function versioning
-  onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn which will be used for the DeadLetterConfig
   useStackSplitting: true # EXPERIMENTAL: let AWS automatically split the stack into nested stacks (useful when AWS CloudFormation stack limits are reached)
   environment: # Service wide environment variables
     serviceEnvVar: 123456789
