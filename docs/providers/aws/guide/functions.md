@@ -40,7 +40,7 @@ functions:
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
-    awsTracingConfig
+    awsTracingConfig:
       mode: PassThrough # optional overwrite, can be 'Active' or 'PassThrough'
 ```
 
