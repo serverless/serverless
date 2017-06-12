@@ -1,6 +1,7 @@
 service:
   name: aws-nodejs
-  awsTracingConfigMode: Active
+  awsTracingConfig:
+    mode: Active
 
 provider:
   name: aws
