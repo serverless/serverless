@@ -1,3 +1,10 @@
+# 1.15.3 (12.06.2017)
+- Fixed autocomplete bug with help option - #3781
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.2...v1.15.3)
+
+
 # 1.15.2 (10.06.2017)
 - Fixed installation error - #3763
 
