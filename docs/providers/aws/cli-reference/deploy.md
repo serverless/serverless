@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy
-menuText: Deploy
+menuText: deploy
 menuOrder: 5
 description: Deploy your service to the specified provider
 layout: Doc
@@ -21,7 +21,7 @@ serverless deploy
 ## Options
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
-- `--path` or `-p` path to a pre-packaged directory and skip packaging step.
+- `--package` or `-p` path to a pre-packaged directory and skip packaging step.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 
 ## Artifacts
@@ -51,7 +51,7 @@ With this example we've defined that we want our service to be deployed to the `
 ### Deployment from a pre-packaged directory
 
 ```bash
-serverless deploy --path /path/to/package/directory
+serverless deploy --package /path/to/package/directory
 ```
 
 With this example, the packaging step will be skipped and the framework will start deploying the package from the `/path/to/package/directory` directory.

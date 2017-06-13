@@ -10,15 +10,21 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/events)
 <!-- DOCS-SITE-LINK:END -->
 
-# Events
+# Azure - Events
 
 Simply put, events are the things that trigger your functions to run.
 
-If you are using Azure Functions as your provider, all `events` in the service are anything in Azure Functions that can trigger your Functions, like HTTP endpoints, message queues, blob updates, and cron-scheduled events. In Azure Functions, events are called "Triggers" and are defined as a binding. You can also set additional input and output bindings which make it easy to get data from table storage or send message to queue services, for example.
+If you are using Azure Functions as your provider, all `events` in the service
+are anything in Azure Functions that can trigger your Functions, like HTTP
+endpoints, message queues, blob updates, and cron-scheduled events. In Azure
+Functions, events are called "Triggers" and are defined as a binding. You can
+also set additional input and output bindings which make it easy to get data from
+table storage or send message to queue services, for example.
 
 [View the Azure Functions events section for a list of supported events](../events)
 
-Upon deployment, the framework will set up the Triggers and Rules that correspond to that event and configure your `function` to listen to it.
+Upon deployment, the framework will set up the Triggers and Rules that correspond
+to that event and configure your `function` to listen to it.
 
 ## Configuration
 
@@ -33,12 +39,13 @@ functions:
       - http: true
 ```
 
-The events property is an array, in this case, because I can also use it do define my input and output bindings.
+The events property is an array, in this case, because I can also use it do
+define my input and output bindings.
 
 ```yml
-queuejs: 
+queuejs:
   handler: templates/handler.helloQueue
-  events: 
+  events:
     - queue: YourQueueName
       x-azure-settings:
         connection : StorageAppSettingName
@@ -50,7 +57,9 @@ queuejs:
 
 ## Types
 
-The Serverless Framework supports all of the Azure Functions events and more.  Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality.  [Check out the events section for more information.](../events)
+The Serverless Framework supports all of the Azure Functions events and more.
+Instead of listing them here, we've put them in a separate section, since they
+have a lot of configurations and functionality. [Check out the events section for more information.](../events)
 
 ## Deploying
 

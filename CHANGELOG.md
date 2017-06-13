@@ -1,3 +1,87 @@
+# 1.15.3 (12.06.2017)
+- Fixed autocomplete bug with help option - #3781
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.2...v1.15.3)
+
+
+# 1.15.2 (10.06.2017)
+- Fixed installation error - #3763
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.0...v1.15.2)
+
+
+# 1.15.0 (08.06.2017)
+- Added autocomplete support to the CLI - #3753
+- Added KMS key support - #3672
+- Added Cognito User pool support - #3657
+- Added serverless.json support - #3647
+- Added aws-profile support - #3701
+- Added CloudFormation validation support - #3668
+- Fixed S3 event race condition bug - #3705
+- Fixed CORS origin config bug - #3692
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.14.0...v1.15.0)
+
+# 1.14.0 (24.05.2017)
+- Added login command - #3558
+- Added support for DeadLetter Config with SNS - #3609
+- Added support for S3 variables - #3592
+- Added rollback function command - #3571
+- Added `X-Amz-User-Agent` to list of allowed headers in CORS - #3614
+- Added support for HTTP_PROXY API Gateway integration - #3534
+- Added IS_LOCAL environment variable with invoke local command - #3642
+- Removed package.json in exclude rules - #3644
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.2...v1.14.0)
+
+
+# 1.13.2 (15.05.2017)
+- Fixed a bug when using dot notation in YAML keys (#3620)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.1...v1.13.2)
+
+
+# 1.13.1 (12.05.2017)
+- Fixed bug when referencing variables from other variable object values (#3604)
+- Fixed bug when packaging a functions-free service (#3598)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.0...v1.13.1)
+
+
+# 1.13.0 (10.05.2017)
+- Added support for cross service communication via CloudFormation outputs (#3575)
+- Add Lambda tagging functionality (#3548)
+- Added support for Promises in the variable system (#3554)
+- Added hello-world template (#3445)
+- Improved Info plugins lifecylce events for plugin authors (#3507)
+- Allow service to be specified as object in serverless.yml (#3521)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.12.0...v1.13.0)
+
+# 1.12.1 (27.04.2017)
+- Fix bug when using the package command with the variable system (#3527)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.12.0...v1.12.1)
+
+# 1.12.0 (26.04.2017)
+- Separated packaging and deployment with a new package command (#3344)
+- Extend OpenWhisk runtime support (#3454)
+- Upgrade gradle wrapper to 3.5 (#3466)
+- Fixed bug when using event streams with custom roles (#3457)
+- Fixed bug with SNS events (#3443)
+- Fixed bug when using custom deployment bucket (#3479)
+- Added support for Python 3.6 for Lambda (#3483)
+- Added new syntax to specify ARN for SNS events (#3505)
+
 # 1.11.0 (12.04.2017)
 - Add CloudWatch Logs Event Source (#3407)
 - Add version description from function (#3429)

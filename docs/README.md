@@ -3,8 +3,10 @@ title: Serverless Framework Documentation
 menuText: Docs
 layout: Doc
 menuItems:
+  - {menuText: Getting Started, path: /framework/docs/getting-started/}
   - {menuText: AWS, path: /framework/docs/providers/aws/}
   - {menuText: Azure, path: /framework/docs/providers/azure/}
+  - {menuText: Google, path: /framework/docs/providers/google/}
   - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
 -->
 
@@ -14,257 +16,79 @@ menuItems:
 
 # Documentation
 
-The Serverless Framework allows you to deploy auto-scaling, pay-per-execution, event-driven functions to any cloud. We currently support AWS Lambda, Apache OpenWhisk, Microsoft Azure, and are expanding to support other cloud providers.
+The Serverless Framework is a CLI tool that allows users to build & deploy auto-scaling, pay-per-execution, event-driven functions.
+
+Write your code, configure events to trigger your functions, then deploy & run those functions to your [cloud provider](#Supported-Providers) via the **serverless CLI**.
+
+Getting started with serverless? **[Start here](./getting-started.md)**
+
+Already using AWS or another cloud provider? Read on.
+
+## Serverless Cloud Providers
 
 <div class="docsSections">
   <div class="docsSection">
     <div class="docsSectionHeader">
-      <a href="./providers/aws/guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_guide.png" alt="Serverless Framework AWS Lambda Guide" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div class="test">
-      <ul>
-        <li><a href="./providers/aws/guide/intro.md">Intro</a></li>
-        <li><a href="./providers/aws/guide/installation.md">Installation</a></li>
-        <li><a href="./providers/aws/guide/credentials.md">Credentials</a></li>
-        <li><a href="./providers/aws/guide/services.md">Services</a></li>
-        <li><a href="./providers/aws/guide/functions.md">Functions</a></li>
-        <li><a href="./providers/aws/guide/events.md">Events</a></li>
-        <li><a href="./providers/aws/guide/resources.md">Resources</a></li>
-        <li><a href="./providers/aws/guide/deploying.md">Deploying</a></li>
-        <li><a href="./providers/aws/guide/testing.md">Testing</a></li>
-        <li><a href="./providers/aws/guide/variables.md">Variables</a></li>
-        <li><a href="./providers/aws/guide/packaging.md">Packaging</a></li>
-        <li><a href="./providers/aws/guide/iam.md">IAM</a></li>
-        <li><a href="./providers/aws/guide/plugins.md">Plugins</a></li>
-        <li><a href="./providers/aws/guide/workflow.md">Workflow</a></li>
-        <li><a href="./providers/aws/guide/serverless.yml.md">Serverless.yml</a></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/aws/cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_cli.png" alt="Serverless Framework AWS Lambda CLI Reference" width="250" draggable="false"/>
+      <a href="./providers/aws/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/aws-black.png" width="250" draggable="false"/>
       </a>
     </div>
     <div>
       <ul>
-        <li><a href="./providers/aws/cli-reference/config-credentials.md">Config Credentials</a></li>
-        <li><a href="./providers/aws/cli-reference/create.md">Create</a></li>
-        <li><a href="./providers/aws/cli-reference/install.md">Install</a></li>
-        <li><a href="./providers/aws/cli-reference/package.md">Package</a></li>
-        <li><a href="./providers/aws/cli-reference/deploy.md">Deploy</a></li>
-        <li><a href="./providers/aws/cli-reference/deploy-function.md">Deploy Function</a></li>
-        <li><a href="./providers/aws/cli-reference/deploy-list.md">Deploy List</a></li>
-        <li><a href="./providers/aws/cli-reference/invoke.md">Invoke</a></li>
-        <li><a href="./providers/aws/cli-reference/invoke-local.md">Invoke Local</a></li>
-        <li><a href="./providers/aws/cli-reference/logs.md">Logs</a></li>
-        <li><a href="./providers/aws/cli-reference/metrics.md">Metrics</a></li>
-        <li><a href="./providers/aws/cli-reference/info.md">Info</a></li>
-        <li><a href="./providers/aws/cli-reference/rollback.md">Rollback</a></li>
-        <li><a href="./providers/aws/cli-reference/remove.md">Remove</a></li>
-        <li><a href="./providers/aws/cli-reference/slstats.md">Serverless Stats</a></li>
+        <li><a href="./providers/aws/guide/quick-start">AWS QuickStart</a></li>
+        <li><a href="./providers/aws/guide">Guide</a></li>
+        <li><a href="./providers/aws/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/aws/events">Events</a></li>
+        <li><a href="./providers/aws/examples">Examples</a></li>
       </ul>
     </div>
   </div>
-
   <div class="docsSection">
     <div class="docsSectionHeader">
-      <a href="./providers/aws/events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_events.png" alt="Serverless Framework AWS Lambda Events"  width="250" draggable="false"/>
+      <a href="./providers/azure/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/azure-black.png" width="250" draggable="false"/>
       </a>
     </div>
     <div>
       <ul>
-        <li><a href="./providers/aws/events/apigateway.md">API Gateway</a></li>
-        <li><a href="./providers/aws/events/streams.md">Streams</a></li>
-        <li><a href="./providers/aws/events/s3.md">S3</a></li>
-        <li><a href="./providers/aws/events/schedule.md">Schedule</a></li>
-        <li><a href="./providers/aws/events/sns.md">SNS</a></li>
-        <li><a href="./providers/aws/events/alexa-skill.md">Alexa Skill</a></li>
-        <li><a href="./providers/aws/events/iot.md">IoT</a></li>
-        <li><a href="./providers/aws/events/cloudwatch-event.md">CloudWatch Event</a></li>
-        <li><a href="./providers/aws/events/cloudwatch-log.md">CloudWatch Log</a></li>
+        <li><a href="./providers/azure/guide/quick-start">Azure QuickStart</a></li>
+        <li><a href="./providers/azure/guide">Guide</a></li>
+        <li><a href="./providers/azure/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/azure/events">Events</a></li>
+        <li><a href="./providers/azure/examples">Examples</a></li>
       </ul>
     </div>
   </div>
-
   <div class="docsSection">
     <div class="docsSectionHeader">
-      <a href="./providers/aws/examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_examples.png" alt="Serverless Framework AWS Lambda Examples" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div>
-      <div>
-        <ul>
-          <li><a href="./providers/aws/examples/hello-world">Hello World</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="docsSections">
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/openwhisk/guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk Guide" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div class="test">
-      <ul>
-        <li><a href="./providers/openwhisk/guide/intro.md">Intro</a></li>
-        <li><a href="./providers/openwhisk/guide/installation.md">Installation</a></li>
-        <li><a href="./providers/openwhisk/guide/credentials.md">Credentials</a></li>
-        <li><a href="./providers/openwhisk/guide/services.md">Services</a></li>
-        <li><a href="./providers/openwhisk/guide/functions.md">Functions</a></li>
-        <li><a href="./providers/openwhisk/guide/events.md">Events</a></li>
-        <li><a href="./providers/openwhisk/guide/deploying.md">Deploying</a></li>
-        <li><a href="./providers/openwhisk/guide/testing.md">Testing</a></li>
-        <li><a href="./providers/openwhisk/guide/variables.md">Variables</a></li>
-        <li><a href="./providers/openwhisk/guide/packaging.md">Packaging</a></li>
-        <li><a href="./providers/openwhisk/guide/plugins.md">Plugins</a></li>
-        <li><a href="./providers/openwhisk/guide/web-actions.md">Web Actions</a></li>
-        <li><a href="./providers/openwhisk/guide/workflow.md">Workflow</a></li>
-        <li><a href="./providers/openwhisk/guide/serverless.yml.md">Serverless.yml</a></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/openwhisk/cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk CLI Reference" width="250" draggable="false"/>
+      <a href="./providers/openwhisk/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/openwhisk-black.png" width="250" draggable="false"/>
       </a>
     </div>
     <div>
       <ul>
-        <li><a href="./providers/openwhisk/cli-reference/config-credentials.md">Config Credentials</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/create.md">Create</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/install.md">Install</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/deploy.md">Deploy</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/deploy-function.md">Deploy Function</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/invoke.md">Invoke</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/invoke-local.md">Invoke Local</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/logs.md">Logs</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/info.md">Info</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/remove.md">Remove</a></li>
-        <li><a href="./providers/openwhisk/cli-reference/slstats.md">Serverless Stats</a></li>
+        <li><a href="./providers/openwhisk/guide/quick-start">OpenWhisk QuickStart</a></li>
+        <li><a href="./providers/openwhisk/guide">Guide</a></li>
+        <li><a href="./providers/openwhisk/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/openwhisk/events">Events</a></li>
+        <li><a href="./providers/openwhisk/examples">Examples</a></li>
       </ul>
     </div>
   </div>
-
   <div class="docsSection">
     <div class="docsSectionHeader">
-      <a href="./providers/openwhisk/events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk Events"  width="250" draggable="false"/>
+      <a href="./providers/google/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/gcf-black.png" width="250" draggable="false"/>
       </a>
     </div>
     <div>
       <ul>
-        <li><a href="./providers/openwhisk/events/apigateway.md">API Gateway</a></li>
-        <li><a href="./providers/openwhisk/events/cloudant.md">Cloudant DB</a></li>
-        <li><a href="./providers/openwhisk/events/messagehub.md">Message Hub</a></li>
-        <li><a href="./providers/openwhisk/events/schedule.md">Schedule</a></li>
-        <li><a href="./providers/openwhisk/events/triggers.md">Triggers</a></li>
+        <li><a href="./providers/google/guide/quick-start">Google CF QuickStart</a></li>
+        <li><a href="./providers/google/guide">Guide</a></li>
+        <li><a href="./providers/google/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/google/events">Events</a></li>
+        <li><a href="./providers/google/examples">Examples</a></li>
       </ul>
-    </div>
-  </div>
-
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/openwhisk/examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_openwhisk.jpg" alt="Serverless Framework Apache OpenWhisk Examples" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div>
-      <div>
-        <ul>
-          <li><a href="./providers/openwhisk/examples/hello-world">Hello World</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="docsSections">
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/azure/guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_azure.jpg" alt="Serverless Framework Microsoft Azure Guide" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div class="test">
-      <ul>
-        <li><a href="./providers/azure/guide/intro.md">Intro</a></li>
-        <li><a href="./providers/azure/guide/quickstart.md">Quickstart</a></li>
-        <li><a href="./providers/azure/guide/installation.md">Installation</a></li>
-        <li><a href="./providers/azure/guide/credentials.md">Credentials</a></li>
-        <li><a href="./providers/azure/guide/services.md">Services</a></li>
-        <li><a href="./providers/azure/guide/functions.md">Functions</a></li>
-        <li><a href="./providers/azure/guide/events.md">Events</a></li>
-        <li><a href="./providers/azure/guide/deploying.md">Deploying</a></li>
-        <li><a href="./providers/azure/guide/testing.md">Testing</a></li>
-        <li><a href="./providers/azure/guide/variables.md">Variables</a></li>
-        <li><a href="./providers/azure/guide/plugins.md">Plugins</a></li>
-        <li><a href="./providers/azure/guide/workflow.md">Workflow</a></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/azure/cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_azure.jpg" alt="Serverless Framework Microsoft Azure CLI Reference" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div>
-      <ul>
-        <li><a href="./providers/azure/cli-reference/install.md">Install</a></li>
-        <li><a href="./providers/azure/cli-reference/deploy.md">Deploy</a></li>
-        <li><a href="./providers/azure/cli-reference/deploy-function.md">Deploy Function</a></li>
-        <li><a href="./providers/azure/cli-reference/invoke.md">Invoke</a></li>
-        <li><a href="./providers/azure/cli-reference/logs.md">Logs</a></li>
-        <li><a href="./providers/azure/cli-reference/remove.md">Remove</a></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/azure/events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_azure.jpg" alt="Serverless Framework Microsoft Azure Events"  width="250" draggable="false"/>
-      </a>
-    </div>
-    <div>
-      <ul>
-        <li><a href="./providers/azure/events/http.md">HTTP</a></li>
-        <li><a href="./providers/azure/events/timer.md">Timer</a></li>
-        <li><a href="./providers/azure/events/queuestorage.md">Queue Storage</a></li>
-        <li><a href="./providers/azure/events/servicebus.md">Service Bus</a></li>
-        <li><a href="./providers/azure/events/eventhubs.md">Event Hubs</a></li>
-        <li><a href="./providers/azure/events/blobstorage.md">Blob Storage</a></li>
-        <li><a href="./providers/azure/events/other.md">Other Bindings</a></li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./providers/azure/examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_azure.jpg" alt="Serverless Framework Microsoft Azure Examples" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div>
-      <div>
-        <ul>
-          <li><a href="./providers/azure/examples/hello-world">Hello World</a></li>
-        </ul>
-      </div>
     </div>
   </div>
 </div>

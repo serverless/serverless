@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/workflow)
 <!-- DOCS-SITE-LINK:END -->
 
-# Workflow
+# Azure - Workflow
 
 Intro. Quick recommendations and tips for various processes.
 
@@ -40,31 +40,45 @@ serverless install --url https://github.com/azure/boilerplate-azurefunctions --n
 ```
 
 ##### Install A Service
-This is a convenience method to install a pre-made Serverless Service locally by downloading the Github repo and unzipping it.
+
+This is a convenience method to install a pre-made Serverless Service locally by
+downloading the GitHub repo and unzipping it.
+
 ```
 serverless install -u [GITHUB URL OF SERVICE]
 ```
 
 ##### Deploy All
-Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+
+Use this when you have made changes to your Functions, Events or Resources in
+`serverless.yml` or you simply want to deploy all changes within your Service at
+the same time.
+
 ```
 serverless deploy
 ```
 
 ##### Deploy Function
+
 Use this to quickly overwrite your Azure Functions, allowing you to develop faster.
+
 ```
-serverless deploy function -f [FUNCTION NAME] 
+serverless deploy function -f [FUNCTION NAME]
 ```
 
 ##### Invoke Function
+
 Invokes an Azure Function
+
 ```
 serverless invoke function -f [FUNCTION NAME]
 ```
 
 ##### Streaming Logs
-Open up a separate tab in your console and stream all logs for a specific Function using this command.
+
+Open up a separate tab in your console and stream all logs for a specific
+Function using this command.
+
 ```
 serverless logs -f [FUNCTION NAME]
 ```

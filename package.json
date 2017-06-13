@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.11.0",
+  "version": "1.15.3",
   "engines": {
     "node": ">=4.0"
   },
@@ -38,7 +38,7 @@
     "scripts/postinstall.js",
     "scripts/preuninstall.js",
     "package.json",
-    "npm-shrinkwrap.json",
+    "package-lock.json",
     "README.md",
     "LICENSE.txt",
     "CHANGELOG.md"
@@ -63,6 +63,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0",
     "coveralls": "^2.12.0",
     "eslint": "^3.3.1",
     "eslint-config-airbnb": "^10.0.1",
@@ -73,13 +74,14 @@
     "istanbul": "^0.4.4",
     "jest-cli": "^18.0.0",
     "jszip": "^3.1.2",
-    "markdown-magic": "0.1.0",
+    "markdown-magic": "^0.1.15",
     "mocha": "^3.0.2",
     "mocha-lcov-reporter": "^1.2.0",
     "mock-require": "^1.3.0",
     "proxyquire": "^1.7.10",
     "sinon": "^1.17.5",
-    "sinon-bluebird": "^3.1.0"
+    "sinon-bluebird": "^3.1.0",
+    "sinon-chai": "^2.9.0"
   },
   "dependencies": {
     "archiver": "^1.1.0",
@@ -87,6 +89,7 @@
     "aws-sdk": "^2.7.13",
     "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
+    "ci-info": "^1.0.0",
     "download": "^5.0.2",
     "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
@@ -95,16 +98,21 @@
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
+    "jwt-decode": "^2.2.0",
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
-    "node-fetch": "^1.5.3",
+    "node-fetch": "^1.6.0",
+    "opn": "^5.0.0",
+    "rc": "^1.1.6",
+    "raven": "^1.2.1",
     "replaceall": "^0.1.6",
     "resolve-from": "^2.0.0",
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
-    "traverse": "^0.6.6",
-    "uuid": "^2.0.2"
+    "tabtab": "^2.2.2",
+    "uuid": "^2.0.2",
+    "write-file-atomic": "^2.1.0"
   }
 }

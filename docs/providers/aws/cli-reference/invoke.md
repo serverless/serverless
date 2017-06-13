@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke
-menuText: Invoke
+menuText: invoke
 menuOrder: 8
 description: Invoke an AWS Lambda Function using the Serverless Framework
 layout: Doc

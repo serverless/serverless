@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Remove
-menuText: Remove
+menuText: remove
 menuOrder: 13
 description: Remove a deployed Service and all of its Azure Functions Functions, Events and Resources
 layout: Doc
@@ -12,7 +12,8 @@ layout: Doc
 
 # Azure - Remove
 
-The `sls remove` command will remove the deployed service, defined in your current working directory, from the provider.
+The `serverless remove` command will remove the deployed service, defined in your
+current working directory, from the provider.
 
 ```bash
 serverless remove
@@ -29,4 +30,5 @@ serverless remove
 serverless remove
 ```
 
-This example will remove the deployed service of your current working directory from the current platform endpoint.
+This example will remove the deployed service of your current working directory
+from the current platform endpoint.

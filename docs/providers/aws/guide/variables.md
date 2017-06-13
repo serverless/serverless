@@ -16,10 +16,14 @@ The Serverless framework provides a powerful variable system which allows you to
 
 - Reference & load variables from environment variables
 - Reference & load variables from CLI options
+- Reference & load variables from CloudFormation stack outputs
 - Recursively reference properties of any type from the same `serverless.yml` file
 - Recursively reference properties of any type from other YAML/JSON files
+- Recursively reference properties exported from JS files, synchronously or asynchronously
 - Recursively nest variable references within each other for ultimate flexibility
 - Combine multiple variable references to overwrite each other
+- Define your own variable syntax if it conflicts with CF syntax
+- Reference & load variables from S3
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
@@ -58,19 +62,20 @@ In the above example you're setting a global schedule for all functions by refer
 ## Referencing Environment Variables
 To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.  It is valid to use the empty string in place of `SOME_VAR`.  This looks like "`${env:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `process.env` object (i.e. all the variables defined in your environment).
 
-**WARNING!**
-If you use use the environment to provide sensitive data such as credentials or private keys to your project, there is a risk that this sensitive information could be written into less protected or publicly accessible build logs, CloudFormation templates, et cetera. Consider accordingly!
+**Note:**
+
+Keep in mind that sensitive information which is provided through environment variables can be written into less protected or publicly accessible build logs, CloudFormation templates, et cetera.
 
 ```yml
 service: new-service
 provider: aws
 functions:
   hello:
-      name: ${env:FUNC_PREFIX}-hello
-      handler: handler.hello
+    name: ${env:FUNC_PREFIX}-hello
+    handler: handler.hello
   world:
-      name: ${env:FUNC_PREFIX}-world
-      handler: handler.world
+    name: ${env:FUNC_PREFIX}-world
+    handler: handler.world
 ```
 
 In the above example you're dynamically adding a prefix to the function names by referencing the `FUNC_PREFIX` env var. So you can easily change that prefix for all functions by changing the `FUNC_PREFIX` env var.
@@ -92,6 +97,32 @@ functions:
 
 In the above example, you're dynamically adding a prefix to the function names by referencing the `stage` option that you pass in the CLI when you run `serverless deploy --stage dev`. So when you deploy, the function name will always include the stage you're deploying to.
 
+## Reference CloudFormation Outputs
+You can reference CloudFormation stack output values as the source of your variables to use in your service with the `cf:stackName.outputKey` syntax. For example:
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+      name: ${cf:another-service-dev.functionPrefix}-hello
+      handler: handler.hello
+  world:
+      name: ${cf:another-stack.functionPrefix}-world
+      handler: handler.world
+```
+In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
+
+## Referencing S3 Options
+You can reference S3 values as the source of your variables to use in your service with the `s3:bucketName/key` syntax. For example:
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+      name: ${s3:myBucket/myKey}-hello
+      handler: handler.hello
+```
+In the above example, the value for `myKey` in the `myBucket` S3 bucket will be looked up and used to populate the variable.
 ## Reference Variables in Other Files
 To reference variables in other YAML or JSON files, use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
 
@@ -164,6 +195,26 @@ module.exports.schedule = () => {
    };
 }
 ```
+If your use case requires handling dynamic/async data sources (ie. DynamoDB, API calls...etc), you can also return a Promise that would be resolved as the value of the variable:
+
+```yml
+# serverless.yml
+service: new-service
+provider: aws
+functions:
+  scheduledFunction:
+      handler: handler.scheduledFunction
+      events:
+        - schedule: ${file(./myCustomFile.js):promised}
+```
+
+```js
+// myCustomFile.js
+module.exports.promised = () => {
+   // Async code that fetches the rate config...
+   return Promise.resolve('rate(10 minutes)');
+}
+```
 
 ## Multiple Configuration Files
 
@@ -213,6 +264,22 @@ functions:
 What this says is to use the `stage` CLI option if it exists, if not, use the default stage (which lives in `provider.stage`). So during development you can safely deploy with `serverless deploy`, but during production you can do `serverless deploy --stage production` and the stage will be picked up for you without having to make any changes to `serverless.yml`.
 
 You can have as many variable references as you want, from any source you want, and each of them can be of different type and different name.
+
+## Using Custom Variable Syntax
+In some cases, the `${xxx}` variable syntax conflicts with some CloudFormation functionality. In that case you can provide a custom syntax to overwrite our default `${xxx}` syntax by setting the `provider.variableSyntax` property to the desired regex:
+
+```yml
+service: new-service
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  variableSyntax: "\\${{([\\s\\S]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
+
+custom:
+  myStage: ${{opt:stage}}
+```
+In this example, we're overwriting the default regex for our variable syntax. So whenever you define variables, you now need to use `${{}}` instead of `${}` (double curly brackets).
 
 ## Migrating serverless.env.yml
 Previously we used the `serverless.env.yml` file to track Serverless Variables. It was a completely different system with different concepts. To migrate your variables from `serverless.env.yml`, you'll need to decide where you want to store your variables.

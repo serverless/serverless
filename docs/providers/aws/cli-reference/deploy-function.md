@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy Function
-menuText: Deploy Function
+menuText: deploy function
 menuOrder: 6
 description: Deploy your AWS Lambda functions quickly without cloudformation
 layout: Doc
@@ -17,6 +17,11 @@ The `sls deploy function` command deploys an individual function without AWS Clo
 ```bash
 serverless deploy function -f functionName
 ```
+
+**Note:** Because this command is only deploying the function code, function
+properties such as environment variables and events will **not** be deployed.
+Those properties are deployed via CloudFormation, which does not execute with
+this command.
 
 ## Options
 - `--function` or `-f` The name of the function which should be deployed

@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Package
-menuText: Package
+menuText: package
 menuOrder: 4
 description: Package your service according to a specified provider
 layout: Doc
@@ -12,7 +12,7 @@ layout: Doc
 
 # AWS - package
 
-The `sls package` command packages your entire infrastructure into the `.serverless` directory by default and make it ready for deployment. You can specify another packaging directory by passing the `--path` option.
+The `sls package` command packages your entire infrastructure into the `.serverless` directory by default and make it ready for deployment. You can specify another packaging directory by passing the `--package` option.
 
 ```bash
 serverless package
@@ -21,7 +21,7 @@ serverless package
 ## Options
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
-- `--path` or `-p` path to the custom packaging directory you want.
+- `--package` or `-p` path to the custom packaging directory you want.
 
 ## Examples
 
@@ -45,7 +45,7 @@ This example packages your service while using the `production` stage in the reg
 ### Packaging to a custom path
 
 ```bash
-serverless package --path /path/to/package/directory
+serverless package --package /path/to/package/directory
 ```
 
-This example packages your service using the default stage and region and output the generated package into the custom path your provided at `/path/to/package/directory`.
+This example packages your service using the default stage and region and output the generated package into the custom path you provided at `/path/to/package/directory`.

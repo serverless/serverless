@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Install
-menuText: Install
+menuText: install
 menuOrder: 3
 description: Install pre-written AWS Lambda Functions, Events and Resources with the Serverless Framework
 layout: Doc

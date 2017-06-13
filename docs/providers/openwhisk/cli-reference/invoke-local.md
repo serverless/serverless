@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Invoke Local
-menuText: Invoke Local
+menuText: invoke local
 menuOrder: 8
 description: Emulate an invocation of your Apache OpenWhisk function locally using the Serverless Framework
 layout: Doc

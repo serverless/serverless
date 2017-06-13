@@ -1,6 +1,6 @@
 <!--
 title: Serverless Rollback CLI Command
-menuText: Rollback
+menuText: rollback
 menuOrder: 13
 description: Rollback the Serverless service to a specific deployment
 layout: Doc

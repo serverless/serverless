@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Deploy Function
-menuText: Deploy Function
+menuText: deploy function
 menuOrder: 5
 description: Deploy your Apache OpenWhisk functions quickly
 layout: Doc
@@ -17,6 +17,9 @@ The `sls deploy function` command deploys an individual function.  This command 
 ```bash
 serverless deploy function -f functionName
 ```
+
+**Note:** Because this command is only deploying the function code, function
+properties such as environment variables and events will **not** be deployed.
 
 ## Options
 - `--function` or `-f` The name of the function which should be deployed
