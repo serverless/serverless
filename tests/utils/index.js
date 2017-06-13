@@ -9,8 +9,21 @@ const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const AWS = require('aws-sdk');
 
+// mock to test functionality bound to a serverless plugin
+class ServerlessPlugin {
+  constructor(serverless, options, testSubject) {
+    this.options = options;
+    this.serverless = serverless;
+
+    Object.assign(
+      this,
+      testSubject
+    );
+  }
+}
+
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
-//
+
 const getTmpDirPath = () => path.join(os.tmpdir(),
   'tmpdirs-serverless', 'serverless', crypto.randomBytes(8).toString('hex'));
 
@@ -26,6 +39,7 @@ module.exports = {
   getTmpDirPath,
   getTmpFilePath,
   replaceTextInFile,
+  ServerlessPlugin,
 
   createTestService: (templateName, testServiceDir) => {
     const hrtime = process.hrtime();

@@ -89,7 +89,7 @@ function handler(event, context, callback) {
 
 ## Overriding a generated User Pool
 
-A Cognito User Pool created by an event can be overridden by using the [logical resource name][logical-resource-names] in `Resources`:
+A Cognito User Pool created by an event can be overridden by using the [logical resource name](../guide/resources.md#aws-cloudformation-resource-reference) in `Resources`:
 
 ```yml
 functions:
@@ -113,4 +113,3 @@ resources:
 ```
 
 [aws-triggers-list]: http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools-working-with-aws-lambda-triggers.html#cognito-user-pools-lambda-trigger-syntax-shared
-[logical-resource-names]: ../guide/resources#aws-cloudformation-resource-reference

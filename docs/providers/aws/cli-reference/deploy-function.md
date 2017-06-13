@@ -18,6 +18,11 @@ The `sls deploy function` command deploys an individual function without AWS Clo
 serverless deploy function -f functionName
 ```
 
+**Note:** Because this command is only deploying the function code, function
+properties such as environment variables and events will **not** be deployed.
+Those properties are deployed via CloudFormation, which does not execute with
+this command.
+
 ## Options
 - `--function` or `-f` The name of the function which should be deployed
 - `--stage` or `-s` The stage in your service that you want to deploy to.

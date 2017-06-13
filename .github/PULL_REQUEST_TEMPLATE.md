@@ -28,7 +28,7 @@ to review a PR, the faster we can review and merge it.
 Examples:
 * serverless.yml - Fully functioning to easily deploy changes
 * Screenshots - Showing the difference between your output and the master
-* AWS CLI commands - To list AWS resources and show that the correct config is in place
+* Cloud Configuration - List cloud resources and show that the correct configuration is in place (e.g. AWS CLI commands)
 * Other - Anything else that comes to mind to help us evaluate
 -->
 
