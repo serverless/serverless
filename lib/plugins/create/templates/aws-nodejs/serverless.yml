@@ -22,19 +22,15 @@ provider:
 #     variable1: value1
 ##● Custom IAM statements can be added to the functions in this service here
 #   iamRoleStatements:
-#     - Effect: "Allow"
-#       Action:
-#         - "s3:ListBucket"
-#       Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#     - Effect: "Allow"
-#       Action:
-#         - "s3:PutObject"
-#       Resource:
-#         Fn::Join:
-#           - ""
-#           - - "arn:aws:s3:::"
-#             - "Ref" : "ServerlessDeploymentBucket"
-#             - "/*"
+#    - Effect: Allow
+#      Action:
+#        - dynamodb:Query
+#        - dynamodb:Scan
+#        - dynamodb:GetItem
+#        - dynamodb:PutItem
+#        - dynamodb:UpdateItem
+#        - dynamodb:DeleteItem
+#      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/table-xyz"
 
 
 ##───────────────────────────────────────────────────────────────────────
@@ -63,7 +59,7 @@ functions:
 #       - alexaSkill
 ##● Optionally you can define environment variables for this function here
 #     environment:
-#       variable2: value2
+#       functionLevelVariableXYZ: value2
 
 
 ##───────────────────────────────────────────────────────────────────────
