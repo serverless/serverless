@@ -14,7 +14,8 @@ layout: Doc
 
 ## Valid Triggers
 
-Serverless supports all Cognito User Pool Triggers as specified [here][aws-triggers-list].
+Serverless supports all Cognito User Pool Triggers as specified [here][aws-triggers-list]. Use [this guide][aws-triggers-guide] to understand
+the event objects that will be passed to your function.
 
 ## Simple event definition
 
@@ -112,4 +113,6 @@ resources:
       Type: AWS::Cognito::UserPool
 ```
 
-[aws-triggers-list]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html
+[aws-triggers-guide]: http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools-working-with-aws-lambda-triggers.html
+[aws-triggers-list]:
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html
