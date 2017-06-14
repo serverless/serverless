@@ -22,11 +22,9 @@ Create a new service using the Node.js template, specifying a unique name and an
 
 ```bash
 # Create a new Serverless Service/Project
-$ serverless create --template aws-nodejs --path my-service
+$ serverless create --template hello-world --path hello-world
 # Change into the newly created directory
-$ cd my-service
-# Install npm dependencies
-$ npm install
+$ cd hello-world
 ```
 
 ## Deploy, test and diagnose your service
@@ -44,22 +42,24 @@ $ npm install
   Use this to quickly upload and overwrite your function code, allowing you to develop faster.
   
   ```bash
-  serverless deploy function -f hello
+  serverless deploy function -f helloWorld
   ```
 
-3. **Invoke the Function**
+3. **Invoke the Function manually**
 
   Invokes an Function and returns logs.
   
   ```bash
-  serverless invoke -f hello -l
+  serverless invoke -f helloWorld -l
   ```
 
-4. **Fetch the Function Logs**
+4. **Invoke the Function via a HTTP event**
 
-  Open up a separate tab in your console and stream all logs for a specific Function using this command.
   ```bash
-  serverless logs -f hello -t
+  # look up the http endpoint
+  serverless info
+  # curl the endpoint or open it in a browser
+  curl https://XXXXXX.execute-api.us-east-1.amazonaws.com/dev/hello-world
   ```
 
 ## Cleanup
