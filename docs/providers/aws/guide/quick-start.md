@@ -25,10 +25,6 @@ Create a new service using the Node.js template, specifying a unique name and an
 $ serverless create --template aws-nodejs --path my-service
 # Change into the newly created directory
 $ cd my-service
-# Generate the package.json file
-$ npm init
-# Install npm dependencies
-$ npm install
 ```
 
 ## Deploy, test and diagnose your service
