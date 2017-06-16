@@ -96,7 +96,7 @@ provider:
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   deploymentBucket:
     name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
-    serverSideEncryption: AES256 # when using server-side encryption with your own deployment bucket
+    serverSideEncryption: AES256 # when using server-side encryption
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value
