@@ -18,7 +18,8 @@ Azure Functions Service Bus trigger lets you listen on Azure Service Bus. Full d
 
 ### Service Bus Queue Trigger
 
-This setup specifies that the `hello` function should be run when a new Service Bus Queue item appears on the queue "hello".
+This setup specifies that the `hello` function should be run when a new Service
+Bus Queue item appears on the queue "hello".
 
 Here's an example:
 
@@ -29,7 +30,7 @@ functions:
   example:
     handler: handler.hello
     events:
-      - eventHub:
+      - serviceBus:
         x-azure-settings:
             name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings`
             queueName: hello #<string>, specifies the queue name to listen on
@@ -50,7 +51,8 @@ module.exports.hello = function(context, item) {
 
 ### Service Bus Topic Trigger
 
-This setup specifies that the `hello` function should be run when a new Service Bus Topic item appears on the subscription "hello".
+This setup specifies that the `hello` function should be run when a new Service
+Bus Topic item appears on the subscription "hello".
 
 Here's an example:
 
@@ -61,9 +63,9 @@ functions:
   example:
     handler: handler.hello
     events:
-      - eventHub:
+      - serviceBus:
         x-azure-settings:
-            name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings` 
+            name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings`
             topicName: "hello" #<string>, topic to listen on
             subscriptionName: "hello" #<string>, subscription to listen on
             connection: ServiceBusConnection #<string>, environment variable which contains Service Bus Namespace Connection String
