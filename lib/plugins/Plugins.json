@@ -10,7 +10,6 @@
     "./logs/logs.js",
     "./login/login.js",
     "./logout/logout.js",
-    "./platform/platform.js",
     "./metrics/metrics.js",
     "./remove/remove.js",
     "./rollback/index.js",
@@ -40,6 +39,7 @@
     "./aws/package/compile/events/cognitoUserPool/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
-    "./aws/invokeLocal/index.js"
+    "./aws/invokeLocal/index.js",
+    "./platform/platform.js"
   ]
 }
