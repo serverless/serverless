@@ -41,6 +41,14 @@ provider:
     - myFirstKey
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
+  usagePlan: # Optional usage plan configuration
+    quota:
+      limit: 5000
+      offset: 2
+      period: MONTH
+    throttle:
+      burstLimit: 200
+      rateLimit: 100
   stackTags: # Optional CF stack tags
     key: value
   iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
