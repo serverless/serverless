@@ -39,6 +39,7 @@
     "./aws/package/compile/events/cognitoUserPool/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
-    "./aws/invokeLocal/index.js"
+    "./aws/invokeLocal/index.js",
+    "./platform/platform.js"
   ]
 }

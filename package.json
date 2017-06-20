@@ -84,6 +84,7 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
+    "apollo-client": "^1.4.2",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.7.13",
@@ -95,6 +96,8 @@
     "fs-extra": "^0.26.7",
     "get-stdin": "^5.0.1",
     "globby": "^6.1.0",
+    "graphql": "^0.10.1",
+    "graphql-tag": "^2.4.0",
     "https-proxy-agent": "^1.0.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
@@ -104,10 +107,9 @@
     "moment": "^2.13.0",
     "node-fetch": "^1.6.0",
     "opn": "^5.0.0",
-    "rc": "^1.1.6",
     "raven": "^1.2.1",
+    "rc": "^1.1.6",
     "replaceall": "^0.1.6",
-    "resolve-from": "^2.0.0",
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
