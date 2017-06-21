@@ -17,8 +17,7 @@ const APIG = new AWS.APIGateway({ region: 'us-east-1' });
 BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(APIG, { suffix: 'Promised' });
 
-// NOTE this test will be skipped for now as AWS has some inconsistencies with API key usage
-xdescribe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
+describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
   let stackName;
   let endpoint;
   let apiKey;
