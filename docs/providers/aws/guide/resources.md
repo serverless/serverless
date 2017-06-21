@@ -82,7 +82,6 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
 |ApiGateway::UsagePlan  | ApiGatewayUsagePlan                          | ApiGatewayUsagePlan             |
 |ApiGateway::UsagePlanKey     | ApiGatewayUsagePlanKey{SequentialID}                          | ApiGatewayUsagePlanKey1             |
-|ApiGateway::Stage      | ApiGatewayStage                          | ApiGatewayStage             |
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
 |SNS::Subscription      | {normalizedFunctionName}SnsSubscription{normalizedTopicName}   | HelloSnsSubscriptionSomeTopic             |
 |AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB:** {normalizedFunctionName}EventSourceMappingDynamodb{tableName}</li><li>**Kinesis:** {normalizedFunctionName}EventSourceMappingKinesis{streamName}</li></ul> | <ul><li>**DynamoDB:** HelloLambdaEventSourceMappingDynamodbUsers</li><li>**Kinesis:** HelloLambdaEventSourceMappingKinesisMystream</li></ul> |
