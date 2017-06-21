@@ -5,7 +5,6 @@
 
 const Serverless = require('../lib/Serverless');
 const execSync = require('child_process').execSync;
-const path = require('path');
 
 try {
   const serverless = new Serverless();
