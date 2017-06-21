@@ -6,7 +6,6 @@
 const Serverless = require('../lib/Serverless');
 const execSync = require('child_process').execSync;
 const path = require('path');
-const fileExistsSync = require('../lib/utils/fs/fileExistsSync');
 
 try {
   const serverless = new Serverless();
@@ -22,10 +21,7 @@ try {
 
 function setupAutocomplete() {
   return new Promise((resolve, reject) => {
-    let tabtabPath = './node_modules/tabtab';
-    if (!fileExistsSync(path.join(__dirname, '..', 'node_modules', 'tabtab', 'src', 'cli.js'))) {
-      tabtabPath = '../tabtab';
-    }
+    const tabtabPath = require.resolve('tabtab').replace(/\/index.js$/, '');
     try {
       execSync(`node ${tabtabPath}/src/cli.js install --name serverless --auto`);
       execSync(`node ${tabtabPath}/src/cli.js install --name sls --auto`);
