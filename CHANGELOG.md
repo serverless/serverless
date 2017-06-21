@@ -1,3 +1,15 @@
+# 1.16.0 (21.06.2017)
+- Added support for usage plans to APIG - #3819
+- Optmizied packaging to exclude dev dependencies - #3737
+- Added support for S3 server side encryption - #3804
+- Improved HTTP error handling - #3752
+- Throw an error when requsted CF variable doesn't exist - #3739
+- Throw an error if an individual package is empty - #3729
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.0...v1.16.0)
+
+
 # 1.15.3 (12.06.2017)
 - Fixed autocomplete bug with help option - #3781
 
