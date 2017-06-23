@@ -354,7 +354,6 @@ functions:
                 url: true
               headers:
                 foo: false
-                bar: true
               paths:
                 bar: false
 ```
