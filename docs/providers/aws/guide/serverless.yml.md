@@ -37,6 +37,7 @@ provider:
   role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
   cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   versionFunctions: false # Optional function versioning
+  useStackSplitting: true # EXPERIMENTAL: let AWS automatically split the stack into nested stacks (useful when AWS CloudFormation stack limits are reached)
   environment: # Service wide environment variables
     serviceEnvVar: 123456789
   apiKeys: # List of API keys to be used by your service API Gateway REST API

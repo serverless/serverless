@@ -36,7 +36,7 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 * The CloudFormation Stack is updated with the new CloudFormation template.
 * Each deployment publishes a new version for each function in your service.
 
-### Tips
+#### Tips
 
 * Use this in your CI/CD systems, as it is the safest method of deployment.
 * You can print the progress during the deployment if you use `verbose` mode, like this:
@@ -66,6 +66,37 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 
+#### When reaching stack limitations
+
+AWS CloudFormation has various limitations. You can read more about those [in their docs](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html).
+
+There are different ways how you can resolve those stack limits. Here you can read about possible solutions:
+
+1. Cross-Service communication
+
+Split up the stack manually and use Cross-Service communication (e.g. with the `${cf:}` Serverless Variable property) to share necessary information between the stacks
+
+2. Use `provider.useStackSplitting` config variable
+
+```yml
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  useStackSplitting: true
+
+functions:
+  hello:
+    handler: handler.hello
+
+...
+```
+
+This tells Serverless to automatically split the stack into multiple nested stacks. Serverless will manage those for you from now on.
+
+**CAUTON:** This *experimental* feature provides a one-way road since it's harder to revert later on.
+
 ## Deploy Function
 
 This deployment method does not touch your AWS CloudFormation Stack.  Instead, it simply overwrites the zip file of the current function on AWS.  This method is much faster, since it does not rely on CloudFormation.
@@ -79,7 +110,7 @@ serverless deploy function --function myFunction
 * The Framework packages up the targeted AWS Lambda Function into a zip file.
 * That zip file is uploaded to your S3 bucket using the same name as the previous function, which the CloudFormation stack is pointing to.
 
-### Tips
+#### Tips
 
 * Use this when you are developing and want to test on AWS because it's much faster.
 * During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
@@ -96,5 +127,5 @@ serverless deploy --package path-to-package
 
 ### How It Works
 
-- The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
-- The deploy process bypasses the package step and uses the existing package to deploy and update CloudFormation stacks.
+* The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
+* The deploy process bypasses the package step and uses the existing package to deploy and update CloudFormation stacks.

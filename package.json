@@ -91,6 +91,7 @@
     "bluebird": "^3.4.0",
     "chalk": "^1.1.1",
     "ci-info": "^1.0.0",
+    "dependency-graph": "^0.5.0",
     "download": "^5.0.2",
     "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
@@ -114,6 +115,7 @@
     "semver-regex": "^1.0.0",
     "shelljs": "^0.6.0",
     "tabtab": "^2.2.2",
+    "traverse": "^0.6.6",
     "uuid": "^2.0.2",
     "write-file-atomic": "^2.1.0"
   }
