@@ -12,6 +12,6 @@ module Handler =
     open System.IO
     open System.Text
 
-    let hello(request:Request) = 
+    let hello(request:Request) =
         { Message="Go Serverless v1.0! Your function executed successfully!"
           Request=request }
