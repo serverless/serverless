@@ -265,7 +265,12 @@ functions:
             arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
 ```
 
-By default the `sub` claim will be exposed in `events.cognitoPoolClaims`, you can add extra claims like so:
+If you are using the default `lambda-proxy` integration, your attributes will be
+exposed at `event.requestContext.authorizer.claims`.
+
+If you want control more control over which attributes are exposed as claims you
+can switch to `integration: lambda` and add the following configuration. The
+claims will be exposed at `events.cognitoPoolClaims`.
 
 ```yml
 functions:
@@ -282,8 +287,6 @@ functions:
               - email
               - nickname
 ```
-
-Note: Since claims must be explicitly listed to be exposed, you must use `integration: lambda` integration type to access any claims.
 
 ### Catching Exceptions In Your Lambda Function
 
