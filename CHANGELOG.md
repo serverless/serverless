@@ -1,3 +1,10 @@
+# 1.16.1 (26.06.2017)
+- CI/CD fix for the Serverless Platform - #3829
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.0...v1.16.1)
+
+
 # 1.16.0 (21.06.2017)
 - Added support for usage plans to APIG - #3819
 - Optmizied packaging to exclude dev dependencies - #3737
