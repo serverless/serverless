@@ -312,6 +312,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Craftship](https://craftship.io)
 * [EPX Labs](http://www.epxlabs.com/) - runs [Serverless NYC Meetup](https://www.meetup.com/Serverless-NYC/)
 * [Red Badger](https://red-badger.com)
+* [Langa](http://langa.io/?utm_source=gh-serverless&utm_medium=github) - They built [Trails.js](http://github.com/trailsjs/trails)
 
 ----
 
