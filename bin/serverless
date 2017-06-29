@@ -6,6 +6,8 @@ const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 
+Error.stackTraceLimit = Infinity;
+
 BbPromise.config({
   longStackTraces: true,
 });

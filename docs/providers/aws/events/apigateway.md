@@ -265,7 +265,12 @@ functions:
             arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
 ```
 
-By default the `sub` claim will be exposed in `events.cognitoPoolClaims`, you can add extra claims like so:
+If you are using the default `lambda-proxy` integration, your attributes will be
+exposed at `event.requestContext.authorizer.claims`.
+
+If you want control more control over which attributes are exposed as claims you
+can switch to `integration: lambda` and add the following configuration. The
+claims will be exposed at `events.cognitoPoolClaims`.
 
 ```yml
 functions:
@@ -283,15 +288,11 @@ functions:
               - nickname
 ```
 
-Note: Since claims must be explicitly listed to be exposed, you must use `integration: lambda` integration type to access any claims.
-
 ### Catching Exceptions In Your Lambda Function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
 
 ### Setting API keys for your Rest API
-
-**Note:** Due to a CloudFormation restriction you need to wire up API Keys and usage plans manually in the AWS console.
 
 You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
 `provider` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require
@@ -354,7 +355,6 @@ functions:
                 url: true
               headers:
                 foo: false
-                bar: true
               paths:
                 bar: false
 ```
