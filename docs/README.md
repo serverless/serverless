@@ -18,9 +18,9 @@ menuItems:
 
 The Serverless Framework is a CLI tool that allows users to build & deploy auto-scaling, pay-per-execution, event-driven functions.
 
-Write your code, configure events to trigger your functions, then deploy & run those functions to your [cloud provider](#Supported-Providers) via the **serverless CLI**.
+Write your code, configure events to trigger your functions, then deploy & run those functions to your [cloud provider](#Supported-Providers) via the **Serverless CLI**.
 
-Getting started with serverless? **[Start here](./getting-started.md)**
+Getting started with serverless? **[Start here](./getting-started.md)**.
 
 Already using AWS or another cloud provider? Read on.
 
