@@ -131,30 +131,6 @@ functions:
       individually: true
 ```
 
-### Exclude functions from packaging
-
-Sometimes you might want to exclude functions from the packaging process. The `disable` config parameter which can be defined in the `package` config on the function level enables you a way to mark a function for exclusion.
-
-```yml
-service: my-service
-
-package:
-  individually: true
-  exclude:
-    - '**/*'
-
-functions:
-  hello:
-    handler: handler.hello
-    package:
-      include:
-        - handler.js
-  world:
-    handler: handler.hello
-    package:
-      disable: true
-```
-
 ### Development dependencies
 
 Serverless will auto-detect and exclude development dependencies based on the runtime your service is using.
