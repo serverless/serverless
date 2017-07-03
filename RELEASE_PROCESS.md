@@ -4,13 +4,19 @@ This document contains all the necessary information about out release process.
 
 ## Release branch
 
+The branch developers PR to is `dev`.
+
 For each release we create a separate release branch.
 
-Commits / Features which should be included in the release are moved over into the release branch (e.g. cherry-picked).
+Commits / Features which should be included in the release are moved over from the `dev` branch into the release branch (e.g. cherry-picked).
 
-We open up a separate PR for the release branch (and add the PR to the milestone) to track the current status.
+We open up a separate PR to request a merge from the release branch into `master` (and add the PR to the milestone) to track the current status.
+
+Canary release can be kept in the release branch and rebased until they're ready to be merged into `master`.
 
 ## Different types of releases
+
+**Note:** More about versioning can be found in our dedicated [VERSIONING file](https://github.com/serverless/serverless/blob/master/VERSIONING.md).
 
 Releases can come in different flavors. Here's a list with the most common release types and how they're treated
 
@@ -42,7 +48,7 @@ Alpha releases are created to have a sneak peek into the upcoming feature set of
 
 Alpha releases are not scheduled and can be pushed multiple times throughout a development phase.
 
-Alpha releases should never be installed automatically when the user installs / updates Serverless. The user should be forced to explicitly name the alpha release during the installation / update phase.
+Alpha releases should never be installed automatically when the user installs / updates Serverless. The user should be forced to explicitly name the alpha release during the installation / update phase (e.g. via `npm install --global serverless@alpha`).
 
 #### Versioning / tagging
 
