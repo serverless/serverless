@@ -24,6 +24,8 @@ serverless deploy
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Amazon Web Services.
 
+**Note:** You can always enforce a deployment using the `--force` option.
+
 ### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to a single AWS CloudFormation template.  By depending on CloudFormation for deployments, users of the Serverless Framework get the safety and reliability of CloudFormation.
@@ -75,6 +77,8 @@ This deployment method does not touch your AWS CloudFormation Stack.  Instead, i
 ```bash
 serverless deploy function --function myFunction
 ```
+
+**Note:** You can always enforce a deployment using the `--force` option.
 
 ### How It Works
 
