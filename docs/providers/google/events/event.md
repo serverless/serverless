@@ -23,7 +23,7 @@ This example sets up a `pubSub` event which will trigger the `first` function wh
 
 functions:
   first:
-    handler: pubSub
+    handler: first
     events:
       - event:
           eventType: providers/cloud.pubsub/eventTypes/topic.publish
