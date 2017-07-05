@@ -1,8 +1,13 @@
 #!/bin/bash
 
+isMacOs=`uname -a | grep Darwin`
+
 #install zip
-apt-get -qq update
-apt-get -qq -y install zip
+if [ -z  isMacOs ]
+then
+  apt-get -qq update
+  apt-get -qq -y install zip
+fi
 
 dotnet restore
 
