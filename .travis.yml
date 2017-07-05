@@ -43,3 +43,12 @@ script:
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+
+deploy:
+  provider: npm
+  email: services@serverless.com
+  skip_cleanup: true
+  on:
+    tags: true
+  api_key:
+    secure: efq8j0dLJB5Qn2ONYNXDRVzF/tnJd1tDtR4lGKagkmcjRBhcXm4+J+Tf3/bF/N8FTUkeOISGhgdDfQusBOeGKuURSlKcVzm0hkmL0vZN+SIRGefKK6faYr5H7Nrbnmk47R5fiomet5L7bZFJFJ1MhCeBd+QEaIwzFQdefsOZGu6eyElAI6tEPI1HdPE/SdLc9y6R5DRt5XMU5Qv/FJBG12nfJZO5hE1UcERv1f1gEEhM19Qcr4x1mkm/f0cd/nkOAnsEemh9PhpjrzdyeufeZeNDZDw1l2+TS9h6eIrfJkIH+xGrygmstIQYPt30HUqMOCjfa5udB7H0aJwI7R4bt8QAP+zrBjpeFxiK29QTjkvfFf7EXAGPvF5fpbR0VGR59O85Qa/Z3wWbNIxbp+874DHmRGArKEaF2RcNzNpZ4lrZrTznYG1eGacbN0DR8dKLE9v+y2zoddP3ArfALeMVte6Hj8wuS4TYR8SN6R88/bOmGTp1/klojIIFvZvU9XIQUzg99uGWVLfjvQhbRFLASFMhvOI/9CtgXux4LnXMbSKy9X6N+NLIto6/t0hr+GEILiZaXUQ3KrKWbDIIaUeM04EYTMK/RUazDWotpJ34pt5Xv+EssKzNO46hOht3soou0/SGwEYwz21ZubGUzjh8fz//68lhcL/uynLcadBDvmo=
