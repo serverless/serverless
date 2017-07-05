@@ -1,3 +1,16 @@
+# 1.17.0 (05.07.2017)
+- Cleanup F# build template output on macOS - #3897
+- Add disable flag for OpenWhisk functions - #3830
+- Only redeploy when the code/config changes - #3838
+- Add opt-out config for dev dependency exclusion - #3877
+- Add infinite stack trace for errors - #3839
+- Fixed a bug with autocomplete - #3798
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.0...v1.16.1)
+
+
 # 1.16.1 (26.06.2017)
 - CI/CD fix for the Serverless Platform - #3829
 
