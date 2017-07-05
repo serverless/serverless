@@ -3,7 +3,7 @@
 isMacOs=`uname -a | grep Darwin`
 
 #install zip
-if [ -z  isMacOs ]
+if [ -z "$isMacOs" ]
 then
   apt-get -qq update
   apt-get -qq -y install zip
