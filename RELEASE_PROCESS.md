@@ -14,6 +14,10 @@ We open up a separate PR to request a merge from the release branch into `master
 
 Canary release can be kept in the release branch and rebased until they're ready to be merged into `master`.
 
+### Merge freeze
+
+A "merge freeze" will be applied a few days before the release. This means that **NOTHING** will be added to the release branch. Even bug-fixes will be published in a separate [patch release](#patch-release).
+
 ## Different types of releases
 
 **Note:** More about versioning can be found in our dedicated [VERSIONING file](https://github.com/serverless/serverless/blob/master/VERSIONING.md).
