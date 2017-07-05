@@ -8,7 +8,7 @@
 
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.0...v1.16.1)
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.1...v1.17.0)
 
 
 # 1.16.1 (26.06.2017)
