@@ -58,6 +58,7 @@ Here are the available runtimes for AWS Lambda:
 * aws-java-maven
 * aws-scala-sbt
 * aws-csharp
+* aws-fsharp
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
@@ -94,7 +95,9 @@ provider:
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
-  deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+  deploymentBucket:
+    name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+    serverSideEncryption: AES256 # when using server-side encryption
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value

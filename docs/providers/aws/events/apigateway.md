@@ -21,11 +21,11 @@ There are five ways you can configure your HTTP endpoints to integrate with your
 * `http-proxy` / `http_proxy`
 * `mock`
 
+**The Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda) by default unless another method is supplied by the user**
+
 The difference between these is `lambda-proxy` (alternative writing styles are `aws-proxy` and `aws_proxy` for compatibility with the standard AWS integration type naming) automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function.  Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code).  We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
 
 Use `http` for integrating with an HTTP back end, `http-proxy` for integrating with the HTTP proxy integration or `mock` for testing without actually invoking the back end.
-
-By default, the Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda), and nothing is required by you to enable it.
 
 ## Lambda Proxy Integration
 
@@ -115,8 +115,7 @@ functions:
           path: hello
           method: get
           cors:
-            origins:
-              - '*'
+            origin: '*'
             headers:
               - Content-Type
               - X-Amz-Date
@@ -266,7 +265,12 @@ functions:
             arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
 ```
 
-By default the `sub` claim will be exposed in `events.cognitoPoolClaims`, you can add extra claims like so:
+If you are using the default `lambda-proxy` integration, your attributes will be
+exposed at `event.requestContext.authorizer.claims`.
+
+If you want control more control over which attributes are exposed as claims you
+can switch to `integration: lambda` and add the following configuration. The
+claims will be exposed at `events.cognitoPoolClaims`.
 
 ```yml
 functions:
@@ -284,21 +288,18 @@ functions:
               - nickname
 ```
 
-Note: Since claims must be explicitly listed to be exposed, you must use `integration: lambda` integration type to access any claims.
-
 ### Catching Exceptions In Your Lambda Function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
 
 ### Setting API keys for your Rest API
 
-**Note:** Due to a CloudFormation restriction you need to wire up API Keys and usage plans manually in the AWS console.
-
 You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
 `provider` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require
 one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you
 want to set as private. API Keys are created globally, so if you want to deploy your service to different stages make sure
-your API key contains a stage variable as defined below.
+your API key contains a stage variable as defined below. When using API keys, you can optionally define usage plan quota
+and throttle, using `usagePlan` object.
 
 Here's an example configuration for setting API keys for your service Rest API:
 
@@ -310,6 +311,14 @@ provider:
     - myFirstKey
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
+  usagePlan:
+    quota:
+      limit: 5000
+      offset: 2
+      period: MONTH
+    throttle:
+      burstLimit: 200
+      rateLimit: 100
 functions:
   hello:
     events:
@@ -346,7 +355,6 @@ functions:
                 url: true
               headers:
                 foo: false
-                bar: true
               paths:
                 bar: false
 ```

@@ -48,6 +48,7 @@ Most commonly used templates:
 - aws-java-gradle
 - aws-scala-sbt
 - aws-csharp
+- aws-fsharp
 - plugin
 
 ## Examples
@@ -62,7 +63,7 @@ This example will generate scaffolding for a service with `AWS` as a provider an
 will be generated in the current working directory.
 
 Your new service will have a default stage called `dev` and a default region inside that stage called `us-east-1`.
-The provider which is used for deployment later on is AWS (Amazon web services).
+The provider which is used for deployment later on is AWS (Amazon Web Services).
 
 ### Creating a named service in a (new) directory
 

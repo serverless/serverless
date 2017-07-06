@@ -1,7 +1,7 @@
 <!--
 title: Google Cloud Functions Serverless remove command
 menuText: remove
-menuOrder: 13
+menuOrder: 9
 description: Remove a deployed Service and all of its Google Cloud Functions Functions, Events and Resources
 layout: Doc
 -->

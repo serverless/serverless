@@ -1,3 +1,62 @@
+# 1.17.0 (05.07.2017)
+- Cleanup F# build template output on macOS - #3897
+- Add disable flag for OpenWhisk functions - #3830
+- Only redeploy when the code/config changes - #3838
+- Add opt-out config for dev dependency exclusion - #3877
+- Add infinite stack trace for errors - #3839
+- Fixed a bug with autocomplete - #3798
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.1...v1.17.0)
+
+
+# 1.16.1 (26.06.2017)
+- CI/CD fix for the Serverless Platform - #3829
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.0...v1.16.1)
+
+
+# 1.16.0 (21.06.2017)
+- Added support for usage plans to APIG - #3819
+- Optmizied packaging to exclude dev dependencies - #3737
+- Added support for S3 server side encryption - #3804
+- Improved HTTP error handling - #3752
+- Throw an error when requsted CF variable doesn't exist - #3739
+- Throw an error if an individual package is empty - #3729
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.0...v1.16.0)
+
+
+# 1.15.3 (12.06.2017)
+- Fixed autocomplete bug with help option - #3781
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.2...v1.15.3)
+
+
+# 1.15.2 (10.06.2017)
+- Fixed installation error - #3763
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.0...v1.15.2)
+
+
+# 1.15.0 (08.06.2017)
+- Added autocomplete support to the CLI - #3753
+- Added KMS key support - #3672
+- Added Cognito User pool support - #3657
+- Added serverless.json support - #3647
+- Added aws-profile support - #3701
+- Added CloudFormation validation support - #3668
+- Fixed S3 event race condition bug - #3705
+- Fixed CORS origin config bug - #3692
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.14.0...v1.15.0)
+
 # 1.14.0 (24.05.2017)
 - Added login command - #3558
 - Added support for DeadLetter Config with SNS - #3609

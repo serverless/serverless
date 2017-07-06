@@ -15,16 +15,19 @@ layout: Doc
 Azure Functions has an API endpoint created for each Function App. This service
 allows you to define public HTTP endpoints for your serverless functions.
 
-To create HTTP endpoints as Event sources for your Azure Functions, use the Serverless Framework's easy HTTP Events syntax.
+To create HTTP endpoints as Event sources for your Azure Functions, use the
+Serverless Framework's easy HTTP Events syntax.
 
-It might be helpful to read the Azure Function [HTTP Trigger docs](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook) to learn the full functionality.
+It might be helpful to read the Azure Function
+[HTTP Trigger docs](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook)
+to learn the full functionality.
 
 ## HTTP Trigger Events
 
 ### Simple HTTP Endpoint
 
-This setup specifies that the `hello` function should be run when someone accesses the Function App at `api/example/hello` via
-a `GET` request. 
+This setup specifies that the `hello` function should be run when someone
+accesses the Function App at `api/example/hello` via a `GET` request.
 
 Here's an example:
 
@@ -37,7 +40,7 @@ functions:
     events:
       - http: true
         x-azure-settings:
-            name: req #<string>, default - "req", specifies which name it's available on `context.bindings` 
+            name: req #<string>, default - "req", specifies which name it's available on `context.bindings`
             methods: #<array> [GET, POST, PUT, DELETE], default - all
                 - GET
             route: example/hello #<string>, default - <function name>
@@ -45,7 +48,8 @@ functions:
 ```
 
 URL paths for the serverless functions are prefixed with "api" by default, e.g.
-`/api/some/path`. You can change this via a setting in [host.json](https://github.com/Azure/azure-webjobs-sdk-script/wiki/host.json).
+`/api/some/path`. You can change this via a setting in
+[host.json](https://github.com/Azure/azure-webjobs-sdk-script/wiki/host.json).
 
 ```javascript
 // handler.js
@@ -62,9 +66,11 @@ module.exports.hello = function(context, req) {
 
 ### Request event
 
-You can see the [full docs for HTTP triggers](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook#http-trigger-sample-in-nodejs) to learn all the capabilities.
+You can see the
+[full docs for HTTP triggers](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook#http-trigger-sample-in-nodejs)
+to learn all the capabilities.
 
-In Node.js, the request and response objects looks like an expressjs request and response object.
+In Node.js, the request object looks like an express request object.
 
 ```javascript
 // handler.js
@@ -79,7 +85,7 @@ module.exports.hello = function(context, req) {
   const headers = req.headers; // dictionary of headers
   const params = req.params; // dictionary of params from URL
   const rawBody = req.rawBody; // unparsed body
-  
+
   context.res = {
       headers:{
           "content-type":"application/json"
@@ -92,8 +98,11 @@ module.exports.hello = function(context, req) {
 };
 ```
 
-Note, if you specify WebHook, you'll get passed the body as the second argument to your Function, not the request object. You can still access the request object on the context object (i.e. `context.req`)
+Note, if you specify WebHook, you'll get passed the body as the second argument
+to your Function, not the request object. You can still access the request object
+on the context object (i.e. `context.req`)
 
 ### CORS Support
 
-You can set up CORS following the instructions on [azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings#manage-cors).
+You can set up CORS following the instructions on
+[azure.com](https://docs.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings#manage-cors).
