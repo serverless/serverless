@@ -315,6 +315,12 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
+**Note:**
+[Variable references](https://serverless.com/framework/docs/providers/aws/guide/variables/#reference-properties-in-serverlessyml)
+in the `serverless` instance are not resolved before a Plugin's constructor is
+called, so if you need these, make sure to wait to access those from
+[#hooks](hooks into lifecycle events).
+
 ### Command Naming
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. If you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
