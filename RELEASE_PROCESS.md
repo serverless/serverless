@@ -18,6 +18,8 @@ Canary release can be kept in the release branch and rebased until they're ready
 
 A "merge freeze" will be applied a few days before the release. This means that **NOTHING** will be added to the release branch. Even bug-fixes will be published in a separate [patch release](#patch-release).
 
+A "merge freeze" ends once the release was published.
+
 ## Different types of releases
 
 **Note:** More about versioning can be found in our dedicated [VERSIONING file](https://github.com/serverless/serverless/blob/master/VERSIONING.md).
