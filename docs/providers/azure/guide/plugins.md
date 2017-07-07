@@ -347,11 +347,7 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
-**Note:**
-[Variable references](https://serverless.com/framework/docs/providers/aws/guide/variables/#reference-properties-in-serverlessyml)
-in the `serverless` instance are not resolved before a Plugin's constructor is
-called, so if you need these, make sure to wait to access those from
-[#hooks](hooks into lifecycle events).
+**Note:** [Variable references](./variables.md#reference-properties-in-serverlessyml) in the `serverless` instance are not resolved before a Plugin's constructor is called, so if you need these, make sure to wait to access those from your [hooks](#hooks).
 
 ### Command Naming
 
