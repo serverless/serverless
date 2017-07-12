@@ -24,6 +24,8 @@ serverless deploy
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Amazon Web Services.
 
+**Note:** You can always enforce a deployment using the `--force` option.
+
 ### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to a single AWS CloudFormation template.  By depending on CloudFormation for deployments, users of the Serverless Framework get the safety and reliability of CloudFormation.
@@ -31,6 +33,8 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 * An AWS CloudFormation template is created from your `serverless.yml`.
 * If a Stack has not yet been created, then it is created with no resources except for an S3 Bucket, which will store zip files of your Function code.
 * The code of your Functions is then packaged into zip files.
+* Serverless fetches the hashes for all files of the previous deployment (if any) and compares them against the hashes of the local files.
+* Serverless terminates the deployment process if all file hashes are the same.
 * Zip files of your Functions' code are uploaded to your Code S3 Bucket.
 * Any IAM Roles, Functions, Events and Resources are added to the AWS CloudFormation template.
 * The CloudFormation Stack is updated with the new CloudFormation template.
@@ -74,9 +78,13 @@ This deployment method does not touch your AWS CloudFormation Stack.  Instead, i
 serverless deploy function --function myFunction
 ```
 
+**Note:** You can always enforce a deployment using the `--force` option.
+
 ### How It Works
 
 * The Framework packages up the targeted AWS Lambda Function into a zip file.
+* The Framework fetches the hash of the already uploaded function .zip file and compares it to the local .zip file hash.
+* The Framework terminates if both hashes are the same.
 * That zip file is uploaded to your S3 bucket using the same name as the previous function, which the CloudFormation stack is pointing to.
 
 ### Tips

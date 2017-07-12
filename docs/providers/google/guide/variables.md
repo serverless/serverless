@@ -52,13 +52,25 @@ In the above example you're setting a global event resource for all functions by
 
 ## Reference Variables in JavaScript Files
 
-To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`.  Here's an example:
+You can reference JavaScript files to add dynamic data into your variables.
+
+References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`.
 
 ```javascript
-// myCustomFile.js
-module.exports.resource = () => {
+// resources.js
+module.exports.topic = () => {
    // Code that generates dynamic data
    return 'projects/*/topics/my-topic';
+}
+```
+
+```js
+// config.js
+module.exports = () => {
+  return {
+    property1: 'some value',
+    property2: 'some other value'
+  }
 }
 ```
 
@@ -68,13 +80,15 @@ service: new-service
 
 provider: google
 
+custom: ${file(./config.js)}
+
 functions:
   first:
     handler: pubSub
     events:
       - event:
           eventType: providers/cloud.pubsub/eventTypes/topics.publish
-          resource: ${file(./myCustomFile.js):resource} # Reference a specific module
+          resource: ${file(./resources.js):topic} # Reference a specific module
 ```
 
 You can also return an object and reference a specific property. Just make sure you are returning a valid object and referencing a valid property:

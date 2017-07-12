@@ -330,7 +330,7 @@ functions:
 
 The `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
 
-We're working on a fix so that SQS queue arns are be supported in the future.
+We're working on a fix so that SQS queue arns will be supported in the future.
 
 ## KMS Keys
 
