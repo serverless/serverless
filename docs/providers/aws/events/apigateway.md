@@ -332,10 +332,6 @@ Please note that those are the API keys names, not the actual values. Once you d
 
 Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
 
-## Lambda Integration
-
-This method is more complicated and involves a lot more configuration of the `http` event syntax.
-
 ### Request Parameters
 
 To pass optional and required parameters to your functions, so you can use them in API Gateway tests and SDK generation, marking them as `true` will make them required, `false` will make them optional.
@@ -348,7 +344,6 @@ functions:
       - http:
           path: posts/create
           method: post
-          integration: lambda
           request:
             parameters:
               querystrings:
@@ -369,12 +364,15 @@ functions:
       - http:
           path: posts/{id}
           method: get
-          integration: lambda
           request:
             parameters:
               paths:
                 id: true
 ```
+
+## Lambda Integration
+
+This method is more complicated and involves a lot more configuration of the `http` event syntax.
 
 ### Request templates
 
