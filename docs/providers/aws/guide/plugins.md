@@ -195,7 +195,7 @@ Option Shortcuts are passed in with a single dash (`-`) like this: `serverless f
 
 The `options` object will be passed in as the second parameter to the constructor of your plugin.
 
-In it, you can optionally add a `shortcut` property, as well as a `required` property.  The Framework will return an error if a `required` Option is not included.
+In it, you can optionally add a `shortcut` property, as well as a `required` property.  The Framework will return an error if a `required` Option is not included. You can also set a `default` property if your option is not required.
 
 **Note:** At this time, the Serverless Framework does not use parameters.
 
@@ -217,6 +217,11 @@ class Deploy {
             usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
             shortcut: 'f',
             required: true
+          },
+          stage: {
+            usage: 'Specify the stage you want to deploy to. (e.g. "--stage prod")',
+            shortcut: 's',
+            default: 'dev'
           }
         }
       },
