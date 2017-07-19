@@ -49,8 +49,6 @@ script:
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
 
-before_deploy: npm run pre-release
-
 deploy:
   provider: npm
   email: services@serverless.com
