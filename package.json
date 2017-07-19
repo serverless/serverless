@@ -37,6 +37,7 @@
     "lib",
     "scripts/postinstall.js",
     "scripts/preuninstall.js",
+    "scripts/prepublish.js",
     "package.json",
     "package-lock.json",
     "README.md",
