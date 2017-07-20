@@ -1,3 +1,20 @@
+# 1.18.0 (20.07.2017)
+- [Added support for a new "default" property for Plugins CLI options](https://github.com/serverless/serverless/pull/3808)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3889)
+- [Added support for a new "publish" property to opt-out from Platform publishing](https://github.com/serverless/serverless/pull/3950)
+- [Fixed a bug with "sls remove" when the stack includes Exports](https://github.com/serverless/serverless/pull/3935)
+- [Added support for request parameter configuration with lambda-proxy integration](https://github.com/serverless/serverless/pull/3722)
+- [Enhanced the environment variables for invoke local to include AWS_REGION](https://github.com/serverless/serverless/pull/3908)
+- [Updated the deploy command to ignore custom plugins in service directory during deployment](https://github.com/serverless/serverless/pull/3910)
+- [Fixed a bug with function packaging](https://github.com/serverless/serverless/pull/3856)
+- [Updated the package command to ignore function packaging if a custom artifact is specified](https://github.com/serverless/serverless/pull/3876)
+- [Added support for absolute paths when using Serverless Variables file references](https://github.com/serverless/serverless/pull/3888)
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.17.0...v1.18.0)
+
+
 # 1.17.0 (05.07.2017)
 - Cleanup F# build template output on macOS - #3897
 - Add disable flag for OpenWhisk functions - #3830
