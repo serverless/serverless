@@ -72,9 +72,9 @@ module.exports.hello = function(event, context, callback) {
 JSON.parse(event.body);
 ```
 
-### Example event
+### Example "lambda-proxy" event (default)
 
-```
+```json
 {
     "resource": "/",
     "path": "/",
@@ -457,6 +457,59 @@ Both templates give you access to the following properties you can access with t
 - path
 - identity
 - stageVariables
+
+### Example "lambda" event before customisation
+
+**Refer to this only if you're using the non-default `lambda` integration method**
+
+```json
+{
+    "body": {},
+    "method": "GET",
+    "principalId": "",
+    "stage": "dev",
+    "cognitoPoolClaims": {
+        "sub": ""
+    },
+    "headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-Country": "GB",
+        "Host": "ec5ycylws8.execute-api.us-east-1.amazonaws.com",
+        "upgrade-insecure-requests": "1",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "Via": "2.0 f165ce34daf8c0da182681179e863c24.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "l06CAg2QsrALeQcLAUSxGXbm8lgMoMIhR2AjKa4AiKuaVnnGsOFy5g==",
+        "X-Amzn-Trace-Id": "Root=1-5970ef20-3e249c0321b2eef14aa513ae",
+        "X-Forwarded-For": "94.117.120.169, 116.132.62.73",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "query": {},
+    "path": {},
+    "identity": {
+        "cognitoIdentityPoolId": "",
+        "accountId": "",
+        "cognitoIdentityId": "",
+        "caller": "",
+        "apiKey": "",
+        "sourceIp": "94.197.120.169",
+        "accessKey": "",
+        "cognitoAuthenticationType": "",
+        "cognitoAuthenticationProvider": "",
+        "userArn": "",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "user": ""
+    },
+    "stageVariables": {}
+}
+```
 
 #### Custom Request Templates
 
