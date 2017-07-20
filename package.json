@@ -37,6 +37,7 @@
     "lib",
     "scripts/postinstall.js",
     "scripts/preuninstall.js",
+    "scripts/pre-release.js",
     "package.json",
     "package-lock.json",
     "README.md",
@@ -55,7 +56,8 @@
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
-    "postinstall": "node ./scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.js",
+    "prepublishOnly": "node ./scripts/pre-release.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
