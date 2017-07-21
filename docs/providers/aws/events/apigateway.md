@@ -72,7 +72,7 @@ module.exports.hello = function(event, context, callback) {
 JSON.parse(event.body);
 ```
 
-### Example "lambda-proxy" event (default)
+### Example "LAMBDA-PROXY" event (default)
 
 ```json
 {
@@ -437,30 +437,9 @@ functions:
 
 This method is more complicated and involves a lot more configuration of the `http` event syntax.
 
-### Request templates
+### Example "LAMBDA" event (before customization)
 
-#### Default Request Templates
-
-Serverless ships with the following default request templates you can use out of the box:
-
-1. `application/json`
-2. `application/x-www-form-urlencoded`
-
-Both templates give you access to the following properties you can access with the help of the `event` object:
-
-- body
-- method
-- principalId
-- stage
-- headers
-- query
-- path
-- identity
-- stageVariables
-
-### Example "lambda" event before customisation
-
-**Refer to this only if you're using the non-default `lambda` integration method**
+**Refer to this only if you're using the non-default `LAMBDA` integration method**
 
 ```json
 {
@@ -510,6 +489,27 @@ Both templates give you access to the following properties you can access with t
     "stageVariables": {}
 }
 ```
+
+### Request templates
+
+#### Default Request Templates
+
+Serverless ships with the following default request templates you can use out of the box:
+
+1. `application/json`
+2. `application/x-www-form-urlencoded`
+
+Both templates give you access to the following properties you can access with the help of the `event` object:
+
+- body
+- method
+- principalId
+- stage
+- headers
+- query
+- path
+- identity
+- stageVariables
 
 #### Custom Request Templates
 
