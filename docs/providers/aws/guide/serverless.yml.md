@@ -77,11 +77,21 @@ provider:
           ResourceType:
             - AWS::EC2::Instance
 
+package: # Optional deployment packaging configuration
+  include: # Specify the directories and files which should be included in the deployment package
+    - src/**
+    - handler.js
+  exclude: # Specify the directories and files which should be excluded in the deployment package
+    - .git/**
+    - .travis.yml
+  excludeDevDependencies: false # Config if Serverless should automatically exclude dev dependencies in the deployment package. Defaults to true
+
 functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function.
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
+    runtime: nodejs6.10 # Runtime for this specific function. Overrides the default which is set on the provider level
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
     onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn which will be used for the DeadLetterConfig
