@@ -1,5 +1,6 @@
 {
   "plugins": [
+    "./run/index.js",
     "./config/config.js",
     "./create/create.js",
     "./install/install.js",
