@@ -100,6 +100,13 @@ functions:
       functionEnvVar: 12345678
     tags: # Function specific tags
       foo: bar
+    vpc:
+      securityGroupIds:
+        - securityGroupId1
+        - securityGroupId2
+      subnetIds:
+        - subnetId1
+        - subnetId2
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
