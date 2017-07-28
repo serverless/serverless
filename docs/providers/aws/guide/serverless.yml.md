@@ -76,6 +76,13 @@ provider:
         StringEquals:
           ResourceType:
             - AWS::EC2::Instance
+  vpc:
+    securityGroupIds:
+      - securityGroupId1
+      - securityGroupId2
+    subnetIds:
+      - subnetId1
+      - subnetId2
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
