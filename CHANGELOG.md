@@ -1,3 +1,11 @@
+# 1.18.1 (28.07.2017)
+- [Fixed a bug with Serverless Variables](https://github.com/serverless/serverless/pull/3996)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.0...v1.18.1)
+
+
 # 1.18.0 (20.07.2017)
 - [Added support for a new "default" property for Plugins CLI options](https://github.com/serverless/serverless/pull/3808)
 - [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3889)
