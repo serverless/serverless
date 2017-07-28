@@ -91,6 +91,7 @@
     "async": "^1.5.2",
     "aws-sdk": "^2.7.13",
     "bluebird": "^3.4.0",
+    "@serverless/fdk": "^0.1.0",
     "chalk": "^1.1.1",
     "ci-info": "^1.0.0",
     "download": "^5.0.2",
