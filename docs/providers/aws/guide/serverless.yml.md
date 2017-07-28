@@ -76,7 +76,7 @@ provider:
         StringEquals:
           ResourceType:
             - AWS::EC2::Instance
-  vpc:
+  vpc: # Optional VPC
     securityGroupIds:
       - securityGroupId1
       - securityGroupId2
@@ -107,7 +107,7 @@ functions:
       functionEnvVar: 12345678
     tags: # Function specific tags
       foo: bar
-    vpc:
+    vpc: # Optional VPC
       securityGroupIds:
         - securityGroupId1
         - securityGroupId2
