@@ -76,6 +76,13 @@ provider:
         StringEquals:
           ResourceType:
             - AWS::EC2::Instance
+  vpc: # Optional VPC. But if you use VPC then both subproperties (securityGroupIds and subnetIds) are required
+    securityGroupIds:
+      - securityGroupId1
+      - securityGroupId2
+    subnetIds:
+      - subnetId1
+      - subnetId2
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
@@ -100,6 +107,13 @@ functions:
       functionEnvVar: 12345678
     tags: # Function specific tags
       foo: bar
+    vpc: # Optional VPC. But if you use VPC then both subproperties (securityGroupIds and subnetIds) are required
+      securityGroupIds:
+        - securityGroupId1
+        - securityGroupId2
+      subnetIds:
+        - subnetId1
+        - subnetId2
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
