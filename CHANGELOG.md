@@ -1,3 +1,14 @@
+# 1.19.0 (02.08.2017)
+- [Removed provider name validation](https://github.com/serverless/serverless/pull/3941)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
+- [Fixed a bug with "deploy list functions"](https://github.com/serverless/serverless/pull/3971)
+- [Fixed a bug with Serverless Plugins loading](https://github.com/serverless/serverless/pull/3960)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.1...v1.19.0)
+
+
+
 # 1.18.1 (28.07.2017)
 - [Fixed a bug with Serverless Variables](https://github.com/serverless/serverless/pull/3996)
 - [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
