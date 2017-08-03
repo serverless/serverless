@@ -123,6 +123,7 @@ functions:
       handler: handler.hello
 ```
 In the above example, the value for `myKey` in the `myBucket` S3 bucket will be looked up and used to populate the variable.
+
 ## Reference Variables in Other Files
 You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
 
@@ -181,7 +182,6 @@ functions:
       handler: handler.hello
       events: ${file(./myCustomFile.json):myevents
 ```
-
 
 ## Reference Variables in Javascript Files
 
