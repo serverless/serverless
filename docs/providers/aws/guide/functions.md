@@ -281,7 +281,7 @@ functions:
 
 Real-world use cases where tagging your functions is helpful include:
 
-- Cost estimations (tag functions with an environemnt tag: `environment: Production`)
+- Cost estimations (tag functions with an environment tag: `environment: Production`)
 - Keeping track of legacy code (e.g. tag functions which use outdated runtimes: `runtime: nodejs0.10`)
 - ...
 
