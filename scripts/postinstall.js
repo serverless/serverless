@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+
 /* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
 
@@ -20,13 +22,17 @@ try {
 
 function setupAutocomplete() {
   return new Promise((resolve, reject) => {
+    const indexRegex = new RegExp(path.join(path.sep, 'index.js'));
+    const tabtabPath = require.resolve('tabtab').replace(indexRegex, '');
+    const tabtabCliPath = path.join(tabtabPath, 'src', 'cli.js');
+
     try {
-      execSync('node ./node_modules/tabtab/src/cli.js install --name serverless --auto');
-      execSync('node ./node_modules/tabtab/src/cli.js install --name sls --auto');
+      execSync(`node ${tabtabCliPath} install --name serverless --auto`);
+      execSync(`node ${tabtabCliPath} install --name sls --auto`);
       return resolve();
     } catch (error) {
-      execSync('node ./node_modules/tabtab/src/cli.js install --name serverless --stdout');
-      execSync('node ./node_modules/tabtab/src/cli.js install --name sls --stdout');
+      execSync(`node ${tabtabCliPath} install --name serverless --stdout`);
+      execSync(`node ${tabtabCliPath} install --name sls --stdout`);
       console.log('Could not auto-install serverless autocomplete script.');
       console.log('Please copy / paste the script above into your shell.');
       return reject(error);
