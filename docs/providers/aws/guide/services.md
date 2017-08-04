@@ -37,7 +37,7 @@ comments/
 ```
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
-**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have a custom domain per one REST API.  If you plan on making a large REST API, please make note of this limitation.  Also, a fix is in the works and is a top priority.
+**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have a custom domain per one REST API.  If you plan on making a large REST API, please make note of this limitation.  Also, [a fix is in the works][https://github.com/serverless/serverless/issues/3078] and is a top priority.
 
 ## Creation
 
@@ -58,6 +58,7 @@ Here are the available runtimes for AWS Lambda:
 * aws-java-maven
 * aws-scala-sbt
 * aws-csharp
+* aws-fsharp
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
@@ -94,7 +95,9 @@ provider:
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
-  deploymentBucket: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+  deploymentBucket:
+    name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
+    serverSideEncryption: AES256 # when using server-side encryption
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value
