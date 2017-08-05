@@ -12,7 +12,7 @@ class FakeLambdaContext(object):
         self.timeout = timeout
 
     def get_remaining_time_in_millis(self):
-        return max((self.timeout * 1000) - (time() - self.created), 0)
+        return int(max((self.timeout * 1000) - (int(round(time() * 1000)) - int(round(self.created * 1000))), 0))
 
     @property
     def function_name(self):
