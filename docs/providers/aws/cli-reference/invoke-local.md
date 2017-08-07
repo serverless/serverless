@@ -23,6 +23,7 @@ serverless invoke local --function functionName
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
 - `--path` or `-p` The path to a json file holding input data to be passed to the invoked function as the `event`. This path is relative to the root directory of the service.
 - `--data` or `-d` String data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
+- `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 
 ## Environment
 
