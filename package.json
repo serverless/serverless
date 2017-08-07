@@ -86,7 +86,7 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/fdk": "^0.2.2",
+    "@serverless/fdk": "^0.3.0",
     "apollo-client": "^1.4.2",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
