@@ -47,7 +47,7 @@ $ cd my-service
 
 3. **Invoke the Function**
 
-  Invokes an Function and returns logs.
+  Invokes a Function and returns logs.
   
   ```bash
   serverless invoke -f hello -l
