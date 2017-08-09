@@ -15,6 +15,7 @@
     "./remove/remove.js",
     "./rollback/index.js",
     "./slstats/slstats.js",
+    "./emit/index.js",
     "./aws/configCredentials/awsConfigCredentials.js",
     "./aws/provider/awsProvider.js",
     "./aws/common/index.js",
