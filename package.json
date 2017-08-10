@@ -105,6 +105,7 @@
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
     "jwt-decode": "^2.2.0",
+    "latest-version": "^3.1.0",
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
