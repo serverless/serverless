@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Plugin Uninstall
+title: Serverless Framework Commands - Apache OpenWhisk - Plugin Uninstall
 menuText: Plugin Uninstall
-menuOrder: 20
+menuOrder: 15
 description: Uninstall a Serverless plugin
 layout: Doc
 -->

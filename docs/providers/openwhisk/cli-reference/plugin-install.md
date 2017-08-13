@@ -1,7 +1,7 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Plugin Install
+title: Serverless Framework Commands - Apache OpenWhisk - Plugin Install
 menuText: Plugin Install
-menuOrder: 19
+menuOrder: 14
 description: Install a Serverless plugin
 layout: Doc
 -->

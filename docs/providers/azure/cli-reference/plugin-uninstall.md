@@ -1,13 +1,13 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Plugin Uninstall
+title: Serverless Framework Commands - Azure Functions - Plugin Uninstall
 menuText: Plugin Uninstall
-menuOrder: 20
+menuOrder: 12
 description: Uninstall a Serverless plugin
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/plugin-uninstall)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/plugin-uninstall)
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Uninstall
