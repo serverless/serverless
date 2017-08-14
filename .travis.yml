@@ -10,15 +10,12 @@ matrix:
     - node_js: '4.4'
       env:
         SLS_IGNORE_WARNING=*
-        FORCE_COLOR=1 # testing colored CLI output using chalk
     - node_js: '5.11'
       env:
         SLS_IGNORE_WARNING=*
-        FORCE_COLOR=1 # testing colored CLI output using chalk
     - node_js: '6.2'
       env:
         SLS_IGNORE_WARNING=*
-        FORCE_COLOR=1 # testing colored CLI output using chalk
     - node_js: '6.2'
       env:
         - INTEGRATION_TEST=true

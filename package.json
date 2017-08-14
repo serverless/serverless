@@ -51,7 +51,7 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- --require=sinon-bluebird -R spec --recursive",
+    "test": "env FORCE_COLOR=1 istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- --require=sinon-bluebird -R spec --recursive",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
