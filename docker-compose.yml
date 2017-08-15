@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/app
       - ~/.aws/:/root/.aws
+      - ~/.gcloud/:/root/.gcloud
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
