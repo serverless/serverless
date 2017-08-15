@@ -160,10 +160,10 @@ Create this file and add event data so you can invoke your function with the dat
 
 When you deploy a Service, all of the Functions, Events and Resources in your `serverless.yml` are translated to an AWS CloudFormation template and deployed as a single CloudFormation stack.
 
-To deploy a service, first 'cd' into the relevant service directory:
+To deploy a service, first `cd` into the relevant service directory:
 
 ```bash
-cd myService
+cd my-service
 ```
 
 Then use the `deploy` command:
