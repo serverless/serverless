@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Create
-menuText: Create
+menuText: create
 menuOrder: 2
 description: Creates a new Service in your current working directory
 layout: Doc
@@ -12,7 +12,8 @@ layout: Doc
 
 # Azure - Create
 
-Creates a new service in the current working directory based on the specified template.
+Creates a new service in the current working directory based on the specified
+template.
 
 **Create service in current working directory:**
 
@@ -50,8 +51,9 @@ Most commonly used templates:
 serverless create --template azure-nodejs --name my-special-service
 ```
 
-This example will generate scaffolding for a service with `Azure` as a provider and `nodejs` as runtime. The scaffolding
-will be generated in the current working directory.
+This example will generate scaffolding for a service with `Azure` as a provider
+and `nodejs` as runtime. The scaffolding will be generated in the current working
+directory.
 
 ### Creating a named service in a (new) directory
 
@@ -59,9 +61,10 @@ will be generated in the current working directory.
 serverless create --template azure-nodejs --path my-new-service
 ```
 
-This example will generate scaffolding for a service with `Azure` as a provider and `nodejs` as runtime. The scaffolding
-will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless
-will use the already present directory.
+This example will generate scaffolding for a service with `Azure` as a provider
+and `nodejs` as runtime. The scaffolding will be generated in the `my-new-
+service` directory. This directory will be created if not present. Otherwise
+Serverless will use the already present directory.
 
-Additionally Serverless will rename the service according to the path you provide. In this example the service will be
-renamed to `my-new-service`.
+Additionally Serverless will rename the service according to the path you
+provide. In this example the service will be renamed to `my-new-service`.

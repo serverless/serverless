@@ -2,7 +2,7 @@ service: aws-nodejs # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   environment:
     provider_level_variable_1: provider_level_1
     provider_level_variable_2: provider_level_2

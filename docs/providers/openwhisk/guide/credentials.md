@@ -10,19 +10,19 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Credentials
+# OpenWhisk - Credentials
 
-The Serverless Framework needs access to account credentials for your OpenWhisk provider so that it can create and manage resources on your behalf. 
+The Serverless Framework needs access to account credentials for your OpenWhisk provider so that it can create and manage resources on your behalf.
 
 OpenWhisk is an open-source serverless platform. This means you can either choose to run the platform yourself or choose to use a hosted provider's instance.
 
-Here we'll provide setup instructions for both options, just pick the one that you're using. 
+Here we'll provide setup instructions for both options, just pick the one that you're using.
 
 ## Register with OpenWhisk platform (IBM Bluemix)
 
 IBM's Bluemix cloud platform provides a hosted serverless solution based upon Apache OpenWhisk.
 
-Here's how to get started… 
+Here's how to get started…
 
 - Sign up for a free account @ [https://bluemix.net](https://console.ng.bluemix.net/registration/)
 
@@ -36,19 +36,27 @@ Additional execution time is charged at $0.000017 per GB-second of execution, ro
 
 Once you have signed up for IBM Bluemix, we need to retrieve your account credentials. These are available on [the page](https://console.ng.bluemix.net/openwhisk/learn/cli) about installing the command-line tool from the [service homepage](https://console.ng.bluemix.net/openwhisk/).
 
-The second point in the instructions contains a command-line which includes the platform endpoint and authentication keys. 
+The second point in the instructions contains a command-line which includes the platform endpoint and authentication keys.
 
 ```
 wsk property set --apihost openwhisk.ng.bluemix.net --auth XXX:YYY
 ```
 
-**Make a note of the `apihost` and `auth` command flag values.** 
+**Make a note of the `apihost` and `auth` command flag values.**
 
 ### (optional) Install command-line utility
 
-The command-line utility is linked from [the previous page](https://console.ng.bluemix.net/openwhisk/learn/cli). Download and install the binary into a location in your [shell path](http://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path). 
+The command-line utility is linked from [the previous page](https://console.ng.bluemix.net/openwhisk/learn/cli). Download and install the binary into a location in your [shell path](http://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
 
+### (optional) Authenticate with API gateway
 
+OpenWhisk on IBM Bluemix uses a third-party API gateway service. An access token is needed to add HTTP endpoints to your functions. This can be retrieved automatically using the `wsk` command-line.
+
+```
+wsk bluemix login
+```
+
+After running the login command, you will be prompted to enter your authentication credentials. The access token will be stored in the `.wskprops` file under your home directory, using the key (`APIGW_ACCESS_TOKEN`).
 
 ## Register with OpenWhisk platform (Self-Hosted)
 
@@ -70,7 +78,7 @@ cd openwhisk/tools/vagrant
 
 This platform will now be running inside a virtual machine at the following IP address: `192.168.33.13`
 
-**Please note:** *If you are using a self-hosted platform, the `ignore_certs` property in `serverless.yaml` needs to be `true`. This allows the client to be used against local deployments of OpenWhisk with a self-signed certificate.* 
+**Please note:** *If you are using a self-hosted platform, the `ignore_certs` property in `serverless.yaml` needs to be `true`. This allows the client to be used against local deployments of OpenWhisk with a self-signed certificate.*
 
 ```yaml
 service: testing
@@ -89,11 +97,11 @@ Use the `192.168.33.13` address as the `apihost` value needed below.
 
 ### (optional) Install command-line utility
 
-Building OpenWhisk from a cloned repository will result in the generation of the command line interface in `openwhisk/bin/go-cli/`. The default executable in this location will run on the operating system and CPU architecture on which it was built. 
+Building OpenWhisk from a cloned repository will result in the generation of the command line interface in `openwhisk/bin/go-cli/`. The default executable in this location will run on the operating system and CPU architecture on which it was built.
 
 Executables for other operating system, and CPU architectures are located in the following directories: `openwhisk/bin/go-cli/mac`, `openwhisk/bin/go-cli/linux`, `openwhisk/bin/go-cli/windows`.
 
-Download and install the correct binary into a location in your [shell path](http://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path). 
+Download and install the correct binary into a location in your [shell path](http://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
 
 
 
@@ -106,9 +114,12 @@ You can configure the Serverless Framework to use your OpenWhisk credentials in 
 As a quick setup to get started you can export them as environment variables so they would be accessible to Serverless Framework:
 
 ```bash
+# mandatory parameters
 export OW_AUTH=<your-key-here>
 export OW_APIHOST=<your-api-host>
-# OW_AUTH and OW_APIHOST are now available for serverless to use
+# optional parameters
+export OW_APIGW_ACCESS_TOKEN=<your-access-token>
+# OW_AUTH, OW_APIHOST and OW_APIGW_ACCESS_TOKEN are now available for serverless to use
 serverless deploy
 ```
 
@@ -118,19 +129,22 @@ For a more permanent solution you can also set up credentials through a configur
 
 ##### Setup with the `wsk` cli
 
-If you have followed the instructions above to install the `wsk` command-line utility, run the following command to create the configuration file. 
+If you have followed the instructions above to install the `wsk` command-line utility, run the following command to create the configuration file.
 
 ```bash
 $ wsk property set --apihost PLATFORM_API_HOST --auth USER_AUTH_KEY
+// followed by this command if you want to use the api gateway on bluemix
+$ wsk bluemix login
 ```
 
 Credentials are stored in `~/.wskprops`, which you can edit directly if needed.
 
 ##### Edit file manually
 
-The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST` and `USER_AUTH_KEY` values will the  credentials from above.
+The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST`, `USER_AUTH_KEY` and (optionally) `ACCESS_TOKEN` values will the  credentials from above.
 
 ```
 APIHOST=PLATFORM_API_HOST
 AUTH=USER_AUTH_KEY
+APIGW_ACCESS_TOKEN==ACCESS_TOKEN # optional
 ```

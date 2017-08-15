@@ -4,14 +4,14 @@ This starter template allows quickly creating a Node.js-based service to Azure F
 
 ### Setting up your Azure credentials
 
-Once the `serverless-azure-functions` plugin is installed, it expects to find your Azure credentials via a set of well-known environment variables. These will be used to actually authenticate with your Azure account, so that the Serverless CLI can generate the neccessary Azure resources on your behalf when you request a deployment (see below).
+Once the `serverless-azure-functions` plugin is installed, it expects to find your Azure credentials via a set of well-known environment variables. These will be used to actually authenticate with your Azure account, so that the Serverless CLI can generate the necessary Azure resources on your behalf when you request a deployment (see below).
 
 The following environment variables must be set, with their respective values:
 
 - *azureSubId* - ID of the Azure subscription you want to create your service within
 - *azureServicePrincipalTenantId* - ID of the tenant that your service principal was created within
 - *azureServicePrincipalClientId* - ID of the service principal you want to use to authenticate with Azure
-- *azureServicePrincipalPassword* - Password of the service principal you want to use to autheticate with Azure
+- *azureServicePrincipalPassword* - Password of the service principal you want to use to authenticate with Azure
 
 For details on how to create a service principal and/or acquire your Azure account's subscription/tenant ID, refer to the [Azure credentials](https://serverless.com/framework/docs/providers/azure/guide/credentials/) documentation.
 
@@ -23,7 +23,7 @@ Once your Azure credentials are set, you can immediately deploy your service via
 serverless deploy
 ```
 
-This will create the neccessary Azure resources to support the service and events that are defined in your `serverless.yml` file. 
+This will create the necessary Azure resources to support the service and events that are defined in your `serverless.yml` file.
 
 ### Invoking and inspecting a function
 
@@ -44,7 +44,7 @@ serverless logs -f hello
 Once you're finished with your service, you can remove all of the generated Azure resources by simply running the following command:
 
 ```shell
-serveless remove
+serverless remove
 ```
 
 ### Issues / Feedback / Feature Requests?

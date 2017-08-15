@@ -47,7 +47,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: bin/release/netcoreapp1.0/publish/deploy-package.zip
+  artifact: bin/release/netcoreapp1.0/deploy-package.zip
 #  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**
@@ -67,6 +67,7 @@ functions:
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - alexaSkill
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
 #      - cloudwatchEvent:
@@ -78,6 +79,10 @@ functions:
 #            detail:
 #              state:
 #                - pending
+#      - cloudwatchLog: '/aws/lambda/hello'
+#      - cognitoUserPool:
+#          pool: MyUserPool
+#          trigger: PreSignUp
 
 #    Define function environment variables here
 #    environment:

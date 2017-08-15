@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Info
-menuText: Info
+menuText: info
 menuOrder: 11
 description: Display information about your deployed service and the Apache OpenWhisk Functions, Events and Resources it contains.
 layout: Doc
@@ -42,7 +42,7 @@ namespace:	_
 service:	hello-world
 
 actions:
-hello-world-dev-helloWorld    
+hello-world-dev-helloWorld
 
 triggers:
 my-hello-world-event
@@ -52,4 +52,7 @@ my-hello-world-event-rule
 
 endpoints:
 GET https://xxx-gws.api-gw.mybluemix.net/api/path --> hello-world-dev-helloWorld
+
+endpoints (web actions):
+**no web actions deployed**
 ```

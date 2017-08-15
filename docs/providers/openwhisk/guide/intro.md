@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/intro)
 <!-- DOCS-SITE-LINK:END -->
 
-# Introduction
+# OpenWhisk - Introduction
 
 The Serverless Framework helps you develop and deploy serverless applications using Apache OpenWhisk.  It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
 
@@ -47,7 +47,7 @@ When you define an event for your Apache OpenWhisk Action in the Serverless Fram
 
 ### Services
 
-A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml`.  It looks like this:
+A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json`).  It looks like this:
 
 ```yml
 # serverless.yml

@@ -36,7 +36,8 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): CORS test', () => {
         const headers = response.headers;
 
         expect(headers.get('access-control-allow-headers'))
-          .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token');
+          .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,'
+            + 'X-Amz-Security-Token,X-Amz-User-Agent');
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
         expect(headers.get('access-control-allow-origin')).to.equal('*');
       })
@@ -48,7 +49,8 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): CORS test', () => {
         const headers = response.headers;
 
         expect(headers.get('access-control-allow-headers'))
-          .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token');
+          .to.equal('Content-Type,X-Amz-Date,Authorization,X-Api-Key,'
+            + 'X-Amz-Security-Token,X-Amz-User-Agent');
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
         expect(headers.get('access-control-allow-origin')).to.equal('*');
       })

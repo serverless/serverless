@@ -1,0 +1,13 @@
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  preSignUp:
+    handler: handler.preSignUp
+    events:
+      - cognitoUserPool:
+          pool: ${env:COGNITO_USER_POOL_1}
+          trigger: PreSignUp

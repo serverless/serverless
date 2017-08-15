@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/plugins)
 <!-- DOCS-SITE-LINK:END -->
 
-# Plugins
+# OpenWhisk - Plugins
 
 A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework.  The Serverless Framework is merely a group of Plugins that are provided in the core.  If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs.  External Plugins are written exactly the same way as the core Plugins.
 
@@ -316,6 +316,29 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
+**Note:** [Variable references](./variables.md#reference-properties-in-serverlessyml) in the `serverless` instance are not resolved before a Plugin's constructor is called, so if you need these, make sure to wait to access those from your [hooks](#hooks).
+
 ### Command Naming
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. If you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
+
+### Extending the `info` command
+
+The `info` command which is used to display information about the deployment has detailed `lifecycleEvents` you can hook into to add and display custom information.
+
+Here's an example overview of the info lifecycle events the AWS implementation exposes:
+
+```
+-> info:info
+  -> aws:info:validate
+  -> aws:info:gatherData
+  -> aws:info:displayServiceInfo
+  -> aws:info:displayApiKeys
+  -> aws:info:displayEndpoints
+  -> aws:info:displayFunctions
+  -> aws:info:displayStackOutputs
+```
+
+Here you could e.g. hook into `after:aws:info:gatherData` and implement your own data collection and display it to the user.
+
+**Note:** Every provider implements its own `info` plugin so you might want to take a look into the `lifecycleEvents` the provider `info` plugin exposes.

@@ -71,7 +71,7 @@ In this case `plugin1` is loaded before `plugin2`.
 
 #### Plugin
 
-Code which defines *Commands*, any *Events* within a *Command*, and any *Hooks* assigned to an *Lifecycle Event*.
+Code which defines *Commands*, any *Events* within a *Command*, and any *Hooks* assigned to a *Lifecycle Event*.
 
 * Command // CLI configuration, commands, subcommands, options
   * LifecycleEvent(s) // Events that happen sequentially when the command is run
@@ -102,7 +102,7 @@ module.exports = MyPlugin;
 
 #### Lifecycle Events
 
-Events that fire sequentially during a Command.  The above example list two Events.  However, for each Event, and additional `before` and `after` event is created.  Therefore, six Events exist in the above example:
+Events that fire sequentially during a Command.  The above example lists two Events.  However, for each Event, an additional `before` and `after` event is created.  Therefore, six Events exist in the above example:
 
 - `before:deploy:resources`
 - `deploy:resources`
@@ -156,7 +156,7 @@ module.exports = Deploy;
 
 ### Nesting Commands
 
-You can also nest commands, e.g. if you want to provide a command `serverless deploy single`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
+You can also nest commands, e.g. if you want to provide a command `serverless deploy function`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
 
 ```javascript
 'use strict';
@@ -195,7 +195,7 @@ Option Shortcuts are passed in with a single dash (`-`) like this: `serverless f
 
 The `options` object will be passed in as the second parameter to the constructor of your plugin.
 
-In it, you can optionally add a `shortcut` property, as well as a `required` property.  The Framework will return an error if a `required` Option is not included.
+In it, you can optionally add a `shortcut` property, as well as a `required` property.  The Framework will return an error if a `required` Option is not included. You can also set a `default` property if your option is not required.
 
 **Note:** At this time, the Serverless Framework does not use parameters.
 
@@ -217,6 +217,11 @@ class Deploy {
             usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
             shortcut: 'f',
             required: true
+          },
+          stage: {
+            usage: 'Specify the stage you want to deploy to. (e.g. "--stage prod")',
+            shortcut: 's',
+            default: 'dev'
           }
         }
       },
@@ -316,6 +321,29 @@ class MyPlugin {
 module.exports = MyPlugin;
 ```
 
+**Note:** [Variable references](./variables.md#reference-properties-in-serverlessyml) in the `serverless` instance are not resolved before a Plugin's constructor is called, so if you need these, make sure to wait to access those from your [hooks](#hooks).
+
 ### Command Naming
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. If you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
+
+### Extending the `info` command
+
+The `info` command which is used to display information about the deployment has detailed `lifecycleEvents` you can hook into to add and display custom information.
+
+Here's an example overview of the info lifecycle events the AWS implementation exposes:
+
+```
+-> info:info
+  -> aws:info:validate
+  -> aws:info:gatherData
+  -> aws:info:displayServiceInfo
+  -> aws:info:displayApiKeys
+  -> aws:info:displayEndpoints
+  -> aws:info:displayFunctions
+  -> aws:info:displayStackOutputs
+```
+
+Here you could e.g. hook into `after:aws:info:gatherData` and implement your own data collection and display it to the user.
+
+**Note:** Every provider implements its own `info` plugin so you might want to take a look into the `lifecycleEvents` the provider `info` plugin exposes.

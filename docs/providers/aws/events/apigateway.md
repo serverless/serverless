@@ -14,13 +14,18 @@ layout: Doc
 
 To create HTTP endpoints as Event sources for your AWS Lambda Functions, use the Serverless Framework's easy AWS API Gateway Events syntax.
 
-There are two ways you can configure your HTTP endpoints to integrate with your AWS Lambda Functions:
-* lambda-proxy (Recommended)
-* lambda
+There are five ways you can configure your HTTP endpoints to integrate with your AWS Lambda Functions:
+* `lambda-proxy` / `aws-proxy` / `aws_proxy` (Recommended)
+* `lambda` / `aws`
+* `http`
+* `http-proxy` / `http_proxy`
+* `mock`
 
-The difference between these is `lambda-proxy` automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function.  Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code).  We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
+**The Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda) by default unless another method is supplied by the user**
 
-By default, the Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda), and nothing is required by you to enable it.
+The difference between these is `lambda-proxy` (alternative writing styles are `aws-proxy` and `aws_proxy` for compatibility with the standard AWS integration type naming) automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function.  Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code).  We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
+
+Use `http` for integrating with an HTTP back end, `http-proxy` for integrating with the HTTP proxy integration or `mock` for testing without actually invoking the back end.
 
 ## Lambda Proxy Integration
 
@@ -67,6 +72,69 @@ module.exports.hello = function(event, context, callback) {
 JSON.parse(event.body);
 ```
 
+### Example "LAMBDA-PROXY" event (default)
+
+```json
+{
+    "resource": "/",
+    "path": "/",
+    "httpMethod": "POST",
+    "headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
+        "cache-control": "max-age=0",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-Country": "GB",
+        "content-type": "application/x-www-form-urlencoded",
+        "Host": "j3ap25j034.execute-api.eu-west-2.amazonaws.com",
+        "origin": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com",
+        "Referer": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com/dev/",
+        "upgrade-insecure-requests": "1",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "Via": "2.0 a3650115c5e21e2b5d133ce84464bea3.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "0nDeiXnReyHYCkv8cc150MWCFCLFPbJoTs1mexDuKe2WJwK5ANgv2A==",
+        "X-Amzn-Trace-Id": "Root=1-597079de-75fec8453f6fd4812414a4cd",
+        "X-Forwarded-For": "50.129.117.14, 50.112.234.94",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "queryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+        "path": "/dev/",
+        "accountId": "125002137610",
+        "resourceId": "qdolsr1yhk",
+        "stage": "dev",
+        "requestId": "0f2431a2-6d2f-11e7-b799-5152aa497861",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "apiKey": "",
+            "sourceIp": "50.129.117.14",
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+            "user": null
+        },
+        "resourcePath": "/",
+        "httpMethod": "POST",
+        "apiId": "j3azlsj0c4"
+    },
+    "body": "postcode=LS17FR",
+    "isBase64Encoded": false
+}
+```
+
 ### HTTP Endpoint with Extended Options
 
 Here we've defined an POST endpoint for the path `posts/create`.
@@ -110,15 +178,15 @@ functions:
           path: hello
           method: get
           cors:
-            origins:
-              - '*'
+            origin: '*'
             headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
-            allowCredentials: false  
+              - X-Amz-User-Agent
+            allowCredentials: false
 ```
 
 Configuring the `cors` property sets  [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
@@ -136,13 +204,42 @@ module.exports.hello = function(event, context, callback) {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS 
+        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
       },
       body: JSON.stringify({ "message": "Hello World!" })
     };
 
     callback(null, response);
 };
+```
+
+### HTTP Endpoints with `AWS_IAM` Authorizers
+
+If you want to require that the caller submit the IAM user's access keys in order to be authenticated to invoke your Lambda Function, set the authorizer to `AWS_IAM` as shown in the following example:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer: aws_iam
+```
+
+Which is the short hand notation for:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            type: aws_iam
 ```
 
 ### HTTP Endpoints with Custom Authorizers
@@ -231,7 +328,12 @@ functions:
             arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
 ```
 
-By default the `sub` claim will be exposed in `events.cognitoPoolClaims`, you can add extra claims like so:
+If you are using the default `lambda-proxy` integration, your attributes will be
+exposed at `event.requestContext.authorizer.claims`.
+
+If you want control more control over which attributes are exposed as claims you
+can switch to `integration: lambda` and add the following configuration. The
+claims will be exposed at `events.cognitoPoolClaims`.
 
 ```yml
 functions:
@@ -249,21 +351,18 @@ functions:
               - nickname
 ```
 
-Note: Since claims must be explicitly listed to be exposed, you must use `integration: lambda` integration type to access any claims.
-
 ### Catching Exceptions In Your Lambda Function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
 
 ### Setting API keys for your Rest API
 
-**Note:** Due to a CloudFormation restriction you need to wire up API Keys and usage plans manually in the AWS console.
-
 You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
 `provider` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require
 one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you
 want to set as private. API Keys are created globally, so if you want to deploy your service to different stages make sure
-your API key contains a stage variable as defined below.
+your API key contains a stage variable as defined below. When using API keys, you can optionally define usage plan quota
+and throttle, using `usagePlan` object.
 
 Here's an example configuration for setting API keys for your service Rest API:
 
@@ -275,6 +374,14 @@ provider:
     - myFirstKey
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
+  usagePlan:
+    quota:
+      limit: 5000
+      offset: 2
+      period: MONTH
+    throttle:
+      burstLimit: 200
+      rateLimit: 100
 functions:
   hello:
     events:
@@ -288,10 +395,6 @@ Please note that those are the API keys names, not the actual values. Once you d
 
 Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
 
-## Lambda Integration
-
-This method is more complicated and involves a lot more configuration of the `http` event syntax.
-
 ### Request Parameters
 
 To pass optional and required parameters to your functions, so you can use them in API Gateway tests and SDK generation, marking them as `true` will make them required, `false` will make them optional.
@@ -304,14 +407,12 @@ functions:
       - http:
           path: posts/create
           method: post
-          integration: lambda
           request:
             parameters:
               querystrings:
                 url: true
               headers:
                 foo: false
-                bar: true
               paths:
                 bar: false
 ```
@@ -326,11 +427,67 @@ functions:
       - http:
           path: posts/{id}
           method: get
-          integration: lambda
           request:
             parameters:
               paths:
                 id: true
+```
+
+## Lambda Integration
+
+This method is more complicated and involves a lot more configuration of the `http` event syntax.
+
+### Example "LAMBDA" event (before customization)
+
+**Refer to this only if you're using the non-default `LAMBDA` integration method**
+
+```json
+{
+    "body": {},
+    "method": "GET",
+    "principalId": "",
+    "stage": "dev",
+    "cognitoPoolClaims": {
+        "sub": ""
+    },
+    "headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-Country": "GB",
+        "Host": "ec5ycylws8.execute-api.us-east-1.amazonaws.com",
+        "upgrade-insecure-requests": "1",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "Via": "2.0 f165ce34daf8c0da182681179e863c24.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "l06CAg2QsrALeQcLAUSxGXbm8lgMoMIhR2AjKa4AiKuaVnnGsOFy5g==",
+        "X-Amzn-Trace-Id": "Root=1-5970ef20-3e249c0321b2eef14aa513ae",
+        "X-Forwarded-For": "94.117.120.169, 116.132.62.73",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "query": {},
+    "path": {},
+    "identity": {
+        "cognitoIdentityPoolId": "",
+        "accountId": "",
+        "cognitoIdentityId": "",
+        "caller": "",
+        "apiKey": "",
+        "sourceIp": "94.197.120.169",
+        "accessKey": "",
+        "cognitoAuthenticationType": "",
+        "cognitoAuthenticationProvider": "",
+        "userArn": "",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "user": ""
+    },
+    "stageVariables": {}
+}
 ```
 
 ### Request templates

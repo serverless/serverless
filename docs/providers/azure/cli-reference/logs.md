@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Logs
-menuText: Logs
+menuText: logs
 menuOrder: 9
 description: View logs of your Azure Functions Function within your terminal using the Serverless Framework
 layout: Doc

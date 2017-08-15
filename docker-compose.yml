@@ -23,6 +23,10 @@ services:
     image: python:2.7
     volumes:
       - ./tmp/serverless-integration-test-aws-python:/app
+  aws-python3:
+    image: python:3.6
+    volumes:
+      - ./tmp/serverless-integration-test-aws-python3:/app
   aws-java-maven:
     image: maven:3-jdk-8
     volumes:
@@ -31,11 +35,23 @@ services:
     image: java:8
     volumes:
       - ./tmp/serverless-integration-test-aws-java-gradle:/app
+  aws-groovy-gradle:
+    image: java:8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-groovy-gradle:/app
   aws-scala-sbt:
     image: hseeberger/scala-sbt
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
   aws-csharp:
-    image: microsoft/dotnet:1.0.1-sdk-projectjson
+    image: microsoft/dotnet:1.0.4-sdk
     volumes:
       - ./tmp/serverless-integration-test-aws-csharp:/app
+  aws-fsharp:
+    image: microsoft/dotnet:1.0.4-sdk
+    volumes:
+      - ./tmp/serverless-integration-test-aws-fsharp:/app
+  google-nodejs:
+    image: node:6.9.1
+    volumes:
+      - ./tmp/serverless-integration-test-google-nodejs:/app

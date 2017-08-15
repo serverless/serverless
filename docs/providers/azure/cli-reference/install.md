@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Install
-menuText: Install
+menuText: install
 menuOrder: 3
 description: Install pre-written Azure Functions Functions, Events and Resources with the Serverless Framework
 layout: Doc
@@ -33,7 +33,11 @@ serverless install --url https://github.com/some/service
 serverless install --url https://github.com/azure/boilerplate-azurefunctions
 ```
 
-This example will download the .zip file of the `serverless-azure-boilerplate` service from GitHub, create a new directory with the name `serverless-azure-boilerplate` in the current working directory and unzips the files in this directory.
+This example will download the .zip file of the `serverless-azure-boilerplate`
+service from GitHub, create a new directory with the name
+`serverless-azure-boilerplate` in the current working directory and unzips the
+files in this
+directory.
 
 ### Installing a service from a GitHub URL with a new service name
 
@@ -41,7 +45,10 @@ This example will download the .zip file of the `serverless-azure-boilerplate` s
 serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app
 ```
 
-This example will download the .zip file of the `boilerplate-azurefunctions` service from GitHub, create a new directory with the name `my-app` in the current working directory and unzips the files in this directory and renames the service to `my-app` if `serverless.yml` exists in the service root.
+This example will download the .zip file of the `boilerplate-azurefunctions`
+service from GitHub, create a new directory with the name `my-app` in the current
+working directory and unzips the files in this directory and renames the service
+to `my-app` if `serverless.yml` exists in the service root.
 
 ### Installing a service from a directory in a GitHub URL
 
@@ -50,4 +57,5 @@ serverless install --url
 https://github.com/serverless/examples/tree/master/azure-node-simple-http-endpoint
 ```
 
-This example will download the `azure-node-simple-http-endpoint` service from GitHub.
+This example will download the `azure-node-simple-http-endpoint` service from
+GitHub.

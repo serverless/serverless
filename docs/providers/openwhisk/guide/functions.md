@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/functions)
 <!-- DOCS-SITE-LINK:END -->
 
-# Functions
+# OpenWhisk - Functions
 
 If you are using OpenWhisk as a provider, all *functions* inside the service are OpenWhisk Actions.
 
@@ -95,3 +95,17 @@ functions:
     handler: handler.functionOne
     memory: 512 # function specific
 ```
+
+## Runtimes
+
+The OpenWhisk provider plugin supports the following runtimes.
+
+- Node.js
+- Python
+- Swift
+- Binary
+- Docker
+
+Please see the following repository for sample projects using those runtimes.
+
+[https://github.com/serverless/examples/](https://github.com/serverless/examples/)

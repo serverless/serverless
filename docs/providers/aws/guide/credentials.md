@@ -16,7 +16,7 @@ The Serverless Framework needs access to your cloud provider's account so that i
 
 Here we'll provide setup instructions for different cloud provider accounts. Just pick the one for your provider and follow the steps to get everything in place for Serverless.
 
-At this time, the Serverless Framework supports only Amazon Web Services, but support for other providers is in the works.
+This guide is for the Amazon Web Services (AWS) provider, so we'll step through the process of setting up credential for AWS and using them with Serverless.
 
 [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
 
@@ -101,7 +101,7 @@ You can even set up different profiles for different accounts, which can be used
 service: new-service
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: dev
   profile: devProfile
 ```
@@ -128,6 +128,14 @@ Now you can switch per project (/ API) by executing once when you start your pro
 in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
 The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
 
+##### Using the `aws-profile` option
+
+You can always speficy the profile which should be used via the `aws-profile` option like this:
+
+```bash
+serverless deploy --aws-profile devProfile
+```
+
 #### Per Stage Profiles
 
 As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](https://serverless.com/framework/docs/providers/aws/guide/variables) and the provider profile setting.
@@ -138,7 +146,7 @@ This example `serverless.yml` snippet will load the profile depending upon the s
 service: new-service
 provider:
   name: aws
-  runtime: nodejs4.3
+  runtime: nodejs6.10
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.profiles.${self:provider.stage}}
 custom:
@@ -150,7 +158,7 @@ custom:
 
 #### Profile in place with the 'invoke local' command
 
-**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yaml` configuration file.
+**Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yml` configuration file.
 Thus, most likely, a different set of permissions will be in place, altering the interaction between your lambda functions and others AWS resources.
 
 *Please, refer to the `invoke local` CLI command documentation for more details.*

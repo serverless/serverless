@@ -14,7 +14,7 @@ layout: Doc
 
 The Serverless Framework helps you develop and deploy your AWS Lambda functions, along with the AWS infrastructure resources they require.  It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
 
-The Serverless Framework is different than other application frameworks because:
+The Serverless Framework is different from other application frameworks because:
 * It manages your code as well as your infrastructure
 * It supports multiple languages (Node.js, Python, Java, and more)
 
@@ -58,7 +58,7 @@ The Serverless Framework not only deploys your Functions and the Events that tri
 
 ### Services
 
-A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml`.  It looks like this:
+A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json`).  It looks like this:
 
 ```yml
 # serverless.yml
