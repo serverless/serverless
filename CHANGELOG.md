@@ -1,3 +1,13 @@
+# 1.20.0 (16.08.2017)
+- [Add Serverless Run plugin](https://github.com/serverless/serverless/pull/4034)
+- [Add Serverless Emit plugin](https://github.com/serverless/serverless/pull/4038)
+- [Kubeless template for python and nodejs](https://github.com/serverless/serverless/pull/3970)
+- [Improve deprecation hook message](https://github.com/serverless/serverless/pull/4011)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.19.0...v1.20.0)
+
+
 # 1.19.0 (02.08.2017)
 - [Removed provider name validation](https://github.com/serverless/serverless/pull/3941)
 - [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
@@ -6,7 +16,6 @@
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.1...v1.19.0)
-
 
 
 # 1.18.1 (28.07.2017)
