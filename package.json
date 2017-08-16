@@ -51,7 +51,7 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- --require=sinon-bluebird -R spec --recursive",
+    "test": "env FORCE_COLOR=0 istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- --require=sinon-bluebird -R spec --recursive",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
@@ -92,7 +92,7 @@
     "async": "^1.5.2",
     "aws-sdk": "^2.7.13",
     "bluebird": "^3.4.0",
-    "chalk": "^1.1.1",
+    "chalk": "^2.0.0",
     "ci-info": "^1.0.0",
     "download": "^5.0.2",
     "filesize": "^3.3.0",
