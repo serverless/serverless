@@ -100,7 +100,13 @@ The `index.js` file contains your exported functions.
 
 When you deploy a Service, all of the Functions, and Events in your `serverless.yml` are translated into calls to the Google Cloud API to dynamically define those resources.
 
-To deploy a service, use the `deploy` command:
+To deploy a service, first `cd` into the relevant service directory:
+
+```bash
+cd my-service
+```
+
+Then use the `deploy` command:
 
 ```bash
 serverless deploy
