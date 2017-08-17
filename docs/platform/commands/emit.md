@@ -15,10 +15,10 @@ layout: Doc
 The `emit` command emits an event to a serverless service
 
 ```bash
-serverless emit -n my.event -d'{"foo":"bar"}'
+serverless emit -n my.event -d '{"foo":"bar"}'
 
 # Shorthand
-sls emit -n my.event -d'{"foo":"bar"}'
+sls emit -n my.event -d '{"foo":"bar"}'
 ```
 
 
