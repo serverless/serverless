@@ -1,3 +1,10 @@
+# 1.20.2 (17.08.2017)
+- [Bump event-gateway version to 0.5.15](https://github.com/serverless/serverless/pull/4116)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.1...v1.20.2)
+
+
 # 1.20.1 (17.08.2017)
 - [Rethrow original plugin error in debug mode](https://github.com/serverless/serverless/pull/4091)
 - [Add platform gate to serverless run / emit](https://github.com/serverless/serverless/pull/4103)
