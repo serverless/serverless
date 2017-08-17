@@ -2,6 +2,11 @@
 title: Serverless - Platform Documentation
 menuText: Platform
 layout: Doc
+menuItems:
+  - {menuText: emit, path: /framework/docs/platform/commands/emit/}
+  - {menuText: login, path: /framework/docs/platform/commands/login/}
+  - {menuText: logout, path: /framework/docs/platform/commands/logout/}
+  - {menuText: run, path: /framework/docs/platform/commands/run/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
