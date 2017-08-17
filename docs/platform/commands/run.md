@@ -26,7 +26,7 @@ NOTE: *currently supports node js 6.3+ only*
 
 ## Supported Providers
 - AWS Lambda
-- Google Cloud Functions
+- Google Cloud Functions (Pub/Sub only, HTTP coming soon)
 
 ## Options
 - `--debug` or `-d` Start the emulator in debug mode  

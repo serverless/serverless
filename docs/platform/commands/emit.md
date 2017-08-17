@@ -31,19 +31,19 @@ sls emit -n my.event -d'{"foo":"bar"}'
 
 
 
-## Provided lifecycle events
+## Provided lifecycle Events
 - `emit:emit`
 
 ## Examples
 
-### Emitting an event to locally running gateway
+### Emitting an Event to locally running Event Gateway
 
 ```bash
-sls emit -n my.event -d'{"foo":"bar"}'
+serverless emit -n my.event -d '{"foo":"bar"}'
 ```
 
-### Emitting an event to a remote gateway
+### Emitting an Event to a remote Event Gateway
 
 ```bash
-sls emit -n foo.bar -d'{"foo":"bar"}' -u https://mygateway.com
+serverless emit -n foo.bar -d '{"foo":"bar"}' -u https://mygateway.com
 ```
