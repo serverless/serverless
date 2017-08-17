@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.20.0",
+  "version": "1.20.1",
   "engines": {
     "node": ">=4.0"
   },
@@ -102,6 +102,7 @@
     "graphql": "^0.10.1",
     "graphql-tag": "^2.4.0",
     "https-proxy-agent": "^1.0.0",
+    "is-docker": "^1.1.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
     "jwt-decode": "^2.2.0",
