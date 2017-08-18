@@ -16,6 +16,9 @@ Lets you watch the logs of a specific function.
 
 ```bash
 serverless logs -f hello
+
+# Optionally tail the logs with -t
+serverless logs -f hello -t
 ```
 
 ## Options

@@ -72,6 +72,69 @@ module.exports.hello = function(event, context, callback) {
 JSON.parse(event.body);
 ```
 
+### Example "LAMBDA-PROXY" event (default)
+
+```json
+{
+    "resource": "/",
+    "path": "/",
+    "httpMethod": "POST",
+    "headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
+        "cache-control": "max-age=0",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-Country": "GB",
+        "content-type": "application/x-www-form-urlencoded",
+        "Host": "j3ap25j034.execute-api.eu-west-2.amazonaws.com",
+        "origin": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com",
+        "Referer": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com/dev/",
+        "upgrade-insecure-requests": "1",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "Via": "2.0 a3650115c5e21e2b5d133ce84464bea3.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "0nDeiXnReyHYCkv8cc150MWCFCLFPbJoTs1mexDuKe2WJwK5ANgv2A==",
+        "X-Amzn-Trace-Id": "Root=1-597079de-75fec8453f6fd4812414a4cd",
+        "X-Forwarded-For": "50.129.117.14, 50.112.234.94",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "queryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+        "path": "/dev/",
+        "accountId": "125002137610",
+        "resourceId": "qdolsr1yhk",
+        "stage": "dev",
+        "requestId": "0f2431a2-6d2f-11e7-b799-5152aa497861",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "apiKey": "",
+            "sourceIp": "50.129.117.14",
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+            "user": null
+        },
+        "resourcePath": "/",
+        "httpMethod": "POST",
+        "apiId": "j3azlsj0c4"
+    },
+    "body": "postcode=LS17FR",
+    "isBase64Encoded": false
+}
+```
+
 ### HTTP Endpoint with Extended Options
 
 Here we've defined an POST endpoint for the path `posts/create`.
@@ -265,7 +328,12 @@ functions:
             arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
 ```
 
-By default the `sub` claim will be exposed in `events.cognitoPoolClaims`, you can add extra claims like so:
+If you are using the default `lambda-proxy` integration, your attributes will be
+exposed at `event.requestContext.authorizer.claims`.
+
+If you want control more control over which attributes are exposed as claims you
+can switch to `integration: lambda` and add the following configuration. The
+claims will be exposed at `events.cognitoPoolClaims`.
 
 ```yml
 functions:
@@ -283,15 +351,11 @@ functions:
               - nickname
 ```
 
-Note: Since claims must be explicitly listed to be exposed, you must use `integration: lambda` integration type to access any claims.
-
 ### Catching Exceptions In Your Lambda Function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
 
 ### Setting API keys for your Rest API
-
-**Note:** Due to a CloudFormation restriction you need to wire up API Keys and usage plans manually in the AWS console.
 
 You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
 `provider` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require
@@ -331,10 +395,6 @@ Please note that those are the API keys names, not the actual values. Once you d
 
 Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
 
-## Lambda Integration
-
-This method is more complicated and involves a lot more configuration of the `http` event syntax.
-
 ### Request Parameters
 
 To pass optional and required parameters to your functions, so you can use them in API Gateway tests and SDK generation, marking them as `true` will make them required, `false` will make them optional.
@@ -347,14 +407,12 @@ functions:
       - http:
           path: posts/create
           method: post
-          integration: lambda
           request:
             parameters:
               querystrings:
                 url: true
               headers:
                 foo: false
-                bar: true
               paths:
                 bar: false
 ```
@@ -369,11 +427,67 @@ functions:
       - http:
           path: posts/{id}
           method: get
-          integration: lambda
           request:
             parameters:
               paths:
                 id: true
+```
+
+## Lambda Integration
+
+This method is more complicated and involves a lot more configuration of the `http` event syntax.
+
+### Example "LAMBDA" event (before customization)
+
+**Refer to this only if you're using the non-default `LAMBDA` integration method**
+
+```json
+{
+    "body": {},
+    "method": "GET",
+    "principalId": "",
+    "stage": "dev",
+    "cognitoPoolClaims": {
+        "sub": ""
+    },
+    "headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-Country": "GB",
+        "Host": "ec5ycylws8.execute-api.us-east-1.amazonaws.com",
+        "upgrade-insecure-requests": "1",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "Via": "2.0 f165ce34daf8c0da182681179e863c24.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "l06CAg2QsrALeQcLAUSxGXbm8lgMoMIhR2AjKa4AiKuaVnnGsOFy5g==",
+        "X-Amzn-Trace-Id": "Root=1-5970ef20-3e249c0321b2eef14aa513ae",
+        "X-Forwarded-For": "94.117.120.169, 116.132.62.73",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "query": {},
+    "path": {},
+    "identity": {
+        "cognitoIdentityPoolId": "",
+        "accountId": "",
+        "cognitoIdentityId": "",
+        "caller": "",
+        "apiKey": "",
+        "sourceIp": "94.197.120.169",
+        "accessKey": "",
+        "cognitoAuthenticationType": "",
+        "cognitoAuthenticationProvider": "",
+        "userArn": "",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "user": ""
+    },
+    "stageVariables": {}
+}
 ```
 
 ### Request templates

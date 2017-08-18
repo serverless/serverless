@@ -1,3 +1,83 @@
+# 1.20.2 (17.08.2017)
+- [Bump event-gateway version to 0.5.15](https://github.com/serverless/serverless/pull/4116)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.1...v1.20.2)
+
+
+# 1.20.1 (17.08.2017)
+- [Rethrow original plugin error in debug mode](https://github.com/serverless/serverless/pull/4091)
+- [Add platform gate to serverless run / emit](https://github.com/serverless/serverless/pull/4103)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.0...v1.20.1)
+
+
+# 1.20.0 (16.08.2017)
+- [Add Serverless Run plugin](https://github.com/serverless/serverless/pull/4034)
+- [Add Serverless Emit plugin](https://github.com/serverless/serverless/pull/4038)
+- [Kubeless template for python and nodejs](https://github.com/serverless/serverless/pull/3970)
+- [Improve deprecation hook message](https://github.com/serverless/serverless/pull/4011)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.19.0...v1.20.0)
+
+
+# 1.19.0 (02.08.2017)
+- [Removed provider name validation](https://github.com/serverless/serverless/pull/3941)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
+- [Fixed a bug with "deploy list functions"](https://github.com/serverless/serverless/pull/3971)
+- [Fixed a bug with Serverless Plugins loading](https://github.com/serverless/serverless/pull/3960)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.1...v1.19.0)
+
+
+# 1.18.1 (28.07.2017)
+- [Fixed a bug with Serverless Variables](https://github.com/serverless/serverless/pull/3996)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.0...v1.18.1)
+
+
+# 1.18.0 (20.07.2017)
+- [Added support for a new "default" property for Plugins CLI options](https://github.com/serverless/serverless/pull/3808)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3889)
+- [Added support for a new "publish" property to opt-out from Platform publishing](https://github.com/serverless/serverless/pull/3950)
+- [Fixed a bug with "sls remove" when the stack includes Exports](https://github.com/serverless/serverless/pull/3935)
+- [Added support for request parameter configuration with lambda-proxy integration](https://github.com/serverless/serverless/pull/3722)
+- [Enhanced the environment variables for invoke local to include AWS_REGION](https://github.com/serverless/serverless/pull/3908)
+- [Updated the deploy command to ignore custom plugins in service directory during deployment](https://github.com/serverless/serverless/pull/3910)
+- [Fixed a bug with function packaging](https://github.com/serverless/serverless/pull/3856)
+- [Updated the package command to ignore function packaging if a custom artifact is specified](https://github.com/serverless/serverless/pull/3876)
+- [Added support for absolute paths when using Serverless Variables file references](https://github.com/serverless/serverless/pull/3888)
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.17.0...v1.18.0)
+
+
+# 1.17.0 (05.07.2017)
+- Cleanup F# build template output on macOS - #3897
+- Add disable flag for OpenWhisk functions - #3830
+- Only redeploy when the code/config changes - #3838
+- Add opt-out config for dev dependency exclusion - #3877
+- Add infinite stack trace for errors - #3839
+- Fixed a bug with autocomplete - #3798
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.1...v1.17.0)
+
+
+# 1.16.1 (26.06.2017)
+- CI/CD fix for the Serverless Platform - #3829
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.0...v1.16.1)
+
+
 # 1.16.0 (21.06.2017)
 - Added support for usage plans to APIG - #3819
 - Optmizied packaging to exclude dev dependencies - #3737

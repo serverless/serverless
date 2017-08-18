@@ -106,13 +106,26 @@ functions:
 In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
 
 ## Reference Variables in Javascript Files
-To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`.  Here's an example:
+
+You can reference JavaScript files to add dynamic data into your variables.
+
+References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`.
 
 ```js
-// myCustomFile.js
-module.exports.hello = () => {
+// scheduleConfig.js
+module.exports.cron = () => {
    // Code that generates dynamic data
    return 'cron(0 * * * *)';
+}
+```
+
+```js
+// config.js
+module.exports = () => {
+  return {
+    property1: 'some value',
+    property2: 'some other value'
+  }
 }
 ```
 
@@ -120,11 +133,14 @@ module.exports.hello = () => {
 # serverless.yml
 service: new-service
 provider: openwhisk
+
+custom: ${file(./config.js)}
+
 functions:
   hello:
       handler: handler.hello
       events:
-        - schedule: ${file(./myCustomFile.js):hello} # Reference a specific module
+        - schedule: ${file(./scheduleConfig.js):cron} # Reference a specific module
 ```
 
 You can also return an object and reference a specific property.  Just make sure you are returning a valid object and referencing a valid property:
