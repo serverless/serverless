@@ -18,3 +18,5 @@ integration-test aws-nodejs
 integration-test aws-python
 integration-test aws-python3
 integration-test google-nodejs
+integration-test spotinst-nodejs
+integration-test spotinst-python
