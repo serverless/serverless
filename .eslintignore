@@ -2,3 +2,4 @@ coverage
 node_modules
 tmp
 tmpdirs-serverless
+lib/plugins/create/templates/**
