@@ -27,7 +27,6 @@ able to do the following:
 not property keys. So you can't use variables to generate dynamic logical IDs in
 the custom resources section for example.
 
-
 ## Reference Properties In serverless.yml
 
 To self-reference properties in `serverless.yml`, use the `${self:someProperty}`
@@ -42,24 +41,24 @@ custom:
 
 functions:
   hello:
-      handler: handler.hello
-      events:
-        - timer: ${self:custom.globalSchedule}
+    handler: handler.hello
+    events:
+      - timer: ${self:custom.globalSchedule}
   world:
-      handler: handler.world
-      events:
-        - timer: ${self:custom.globalSchedule}
+    handler: handler.world
+    events:
+      - timer: ${self:custom.globalSchedule}
 ```
 
 In the above example you're setting a global schedule for all functions by
 referencing the `globalSchedule` property in the same `serverless.yml` file. This
 way, you can easily change the schedule for all functions whenever you like.
 
-## Reference Variables in Other Files
+## Reference Variables in other Files
 You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
 
-```javascript
-// myCustomFile.yml
+```yml
+# myCustomFile.yml
 cron: cron(0 * * * *)
 ```
 
@@ -72,13 +71,13 @@ custom: ${file(./myCustomFile.yml)} # You can reference the entire file
 
 functions:
   hello:
-      handler: handler.hello
-      events:
-        - timer: ${file(./myCustomFile.yml):cron} # Or you can reference a specific property
+    handler: handler.hello
+    events:
+      - timer: ${file(./myCustomFile.yml):cron} # Or you can reference a specific property
   world:
-      handler: handler.world
-      events:
-        - timer: ${self:custom.cron} # This would also work in this case
+    handler: handler.world
+    events:
+      - timer: ${self:custom.cron} # This would also work in this case
 ```
 
 

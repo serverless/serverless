@@ -79,7 +79,7 @@ functions:
 
 In the above example, you're dynamically adding a prefix to the function names by referencing the `stage` option that you pass in the CLI when you run `serverless deploy --stage dev`. So when you deploy, the function name will always include the stage you're deploying to.
 
-## Reference Variables in Other Files
+## Reference Variables in other Files
 To reference variables in other YAML or JSON files, use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. Here's an example:
 
 ```yml

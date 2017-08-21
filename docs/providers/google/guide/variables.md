@@ -50,11 +50,11 @@ functions:
 
 In the above example you're setting a global event resource for all functions by referencing the `resource` property in the same `serverless.yml` file. This way, you can easily change the event resource for all functions whenever you like.
 
-## Reference Variables in Other Files
+## Reference Variables in other Files
 You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
 
-```javascript
-// myCustomFile.yml
+```yml
+# myCustomFile.yml
 topic: projects/*/topics/my-topic
 ```
 
