@@ -55,6 +55,10 @@ services:
     image: node:6.10.3
     volumes:
       - ./tmp/serverless-integration-test-aws-nodejs-typescript:/app
+  aws-nodejs-ecma-script:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-nodejs-ecma-script:/app
   google-nodejs:
     image: node:6.9.1
     volumes:
