@@ -310,6 +310,7 @@ provider:
   stage: dev
 custom:
   myStage: ${opt:stage, self:provider.stage}
+  myRegion: ${opt:region, 'us-west-1'}
 
 functions:
   hello:
@@ -329,7 +330,7 @@ service: new-service
 provider:
   name: aws
   runtime: nodejs6.10
-  variableSyntax: "\\${{([ :a-zA-Z0-9._,\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
+  variableSyntax: "\\${([ ~:a-zA-Z0-9._\'\",\\-\\/\\(\\)]+?)}" # notice the double quotes for yaml to ignore the escape characters!
 
 custom:
   myStage: ${{opt:stage}}
