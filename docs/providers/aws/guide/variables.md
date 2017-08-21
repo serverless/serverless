@@ -273,6 +273,7 @@ provider:
   stage: dev
 custom:
   myStage: ${opt:stage, self:provider.stage}
+  myRegion: ${opt:region, 'us-west-1'}
 
 functions:
   hello:
