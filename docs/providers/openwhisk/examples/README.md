@@ -18,4 +18,4 @@ Have an example? Submit a PR or [open an issue](https://github.com/serverless/ex
 | [OpenWhisk Python Simple](https://github.com/serverless/examples/tree/master/openwhisk-python-simple) <br/> Boilerplate project repository for OpenWhisk provider with Serverless Framework. | python |
 | [OpenWhisk Swift Simple](https://github.com/serverless/examples/tree/master/openwhisk-swift-simple) <br/> Boilerplate project repository for OpenWhisk provider with Serverless Framework. | swift |
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/)
+If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
