@@ -2,21 +2,9 @@
 
 This document contains all the necessary information about out release process.
 
-## Release branch
-
-The branch developers PR to is `dev`.
-
-For each release we create a separate release branch.
-
-Commits / Features which should be included in the release are moved over from the `dev` branch into the release branch (e.g. cherry-picked).
-
-We open up a separate PR to request a merge from the release branch into `master` (and add the PR to the milestone) to track the current status.
-
-Canary release can be kept in the release branch and rebased until they're ready to be merged into `master`.
-
 ### Merge freeze
 
-A "merge freeze" will be applied a few days before the release. This means that **NOTHING** will be added to the release branch. Even bug-fixes will be published in a separate [patch release](#patch-release).
+A "merge freeze" will be applied a few days before the release. This means that **NOTHING** will be added to the release branch.
 
 A "merge freeze" ends once the release was published.
 
