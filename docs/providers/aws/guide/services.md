@@ -51,6 +51,8 @@ serverless create --template aws-nodejs --path myService
 Here are the available runtimes for AWS Lambda:
 
 * aws-nodejs
+* aws-nodejs-typescript
+* aws-nodejs-ecma-script
 * aws-python
 * aws-python3
 * aws-groovy-gradle
