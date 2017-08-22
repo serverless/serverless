@@ -1,7 +1,7 @@
 {
-  "name": "spotionst-nodejs",
+  "name": "spotionst-python",
   "version": "1.0.0",
-  "description": "Spotinst Functions NodeJS sample for serverless framework service.",
+  "description": "Spotinst Functions Python sample for serverless framework service.",
   "main": "handler.js",
   "keywords": [
     "serverless",
