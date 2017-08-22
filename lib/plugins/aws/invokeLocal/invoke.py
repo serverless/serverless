@@ -55,6 +55,9 @@ if __name__ == '__main__':
     module = import_module(args.handler_path.replace('/', '.'))
     handler = getattr(module, args.handler_name)
 
-    event = json.load(sys.stdin)
-    result = handler(event, FakeLambdaContext())
+    input = json.load(sys.stdin)
+    context = FakeLambdaContext()
+    if 'context' in input:
+        context = input['context']
+        result = handler(input['event'], context)
     sys.stdout.write(json.dumps(result, indent=4))

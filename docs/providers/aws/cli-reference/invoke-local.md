@@ -24,6 +24,8 @@ serverless invoke local --function functionName
 - `--path` or `-p` The path to a json file holding input data to be passed to the invoked function as the `event`. This path is relative to the root directory of the service.
 - `--data` or `-d` String data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
 - `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
+- `--contextPath` or `-x`, The path to a json file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
+- `--context` or `-c`, String data to be passed as a context to your function. Same like with `--data`, context included in `--contextPath` will overwrite the context you passed with `--context` flag.
 
 ## Environment
 
@@ -52,6 +54,13 @@ serverless invoke local --function functionName --data "hello world"
 serverless invoke local --function functionName --data '{"a":"bar"}'
 ```
 
+### Local function invocation with custom context
+
+```bash
+serverless invoke local --function functionName --context "hello world"
+```
+
+
 ### Local function invocation with data from standard input
 
 ```bash
@@ -76,6 +85,12 @@ This example will pass the json data in the `lib/data.json` file (relative to th
   //  etc. //
 }
 ```
+
+### Local function invocation with context passing
+```bash
+serverless invoke local --function functionName --contextPath lib/context.json
+```
+This example will pass the json context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
 
 ### Limitations
 
