@@ -39,7 +39,7 @@ First, register or log in to the Serverless platform in via the CLI
 $ serverless login
 ```
 
-After logging into the platform via the Serverless framework CLI every deploy will be published to the Serverless Platform. It allows you to view and share your deployed services.
+After logging into the platform via the Serverless framework CLI every deploy will be **privately** published to the Serverless Platform. It allows you to view and share your deployed services.
 
 Give it a try with a new service, or an existing service:
 
