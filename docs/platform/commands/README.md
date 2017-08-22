@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Platform Documentation
-menuText: Platform
+menuText: commands
 layout: Doc
 -->
 
