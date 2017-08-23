@@ -11,26 +11,19 @@
 #
 # Happy Coding!
 
-service: spotinst-nodejs # NOTE: update this with your service name
+service: spotinst-python # NOTE: update this with your service name
 
 provider:
   name: spotinst
-  runtime: nodejs4.8
+  runtime: python2.7
   #environment: <env-XXXX> # NOTE: Remember to add the environment ID
   #account: <act-XXXX> # NOTE: Remember to add the account ID
 
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
 functions:
   hello:
-    handler: main
+    handler: handler.main
+    memory: 128
+    timeout: 30
 
 
 # extend the framework using plugins listed here:

@@ -19,18 +19,11 @@ provider:
   #environment: <env-XXXX> # NOTE: Remember to add the environment ID
   #account: <act-XXXX> # NOTE: Remember to add the account ID
 
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
 functions:
   hello:
-    handler: main
+    handler: handler.main
+    memory: 128
+    timeout: 30
 
 
 # extend the framework using plugins listed here:
