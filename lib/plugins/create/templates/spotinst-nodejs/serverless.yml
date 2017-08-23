@@ -15,12 +15,13 @@ service: spotinst-nodejs # NOTE: update this with your service name
 
 provider:
   name: spotinst
-  runtime: nodejs4.8
-  #environment: <env-XXXX> # NOTE: Remember to add the environment ID
-  #account: <act-XXXX> # NOTE: Remember to add the account ID
+  spotinst:
+    #environment: <env-XXXX> # NOTE: Remember to add the environment ID
+    #account: <act-XXXX> # NOTE: Remember to add the account ID
 
 functions:
   hello:
+    runtime: nodejs4.8
     handler: handler.main
     memory: 128
     timeout: 30
