@@ -51,6 +51,7 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
+    "test-bare": "env FORCE_COLOR=0 node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" --require=sinon-bluebird -R spec --recursive --no-exit",
     "test": "env FORCE_COLOR=0 istanbul cover -x \"**/*.test.js\" node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" -- --require=sinon-bluebird -R spec --recursive",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
@@ -99,6 +100,7 @@
     "fs-extra": "^0.26.7",
     "get-stdin": "^5.0.1",
     "globby": "^6.1.0",
+    "graceful-fs": "^4.1.11",
     "graphql": "^0.10.1",
     "graphql-tag": "^2.4.0",
     "https-proxy-agent": "^1.0.0",
