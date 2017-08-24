@@ -200,5 +200,6 @@ resources:
       Description: The ARN for the User's Table
       Value:
         "Fn::GetAtt": [ usersTable, Arn ]
-      Export: ${self:service}:${opt:stage}:UsersTableArn # see Fn::ImportValue to use in other services and http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html for documentation on use.
+      Export:
+        Name: ${self:service}:${opt:stage}:UsersTableArn # see Fn::ImportValue to use in other services and http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html for documentation on use.
 ```
