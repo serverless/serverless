@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless AWS Functions documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
 
 **Note:** [AWS system credentials](./guide/credentials.md) are required for using serverless + AWS.
 

@@ -107,7 +107,13 @@ Create this file and add event data so you can invoke your function with the dat
 
 When you deploy a Service, all of the Functions, Events and Resources in your `serverless.yml` are translated into calls to the platform API to dynamically define those resources.
 
-To deploy a service, use the `deploy` command:
+To deploy a service, first `cd` into the relevant service directory:
+
+```bash
+cd my-service
+```
+
+Then use the `deploy` command:
 
 ```bash
 serverless deploy
