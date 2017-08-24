@@ -41,6 +41,7 @@ tmp
 .coveralls.yml
 tmpdirs-serverless
 *.zip
+tracking-config.json
 
 # ESLint cache
 .eslintcache

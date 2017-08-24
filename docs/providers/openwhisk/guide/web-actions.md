@@ -12,7 +12,7 @@ layout: Doc
 
 # OpenWhisk - Web Actions
 
-Functions can be turned into ["*web actions*"](https://github.com/openwhisk/openwhisk/blob/master/docs/actions.md) which return HTTP content without use of an API Gateway. This feature is enabled by setting an annotation (`web-export`) in the configuration file.
+Functions can be turned into ["*web actions*"](https://github.com/apache/incubator-openwhisk/blob/master/docs/actions.md) which return HTTP content without use of an API Gateway. This feature is enabled by setting an annotation (`web-export`) in the configuration file.
 
 ```
 functions:
@@ -73,4 +73,4 @@ Functions can access request parameters using the following environment variable
 
 Full details on this new feature are available in this [blog post](https://medium.com/openwhisk/serverless-http-handlers-with-openwhisk-90a986cc7cdd#.2x09176m8).
 
-**\*IMPORTANT: [Web Actions](https://github.com/openwhisk/openwhisk/blob/master/docs/actions.md) is currently experimental and may be subject to breaking changes.***
+**\*IMPORTANT: [Web Actions](https://github.com/apache/incubator-openwhisk/blob/master/docs/actions.md) is currently experimental and may be subject to breaking changes.***

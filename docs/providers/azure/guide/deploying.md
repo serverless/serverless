@@ -12,7 +12,9 @@ layout: Doc
 
 # Azure - Deploying
 
-The Serverless Framework was designed to provision your Azure Functions Functions, Triggers and Rules safely and quickly.  It does this via a couple of methods designed for different types of deployments.
+The Serverless Framework was designed to provision your Azure Functions
+Functions, Triggers and Rules safely and quickly.  It does this via a couple of
+methods designed for different types of deployments.
 
 ## Deploy All
 
@@ -22,11 +24,14 @@ This is the main method for doing deployments with the Serverless Framework:
 serverless deploy
 ```
 
-Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Azure Functions.
+Use this method when you have updated your Function, Event or Resource
+configuration in `serverless.yml` and you want to deploy that change (or multiple
+changes at the same time) to Azure Functions.
 
 ### How It Works
 
-The Serverless Framework translates all syntax in `serverless.yml` to an Azure Resource Manager Template and Azure Function project.
+The Serverless Framework translates all syntax in `serverless.yml` to an Azure
+Resource Manager Template and Azure Function project.
 
 * Provider plugin parses `serverless.yml` configuration and translates to Azure resources.
 * The code of your Functions is then packaged into a directory and zipped.
@@ -40,7 +45,9 @@ Check out the [deploy command docs](../cli-reference/deploy.md) for all details 
 
 ## Deploy Function
 
-This deployment method updates a single function. It performs the platform API call to deploy your package without the other resources. It is much faster than redeploying your whole service each time.
+This deployment method updates a single function. It performs the platform API
+call to deploy your package without the other resources. It is much faster than
+redeploying your whole service each time.
 
 ```bash
 serverless deploy function --function myFunction
@@ -60,7 +67,9 @@ Check out the [deploy command docs](../cli-reference/deploy.md) for all details 
 
 ## Deploying a package
 
-This deployment option takes a deployment directory that has already been created with `serverless package` and deploys it to the cloud provider. This allows you to easier integrate CI / CD workflows with the Serverless Framework.
+This deployment option takes a deployment directory that has already been created
+with `serverless package` and deploys it to the cloud provider. This allows you
+to easier integrate CI / CD workflows with the Serverless Framework.
 
 ```bash
 serverless deploy --package path-to-package

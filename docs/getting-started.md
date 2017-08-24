@@ -12,12 +12,14 @@ menuItems:
 
 # Getting Started with Serverless
 
-First things first, lets get the serverless framework installed on your machine.
+First things first, let's get the Serverless framework installed on your machine.
 
 ```bash
 # Installing the serverless cli
-npm install serverless -g
+npm install -g serverless
 ```
+
+*Serverless follows the [Semantic Versioning](http://semver.org) schema. You can read more about that in our dedicated [versioning file](https://github.com/serverless/serverless/blob/master/VERSIONING.md).*
 
 ## Choose your compute provider
 

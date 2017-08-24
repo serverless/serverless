@@ -16,7 +16,7 @@ The Serverless Framework needs access to your cloud provider's account so that i
 
 Here we'll provide setup instructions for different cloud provider accounts. Just pick the one for your provider and follow the steps to get everything in place for Serverless.
 
-At this time, the Serverless Framework supports only Amazon Web Services, but support for other providers is in the works.
+This guide is for the Amazon Web Services (AWS) provider, so we'll step through the process of setting up credential for AWS and using them with Serverless.
 
 [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
 
@@ -63,6 +63,8 @@ export AWS_ACCESS_KEY_ID=<your-key-here>
 export AWS_SECRET_ACCESS_KEY=<your-secret-key-here>
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are now available for serverless to use
 serverless deploy
+
+# 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
 ```
 
 #### Using AWS Profiles
@@ -127,6 +129,14 @@ Now you can switch per project (/ API) by executing once when you start your pro
 
 in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
 The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
+
+##### Using the `aws-profile` option
+
+You can always specify the profile which should be used via the `aws-profile` option like this:
+
+```bash
+serverless deploy --aws-profile devProfile
+```
 
 #### Per Stage Profiles
 

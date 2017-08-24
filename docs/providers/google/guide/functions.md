@@ -35,29 +35,24 @@ functions:
       - http: path
 ```
 
-The `handler` property points to the file (default filename: index.js) and module containing the code you want to run in your function.
+## Handler
+
+The `handler` property should be the function name you've exported in your entrypoint file.
+
+When you e.g. export a function with the name `http` in `index.js` your `handler` should be `handler: http`.
 
 ```javascript
 // index.js
 exports.http = (request, response) => {}
 ```
 
-**Note:** The file which contains the handlers needs to have the name `index.js`.
+**A note about index.js and the entrypoint file**
 
-You can add as many functions as you want within this property.
+Google Cloud Functions assumes that you have a `index.js` or `function.js` file with the exported handler functions in the root of your project (you can read more about that in [their docs](https://cloud.google.com/functions/docs/deploying/)).
 
-```yml
-# serverless.yml
-...
+However you can overwrite this by specifying the entrypoint file with the help of the `main` config parameter in the projects `package.json` file.
 
-functions:
-  functionOne:
-    handler: http
-  functionTwo:
-    handler: http
-  functionThree:
-    handler: otherHandler
-```
+Our recommendation is to have an `index.js` file with all the function handlers in the projects root directory.
 
 ## Memory size and timeout
 

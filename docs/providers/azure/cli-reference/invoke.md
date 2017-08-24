@@ -12,7 +12,8 @@ layout: Doc
 
 # Azure - Invoke
 
-Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
+Invokes deployed function. It allows to send event data to the function, read
+logs and display other important information of the function invocation.
 
 ```bash
 serverless invoke --function functionName
@@ -54,5 +55,5 @@ node dataGenerator.js | serverless invoke --function functionName
 serverless invoke --function functionName --path lib/data.json
 ```
 
-This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking
-the specified/deployed function.
+This example will pass the json data in the `lib/data.json` file (relative to the
+root of the service) while invoking the specified/deployed function.

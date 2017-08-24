@@ -1,5 +1,6 @@
 {
   "plugins": [
+    "./run/index.js",
     "./config/config.js",
     "./create/create.js",
     "./install/install.js",
@@ -8,10 +9,13 @@
     "./invoke/invoke.js",
     "./info/info.js",
     "./logs/logs.js",
+    "./login/login.js",
+    "./logout/logout.js",
     "./metrics/metrics.js",
     "./remove/remove.js",
     "./rollback/index.js",
     "./slstats/slstats.js",
+    "./emit/index.js",
     "./aws/configCredentials/awsConfigCredentials.js",
     "./aws/provider/awsProvider.js",
     "./aws/common/index.js",
@@ -23,6 +27,7 @@
     "./aws/metrics/awsMetrics.js",
     "./aws/remove/index.js",
     "./aws/rollback/index.js",
+    "./aws/rollbackFunction/index.js",
     "./aws/package/compile/functions/index.js",
     "./aws/package/compile/events/schedule/index.js",
     "./aws/package/compile/events/s3/index.js",
@@ -33,8 +38,10 @@
     "./aws/package/compile/events/iot/index.js",
     "./aws/package/compile/events/cloudWatchEvent/index.js",
     "./aws/package/compile/events/cloudWatchLog/index.js",
+    "./aws/package/compile/events/cognitoUserPool/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
-    "./aws/invokeLocal/index.js"
+    "./aws/invokeLocal/index.js",
+    "./platform/platform.js"
   ]
 }

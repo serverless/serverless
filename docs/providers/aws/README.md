@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless AWS Functions documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
 
 **Note:** [AWS system credentials](./guide/credentials.md) are required for using serverless + AWS.
 
@@ -62,9 +62,11 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/invoke.md">Invoke</a></li>
         <li><a href="./cli-reference/invoke-local.md">Invoke Local</a></li>
         <li><a href="./cli-reference/logs.md">Logs</a></li>
+        <li><a href="./cli-reference/login.md">Login</a></li>
         <li><a href="./cli-reference/metrics.md">Metrics</a></li>
         <li><a href="./cli-reference/info.md">Info</a></li>
         <li><a href="./cli-reference/rollback.md">Rollback</a></li>
+        <li><a href="./cli-reference/rollback-function.md">Rollback Function</a></li>
         <li><a href="./cli-reference/remove.md">Remove</a></li>
         <li><a href="./cli-reference/slstats.md">Serverless Stats</a></li>
       </ul>
@@ -88,6 +90,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./events/iot.md">IoT</a></li>
         <li><a href="./events/cloudwatch-event.md">CloudWatch Event</a></li>
         <li><a href="./events/cloudwatch-log.md">CloudWatch Log</a></li>
+        <li><a href="./events/cognito-user-pool.md">Cognito User Pool</a></li>
       </ul>
     </div>
   </div>

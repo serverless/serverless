@@ -40,15 +40,23 @@ This makes sense since related functions usually use common infrastructure resou
 
 ## Creation
 
-There isn't yet a `serverless create` command, so to get started you can instead start by installing the boilerplate from GitHub.
+To create a service, use the `create` command. You can also pass in a path to create a directory and auto-name your service:
 
 ```bash
-serverless install --url https://github.com/serverless/boilerplate-googlecloudfunctions-nodejs --name <my-service>
+# Create service with Node.js template in the folder ./my-service
+serverless create --template google-nodejs --path my-service
 ```
+
+Here are the available runtimes for Google Cloud Functions:
+
+* google-nodejs
+
+Check out the [create command docs](../cli-reference/create) for all the details and options.
 
 ## Contents
 
 You'll see the following files in your working directory:
+
 - `serverless.yml`
 - `index.js`
 
@@ -86,13 +94,19 @@ functions:
 
 ### index.js
 
-The `index.js` file contains your function code. The function definition in `serverless.yml` will point to this `index.js` file and the function exported here.
+The `index.js` file contains your exported functions.
 
 ## Deployment
 
 When you deploy a Service, all of the Functions, and Events in your `serverless.yml` are translated into calls to the Google Cloud API to dynamically define those resources.
 
-To deploy a service, use the `deploy` command:
+To deploy a service, first `cd` into the relevant service directory:
+
+```bash
+cd my-service
+```
+
+Then use the `deploy` command:
 
 ```bash
 serverless deploy
@@ -136,4 +150,23 @@ frameworkVersion: "=1.0.3"
 # serverless.yml
 
 frameworkVersion: ">=1.0.0 <2.0.0"
+```
+
+
+## Installing Serverless in an existing service
+
+If you already have a Serverless service, and would prefer to lock down the framework version using `package.json`, then you can install Serverless as follows:
+
+```bash
+# from within a service
+npm install serverless --save-dev
+```
+
+### Invoking Serverless locally
+
+To execute the locally installed Serverless executable you have to reference the binary out of the node modules directory.
+
+Example:
+```
+node ./node_modules/serverless/bin/serverless deploy
 ```

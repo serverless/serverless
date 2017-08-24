@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless Google Cloud Functions documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
 
 **Note:** [Google Cloud system credentials](./guide/credentials.md) are required for using the CLI.
 
@@ -26,7 +26,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
     <div class="test">
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
-        <li><a href="./guide/quickstart.md">Quickstart</a></li>
+        <li><a href="./guide/quick-start.md">Quickstart</a></li>
         <li><a href="./guide/installation.md">Installation</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
         <li><a href="./guide/services.md">Services</a></li>
@@ -49,10 +49,13 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
     </div>
     <div>
       <ul>
+        <li><a href="./cli-reference/create.md">Create</a></li>
         <li><a href="./cli-reference/install.md">Install</a></li>
+        <li><a href="./cli-reference/package.md">Package</a></li>
         <li><a href="./cli-reference/deploy.md">Deploy</a></li>
         <li><a href="./cli-reference/info.md">Info</a></li>
         <li><a href="./cli-reference/invoke.md">Invoke</a></li>
+        <li><a href="./cli-reference/login.md">Login</a></li>
         <li><a href="./cli-reference/logs.md">Logs</a></li>
         <li><a href="./cli-reference/remove.md">Remove</a></li>
       </ul>

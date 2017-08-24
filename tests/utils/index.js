@@ -9,8 +9,21 @@ const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
 const AWS = require('aws-sdk');
 
+// mock to test functionality bound to a serverless plugin
+class ServerlessPlugin {
+  constructor(serverless, options, testSubject) {
+    this.options = options;
+    this.serverless = serverless;
+
+    Object.assign(
+      this,
+      testSubject
+    );
+  }
+}
+
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
-//
+
 const getTmpDirPath = () => path.join(os.tmpdir(),
   'tmpdirs-serverless', 'serverless', crypto.randomBytes(8).toString('hex'));
 
@@ -26,6 +39,7 @@ module.exports = {
   getTmpDirPath,
   getTmpFilePath,
   replaceTextInFile,
+  ServerlessPlugin,
 
   createTestService: (templateName, testServiceDir) => {
     const hrtime = process.hrtime();
@@ -51,6 +65,8 @@ module.exports = {
     process.env.TOPIC_2 = `${serviceName}-1`;
     process.env.BUCKET_1 = `${serviceName}-1`;
     process.env.BUCKET_2 = `${serviceName}-2`;
+    process.env.COGNITO_USER_POOL_1 = `${serviceName}-1`;
+    process.env.COGNITO_USER_POOL_2 = `${serviceName}-2`;
 
     // return the name of the CloudFormation stack
     return `${serviceName}-dev`;
@@ -161,6 +177,32 @@ module.exports = {
       Entries: entries,
     };
     return cwe.putEventsPromised(params);
+  },
+
+  getCognitoUserPoolId(userPoolName) {
+    const cisp = new AWS.CognitoIdentityServiceProvider({ region: 'us-east-1' });
+    BbPromise.promisifyAll(cisp, { suffix: 'Promised' });
+
+    const params = {
+      MaxResults: 50,
+    };
+
+    return cisp.listUserPoolsPromised(params)
+      .then((data) => data.UserPools.find((userPool) =>
+        RegExp(userPoolName, 'g').test(userPool.Name)).Id
+      );
+  },
+
+  createCognitoUser(userPoolId, username, password) {
+    const cisp = new AWS.CognitoIdentityServiceProvider({ region: 'us-east-1' });
+    BbPromise.promisifyAll(cisp, { suffix: 'Promised' });
+
+    const params = {
+      UserPoolId: userPoolId,
+      Username: username,
+      TemporaryPassword: password,
+    };
+    return cisp.adminCreateUserPromised(params);
   },
 
   getFunctionLogs(functionName) {

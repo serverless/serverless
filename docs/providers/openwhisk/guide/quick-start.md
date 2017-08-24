@@ -28,7 +28,7 @@ Create a new service using the Node.js template, specifying a unique name and an
 
 ```bash
 # Create a new Serverless Service/Project
-$ serverless create --template openwhisk-nodejss --path my-service
+$ serverless create --template openwhisk-nodejs --path my-service
 # Change into the newly created directory
 $ cd my-service
 # Install npm dependencies

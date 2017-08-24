@@ -34,16 +34,20 @@ plugins:
 #    - exclude-me-dir/**
 
 functions:
-  hello: 
+  hello:
     handler: handler.hello
-    events: 
+    events:
       - http: true
         x-azure-settings:
           authLevel : anonymous
+      - http: true
+        x-azure-settings:
+          direction: out
+          name: res
 
 # The following are a few examples of other events you can configure:
 #
-# events: 
+# events:
 #   - queue: YourQueueName
 #     x-azure-settings:
 #       connection : StorageAppSettingName
