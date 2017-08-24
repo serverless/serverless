@@ -17,7 +17,6 @@ provider:
   name: spotinst
   spotinst:
     #environment: <env-XXXX> # NOTE: Remember to add the environment ID
-    #account: <act-XXXX> # NOTE: Remember to add the account ID
 
 functions:
   hello:
