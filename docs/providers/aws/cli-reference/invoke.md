@@ -23,6 +23,7 @@ serverless invoke [local] --function functionName
 - `--stage` or `-s` The stage in your service you want to invoke your function in.
 - `--region` or `-r` The region in your stage that you want to invoke your function in.
 - `--data` or `-d` String data to be passed as an event to your function. By default data is read from standard input.
+- `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
 - `--type` or `-t` The type of invocation. Either `RequestResponse`, `Event` or `DryRun`. Default is `RequestResponse`.
 - `--log` or `-l` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation. Default is `false`.
@@ -41,9 +42,10 @@ serverless invoke local --function functionName
 
 ## Options
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
-- `--path` or `-p` The path to a json file holding input data to be passed to the invoked function. This path is relative to the
-root directory of the service. The json file should have event and context properties to hold your mocked event and context data.
+- `--path` or `-p` The path to a json file holding input data to be passed to the invoked function as the `event`. This path is relative to the
+root directory of the service.
 - `--data` or `-d` String data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
+- `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 
 ## Examples
 
@@ -84,3 +86,14 @@ serverless invoke --function functionName --stage dev --region us-east-1 --path 
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking
 the specified/deployed function.
+
+#### Example `data.json`
+
+```json
+{
+  "resource": "/",
+  "path": "/",
+  "httpMethod": "GET",
+  //  etc. //
+}
+```

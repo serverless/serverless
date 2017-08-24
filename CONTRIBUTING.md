@@ -18,6 +18,8 @@ Welcome, and thanks in advance for your help! Please follow these simple guideli
 
 Check out our [help-wanted](https://github.com/serverless/serverless/labels/status/help-wanted) or [easy-pick](https://github.com/serverless/serverless/labels/status/easy-pick) labels to find issues we want to move forward on with your help.
 
+We will do our best to respond/review/merge your PR according to priority. We hope that you stay engaged with us during this period to insure QA. Please note that the PR will be closed if there hasn't been any activity for a long time (~ 30 days) to keep us focused and keep the repo clean.
+
 ## Reviewing Pull Requests
 
 Another really useful way to contribute to Serverless is to review other peoples Pull Requests. Having feedback from multiple people is really helpful and reduces the overall time to make a final decision about the Pull Request.

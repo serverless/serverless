@@ -79,8 +79,8 @@ functions:
 
 In the above example, you're dynamically adding a prefix to the function names by referencing the `stage` option that you pass in the CLI when you run `serverless deploy --stage dev`. So when you deploy, the function name will always include the stage you're deploying to.
 
-## Reference Variables in Other Files
-To reference variables in other YAML or JSON files, use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
+## Reference Variables in other Files
+To reference variables in other YAML or JSON files, use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. Here's an example:
 
 ```yml
 # myCustomFile.yml
@@ -103,16 +103,59 @@ functions:
         - schedule: ${self:custom.globalSchedule} # This would also work in this case
 ```
 
-In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
+In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.  Additionally you can request properties that contain arrays from either YAML or JSON reference files.  Here's a YAML example for an events array:
+
+```yml
+myevents:
+  - schedule: cron(0 * * * *)
+```
+
+and for JSON:
+```json
+{
+  "myevents": [{
+    "schedule" : "cron(0 * * * *)"
+  }]
+}
+```
+
+In your serverless.yml, depending on the type of your source file, either have the following syntax for YAML
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events: ${file(./myCustomFile.yml):myevents
+```
+
+or for a JSON reference file use this sytax:
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events: ${file(./myCustomFile.json):myevents
+```
 
 ## Reference Variables in Javascript Files
-To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`.  Here's an example:
+
+You can reference JavaScript files to add dynamic data into your variables.
+
+References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`.
 
 ```js
-// myCustomFile.js
-module.exports.hello = () => {
+// scheduleConfig.js
+module.exports.cron = () => {
    // Code that generates dynamic data
    return 'cron(0 * * * *)';
+}
+```
+
+```js
+// config.js
+module.exports = () => {
+  return {
+    property1: 'some value',
+    property2: 'some other value'
+  }
 }
 ```
 
@@ -120,11 +163,14 @@ module.exports.hello = () => {
 # serverless.yml
 service: new-service
 provider: openwhisk
+
+custom: ${file(./config.js)}
+
 functions:
   hello:
       handler: handler.hello
       events:
-        - schedule: ${file(./myCustomFile.js):hello} # Reference a specific module
+        - schedule: ${file(./scheduleConfig.js):cron} # Reference a specific module
 ```
 
 You can also return an object and reference a specific property.  Just make sure you are returning a valid object and referencing a valid property:
