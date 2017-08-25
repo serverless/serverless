@@ -1,0 +1,20 @@
+environment:
+  global:
+    SLS_IGNORE_WARNING: "*"
+  matrix:
+    - NODEJS_VERSION: "4"
+    - NODEJS_VERSION: "6"
+
+install:
+  # Get the version of Node.js
+  - ps: Install-Product node $Env:NODEJS_VERSION
+  # install modules
+  - npm install
+  - node --version
+  - npm --version
+
+test_script:
+  - npm test
+
+# Don't actually build.
+build: off

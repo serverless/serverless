@@ -63,6 +63,8 @@ export AWS_ACCESS_KEY_ID=<your-key-here>
 export AWS_SECRET_ACCESS_KEY=<your-secret-key-here>
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are now available for serverless to use
 serverless deploy
+
+# 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
 ```
 
 #### Using AWS Profiles
@@ -130,7 +132,7 @@ The AWS region setting is to prevent issues with specific services, so adapt if 
 
 ##### Using the `aws-profile` option
 
-You can always speficy the profile which should be used via the `aws-profile` option like this:
+You can always specify the profile which should be used via the `aws-profile` option like this:
 
 ```bash
 serverless deploy --aws-profile devProfile
