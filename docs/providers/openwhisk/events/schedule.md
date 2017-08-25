@@ -32,7 +32,7 @@ functions:
   crawl:
     handler: crawl
     events:
-      - schedule: cron(* * * * * *) // run every minute
+      - schedule: cron(* * * * *) // run every minute
 ```
 
 This automatically generates a new trigger (``${service}_crawl_schedule_trigger`)

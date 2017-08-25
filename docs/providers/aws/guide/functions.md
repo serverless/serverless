@@ -281,7 +281,7 @@ functions:
 
 Real-world use cases where tagging your functions is helpful include:
 
-- Cost estimations (tag functions with an environemnt tag: `environment: Production`)
+- Cost estimations (tag functions with an environment tag: `environment: Production`)
 - Keeping track of legacy code (e.g. tag functions which use outdated runtimes: `runtime: nodejs0.10`)
 - ...
 
@@ -303,15 +303,17 @@ provider:
 
 These versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
 
-## DeadLetterConfig
+## Dead Letter Queue (DLQ)
 
-You can setup `DeadLetterConfig` with the help of a SNS topic and the `onError` config parameter.
+When AWS lambda functions fail, they are [retried](http://docs.aws.amazon.com/lambda/latest/dg/retries-on-errors.html). If the retries also fail, AWS has a feature to send information about the failed request to a SNS topic or SNS queue, called the [Dead Letter Queue](http://docs.aws.amazon.com/lambda/latest/dg/dlq.html), which you can use to track and diagnose and react to lambda failures.
 
-The SNS topic needs to be created beforehand and provided as an `arn` on the function level.
+You can setup a dead letter queue for your serverless functions with the help of a SNS topic and the `onError` config parameter.
 
 **Note:** You can only provide one `onError` config per function.
 
 ### DLQ with SNS
+
+The SNS topic needs to be created beforehand and provided as an `arn` on the function level.
 
 ```yml
 service: service
@@ -328,9 +330,9 @@ functions:
 
 ### DLQ with SQS
 
-The `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
+Although Dead Letter Queues support both SNS topics and SQS queues, the `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
 
-We're working on a fix so that SQS queue arns are be supported in the future.
+We're working on a fix so that SQS queue arns will be supported in the future.
 
 ## KMS Keys
 

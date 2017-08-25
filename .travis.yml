@@ -1,6 +1,11 @@
 language: node_js
 
 matrix:
+  exclude:
+    - node_js: '6.2'
+      env:
+        - secure: ruPmxtjLY9jX/TQQe1d8vxwL0KsjsTzJK/EL6rZM954JJc+3c5gshxB1Ca9+WRwIGdMjCZgKo4dQcn2DrAap7KoDz+GRCi40kc5AOr2ZLmjxJeCJls+sQ713QJ01GgIA1X2zmz/bDSw5lan8ODR3eYI0fIn37ZV4yxNJ5PObBLCMQW6nnOdMXxcLLi2iJRqu3k0gb85wsUNOB0AF2cBrbxoYmGsrGjGuPjIXPeEdnVJ0jzBY+jDrBraIHEBN9tecIyG77ZgEhlPopqTrj39dEPMwAow+derEVWugPRF3Wps6z+Yx0qtxETptWuOgn0V9GpfZF9vJlHifQUuuJEGtttVCYjZCUOIoIRwWnX+/SygjlgLJ9PpVa6XyZfnqygJXnv7wouGGkiyZEDbayu65qP3Ls/Dj+N2nEtamOPf3dGBeaX8KKF61h80bH7o9JL/t6yxyvm+yDRTkYd9SNk3U7dFXoBcCcjMNNUkKBKtY9G3EZlE0ZV0D7jD33Na4yX8mKBHkYLKXCAn+rh6DIwLNkV8IOtAYD77qan6v4qH9fpPMX4UkLu9SRM1r5RfsZU0gX7sCP9OKFKkAx5BWUqjg+D6Xa0EACtO8bPDHA548hWU2vYx7ghuVJfVNOUlAl97OXclx2SZwXJ46rHaHgrH2I3gi3qyHMib3iUV7SLdRQnY=
+        - secure: p9ka7mRzo/ecjnDh/dz19g0iVfQdvsGRAtg/4ONeiq75I2+oqHzu+VxUBA1Z2IQbpCEAMo21CarR3fg2I6MFUeazL0nEpqr1PoOAI8nPFeQlg/h+jLXsrPAkDcu2/b8ij7J5MXeLdZXUVqiPcGkr68x/tCMk/rwxftljQhvXPQfc7Lxm/m61ELnC7rLJulhxWZLNIq1hwQ9nh0GMKb4hm0KmPn8ksccVL+wyDikkgXCuvIujhTBjhNivAe4mG8mqnNsW1Ugh++SUe1ld27TtbH7wQj02SSG4Bxfwc3Gz0GFdAL1GyOkWI2WvrqP4a0KYTRUo+pUr9E+HZ1SNlxU5t6QWtmDiy5MKkxzgeTXmkKiJ98vMlF0ja5bpp46NjYarzDafqE8FozHzLtr+uAtqr6gRAgU1rWaG9BE3gKeW/f4B/2MfPI26b7SxuU1MwGVy0I76hb0Ujbgb3X8G4TYTGb6Nhoewc+RZExPwVhfrN8cJjo45masndv5tQAZMSRX/JUFjs4h/QMXNsn0A53GXgf6eIzUu15m+W8TJYFiKQeq9nMejzEE4sWMO3BFnkxueBGVCEurOc1GgdEnKxeqlp+psxHcJRlNCxC1HkUVOzfpkCr/Jy42vM8jQomAMv41Z9zWjOagVphWT25xNeSILfRt4yPku5wfW4CAxp+fl4KQ=
   include:
     - node_js: '4.4'
       env:
@@ -43,3 +48,12 @@ script:
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+
+deploy:
+  provider: npm
+  email: services@serverless.com
+  skip_cleanup: true
+  on:
+    tags: true
+  api_key:
+    secure: efq8j0dLJB5Qn2ONYNXDRVzF/tnJd1tDtR4lGKagkmcjRBhcXm4+J+Tf3/bF/N8FTUkeOISGhgdDfQusBOeGKuURSlKcVzm0hkmL0vZN+SIRGefKK6faYr5H7Nrbnmk47R5fiomet5L7bZFJFJ1MhCeBd+QEaIwzFQdefsOZGu6eyElAI6tEPI1HdPE/SdLc9y6R5DRt5XMU5Qv/FJBG12nfJZO5hE1UcERv1f1gEEhM19Qcr4x1mkm/f0cd/nkOAnsEemh9PhpjrzdyeufeZeNDZDw1l2+TS9h6eIrfJkIH+xGrygmstIQYPt30HUqMOCjfa5udB7H0aJwI7R4bt8QAP+zrBjpeFxiK29QTjkvfFf7EXAGPvF5fpbR0VGR59O85Qa/Z3wWbNIxbp+874DHmRGArKEaF2RcNzNpZ4lrZrTznYG1eGacbN0DR8dKLE9v+y2zoddP3ArfALeMVte6Hj8wuS4TYR8SN6R88/bOmGTp1/klojIIFvZvU9XIQUzg99uGWVLfjvQhbRFLASFMhvOI/9CtgXux4LnXMbSKy9X6N+NLIto6/t0hr+GEILiZaXUQ3KrKWbDIIaUeM04EYTMK/RUazDWotpJ34pt5Xv+EssKzNO46hOht3soou0/SGwEYwz21ZubGUzjh8fz//68lhcL/uynLcadBDvmo=
