@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Plugin Install
 menuText: Plugin Install
-menuOrder: 14
+menuOrder: 16
 description: Install a Serverless plugin
 layout: Doc
 -->

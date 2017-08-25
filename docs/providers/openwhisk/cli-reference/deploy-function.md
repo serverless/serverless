@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Deploy Function
 menuText: deploy function
-menuOrder: 5
+menuOrder: 7
 description: Deploy your Apache OpenWhisk functions quickly
 layout: Doc
 -->

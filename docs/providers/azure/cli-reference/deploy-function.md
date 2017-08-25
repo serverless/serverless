@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Deploy Function
 menuText: deploy function
-menuOrder: 4
+menuOrder: 6
 description: Deploy your Azure Functions functions quickly
 layout: Doc
 -->

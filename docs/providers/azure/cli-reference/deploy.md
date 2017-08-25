@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Deploy
 menuText: deploy
-menuOrder: 3
+menuOrder: 5
 description: Deploy your service to the specified provider
 layout: Doc
 -->

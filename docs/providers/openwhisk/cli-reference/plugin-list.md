@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Plugin List
 menuText: Plugin List
-menuOrder: 12
+menuOrder: 14
 description: List all available Serverless plugins
 layout: Doc
 -->

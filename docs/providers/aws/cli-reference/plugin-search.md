@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Plugin Search
 menuText: Plugin Search
-menuOrder: 18
+menuOrder: 20
 description: Search through all available Serverless plugins
 layout: Doc
 -->

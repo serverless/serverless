@@ -1,13 +1,13 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Plugin Uninstall
+title: Serverless Framework Commands - AWS Lambda - Uninstall Plugin
 menuText: Plugin Uninstall
-menuOrder: 14
+menuOrder: 5
 description: Uninstall a Serverless plugin
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/plugin-uninstall)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/uninstall-plugin)
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Uninstall
@@ -15,19 +15,19 @@ layout: Doc
 Uninstall a Serverless plugin and remove it from the services `plugins` array.
 
 ```bash
-serverless plugin uninstall --name pluginName
+serverless uninstall plugin --name pluginName
 ```
 
 ## Options
 - `--name` or `-n` The plugins name. **Required**.
 
 ## Provided lifecycle events
-- `plugin:uninstall:uninstall`
+- `uninstall:plugin:plugin`
 
 ## Examples
 
 ### Remove the `serverless-kubeless` plugin
 
 ```bash
-serverless plugin uninstall --name serverless-kubeless
+serverless uninstall plugin --name serverless-kubeless
 ```

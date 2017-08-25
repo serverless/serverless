@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Logs
 menuText: logs
-menuOrder: 10
+menuOrder: 12
 description: View logs of your AWS Lambda Function within your terminal using the Serverless Framework
 layout: Doc
 -->

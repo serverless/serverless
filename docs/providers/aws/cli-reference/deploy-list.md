@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy List
 menuText: deploy list
-menuOrder: 7
+menuOrder: 9
 description: List your previous CloudFormation deployments
 layout: Doc
 -->

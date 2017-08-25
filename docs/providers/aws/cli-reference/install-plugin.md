@@ -1,35 +1,36 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Plugin Install
-menuText: Plugin Install
-menuOrder: 14
+title: Serverless Framework Commands - AWS Lambda - Install Plugin
+menuText: Install Plugin
+menuOrder: 4
 description: Install a Serverless plugin
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/plugin-install)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/install-plugin)
 <!-- DOCS-SITE-LINK:END -->
 
-# Plugin Install
+# Install Plugin
 
 Install a Serverless plugin and add it to the services `plugins` array.
 
 **Note:** You might want to change the order of the plugin in the services `plugins` array.
 
 ```bash
-serverless plugin install --name pluginName
+serverless install plugin --name pluginName
 ```
 
 ## Options
 - `--name` or `-n` The plugins name. **Required**.
+- `--version` or `-v` The plugins version.
 
 ## Provided lifecycle events
-- `plugin:install:install`
+- `install:plugin:plugin`
 
 ## Examples
 
 ### Install the `serverless-kubeless` plugin
 
 ```bash
-serverless plugin install --name serverless-kubeless
+serverless install plugin --name serverless-kubeless
 ```

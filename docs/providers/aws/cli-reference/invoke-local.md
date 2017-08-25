@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Invoke Local
 menuText: invoke local
-menuOrder: 9
+menuOrder: 11
 description: Emulate an invocation of your AWS Lambda function locally using the Serverless Framework
 layout: Doc
 -->

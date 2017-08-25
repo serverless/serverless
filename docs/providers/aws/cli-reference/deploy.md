@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Deploy
 menuText: deploy
-menuOrder: 5
+menuOrder: 7
 description: Deploy your service to the specified provider
 layout: Doc
 -->

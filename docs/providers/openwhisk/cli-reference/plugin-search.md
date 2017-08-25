@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Plugin Search
 menuText: Plugin Search
-menuOrder: 13
+menuOrder: 15
 description: Search through all available Serverless plugins
 layout: Doc
 -->

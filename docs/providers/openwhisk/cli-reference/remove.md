@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Remove
 menuText: remove
-menuOrder: 11
+menuOrder: 13
 description: Remove a deployed Service and all of its Apache OpenWhisk Functions, Events and Resources
 layout: Doc
 -->

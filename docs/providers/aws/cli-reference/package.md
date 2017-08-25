@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Package
 menuText: package
-menuOrder: 4
+menuOrder: 6
 description: Package your service according to a specified provider
 layout: Doc
 -->

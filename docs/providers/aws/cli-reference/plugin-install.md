@@ -22,6 +22,7 @@ serverless plugin install --name pluginName
 
 ## Options
 - `--name` or `-n` The plugins name. **Required**.
+- `--version` or `-v` The plugins version.
 
 ## Provided lifecycle events
 - `plugin:install:install`

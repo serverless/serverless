@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Package
 menuText: package
-menuOrder: 3
+menuOrder: 5
 description: Package your service according to a specified provider
 layout: Doc
 -->

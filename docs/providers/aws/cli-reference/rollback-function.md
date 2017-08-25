@@ -1,7 +1,7 @@
 <!--
 title: Serverless Rollback Function CLI Command
 menuText: rollback function
-menuOrder: 15
+menuOrder: 17
 description: Rollback a function to a specific version
 layout: Doc
 -->
