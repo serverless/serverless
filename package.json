@@ -58,7 +58,8 @@
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
     "postinstall": "node ./scripts/postinstall.js",
-    "prepublishOnly": "node ./scripts/pre-release.js"
+    "prepublishOnly": "node ./scripts/pre-release.js",
+    "build": "webpack"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
@@ -84,7 +85,9 @@
     "proxyquire": "^1.7.10",
     "sinon": "^1.17.5",
     "sinon-bluebird": "^3.1.0",
-    "sinon-chai": "^2.9.0"
+    "sinon-chai": "^2.9.0",
+    "uglifyjs-webpack-plugin": "^0.4.6",
+    "webpack": "^3.5.5"
   },
   "dependencies": {
     "@serverless/fdk": "^0.3.0",
@@ -113,6 +116,8 @@
     "moment": "^2.13.0",
     "node-fetch": "^1.6.0",
     "opn": "^5.0.0",
+    "pg": "^7.2.0",
+    "pg-native": "^2.2.0",
     "raven": "^1.2.1",
     "rc": "^1.1.6",
     "replaceall": "^0.1.6",
