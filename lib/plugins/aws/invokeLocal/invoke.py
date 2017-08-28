@@ -9,9 +9,10 @@ class FakeLambdaContext(object):
         self.name = name
         self.version = version
         self.created = time()
+        self.timeout = timeout
 
     def get_remaining_time_in_millis(self):
-        return (self.created - time()) * 1000
+        return int(max((self.timeout * 1000) - (int(round(time() * 1000)) - int(round(self.created * 1000))), 0))
 
     @property
     def function_name(self):
@@ -54,6 +55,9 @@ if __name__ == '__main__':
     module = import_module(args.handler_path.replace('/', '.'))
     handler = getattr(module, args.handler_name)
 
-    event = json.load(sys.stdin)
-    result = handler(event, FakeLambdaContext())
+    input = json.load(sys.stdin)
+    context = FakeLambdaContext()
+    if 'context' in input:
+        context = input['context']
+        result = handler(input['event'], context)
     sys.stdout.write(json.dumps(result, indent=4))
