@@ -17,6 +17,8 @@ First things first, let's get the Serverless framework installed on your machine
 ```bash
 # Installing the serverless cli
 npm install -g serverless
+# Login to the serverless platform (optional)
+serverless login
 ```
 
 *Serverless follows the [Semantic Versioning](http://semver.org) schema. You can read more about that in our dedicated [versioning file](https://github.com/serverless/serverless/blob/master/VERSIONING.md).*
