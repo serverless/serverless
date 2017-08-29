@@ -132,7 +132,7 @@ The AWS region setting is to prevent issues with specific services, so adapt if 
 
 ##### Using the `aws-profile` option
 
-You can always speficy the profile which should be used via the `aws-profile` option like this:
+You can always specify the profile which should be used via the `aws-profile` option like this:
 
 ```bash
 serverless deploy --aws-profile devProfile

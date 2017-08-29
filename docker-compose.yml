@@ -51,7 +51,23 @@ services:
     image: microsoft/dotnet:1.0.4-sdk
     volumes:
       - ./tmp/serverless-integration-test-aws-fsharp:/app
+  aws-nodejs-typescript:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-nodejs-typescript:/app
+  aws-nodejs-ecma-script:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-nodejs-ecma-script:/app
   google-nodejs:
     image: node:6.9.1
     volumes:
       - ./tmp/serverless-integration-test-google-nodejs:/app
+  spotinst-nodejs:
+    image: node:4.8
+    volumes:
+      - ./tmp/serverless-integration-test-spotinst-nodejs:/app
+  spotinst-python:
+    image: python2.7
+    volumes:
+      - ./tmp/serverless-integration-test-spotinst-python:/app

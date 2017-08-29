@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.19.0",
+  "version": "1.20.2",
   "engines": {
     "node": ">=4.0"
   },
@@ -51,7 +51,8 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test": "istanbul cover -x '**/*.test.js' node_modules/mocha/bin/_mocha '!(node_modules)/**/*.test.js' -- --require=sinon-bluebird -R spec --recursive",
+    "test-bare": "env FORCE_COLOR=0 node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" --require=sinon-bluebird -R spec --recursive --no-exit",
+    "test": "env FORCE_COLOR=0 istanbul cover -x \"**/*.test.js\" node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" -- --require=sinon-bluebird -R spec --recursive",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
@@ -86,22 +87,24 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/fdk": "^0.3.0",
+    "@serverless/fdk": "^0.5.1",
     "apollo-client": "^1.4.2",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.7.13",
     "bluebird": "^3.4.0",
-    "chalk": "^1.1.1",
+    "chalk": "^2.0.0",
     "ci-info": "^1.0.0",
     "download": "^5.0.2",
     "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
     "get-stdin": "^5.0.1",
     "globby": "^6.1.0",
+    "graceful-fs": "^4.1.11",
     "graphql": "^0.10.1",
     "graphql-tag": "^2.4.0",
     "https-proxy-agent": "^1.0.0",
+    "is-docker": "^1.1.0",
     "js-yaml": "^3.6.1",
     "json-refs": "^2.1.5",
     "jwt-decode": "^2.2.0",
