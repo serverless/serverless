@@ -47,7 +47,7 @@ serverless logs -f hello
 
 - `--filter` You can specify a filter string to filter the log output. This is useful if you want to to get the `error` logs for example.
 - `--tail` or `-t` You can optionally tail the logs and keep listening for new logs in your terminal session by passing this option.
-- `--interval` or `-i` If you choose to tail the output, you can control the interval at which the framework polls the logs with this option. The default is `1000`ms.
+- `--count` or `-n` You can print the last N lines of the log.
 
 ## Examples
 

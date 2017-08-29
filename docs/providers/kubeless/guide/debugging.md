@@ -104,20 +104,10 @@ Serverless: Calling function: bikesearch...
      Serverless Version:     1.20.2
 ```
 
-Serverless returned an error message with a 500 server code, which is what you would expect from a web framework. However, it would be useful to see Python stack trace to better debug the source of the error. To achieve this, first find the container where the function is running using *kubectl*:
+Serverless returned an error message with a 500 server code, which is what you would expect from a web framework. However, it would be useful to see Python stack trace to better debug the source of the error. This can be done using the `logs` feature in `serverless`:
 
 ```
-kubectl get pods
-
-# Output
-NAME                          READY     STATUS             RESTARTS   AGE
-bikesearch-3894699941-mbt2t   1/1       Running            1          2d
-```
-
-Once the name of the container is known, use *kubectl logs* to check the logs:
-
-```
-kubectl logs bikesearch-3894699941-mbt2t
+serverless logs -f bikesearch
 
 # Output
 Bottle v0.12.13 server starting up (using CherryPyServer())...

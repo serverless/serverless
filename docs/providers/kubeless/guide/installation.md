@@ -16,57 +16,7 @@ layout: Doc
 
 Kubeless runs on [Kubernetes](https://kubernetes.io), you need a working Kubernetes cluster to run kubeless. For testing you can use [minikube](https://github.com/kubernetes/minikube).
 
-You should deploy Kubeless in your cluster using one of YAML manifests found in the release package. It will create a *kubeless* Namespace and a *function* ThirdPartyResource. You will see a *kubeless* Controller, and *kafka*, *zookeeper* StatefulSet running.
-
-There are several kubeless manifests being shipped for multiple k8s environments (non-rbac and rbac), please consider to pick up the correct one:
-
-* *kubeless-$RELEASE.yaml* is used for non-RBAC Kubernetes cluster.
-* *kubeless-rbac-$RELEASE.yaml* is used for RBAC-enabled Kubernetes cluster.
-
-For example, this below is a show case of deploying kubeless to a non-RBAC Kubernetes cluster.
-
-	$ export RELEASE=0.0.20
-	$ kubectl create ns kubeless
-	$ kubectl create -f https://github.com/kubeless/kubeless/releases/download/$RELEASE/kubeless-$RELEASE.yaml
-	
-	$ kubectl get pods -n kubeless
-	NAME                                   READY     STATUS    RESTARTS   AGE
-	kafka-0                                1/1       Running   0          1m
-	kubeless-controller-3331951411-d60km   1/1       Running   0          1m
-	zoo-0                                  1/1       Running   0          1m
-	
-	$ kubectl get deployment -n kubeless
-	NAME                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-	kubeless-controller   1         1         1            1           1m
-	
-	$ kubectl get statefulset -n kubeless
-	NAME      DESIRED   CURRENT   AGE
-	kafka     1         1         1m
-	zoo       1         1         1m
-	
-	$ kubectl get thirdpartyresource
-	NAME             DESCRIPTION                                     VERSION(S)
-	function.k8s.io   Kubeless: Serverless framework for Kubernetes   v1
-	
-	$ kubectl get functions
-
-## Installing the Kubeless CLI (optional)
-
-You can optionally install the Kubeless CLI tool.
-
-On Linux, use these commands to install Kubeless CLI in your system:
-
-    $ curl -L https://github.com/kubeless/kubeless/releases/download/0.0.20/kubeless_linux-amd64.zip > kubeless.zip
-    $ unzip kubeless.zip
-    $ sudo cp bundles/kubeless_linux-amd64/kubeless /usr/local/bin/
-
-On Mac OS X, use these commands to install Kubeless CLI in your system:
-
-    $ curl -L https://github.com/kubeless/kubeless/releases/download/0.0.20/kubeless_darwin-amd64.zip > kubeless.zip
-    $ unzip kubeless.zip
-    $ sudo cp bundles/kubeless_darwin-amd64/kubeless /usr/local/bin/
-
-| TIP: For detailed installation instructions, visit the [Kubeless releases page](https://github.com/bitnami/kubeless/releases).
+Once you have a working Kubernetes cluster, you need to install the Kubeless Controller in it. To do this, follow the [installation instructions in the Kubeless README.md file](https://github.com/kubeless/kubeless#installation).
 
 ## Installing Node.js
 
@@ -100,10 +50,3 @@ To see which version of serverless you have installed run:
 serverless --version
 ```
 
-## Installing Kubeless Provider Plugin
-
-Now we need to install the provider plugin to allow the framework to deploy services to the platform. This plugin is also [published](http://npmjs.com/package/serverless-kubeless) on [npm](https://npmjs.org) and can installed using the same `npm install` command.
-
-```
-npm install -g serverless-kubeless
-```
