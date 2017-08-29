@@ -78,7 +78,7 @@ This deployment method does not touch your AWS CloudFormation Stack.  Instead, i
 serverless deploy function --function myFunction
 ```
 
-**Note:** You can always enforce a deployment using the `--force` option.
+**Note:** You can always enforce a deployment using the `--force` option or `--update-config` to change function configuration.
 
 ### How It Works
 
