@@ -75,6 +75,8 @@ serverless invoke local --function functionName --path lib/data.json
 
 This example will pass the json data in the `lib/data.json` file (relative to the root of the service) while invoking the specified/deployed function.
 
+For more information [lambda-input-format](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-set-up-simple-proxy.html#api-gateway-simple-proxy-for-lambda-input-format)
+
 ### Example `data.json`
 
 ```json
