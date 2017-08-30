@@ -1,7 +1,7 @@
+# Implement your function here.
+# The function will get the request as parameter.
+# The function should return an object
 
- # Implement your function here.
- # The function will get the request as parameter.
- # The function should return an object
 
 def main(args):
     queryparams = args.get("query", {})
