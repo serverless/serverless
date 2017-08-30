@@ -8,6 +8,7 @@ menuItems:
   - {menuText: Azure, path: /framework/docs/providers/azure/}
   - {menuText: Google, path: /framework/docs/providers/google/}
   - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
+  - {menuText: Kubeless, path: /framework/docs/providers/kubeless/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
