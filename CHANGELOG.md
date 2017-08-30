@@ -1,3 +1,22 @@
+# 1.21.0 (30.08.2017)
+- [Allow custom CLI class instances](https://github.com/serverless/serverless/pull/4160)
+- [Add support in Spotinst Functions](https://github.com/serverless/serverless/pull/4127)
+- [Add PHP support for OpenWhisk](https://github.com/serverless/serverless/pull/4153)
+- [Fixed a bug with stack deletion monitoring](https://github.com/serverless/serverless/pull/4132)
+- [Allow AWS Profile CLI option to overwrite config and env](https://github.com/serverless/serverless/pull/3980)
+- [Improve performance of the package plugin](https://github.com/serverless/serverless/pull/3924)
+- [Add support for custom context with Invoke Local](https://github.com/serverless/serverless/pull/4126)
+- [Add aws-nodejs-typescript template](https://github.com/serverless/serverless/pull/4058)
+- [Add aws-nodejs-ecma-script template](https://github.com/serverless/serverless/pull/4056)
+- [Allow updates for AWS profiles](https://github.com/serverless/serverless/pull/3866)
+- [Allow updates for AWS profiles](https://github.com/serverless/serverless/pull/3866)
+- [Fixed a bug in Invoke Local when using Python in Windows](https://github.com/serverless/serverless/pull/3832)
+- [Fixed a bug with the Variable System overwrites](https://github.com/serverless/serverless/pull/4097)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.2...v1.21.0)
+
+
 # 1.20.2 (17.08.2017)
 - [Bump event-gateway version to 0.5.15](https://github.com/serverless/serverless/pull/4116)
 
