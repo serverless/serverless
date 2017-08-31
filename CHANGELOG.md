@@ -9,7 +9,6 @@
 - [Add aws-nodejs-typescript template](https://github.com/serverless/serverless/pull/4058)
 - [Add aws-nodejs-ecma-script template](https://github.com/serverless/serverless/pull/4056)
 - [Allow updates for AWS profiles](https://github.com/serverless/serverless/pull/3866)
-- [Allow updates for AWS profiles](https://github.com/serverless/serverless/pull/3866)
 - [Fixed a bug in Invoke Local when using Python in Windows](https://github.com/serverless/serverless/pull/3832)
 - [Fixed a bug with the Variable System overwrites](https://github.com/serverless/serverless/pull/4097)
 
