@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.20.2",
+  "version": "1.21.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -51,6 +51,7 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
+    "test-bare": "env FORCE_COLOR=0 node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" --require=sinon-bluebird -R spec --recursive --no-exit",
     "test": "env FORCE_COLOR=0 istanbul cover -x \"**/*.test.js\" node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" -- --require=sinon-bluebird -R spec --recursive",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
@@ -86,7 +87,7 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/fdk": "^0.3.0",
+    "@serverless/fdk": "^0.5.1",
     "apollo-client": "^1.4.2",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
@@ -99,6 +100,7 @@
     "fs-extra": "^0.26.7",
     "get-stdin": "^5.0.1",
     "globby": "^6.1.0",
+    "graceful-fs": "^4.1.11",
     "graphql": "^0.10.1",
     "graphql-tag": "^2.4.0",
     "https-proxy-agent": "^1.0.0",

@@ -42,6 +42,7 @@ Most commonly used templates:
 
 - openwhisk-nodejs
 - openwhisk-python
+- openwhisk-php
 - openwhisk-swift
 - plugin
 

@@ -17,6 +17,8 @@ First things first, let's get the Serverless framework installed on your machine
 ```bash
 # Installing the serverless cli
 npm install -g serverless
+# Login to the serverless platform (optional)
+serverless login
 ```
 
 *Serverless follows the [Semantic Versioning](http://semver.org) schema. You can read more about that in our dedicated [versioning file](https://github.com/serverless/serverless/blob/master/VERSIONING.md).*
@@ -62,6 +64,16 @@ npm install -g serverless
     </div>
     <div style="text-align:center;">
       <a href="/framework/docs/providers/google/guide/quick-start">Google Cloud Functions<br/>Quick Start Guide</a>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="/framework/docs/providers/kubeless/guide/quick-start">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless-logos-black.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="/framework/docs/providers/kubeless/guide/quick-start">Kubeless<br/>Quick Start Guide</a>
     </div>
   </div>
 </div>
