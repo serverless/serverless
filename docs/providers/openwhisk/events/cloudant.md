@@ -67,6 +67,28 @@ functions:
                 db: db_name               
 ```
 
+### Adding Optional Parameters
+
+The following optional feed parameters are also supported:
+
+- `max` - Maximum number of triggers to fire. Defaults to infinite.
+- `filter` - Filter function defined on a design document.
+- `query` - Optional query parameters for the filter function. 
+
+```yaml
+# serverless.yaml
+functions:
+    index:
+        handler: users.main
+        events:
+            - cloudant: 
+                ...
+                max: 10000 
+                query: 
+                   status: new
+                filter: mailbox/by_status
+```
+
 ### Binding Multiple Functions
 
 Other functions can bind to the same database event being fired using the inline `trigger` event and referencing this trigger name.
