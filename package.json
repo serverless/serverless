@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.20.2",
+  "version": "1.21.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -87,7 +87,7 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/fdk": "^0.3.0",
+    "@serverless/fdk": "^0.5.1",
     "apollo-client": "^1.4.2",
     "archiver": "^1.1.0",
     "async": "^1.5.2",

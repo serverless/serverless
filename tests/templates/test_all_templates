@@ -20,3 +20,5 @@ integration-test aws-python3
 integration-test aws-nodejs-typescript
 integration-test aws-nodejs-ecma-script
 integration-test google-nodejs
+integration-test spotinst-nodejs
+integration-test spotinst-python
