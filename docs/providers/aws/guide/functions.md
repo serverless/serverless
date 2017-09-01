@@ -325,7 +325,7 @@ provider:
 functions:
   hello:
     handler: handler.hello
-    onError: arn:aws:sns:us-east-1:XXXXXX:test
+    onError: arn:aws:sns:us-east-1:XXXXXX:test # Ref and Fn::ImportValue are supported as well
 ```
 
 ### DLQ with SQS
