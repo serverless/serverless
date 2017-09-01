@@ -13,6 +13,7 @@ menuItems:
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Webtasks" , path: /framework/docs/providers/webtasks/}
+  - {menuText: "- Alibaba Cloud" , path: /framework/docs/providers/aliyun/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -148,12 +149,26 @@ Already using AWS or another cloud provider? Read on.
         <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
       </a>
     </div>
+    <div class="docsSectionHeader">
+      <a href="./providers/aliyun/">
+        <!-- TODO: update image link -->
+        <img src="http://docs.alibabagroup.com/assets2/images/en/news/library_logos_aliyun_large.png" width="250" draggable="false"/>
+      </a>
+    </div>
     <div>
       <ul>
         <li><a href="./providers/fn/guide/quick-start">Fn QuickStart</a></li>
         <li><a href="./providers/fn/guide">Guide</a></li>
         <li><a href="./providers/fn/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/fn/events">Events</a></li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/aliyun/guide/quick-start">Alibaba Cloud QuickStart</a></li>
+        <li><a href="./providers/aliyun/guide">Guide</a></li>
+        <li><a href="./providers/aliyun/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/aliyun/events">Events</a></li>
       </ul>
     </div>
   </div>
