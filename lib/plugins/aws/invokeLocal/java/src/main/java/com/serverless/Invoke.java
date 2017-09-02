@@ -1,15 +1,17 @@
+package com.serverless;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.Class;
-import java.lang.reflect.Type;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.MalformedURLException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Map;
-import java.io.BufferedReader;
 
 public class Invoke {
   private File artifact;
@@ -17,19 +19,16 @@ public class Invoke {
   private Object instance;
   private Class clazz;
 
-  public Invoke() {
+  private Invoke() {
     this.artifact = new File(new File("."), System.getProperty("artifactPath"));
     this.className = System.getProperty("className");
 
     try {
-      HashMap<String, Object> parsedInput = new HashMap<>();
-      String input = getInput();
-
-      // parsedInput = this.parseInput(input); - should parse String -> Json -> Map<String, Object>
-      // Context - no ideas...
+      HashMap<String, Object> parsedInput = parseInput(getInput());
+      System.out.println(getInput());
 
       this.instance = this.getInstance();
-      this.invoke(new HashMap<String, Object>(), null);
+      System.out.println(this.invoke(parsedInput, new Context()));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -44,10 +43,19 @@ public class Invoke {
     return this.clazz.newInstance();
   }
 
-  private Object invoke(HashMap<String, Object> event, Object context) throws Exception {
+  private Object invoke(HashMap<String, Object> event, Context context) throws Exception {
     Method[] methods = this.clazz.getDeclaredMethods();
 
     return methods[1].invoke(this.instance, event, context);
+  }
+
+  private HashMap<String, Object> parseInput(String input) throws IOException {
+    TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+    ObjectMapper mapper = new ObjectMapper();
+
+    JsonNode jsonNode = mapper.readTree(input);
+
+    return mapper.convertValue(jsonNode, typeRef);
   }
 
   private String getInput() throws IOException {
