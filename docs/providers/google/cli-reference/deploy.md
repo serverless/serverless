@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Deploy
 menuText: deploy
-menuOrder: 6
+menuOrder: 4
 description: Deploy your service to the specified provider
 layout: Doc
 -->

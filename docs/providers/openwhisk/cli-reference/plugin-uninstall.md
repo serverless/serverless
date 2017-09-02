@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Plugin Uninstall
 menuText: Plugin Uninstall
-menuOrder: 17
+menuOrder: 15
 description: Uninstall a Serverless plugin
 layout: Doc
 -->

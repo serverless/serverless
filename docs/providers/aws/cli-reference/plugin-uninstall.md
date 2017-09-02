@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Plugin Uninstall
 menuText: Plugin Uninstall
-menuOrder: 22
+menuOrder: 20
 description: Uninstall a Serverless plugin
 layout: Doc
 -->

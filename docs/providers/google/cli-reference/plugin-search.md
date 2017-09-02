@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Plugin Search
 menuText: Plugin Search
-menuOrder: 13
+menuOrder: 11
 description: Search through all available Serverless plugins
 layout: Doc
 -->

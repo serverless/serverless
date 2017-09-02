@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Deploy
 menuText: deploy
-menuOrder: 6
+menuOrder: 4
 description: Deploy your service to the specified provider
 layout: Doc
 -->

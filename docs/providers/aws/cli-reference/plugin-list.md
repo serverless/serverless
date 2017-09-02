@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Plugin List
 menuText: Plugin List
-menuOrder: 19
+menuOrder: 17
 description: List all available Serverless plugins
 layout: Doc
 -->

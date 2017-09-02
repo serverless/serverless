@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Plugin Install
 menuText: Plugin Install
-menuOrder: 13
+menuOrder: 11
 description: Install a Serverless plugin
 layout: Doc
 -->

@@ -1,7 +1,7 @@
 <!--
 title: Google Cloud Functions Serverless info command
 menuText: info
-menuOrder: 7
+menuOrder: 5
 description: Get information about your deployed service
 layout: Doc
 -->

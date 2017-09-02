@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Google Cloud Functions - Plugin List
 menuText: Plugin List
-menuOrder: 12
+menuOrder: 10
 description: List all available Serverless plugins
 layout: Doc
 -->

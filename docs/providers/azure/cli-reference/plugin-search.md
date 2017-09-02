@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Plugin Search
 menuText: Plugin Search
-menuOrder: 12
+menuOrder: 10
 description: Search through all available Serverless plugins
 layout: Doc
 -->
