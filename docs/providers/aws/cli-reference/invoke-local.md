@@ -18,6 +18,8 @@ This runs your code locally by emulating the AWS Lambda environment. Please keep
 serverless invoke local --function functionName
 ```
 
+**Note:** Please refer to [this guide](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-set-up-simple-proxy.html#api-gateway-simple-proxy-for-lambda-input-format) for event data passing when your function uses the `http` event with a Lambda Proxy integration.
+
 ## Options
 
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
@@ -54,13 +56,6 @@ serverless invoke local --function functionName --data "hello world"
 serverless invoke local --function functionName --data '{"a":"bar"}'
 ```
 
-### Local function invocation with custom context
-
-```bash
-serverless invoke local --function functionName --context "hello world"
-```
-
-
 ### Local function invocation with data from standard input
 
 ```bash
@@ -86,7 +81,14 @@ This example will pass the json data in the `lib/data.json` file (relative to th
 }
 ```
 
+### Local function invocation with custom context
+
+```bash
+serverless invoke local --function functionName --context "hello world"
+```
+
 ### Local function invocation with context passing
+
 ```bash
 serverless invoke local --function functionName --contextPath lib/context.json
 ```

@@ -16,7 +16,7 @@ The Serverless Framework helps you develop and deploy serverless applications us
 
 The Serverless Framework is different than other application frameworks because:
 * It manages your code as well as your infrastructure
-* It supports multiple languages (Node.js, Python, Java, and more)
+* It supports multiple languages (Node.js, Python, PHP, Swift, Java, and more)
 
 ## Core Concepts
 

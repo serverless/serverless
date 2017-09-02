@@ -112,7 +112,7 @@ functions:
 ```
 In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
 
-## Referencing S3 Options
+## Referencing S3 Objects
 You can reference S3 values as the source of your variables to use in your service with the `s3:bucketName/key` syntax. For example:
 ```yml
 service: new-service
@@ -330,7 +330,7 @@ service: new-service
 provider:
   name: aws
   runtime: nodejs6.10
-  variableSyntax: "\\${([ ~:a-zA-Z0-9._\'\",\\-\\/\\(\\)]+?)}" # notice the double quotes for yaml to ignore the escape characters!
+  variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
 
 custom:
   myStage: ${{opt:stage}}
