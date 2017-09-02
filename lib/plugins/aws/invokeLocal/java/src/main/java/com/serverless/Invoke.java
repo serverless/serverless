@@ -25,7 +25,6 @@ public class Invoke {
 
     try {
       HashMap<String, Object> parsedInput = parseInput(getInput());
-      System.out.println(getInput());
 
       this.instance = this.getInstance();
       System.out.println(this.invoke(parsedInput, new Context()));
