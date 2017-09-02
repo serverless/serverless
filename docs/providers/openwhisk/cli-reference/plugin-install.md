@@ -28,8 +28,8 @@ serverless plugin install --name pluginName
 
 ## Examples
 
-### Install the `serverless-kubeless` plugin
+### Install the `serverless-webpack` plugin
 
 ```bash
-serverless plugin install --name serverless-kubeless
+serverless plugin install --name serverless-webpack
 ```

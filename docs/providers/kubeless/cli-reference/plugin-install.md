@@ -1,13 +1,13 @@
 <!--
-title: Serverless Framework Commands - Azure Functions - Plugin Install
+title: Serverless Framework Commands - Kubeless - Plugin Install
 menuText: Plugin Install
-menuOrder: 11
+menuOrder: 9
 description: Install a Serverless plugin
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/plugin-install)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/plugin-install)
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Install

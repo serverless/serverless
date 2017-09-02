@@ -1,13 +1,13 @@
 <!--
-title: Serverless Framework Commands - Google Cloud Functions - Plugin Uninstall
+title: Serverless Framework Commands - Kubeless - Plugin Uninstall
 menuText: Plugin Uninstall
-menuOrder: 12
+menuOrder: 10
 description: Uninstall a Serverless plugin
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/plugin-uninstall)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/plugin-uninstall)
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Uninstall

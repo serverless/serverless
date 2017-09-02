@@ -26,8 +26,8 @@ serverless plugin uninstall --name pluginName
 
 ## Examples
 
-### Remove the `serverless-kubeless` plugin
+### Remove the `serverless-webpack` plugin
 
 ```bash
-serverless plugin uninstall --name serverless-kubeless
+serverless plugin uninstall --name serverless-webpack
 ```
