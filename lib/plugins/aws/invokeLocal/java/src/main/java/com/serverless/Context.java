@@ -10,11 +10,13 @@ import java.util.Map;
 public class Context implements com.amazonaws.services.lambda.runtime.Context {
   private String name;
   private String version;
+  private String logGroupName;
   private long endTime;
 
-  Context(String name, String version, int timeout) {
+  Context(String name, String version, String logGroupName, int timeout) {
     this.name = name;
     this.version = version;
+    this.logGroupName = logGroupName;
     this.endTime = System.currentTimeMillis() + (timeout * 1000);
   }
 
@@ -23,7 +25,7 @@ public class Context implements com.amazonaws.services.lambda.runtime.Context {
   }
 
   public String getLogGroupName() {
-    return "LogGroup_" + this.name;
+    return this.logGroupName;
   }
 
   public String getLogStreamName() {

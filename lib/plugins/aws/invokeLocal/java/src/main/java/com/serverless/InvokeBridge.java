@@ -38,11 +38,12 @@ public class InvokeBridge {
   private Context getContext(HashMap<String, Object> parsedInput) {
     HashMap<String, Object> contextMap = (HashMap<String, Object>) parsedInput.get("context");
 
-    String name = (String) contextMap.getOrDefault("name", "name");
+    String name = (String) contextMap.getOrDefault("name", "functionName");
     String version = (String) contextMap.getOrDefault("version", "LATEST");
+    String logGroupName = (String) contextMap.getOrDefault("logGroupName", "logGroup");
     int timeout = Integer.parseInt(String.valueOf(contextMap.getOrDefault("timeout", 5)));
 
-    return new Context(name, version, timeout);
+    return new Context(name, version, logGroupName, timeout);
   }
 
   private Object getInstance() throws Exception {
