@@ -13,24 +13,36 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 
-public class Invoke {
+public class InvokeBridge {
   private File artifact;
   private String className;
   private Object instance;
   private Class clazz;
 
-  private Invoke() {
+  private InvokeBridge() {
     this.artifact = new File(new File("."), System.getProperty("artifactPath"));
     this.className = System.getProperty("className");
 
     try {
       HashMap<String, Object> parsedInput = parseInput(getInput());
+      HashMap<String, Object> eventMap = (HashMap<String, Object>) parsedInput.get("event");
 
       this.instance = this.getInstance();
-      System.out.println(this.invoke(parsedInput, new Context()));
+
+      System.out.println(this.invoke(eventMap, this.getContext(parsedInput)).toString());
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  private Context getContext(HashMap<String, Object> parsedInput) {
+    HashMap<String, Object> contextMap = (HashMap<String, Object>) parsedInput.get("context");
+
+    String name = (String) contextMap.getOrDefault("name", "name");
+    String version = (String) contextMap.getOrDefault("version", "LATEST");
+    int timeout = Integer.parseInt(String.valueOf(contextMap.getOrDefault("timeout", 5)));
+
+    return new Context(name, version, timeout);
   }
 
   private Object getInstance() throws Exception {
@@ -70,6 +82,6 @@ public class Invoke {
   }
 
   public static void main(String[] args) {
-    new Invoke();
+    new InvokeBridge();
   }
 }
