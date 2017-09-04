@@ -24,6 +24,7 @@ The Serverless framework provides a powerful variable system which allows you to
 - Combine multiple variable references to overwrite each other
 - Define your own variable syntax if it conflicts with CF syntax
 - Reference & load variables from S3
+- Reference & load variables from SSM
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
@@ -124,7 +125,37 @@ functions:
 ```
 In the above example, the value for `myKey` in the `myBucket` S3 bucket will be looked up and used to populate the variable.
 
-## Reference Variables in other Files
+## Reference Variables using the SSM Parameter Store
+You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax. For example:
+
+```yml
+service: ${ssm:/path/to/service/id}-service
+provider:
+  name: aws
+functions:
+  hello:
+    name: ${ssm:/path/to/service/myParam}-hello
+    handler: handler.hello
+```
+
+In the above example, the value for the SSM Parameters will be looked up and used to populate the variables.
+
+You can also reference encrypted SSM Parameters, of type SecureString, using the extended syntax, `ssm:/path/to/secureparam~true`.
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: ${ssm:/path/to/secureparam~true}
+```
+
+In this example, the serverless variable will contain the decrypted value of the SecureString.
+
+## Reference Variables in Other Files
 You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
 
 ```yml
