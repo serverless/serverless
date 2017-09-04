@@ -51,8 +51,8 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test-bare": "env FORCE_COLOR=0 node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" --require=sinon-bluebird -R spec --recursive --no-exit",
-    "test": "env FORCE_COLOR=0 istanbul cover -x \"**/*.test.js\" node_modules/mocha/bin/_mocha \"!(node_modules)/**/*.test.js\" -- --require=sinon-bluebird -R spec --recursive",
+    "test-bare": "node bin/test",
+    "test": "istanbul cover -x \"**/*.test.js\" bin/test",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
@@ -91,7 +91,7 @@
     "apollo-client": "^1.4.2",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.7.13",
+    "aws-sdk": "^2.75.0",
     "bluebird": "^3.4.0",
     "chalk": "^2.0.0",
     "ci-info": "^1.0.0",
