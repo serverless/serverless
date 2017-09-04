@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+
+'use strict';
+
+process.on('unhandledRejection', err => {
+  throw err;
+});
+
+if (!process.env.FORCE_COLOR) process.env.FORCE_COLOR = '0';
+
+if (process.argv.length <= 2) {
+  process.argv.push(
+    '!(node_modules)/**/*.test.js',
+    '--require=sinon-bluebird',
+    '-R',
+    'spec',
+    '--recursive',
+    '--no-exit'
+  );
+}
+
+require('mocha/bin/_mocha');
