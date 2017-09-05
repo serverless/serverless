@@ -12,7 +12,7 @@ layout: Doc
 
 # Kubeless - Deploy
 
-The `sls deploy` command deploys your entire service via the Kubeless API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).  
+The `sls deploy` command deploys your entire service via the Kubeless API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).
 
 Use `serverless deploy function -f my-function` when you have made code changes and you want to quickly upload your updated code to your Kubernetes cluster.
 
@@ -25,8 +25,8 @@ This is the simplest deployment usage possible. With this command Serverless wil
 ## Options
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
-- `--function` or `-f` The name of the function which should be updated. 
 - `--package` or `-p` The path of a previously packaged deployment to get deployed (skips packaging step).
+- `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
 
 ## Artifacts
 
