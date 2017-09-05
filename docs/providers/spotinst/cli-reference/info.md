@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Webtasks - Info
+title: Serverless Framework Commands - Spotinst - Info
 menuText: info
 menuOrder: 12
 description: Display information about your deployed service and the Webtask Functions, Events.
