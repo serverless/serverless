@@ -1,5 +1,6 @@
 import json
 
+
 def hello(request):
     body = {
         "message": "Go Serverless v1.0! Your function executed successfully!",

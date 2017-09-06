@@ -5,11 +5,13 @@ from time import time
 from importlib import import_module
 
 class FakeLambdaContext(object):
-    def __init__(self, name='Fake', version='LATEST', timeout=6):
+    def __init__(self, name='Fake', version='LATEST', timeout=6, **kwargs):
         self.name = name
         self.version = version
         self.created = time()
         self.timeout = timeout
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def get_remaining_time_in_millis(self):
         return int(max((self.timeout * 1000) - (int(round(time() * 1000)) - int(round(self.created * 1000))), 0))
@@ -56,8 +58,6 @@ if __name__ == '__main__':
     handler = getattr(module, args.handler_name)
 
     input = json.load(sys.stdin)
-    context = FakeLambdaContext()
-    if 'context' in input:
-        context = input['context']
-        result = handler(input['event'], context)
+    context = FakeLambdaContext(**input.get('context', {}))
+    result = handler(input['event'], context)
     sys.stdout.write(json.dumps(result, indent=4))
