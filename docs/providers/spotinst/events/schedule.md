@@ -1,4 +1,3 @@
-
 <!--
 title: Serverless Framework - Spotinst Functions Events - Scheduled & Recurring
 menuText: Schedule
