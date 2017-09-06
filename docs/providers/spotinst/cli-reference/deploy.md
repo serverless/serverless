@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Spotinst Functions - Deploy
 menuText: deploy
-menuOrder: 5
+menuOrder: 3
 description: Deploy your service to the specified provider
 layout: Doc
 -->
