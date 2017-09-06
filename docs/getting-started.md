@@ -9,6 +9,7 @@ menuItems:
   - {menuText: OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
+  - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
 -->
 
 # Getting Started with Serverless
@@ -75,6 +76,16 @@ serverless login
     </div>
     <div style="text-align:center;">
       <a href="/framework/docs/providers/kubeless/guide/quick-start">Kubeless<br/>Quick Start Guide</a>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="/framework/docs/providers/spotinst/guide/quick-start">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="/framework/docs/providers/spotinst/guide/quick-start">Spotinst<br/>Quick Start Guide</a>
     </div>
   </div>
 </div>
