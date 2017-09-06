@@ -1,3 +1,10 @@
+# 1.21.1 (06.09.2017)
+- [Preserve file encoding during packaging process](https://github.com/serverless/serverless/pull/4189)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.0...v1.21.1)
+
+
 # 1.21.0 (30.08.2017)
 - [Allow custom CLI class instances](https://github.com/serverless/serverless/pull/4160)
 - [Add support in Spotinst Functions](https://github.com/serverless/serverless/pull/4127)
