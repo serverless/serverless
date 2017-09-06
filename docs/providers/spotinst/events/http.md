@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - Webtask Events - API Gateway
+title: Serverless Framework - Spotinst Events - http
 menuText: API Gateway
 menuOrder: 1
-description: Setting up http events with Webtask via the Serverless Framework
+description: Setting up http events with Spotinst via the Serverless Framework
 layout: Doc
 -->
 
