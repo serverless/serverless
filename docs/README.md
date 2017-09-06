@@ -110,7 +110,7 @@ Already using AWS or another cloud provider? Read on.
   </div>
   <div class="docsSection">
     <div class="docsSectionHeader">
-      <a href="./providers/kubeless/">
+      <a href="./providers/spotinst/">
         <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png" width="250" draggable="false"/>
       </a>
     </div>
