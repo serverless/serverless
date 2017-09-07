@@ -91,7 +91,7 @@ functions:
           inputPath: '$.stageVariables'
 ```
 
-## Specify Input or Inputpath
+## Specify Description
 
 You can specify CloudWatch Event description
 
