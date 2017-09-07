@@ -23,7 +23,7 @@ npm install -g serverless
 serverless login
 ```
 
-*Serverless follows the [Semantic Versioning](http://semver.org) schema. You can read more about that in our dedicated [versioning file](https://github.com/serverless/serverless/blob/master/VERSIONING.md).*
+*Serverless follows the [Semantic Versioning](http://semver.org) schema. You can read more about that in our dedicated [versioning file](http://bit.ly/2eP05Iw).*
 
 ## Choose your compute provider
 
