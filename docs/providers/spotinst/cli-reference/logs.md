@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Spotinst Functions - Logs
 menuText: logs
-menuOrder: 10
+menuOrder: 6
 description: View logs of your Spotinst Functions Function within your terminal using the Serverless Framework
 layout: Doc
 -->

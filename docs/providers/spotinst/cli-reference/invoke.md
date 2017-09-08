@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Spotinst Functions - Invoke
 menuText: invoke
-menuOrder: 8
+menuOrder: 5
 description: Invoke an Spotinst Functions Function using the Serverless Framework
 layout: Doc
 -->

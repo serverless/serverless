@@ -28,6 +28,10 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <li><a href="./cli-reference/logs.md">Logs</a></li>
   <li><a href="./cli-reference/info.md">Info</a></li>
   <li><a href="./cli-reference/remove.md">Remove</a></li>
+  <li><a href="./cli-reference/plugin-list.md">Plugin List</a></li>
+  <li><a href="./cli-reference/plugin-search.md">Plugin Search</a></li>
+  <li><a href="./cli-reference/plugin-install.md">Plugin Install</a></li>
+  <li><a href="./cli-reference/plugin-uninstall.md">Plugin Uninstall</a></li>
 </ul>
 
 ## Supported Events
