@@ -91,9 +91,9 @@ functions:
           inputPath: '$.stageVariables'
 ```
 
-## Specify Description
+## Specifying a Description
 
-You can specify CloudWatch Event description
+You can also specify a CloudWatch Event description.
 
 ```yml
 functions:
