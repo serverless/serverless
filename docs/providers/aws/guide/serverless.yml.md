@@ -96,6 +96,7 @@ package: # Optional deployment packaging configuration
 functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function.
+    name: ${self:provider.stage}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     runtime: nodejs6.10 # Runtime for this specific function. Overrides the default which is set on the provider level
