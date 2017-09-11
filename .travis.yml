@@ -49,6 +49,7 @@ script:
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
 
+before_deploy: "rm -rf node_modules && rm -f npm-shrinkwrap.json && npm install && npm prune && npm shrinkwrap"
 deploy:
   provider: npm
   email: services@serverless.com
