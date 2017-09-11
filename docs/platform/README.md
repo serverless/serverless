@@ -49,6 +49,13 @@ $ serverless deploy
 
 Then visit https://platform.serverless.com/ in your browser.
 
+**Note:** You can toggle auto-publishing by adding the `publish` config in `serverless.yml`:
+
+```yml
+service:
+  name: my-service
+  publish: false # disable auto-publishing
+```
 
 ## Beta CLI Commands
 
