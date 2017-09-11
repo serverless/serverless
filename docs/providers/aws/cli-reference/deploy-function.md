@@ -27,6 +27,7 @@ this command.
 - `--function` or `-f` The name of the function which should be deployed
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
+- `--update-config` or `-u` Pushes Lambda-level configuration changes e.g. timeout or memorySize
 
 ## Examples
 
@@ -40,4 +41,10 @@ serverless deploy function --function helloWorld
 
 ```bash
 serverless deploy function --function helloWorld --stage dev --region us-east-1
+```
+
+### Deployment with configuration change
+
+```bash
+serverless deploy function --function helloWorld --update-config
 ```

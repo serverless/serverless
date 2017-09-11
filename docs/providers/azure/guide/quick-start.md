@@ -88,7 +88,7 @@ Check out the [Serverless Framework Guide](./README.md) for more information.
 
 The getting started walkthrough illustrates the interactive login experience,
 which is recommended for most users. However, if you'd prefer to create an Azure
-["service principal"](https://github.com/Azure/azure-sdk-for-node/blob/master/Documentation/Authentication.md#2-azure-cli)
+["service principal"](http://bit.ly/2wLVE7k)
 yourself, you can indicate that this plugin should use its credentials instead,
 by setting the following environment variables:
 
