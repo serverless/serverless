@@ -48,4 +48,3 @@ tracking-config.json
 
 # Misc
 jest
-lib/plugins/aws/invokeLocal/java/target
