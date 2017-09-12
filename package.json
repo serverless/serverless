@@ -59,7 +59,7 @@
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
     "postinstall": "node ./scripts/postinstall.js",
-    "prepublishOnly": "./scripts/pre-release && node ./scripts/pre-release.js"
+    "prepublishOnly": "./scripts/shrinkwrap && node ./scripts/pre-release.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
