@@ -28,13 +28,10 @@ class ApiGatewayResponse(
         fun build(): ApiGatewayResponse {
             var body: String? = null
 
-            if (rawBody != null) {
-                body = rawBody as String
-            }
-            else if (objectBody != null) {
-                body = objectBody.toString()
-            } else if (binaryBody != null) {
-                body = binaryBody.toString()
+            when {
+                rawBody != null -> body = rawBody as String
+                objectBody != null -> body = objectBody.toString()
+                binaryBody != null -> body = binaryBody.toString()
             }
 
             return ApiGatewayResponse(statusCode, body, headers, base64Encoded)
