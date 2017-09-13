@@ -40,7 +40,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-kotlin-jvm-maven:/app
   aws-kotlin-node:
-    image: node:6.10.3
+    image: pgoudreau/docker-maven-node
     volumes:
       - ./tmp/serverless-integration-test-aws-kotlin-node:/app
   aws-groovy-gradle:

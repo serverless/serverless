@@ -4,18 +4,9 @@ class ApiGatewayResponse(
         val headers: dynamic,
         val isBase64Encoded: Boolean = false
 ) {
-    private constructor(builder: Builder) : this(
-            builder.statusCode,
-            builder.rawBody,
-            builder.headers,
-            builder.base64Encoded
-    )
-
     companion object {
         inline fun build(block: Builder.() -> Unit) = Builder().apply(block).build()
     }
-
-    override fun toString(): String = "body"
 
     class Builder {
         var statusCode: Int = 200

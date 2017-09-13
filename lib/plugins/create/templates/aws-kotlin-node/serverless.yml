@@ -19,7 +19,7 @@ service: aws-kotlin-node # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: node6.10
+  runtime: nodejs6.10
 
 # you can overwrite defaults here
 #  stage: dev
@@ -51,7 +51,7 @@ package:
 
 functions:
   hello:
-    handler: Handler
+    handler: build/index.Handler
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

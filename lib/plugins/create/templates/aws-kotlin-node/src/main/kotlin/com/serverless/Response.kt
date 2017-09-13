@@ -1,12 +1,12 @@
-class Response(message: String, input: Map<String, Any>) {
+class Response(message: String, input: dynamic) {
   val message: String = message
     get
-  val input: Map<String, Any> = input
+  val input: dynamic = input
     get
 
   override fun toString(): String {
-    val str: dynamic = object{}
-    str[message] = input;
-    return str;
+    val stringified = js("JSON.stringify(this.input)")
+
+    return "{\"$message\": ${stringified} }";
   }
 }

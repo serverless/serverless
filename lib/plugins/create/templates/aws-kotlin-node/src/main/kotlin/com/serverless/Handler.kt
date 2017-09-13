@@ -1,6 +1,6 @@
 @JsName("Handler")
-public fun Handler(input: Map<String, Any>, context: Any, callback: (Any?, ApiGatewayResponse) -> ApiGatewayResponse): Any {
-    println("Received: " + input);
+public fun Handler(input: dynamic = {}, context: Any, callback: (Any?, ApiGatewayResponse) -> ApiGatewayResponse): Any {
+    println("Received: " + js("JSON.stringify(input)"));
 
     val responseBody: Response = Response("Go Serverless v1.x! Your Kotlin function executed successfully!", input);
     val responseHeaders: dynamic = object{}
