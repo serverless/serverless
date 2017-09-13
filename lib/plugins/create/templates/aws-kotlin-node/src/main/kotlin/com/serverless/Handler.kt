@@ -1,11 +1,14 @@
 @JsName("Handler")
-public fun Handler(input: Map<String, Any>, context: Any): ApiGatewayResponse {
+public fun Handler(input: Map<String, Any>, context: Any, callback: (Any?, ApiGatewayResponse) -> ApiGatewayResponse): Any {
     println("Received: " + input);
 
     val responseBody: Response = Response("Go Serverless v1.x! Your Kotlin function executed successfully!", input);
-    return ApiGatewayResponse.build {
-        statusCode = 200
+    val responseHeaders: dynamic = object{}
+    responseHeaders["X-Powered-By"] = "AWS Lambda & serverless"
+
+    return callback(null, ApiGatewayResponse.build {
+        statusCode = 201
         objectBody = responseBody
-        headers = hashMapOf("X-Powered-By" to "AWS Lambda & serverless")
-    }
+        headers    = responseHeaders
+    })
 }

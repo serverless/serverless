@@ -1,7 +1,7 @@
 class ApiGatewayResponse(
         val statusCode: Int = 200,
         var body: String? = null,
-        val headers: Map<String, String>? = emptyMap<String, String>(),
+        val headers: dynamic,
         val isBase64Encoded: Boolean = false
 ) {
     private constructor(builder: Builder) : this(
@@ -15,11 +15,12 @@ class ApiGatewayResponse(
         inline fun build(block: Builder.() -> Unit) = Builder().apply(block).build()
     }
 
-    class Builder {
+    override fun toString(): String = "body"
 
+    class Builder {
         var statusCode: Int = 200
         var rawBody: String? = null
-        var headers: Map<String, String>? = emptyMap<String, String>()
+        var headers: dynamic = object{}
         var objectBody: Response? = null
         var binaryBody: ByteArray? = null
         var base64Encoded: Boolean = false
@@ -31,9 +32,9 @@ class ApiGatewayResponse(
                 body = rawBody as String
             }
             else if (objectBody != null) {
-                // todo
+                body = objectBody.toString()
             } else if (binaryBody != null) {
-                // todo
+                body = "todo"
             }
 
             return ApiGatewayResponse(statusCode, body, headers, base64Encoded)
