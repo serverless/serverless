@@ -34,7 +34,7 @@ class ApiGatewayResponse(
             else if (objectBody != null) {
                 body = objectBody.toString()
             } else if (binaryBody != null) {
-                body = "todo"
+                body = binaryBody.toString()
             }
 
             return ApiGatewayResponse(statusCode, body, headers, base64Encoded)
