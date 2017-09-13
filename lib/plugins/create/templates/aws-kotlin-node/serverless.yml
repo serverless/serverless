@@ -45,10 +45,6 @@ provider:
 #  environment:
 #    variable1: value1
 
-# you can add packaging information here
-package:
-  artifact: build/index.js
-
 functions:
   hello:
     handler: build/index.Handler
