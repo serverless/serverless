@@ -19,4 +19,3 @@ functions:
       - http:
           method: get
           path: hello
-          integration: lambda
