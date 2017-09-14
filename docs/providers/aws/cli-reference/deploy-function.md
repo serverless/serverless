@@ -18,16 +18,16 @@ The `sls deploy function` command deploys an individual function without AWS Clo
 serverless deploy function -f functionName
 ```
 
-**Note:** Because this command is only deploying the function code, function
-properties such as environment variables and events will **not** be deployed.
-Those properties are deployed via CloudFormation, which does not execute with
-this command.
+**Note:** This command **now** deploys both function configuration and code by
+default. Just as before, this puts your function in an inconsistent state that
+is out of sync with your CloudFormation stack. Use this for faster development
+cycles and not production deployments
 
 ## Options
 - `--function` or `-f` The name of the function which should be deployed
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
-- `--update-config` or `-u` Pushes Lambda-level configuration changes e.g. timeout or memorySize
+- `--update-config` or `-u` Pushes ONLY Lambda-level configuration changes e.g. timeout or memorySize
 
 ## Examples
 
@@ -43,7 +43,7 @@ serverless deploy function --function helloWorld
 serverless deploy function --function helloWorld --stage dev --region us-east-1
 ```
 
-### Deployment with configuration change
+### Deploy only configuration changes
 
 ```bash
 serverless deploy function --function helloWorld --update-config
