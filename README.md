@@ -35,6 +35,8 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## <a name="quick-start"></a>Quick Start
 
+<img align="right" width="300" src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/email/sls-getting-started.gif" />
+
 [Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
 
 1. **Install via npm:**
