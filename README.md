@@ -22,7 +22,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## Contents
 
-<img align="right" width="450" src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/email/sls-getting-started.gif" />
+<img align="right" width="400" src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/email/sls-getting-started.gif" />
 
 * [Quick Start](#quick-start)
 * [Examples](https://github.com/serverless/examples)
