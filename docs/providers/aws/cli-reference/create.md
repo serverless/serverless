@@ -46,7 +46,7 @@ Most commonly used templates:
 - aws-python
 - aws-python3
 - aws-kotlin-jvm-maven
-- aws-kotlin-node
+- aws-kotlin-nodejs-gradle
 - aws-groovy-gradle
 - aws-java-maven
 - aws-java-gradle
