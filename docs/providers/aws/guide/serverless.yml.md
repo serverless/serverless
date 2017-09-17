@@ -83,6 +83,8 @@ provider:
     subnetIds:
       - subnetId1
       - subnetId2
+  notificationArns: # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
+    - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
