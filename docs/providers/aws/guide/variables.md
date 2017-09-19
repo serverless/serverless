@@ -24,6 +24,7 @@ The Serverless framework provides a powerful variable system which allows you to
 - Combine multiple variable references to overwrite each other
 - Define your own variable syntax if it conflicts with CF syntax
 - Reference & load variables from S3
+- Reference & load variables from SSM
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
@@ -112,7 +113,7 @@ functions:
 ```
 In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
 
-## Referencing S3 Options
+## Referencing S3 Objects
 You can reference S3 values as the source of your variables to use in your service with the `s3:bucketName/key` syntax. For example:
 ```yml
 service: new-service
@@ -123,8 +124,39 @@ functions:
       handler: handler.hello
 ```
 In the above example, the value for `myKey` in the `myBucket` S3 bucket will be looked up and used to populate the variable.
+
+## Reference Variables using the SSM Parameter Store
+You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax. For example:
+
+```yml
+service: ${ssm:/path/to/service/id}-service
+provider:
+  name: aws
+functions:
+  hello:
+    name: ${ssm:/path/to/service/myParam}-hello
+    handler: handler.hello
+```
+
+In the above example, the value for the SSM Parameters will be looked up and used to populate the variables.
+
+You can also reference encrypted SSM Parameters, of type SecureString, using the extended syntax, `ssm:/path/to/secureparam~true`.
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: ${ssm:/path/to/secureparam~true}
+```
+
+In this example, the serverless variable will contain the decrypted value of the SecureString.
+
 ## Reference Variables in Other Files
-To reference variables in other YAML or JSON files, use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. This functionality is recursive, so you can go as deep in that file as you want. Here's an example:
+You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
 
 ```yml
 # myCustomFile.yml
@@ -147,7 +179,43 @@ functions:
         - schedule: ${self:custom.globalSchedule} # This would also work in this case
 ```
 
-In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.
+In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `schedule` property. It's completely recursive and you can go as deep as you want.  Additionally you can request properties that contain arrays from either YAML or JSON reference files.  Here's a YAML example for an events array:
+
+```yml
+myevents:
+  - schedule:
+     rate: rate(1 minute)
+```
+
+and for JSON:
+
+```json
+{
+  "myevents": [{
+    "schedule" : {
+      "rate" : "rate(1 minute)"
+    }
+  }]
+}
+```
+
+In your `serverless.yml`, depending on the type of your source file, either have the following syntax for YAML:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events: ${file(./myCustomFile.yml):myevents
+```
+
+or for a JSON reference file use this sytax:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events: ${file(./myCustomFile.json):myevents
+```
 
 ## Reference Variables in Javascript Files
 
@@ -273,6 +341,7 @@ provider:
   stage: dev
 custom:
   myStage: ${opt:stage, self:provider.stage}
+  myRegion: ${opt:region, 'us-west-1'}
 
 functions:
   hello:
@@ -292,7 +361,7 @@ service: new-service
 provider:
   name: aws
   runtime: nodejs6.10
-  variableSyntax: "\\${{([ :a-zA-Z0-9._,\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
+  variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
 
 custom:
   myStage: ${{opt:stage}}

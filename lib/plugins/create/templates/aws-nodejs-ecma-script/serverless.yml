@@ -1,0 +1,26 @@
+service:
+  name: aws-nodejs-ecma-script
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-webpack
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  # Example without LAMBDA-PROXY integration
+  # Invoking locally:
+  # sls webpack invoke -f first
+  first:
+    handler: first.hello
+  # Example with LAMBDA-PROXY integration
+  # Invoking locally:
+  # sls webpack invoke -f second
+  second:
+    handler: second.hello
+    events:
+      - http:
+          method: get
+          path: second

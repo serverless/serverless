@@ -1,3 +1,105 @@
+# 1.22.0 (13.09.2017)
+- [Serverless now fails if provided profile is not valid](https://github.com/serverless/serverless/pull/4245)
+- [Removed escaping of double quotes around string values in Serverless Variables](https://github.com/serverless/serverless/pull/4224)
+- [Added 4 new plugin commands](https://github.com/serverless/serverless/pull/4046)
+- [Added aws-kotlin-jvm-marven template](https://github.com/serverless/serverless/pull/4220)
+- [Added --update-config option to deploy function command](https://github.com/serverless/serverless/pull/4173)
+- [Added description to CloudWatch Events](https://github.com/serverless/serverless/pull/4221)
+- [Added support for aliasing commands](https://github.com/serverless/serverless/pull/4198)
+- [Added --function option to deploy command](https://github.com/serverless/serverless/pull/4192)
+- [Fixed a bug with Kinesis events](https://github.com/serverless/serverless/pull/4084)
+- [Fixed a bug with packaging](https://github.com/serverless/serverless/pull/4189)
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.1...v1.22.0)
+
+
+# 1.21.1 (06.09.2017)
+- [Preserve file encoding during packaging process](https://github.com/serverless/serverless/pull/4189)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.0...v1.21.1)
+
+
+# 1.21.0 (30.08.2017)
+- [Allow custom CLI class instances](https://github.com/serverless/serverless/pull/4160)
+- [Add support in Spotinst Functions](https://github.com/serverless/serverless/pull/4127)
+- [Add PHP support for OpenWhisk](https://github.com/serverless/serverless/pull/4153)
+- [Fixed a bug with stack deletion monitoring](https://github.com/serverless/serverless/pull/4132)
+- [Allow AWS Profile CLI option to overwrite config and env](https://github.com/serverless/serverless/pull/3980)
+- [Improve performance of the package plugin](https://github.com/serverless/serverless/pull/3924)
+- [Add support for custom context with Invoke Local](https://github.com/serverless/serverless/pull/4126)
+- [Add aws-nodejs-typescript template](https://github.com/serverless/serverless/pull/4058)
+- [Add aws-nodejs-ecma-script template](https://github.com/serverless/serverless/pull/4056)
+- [Allow updates for AWS profiles](https://github.com/serverless/serverless/pull/3866)
+- [Fixed a bug in Invoke Local when using Python in Windows](https://github.com/serverless/serverless/pull/3832)
+- [Fixed a bug with the Variable System overwrites](https://github.com/serverless/serverless/pull/4097)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.2...v1.21.0)
+
+
+# 1.20.2 (17.08.2017)
+- [Bump event-gateway version to 0.5.15](https://github.com/serverless/serverless/pull/4116)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.1...v1.20.2)
+
+
+# 1.20.1 (17.08.2017)
+- [Rethrow original plugin error in debug mode](https://github.com/serverless/serverless/pull/4091)
+- [Add platform gate to serverless run / emit](https://github.com/serverless/serverless/pull/4103)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.0...v1.20.1)
+
+
+# 1.20.0 (16.08.2017)
+- [Add Serverless Run plugin](https://github.com/serverless/serverless/pull/4034)
+- [Add Serverless Emit plugin](https://github.com/serverless/serverless/pull/4038)
+- [Kubeless template for python and nodejs](https://github.com/serverless/serverless/pull/3970)
+- [Improve deprecation hook message](https://github.com/serverless/serverless/pull/4011)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.19.0...v1.20.0)
+
+
+# 1.19.0 (02.08.2017)
+- [Removed provider name validation](https://github.com/serverless/serverless/pull/3941)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
+- [Fixed a bug with "deploy list functions"](https://github.com/serverless/serverless/pull/3971)
+- [Fixed a bug with Serverless Plugins loading](https://github.com/serverless/serverless/pull/3960)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.1...v1.19.0)
+
+
+# 1.18.1 (28.07.2017)
+- [Fixed a bug with Serverless Variables](https://github.com/serverless/serverless/pull/3996)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.0...v1.18.1)
+
+
+# 1.18.0 (20.07.2017)
+- [Added support for a new "default" property for Plugins CLI options](https://github.com/serverless/serverless/pull/3808)
+- [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3889)
+- [Added support for a new "publish" property to opt-out from Platform publishing](https://github.com/serverless/serverless/pull/3950)
+- [Fixed a bug with "sls remove" when the stack includes Exports](https://github.com/serverless/serverless/pull/3935)
+- [Added support for request parameter configuration with lambda-proxy integration](https://github.com/serverless/serverless/pull/3722)
+- [Enhanced the environment variables for invoke local to include AWS_REGION](https://github.com/serverless/serverless/pull/3908)
+- [Updated the deploy command to ignore custom plugins in service directory during deployment](https://github.com/serverless/serverless/pull/3910)
+- [Fixed a bug with function packaging](https://github.com/serverless/serverless/pull/3856)
+- [Updated the package command to ignore function packaging if a custom artifact is specified](https://github.com/serverless/serverless/pull/3876)
+- [Added support for absolute paths when using Serverless Variables file references](https://github.com/serverless/serverless/pull/3888)
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.17.0...v1.18.0)
+
+
 # 1.17.0 (05.07.2017)
 - Cleanup F# build template output on macOS - #3897
 - Add disable flag for OpenWhisk functions - #3830
