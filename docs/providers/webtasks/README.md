@@ -23,7 +23,8 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
     </div>
     <div class="test">
       <ul>
-        <li><a href="./guide">Intro</a></li>
+        <li><a href="./intro.md">Intro</a></li>
+        <li><a href="./quick-start.md">Quick Start</a></li>
       </ul>
     </div>
   </div>
