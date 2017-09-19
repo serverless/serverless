@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Info
 menuText: info
-menuOrder: 11
+menuOrder: 9
 description: Display information about your deployed service and the Apache OpenWhisk Functions, Events and Resources it contains.
 layout: Doc
 -->

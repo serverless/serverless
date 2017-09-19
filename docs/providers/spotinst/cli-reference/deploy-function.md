@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Spotinst Functions - Deploy Function
 menuText: deploy function
-menuOrder: 6
+menuOrder: 4
 description: Deploy your Spotinst Functions quickly without cloudformation
 layout: Doc
 -->

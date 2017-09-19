@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.21.1",
+  "version": "1.22.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -59,7 +59,7 @@
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
     "postinstall": "node ./scripts/postinstall.js",
-    "prepublishOnly": "node ./scripts/pre-release.js"
+    "prepublishOnly": "./scripts/shrinkwrap && node ./scripts/pre-release.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
@@ -122,6 +122,7 @@
     "shelljs": "^0.6.0",
     "tabtab": "^2.2.2",
     "uuid": "^2.0.2",
-    "write-file-atomic": "^2.1.0"
+    "write-file-atomic": "^2.1.0",
+    "yaml-ast-parser": "0.0.34"
   }
 }
