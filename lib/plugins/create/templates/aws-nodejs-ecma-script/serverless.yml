@@ -24,4 +24,3 @@ functions:
       - http:
           method: get
           path: second
-          integration: lambda

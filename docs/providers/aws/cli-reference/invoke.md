@@ -35,7 +35,7 @@ serverless invoke [local] --function functionName
 
 # Invoke Local
 
-Invokes a function locally for testing and logs the output. You can only invoke Node.js runtime locally at the moment. Keep in mind that we mock the `context` with simple mock data.
+Invokes a function locally for testing and logs the output. Keep in mind that we mock the `context` with simple mock data.
 
 ```bash
 serverless invoke local --function functionName
