@@ -22,7 +22,7 @@ provider:
 #    variable1: value1
 
 functions:
-  hello:
+  main:
     handler: handler
 
 plugins:

@@ -7,7 +7,7 @@
         "serverless",
         "webtasks"
     ],
-    "dependencies": {
+    "devDependencies": {
       "@webtask/serverless-webtasks": "^1.0.1"
     }
   }
