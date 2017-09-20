@@ -24,3 +24,4 @@ integration-test aws-nodejs-ecma-script
 integration-test google-nodejs
 integration-test spotinst-nodejs
 integration-test spotinst-python
+integration-test webtasks-nodejs
