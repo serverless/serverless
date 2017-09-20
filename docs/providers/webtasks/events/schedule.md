@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - Auth0 Webtasks Events - Scheduled & Recurring
-menuText: Schedule
+menuText: schedule
 menuOrder: 4
 description: Setting up Scheduled, Recurring, CRON Task Events with Auth0 Webtasks via the Serverless Framework
 layout: Doc

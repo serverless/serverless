@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - Auth0 Webtasks Events - API Gateway
-menuText: API Gateway
+menuText: http
 menuOrder: 1
 description: Setting up HTTP events with Auth0 Webtasks via the Serverless Framework
 layout: Doc
