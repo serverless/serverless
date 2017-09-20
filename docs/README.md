@@ -4,13 +4,14 @@ menuText: Docs
 layout: Doc
 menuItems:
   - {menuText: Getting Started, path: /framework/docs/getting-started/}
-  - {menuText: AWS, path: /framework/docs/providers/aws/}
-  - {menuText: Azure, path: /framework/docs/providers/azure/}
-  - {menuText: Google, path: /framework/docs/providers/google/}
-  - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
-  - {menuText: Kubeless, path: /framework/docs/providers/kubeless/}
-  - {menuText: Spotinst, path: /framework/docs/providers/spotinst/}
-  - {menuText: Webtasks, path: /framework/docs/providers/webtasks/}
+  - {menuText: Providers, path: /framework/docs/providers}
+  - {menuText: "- AWS", path: /framework/docs/providers/aws/}
+  - {menuText: "- Azure", path: /framework/docs/providers/azure/}
+  - {menuText: "- Google", path: /framework/docs/providers/google/}
+  - {menuText: "- OpenWhisk", path: /framework/docs/providers/openwhisk/}
+  - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
+  - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
+  - {menuText: "- Webtasks" , path: /framework/docs/providers/webtasks/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
