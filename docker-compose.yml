@@ -79,3 +79,7 @@ services:
     image: python2.7
     volumes:
       - ./tmp/serverless-integration-test-spotinst-python:/app
+  webtasks-nodejs:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-webtasks-nodejs:/app
