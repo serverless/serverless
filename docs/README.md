@@ -9,6 +9,7 @@ menuItems:
   - {menuText: Google, path: /framework/docs/providers/google/}
   - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
   - {menuText: Kubeless, path: /framework/docs/providers/kubeless/}
+  - {menuText: Spotinst, path: /framework/docs/providers/spotinst/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -104,6 +105,21 @@ Already using AWS or another cloud provider? Read on.
         <li><a href="./providers/kubeless/guide">Guide</a></li>
         <li><a href="./providers/kubeless/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/kubeless/events">Events</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/spotinst/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/spotinst/guide/quick-start">Spotinst QuickStart</a></li>
+        <li><a href="./providers/spotinst/guide">Guide</a></li>
+        <li><a href="./providers/spotinst/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/spotinst/events">Events</a></li>
       </ul>
     </div>
   </div>

@@ -90,3 +90,24 @@ functions:
                 - pending
           inputPath: '$.stageVariables'
 ```
+
+## Specifying a Description
+
+You can also specify a CloudWatch Event description.
+
+```yml
+functions:
+  myCloudWatch:
+    handler: myCloudWatch.handler
+    events:
+      - cloudwatchEvent:
+          description: 'CloudWatch Event triggered on EC2 Instance pending state'
+          event:
+            source:
+              - "aws.ec2"
+            detail-type:
+              - "EC2 Instance State-change Notification"
+            detail:
+              state:
+                - pending
+```
