@@ -12,12 +12,12 @@ layout: Doc
 
 Welcome to the Serverless Webtasks documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
+If you have questions specific to the Webtasks provider, please join our [Slack](http://chat.webtask.io). For general Serverless Frameowrk questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/)
 
 #### Quick Start
 
-- <a href="./intro.md">Intro</a>
-- <a href="./quick-start.md">Quick Start</a>
+- <a href="./guide/intro.md">Intro</a>
+- <a href="./guide/quick-start.md">Quick Start</a>
 
 #### CLI reference
 

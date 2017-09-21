@@ -33,4 +33,5 @@ functions:
     events:
       - schedule: cron(0 0/2 * * *)
 ```
-**Note:** Auth0 Webtasks supports the 5 field crontab format. A useful site for calculating `cron` scheduled is [CronTab.guru](http://crontab.guru/)
+
+**Note:** Auth0 Webtasks supports the 5 field crontab format. [CronTab.guru](http://crontab.guru/) is a useful site for calculating cron schedules. 
