@@ -12,9 +12,22 @@ layout: Doc
 
 # Variables
 
-The Serverless framework provides a powerful variable system which allows you to add dynamic data into your `serverless.yml`. 
+Variables allow users to dynamically replace config values in `serverless.yml` config.
 
-With the serverless variables system you can reference variables from a variety of sources including:
+They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
+
+## Syntax
+
+To use variables, you will need to reference values enclosed in `${}`. 
+
+```
+yamlKeyXYZ: ${variableSource}
+# see current variable sources list below
+```
+
+You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax
+
+## Current variable sources: 
 
 - [environment variables](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-environment-variables)
 - [CLI options](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-cli-options)
