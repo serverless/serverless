@@ -18,11 +18,11 @@ They are especially useful when providing secrets for your service to use and wh
 
 ## Syntax
 
-To use variables, you will need to reference values enclosed in `${}`. 
+To use variables, you will need to reference values enclosed in `${}` brackets. 
 
 ```yml
-# see current variable sources list below
-yamlKeyXYZ: ${variableSource}
+# serverless.yml file
+yamlKeyXYZ: ${variableSource} # see list of current variable sources below
 # this is an example of providing a default value as the second parameter
 otherYamlKey: ${variableSource, defaultValue}
 ```
@@ -52,7 +52,7 @@ provider:
     MY_SECRET: ${file(./config.${self:provider.stage}.json):SECRET}
 ```
 
-If `--stage dev` is supplied as an option then `${file(./config.${self:provider.stage}.json):SECRET}` is references the `config.dev.json` file
+If `--stage dev` is supplied as an option then `${file(./config.${self:provider.stage}.json):SECRET}` is references the `config.dev.json` file. Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be referenced.
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
