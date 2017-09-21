@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless Webtasks documentation!
 
-If you have questions specific to the Webtasks provider, please join our [Slack](http://chat.webtask.io). For general Serverless Frameowrk questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/)
+If you have questions specific to the Webtasks provider, please join our [Slack](http://chat.webtask.io). For general Serverless Framework questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/)
 
 #### Quick Start
 
