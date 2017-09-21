@@ -20,9 +20,11 @@ They are especially useful when providing secrets for your service to use and wh
 
 To use variables, you will need to reference values enclosed in `${}`. 
 
-```
-yamlKeyXYZ: ${variableSource}
+```yml
 # see current variable sources list below
+yamlKeyXYZ: ${variableSource}
+# this is an example of providing a default value as the second parameter
+otherYamlKey: ${variableSource, defaultValue}
 ```
 
 You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax
@@ -39,6 +41,18 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [properties exported from Javascript files (sync or async)](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-javascript-files)
 
 You can also **Recursively reference properties** with the variable system. This means you can combine multiple values and variable sources for a lot of flexibility.
+
+For example:
+
+```yml
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  environment:
+    MY_SECRET: ${file(./config.${self:provider.stage}.json):SECRET}
+```
+
+If `--stage dev` is supplied as an option then `${file(./config.${self:provider.stage}.json):SECRET}` is references the `config.dev.json` file
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
