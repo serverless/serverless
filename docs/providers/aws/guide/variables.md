@@ -12,19 +12,33 @@ layout: Doc
 
 # Variables
 
-The Serverless framework provides a powerful variable system which allows you to add dynamic data into your `serverless.yml`. With Serverless Variables, you'll be able to do the following:
+Variables allow users to dynamically replace config values in `serverless.yml` config.
 
-- Reference & load variables from environment variables
-- Reference & load variables from CLI options
-- Reference & load variables from CloudFormation stack outputs
-- Recursively reference properties of any type from the same `serverless.yml` file
-- Recursively reference properties of any type from other YAML/JSON files
-- Recursively reference properties exported from JS files, synchronously or asynchronously
-- Recursively nest variable references within each other for ultimate flexibility
-- Combine multiple variable references to overwrite each other
-- Define your own variable syntax if it conflicts with CF syntax
-- Reference & load variables from S3
-- Reference & load variables from SSM
+They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
+
+## Syntax
+
+To use variables, you will need to reference values enclosed in `${}`. 
+
+```
+yamlKeyXYZ: ${variableSource}
+# see current variable sources list below
+```
+
+You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax
+
+## Current variable sources: 
+
+- [environment variables](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-environment-variables)
+- [CLI options](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-cli-options)
+- [other properties defined in `serverless.yml`](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-properties-in-serverlessyml)
+- [external YAML/JSON files](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-other-files)
+- [variables from S3](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-s3-objects)
+- [variables from AWS SSM Parameter Store](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-using-the-ssm-parameter-store)
+- [CloudFormation stack outputs](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs)
+- [properties exported from Javascript files (sync or async)](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-javascript-files)
+
+You can also **Recursively reference properties** with the variable system. This means you can combine multiple values and variable sources for a lot of flexibility.
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
