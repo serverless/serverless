@@ -49,10 +49,12 @@ provider:
   name: aws
   stage: ${opt:stage, 'dev'}
   environment:
-    MY_SECRET: ${file(./config.${self:provider.stage}.json):SECRET}
+    MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
 ```
 
-If `--stage dev` is supplied as an option then `${file(./config.${self:provider.stage}.json):SECRET}` is references the `config.dev.json` file. Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be referenced.
+So for example, If `sls deploy --stage dev` option is supplied then the `${file(./config.${self:provider.stage}.json):CREDS}` variable will references the `CREDS` key defined inside of the `config.dev.json` file. 
+
+Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and the `CREDS` key would be resolved and used as the variable value.
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
