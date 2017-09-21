@@ -37,7 +37,7 @@ comments/
 ```
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
-**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have a custom domain per one REST API.  If you plan on making a large REST API, please make note of this limitation.  Also, a fix is in the works and is a top priority.
+**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have a custom domain per one REST API.  If you plan on making a large REST API, please make note of this limitation.  Also, [a fix is in the works](https://github.com/serverless/serverless/issues/3078) and is a top priority.
 
 ## Creation
 
@@ -51,8 +51,11 @@ serverless create --template aws-nodejs --path myService
 Here are the available runtimes for AWS Lambda:
 
 * aws-nodejs
+* aws-nodejs-typescript
+* aws-nodejs-ecma-script
 * aws-python
 * aws-python3
+* aws-kotlin-jvm-maven
 * aws-groovy-gradle
 * aws-java-gradle
 * aws-java-maven
@@ -160,7 +163,13 @@ Create this file and add event data so you can invoke your function with the dat
 
 When you deploy a Service, all of the Functions, Events and Resources in your `serverless.yml` are translated to an AWS CloudFormation template and deployed as a single CloudFormation stack.
 
-To deploy a service, use the `deploy` command:
+To deploy a service, first `cd` into the relevant service directory:
+
+```bash
+cd my-service
+```
+
+Then use the `deploy` command:
 
 ```bash
 serverless deploy

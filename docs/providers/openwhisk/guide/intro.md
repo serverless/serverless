@@ -16,7 +16,7 @@ The Serverless Framework helps you develop and deploy serverless applications us
 
 The Serverless Framework is different than other application frameworks because:
 * It manages your code as well as your infrastructure
-* It supports multiple languages (Node.js, Python, Java, and more)
+* It supports multiple languages (Node.js, Python, PHP, Swift, Java, and more)
 
 ## Core Concepts
 
@@ -24,7 +24,7 @@ Here are the Framework's main concepts and how they pertain to Apache OpenWhiskâ
 
 ### Functions
 
-A Function is an [Apache OpenWhisk Action](https://github.com/openwhisk/openwhisk/blob/master/docs/actions.md).  It's an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
+A Function is an [Apache OpenWhisk Action](http://bit.ly/2wMfe3s).  It's an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
 
 * *Saving a user to the database*
 * *Processing a file in a database*
@@ -43,7 +43,7 @@ Anything that triggers an Apache OpenWhisk Action to execute is regarded by the 
 * *A Webhook fires (e.g., Github project update)*
 * *And more...*
 
-When you define an event for your Apache OpenWhisk Action in the Serverless Framework, the Framework will automatically translate this into [Triggers and Rules](https://github.com/openwhisk/openwhisk/blob/master/docs/triggers_rules.md) needed for that event and configure your functions to listen to it.
+When you define an event for your Apache OpenWhisk Action in the Serverless Framework, the Framework will automatically translate this into [Triggers and Rules](http://bit.ly/2xQmFE8) needed for that event and configure your functions to listen to it.
 
 ### Services
 

@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless Azure Functions documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
 
 **Note:** [Azure Functions system credentials](./guide/credentials.md) are required for using serverless + Azure Functions.
 
@@ -57,6 +57,10 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/login.md">Login</a></li>
         <li><a href="./cli-reference/logs.md">Logs</a></li>
         <li><a href="./cli-reference/remove.md">Remove</a></li>
+        <li><a href="./cli-reference/plugin-list.md">Plugin List</a></li>
+        <li><a href="./cli-reference/plugin-search.md">Plugin Search</a></li>
+        <li><a href="./cli-reference/plugin-install.md">Plugin Install</a></li>
+        <li><a href="./cli-reference/plugin-uninstall.md">Plugin Uninstall</a></li>
       </ul>
     </div>
   </div>
