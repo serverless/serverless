@@ -41,8 +41,12 @@ To see a list of available templates run `serverless create --help`
 Most commonly used templates:
 
 - aws-nodejs
+- aws-nodejs-typescript
+- aws-nodejs-ecma-script
 - aws-python
 - aws-python3
+- aws-kotlin-jvm-maven
+- aws-kotlin-nodejs-gradle
 - aws-groovy-gradle
 - aws-java-maven
 - aws-java-gradle

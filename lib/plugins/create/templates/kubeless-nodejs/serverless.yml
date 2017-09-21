@@ -17,7 +17,7 @@ service: capitalize
 
 provider:
   name: kubeless
-  runtime: nodejs6.10
+  runtime: nodejs6
 
 plugins:
   - serverless-kubeless

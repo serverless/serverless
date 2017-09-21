@@ -1,0 +1,9 @@
+{
+  "name": "serverless-openwhisk-hello-world",
+  "version": "0.1.0",
+  "description": "Hello World example for OpenWhisk provider with Serverless Framework.",
+  "scripts": {
+    "postinstall": "npm link serverless-openwhisk",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
