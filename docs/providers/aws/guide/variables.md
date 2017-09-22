@@ -27,7 +27,9 @@ yamlKeyXYZ: ${variableSource} # see list of current variable sources below
 otherYamlKey: ${variableSource, defaultValue}
 ```
 
-You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax
+You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax. 
+
+**Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
 ## Current variable sources: 
 
@@ -39,6 +41,8 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [variables from AWS SSM Parameter Store](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-using-the-ssm-parameter-store)
 - [CloudFormation stack outputs](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs)
 - [properties exported from Javascript files (sync or async)](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-javascript-files)
+
+## Recursively reference properties
 
 You can also **Recursively reference properties** with the variable system. This means you can combine multiple values and variable sources for a lot of flexibility.
 
@@ -52,11 +56,18 @@ provider:
     MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
 ```
 
-So for example, If `sls deploy --stage dev` option is supplied then the `${file(./config.${self:provider.stage}.json):CREDS}` variable will references the `CREDS` key defined inside of the `config.dev.json` file. 
+If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
 
-Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and the `CREDS` key would be resolved and used as the variable value.
+**How that works:**
 
-**Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
+1. stage is set to `qa` from the option supplied to the `sls deploy --stage qa` command
+2. `${self:provider.stage}` resolves to `qa` and is used in `${file(./config.${self:provider.stage}.json):CREDS}`
+3. `${file(./config.qa.stage}.json):CREDS}` is found & the `CREDS` value is read
+4. `MY_SECRET` value is set
+
+Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and the `CREDS` key would be used as the variable value.
+
+If no value is provided, the second parameter defined in `${opt:stage, 'dev'}` a.k.a `dev` will be used and result in `${file(./config.dev.json):CREDS}`
 
 ## Reference Properties In serverless.yml
 To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. `someProperty` can contain the empty string for a top-level self-reference or a dotted attribute reference to any depth of attribute, so you can go as shallow or deep in the object tree as you want.
