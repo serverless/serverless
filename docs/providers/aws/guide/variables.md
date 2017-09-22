@@ -65,9 +65,9 @@ If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${f
 3. `${file(./config.qa.stage}.json):CREDS}` is found & the `CREDS` value is read
 4. `MY_SECRET` value is set
 
-Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and the `CREDS` key would be used as the variable value.
+Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and used.
 
-If no value is provided, the second parameter defined in `${opt:stage, 'dev'}` a.k.a `dev` will be used and result in `${file(./config.dev.json):CREDS}`
+If no `--stage` flag is provided, the second parameter defined in `${opt:stage, 'dev'}` a.k.a `dev` will be used and result in `${file(./config.dev.json):CREDS}`.
 
 ## Reference Properties In serverless.yml
 To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. `someProperty` can contain the empty string for a top-level self-reference or a dotted attribute reference to any depth of attribute, so you can go as shallow or deep in the object tree as you want.
