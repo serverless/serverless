@@ -1,96 +1,70 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
+## The serverless.yml file is the main config file for your service.
+## To see all available serverless.yml properties see the docs http://bit.ly/2rJJjMV
+## ───── Serverless docs https://serverless.com/framework/docs/ ─────
 
-service: aws-nodejs # NOTE: update this with your service name
+##───────────────────────────────────────────────────────────────────────
+## 'service' - The name of the service and addition meta information
+##───────────────────────────────────────────────────────────────────────
+service:
+  name: aws-nodejs
 
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
-
+##───────────────────────────────────────────────────────────────────────
+## 'provider' - Defines where your service will be deployed. ('aws', 'azure', 'etc')
+##───────────────────────────────────────────────────────────────────────
 provider:
   name: aws
   runtime: nodejs6.10
-
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
-
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
+##> Define additional provider properties to overwrite the defaults
+#   stage: dev
+#   region: us-east-1
+##> Service wide environment variables can be defined here
+#   environment:
+#     variable1: value1
+##> Custom IAM statements can be added to the functions in this service here
+#   iamRoleStatements:
+#    - Effect: Allow
 #      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
+#        - dynamodb:Query
+#        - dynamodb:Scan
+#        - dynamodb:GetItem
+#        - dynamodb:PutItem
+#        - dynamodb:UpdateItem
+#        - dynamodb:DeleteItem
+#      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/table-xyz"
 
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
 
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
+##───────────────────────────────────────────────────────────────────────
+## 'functions' - Defines the functions to deploy & the events that trigger them
+## For a list of AWS events see: http://bit.ly/2sBUS90
+##───────────────────────────────────────────────────────────────────────
 functions:
   hello:
     handler: handler.hello
+##> 'events' are what trigger this function. For a list of AWS events see: http://bit.ly/2sBUS90
+#     events:
+#       - http:
+#           path: users/create
+#           method: get
+#           cors: true
+#       - s3: ${env:BUCKET}
+#       - schedule: rate(10 minutes)
+#       - sns: greeter-topic
+#       - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#       - iot:
+#           sql: "SELECT * FROM 'some_topic'"
+#       - cloudwatchLog: '/aws/lambda/hello'
+#       - cognitoUserPool:
+#           pool: MyUserPool
+#           trigger: PreSignUp
+#       - alexaSkill
+##> Optionally you can define environment variables for this function here
+#     environment:
+#       functionLevelVariableXYZ: value2
 
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
-#    events:
-#      - http:
-#          path: users/create
-#          method: get
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
 
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
+##───────────────────────────────────────────────────────────────────────
+## 'resources' - Defines addition CloudFormation resources you want to setup for the service
+##───────────────────────────────────────────────────────────────────────
 #resources:
 #  Resources:
 #    NewResource:
@@ -101,3 +75,15 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+
+
+##───────────────────────────────────────────────────────────────────────
+## 'package' - Include or Exclude artifacts in your service http://bit.ly/2rJBhU9
+##───────────────────────────────────────────────────────────────────────
+#package:
+#  include:
+#    - include-me.js
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.js
+#    - exclude-me-dir/**
