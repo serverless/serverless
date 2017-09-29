@@ -150,6 +150,9 @@ functions:
           startingPosition: LATEST
           enabled: false
       - alexaSkill
+      - alexaSmartHome:
+          appId: amzn1.ask.skill.xx-xx-xx-xx
+          enabled: true
       - iot:
           name: myIoTEvent
           description: An IoT event
