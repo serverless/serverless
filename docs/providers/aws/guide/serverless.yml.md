@@ -55,13 +55,13 @@ provider:
     key: value
   iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
     - Effect: 'Allow'
-        Action:
-          - 's3:ListBucket'
-        Resource:
-          Fn::Join:
-            - ''
-            - - 'arn:aws:s3:::'
-              - Ref: ServerlessDeploymentBucket
+      Action:
+        - 's3:ListBucket'
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - Ref: ServerlessDeploymentBucket
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
       Principal: "*"
@@ -150,6 +150,9 @@ functions:
           startingPosition: LATEST
           enabled: false
       - alexaSkill
+      - alexaSmartHome:
+          appId: amzn1.ask.skill.xx-xx-xx-xx
+          enabled: true
       - iot:
           name: myIoTEvent
           description: An IoT event
