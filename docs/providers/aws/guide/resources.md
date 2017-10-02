@@ -111,6 +111,7 @@ functions:
 resources:
   Resources:
     WriteDashPostLogGroup:
+      Type: AWS::Logs::LogGroup
       Properties:
         RetentionInDays: "30"
 ```
