@@ -12,14 +12,18 @@ layout: Doc
 
 # Schedule
 
-You can trigger the functions by using a scheduled event. This will execute the function according to the cron expressions you specify
+You can trigger the functions by using a scheduled event. This will execute the function according to the cron expressions you specify. 
 
 You can either use the `rate` or `cron` syntax.
+
+The following two examples are function configurations in the serverless.yml file that are scheduled to trigger the function crawl every 2 hours. You are able to attach more than one schedule to a function. 
+
 
 ```yml
 functions:
   crawl:
     handler: crawl
     events:
+      - schedule: rate(2 hours)
       - schedule: cron(0 12 * * ? *)
 ```

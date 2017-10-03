@@ -14,4 +14,4 @@ Welcome to the Serverless Spotinst Functions CLI Reference!
 
 Please select a section on the left to get started.
 
-**Note:** Before continuing [Spotinst Functions credentials](../guide/credentials.md) are required for using the CLI..
+**Note:** Before continuing [Spotinst Functions credentials](../guide/credentials.md) are required for using the CLI.
