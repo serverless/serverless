@@ -1,6 +1,6 @@
 <!--
-title: Serverless - AWS Documentation
-menuText: AWS
+title: Serverless - Spotinst Documentation
+menuText: Spotinst
 layout: Doc
 -->
 
@@ -25,6 +25,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
         <li><a href="./guide/quick-start.md">Quick Start</a></li>
+        <li><a href="./guide/permissions">Permissions</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
       </ul>
     </div>
@@ -71,13 +72,13 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_examples.png" alt="Serverless Framework AWS Lambda Examples" width="250" draggable="false"/>
+      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Examples" width="250" draggable="false"/>
       </a>
     </div>
     <div>
       <div>
         <ul>
-          <li><a href="./examples/hello-world">Hello World</a></li>
+          <li><a href="./examples/">Hello World</a></li>
         </ul>
       </div>
     </div>

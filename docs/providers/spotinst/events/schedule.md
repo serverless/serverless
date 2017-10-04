@@ -27,3 +27,27 @@ functions:
       - schedule: rate(2 hours)
       - schedule: cron(0 12 * * ? *)
 ```
+
+
+## Active Status
+
+You also have the option to set your functions active status as either true or false 
+
+**Note** `schedule` events active status are set to true by default
+
+This example will create and attach a schedule event for the function `crawl` which is active status is set to `false`. If the status is changed to true the `crawl` function will be called every 10 minutes.
+
+```yml
+functions:
+  crawl:
+    handler: crawl
+    events:
+      - schedule: 
+      	rate: rate(10 minutes)
+      	active: false
+
+```
+
+
+## Value
+
