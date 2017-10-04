@@ -25,7 +25,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
         <li><a href="./guide/quick-start.md">Quick Start</a></li>
-        <li><a href="./guide/permissions">Permissions</a></li>
+        <li><a href="./guide/permissions.md">Permissions</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
       </ul>
     </div>
