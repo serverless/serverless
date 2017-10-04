@@ -18,7 +18,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./guide/">
-      <img src="https://drive.google.com/file/d/0B4tt_s7cFF3xQW9uMTd6dUc3Vzg/view?usp=sharing" alt="Serverless Spotinst Guide" width="250" draggable="false"/>
+      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Guide" width="250" draggable="false"/>
       </a>
     </div>
     <div class="test">
@@ -34,7 +34,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./cli-reference/">
-      <img src="https://drive.google.com/file/d/0B4tt_s7cFF3xTW1iNTJTWnZwNUk/view?usp=sharing" alt="Serverless Spotinst CLI Reference" width="250" draggable="false"/>
+      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst CLI Reference" width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -58,7 +58,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./events/">
-      <img src="https://drive.google.com/file/d/0B4tt_s7cFF3xbmtFRjFyTmNnbjQ/view?usp=sharing" alt="Serverless Spotinst Events"  width="250" draggable="false"/>
+      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Events"  width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -72,7 +72,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./examples/">
-      <img src="https://drive.google.com/file/d/0B4tt_s7cFF3xYVhSZ04zV1VlZ28/view?usp=sharing" alt="Serverless Spotinst Examples" width="250" draggable="false"/>
+      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Examples" width="250" draggable="false"/>
       </a>
     </div>
     <div>
