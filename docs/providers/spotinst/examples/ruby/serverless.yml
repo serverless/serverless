@@ -24,7 +24,7 @@ functions:
     handler: handler.main
     memory: 128
     timeout: 30
-    access: private
+#    access: private
 #    cron:  # Setup scheduled trigger with cron expression
 #     active: true
 #     value: * * * * *

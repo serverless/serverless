@@ -39,7 +39,10 @@ Congrats you have just deployed and ran your Hello World function!
 
 ## Short Hand Guide
 
-`sls` is short hand for serverless cli commands
+`sls` is short hand for serverless cli commands 
+
 `-f` is short hand for `--function`
+
 `-t` is short hand for `--template`
+
 `-p` is short hang for `--path`

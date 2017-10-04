@@ -21,11 +21,10 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
       <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Guide" width="250" draggable="false"/>
       </a>
     </div>
-    <div class="test">
+    <div>
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
         <li><a href="./guide/quick-start.md">Quick Start</a></li>
-        <li><a href="./guide/permissions.md">Permissions</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
       </ul>
     </div>
