@@ -6,7 +6,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/node)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/)
 <!-- DOCS-SITE-LINK:END -->
 
 # Hello World JavaScript Example
@@ -27,11 +27,11 @@ In your terminal window you should see the response
 ```bash
 {
 Deploy functions:
-hello: created
+	hello: created
 Service Information
-service: spotinst-python
-functions:
-  hello
+	service: spotinst-python
+	functions:
+  		hello
 }
 ```
 
