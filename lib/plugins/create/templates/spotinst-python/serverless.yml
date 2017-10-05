@@ -26,7 +26,7 @@ functions:
     timeout: 30
 #     cron:  # Setup scheduled trigger with cron expression
 #      active: true
-#      value: * * * * *
+#      value: '* * * * *'
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins
