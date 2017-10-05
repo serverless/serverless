@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: spotinst-nodejs # NOTE: update this with your service name
+service: spotinst-ruby # NOTE: update this with your service name
 
 provider:
   name: spotinst
@@ -20,7 +20,7 @@ provider:
 
 functions:
   hello:
-    runtime: nodejs8.3
+    runtime: ruby2.4.1
     handler: handler.main
     memory: 128
     timeout: 30
@@ -28,6 +28,7 @@ functions:
 #    cron:  # Setup scheduled trigger with cron expression
 #     active: true
 #     value: * * * * *
+
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins

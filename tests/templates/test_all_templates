@@ -25,3 +25,4 @@ integration-test google-nodejs
 integration-test spotinst-nodejs
 integration-test spotinst-python
 integration-test webtasks-nodejs
+integration-test spotinst-ruby
