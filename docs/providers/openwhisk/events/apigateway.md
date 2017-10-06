@@ -111,7 +111,14 @@ functions:
       - http:
           path: posts/create
           method: post
+          resp: json
 ```
+
+HTTP event configuration supports the following parameters.
+
+- `method` - HTTP method (mandatory).
+- `path` - URI path for API gateway (mandatory).
+- `resp` - controls [web action content type](https://github.com/apache/incubator-openwhisk/blob/master/docs/webactions.md#additional-features), values include: `json`, `html`, `http`, `svg`or `text` (optional, defaults to `json`).
 
 ### CORS Support
 
