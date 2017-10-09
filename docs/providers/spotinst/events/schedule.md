@@ -12,11 +12,11 @@ layout: Doc
 
 # Schedule
 
-You can trigger the functions by using a scheduled event. This will execute the function according to the cron expressions you specify. 
+You can trigger the functions by using a scheduled event. This will execute the function according to the cron expressions you specify.
 
 You can use `cron` syntax.
 
-The following example is a function configuration in the serverless.yml file that are scheduled to trigger the function crawl every day at 6:30 PM. 
+The following example is a function configuration in the serverless.yml file that are scheduled to trigger the function crawl every day at 6:30 PM.
 
 ```yml
 functions:
@@ -24,13 +24,13 @@ functions:
     handler: handler.crawl
     cron:  # Setup scheduled trigger with cron expression
       active: true
-      value: 30 18 * * * 
+      value: '30 18 * * *'
 ```
 
 
 ## Active Status
 
-You also have the option to set your functions active status as either true or false 
+You also have the option to set your functions active status as either true or false
 
 **Note** `schedule` events active status are set to true by default
 
@@ -42,7 +42,7 @@ functions:
     handler: handler.crawl
     cron:  # Setup scheduled trigger with cron expression
       active: false
-      value: * 18 * * 1 
+      value: '* 18 * * 1'
 
 ```
 

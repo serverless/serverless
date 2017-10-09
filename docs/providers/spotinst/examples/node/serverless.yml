@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: spotinst-python # NOTE: update this with your service name
+service: spotinst-nodejs # NOTE: update this with your service name
 
 provider:
   name: spotinst
@@ -20,14 +20,14 @@ provider:
 
 functions:
   hello:
-    runtime: python2.7
+    runtime: nodejs4.8
     handler: handler.main
     memory: 128
     timeout: 30
-    access: private
-#     cron:  # Setup scheduled trigger with cron expression
-#      active: true
-#      value: '* * * * *'
+#    access: private
+#    cron:  # Setup scheduled trigger with cron expression
+#     active: true
+#     value: '* * * * *'
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins
