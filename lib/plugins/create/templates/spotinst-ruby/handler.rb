@@ -6,7 +6,6 @@
 def main(args)
     queryparams = args["query"]
     body = args["body"]
-
     {
         :statusCode => 200,
         :body => '{"hello":"from Ruby2.4.1 function"}'
