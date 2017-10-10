@@ -314,8 +314,7 @@ functions:
             identityValidationExpression: someRegex
 ```
 
-You can also use the Request Type Authorizer by setting the `type` property. In this case, you
-do not need the `identitySource`
+You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for you policy cache.
 
 ```yml
 functions:
@@ -328,6 +327,7 @@ functions:
           authorizer:
             arn: xxx:xxx:Lambda-Name
             resultTtlInSeconds: 0
+            identitySource: method.request.header.Authorization, context.identity.sourceIp
             identityValidationExpression: someRegex
             type: request
 ```
