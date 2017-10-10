@@ -314,7 +314,7 @@ functions:
             identityValidationExpression: someRegex
 ```
 
-You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for you policy cache.
+You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for you policy cache. The default `type` is 'token'.
 
 ```yml
 functions:
