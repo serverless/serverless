@@ -277,6 +277,7 @@ functions:
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
+            type: token
   authorizerFunc:
     handler: handler.authorizerFunc
 ```
@@ -311,6 +312,24 @@ functions:
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
+```
+
+You can also use the Request Type Authorizer by setting the `type` property. In this case, you
+do not need the `identitySource`
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            arn: xxx:xxx:Lambda-Name
+            resultTtlInSeconds: 0
+            identityValidationExpression: someRegex
+            type: request
 ```
 
 You can also configure an existing Cognito User Pool as the authorizer, as shown
