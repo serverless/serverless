@@ -18,8 +18,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./guide/">
-      <img src="https://s3.amazonaws.com/spotinst-public/assets/serverless-docs/functions_guide.jpg" alt="Serverless Spotinst Examples" width="250" draggable="false"/>
-      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Guide" width="250" draggable="false"/>
+      <img src="https://s3.amazonaws.com/spotinst-public/assets/serverless-docs/functions_guide.jpg" alt="Serverless Spotinst Guide" width="250" draggable="false"/>
       </a>
     </div>
     <div>
