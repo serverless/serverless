@@ -18,6 +18,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./guide/">
+      <img src="https://s3.amazonaws.com/spotinst-public/assets/serverless-docs/functions_guide.jpg" alt="Serverless Spotinst Examples" width="250" draggable="false"/>
       <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Guide" width="250" draggable="false"/>
       </a>
     </div>
@@ -33,7 +34,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./cli-reference/">
-      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst CLI Reference" width="250" draggable="false"/>
+      <img src="https://s3.amazonaws.com/spotinst-public/assets/serverless-docs/functions_cli.jpg" alt="Serverless Spotinst CLI Reference" width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -57,7 +58,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./events/">
-      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Events"  width="250" draggable="false"/>
+      <img src="https://s3.amazonaws.com/spotinst-public/assets/serverless-docs/functions_+events.jpg" alt="Serverless Spotinst Events"  width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -71,7 +72,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./examples/">
-      <img src="https://spotinst.com/app/uploads/2016/10/spotinst-logo-lightBlue.svg" alt="Serverless Spotinst Examples" width="250" draggable="false"/>
+      <img src="https://s3.amazonaws.com/spotinst-public/assets/serverless-docs/functions_examples.jpg" alt="Serverless Spotinst Examples" width="250" draggable="false"/>
       </a>
     </div>
     <div>
