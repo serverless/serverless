@@ -28,7 +28,7 @@ If necessary, a more detailed guide on creating a Billing Account can be found <
 
 A Google Cloud Project is required to use Google Cloud Functions. Here's how to create one:
 
-1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console Console</a>.
+1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a>.
 2. There is a dropdown near the top left of the screen (near the search bar that lists your projects). Click it and select "Create Project".
 3. Enter a Project name and select the Billing Account you created in the steps above (or any Billing Account with a valid credit card attached).
 3. Click on "Create" to start the creation process.
