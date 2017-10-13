@@ -38,7 +38,7 @@ The Serverless Framework translates all syntax in `serverless.yml` to [platform 
 ### Tips
 
 * Use this in your CI/CD systems, as it is the safest method of deployment.
-* Apache OpenWhisk has a [maximum action artifact](https://github.com/openwhisk/openwhisk/blob/master/docs/reference.md#per-action-artifact-mb-fixed-48mb) size of 48MB. This might be an issue if you are using lots of NPM packages. JavaScript build tools like webpack can help to minify your code and save space.
+* Apache OpenWhisk has a [maximum action artifact](http://bit.ly/2vQIC9V) size of 48MB. This might be an issue if you are using lots of NPM packages. JavaScript build tools like webpack can help to minify your code and save space.
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 

@@ -12,20 +12,62 @@ layout: Doc
 
 # Variables
 
-The Serverless framework provides a powerful variable system which allows you to add dynamic data into your `serverless.yml`. With Serverless Variables, you'll be able to do the following:
+Variables allow users to dynamically replace config values in `serverless.yml` config.
 
-- Reference & load variables from environment variables
-- Reference & load variables from CLI options
-- Reference & load variables from CloudFormation stack outputs
-- Recursively reference properties of any type from the same `serverless.yml` file
-- Recursively reference properties of any type from other YAML/JSON files
-- Recursively reference properties exported from JS files, synchronously or asynchronously
-- Recursively nest variable references within each other for ultimate flexibility
-- Combine multiple variable references to overwrite each other
-- Define your own variable syntax if it conflicts with CF syntax
-- Reference & load variables from S3
+They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
+
+## Syntax
+
+To use variables, you will need to reference values enclosed in `${}` brackets. 
+
+```yml
+# serverless.yml file
+yamlKeyXYZ: ${variableSource} # see list of current variable sources below
+# this is an example of providing a default value as the second parameter
+otherYamlKey: ${variableSource, defaultValue}
+```
+
+You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax. 
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
+
+## Current variable sources: 
+
+- [environment variables](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-environment-variables)
+- [CLI options](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-cli-options)
+- [other properties defined in `serverless.yml`](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-properties-in-serverlessyml)
+- [external YAML/JSON files](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-other-files)
+- [variables from S3](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-s3-objects)
+- [variables from AWS SSM Parameter Store](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-using-the-ssm-parameter-store)
+- [CloudFormation stack outputs](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs)
+- [properties exported from Javascript files (sync or async)](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-javascript-files)
+
+## Recursively reference properties
+
+You can also **Recursively reference properties** with the variable system. This means you can combine multiple values and variable sources for a lot of flexibility.
+
+For example:
+
+```yml
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  environment:
+    MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
+```
+
+If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
+
+**How that works:**
+
+1. stage is set to `qa` from the option supplied to the `sls deploy --stage qa` command
+2. `${self:provider.stage}` resolves to `qa` and is used in `${file(./config.${self:provider.stage}.json):CREDS}`
+3. `${file(./config.qa.stage}.json):CREDS}` is found & the `CREDS` value is read
+4. `MY_SECRET` value is set
+
+Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and used.
+
+If no `--stage` flag is provided, the second parameter defined in `${opt:stage, 'dev'}` a.k.a `dev` will be used and result in `${file(./config.dev.json):CREDS}`.
 
 ## Reference Properties In serverless.yml
 To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. `someProperty` can contain the empty string for a top-level self-reference or a dotted attribute reference to any depth of attribute, so you can go as shallow or deep in the object tree as you want.
@@ -112,7 +154,7 @@ functions:
 ```
 In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
 
-## Referencing S3 Options
+## Referencing S3 Objects
 You can reference S3 values as the source of your variables to use in your service with the `s3:bucketName/key` syntax. For example:
 ```yml
 service: new-service
@@ -124,7 +166,37 @@ functions:
 ```
 In the above example, the value for `myKey` in the `myBucket` S3 bucket will be looked up and used to populate the variable.
 
-## Reference Variables in other Files
+## Reference Variables using the SSM Parameter Store
+You can reference SSM Parameters as the source of your variables with the `ssm:/path/to/param` syntax. For example:
+
+```yml
+service: ${ssm:/path/to/service/id}-service
+provider:
+  name: aws
+functions:
+  hello:
+    name: ${ssm:/path/to/service/myParam}-hello
+    handler: handler.hello
+```
+
+In the above example, the value for the SSM Parameters will be looked up and used to populate the variables.
+
+You can also reference encrypted SSM Parameters, of type SecureString, using the extended syntax, `ssm:/path/to/secureparam~true`.
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: ${ssm:/path/to/secureparam~true}
+```
+
+In this example, the serverless variable will contain the decrypted value of the SecureString.
+
+## Reference Variables in Other Files
 You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
 
 ```yml
@@ -330,7 +402,7 @@ service: new-service
 provider:
   name: aws
   runtime: nodejs6.10
-  variableSyntax: "\\${([ ~:a-zA-Z0-9._\'\",\\-\\/\\(\\)]+?)}" # notice the double quotes for yaml to ignore the escape characters!
+  variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
 
 custom:
   myStage: ${{opt:stage}}
