@@ -14,7 +14,7 @@ layout: Doc
 
 The Serverless Framework helps you develop and deploy serverless applications using Auth0 Webtasks. The Serverless CLI offers structure, automation and best practices out-of-the-box. And with Auth0 Webtasks it's simple and easy to deploy code in just seconds.
 
-**Note:** A local profile is required to use Auth0 Webtasks with the Serverless Framework. Follow the steps in the [Quick Start](../quick-start.md) to get setup in less than a minute.
+**Note:** A local profile is required to use Auth0 Webtasks with the Serverless Framework. Follow the steps in the [Quick Start](quick-start.md) to get setup in less than a minute.
 
 ## Core Concepts
 
