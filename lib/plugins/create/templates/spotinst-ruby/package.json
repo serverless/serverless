@@ -1,7 +1,7 @@
 {
-  "name": "spotionst-python",
+  "name": "spotionst-ruby",
   "version": "1.0.0",
-  "description": "Spotinst Functions Python sample for serverless framework service.",
+  "description": "Spotinst Functions Ruby sample for serverless framework service.",
   "main": "handler.js",
   "keywords": [
     "serverless",

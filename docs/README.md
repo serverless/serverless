@@ -122,6 +122,7 @@ Already using AWS or another cloud provider? Read on.
         <li><a href="./providers/spotinst/guide">Guide</a></li>
         <li><a href="./providers/spotinst/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/spotinst/events">Events</a></li>
+        <li><a href="./providers/spotinst/examples">Examples</a></li>
       </ul>
     </div>
   </div>
