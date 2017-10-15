@@ -12,6 +12,7 @@
     "./login/login.js",
     "./logout/logout.js",
     "./metrics/metrics.js",
+    "./print/print.js",
     "./remove/remove.js",
     "./rollback/index.js",
     "./slstats/slstats.js",
