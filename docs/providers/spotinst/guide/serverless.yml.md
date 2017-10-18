@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Guide - Serverless.yml Reference 
 menuText: Serverless.yml
-menuOrder: 4
+menuOrder: 5
 description: Serverless.yml reference
 layout: Doc
 -->
