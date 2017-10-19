@@ -63,7 +63,7 @@ $ cd new-service
   ```
 
 
-## nvoke the Function
+## Invoke the Function
 
   Invokes a Function
 
