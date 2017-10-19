@@ -25,6 +25,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
         <li><a href="./guide/quick-start.md">Quick Start</a></li>
+        <li><a href="./guide/create-token.md">Create Token</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
         <li><a href="./guide/serverless.yml.md">Serverless.yml Reference</a></li>
       </ul>

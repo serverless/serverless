@@ -14,7 +14,8 @@ layout: Doc
 Make sure `serverless` is installed. 
 
 ## 1. Create a service
-`serverless create --template spotinst-ruby --path serviceName`  `serviceName` is going to be a new directory there the python template will be loaded. Once the download is complete change into that directory
+`serverless create --template spotinst-ruby --path serviceName`  `serviceName` is going to be a new directory there the python template will be loaded. Once the download is complete change into that directory. Next you will need to install the Spotinst Serverless Functions plugin by running `npm install` in the root directory
+
 
 ## 2. Deploy
 `serverless deploy`  
