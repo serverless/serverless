@@ -28,6 +28,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./guide/create-token.md">Create Token</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
         <li><a href="./guide/serverless.yml.md">Serverless.yml Reference</a></li>
+        <li><a href="./guide/variables.md">Variables</a></li>
       </ul>
     </div>
   </div>
