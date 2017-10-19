@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Variables
 menuText: Variables
-menuOrder: 6
+menuOrder: 4
 description: Different external variables and how to use them
 layout: Doc
 -->
