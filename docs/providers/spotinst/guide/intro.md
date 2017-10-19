@@ -88,7 +88,7 @@ provider:
 
 functions:
   hello:
-    runtime: nodejs4.8
+    runtime: nodejs8.3
     handler: handler.main
     memory: 128
     timeout: 30
