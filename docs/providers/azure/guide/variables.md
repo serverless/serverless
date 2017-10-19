@@ -113,6 +113,8 @@ functions:
     events: ${file(./myCustomFile.json):myevents
 ```
 
+**Note:** If the referenced file is a symlink, the targeted file will be read.
+
 ## Reference Variables in JavaScript Files
 
 You can reference JavaScript files to add dynamic data into your variables.
