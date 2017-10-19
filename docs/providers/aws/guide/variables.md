@@ -62,7 +62,7 @@ If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${f
 
 1. stage is set to `qa` from the option supplied to the `sls deploy --stage qa` command
 2. `${self:provider.stage}` resolves to `qa` and is used in `${file(./config.${self:provider.stage}.json):CREDS}`
-3. `${file(./config.qa.stage}.json):CREDS}` is found & the `CREDS` value is read
+3. `${file(./config.qa.json):CREDS}` is found & the `CREDS` value is read
 4. `MY_SECRET` value is set
 
 Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and used.
@@ -246,7 +246,7 @@ In your `serverless.yml`, depending on the type of your source file, either have
 functions:
   hello:
     handler: handler.hello
-    events: ${file(./myCustomFile.yml):myevents
+    events: ${file(./myCustomFile.yml):myevents}
 ```
 
 or for a JSON reference file use this sytax:
@@ -255,7 +255,7 @@ or for a JSON reference file use this sytax:
 functions:
   hello:
     handler: handler.hello
-    events: ${file(./myCustomFile.json):myevents
+    events: ${file(./myCustomFile.json):myevents}
 ```
 
 ## Reference Variables in Javascript Files
