@@ -28,7 +28,8 @@ serverless create --template azure-nodejs --path myService
 ```
 
 ## Options
-- `--template` or `-t` The name of one of the available templates. **Required**.
+- `--template` or `-t` The name of one of the available templates. **Required if --template-url is not present**.
+- `--template-url` or `-u` The name of one of the available templates. **Required if --template is not present**.
 - `--path` or `-p` The path where the service should be created.
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
@@ -68,3 +69,9 @@ Serverless will use the already present directory.
 
 Additionally Serverless will rename the service according to the path you
 provide. In this example the service will be renamed to `my-new-service`.
+
+### Create service in new folder using a custom template
+
+```bash
+serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/azure-nodejs --path myService
+```

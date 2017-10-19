@@ -62,6 +62,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/plugin-search.md">Plugin Search</a></li>
         <li><a href="./cli-reference/plugin-install.md">Plugin Install</a></li>
         <li><a href="./cli-reference/plugin-uninstall.md">Plugin Uninstall</a></li>
+        <li><a href="./cli-reference/print.md">Print</a></li>
       </ul>
     </div>
   </div>

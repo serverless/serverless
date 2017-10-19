@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Guide - Quick Start
 menuText: Quick Start
-menuOrder: 1
+menuOrder: 2
 description: Getting started with the Serverless Framework on AWS Lambda
 layout: Doc
 -->
