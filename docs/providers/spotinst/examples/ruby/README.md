@@ -18,10 +18,14 @@ Make sure `serverless` is installed.
 
 
 ## 2. Deploy
-`serverless deploy`  
+```bash 
+ serverless deploy
+```  
 
 ## 3. Invoke deployed function
-`serverless invoke --function hello` 
+```bash
+serverless invoke --function hello
+``` 
 
 In your terminal window you should see the response
 
