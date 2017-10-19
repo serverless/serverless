@@ -35,7 +35,8 @@ serverless create --template kubeless-nodejs --path my-service
 ```
 
 ## Options
-- `--template` or `-t` The name of one of the available templates. **Required**.
+- `--template` or `-t` The name of one of the available templates. **Required if --template-url is not present**.
+- `--template-url` or `-u` The name of one of the available templates. **Required if --template is not present**.
 - `--path` or `-p` The path where the service should be created.
 - `--name` or `-n` the name of the service in `serverless.yml`.
 

@@ -92,6 +92,10 @@ functions:
     handler: handler.main
     memory: 128
     timeout: 30
+#    access: private
+#    cron:  # Setup scheduled trigger with cron expression
+#     active: true
+#     value: '* * * * *'
 
 ```
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
