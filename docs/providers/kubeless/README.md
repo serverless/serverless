@@ -68,6 +68,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
       <ul>
         <li><a href="./events/http.md">HTTP Events</a></li>
         <li><a href="./events/pubsub.md">PubSub Events</a></li>
+        <li><a href="./events/scheduler.md">Scheduled Events</a></li>
       </ul>
     </div>
   </div>

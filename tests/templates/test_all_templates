@@ -26,3 +26,5 @@ integration-test spotinst-nodejs
 integration-test spotinst-python
 integration-test webtasks-nodejs
 integration-test aliyun-nodejs
+integration-test spotinst-ruby
+integration-test webtasks-nodejs
