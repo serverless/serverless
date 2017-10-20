@@ -3,6 +3,7 @@ title: Hello World Example
 menuText: Hello World Example
 description: Example of creating a Hello World function in Node.js and Python with the Serverless framework
 layout: Doc
+menuOrder: 4
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
