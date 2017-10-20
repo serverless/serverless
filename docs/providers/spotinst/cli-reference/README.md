@@ -2,6 +2,7 @@
 title: Serverless - Spotinst Functions - CLI Reference
 menuText: CLI Reference
 layout: Doc
+menuOrder: 2
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
