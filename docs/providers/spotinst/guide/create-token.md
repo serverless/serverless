@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Create Token
 menuText: Create Token
-menuOrder: 2
+menuOrder: 3
 description: How to set up the Serverless Framework with your Spotinst Token
 layout: Doc
 -->

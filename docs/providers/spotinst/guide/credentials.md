@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Credentials
 menuText: Credentials
-menuOrder: 3
+menuOrder: 4
 description: How to set up the Serverless Framework with your Spotinst Functions credentials
 layout: Doc
 -->
