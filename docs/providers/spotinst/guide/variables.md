@@ -23,9 +23,12 @@ To enter your environment variables you will need to go into the Spotinst consol
 Also you are able to enter in environment variables in the serverless.yml file. As a parameter under any function you can add:
 
 ```yml
-environmentVariables: {
-	Key: "Value"
-}
+functions:
+	test:
+		handler: handler.main
+		environmentVariables: {
+			Key: "Value"
+		}
 ```
 
 To access your variables in your code you just need to put `process.env['{Your Key}']` as needed in the handler file.
