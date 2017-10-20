@@ -24,7 +24,7 @@ Also you are able to enter in environment variables in the serverless.yml file. 
 
 ```yml
 environmentVariables: {
-	Key: "Value",
+	Key: "Value"
 }
 ```
 
