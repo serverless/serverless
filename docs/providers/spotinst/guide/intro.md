@@ -96,6 +96,9 @@ functions:
 #    cron:  # Setup scheduled trigger with cron expression
 #     active: true
 #     value: '* * * * *'
+#    environmentVariables: {
+#      Key: "Value",
+#    }
 
 ```
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
