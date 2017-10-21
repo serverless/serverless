@@ -8,6 +8,8 @@ layout: Doc
 
 # Quick Start
 
+Here is a quick guide on how to create a new serverless project using the Spotinst NodeJS template. For more detailed instruction please check out the other reference material provided. 
+
 ## Pre-requisites
 
 1. Node.js `v6.5.0` or later.
@@ -26,14 +28,22 @@ $ serverless create --template spotinst-nodejs -p new-service
 $ cd new-service
 ```
 
-## Deploy, test and diagnose your service
+## Install Spotinst Serverless Functions Plugin
+  
+  You will first need to install the Spotinst Functions plugin before you are able to deploy your function. Once this has been done you do not need to do it again for this project. 
 
-1. **Deploy the Service**
+  ```bash
+  npm install
+  ```
+
+## Deploying and Updating the Function
+  
+1. **Deploying the Service**
 
   Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
 
   ```bash
-  serverless deploy -v
+  serverless deploy 
   ```
 
 2. **Deploy the Function**
@@ -44,7 +54,16 @@ $ cd new-service
   serverless deploy function -f hello
   ```
 
-3. **Invoke the Function**
+3. **Updating the Function**
+
+  Use this to update your function after you have made updates that you want to push to production.
+  
+  ```bash
+  serverless deploy 
+  ```
+
+
+## Invoke the Function
 
   Invokes a Function
 
@@ -52,12 +71,6 @@ $ cd new-service
   serverless invoke -f hello
   ```
 
-4. **Fetch the Function Logs**
-
-  Open up a separate tab in your console and stream all logs for a specific Function using this command.
-  ```bash
-  serverless logs -f hello -t
-  ```
 
 ## Cleanup
 

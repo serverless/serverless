@@ -32,7 +32,9 @@ provider:
 # function, timeout is the time the function will take to run, if it goes over 
 # this time it will terminate itself. Access is default set to private so if you 
 # want to be able to run the function by HTTPS request this needs to be set to 
-# public. For information on cron functions read the post here.
+# public. The environment variables can be set in here or on the Spotinst console.
+# Once they are set you can access the variables in your handler file with
+# process.env['{Your Key}']
 
 functions:
   function-name:
@@ -44,6 +46,9 @@ functions:
 #    cron:
 #      active: false
 #      value: '*/1 * * * *'
+#    environmentVariables: {
+#      Key: "Value",
+#    }
 
 
 plugins:

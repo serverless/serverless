@@ -88,7 +88,7 @@ provider:
 
 functions:
   hello:
-    runtime: nodejs4.8
+    runtime: nodejs8.3
     handler: handler.main
     memory: 128
     timeout: 30
@@ -96,6 +96,9 @@ functions:
 #    cron:  # Setup scheduled trigger with cron expression
 #     active: true
 #     value: '* * * * *'
+#    environmentVariables: {
+#      Key: "Value",
+#    }
 
 ```
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.

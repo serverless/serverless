@@ -20,21 +20,26 @@ You will need to have your account ID number and your account token ready. Your 
 
 In order to run the config credentials command from the terminal you will need to start a new Spotinst project and install the plugin. First you will need to run the create a new project using the Spotinst template. To do this run:
 
-```
+```bash
 serverless create -t spotinst-nodejs -p new-function
 ```
 
-Then navigate to the directory that was just created `new-function` and install the Spotinst Serverless Plugin by running the `npm install` command.
+Then navigate to the directory that was just created `new-function` and install the Spotinst Serverless Plugin:
+
+```bash
+cd new-function
+npm install
+```
 
 Once this has completed you will be able to configure your credentials by running 
 
-```
+```bash
 serverless config credentials -p spotinst -k {your account number} -t {your token}
 ```
 
 This will create a ~/.spotinst/credentials file the file should look like this when if done correctly:
 
-```
+```bash
 default:
     token: {your token}
     account: {your account number} 

@@ -17,10 +17,14 @@ Make sure `serverless` is installed.
 `serverless create --template spotinst-nodejs --path serviceName`  `serviceName` is going to be a new directory there the python template will be loaded. Once the download is complete change into that directory. Next you will need to install the Spotinst Serverless Functions plugin by running `npm install` in the root directory
 
 ## 2. Deploy
-`serverless deploy`  
+```bash 
+ serverless deploy
+```  
 
 ## 3. Invoke deployed function
-`serverless invoke --function hello` 
+```bash
+serverless invoke --function hello
+``` 
 
 In your terminal window you should see the response
 

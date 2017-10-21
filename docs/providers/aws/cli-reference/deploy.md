@@ -24,6 +24,7 @@ serverless deploy
 - `--package` or `-p` path to a pre-packaged directory and skip packaging step.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 - `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
+- `--conceal` Hides secrets from the output (e.g. API Gateway key values).
 
 ## Artifacts
 
