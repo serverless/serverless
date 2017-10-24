@@ -96,7 +96,9 @@ This example will pass the json context in the `lib/context.json` file (relative
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs and Python runtimes.
+Currently, `invoke local` only supports the NodeJs, Python & Java runtimes.
+
+**Note:** In order to get correct output when using Java runtime, your Response class must implement `toString()` method.
 
 ## Resource permissions
 
