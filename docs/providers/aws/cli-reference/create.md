@@ -45,6 +45,8 @@ Most commonly used templates:
 - aws-nodejs-ecma-script
 - aws-python
 - aws-python3
+- aws-kotlin-jvm-maven
+- aws-kotlin-nodejs-gradle
 - aws-groovy-gradle
 - aws-java-maven
 - aws-java-gradle

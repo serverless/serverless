@@ -1,6 +1,7 @@
 # Logs
 *.log
 npm-debug.log
+npm-shrinkwrap.json
 
 # Runtime data
 pids

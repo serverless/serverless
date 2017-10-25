@@ -35,6 +35,14 @@ services:
     image: java:8
     volumes:
       - ./tmp/serverless-integration-test-aws-java-gradle:/app
+  aws-kotlin-jvm-maven:
+    image: maven:3-jdk-8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-kotlin-jvm-maven:/app
+  aws-kotlin-nodejs-gradle:
+    image: pgoudreau/docker-maven-node
+    volumes:
+      - ./tmp/serverless-integration-test-aws-kotlin-nodejs-gradle:/app
   aws-groovy-gradle:
     image: java:8
     volumes:
@@ -63,3 +71,15 @@ services:
     image: node:6.9.1
     volumes:
       - ./tmp/serverless-integration-test-google-nodejs:/app
+  spotinst-nodejs:
+    image: node:4.8
+    volumes:
+      - ./tmp/serverless-integration-test-spotinst-nodejs:/app
+  spotinst-python:
+    image: python2.7
+    volumes:
+      - ./tmp/serverless-integration-test-spotinst-python:/app
+  webtasks-nodejs:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-webtasks-nodejs:/app
