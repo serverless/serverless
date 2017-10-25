@@ -20,5 +20,8 @@ serverless remove
 
 It will remove the Kubeless Function objects from your Kubernetes cluster, the Kubernetes Deployments and the Kubernetes Services associated with the Serverless service.
 
+## Options
+- `--verbose` or `-v` Shows additional information during the removal.
+
 ## Provided lifecycle events
 - `remove:remove`

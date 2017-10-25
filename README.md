@@ -22,6 +22,8 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 ## Contents
 
+<img align="right" width="400" src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/email/sls-getting-started.gif" />
+
 * [Quick Start](#quick-start)
 * [Examples](https://github.com/serverless/examples)
 * [Services](#services)
@@ -129,7 +131,7 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="features"></a>Features
 
-* Supports Node.js, Python, Java & Scala.
+* Supports Node.js, Python, Java, Scala, C#, F#, Groovy, Kotlin, PHP & Swift.
 * Manages the lifecycle of your serverless architecture (build, deploy, update, delete).
 * Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation).
 * Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams.
@@ -152,40 +154,60 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 -->
 | Plugin | Author |
 |:-------|:------:|
-| **[API GW binary support](https://github.com/maciejtreder/serverless-apigw-binary)** <br/> Serverless plugin to enable binary support in AWS API Gateway. | [Maciej Treder](https://github.com/maciejtreder) |
 | **[Raml Serverless](https://github.com/andrewcurioso/raml-serverless)** <br/> Serverless plugin to work with RAML API spec documents | [andrewcurioso](http://github.com/andrewcurioso) |
 | **[Serverless Alexa Plugin](https://github.com/rajington/serverless-alexa-plugin)** <br/> Serverless plugin to support Alexa Lambda events | [rajington](http://github.com/rajington) |
 | **[Serverless Api Stage](https://github.com/leftclickben/serverless-api-stage)** <br/> Serverless API Stage plugin, enables stage variables and logging for AWS API Gateway. | [leftclickben](http://github.com/leftclickben) |
 | **[Serverless Apig S3](https://github.com/sdd/serverless-apig-s3)** <br/> Serve static front-end content from S3 via the API Gatewy and deploy client bundle to S3. | [sdd](http://github.com/sdd) |
+| **[Serverless Apigateway Plugin](https://github.com/GFG/serverless-apigateway-plugin)** <br/> Configure the AWS api gateway: Binary support, Headers and Body template mappings | [GFG](http://github.com/GFG) |
+| **[Serverless Apigw Binary](https://github.com/maciejtreder/serverless-apigw-binary)** <br/> Plugin to enable binary support in AWS API Gateway. | [maciejtreder](http://github.com/maciejtreder) |
+| **[Serverless Apigwy Binary](https://github.com/ryanmurakami/serverless-apigwy-binary)** <br/> Serverless plugin for configuring API Gateway to return binary responses | [ryanmurakami](http://github.com/ryanmurakami) |
 | **[Serverless Aws Alias](https://github.com/HyperBrain/serverless-aws-alias)** <br/> This plugin enables use of AWS aliases on Lambda functions. | [HyperBrain](http://github.com/HyperBrain) |
 | **[Serverless Aws Documentation](https://github.com/9cookies/serverless-aws-documentation)** <br/> Serverless plugin to add documentation and models to the serverless generated API Gateway | [9cookies](http://github.com/9cookies) |
 | **[Serverless Build Plugin](https://github.com/nfour/serverless-build-plugin)** <br/> A Node.js focused build plugin for serverless. | [nfour](http://github.com/nfour) |
+| **[Serverless Cf Vars](https://gitlab.com/kabo/serverless-cf-vars)** <br/> Enables use of AWS pseudo functions and Fn::Sub string substitution | [kabo](http://github.com/kabo) |
 | **[Serverless Cljs Plugin](https://github.com/nervous-systems/serverless-cljs-plugin)** <br/> Enables Clojurescript as an implementation language for Lambda handlers | [nervous-systems](http://github.com/nervous-systems) |
 | **[Serverless Coffeescript](https://github.com/duanefields/serverless-coffeescript)** <br/> A Serverless plugin to compile your CoffeeScript into JavaScript at deployment | [duanefields](http://github.com/duanefields) |
 | **[Serverless Command Line Event Args](https://github.com/horike37/serverless-command-line-event-args)** <br/> This module is Serverless Framework plugin. Event JSON passes to your Lambda function in commandline. | [horike37](http://github.com/horike37) |
 | **[Serverless Crypt](https://github.com/marcy-terui/serverless-crypt)** <br/> Securing the secrets on Serverless Framework by AWS KMS encryption. | [marcy-terui](http://github.com/marcy-terui) |
+| **[Serverless Custom Packaging Plugin](https://github.com/hypoport/serverless-custom-packaging-plugin)** <br/> Plugin to package your sourcecode using a custom target path inside the zip. | [hypoport](http://github.com/hypoport) |
 | **[Serverless Dir Config Plugin](https://github.com/economysizegeek/serverless-dir-config-plugin)** <br/> EXPERIMENTAL - Serverless plugin to load function and resource definitions from a directory. | [economysizegeek](http://github.com/economysizegeek) |
+| **[Serverless Domain Manager](https://github.com/amplify-education/serverless-domain-manager)** <br/> Serverless plugin for managing custom domains with API Gateways. | [amplify-education](http://github.com/amplify-education) |
 | **[Serverless Dotenv](https://github.com/Jimdo/serverless-dotenv)** <br/> Fetch environment variables and write it to a .env file | [Jimdo](http://github.com/Jimdo) |
 | **[Serverless Dotnet](https://github.com/fruffin/serverless-dotnet)** <br/> A serverless plugin to run 'dotnet' commands as part of the deploy process | [fruffin](http://github.com/fruffin) |
 | **[Serverless Dynalite](https://github.com/sdd/serverless-dynalite)** <br/> Run dynalite locally (no JVM, all JS) to simulate DynamoDB. Watch serverless.yml for table config updates. | [sdd](http://github.com/sdd) |
+| **[Serverless Dynamodb Autoscaling](https://github.com/sbstjn/serverless-dynamodb-autoscaling)** <br/> Configure Amazon DynamoDB's native Auto Scaling for your table capacities. | [sbstjn](http://github.com/sbstjn) |
 | **[Serverless Dynamodb Local](https://github.com/99xt/serverless-dynamodb-local)** <br/> Serverless Dynamodb Local Plugin - Allows to run dynamodb locally for serverless | [99xt](http://github.com/99xt) |
 | **[Serverless Dynamodb Ttl](https://github.com/Jimdo/serverless-dynamodb-ttl)** <br/> Configure DynamoDB TTL in serverless.yml (until CloudFormation supports this). | [Jimdo](http://github.com/Jimdo) |
 | **[Serverless Enable Api Logs](https://github.com/paulSambolin/serverless-enable-api-logs)** <br/> Enables Coudwatch logging for API Gateway events | [paulSambolin](http://github.com/paulSambolin) |
+| **[Serverless Env Generator](https://github.com/DieProduktMacher/serverless-env-generator)** <br/> Manage environment variables with YAML and load them with dotenv. Supports variable encryption with KMS, multiple stages and custom profiles. | [DieProduktMacher](http://github.com/DieProduktMacher) |
 | **[Serverless Event Constant Inputs](https://github.com/dittto/serverless-event-constant-inputs)** <br/> Allows you to add constant inputs to events in Serverless 1.0. For more info see [constant values in Cloudwatch](https://aws.amazon.com/blogs/compute/simply-serverless-use-constant-values-in-cloudwatch-event-triggered-lambda-functions/) | [dittto](http://github.com/dittto) |
 | **[Serverless Export Env](https://github.com/arabold/serverless-export-env)** <br/> Export environment variables into a .env file with automatic AWS CloudFormation reference resolution. | [arabold](http://github.com/arabold) |
+| **[Serverless Gulp](https://github.com/rhythminme/serverless-gulp)** <br/> A thin task wrapper around @goserverless that allows you to automate build, test and deploy tasks using gulp | [rhythminme](http://github.com/rhythminme) |
 | **[Serverless Hooks Plugin](https://github.com/uswitch/serverless-hooks-plugin)** <br/> Run arbitrary commands on any lifecycle event in serverless | [uswitch](http://github.com/uswitch) |
 | **[Serverless Jest Plugin](https://github.com/SC5/serverless-jest-plugin)** <br/> A Serverless Plugin for the Serverless Framework which adds support for test-driven development using Jest | [SC5](http://github.com/SC5) |
+| **[Serverless Kms Secrets](https://github.com/SC5/serverless-kms-secrets)** <br/> Allows to easily encrypt and decrypt secrets using KMS from the serverless CLI | [SC5](http://github.com/SC5) |
+| **[Serverless Kubeless](https://github.com/serverless/serverless-kubeless)** <br/> Serverless plugin for deploying functions to Kubeless. | [serverless](http://github.com/serverless) |
+| **[Serverless Local Dev Server](https://github.com/DieProduktMacher/serverless-local-dev-server)** <br/> Speeds up development of Alexa Skills, Chatbots and APIs by exposing your functions as local HTTP endpoints and mapping received events. | [DieProduktMacher](http://github.com/DieProduktMacher) |
+| **[Serverless Log Forwarding](https://github.com/amplify-education/serverless-log-forwarding)** <br/> Serverless plugin for forwarding CloudWatch logs to another Lambda function. | [amplify-education](http://github.com/amplify-education) |
 | **[Serverless Mocha Plugin](https://github.com/SC5/serverless-mocha-plugin)** <br/> A Serverless Plugin for the Serverless Framework which adds support for test-driven development using Mocha | [SC5](http://github.com/SC5) |
+| **[Serverless Nested Stack](https://github.com/jagdish-176/serverless-nested-stack)** <br/> A plugin to Workaround for Cloudformation 200 resource limit | [jagdish-176](http://github.com/jagdish-176) |
 | **[Serverless Offline](https://github.com/dherault/serverless-offline)** <br/> Emulate AWS λ and API Gateway locally when developing your Serverless project | [dherault](http://github.com/dherault) |
 | **[Serverless Offline Scheduler](https://github.com/ajmath/serverless-offline-scheduler)** <br/> Runs scheduled functions offline while integrating with serverless-offline | [ajmath](http://github.com/ajmath) |
 | **[Serverless Package Python Functions](https://github.com/ubaniabalogun/serverless-package-python-functions)** <br/> Packaging Python Lambda functions with only the dependencies/requirements they need. | [ubaniabalogun](http://github.com/ubaniabalogun) |
 | **[Serverless Parameters](https://github.com/svdgraaf/serverless-parameters)** <br/> Add parameters to the generated cloudformation templates | [svdgraaf](http://github.com/svdgraaf) |
 | **[Serverless Plugin Aws Alerts](https://github.com/ACloudGuru/serverless-plugin-aws-alerts)** <br/> A Serverless plugin to easily add CloudWatch alarms to functions | [ACloudGuru](http://github.com/ACloudGuru) |
+| **[Serverless Plugin Aws Resolvers](https://github.com/DopplerLabs/serverless-plugin-aws-resolvers)** <br/> Resolves variables from ESS, RDS, or Kinesis for serverless services | [DopplerLabs](http://github.com/DopplerLabs) |
+| **[Serverless Plugin Bespoken](https://github.com/bespoken/serverless-plugin-bespoken)** <br/> Creates a local server and a proxy so you don't have to deploy anytime you want to test your code | [bespoken](http://github.com/bespoken) |
 | **[Serverless Plugin Bind Deployment Id](https://github.com/jacob-meacham/serverless-plugin-bind-deployment-id)** <br/> A Serverless plugin to bind the randomly generated deployment resource to your custom resources | [jacob-meacham](http://github.com/jacob-meacham) |
+| **[Serverless Plugin Browserifier](https://github.com/digitalmaas/serverless-plugin-browserifier)** <br/> Reduce the size and speed up your Node.js based lambda's using browserify. | [digitalmaas](http://github.com/digitalmaas) |
 | **[Serverless Plugin Browserify](https://github.com/doapp-ryanp/serverless-plugin-browserify)** <br/> Speed up your node based lambda's | [doapp-ryanp](http://github.com/doapp-ryanp) |
 | **[Serverless Plugin Cfauthorizer](https://github.com/SC5/serverless-plugin-cfauthorizer)** <br/> This plugin allows you to define your own API Gateway Authorizers as the Serverless CloudFormation resources and apply them to HTTP endpoints. | [SC5](http://github.com/SC5) |
 | **[Serverless Plugin Cloudwatch Sumologic](https://github.com/ACloudGuru/serverless-plugin-cloudwatch-sumologic)** <br/> Plugin which auto-subscribes a log delivery lambda function to lambda log groups created by serverless | [ACloudGuru](http://github.com/ACloudGuru) |
+| **[Serverless Plugin Common Excludes](https://github.com/dougmoscrop/serverless-plugin-common-excludes)** <br/> Adds commonly excluded files to package.excludes | [dougmoscrop](http://github.com/dougmoscrop) |
+| **[Serverless Plugin Custom Domain](https://github.com/dougmoscrop/serverless-plugin-custom-domain)** <br/> Reliably sets a BasePathMapping to an API Gateway Custom Domain | [dougmoscrop](http://github.com/dougmoscrop) |
+| **[Serverless Plugin Deploy Environment](https://github.com/DopplerLabs/serverless-plugin-deploy-environment)** <br/> Plugin to manage deployment environment across stages | [DopplerLabs](http://github.com/DopplerLabs) |
 | **[Serverless Plugin Diff](https://github.com/nicka/serverless-plugin-diff)** <br/> Compares your local AWS CloudFormation templates against deployed ones. | [nicka](http://github.com/nicka) |
+| **[Serverless Plugin Elastic Beanstalk](https://github.com/rawphp/serverless-plugin-elastic-beanstalk)** <br/> A serverless plugin to deploy applications to AWS ElasticBeanstalk. | [rawphp](http://github.com/rawphp) |
 | **[Serverless Plugin Encode Env Var Objects](https://github.com/yonomi/serverless-plugin-encode-env-var-objects)** <br/> Serverless plugin to encode any environment variable objects. | [yonomi](http://github.com/yonomi) |
 | **[Serverless Plugin External Sns Events](https://github.com/silvermine/serverless-plugin-external-sns-events)** <br/> Add ability for functions to use existing or external SNS topics as an event source | [silvermine](http://github.com/silvermine) |
 | **[Serverless Plugin Git Variables](https://github.com/jacob-meacham/serverless-plugin-git-variables)** <br/> A Serverless plugin to expose git variables (branch name, HEAD description, full commit hash) to your serverless services | [jacob-meacham](http://github.com/jacob-meacham) |
@@ -193,12 +215,16 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 | **[Serverless Plugin Include Dependencies](https://github.com/dougmoscrop/serverless-plugin-include-dependencies)** <br/> This is a Serverless plugin that should make your deployed functions smaller. | [dougmoscrop](http://github.com/dougmoscrop) |
 | **[Serverless Plugin Iopipe](https://github.com/iopipe/serverless-plugin-iopipe)** <br/> See inside your Lambda functions with high fidelity metrics and monitoring. | [iopipe](http://github.com/iopipe) |
 | **[Serverless Plugin Lambda Dead Letter](https://github.com/gmetzker/serverless-plugin-lambda-dead-letter)** <br/> A Serverless plugin that can configure a lambda with a dead letter queue or topic | [gmetzker](http://github.com/gmetzker) |
+| **[Serverless Plugin Log Subscription](https://github.com/dougmoscrop/serverless-plugin-log-subscription)** <br/> Adds a CloudWatch LogSubscription for functions | [dougmoscrop](http://github.com/dougmoscrop) |
 | **[Serverless Plugin Multiple Responses](https://github.com/silvermine/serverless-plugin-multiple-responses)** <br/> Enable multiple content-types for Response template  | [silvermine](http://github.com/silvermine) |
+| **[Serverless Plugin Offline Kinesis Events](https://github.com/DopplerLabs/serverless-plugin-offline-kinesis-events)** <br/> Plugin that works with serverless-offline to allow offline testing of serverless functions that are triggered by Kinesis events. | [DopplerLabs](http://github.com/DopplerLabs) |
 | **[Serverless Plugin Optimize](https://github.com/FidelLimited/serverless-plugin-optimize)** <br/> Bundle with Browserify, transpile with Babel to ES5 and minify with Uglify your Serverless functions. | [FidelLimited](http://github.com/FidelLimited) |
 | **[Serverless Plugin Package Dotenv File](https://github.com/ACloudGuru/serverless-plugin-package-dotenv-file)** <br/> A Serverless plugin to copy a .env file into the serverless package | [ACloudGuru](http://github.com/ACloudGuru) |
 | **[Serverless Plugin Scripts](https://github.com/mvila/serverless-plugin-scripts)** <br/> Add scripting capabilities to the Serverless Framework | [mvila](http://github.com/mvila) |
 | **[Serverless Plugin Select](https://github.com/FidelLimited/serverless-plugin-select)** <br/> Select which functions are to be deployed based on region and stage. | [FidelLimited](http://github.com/FidelLimited) |
 | **[Serverless Plugin Simulate](https://github.com/gertjvr/serverless-plugin-simulate)** <br/> Simulate AWS Lambda and API Gateway locally using Docker | [gertjvr](http://github.com/gertjvr) |
+| **[Serverless Plugin Split Stacks](https://github.com/dougmoscrop/serverless-plugin-split-stacks)** <br/> Migrate certain resources to nested stacks | [dougmoscrop](http://github.com/dougmoscrop) |
+| **[Serverless Plugin Stack Config](https://github.com/rawphp/serverless-plugin-stack-config)** <br/> A serverless plugin to manage configurations for a stack across micro-services. | [rawphp](http://github.com/rawphp) |
 | **[Serverless Plugin Stack Outputs](https://github.com/svdgraaf/serverless-plugin-stack-outputs)** <br/> Displays stack outputs for your serverless stacks when `sls info` is ran | [svdgraaf](http://github.com/svdgraaf) |
 | **[Serverless Plugin Stage Variables](https://github.com/svdgraaf/serverless-plugin-stage-variables)** <br/> Add stage variables for Serverless 1.x to ApiGateway, so you can use variables in your Lambda's | [svdgraaf](http://github.com/svdgraaf) |
 | **[Serverless Plugin Subscription Filter](https://github.com/tsub/serverless-plugin-subscription-filter)** <br/> A serverless plugin to register AWS CloudWatchLogs subscription filter | [tsub](http://github.com/tsub) |
@@ -212,14 +238,20 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 | **[Serverless Python Requirements](https://github.com/UnitedIncome/serverless-python-requirements)** <br/> Serverless plugin to bundle Python packages | [UnitedIncome](http://github.com/UnitedIncome) |
 | **[Serverless Resources Env](https://github.com/rurri/serverless-resources-env)** <br/> After Deploy, this plugin fetches cloudformation resource identifiers and sets them on AWS lambdas, and creates local .<state>-env file | [rurri](http://github.com/rurri) |
 | **[Serverless Run Function Plugin](https://github.com/lithin/serverless-run-function-plugin)** <br/> Run serverless function locally | [lithin](http://github.com/lithin) |
+| **[Serverless S3 Remover](https://github.com/sinofseven/serverless-s3-remover)** <br/> A serverless plugin to make s3 buckets empty before deleting cloudformation stack when ```sls remove``` | [sinofseven](http://github.com/sinofseven) |
+| **[Serverless S3 Sync](https://github.com/k1LoW/serverless-s3-sync)** <br/> A plugin to sync local directories and S3 prefixes for Serverless Framework, | [k1LoW](http://github.com/k1LoW) |
+| **[Serverless S3bucket Sync](https://github.com/sbstjn/serverless-s3bucket-sync)** <br/> Sync a local folder with a S3 bucket after sls deploy | [sbstjn](http://github.com/sbstjn) |
 | **[Serverless Sam](https://github.com/SAPessi/serverless-sam)** <br/> Exports an AWS SAM template for a service created with the Serverless Framework. | [SAPessi](http://github.com/SAPessi) |
 | **[Serverless Scriptable Plugin](https://github.com/weixu365/serverless-scriptable-plugin)** <br/> Customize Serverless behavior without writing a plugin. | [weixu365](http://github.com/weixu365) |
+| **[Serverless Sentry](https://github.com/arabold/serverless-sentry-plugin)** <br/> Automatic monitoring of memory usage, execution timeouts and forwarding of Lambda errors to Sentry (https://sentry.io). | [arabold](http://github.com/arabold) |
+| **[Serverless Shell](https://github.com/UnitedIncome/serverless-shell)** <br/> Drop to a runtime shell with all the environment variables set that you'd have in lambda. | [UnitedIncome](http://github.com/UnitedIncome) |
 | **[Serverless Sqs Alarms Plugin](https://github.com/sbstjn/serverless-sqs-alarms-plugin)** <br/> Wrapper to setup CloudWatch Alarms on SQS queue length | [sbstjn](http://github.com/sbstjn) |
 | **[Serverless Sqs Fifo](https://github.com/vortarian/serverless-sqs-fifo)** <br/> A serverless plugin to handle creation of sqs fifo queue's in aws (stop-gap) | [vortarian](http://github.com/vortarian) |
+| **[Serverless Stack Output](https://github.com/sbstjn/serverless-stack-output)** <br/> Store output from your AWS CloudFormation Stack in JSON/YAML/TOML files, or to pass it to a JavaScript function for further processing. | [sbstjn](http://github.com/sbstjn) |
 | **[Serverless Step Functions](https://github.com/horike37/serverless-step-functions)** <br/> AWS Step Functions with Serverless Framework. | [horike37](http://github.com/horike37) |
 | **[Serverless Subscription Filter](https://github.com/blackevil245/serverless-subscription-filter)** <br/> Serverless plugin to register subscription filter for Lambda logs. Register and pipe the logs of one lambda to another to process. | [blackevil245](http://github.com/blackevil245) |
 | **[Serverless Vpc Discovery](https://github.com/amplify-education/serverless-vpc-discovery)** <br/> Serverless plugin for discovering VPC / Subnet / Security Group configuration by name. | [amplify-education](http://github.com/amplify-education) |
-| **[Serverless Webpack](https://github.com/elastic-coders/serverless-webpack)** <br/> Serverless plugin to bundle your lambdas with Webpack | [elastic-coders](http://github.com/elastic-coders) |
+| **[Serverless Webpack](https://github.com/serverless-heaven/serverless-webpack)** <br/> Serverless plugin to bundle your lambdas with Webpack | [serverless-heaven](http://github.com/serverless-heaven) |
 | **[Serverless Wsgi](https://github.com/logandk/serverless-wsgi)** <br/> Serverless plugin to deploy WSGI applications (Flask/Django/Pyramid etc.) and bundle Python packages | [logandk](http://github.com/logandk) |
 <!-- AUTO-GENERATED-CONTENT:END This table is generated from https://github.com/serverless/plugins/blob/master/plugins.json please make additions there -->
 
@@ -230,6 +262,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 -->
 | Project Name | Author |
 |:-------------|:------:|
+| **[Jwtauthorizr](https://github.com/serverlessbuch/jwtAuthorizr)** <br/> Custom JWT Authorizer Lambda function for Amazon API Gateway with Bearer JWT | [serverlessbuch](http://github.com/serverlessbuch) |
 | **[Serverless Graphql Api](https://github.com/boazdejong/serverless-graphql-api)** <br/> Serverless GraphQL API using Lambda and DynamoDB | [boazdejong](http://github.com/boazdejong) |
 | **[Serverless Screenshot](https://github.com/svdgraaf/serverless-screenshot)** <br/> Serverless Screenshot Service using PhantomJS | [svdgraaf](http://github.com/svdgraaf) |
 | **[Serverless Postgraphql](https://github.com/rentrop/serverless-postgraphql)** <br/> GraphQL endpoint for PostgreSQL using postgraphql | [rentrop](http://github.com/rentrop) |
@@ -275,6 +308,14 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 | **[Aws Api Gateway Serverless Project Written In Go](https://github.com/yunspace/serverless-golang)** <br/> A serverless project that contains an API Gateway endpoint powered by a Lambda function written in golang and built using [eawsy/aws-lambda-go-shim](https://github.com/eawsy/aws-lambda-go-shim). | [yunspace](http://github.com/yunspace) |
 | **[Video Preview And Analysis Service](https://github.com/laardee/video-preview-and-analysis-service)** <br/> An event-driven service that generates labels using Amazon Rekognition and creates preview GIF animation from a video file. | [laardee](http://github.com/laardee) |
 | **[Serverless Es6/7 Crud Api](https://github.com/AnomalyInnovations/serverless-stack-demo-api)** <br/> [Serverless Stack](http://serverless-stack.com) examples of backend CRUD APIs (DynamoDB + Lambda + API Gateway + Cognito User Pool authorizer) for [React.js single-page app](http://demo.serverless-stack.com) | [AnomalyInnovations](http://github.com/AnomalyInnovations) |
+| **[Sqs Worker With Aws Lambda And Cloudwatch Alarms](https://github.com/sbstjn/sqs-worker-serverless)** <br/> Process messages stored in SQS with an [auto-scaled AWS Lambda worker](https://sbstjn.com/serverless-sqs-worker-with-aws-lambda.html) function. | [sbstjn](http://github.com/sbstjn) |
+| **[Aws Lambda Power Tuning (Powered By Step Functions)](https://github.com/alexcasalboni/aws-lambda-power-tuning)** <br/> Build a [Step Functions](https://aws.amazon.com/step-functions/) state machine to optimize your AWS Lambda Function memory/power configuration. | [alexcasalboni](http://github.com/alexcasalboni) |
+| **[Amazon Kinesis Streams Fan Out Via Kinesis Analytics](https://github.com/alexcasalboni/kinesis-streams-fan-out-kinesis-analytics)** <br/> Use [Amazon Kinesis Analytics](https://aws.amazon.com/kinesis/analytics/) to fan-out your Kinesis Streams and avoid read throttling. | [alexcasalboni](http://github.com/alexcasalboni) |
+| **[Grants Api Serverless](https://github.com/comicrelief/grants-api-serverless)** <br/> ES6 API to consume data from an external API, ingest into Elasticsearch and return a queryable endpoint on top of Elasticsearch | [comicrelief](http://github.com/comicrelief) |
+| **[Honeylambda](https://github.com/0x4D31/honeyLambda)** <br/> a simple, serverless application designed to create and monitor URL {honey}tokens, on top of AWS Lambda and Amazon API Gateway | [0x4D31](http://github.com/0x4D31) |
+| **[Stack Overflow Monitor](https://github.com/picsoung/stackoverflowmonitor)** <br/> Monitor Stack Overflow questions and post them in a Slack channel | [picsoung](http://github.com/picsoung) |
+| **[React & Stripe Serverless Ecommerce](https://github.com/patrick-michelberger/serverless-shop)** <br/> Serverless E-Commerce App with AWS Lambda, Stripe and React | [patrick-michelberger](http://github.com/patrick-michelberger) |
+| **[Serverless + Medium Text To Speech](https://github.com/RafalWilinski/serverless-medium-text-to-speech)** <br/> Serverless-based, text-to-speech service for Medium articles | [RafalWilinski](http://github.com/RafalWilinski) |
 <!-- AUTO-GENERATED-CONTENT:END This table is generated from https://github.com/serverless/examples/blob/master/community-examples.json please make additions there -->
 
 ## <a name="contributing"></a>Contributing

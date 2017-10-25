@@ -84,10 +84,6 @@ If the events HTTP definitions contain a `path` attribute, when deploying this S
 
 ```
 kubectl get ingress
-NAME               HOSTS     ADDRESS          PORTS     AGE
-ingress-create     *         192.168.99.100   80        2m
-ingress-delete     *         192.168.99.100   80        2m
-ingress-read-all   *         192.168.99.100   80        2m
-ingress-read-one   *         192.168.99.100   80        2m
-ingress-update     *         192.168.99.100   80        2m
+NAME                    HOSTS                   ADDRESS   PORTS     AGE
+ingress-1506350705094   192.168.99.100.nip.io             80        28s
 ```
