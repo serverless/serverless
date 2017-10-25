@@ -91,10 +91,10 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 
 You can override the specific CloudFormation resource to apply your own options. For example, if you want to set `AWS::Logs::LogGroup` retention time to 30 days, override it with above table's `Name Template`.
 
-When you do overriding the basic resources, the important part is `normalizedFunctionName`. There are two rules.
+When you override basic resources, there are two things to keep in mind when it comes to `normalizedFunctionName`:
 
-- Should start with uppercase character.
-- The `-` will be changed to `Dash`, `_` will be changed to `Underscore`.
+- It should start with an uppercase character
+- The `-` will be changed to `Dash`, `_` will be changed to `Underscore`
 
 Here's an example:
 
