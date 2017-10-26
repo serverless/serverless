@@ -19,7 +19,7 @@ npm install -g serverless
 ```
 
 ## Set Up Credentials
-  To do this please refer to the [Credentials]("credentials.md") link provided 
+  To do this please refer to the [Credentials](credentials.md) link provided 
 
 ## Create a New Service
 
