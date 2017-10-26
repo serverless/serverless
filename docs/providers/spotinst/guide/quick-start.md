@@ -6,11 +6,12 @@ description: Getting started with the Serverless Framework on AWS Lambda
 layout: Doc
 -->
 
-# Quick Start
+# Spotinst - Quick Start
 
 Here is a quick guide on how to create a new serverless project using the Spotinst NodeJS template. For more detailed instruction please check out the other reference material provided. 
 
-## Pre-requisites
+## Install Serverless Framework
+  First you will need to have the serverless framework installed
 
 1. Node.js `v6.5.0` or later.
 2. Serverless CLI. You can run `npm install -g serverless` to install it.
