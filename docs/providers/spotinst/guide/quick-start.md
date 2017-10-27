@@ -1,63 +1,76 @@
 <!--
 title: Serverless Framework - Spotinst Guide - Quick Start
 menuText: Quick Start
-menuOrder: 1
+menuOrder: 2
 description: Getting started with the Serverless Framework on AWS Lambda
 layout: Doc
 -->
 
-# Quick Start
+# Spotinst - Quick Start
 
-## Pre-requisites
+Here is a quick guide on how to create a new serverless project using the Spotinst NodeJS template. For more detailed instruction please check out the other reference material provided. 
 
-1. Node.js `v6.5.0` or later.
-2. Serverless CLI. You can run `npm install -g serverless` to install it.
-3. An Spotinst account. If you don't already have one, you can sign up for a [free trial](https://console.spotinst.com/#/auth/signUp).
-4. **Set-up your [Provider Credentials](./credentials.md)**.
-
-## Create a new service
-
-Create a new service using the Node.js template, specifying a unique name and an optional path for your service.
+## Install Serverless Framework
+  First you will need to have the serverless framework installed. To do this you will have to run the command:
 
 ```bash
-# Create a new Serverless Service/Project
-$ serverless create --template spotinst-nodejs -p new-service
-# Change into the newly created directory
-$ cd new-service
+npm install -g serverless
+
 ```
 
-## Deploy, test and diagnose your service
+## Set Up Credentials
+  To do this please refer to the [Credentials](credentials.md) link provided 
 
-1. **Deploy the Service**
+## Create a New Service
+
+  Create a new service using the Node.js template, specifying a unique name and an optional path for your service.
+
+```bash
+serverless create --template spotinst-nodejs -p new-service
+cd new-service
+```
+
+## Install Spotinst Serverless Functions Plugin
+  
+  You will first need to install the Spotinst Functions plugin before you are able to deploy your function. Once this has been done you do not need to do it again for this project. 
+
+```bash
+npm install
+```
+
+## Deploying and Updating the Function
+  
+1. **Deploying the Service**
 
   Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
 
-  ```bash
-  serverless deploy -v
-  ```
+```bash
+serverless deploy 
+```
 
 2. **Deploy the Function**
 
   Use this to quickly upload and overwrite your function code, allowing you to develop faster.
 
-  ```bash
-  serverless deploy function -f hello
-  ```
+```bash
+serverless deploy function -f hello
+```
 
-3. **Invoke the Function**
+3. **Updating the Function**
+
+  Use this to update your function after you have made updates that you want to push to production.
+  
+```bash
+serverless deploy 
+```
+
+## Invoke the Function
 
   Invokes a Function
 
-  ```bash
-  serverless invoke -f hello
-  ```
-
-4. **Fetch the Function Logs**
-
-  Open up a separate tab in your console and stream all logs for a specific Function using this command.
-  ```bash
-  serverless logs -f hello -t
-  ```
+```bash
+serverless invoke -f hello
+```
 
 ## Cleanup
 
