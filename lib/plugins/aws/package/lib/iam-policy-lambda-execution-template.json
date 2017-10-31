@@ -1,0 +1,28 @@
+{
+  "Type": "AWS::IAM::Policy",
+  "Properties": {
+    "PolicyName": "[TO BE REPLACED]",
+    "PolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:CreateLogStream"
+          ],
+          "Resource": []
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:PutLogEvents"
+          ],
+          "Resource": []
+        }
+      ]
+    },
+    "Roles": [{
+      "Ref": "[TO BE REPLACED]"
+    }]
+  }
+}
