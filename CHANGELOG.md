@@ -1,3 +1,26 @@
+# 1.24.0 (01.11.2017)
+- [Run "serverless deploy list" if timestamp is not specified in rollback command](https://github.com/serverless/serverless/pull/4297)
+- [Add alexaSmartHome event](https://github.com/serverless/serverless/pull/4238)
+- [Distinguish plugin initialization error from plugin not found error](https://github.com/serverless/serverless/pull/4322)
+- [Removing private: true from function does not change it's state](https://github.com/serverless/serverless/pull/4302)
+- [Change packaging order in zipFiles function](https://github.com/serverless/serverless/pull/4299)
+- [Enable bluebird long stack traces only in SLS_DEBUG mode](https://github.com/serverless/serverless/pull/4333)
+- [Create service using template from an external repository](https://github.com/serverless/serverless/pull/4133)
+- [API Gateway timeout hardcap](https://github.com/serverless/serverless/pull/4348)
+- [Set stdin to a TTY in invoke.py to allow PDB use](https://github.com/serverless/serverless/pull/4360)
+- [Add function attached to API Gateway effective timeout warning](https://github.com/serverless/serverless/pull/4373)
+- [Exclude dev dependency .bin executables](https://github.com/serverless/serverless/pull/4383)
+- [Fix "deploy function" command by normalizing role](https://github.com/serverless/serverless/pull/4320)
+- [Add print command to generate output of computed serverless.yml](https://github.com/serverless/serverless/pull/4169)
+- [Print message if Serverless Framework update is available](https://github.com/serverless/serverless/pull/4301)
+- [Allow symlinks as custom variable files in serverless.yml](https://github.com/serverless/serverless/pull/4389)
+- [Provide option to conceal API Gateway key values from the output](https://github.com/serverless/serverless/pull/4382)
+- [Configurable Authorizer Type](https://github.com/serverless/serverless/pull/4372)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.23.0...v1.24.0)
+
+
 # 1.23.0 (21.09.2017)
 - [Obey VIRTUAL_ENV on Windows](https://github.com/serverless/serverless/pull/4286)
 - [Implement pinging for the CLI login](https://github.com/serverless/serverless/pull/4206)
