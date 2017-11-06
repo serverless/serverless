@@ -411,6 +411,9 @@ custom:
 ```
 In this example, we're overwriting the default regex for our variable syntax. So whenever you define variables, you now need to use `${{}}` instead of `${}` (double curly brackets).
 
+## Undefined and null Variables
+Variables that resolve to `undefined` will cause an exception to be thrown when deploying or invoking a function locally. Variables that resolve to `null` will not.  Environment variables set to `null` will be omitted from the deployed functions.
+
 ## Migrating serverless.env.yml
 Previously we used the `serverless.env.yml` file to track Serverless Variables. It was a completely different system with different concepts. To migrate your variables from `serverless.env.yml`, you'll need to decide where you want to store your variables.
 

@@ -190,6 +190,9 @@ resources:
 The corresponding resources which are defined inside the `azure-resources.json`
 file will be resolved and loaded into the `Resources` section.
 
+## Undefined and null Variables
+Variables that resolve to `undefined` will cause an exception to be thrown when deploying or invoking a function locally. Variables that resolve to `null` will not.  
+
 ## Migrating serverless.env.yml
 
 Previously we used the `serverless.env.yml` file to track Serverless Variables.
