@@ -1,3 +1,12 @@
+# 1.24.1 (07.11.2017)
+- [Fix this.userStats.track is not a function error when tailing function logs](https://github.com/serverless/serverless/pull/4441)
+- [Improve variables test](https://github.com/serverless/serverless/pull/4450)
+- [Error when file referenced in serverless.yml does not exist](https://github.com/serverless/serverless/pull/4448)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.24.0...v1.24.1)
+
+
 # 1.24.0 (01.11.2017)
 - [Run "serverless deploy list" if timestamp is not specified in rollback command](https://github.com/serverless/serverless/pull/4297)
 - [Add alexaSmartHome event](https://github.com/serverless/serverless/pull/4238)
