@@ -68,6 +68,8 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 * You can specify your own S3 bucket which should be used to store all the deployment artifacts.
   The `deploymentBucket` config which is nested under `provider` lets you e.g. set the `name` or the `serverSideEncryption` method for this bucket
 
+* You can make uploading to S3 faster by adding `--aws-s3-accelerate`
+
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 
 ## Deploy Function
