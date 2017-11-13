@@ -157,7 +157,7 @@ In that case, the framework will fetch the values of those `functionPrefix` outp
 
 You can reference [CloudFormation stack outputs export values](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) as well. For example:
 
-```
+```yml
 # Make sure you set export value in StackA.
 
   Outputs:
@@ -451,7 +451,7 @@ You can reference [AWS Pseudo Parameters](http://docs.aws.amazon.com/AWSCloudFor
 
 Here's an example:
 
-```
+```yml
      Resources:
         - 'Fn::Join':
           - ':'
