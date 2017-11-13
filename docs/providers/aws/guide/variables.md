@@ -41,6 +41,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [variables from AWS SSM Parameter Store](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-using-the-ssm-parameter-store)
 - [CloudFormation stack outputs](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs)
 - [properties exported from Javascript files (sync or async)](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-javascript-files)
+- [Pseudo Parameters Reference](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-Pseudo-Parameters-Reference)
 
 ## Recursively reference properties
 
@@ -423,3 +424,20 @@ Previously we used the `serverless.env.yml` file to track Serverless Variables. 
 **Making your variables stage/region specific:** `serverless.env.yml` allowed you to have different values for the same variable based on the stage/region you're deploying to. You can achieve the same result by using the nesting functionality of the new variable system. For example, if you have two different ARNs, one for `dev` stage and the other for `prod` stage, you can do the following: `${env:${opt:stage}_arn}`. This will make sure the correct env var is referenced based on the stage provided as an option. Of course you'll need to export both `dev_arn` and `prod_arn` env vars on your local system.
 
 Now you don't need `serverless.env.yml` at all, but you can still use it if you want. It's just not required anymore. Migrating to the new variable system is easy and you just need to know how the new system works and make small adjustments to how you store & reference your variables.
+
+## Pseudo Parameters Reference
+
+You can reference [AWS Pseudo Parameters](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html)
+
+Here's an example:
+
+```
+     Resources:
+        - 'Fn::Join':
+          - ':'
+          -
+            - 'arn:aws:logs'
+            - Ref: 'AWS::Region'
+            - Ref: 'AWS::AccountId'
+            - 'log-group:/aws/lambda/*:*:*'
+```
