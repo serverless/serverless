@@ -155,6 +155,26 @@ functions:
 ```
 In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
 
+You can reference [CloudFormation stack outputs export values](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) as well. For example:
+
+```
+# Make sure you set export value in StackA.
+
+  Outputs:
+    DynamoDbTable:
+      Value:
+        "Ref": DynamoDbTable
+      Export:
+        Name: DynamoDbTable-${self:custom.stage}
+
+# Then you can reference the export name in StackB
+
+provider:
+  environment:
+    Table:
+        'Fn::ImportValue': 'DynamoDbTable-${self:custom.stage}'
+```
+
 ## Referencing S3 Objects
 You can reference S3 values as the source of your variables to use in your service with the `s3:bucketName/key` syntax. For example:
 ```yml
