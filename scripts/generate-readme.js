@@ -37,37 +37,31 @@ function getTableRow(name, description, url) {
   ];
 }
 
+function getReadmeTable(rowsData, columns) {
+  const mdTableData = [columns];
+
+  rowsData.forEach(({ name, description, githubUrl }) => {
+    const tableRow = getTableRow(name, description, githubUrl);
+    mdTableData.push(tableRow);
+  });
+
+  return mdTable(mdTableData, {
+    align: ['l', 'c'],
+    pad: false,
+  });
+}
+
 const config = {
   transforms: {
     GENERATE_SERVERLESS_EXAMPLES_TABLE(content, options) { // eslint-disable-line
       const examplesList = getExamplesList();
-      const mdTableData = [
-        ['Project Name', 'Author'],
-      ];
 
-      examplesList.forEach((data) => {
-        mdTableData.push(getTableRow(data.name, data.description, data.githubUrl));
-      });
-
-      return mdTable(mdTableData, {
-        align: ['l', 'c'],
-        pad: false,
-      });
+      return getReadmeTable(examplesList, ['Project Name', 'Author']);
     },
     GENERATE_SERVERLESS_PLUGIN_TABLE(content, options) { // eslint-disable-line
       const pluginsList = getPluginsList();
-      const mdTableData = [
-        ['Plugin', 'Author'],
-      ];
 
-      pluginsList.forEach((data) => {
-        mdTableData.push(getTableRow(data.name, data.description, data.githubUrl));
-      });
-
-      return mdTable(mdTableData, {
-        align: ['l', 'c'],
-        pad: false,
-      });
+      return getReadmeTable(pluginsList, ['Plugin', 'Author']);
     },
   },
 };
