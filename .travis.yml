@@ -27,6 +27,13 @@ matrix:
       env:
         - DISABLE_TESTS=true
         - LINTING=true
+    - node_js: '8.9'
+      env:
+        SLS_IGNORE_WARNING=*
+    - node_js: '8.9'
+      env:
+        - DISABLE_TESTS=true
+        - LINTING=true
 
 sudo: false
 

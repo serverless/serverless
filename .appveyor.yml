@@ -4,6 +4,7 @@ environment:
   matrix:
     - NODEJS_VERSION: "4"
     - NODEJS_VERSION: "6"
+    - NODEJS_VERSION: "8"
 
 install:
   # Get the version of Node.js
