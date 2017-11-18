@@ -6,6 +6,7 @@
 const path = require('path');
 const _ = require('lodash');
 const ghRepoToUser = require('gh-repo-to-user');
+const mdTable = require('markdown-table');
 const markdownMagic = require('markdown-magic');
 const remoteRequest = require('markdown-magic/lib/utils/remoteRequest');
 
@@ -14,34 +15,48 @@ const config = {
     GENERATE_SERVERLESS_EXAMPLES_TABLE(content, options) { // eslint-disable-line
       const examplesUrl = 'https://raw.githubusercontent.com/serverless/examples/master/community-examples.json';
       const remoteContent = remoteRequest(examplesUrl);
-      var md = '| Project Name | Author |\n'; // eslint-disable-line
-      md += '|:-------------|:------:|\n';
+      const mdTableData = [
+        ['Project Name', 'Author'],
+      ];
 
       JSON.parse(remoteContent).forEach((data) => {
         const userName = ghRepoToUser(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
-        md += `| **[${_.startCase(data.name)}](${data.githubUrl})** <br/>`;
-        md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
+
+        mdTableData.push([
+          `**[${_.startCase(data.name)}](${data.githubUrl})** <br/> ${data.description}`,
+          `[${userName}](${profileURL})`,
+        ]);
       });
 
-      return md.replace(/^\s+|\s+$/g, '');
+      return mdTable(mdTableData, {
+        align: ['l', 'c'],
+        pad: false,
+      });
     },
     GENERATE_SERVERLESS_PLUGIN_TABLE(content, options) { // eslint-disable-line
       const pluginUrl = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
       const remoteContent = remoteRequest(pluginUrl);
-      var md = '| Plugin | Author |\n'; // eslint-disable-line
-      md += '|:-------|:------:|\n';
+      const mdTableData = [
+        ['Plugin', 'Author'],
+      ];
 
       JSON.parse(remoteContent).sort((a, b) =>  // eslint-disable-line
          a.name < b.name ? -1 : 1
       ).forEach((data) => {
         const userName = ghRepoToUser(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
-        md += `| **[${_.startCase(data.name)}](${data.githubUrl})** <br/>`;
-        md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
+
+        mdTableData.push([
+          `**[${_.startCase(data.name)}](${data.githubUrl})** <br/> ${data.description}`,
+          `[${userName}](${profileURL})`,
+        ]);
       });
 
-      return md.replace(/^\s+|\s+$/g, '');
+      return mdTable(mdTableData, {
+        align: ['l', 'c'],
+        pad: false,
+      });
     },
   },
 };
