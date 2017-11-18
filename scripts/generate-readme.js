@@ -27,6 +27,16 @@ function getPluginsList() {
   );
 }
 
+function getTableRow(name, description, url) {
+  const { owner } = parseGithubURL(url);
+  const profileURL = `http://github.com/${owner}`;
+
+  return [
+    `**${mdLink(_.startCase(name), url)}** <br/> ${description}`,
+    `${mdLink(owner, profileURL)}`,
+  ];
+}
+
 const config = {
   transforms: {
     GENERATE_SERVERLESS_EXAMPLES_TABLE(content, options) { // eslint-disable-line
@@ -36,13 +46,7 @@ const config = {
       ];
 
       examplesList.forEach((data) => {
-        const { owner: userName } = parseGithubURL(data.githubUrl);
-        const profileURL = `http://github.com/${userName}`;
-
-        mdTableData.push([
-          `**${mdLink(_.startCase(data.name), data.githubUrl)}** <br/> ${data.description}`,
-          `${mdLink(userName, profileURL)}`,
-        ]);
+        mdTableData.push(getTableRow(data.name, data.description, data.githubUrl));
       });
 
       return mdTable(mdTableData, {
@@ -57,13 +61,7 @@ const config = {
       ];
 
       pluginsList.forEach((data) => {
-        const { owner: userName } = parseGithubURL(data.githubUrl);
-        const profileURL = `http://github.com/${userName}`;
-
-        mdTableData.push([
-          `**${mdLink(_.startCase(data.name), data.githubUrl)}** <br/> ${data.description}`,
-          `${mdLink(userName, profileURL)}`,
-        ]);
+        mdTableData.push(getTableRow(data.name, data.description, data.githubUrl));
       });
 
       return mdTable(mdTableData, {
