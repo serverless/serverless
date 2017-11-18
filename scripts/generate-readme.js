@@ -5,8 +5,8 @@
  */
 const path = require('path');
 const _ = require('lodash');
-const ghRepoToUser = require('gh-repo-to-user');
 const mdTable = require('markdown-table');
+const parseGithubURL = require('parse-github-url');
 const mdLink = require('markdown-link');
 const markdownMagic = require('markdown-magic');
 const remoteRequest = require('markdown-magic/lib/utils/remoteRequest');
@@ -21,11 +21,11 @@ const config = {
       ];
 
       JSON.parse(remoteContent).forEach((data) => {
-        const userName = ghRepoToUser(data.githubUrl);
+        const { owner: userName } = parseGithubURL(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
 
         mdTableData.push([
-          `**${mdLink(_.startCase(data.name, data.githubUrl))}** <br/> ${data.description}`,
+          `**${mdLink(_.startCase(data.name), data.githubUrl)}** <br/> ${data.description}`,
           `${mdLink(userName, profileURL)}`,
         ]);
       });
@@ -45,11 +45,11 @@ const config = {
       JSON.parse(remoteContent).sort((a, b) =>  // eslint-disable-line
          a.name < b.name ? -1 : 1
       ).forEach((data) => {
-        const userName = ghRepoToUser(data.githubUrl);
+        const { owner: userName } = parseGithubURL(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
 
         mdTableData.push([
-          `**${mdLink(_.startCase(data.name, data.githubUrl))}** <br/> ${data.description}`,
+          `**${mdLink(_.startCase(data.name), data.githubUrl)}** <br/> ${data.description}`,
           `${mdLink(userName, profileURL)}`,
         ]);
       });
