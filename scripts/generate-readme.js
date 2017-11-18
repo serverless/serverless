@@ -7,6 +7,7 @@ const path = require('path');
 const _ = require('lodash');
 const ghRepoToUser = require('gh-repo-to-user');
 const mdTable = require('markdown-table');
+const mdLink = require('markdown-link');
 const markdownMagic = require('markdown-magic');
 const remoteRequest = require('markdown-magic/lib/utils/remoteRequest');
 
@@ -24,8 +25,8 @@ const config = {
         const profileURL = `http://github.com/${userName}`;
 
         mdTableData.push([
-          `**[${_.startCase(data.name)}](${data.githubUrl})** <br/> ${data.description}`,
-          `[${userName}](${profileURL})`,
+          `**${mdLink(_.startCase(data.name, data.githubUrl))}** <br/> ${data.description}`,
+          `${mdLink(userName, profileURL)}`,
         ]);
       });
 
@@ -48,8 +49,8 @@ const config = {
         const profileURL = `http://github.com/${userName}`;
 
         mdTableData.push([
-          `**[${_.startCase(data.name)}](${data.githubUrl})** <br/> ${data.description}`,
-          `[${userName}](${profileURL})`,
+          `**${mdLink(_.startCase(data.name, data.githubUrl))}** <br/> ${data.description}`,
+          `${mdLink(userName, profileURL)}`,
         ]);
       });
 

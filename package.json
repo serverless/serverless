@@ -111,6 +111,7 @@
     "json-refs": "^2.1.5",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.13.1",
+    "markdown-link": "^0.1.1",
     "markdown-table": "^1.1.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
