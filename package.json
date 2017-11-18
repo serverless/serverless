@@ -100,6 +100,7 @@
     "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
     "get-stdin": "^5.0.1",
+    "gh-repo-to-user": "^1.1.0",
     "globby": "^6.1.0",
     "graceful-fs": "^4.1.11",
     "graphql": "^0.10.1",

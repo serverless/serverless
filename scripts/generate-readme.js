@@ -4,26 +4,10 @@
  * adds content to the repos README.md file
  */
 const path = require('path');
-const url = require('url');
 const _ = require('lodash');
+const ghRepoToUser = require('gh-repo-to-user');
 const markdownMagic = require('markdown-magic');
 const remoteRequest = require('markdown-magic/lib/utils/remoteRequest');
-
-function username(repo) {
-  if (!repo) {
-    return null;
-  }
-
-  const o = url.parse(repo);
-  var urlPath = o.path; // eslint-disable-line
-
-  if (urlPath.length && urlPath.charAt(0) === '/') {
-    urlPath = urlPath.slice(1);
-  }
-
-  urlPath = urlPath.split('/')[0];
-  return urlPath;
-}
 
 const config = {
   transforms: {
@@ -32,12 +16,14 @@ const config = {
       const remoteContent = remoteRequest(examplesUrl);
       var md = '| Project Name | Author |\n'; // eslint-disable-line
       md += '|:-------------|:------:|\n';
+
       JSON.parse(remoteContent).forEach((data) => {
-        const userName = username(data.githubUrl);
+        const userName = ghRepoToUser(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
         md += `| **[${_.startCase(data.name)}](${data.githubUrl})** <br/>`;
         md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
       });
+
       return md.replace(/^\s+|\s+$/g, '');
     },
     GENERATE_SERVERLESS_PLUGIN_TABLE(content, options) { // eslint-disable-line
@@ -45,14 +31,16 @@ const config = {
       const remoteContent = remoteRequest(pluginUrl);
       var md = '| Plugin | Author |\n'; // eslint-disable-line
       md += '|:-------|:------:|\n';
+
       JSON.parse(remoteContent).sort((a, b) =>  // eslint-disable-line
          a.name < b.name ? -1 : 1
       ).forEach((data) => {
-        const userName = username(data.githubUrl);
+        const userName = ghRepoToUser(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
         md += `| **[${_.startCase(data.name)}](${data.githubUrl})** <br/>`;
         md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
       });
+
       return md.replace(/^\s+|\s+$/g, '');
     },
   },
