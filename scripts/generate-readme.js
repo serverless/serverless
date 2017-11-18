@@ -5,18 +5,9 @@
  */
 const path = require('path');
 const url = require('url');
+const _ = require('lodash');
 const markdownMagic = require('markdown-magic');
 const remoteRequest = require('markdown-magic/lib/utils/remoteRequest');
-
-function toTitleCase(str) {
-  return str.replace(/\w\S*/g, txt =>
-     txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-  );
-}
-
-function formatPluginName(string) {
-  return toTitleCase(string.replace(/-/g, ' '));
-}
 
 function username(repo) {
   if (!repo) {
@@ -44,7 +35,7 @@ const config = {
       JSON.parse(remoteContent).forEach((data) => {
         const userName = username(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
-        md += `| **[${formatPluginName(data.name)}](${data.githubUrl})** <br/>`;
+        md += `| **[${_.startCase(data.name)}](${data.githubUrl})** <br/>`;
         md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
       });
       return md.replace(/^\s+|\s+$/g, '');
@@ -59,7 +50,7 @@ const config = {
       ).forEach((data) => {
         const userName = username(data.githubUrl);
         const profileURL = `http://github.com/${userName}`;
-        md += `| **[${formatPluginName(data.name)}](${data.githubUrl})** <br/>`;
+        md += `| **[${_.startCase(data.name)}](${data.githubUrl})** <br/>`;
         md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
       });
       return md.replace(/^\s+|\s+$/g, '');
