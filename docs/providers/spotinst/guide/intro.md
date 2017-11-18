@@ -60,16 +60,14 @@ Anything that triggers an [Spotinst Function](https://help.spotinst.com/hc/en-us
 
 ### Function Template
 
-```
-# index.js
-exports.main = function main (req, res) {
-    // The function should return a Promise.
-    return new Promise(function(resolve, reject){
-        return resolve({
-            statusCode: 200,
-            body: "success"
-        });
-    });
+```node
+# handler.js
+module.exports.main = function main (event, context, callback) {
+    callback(null, {
+    statusCode: 200, 
+    body: '{"hello":"from NodeJS8.3 function"}',
+    headers: {"Content-Type": "application/json"}
+  });
 };
 ```
 
