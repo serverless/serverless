@@ -12,6 +12,13 @@ layout: Doc
 
 # API Gateway
 
+_Are you looking for tutorials on using API Gateway? Check out the following resources:_
+
+> - [Add a custom domain for your API Gateway](https://serverless.com/blog/serverless-api-gateway-domain/)
+> - [Deploy multiple micro-services under the same domain](https://serverless.com/blog/api-gateway-multiple-services/)
+> - [Create a Node REST API with Express.js](https://serverless.com/blog/serverless-express-rest-api/)
+> - [Make a Serverless GraphQL API](https://serverless.com/blog/make-serverless-graphql-api-using-lambda-dynamodb/)
+
 To create HTTP endpoints as Event sources for your AWS Lambda Functions, use the Serverless Framework's easy AWS API Gateway Events syntax.
 
 There are five ways you can configure your HTTP endpoints to integrate with your AWS Lambda Functions:
