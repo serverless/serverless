@@ -12,8 +12,29 @@ layout: Doc
 
 # Spotinst Functions - Logs
 
-Lets you watch the logs of a specific function.
+Lets you view the logs for of the specified function. 
 
 ```bash
 serverless logs -f hello
 ```
+
+## Options
+
+ -  `-f` the name of the function that you want to fetch the logs for **Required**
+ - `--startTime` a unit of time that you want to start searching the logs from. Here is a list of the supported string formats
+
+```bash
+30m                             # since 30 mins ago
+2h                              # since 2 hours ago
+3d                              # since 3 days ago
+```
+
+## Examples
+
+**Note** There is a small lag between calling the function and when the logs are available so keep that in mind when checking
+
+```bash
+serverless logs -f hello --startTime 3h
+```
+
+This will fetch your logs started from 3 hours ago until the current time
