@@ -37,4 +37,4 @@ serverless logs -f hello
 serverless logs -f hello --startTime 3h
 ```
 
-This will fetch your logs started from 5 hours ago until the current time
+This will fetch your logs started from 3 hours ago until the current time
