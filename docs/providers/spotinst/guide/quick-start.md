@@ -19,19 +19,50 @@ npm install -g serverless
 ```
 
 ## Set Up Credentials
-  To do this please refer to the [Credentials](credentials.md) link provided 
+  To set up your Spotinst Credentials you will have to have the Spotinst Serverless Plugin installed inside a new Serverless project. The first thing you will need to do is create a new template project and enter the new project directory by entering into the terminal:
+
+```bash
+serverless create --template spotinst-nodejs --path new-service
+cd new-service
+```
+
+  Once you are in the project directory you will have to install the plugin but entering:
+
+```bash
+npm install
+```
+
+  After the installation is completed you can then configure your credentials. Before you do this you will want to have your Spotinst account ID number and Spotinst API token ready to go. Those both can be found in the Spotinst Console under settings. Once you have those you will enter:
+
+```bash
+serverless config credentials --provider spotinst --token {Your Spotinst API Token} --account {Your Spotinst Account ID}
+```
+
+  To check to see that your credentials have been set up properly you can check the credentials files by entering:
+
+```bash
+cat ~/.spotinst/credentials
+```
+
+  Here you should see the account ID and Token that are linked to your account.
+  
+  **Note:** Once you have set up your Spotinst Credentials you will not need to do this again for each project
+
+  For more help please refer to the [Credentials](../credentials.md) link provided 
 
 ## Create a New Service
-
+  *You can skip this step if you have already done this step in configuring your credentials*	
+  
   Create a new service using the Node.js template, specifying a unique name and an optional path for your service.
 
 ```bash
-serverless create --template spotinst-nodejs -p new-service
+serverless create --template spotinst-nodejs --path new-service
 cd new-service
 ```
 
 ## Install Spotinst Serverless Functions Plugin
-  
+  *You can skip this step if you have already done this step in configuring your credentials*	
+
   You will first need to install the Spotinst Functions plugin before you are able to deploy your function. Once this has been done you do not need to do it again for this project. 
 
 ```bash
