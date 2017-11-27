@@ -50,7 +50,7 @@ cat ~/.spotinst/credentials
 
   For more help please refer to the [Credentials](../credentials.md) link provided 
 
-## Create a New Service
+## Create a New Project From a Template
   *You can skip this step if you have already done this step in configuring your credentials*	
   
   Create a new service using the Node.js template, specifying a unique name and an optional path for your service.
@@ -70,6 +70,9 @@ npm install
 ```
 
 ## Deploying and Updating the Function
+  Deploying a project is how you launch the project into production. Once it has been deployed, you will be able to see and edit it in the Spotinst Console. 
+
+  Before you deploy you will need to add in the environement ID into the `serverless.yml` file. The environment ID can be found on the Spotinst console under Functions. In this menu you will be able to add applications, environments and functions. An application is able to hold many environments and enivronments can hold many functions. They are mostly used for organization purposes and are at your descretion to manipulate as you like. To deploy your function you will need to select an application and environment and copy/paste the environment ID into the `serverless.yml` file under the environement tag.
   
 1. **Deploying the Service**
 
@@ -96,6 +99,8 @@ serverless deploy
 ```
 
 ## Invoke the Function
+
+  Invoking a function simply means to run it. There are many event triggers that will invoke a function depending on your needs. All functions are assigned a unique URL that is initially set to private in the `serverless.yml` file but if set to public can trigger an invocation from a web browser. Also you are able to set up a cron function in the `serverless.yml` file to run at regular intervals and invoke the function on a timer. If you simply want to test the function you can invoke from the console. Under the function name there is a Test tab you can select and run a test. Otherwise you are able to test from the terminal as shown below.
 
   Invokes a Function
 
