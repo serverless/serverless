@@ -18,9 +18,9 @@ To access the document store you will need to make an API request inside a funci
 
 ## Add New Value
 
-This is how to insert a new value into 
+This is how to insert a new key/value pair into your document store in a specific environment
 
-  * **Request:** POST
+  * **Request:** `POST`
   * **Endpoint:** `https://api.spotinst.io/functions/environment/${environmentId}/userDocument?accountId=${accountId}`
   * **Header:**
 ```bash
@@ -39,27 +39,77 @@ This is how to insert a new value into
 }
 ```
 
+
 ## Update Value
 
-```bash
+This is how to update a current key/value pair in your document store in a specific environment
 
+  * **Request:** `PUT`
+  * **Endpoint:** `https://api.spotinst.io/functions/environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+  * **Header:**
+```bash
+{
+	"Content-Type": "application/json",
+	"Authorization": "Bearer ${Spotinst API Token}"
+}
 ```
+  * **Body:**
+```bash
+{
+	"userDocument" : {
+		"value": “${Your Value}”
+	}
+}
+```
+
 
 ## Get Values
 
-```bash
+There are two ways to get the documents from your store, either by specifing a key which will return both the key and the value or you can just leave this out and you will get all the keys in the environment
 
+### 1. Get Sinlge Key Pair
+
+  * **Request:** `GET`
+  * **Endpoint:** `https://api.spotinst.io/functions/environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+  * **Header:**
+```bash
+{
+	"Content-Type": "application/json",
+	"Authorization": "Bearer ${Spotinst API Token}"
+}
 ```
+
+### 2. Get All Keys
+
+  * **Request:** `GET`
+  * **Endpoint:** `https://api.spotinst.io/functions/environment/${environmentId}/userDocument?accountId=${accountId}`
+  * **Header:**
+```bash
+{
+	"Content-Type": "application/json",
+	"Authorization": "Bearer ${Spotinst API Token}"
+}
+```
+
 
 ## Delete Value
 
-```bash
+This is how to delete a specific key value pair from your document store
 
+  * **Request:** `DELETE`
+  * **Endpoint:** `https://api.spotinst.io/functions/environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+  * **Header:**
+```bash
+{
+	"Content-Type": "application/json",
+	"Authorization": "Bearer ${Spotinst API Token}"
+}
 ```
+
 
 ## GitHub
 
 Check out some examples to help you get started!
 
-(Get All Values Function)[https://github.com/spotinst/spotinst-functions-examples/tree/master/node-docstore-getAll]
-(Insert New Value Function)[https://github.com/spotinst/spotinst-functions-examples/tree/master/node-docstore-newValue]
+[Get All Values Function](https://github.com/spotinst/spotinst-functions-examples/tree/master/node-docstore-getAll)
+[Insert New Value Function](https://github.com/spotinst/spotinst-functions-examples/tree/master/node-docstore-newValue)
