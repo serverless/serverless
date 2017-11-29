@@ -112,4 +112,5 @@ This is how to delete a specific key value pair from your document store
 Check out some examples to help you get started!
 
 [Get All Values Function](https://github.com/spotinst/spotinst-functions-examples/tree/master/node-docstore-getAll)
+
 [Insert New Value Function](https://github.com/spotinst/spotinst-functions-examples/tree/master/node-docstore-newValue)
