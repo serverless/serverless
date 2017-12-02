@@ -39,6 +39,10 @@ services:
     image: maven:3-jdk-8
     volumes:
       - ./tmp/serverless-integration-test-aws-kotlin-jvm-maven:/app
+  aws-kotlin-jvm-gradle:
+    image: gradle:4.2-jdk8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-kotlin-jvm-gradle:/app
   aws-kotlin-nodejs-gradle:
     image: pgoudreau/docker-maven-node
     volumes:
