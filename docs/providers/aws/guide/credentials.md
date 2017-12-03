@@ -67,6 +67,25 @@ serverless deploy
 # 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
 ```
 
+**Please note:** *If you are using a self-signed certificate you'll need to do one of the following:*
+```bash
+# String example:
+# if using the 'ca' variable, your certificate contents should replace the newline character with '\n'
+export ca="-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----"
+# or multiple, comma separated
+export ca="-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----,-----BEGIN CERTIFICATE-----...-----END CERTIFICATE-----"
+
+# File example:
+# if using the 'cafile' variable, your certificate contents should not contain '\n'
+export cafile="/path/to/cafile.pem"
+# or multiple, comma separated
+export cafile="/path/to/cafile1.pem,/path/to/cafile2.pem"
+
+
+# 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
+```
+
+
 #### Using AWS Profiles
 
 For a more permanent solution you can also set up credentials through AWS profiles. Here are different methods you can use to do so.
