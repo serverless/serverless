@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -57,8 +59,23 @@ public class InvokeBridge {
 
   private Object invoke(HashMap<String, Object> event, Context context) throws Exception {
     Method[] methods = this.clazz.getDeclaredMethods();
+    Method method = methods[1];
+    Class requestClass = method.getParameterTypes()[0];
 
-    return methods[1].invoke(this.instance, event, context);
+    if (requestClass.isAssignableFrom(event.getClass())) {
+      return method.invoke(this.instance, event, context);
+    } else {
+      Object request = requestClass.newInstance();
+      PropertyDescriptor[] properties = Introspector.getBeanInfo(requestClass).getPropertyDescriptors();
+      for(int i=0; i < properties.length; i++) {
+        if (properties[i].getWriteMethod() == null) continue;
+        String propertyName = properties[i].getName();
+        if (event.containsKey(propertyName)) {
+          properties[i].getWriteMethod().invoke(request, event.get(propertyName));
+        }
+      }
+      return method.invoke(this.instance, request, context);
+    }
   }
 
   private HashMap<String, Object> parseInput(String input) throws IOException {
