@@ -4,65 +4,64 @@
  * adds content to the repos README.md file
  */
 const path = require('path');
-const url = require('url');
+const _ = require('lodash');
+const mdTable = require('markdown-table');
+const parseGithubURL = require('parse-github-url');
+const mdLink = require('markdown-link');
 const markdownMagic = require('markdown-magic');
 const remoteRequest = require('markdown-magic/lib/utils/remoteRequest');
 
-function toTitleCase(str) {
-  return str.replace(/\w\S*/g, txt =>
-     txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+function getExamplesList() {
+  const examplesUrl = 'https://raw.githubusercontent.com/serverless/examples/master/community-examples.json';
+  const remoteContent = remoteRequest(examplesUrl);
+
+  return JSON.parse(remoteContent);
+}
+
+function getPluginsList() {
+  const pluginUrl = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
+  const remoteContent = remoteRequest(pluginUrl);
+
+  return JSON.parse(remoteContent).sort((a, b) =>  // eslint-disable-line
+    a.name < b.name ? -1 : 1
   );
 }
 
-function formatPluginName(string) {
-  return toTitleCase(string.replace(/-/g, ' '));
+function getTableRow(name, description, url) {
+  const { owner } = parseGithubURL(url);
+  const profileURL = `http://github.com/${owner}`;
+
+  return [
+    `**${mdLink(_.startCase(name), url)}** <br/> ${description}`,
+    `${mdLink(owner, profileURL)}`,
+  ];
 }
 
-function username(repo) {
-  if (!repo) {
-    return null;
-  }
+function getReadmeTable(rowsData, columns) {
+  const mdTableData = [columns];
 
-  const o = url.parse(repo);
-  var urlPath = o.path; // eslint-disable-line
+  rowsData.forEach(({ name, description, githubUrl }) => {
+    const tableRow = getTableRow(name, description, githubUrl);
+    mdTableData.push(tableRow);
+  });
 
-  if (urlPath.length && urlPath.charAt(0) === '/') {
-    urlPath = urlPath.slice(1);
-  }
-
-  urlPath = urlPath.split('/')[0];
-  return urlPath;
+  return mdTable(mdTableData, {
+    align: ['l', 'c'],
+    pad: false,
+  });
 }
 
 const config = {
   transforms: {
     GENERATE_SERVERLESS_EXAMPLES_TABLE(content, options) { // eslint-disable-line
-      const examplesUrl = 'https://raw.githubusercontent.com/serverless/examples/master/community-examples.json';
-      const remoteContent = remoteRequest(examplesUrl);
-      var md = '| Project Name | Author |\n'; // eslint-disable-line
-      md += '|:-------------|:------:|\n';
-      JSON.parse(remoteContent).forEach((data) => {
-        const userName = username(data.githubUrl);
-        const profileURL = `http://github.com/${userName}`;
-        md += `| **[${formatPluginName(data.name)}](${data.githubUrl})** <br/>`;
-        md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
-      });
-      return md.replace(/^\s+|\s+$/g, '');
+      const examplesList = getExamplesList();
+
+      return getReadmeTable(examplesList, ['Project Name', 'Author']);
     },
     GENERATE_SERVERLESS_PLUGIN_TABLE(content, options) { // eslint-disable-line
-      const pluginUrl = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
-      const remoteContent = remoteRequest(pluginUrl);
-      var md = '| Plugin | Author |\n'; // eslint-disable-line
-      md += '|:-------|:------:|\n';
-      JSON.parse(remoteContent).sort((a, b) =>  // eslint-disable-line
-         a.name < b.name ? -1 : 1
-      ).forEach((data) => {
-        const userName = username(data.githubUrl);
-        const profileURL = `http://github.com/${userName}`;
-        md += `| **[${formatPluginName(data.name)}](${data.githubUrl})** <br/>`;
-        md += ` ${data.description} | [${userName}](${profileURL}) | \n`;
-      });
-      return md.replace(/^\s+|\s+$/g, '');
+      const pluginsList = getPluginsList();
+
+      return getReadmeTable(pluginsList, ['Plugin', 'Author']);
     },
   },
 };
