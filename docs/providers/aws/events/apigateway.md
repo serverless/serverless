@@ -664,10 +664,18 @@ functions:
 **Note:** The template is defined as plain text here. However you can also reference an external file with the help of
 the `${file(templatefile)}` syntax.
 
-### Status codes
+### Status Codes
 
 Serverless ships with default status codes you can use to e.g. signal that a resource could not be found (404) or that
 the user is not authorized to perform the action (401). Those status codes are regex definitions that will be added to your API Gateway configuration.
+
+***Note:*** Status codes as documented in this chapter relate to `lambda` integration method (as documented at the top of this page). If using default integration method `lambda-proxy` object with status code and message should be returned as in the example below:
+
+```javascript
+module.exports.hello = (event, context, callback) => {
+  callback(null, { statusCode: 404, body: "Not found", headers: { "Content-Type": "text/plain" } });
+}
+```
 
 #### Available Status Codes
 
