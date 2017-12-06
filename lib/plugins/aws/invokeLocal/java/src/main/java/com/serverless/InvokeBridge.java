@@ -18,12 +18,14 @@ import java.util.HashMap;
 public class InvokeBridge {
   private File artifact;
   private String className;
+  private String handlerName;
   private Object instance;
   private Class clazz;
 
   private InvokeBridge() {
     this.artifact = new File(new File("."), System.getProperty("artifactPath"));
     this.className = System.getProperty("className");
+    this.handlerName = System.getProperty("handlerName");
 
     try {
       HashMap<String, Object> parsedInput = parseInput(getInput());
@@ -58,14 +60,12 @@ public class InvokeBridge {
   }
 
   private Object invoke(HashMap<String, Object> event, Context context) throws Exception {
-    Method[] methods = this.clazz.getDeclaredMethods();
-    Method method = methods[1];
+    Method method = findHandlerMethod(this.clazz, this.handlerName);
     Class requestClass = method.getParameterTypes()[0];
 
-    if (requestClass.isAssignableFrom(event.getClass())) {
-      return method.invoke(this.instance, event, context);
-    } else {
-      Object request = requestClass.newInstance();
+    Object request = event;
+    if (!requestClass.isAssignableFrom(event.getClass())) {
+      request = requestClass.newInstance();
       PropertyDescriptor[] properties = Introspector.getBeanInfo(requestClass).getPropertyDescriptors();
       for(int i=0; i < properties.length; i++) {
         if (properties[i].getWriteMethod() == null) continue;
@@ -74,8 +74,38 @@ public class InvokeBridge {
           properties[i].getWriteMethod().invoke(request, event.get(propertyName));
         }
       }
-      return method.invoke(this.instance, request, context);
     }
+
+    if (method.getParameterCount() == 1) {
+      return method.invoke(this.instance, request);
+    } else if (method.getParameterCount() == 2) {
+      return method.invoke(this.instance, request, context);
+    } else {
+      throw new NoSuchMethodException("Handler should take 1 or 2 arguments: " + method);
+    }
+  }
+
+  private Method findHandlerMethod(Class clazz, String handlerName) throws Exception {
+    Method candidateMethod = null;
+    for(Method method: clazz.getDeclaredMethods()) {
+      if (method.getName().equals(handlerName) && !method.isBridge()) {
+        // Select the method with the largest number of parameters
+        // If two or more methods have the same number of parameters, AWS Lambda selects the method that has
+        // the Context as the last parameter.
+        // If none or all of these methods have the Context parameter, then the behavior is undefined.
+        int paramCount = method.getParameterCount();
+        boolean lastParamIsContext = paramCount >= 1 && method.getParameterTypes()[paramCount-1].getName().equals("com.amazonaws.services.lambda.runtime.Context");
+        if (candidateMethod == null || paramCount > candidateMethod.getParameterCount() || (paramCount == candidateMethod.getParameterCount() && lastParamIsContext)) {
+          candidateMethod = method;
+        }
+      }
+    }
+
+    if (candidateMethod == null) {
+      throw new NoSuchMethodException("Could not find handler for " + handlerName + " in " + clazz.getName());
+    }
+
+    return candidateMethod;
   }
 
   private HashMap<String, Object> parseInput(String input) throws IOException {
