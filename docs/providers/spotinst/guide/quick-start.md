@@ -48,7 +48,7 @@ cat ~/.spotinst/credentials
   
   **Note:** Once you have set up your Spotinst Credentials you will not need to do this again for each project
 
-  For more help please refer to the [Credentials](../credentials.md) link provided 
+  For more help please refer to the [Credentials](./credentials.md) link provided 
 
 ## Create a New Project From a Template
   *You can skip this step if you have already done this step in configuring your credentials*	
