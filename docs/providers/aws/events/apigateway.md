@@ -421,6 +421,27 @@ Please note that those are the API keys names, not the actual values. Once you d
 
 Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
 
+### Configuring endpoint types
+
+API Gateway [supports regional endpoints](https://aws.amazon.com/about-aws/whats-new/2017/11/amazon-api-gateway-supports-regional-api-endpoints/) for associating your API Gateway REST APIs with a particular region. This can reduce latency if your requests originate from the same region as your REST API and can be helpful in building multi-region applications.
+
+By default, the Serverless Framework deploys your REST API using the EDGE endpoint configuration. If you would like to use the REGIONAL configuration, set the `endpointType` parameter in your `provider` block.
+
+Here's an example configuration for setting the endpoint configuration for your service Rest API:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  endpointType: REGIONAL
+functions:
+  hello:
+    events:
+      - http:
+          path: user/create
+          method: get
+```
+
 ### Request Parameters
 
 To pass optional and required parameters to your functions, so you can use them in API Gateway tests and SDK generation, marking them as `true` will make them required, `false` will make them optional.

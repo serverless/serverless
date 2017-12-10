@@ -39,6 +39,7 @@ provider:
   versionFunctions: false # Optional function versioning
   environment: # Service wide environment variables
     serviceEnvVar: 123456789
+  endpointType: regional # Optional endpoint configuration for API Gateway REST API. Default is Edge.
   apiKeys: # List of API keys to be used by your service API Gateway REST API
     - myFirstKey
     - ${opt:stage}-myFirstKey
