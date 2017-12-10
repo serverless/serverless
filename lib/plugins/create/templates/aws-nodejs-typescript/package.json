@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@types/node": "^8.0.57",
-    "serverless-webpack": "^3.0.0",
+    "serverless-webpack": "^4.0.0",
     "ts-loader": "^2.3.7",
     "typescript": "^2.5.2",
     "webpack": "^3.6.0"
