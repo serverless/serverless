@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@types/aws-lambda": "0.0.22",
     "@types/node": "^8.0.57",
     "serverless-webpack": "^4.0.0",
     "ts-loader": "^2.3.7",

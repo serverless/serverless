@@ -1,4 +1,6 @@
-export const hello = (event, context, cb) => {
+import { Handler, Callback, Context } from 'aws-lambda';
+
+export const hello : Handler = (event, context : Context, cb : Callback) => {
   const response = {
     statusCode: 200,
     body: JSON.stringify({
