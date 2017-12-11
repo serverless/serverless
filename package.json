@@ -110,6 +110,7 @@
     "https-proxy-agent": "^1.0.0",
     "is-docker": "^1.1.0",
     "js-yaml": "^3.6.1",
+    "json-cycle": "^1.3.0",
     "json-refs": "^2.1.5",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.13.1",
