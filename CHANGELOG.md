@@ -1,3 +1,70 @@
+# 1.24.1 (07.11.2017)
+- [Fix this.userStats.track is not a function error when tailing function logs](https://github.com/serverless/serverless/pull/4441)
+- [Improve variables test](https://github.com/serverless/serverless/pull/4450)
+- [Error when file referenced in serverless.yml does not exist](https://github.com/serverless/serverless/pull/4448)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.24.0...v1.24.1)
+
+
+# 1.24.0 (01.11.2017)
+- [Run "serverless deploy list" if timestamp is not specified in rollback command](https://github.com/serverless/serverless/pull/4297)
+- [Add alexaSmartHome event](https://github.com/serverless/serverless/pull/4238)
+- [Distinguish plugin initialization error from plugin not found error](https://github.com/serverless/serverless/pull/4322)
+- [Removing private: true from function does not change it's state](https://github.com/serverless/serverless/pull/4302)
+- [Change packaging order in zipFiles function](https://github.com/serverless/serverless/pull/4299)
+- [Enable bluebird long stack traces only in SLS_DEBUG mode](https://github.com/serverless/serverless/pull/4333)
+- [Create service using template from an external repository](https://github.com/serverless/serverless/pull/4133)
+- [API Gateway timeout hardcap](https://github.com/serverless/serverless/pull/4348)
+- [Set stdin to a TTY in invoke.py to allow PDB use](https://github.com/serverless/serverless/pull/4360)
+- [Add function attached to API Gateway effective timeout warning](https://github.com/serverless/serverless/pull/4373)
+- [Exclude dev dependency .bin executables](https://github.com/serverless/serverless/pull/4383)
+- [Fix "deploy function" command by normalizing role](https://github.com/serverless/serverless/pull/4320)
+- [Add print command to generate output of computed serverless.yml](https://github.com/serverless/serverless/pull/4169)
+- [Print message if Serverless Framework update is available](https://github.com/serverless/serverless/pull/4301)
+- [Allow symlinks as custom variable files in serverless.yml](https://github.com/serverless/serverless/pull/4389)
+- [Provide option to conceal API Gateway key values from the output](https://github.com/serverless/serverless/pull/4382)
+- [Configurable Authorizer Type](https://github.com/serverless/serverless/pull/4372)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.23.0...v1.24.0)
+
+
+# 1.23.0 (21.09.2017)
+- [Obey VIRTUAL_ENV on Windows](https://github.com/serverless/serverless/pull/4286)
+- [Implement pinging for the CLI login](https://github.com/serverless/serverless/pull/4206)
+- [Fixed a bug with deploy function not inheriting provider config](https://github.com/serverless/serverless/pull/4262)
+- [Added Auth0 Webtasks Provider Template for Nodejs](https://github.com/serverless/serverless/pull/4283)
+- [Added Java support for invoke local](https://github.com/serverless/serverless/pull/4199)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.22.0...v1.23.0)
+
+
+# 1.22.0 (13.09.2017)
+- [Serverless now fails if provided profile is not valid](https://github.com/serverless/serverless/pull/4245)
+- [Removed escaping of double quotes around string values in Serverless Variables](https://github.com/serverless/serverless/pull/4224)
+- [Added 4 new plugin commands](https://github.com/serverless/serverless/pull/4046)
+- [Added aws-kotlin-jvm-marven template](https://github.com/serverless/serverless/pull/4220)
+- [Added --update-config option to deploy function command](https://github.com/serverless/serverless/pull/4173)
+- [Added description to CloudWatch Events](https://github.com/serverless/serverless/pull/4221)
+- [Added support for aliasing commands](https://github.com/serverless/serverless/pull/4198)
+- [Added --function option to deploy command](https://github.com/serverless/serverless/pull/4192)
+- [Fixed a bug with Kinesis events](https://github.com/serverless/serverless/pull/4084)
+- [Fixed a bug with packaging](https://github.com/serverless/serverless/pull/4189)
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.1...v1.22.0)
+
+
+# 1.21.1 (06.09.2017)
+- [Preserve file encoding during packaging process](https://github.com/serverless/serverless/pull/4189)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.0...v1.21.1)
+
+
 # 1.21.0 (30.08.2017)
 - [Allow custom CLI class instances](https://github.com/serverless/serverless/pull/4160)
 - [Add support in Spotinst Functions](https://github.com/serverless/serverless/pull/4127)

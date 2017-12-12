@@ -1,11 +1,11 @@
-# Implement your function here.
-# The function will get the request as parameter.
-# The function should return an object
 
+ # Implement your function here.
+ # The function will get the event as the first parameter with query/body properties:
+ # The function should return a Dictionary
 
-def main(args):
-    queryparams = args.get("query", {})
-    body = args.get("body", {})
+def main(event, context):
+    queryparams = event.get("query", {})
+    body = event.get("body", {})
 
     return {
         'statusCode': 200,

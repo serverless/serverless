@@ -26,8 +26,15 @@ serverless create --template aws-nodejs
 serverless create --template aws-nodejs --path myService
 ```
 
+**Create service in new folder using a custom template:**
+
+```bash
+serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/aws-nodejs --path myService
+```
+
 ## Options
-- `--template` or `-t` The name of one of the available templates. **Required**.
+- `--template` or `-t` The name of one of the available templates. **Required if --template-url is not present**.
+- `--template-url` or `-u` The name of one of the available templates. **Required if --template is not present**.
 - `--path` or `-p` The path where the service should be created.
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
@@ -45,6 +52,9 @@ Most commonly used templates:
 - aws-nodejs-ecma-script
 - aws-python
 - aws-python3
+- aws-kotlin-jvm-maven
+- aws-kotlin-jvm-gradle
+- aws-kotlin-nodejs-gradle
 - aws-groovy-gradle
 - aws-java-maven
 - aws-java-gradle

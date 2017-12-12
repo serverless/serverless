@@ -63,6 +63,9 @@ All resource names that are deployed by Serverless have to follow this naming sc
 
 We're also using the term `normalizedName` or similar terms in this guide. This means dropping any characters that aren't allowed in resources names, e.g. special characters.
 
+_Tip:_
+If you are unsure how a resource is named, that you want to reference from your custom resources, you can issue a `serverless package`. This will create the CloudFormation template for your service in the `.serverless` folder (it is named `cloudformation-template-update-stack.json`). Just open the file and check for the generated resource name.
+
 | AWS Resource          |  Name Template                                          | Example                       |
 |---                    |---                                                      | ---                           |
 | S3::Bucket            | S3Bucket{normalizedBucketName}                          | S3BucketMybucket              |
@@ -70,10 +73,10 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 |Lambda::Function       | {normalizedFunctionName}LambdaFunction                  | HelloLambdaFunction           |
 |Lambda::Version        | {normalizedFunctionName}LambdaVersion{sha256}                           | HelloLambdaVersionr3pgoTvv1xT4E4NiCL6JG02fl6vIyi7OS1aW0FwAI |
 |Logs::LogGroup         | {normalizedFunctionName}LogGroup                        | HelloLogGroup                 |
-|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index}</li><li>**CloudWatch Event**: {normalizedFunctionName}LambdaPermissionEventsRuleCloudWatchEvent{index}</li><li>**CloudWatch Log**: {normalizedFunctionName}LambdaPermissionLogsSubscriptionFilterCloudWatchLog{index}</li><li>**IoT**: {normalizedFunctionName}LambdaPermissionIotTopicRule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermission{normalizedBucketName}S3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}SNS</li><li>**Alexa Skill**: {normalizedFunctionName}LambdaPermissionAlexaSkill</li><li>**Cognito User Pool Trigger Source**: {normalizedFunctionName}LambdaPermissionCognitoUserPool{normalizedPoolId}TriggerSource{triggerSource}</li> </ul> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1</li><li>**CloudWatch Event**: HelloLambdaPermissionEventsRuleCloudWatchEvent1</li><li>**CloudWatch Log**: HelloLambdaPermissionLogsSubscriptionFilterCloudWatchLog1</li><li>**IoT**: HelloLambdaPermissionIotTopicRule1 </li><li>**S3**: HelloLambdaPermissionBucketS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionTopicSNS</li><li>**Alexa Skill**: HelloLambdaPermissionAlexaSkill</li><li>**Cognito User Pool Trigger Source**: HelloLambdaPermissionCognitoUserPoolMyPoolTriggerSourceCustomMessage</li> </ul>|
-|Events::Rule           | <ul><li>**Schedule**: {normalizedFuntionName}EventsRuleSchedule{SequentialID}</li><li>**CloudWatch Event**: {normalizedFuntionName}EventsRuleCloudWatchEvent{SequentialID}</li> </ul> | <ul><li>**Schedule**: HelloEventsRuleSchedule1</li><li>**CloudWatch Event**: HelloEventsRuleCloudWatchEvent1</li></ul>      |
-|AWS::Logs::SubscriptionFilter    | {normalizedFuntionName}LogsSubscriptionFilterCloudWatchLog{SequentialID}       | HelloLogsSubscriptionFilterCloudWatchLog1            |
-|AWS::IoT::TopicRule    | {normalizedFuntionName}IotTopicRule{SequentialID}       | HelloIotTopicRule1            |
+|Lambda::Permission     | <ul><li>**Schedule**: {normalizedFunctionName}LambdaPermissionEventsRuleSchedule{index}</li><li>**CloudWatch Event**: {normalizedFunctionName}LambdaPermissionEventsRuleCloudWatchEvent{index}</li><li>**CloudWatch Log**: {normalizedFunctionName}LambdaPermissionLogsSubscriptionFilterCloudWatchLog{index}</li><li>**IoT**: {normalizedFunctionName}LambdaPermissionIotTopicRule{index} </li><li>**S3**: {normalizedFunctionName}LambdaPermission{normalizedBucketName}S3</li><li>**APIG**: {normalizedFunctionName}LambdaPermissionApiGateway</li><li>**SNS**: {normalizedFunctionName}LambdaPermission{normalizedTopicName}SNS</li><li>**Alexa Skill**: {normalizedFunctionName}LambdaPermissionAlexaSkill</li><li>**Alexa Smart Home**: {normalizedFunctionName}LambdaPermissionAlexaSmartHome{index}</li><li>**Cognito User Pool Trigger Source**: {normalizedFunctionName}LambdaPermissionCognitoUserPool{normalizedPoolId}TriggerSource{triggerSource}</li> </ul> | <ul><li>**Schedule**: HelloLambdaPermissionEventsRuleSchedule1</li><li>**CloudWatch Event**: HelloLambdaPermissionEventsRuleCloudWatchEvent1</li><li>**CloudWatch Log**: HelloLambdaPermissionLogsSubscriptionFilterCloudWatchLog1</li><li>**IoT**: HelloLambdaPermissionIotTopicRule1 </li><li>**S3**: HelloLambdaPermissionBucketS3</li><li>**APIG**: HelloLambdaPermissionApiGateway</li><li>**SNS**: HelloLambdaPermissionTopicSNS</li><li>**Alexa Skill**: HelloLambdaPermissionAlexaSkill</li><li>**Alexa Smart Home**: HelloLambdaPermissionAlexaSmartHome1</li><li>**Cognito User Pool Trigger Source**: HelloLambdaPermissionCognitoUserPoolMyPoolTriggerSourceCustomMessage</li> </ul>|
+|Events::Rule           | <ul><li>**Schedule**: {normalizedFunctionName}EventsRuleSchedule{SequentialID}</li><li>**CloudWatch Event**: {normalizedFunctionName}EventsRuleCloudWatchEvent{SequentialID}</li> </ul> | <ul><li>**Schedule**: HelloEventsRuleSchedule1</li><li>**CloudWatch Event**: HelloEventsRuleCloudWatchEvent1</li></ul>      |
+|AWS::Logs::SubscriptionFilter    | {normalizedFunctionName}LogsSubscriptionFilterCloudWatchLog{SequentialID}       | HelloLogsSubscriptionFilterCloudWatchLog1            |
+|AWS::IoT::TopicRule    | {normalizedFunctionName}IotTopicRule{SequentialID}       | HelloIotTopicRule1            |
 |ApiGateway::RestApi    | ApiGatewayRestApi                                       | ApiGatewayRestApi             |
 |ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | ApiGatewayResourceUsers       |
 |ApiGateway::Method     | ApiGatewayMethod{normalizedPath}{normalizedMethod}      | ApiGatewayMethodUsersGet      |
@@ -91,10 +94,10 @@ We're also using the term `normalizedName` or similar terms in this guide. This 
 
 You can override the specific CloudFormation resource to apply your own options. For example, if you want to set `AWS::Logs::LogGroup` retention time to 30 days, override it with above table's `Name Template`.
 
-When you do overriding the basic resources, the important part is `normalizedFunctionName`. There are two rules.
+When you override basic resources, there are two things to keep in mind when it comes to `normalizedFunctionName`:
 
-- Should start with uppercase character.
-- The `-` will be changed to `Dash`, `_` will be changed to `Underscore`.
+- It should start with an uppercase character
+- The `-` will be changed to `Dash`, `_` will be changed to `Underscore`
 
 Here's an example:
 
@@ -111,6 +114,7 @@ functions:
 resources:
   Resources:
     WriteDashPostLogGroup:
+      Type: AWS::Logs::LogGroup
       Properties:
         RetentionInDays: "30"
 ```

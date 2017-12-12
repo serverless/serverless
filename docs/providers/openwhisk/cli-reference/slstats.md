@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Apache OpenWhisk - Serverless Stats
 menuText: serverless stats
-menuOrder: 14
+menuOrder: 17
 description: Enables or disables Serverless Statistic logging within the Serverless Framework.
 layout: Doc
 -->

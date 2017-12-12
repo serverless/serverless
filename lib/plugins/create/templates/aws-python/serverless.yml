@@ -70,6 +70,7 @@ functions:
 #      - sns: greeter-topic
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
 #      - alexaSkill
+#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
 #      - cloudwatchEvent:
