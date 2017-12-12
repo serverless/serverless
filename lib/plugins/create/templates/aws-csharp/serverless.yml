@@ -30,14 +30,16 @@ provider:
 #    - Effect: "Allow"
 #      Action:
 #        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#      Resource: { "Fn::Join" : ["", ["arn:", { "Ref" : "AWS::Partition" }, ":s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
 #    - Effect: "Allow"
 #      Action:
 #        - "s3:PutObject"
 #      Resource:
 #        Fn::Join:
 #          - ""
-#          - - "arn:aws:s3:::"
+#          - - "arn:"
+#            - "Ref" : "AWS::Partition"
+#            - ":s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
 
@@ -66,7 +68,7 @@ functions:
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - stream: arn:${AWS::Partition}:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
 #      - alexaSkill
 #      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
 #      - iot:
