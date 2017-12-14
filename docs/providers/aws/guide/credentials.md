@@ -14,8 +14,6 @@ layout: Doc
 
 The Serverless Framework needs access to your cloud provider's account so that it can create and manage resources on your behalf.
 
-Here we'll provide setup instructions for different cloud provider accounts. Just pick the one for your provider and follow the steps to get everything in place for Serverless.
-
 This guide is for the Amazon Web Services (AWS) provider, so we'll step through the process of setting up credential for AWS and using them with Serverless.
 
 [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
