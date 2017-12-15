@@ -21,17 +21,24 @@ To access the document store you will need to make an API request inside a funci
 This is how to insert a new key/value pair into your document store in a specific environment
 
 **HTTPS Request:** 
+
 `POST environment/${environmentId}/userDocument?accountId=${accountId}`
+
 **Host:** 
+
 `api.spotinst.io/functions/`
+
 **Header:**
+
 ```bash
 {
 	"Content-Type": "application/json",
 	"Authorization": "Bearer ${Spotinst API Token}"
 }
 ```
+
 **Body:**
+
 ```bash
 {
 	"userDocument" : {
@@ -47,17 +54,24 @@ This is how to insert a new key/value pair into your document store in a specifi
 This is how to update a current key/value pair in your document store in a specific environment
 
 **Request:** 
+
 `PUT environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+
 **Endpoint:** 
+
 `api.spotinst.io/functions/`
+
 **Header:**
+
 ```bash
 {
 	"Content-Type": "application/json",
 	"Authorization": "Bearer ${Spotinst API Token}"
 }
 ```
+
 **Body:**
+
 ```bash
 {
 	"userDocument" : {
@@ -74,10 +88,15 @@ There are two ways to get the documents from your store, either by specifing a k
 ### 1. Get Sinlge Key Pair
 
 **Request:** 
+
 `GET environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+
 **Endpoint:** 
+
 `api.spotinst.io/functions/`
+
 **Header:**
+
 ```bash
 {
 	"Content-Type": "application/json",
@@ -88,10 +107,15 @@ There are two ways to get the documents from your store, either by specifing a k
 ### 2. Get All Keys
 
 **Request:** 
+
 `GET environment/${environmentId}/userDocument?accountId=${accountId}`
+
 **Endpoint:** 
+
 `api.spotinst.io/functions/`
+
 **Header:**
+
 ```bash
 {
 	"Content-Type": "application/json",
@@ -105,10 +129,15 @@ There are two ways to get the documents from your store, either by specifing a k
 This is how to delete a specific key value pair from your document store
 
 **Request:** 
+
 `DELETE environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+
 **Endpoint:** 
+
 `https://api.spotinst.io/functions/`
+
 **Header:**
+
 ```bash
 {
 	"Content-Type": "application/json",
