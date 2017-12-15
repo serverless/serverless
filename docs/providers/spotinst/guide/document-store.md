@@ -22,11 +22,15 @@ This is how to insert a new key/value pair into your document store in a specifi
 
 **HTTPS Request:** 
 
-`POST environment/${environmentId}/userDocument?accountId=${accountId}`
+```bash 
+POST environment/${environmentId}/userDocument?accountId=${accountId}
+```
 
 **Host:** 
 
-`api.spotinst.io/functions/`
+```bash
+api.spotinst.io/functions/
+```
 
 **Header:**
 
@@ -55,11 +59,15 @@ This is how to update a current key/value pair in your document store in a speci
 
 **HTTPS Request:** 
 
-`PUT environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+```bash
+PUT environment/${environmentId}/userDocument/${Key}?accountId=${accountId}
+```
 
 **Endpoint:** 
 
-`api.spotinst.io/functions/`
+```bash
+api.spotinst.io/functions/
+```
 
 **Header:**
 
@@ -89,11 +97,15 @@ There are two ways to get the documents from your store, either by specifing a k
 
 **HTTPS Request:** 
 
-`GET environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+```bash
+GET environment/${environmentId}/userDocument/${Key}?accountId=${accountId}
+```
 
 **Endpoint:** 
 
-`api.spotinst.io/functions/`
+```bash
+api.spotinst.io/functions/
+```
 
 **Header:**
 
@@ -108,11 +120,15 @@ There are two ways to get the documents from your store, either by specifing a k
 
 **HTTPS Request:** 
 
-`GET environment/${environmentId}/userDocument?accountId=${accountId}`
+```bash
+GET environment/${environmentId}/userDocument?accountId=${accountId}
+```
 
 **Endpoint:** 
 
-`api.spotinst.io/functions/`
+```bash
+api.spotinst.io/functions/
+```
 
 **Header:**
 
@@ -130,11 +146,15 @@ This is how to delete a specific key value pair from your document store
 
 **HTTPS Request:** 
 
-`DELETE environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
+```bash
+DELETE environment/${environmentId}/userDocument/${Key}?accountId=${accountId}
+```
 
 **Endpoint:** 
 
-`https://api.spotinst.io/functions/`
+```bash
+https://api.spotinst.io/functions/
+```
 
 **Header:**
 
