@@ -26,6 +26,7 @@
   </dependencies>
 
   <build>
+    <finalName><!-- Your Service Name in serverless.yml --></finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -33,7 +34,6 @@
         <version>2.3</version>
         <configuration>
           <createDependencyReducedPom>false</createDependencyReducedPom>
-          <finalName><!-- Your Service Name in serverless.yml --></finalName>
         </configuration>
         <executions>
           <execution>
