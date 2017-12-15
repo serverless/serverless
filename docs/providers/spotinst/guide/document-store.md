@@ -53,7 +53,7 @@ This is how to insert a new key/value pair into your document store in a specifi
 
 This is how to update a current key/value pair in your document store in a specific environment
 
-**Request:** 
+**HTTPS Request:** 
 
 `PUT environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
 
@@ -87,7 +87,7 @@ There are two ways to get the documents from your store, either by specifing a k
 
 ### 1. Get Sinlge Key Pair
 
-**Request:** 
+**HTTPS Request:** 
 
 `GET environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
 
@@ -106,7 +106,7 @@ There are two ways to get the documents from your store, either by specifing a k
 
 ### 2. Get All Keys
 
-**Request:** 
+**HTTPS Request:** 
 
 `GET environment/${environmentId}/userDocument?accountId=${accountId}`
 
@@ -128,7 +128,7 @@ There are two ways to get the documents from your store, either by specifing a k
 
 This is how to delete a specific key value pair from your document store
 
-**Request:** 
+**HTTPS Request:** 
 
 `DELETE environment/${environmentId}/userDocument/${Key}?accountId=${accountId}`
 
