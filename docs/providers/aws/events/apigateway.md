@@ -357,7 +357,7 @@ functions:
 If you are using the default `lambda-proxy` integration, your attributes will be
 exposed at `event.requestContext.authorizer.claims`.
 
-If you want control more control over which attributes are exposed as claims you
+If you want more control over which attributes are exposed as claims you
 can switch to `integration: lambda` and add the following configuration. The
 claims will be exposed at `events.cognitoPoolClaims`.
 
