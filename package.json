@@ -100,6 +100,7 @@
     "chalk": "^2.0.0",
     "ci-info": "^1.1.1",
     "download": "^5.0.2",
+    "fast-levenshtein": "^2.0.6",
     "filesize": "^3.3.0",
     "fs-extra": "^0.26.7",
     "get-stdin": "^5.0.1",
