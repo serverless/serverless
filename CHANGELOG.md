@@ -1,3 +1,22 @@
+# 1.25.0 (20.12.2017)
+- [Improve Stage and Region Usage](https://github.com/serverless/serverless/pull/4560)
+- [Add API Gateway endpoint configuration](https://github.com/serverless/serverless/pull/4531)
+- [Add cache to Variables class](https://github.com/serverless/serverless/pull/4499)
+- [Added support for circular references in the variable system](https://github.com/serverless/serverless/pull/4144)
+- [Circular Vars Fix](https://github.com/serverless/serverless/pull/4478)
+- [Ignore the check whether deploymentBucket exists when using "package"](https://github.com/serverless/serverless/pull/4474)
+- [Template / AWS Kotlin JVM Gradle](https://github.com/serverless/serverless/pull/4433)
+- [Basic logging for python invoke local](https://github.com/serverless/serverless/pull/4429)
+- [Add Amazon S3 Transfer Acceleration support](https://github.com/serverless/serverless/pull/4293)
+- [Updated awsProvider to allow manual specification of certificate auth](https://github.com/serverless/serverless/pull/4118)
+- [Fix lambda version generation when only function config changes](https://github.com/serverless/serverless/pull/4510)
+- [Added request cache and queue to AWS provider and use it from variable resolution](https://github.com/serverless/serverless/pull/4518)
+- [Add significant variable usage corner cases](https://github.com/serverless/serverless/pull/4529)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.24.1...v1.25.0)
+
+
 # 1.24.1 (07.11.2017)
 - [Fix this.userStats.track is not a function error when tailing function logs](https://github.com/serverless/serverless/pull/4441)
 - [Improve variables test](https://github.com/serverless/serverless/pull/4450)
