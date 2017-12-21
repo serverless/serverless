@@ -14,14 +14,14 @@ layout: Doc
 
 You are able to set a stage variable in your function to distinguish between the multiple stages that your function maybe going through. The function is initially set to 'dev' for development but there are two ways you can change the stage if you so need. 
 
-##Through Serverless Framwork
+## Through Serverless Framwork
 To change the stage through the serverless framework you simply need to enter the command
 
 ```bash
 serverless deploy --stage #{Your Stage Name} 
 ```
 
-##Through the .yml File
+## Through the .yml File
 
 To change the stage in the serverless.yml file you need to add the following into the provider tag then deploy your function as usual
 
