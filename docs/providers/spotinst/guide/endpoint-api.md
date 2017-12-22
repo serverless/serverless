@@ -41,7 +41,7 @@ Authorization: Bearer ${Spotinst API Token}
 Content-Type: application/json
  ```
 
-###Get Alias
+### Get Alias
 Returns a single alias
 
 #### HTTPS Request 
@@ -93,8 +93,8 @@ Content-Type: application/json
 ```
 
 
-##Pattern
-###Create Pattern
+## Pattern
+### Create Pattern
 Create a new pattern that maps to a function
 
 #### HTTPS Request 
@@ -129,7 +129,7 @@ Update and existing pattern
 ```bash
 PUT pattern/${Pattern ID}?accountId=${accountId}
 ```
-####Host
+#### Host
 ```bash
 api.spotinst.io/functions/ 
 ```
