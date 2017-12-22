@@ -53,7 +53,7 @@ Content-Type: application/json
 
 **Note:** You are able to connect multiple alias to the same environment
  
-##Set Up Pattern
+## Set Up Pattern
 After you have an alias set up you will need to set up pattern to connect to all the functions in the application. This is again another API call and can be done from anywhere. You specify the pattern that you want, the method that will trigger the function, the function ID and the environment ID. The pattern is what will appear after the domain. For example '/home' would point to 'myAlias.com/home'. The methods you can select are any of the usual HTTP request methods: GET, PUT, POST, DELETE , OPTIONS, PATCH, ALL where “ALL” matches every method
 
 ### HTTPS Request 
