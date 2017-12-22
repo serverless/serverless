@@ -30,7 +30,8 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./guide/serverless.yml.md">Serverless.yml Reference</a></li>
         <li><a href="./guide/variables.md">Variables</a></li>
         <li><a href="./guide/document-store.md">Document Store</a></li>
-        <li><a href="./guide/stage.md">Stage Variable</a></li>
+        <li><a href="./guide/endpoint-setup.md">Endpoint Set Up</a></li>
+        <li><a href="./guide/endpoint-api.md">Endpoint API Documentation</a></li>
       </ul>
     </div>
   </div>
@@ -49,6 +50,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/deploy-function.md">Deploy Function</a></li>
         <li><a href="./cli-reference/invoke.md">Invoke</a></li>
         <li><a href="./cli-reference/logs.md">Logs</a></li>
+        <li><a href="./cli-reference/stage.md">Stage Variable</a></li>
         <li><a href="./cli-reference/info.md">Info</a></li>
         <li><a href="./cli-reference/remove.md">Remove</a></li>
         <li><a href="./cli-reference/plugin-list.md">Plugin List</a></li>

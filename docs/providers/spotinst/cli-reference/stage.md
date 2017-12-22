@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Stage Variables
 menuText: Stage Variables
-menuOrder: 8
+menuOrder: 7
 description: How to use the Stage Variables feature
 layout: Doc
 -->
@@ -18,7 +18,7 @@ You are able to set a stage variable in your function to distinguish between the
 To change the stage through the serverless framework you simply need to enter the command
 
 ```bash
-serverless deploy --stage #{Your Stage Name} 
+serverless deploy --stage #{Your Stage Name}
 ```
 
 ## Through the .yml File
@@ -28,7 +28,7 @@ To change the stage in the serverless.yml file you need to add the following int
 ```bash
 provider:
   name: spotinst
-  stage: #{Your Stage Name}  
+  stage: #{Your Stage Name}
   spotinst:
     environment: #{Your Environment ID}
 ```
