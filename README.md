@@ -321,7 +321,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
 
-Check out our [help-wanted](https://github.com/serverless/serverless/labels/status/help-wanted) or [easy-pick](https://github.com/serverless/serverless/labels/status/easy-pick) labels to find issues we want to move forward on with your help.
+Check out our [help wanted](https://github.com/serverless/serverless/labels/help%20wanted) or [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) labels to find issues we want to move forward on with your help.
 
 ## <a name="community"></a>Community
 
