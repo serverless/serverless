@@ -321,7 +321,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 ## <a name="contributing"></a>Contributing
 We love our contributors! Please read our [Contributing Document](CONTRIBUTING.md) to learn how you can start working on the Framework yourself.
 
-Check out our [help-wanted](https://github.com/serverless/serverless/labels/status/help-wanted) or [easy-pick](https://github.com/serverless/serverless/labels/status/easy-pick) labels to find issues we want to move forward on with your help.
+Check out our [help wanted](https://github.com/serverless/serverless/labels/help%20wanted) or [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) labels to find issues we want to move forward on with your help.
 
 ## <a name="community"></a>Community
 
@@ -356,6 +356,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Langa](http://langa.io/?utm_source=gh-serverless&utm_medium=github) - They built [Trails.js](http://github.com/trailsjs/trails)
 * [Emerging Technology Advisors](https://www.emergingtechnologyadvisors.com)
 * [OneSpeed](https://onespeed.io/)
+* [Seraro](http://www.seraro.com/) - Who also runs Atlanta Serverless Meetup  (https://www.meetup.com/Atlanta-CABI-Camp-Cloud-AI-Blockchain-IOT) and Delhi Serverless Meetup (https://www.meetup.com/Delhi-NCR-Serverless-Architecture-Meetup/)
 ----
 
 # <a name="v.5"></a>Previous Serverless Version 0.5.x

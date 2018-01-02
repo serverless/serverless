@@ -24,7 +24,7 @@ Here are the Framework's main concepts and how they pertain to Auth0 Webtasks...
 
 A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application.  
 
-The Auth0 Webtasks platform was designed to be simple and easy to use with minimal configuration. Therefore, services that uses Auth0 Webtasks are just a few lines of configuration in a single file, entitled `serverless.yml` (or `serverless.json`). It looks like this:
+The Auth0 Webtasks platform was designed to be simple and easy to use with minimal configuration. Therefore, services that uses Auth0 Webtasks are just a few lines of configuration in a single file, entitled `serverless.yml` (or `serverless.json` or `serverless.js`). It looks like this:
 
 ```yml
 # serverless.yml
