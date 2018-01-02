@@ -29,7 +29,8 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./guide/credentials.md">Credentials</a></li>
         <li><a href="./guide/serverless.yml.md">Serverless.yml Reference</a></li>
         <li><a href="./guide/variables.md">Variables</a></li>
-        <li><a href="./guide/document-store.md">Document Store</a></li>
+        <li><a href="./guide/document-store.md">Document Store API</a></li>
+        <li><a href="./guide/document-store-sdk.md">Document Store SDK</a></li>
         <li><a href="./guide/endpoint-setup.md">Endpoint Set Up</a></li>
         <li><a href="./guide/endpoint-api.md">Endpoint API Documentation</a></li>
       </ul>

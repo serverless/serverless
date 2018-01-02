@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - Spotinst Functions Guide - Document Store
-menuText: Document Store
+title: Serverless Framework - Spotinst Functions Guide - Document Store API
+menuText: Document Store API
 menuOrder: 7
-description: How to use the Document Store feature
+description: How to use the Document Store API feature
 layout: Doc
 -->
 
@@ -10,7 +10,7 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/guide/credentials)
 <!-- DOCS-SITE-LINK:END -->
 
-# Spotinst Functions - Document Store
+# Spotinst Functions - Document Store API
 
 Document Store is a way for you to save information across function calls within the same environment without having to access an external database. It is secured by your Spotinst account credentials and can only be accesses within a function. Because you do not need to access an external database you are able to fetch stored documents with low latency (< ~5ms)
 
