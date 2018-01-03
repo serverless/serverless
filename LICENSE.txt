@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2017 Serverless, Inc. http://www.serverless.com
+Copyright (c) 2018 Serverless, Inc. http://www.serverless.com
 
 The following license applies to all parts of this software except as
 documented below:
