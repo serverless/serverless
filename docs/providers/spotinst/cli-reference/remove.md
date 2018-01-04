@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Spotinst Functions - Remove
 menuText: remove
-menuOrder: 8
+menuOrder: 9
 description: Remove a deployed Service and all of its Spotinst Functions Functions, Events and Resources
 layout: Doc
 -->

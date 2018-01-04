@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: spotinst-ruby # NOTE: update this with your service name
+service: spotinst-java8
 
 provider:
   name: spotinst
@@ -21,14 +21,14 @@ provider:
 
 functions:
   hello:
-    runtime: ruby2.4.1
-    handler: handler.main
+    runtime: java8
+    handler: com.serverless.Handler
     memory: 128
     timeout: 30
     access: private
-#    cron:  # Setup scheduled trigger with cron expression
-#     active: true
-#     value: '* * * * *'
+#     cron:  # Setup scheduled trigger with cron expression
+#      active: true
+#      value: '* * * * *'
 #    environmentVariables: {
 #      Key: "Value",
 #    }
