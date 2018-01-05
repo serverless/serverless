@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import sys
 from time import time
 from importlib import import_module
@@ -36,6 +37,8 @@ class FakeLambdaContext(object):
     def aws_request_id(self):
         return '1234567890'
 
+
+logging.basicConfig()
 
 parser = argparse.ArgumentParser(
     prog='invoke',

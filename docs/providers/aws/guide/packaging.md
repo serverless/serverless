@@ -84,11 +84,6 @@ The artifact option is especially useful in case your development environment al
 ```yml
 service: my-service
 package:
-  exclude:
-    - tmp/**
-    - .git/**
-  include:
-    - some-file
   artifact: path/to/my-artifact.zip
 ```
 

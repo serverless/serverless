@@ -34,7 +34,7 @@ npm install
 Once this has completed you will be able to configure your credentials by running 
 
 ```bash
-serverless config credentials -p spotinst -k {your account number} -t {your token}
+serverless config credentials -p spotinst -a {your account id} -t {your token}
 ```
 
 This will create a ~/.spotinst/credentials file the file should look like this when if done correctly:

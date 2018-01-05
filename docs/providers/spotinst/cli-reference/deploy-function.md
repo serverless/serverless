@@ -37,6 +37,9 @@ functions:
 #    cron:  # Setup scheduled trigger with cron expression
 #    	active: true
 #    	value: '* * * * *'
+#    environmentVariables: {
+#      Key: "Value",
+#    }
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins

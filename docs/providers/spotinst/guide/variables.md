@@ -20,10 +20,27 @@ Environment variables allow you to pass static information into your function so
 
 To enter your environment variables you will need to go into the Spotinst console find the function you want to add environment variables to. Then under the Configuration tab you will find the Environment Variables heading. Here you can enter as many variables you need all with an assoiated key.
 
-To access your variables in your code you just need to put `process.env['{Your Key}']` as needed
+Also you are able to enter in environment variables in the serverless.yml file. As a parameter under any function you can add:
+
+```yml
+functions:
+  test:
+    handler: handler.main
+    environmentVariables: {
+      Key: "Value"
+    }
+```
+
+To access your variables in your code you just need to put `process.env['{Your Key}']` as needed in the handler file.
 
 ## URL Argument Variables
 
-URL parameters are useful if you want to enter data that could change based on user actions like filling out a form or entering information into a database. 
+URL parameters can be use when a POST request is made to the endpoint of your function. 
 
-To access URL parameters in your code you just need to put `eq.query.{Your Parameter Name}` as needed
+### 1. Node JS
+
+To access URL parameters in your NodeJS code you just need to put `event.query.['{Your Parameter Name}']` as needed
+
+### 2. Python
+
+To access URL parameters in your NodeJS code you just need to put `os.environ['{Your Parameter Name}']` as needed

@@ -15,6 +15,7 @@ service: spotinst-ruby # NOTE: update this with your service name
 
 provider:
   name: spotinst
+  #stage: <Stage Name>  #Optional setting. By default it is set to 'dev'
   spotinst:
     #environment: <env-XXXX> # NOTE: Remember to add the environment ID
 
@@ -28,6 +29,9 @@ functions:
 #    cron:  # Setup scheduled trigger with cron expression
 #     active: true
 #     value: '* * * * *'
+#    environmentVariables: {
+#      Key: "Value",
+#    }
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins
