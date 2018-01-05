@@ -355,7 +355,8 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Red Badger](https://red-badger.com)
 * [Langa](http://langa.io/?utm_source=gh-serverless&utm_medium=github) - They built [Trails.js](http://github.com/trailsjs/trails)
 * [Emerging Technology Advisors](https://www.emergingtechnologyadvisors.com)
-
+* [OneSpeed](https://onespeed.io/)
+* [Seraro](http://www.seraro.com/) - Who also runs Atlanta Serverless Meetup  (https://www.meetup.com/Atlanta-CABI-Camp-Cloud-AI-Blockchain-IOT) and Delhi Serverless Meetup (https://www.meetup.com/Delhi-NCR-Serverless-Architecture-Meetup/)
 ----
 
 # <a name="v.5"></a>Previous Serverless Version 0.5.x

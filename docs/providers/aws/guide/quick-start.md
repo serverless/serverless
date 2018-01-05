@@ -16,6 +16,15 @@ layout: Doc
 3. An AWS account. If you don't already have one, you can sign up for a [free trial](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) that includes 1 million free Lambda requests per month.
 4. **Set-up your [Provider Credentials](./credentials.md)**. [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
 
+## Tutorials
+
+Check out the following links for tutorial walkthroughs:
+
+- [Build an Node.js REST API](/blog/serverless-express-rest-api/)
+- [Deploy a GraphQL endpoint](/blog/make-serverless-graphql-api-using-lambda-dynamodb/)
+
+Or follow the steps below for creating & deploying a simple service and learning some simple Serverless commands.
+
 ## Create a new service
 
 Create a new service using the Node.js template, specifying a unique name and an optional path for your service.

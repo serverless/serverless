@@ -30,14 +30,7 @@ serverless invoke --function hello
 In your terminal window you should see the response
 
 ```bash
-{
-Deploy functions:
-	hello: created
-Service Information
-	service: spotinst-ruby
-	functions:
-  		hello
-}
+'{"hello":"from Ruby2.4.1 function"}'
 ```
 
 Congrats you have just deployed and ran your Hello World function!
