@@ -1,0 +1,13 @@
+{
+  "name": "spotionst-java8",
+  "version": "1.0.0",
+  "description": "Spotinst Functions Java8 sample for serverless framework service.",
+  "main": "com.serverless.Handler.java",
+  "keywords": [
+    "serverless",
+    "spotinst"
+  ],
+  "devDependencies": {
+    "serverless-spotinst-functions": "*"
+  }
+}
