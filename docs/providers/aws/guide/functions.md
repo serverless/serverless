@@ -20,7 +20,10 @@ All of the Lambda functions in your serverless service can be found in `serverle
 
 ```yml
 # serverless.yml
-service: myService
+service:
+  name: myService
+  awsTracingConfig:
+    mode: Active # optional, can be 'Active' or 'PassThrough'
 
 provider:
   name: aws
@@ -37,6 +40,8 @@ functions:
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
+    awsTracingConfig:
+      mode: PassThrough # optional overwrite, can be 'Active' or 'PassThrough'
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
@@ -368,3 +373,28 @@ functions:
 ### Secrets using environment variables and KMS
 
 When storing secrets in environment variables, AWS [strongly suggests](http://docs.aws.amazon.com/lambda/latest/dg/env_variables.html#env-storing-sensitive-data) encrypting sensitive information. AWS provides a [tutorial](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-env_console.html) on using KMS for this purpose.
+
+## AWS X-Ray Tracing
+
+You can enable [AWS X-Ray Tracing](http://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the optional `awsTracingConfig` config variable in conjucntion with the `mode` property:
+
+```yml
+service:
+  name: myService
+  awsTracingConfig:
+    mode: Active
+```
+
+You can also set this variable on a per-function basis. This will override the service level setting if it is present:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    awsTracingConfig:
+      mode: Active
+  goodbye:
+    handler: handler.goodbye
+    awsTracingConfig:
+      mode: PassThrough
+```
