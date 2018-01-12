@@ -633,13 +633,7 @@ See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/lates
 **Notes:**
 
 - A missing/empty request Content-Type is considered to be the API Gateway default (`application/json`)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
+    - [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)
 - [API Gateway](#api-gateway)
   - [Lambda Proxy Integration](#lambda-proxy-integration)
     - [Simple HTTP Endpoint](#simple-http-endpoint)
