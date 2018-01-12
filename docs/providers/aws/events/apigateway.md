@@ -12,6 +12,32 @@ layout: Doc
 
 # API Gateway
 
+- [Lambda Proxy Integration](#lambda-proxy-integration)
+  - [Simple HTTP Endpoint](#simple-http-endpoint)
+  - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
+  - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
+  - [Enabling CORS](#enabling-cors)
+  - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-awsiam-authorizers)
+  - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
+  - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
+  - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
+  - [Request Parameters](#request-parameters)
+- [Lambda Integration](#lambda-integration)
+  - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
+  - [Request templates](#request-templates)
+    - [Default Request Templates](#default-request-templates)
+    - [Custom Request Templates](#custom-request-templates)
+    - [Pass Through Behavior](#pass-through-behavior)
+  - [Responses](#responses)
+    - [Custom Response Headers](#custom-response-headers)
+  - [Custom Response Templates](#custom-response-templates)
+  - [Status codes](#status-codes)
+    - [Available Status Codes](#available-status-codes)
+    - [Using Status Codes](#using-status-codes)
+    - [Custom Status Codes](#custom-status-codes)
+- [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+- [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
+
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
 > - [Add a custom domain for your API Gateway](https://serverless.com/blog/serverless-api-gateway-domain/)
@@ -633,39 +659,7 @@ See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/lates
 **Notes:**
 
 - A missing/empty request Content-Type is considered to be the API Gateway default (`application/json`)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-    - [[Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)](#read-this-on-the-main-serverless-docs-sitehttpswwwserverlesscomframeworkdocsprovidersawseventsapigateway)
-- [API Gateway](#api-gateway)
-  - [Lambda Proxy Integration](#lambda-proxy-integration)
-    - [Simple HTTP Endpoint](#simple-http-endpoint)
-    - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
-    - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
-    - [Enabling CORS](#enabling-cors)
-    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-awsiam-authorizers)
-    - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
-    - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
-    - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
-    - [Request Parameters](#request-parameters)
-  - [Lambda Integration](#lambda-integration)
-    - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
-    - [Request templates](#request-templates)
-      - [Default Request Templates](#default-request-templates)
-      - [Custom Request Templates](#custom-request-templates)
-      - [Pass Through Behavior](#pass-through-behavior)
-    - [Responses](#responses)
-      - [Custom Response Headers](#custom-response-headers)
-    - [Custom Response Templates](#custom-response-templates)
-    - [Status codes](#status-codes)
-      - [Available Status Codes](#available-status-codes)
-      - [Using Status Codes](#using-status-codes)
-      - [Custom Status Codes](#custom-status-codes)
-  - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
-  - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
+- API Gateway docs refer to "WHEN_NO_TEMPLATE" (singular), but this will fail during creation as the actual value should be "WHEN_NO_TEMPLATES" (plural)
 
 ### Responses
 
@@ -867,7 +861,7 @@ As you application grows, you will have idea to break it out into multiple servi
 
 ```yml
 service: service-name
-provider: 
+provider:
   name: aws
   apiGateway:
     restApiId: xxxxxxxxxx # REST API resource ID. Default is generated by the framework
@@ -878,13 +872,13 @@ functions:
 
 ```
 
-In case the application has many chilren and grandchildren paths, you also want to break them out into smaller services. 
+In case the application has many chilren and grandchildren paths, you also want to break them out into smaller services.
 
 ```yml
 service: service-a
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
 
 functions:
@@ -898,10 +892,10 @@ functions:
 
 ```yml
 service: service-b
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
-    restApiRootResourceId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
 
 functions:
   create:
@@ -916,13 +910,13 @@ They reference the same parent path `/posts`. Cloudformation will throw error if
 
 ```yml
 service: service-a
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
     restApiResources:
       /posts: xxxxxxxxxx
-      
+
 functions:
   ...
 
@@ -930,10 +924,10 @@ functions:
 
 ```yml
 service: service-b
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
-    restApiRootResourceId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
     restApiResources:
       /posts: xxxxxxxxxx
 
@@ -946,14 +940,14 @@ You can define more than one path resource. Otherwise, serverless will generate 
 
 ```yml
 service: service-a
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
     # restApiRootResourceId: xxxxxxxxxx # Optional
     restApiResources:
       /posts: xxxxxxxxxx
       /categories: xxxxxxxxx
-      
+
 
 functions:
   listPosts:
