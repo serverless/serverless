@@ -126,7 +126,7 @@ The following are services you can instantly install and use by running `serverl
 * [Ruby](https://github.com/stewartlord/serverless-ruby) - Call a Ruby function from your lambda
 * [Slack App](https://github.com/johnagan/serverless-slack-app) - Slack App Boilerplate with OAuth and Bot actions
 * [Swift](https://github.com/choefele/swift-lambda-app) - Full-featured project template to develop Lambda functions in Swift
-* [Cloudwatch Alerts on Slack](github.com/dav009/serverless-aws-alarms-notifier) - Get AWS Cloudwatch alerts notifications on Slack
+* [Cloudwatch Alerts on Slack](https://github.com/dav009/serverless-aws-alarms-notifier) - Get AWS Cloudwatch alerts notifications on Slack
 
 **Note**: the `serverless install` command will only work on V1.0 or later.
 
