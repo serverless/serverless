@@ -56,7 +56,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
   aws-csharp:
-    image: microsoft/dotnet:1.0.4-sdk
+    image: microsoft/dotnet:2.0.5-sdk-2.1.4
     volumes:
       - ./tmp/serverless-integration-test-aws-csharp:/app
   aws-fsharp:
@@ -89,7 +89,7 @@ services:
       - ./tmp/serverless-integration-test-spotinst-ruby:/app
   spotinst-java8:
     image: maven:3-jdk-8
-    volumes: 
+    volumes:
       - ./tmp/serverless-integration-test-spotinst-java8:/app
   webtasks-nodejs:
     image: node:6.10.3
