@@ -97,6 +97,16 @@ Please see the following repository for sample projects using those runtimes:
 
 [https://github.com/serverless/serverless-kubeless/tree/master/examples](https://github.com/serverless/serverless-kubeless/tree/master/examples)
 
+## Installing dependencies
+
+For installing dependencies the standard dependency file should be placed in the function folder:
+
+ - For Python functions, it will use the file `requirements.txt`
+ - For Nodejs functions, `dependencies` in the `package.json` file will be installed
+ - For Ruby functions, it will use the file `Gemfile.rb`
+
+If one of the above files is found, the depencies will be installed using a [`Init Container`](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
+
 ## Environment Variables
 
 You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of strings:
