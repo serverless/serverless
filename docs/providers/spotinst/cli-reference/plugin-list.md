@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Spotinst Functions - Plugin List
 menuText: Plugin List
-menuOrder: 9
+menuOrder: 10
 description: List all available Serverless plugins
 layout: Doc
 -->

@@ -14,7 +14,7 @@ layout: Doc
 
 ## Simple event definition
 
-This will enable your Lambda function to be called by an Log Stream.
+This will enable your Lambda function to be called by a Log Stream.
 
 ```yml
 functions:

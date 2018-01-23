@@ -17,6 +17,7 @@ integration-test aws-scala-sbt sbt assembly
 integration-test aws-nodejs
 integration-test aws-python
 integration-test aws-python3
+integration-test aws-kotlin-jvm-gradle
 integration-test aws-kotlin-jvm-maven
 integration-test aws-kotlin-nodejs-gradle
 integration-test aws-nodejs-typescript
@@ -25,4 +26,5 @@ integration-test google-nodejs
 integration-test spotinst-nodejs
 integration-test spotinst-python
 integration-test spotinst-ruby
+integration-test spotinst-java8 mvn package
 integration-test webtasks-nodejs

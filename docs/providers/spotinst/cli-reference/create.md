@@ -27,8 +27,9 @@ serverless create -t spotinst-nodejs -p myService
 ```
 
 ## Options
-- `--template` or `-t` The name of one of the available templates. **Required if --template-url is not present**.
-- `--template-url` or `-u` The name of one of the available templates. **Required if --template is not present**.
+- `--template` or `-t` The name of one of the available templates. **Required if --template-url and --template-path are not present**.
+- `--template-url` or `-u` The name of one of the available templates. **Required if --template and --template-path are not present**.
+- `--template-path` The local path of your template. **Required if --template and --template-url are not present**.
 - `--path` or `-p` The path where the service should be created.
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
@@ -70,3 +71,11 @@ serverless create -t spotinst-nodejs -p my-new-service
 This example will generate scaffolding for a service with `Spotinst` as a provider and `ruby` as runtime. The scaffolding
 will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless
 will use the already present directory.
+
+### Creating a new service using a local template
+
+```bash
+serverless create --template-path path/to/my/template/folder --path path/to/my/service --name my-new-service
+```
+
+This will copy the `path/to/my/template/folder` folder into `path/to/my/service` and rename the service to `my-new-service`.
