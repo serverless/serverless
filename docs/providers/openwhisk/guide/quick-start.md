@@ -13,7 +13,7 @@ layout: Doc
 1. Node.js `v6.5.0` or later.
 2. Serverless CLI `v1.9.0` or later. You can run
 `npm install -g serverless` to install it.
-3. An IBM Bluemix account. If you don't already have one, you can sign up for an [account](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) and then follow the instructions for getting access to [OpenWhisk on Bluemix](https://console.ng.bluemix.net/openwhisk/).
+3. An IBM Bluemix account. If you don't already have one, you can sign up for an [account](https://console.bluemix.net/registration/) and then follow the instructions for getting access to [OpenWhisk on Bluemix](https://console.ng.bluemix.net/openwhisk/).
 4. **Set-up your [Provider Credentials](./credentials.md)**.
 5. Install Framework & Dependencies
 *Due to an [outstanding issue](https://github.com/serverless/serverless/issues/2895) with provider plugins, the [OpenWhisk provider](https://github.com/serverless/serverless-openwhisk) must be installed as a global module.*

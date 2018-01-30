@@ -13,8 +13,9 @@ layout: Doc
 1. Node.js `v6.5.0` or later. *(this is the runtime version supported by Azure Functions)*
 2. Serverless CLI `v1.9.0` or later. You can run
 `npm install -g serverless` to install it.
-3. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit.
-4. **Set-up your [Provider Credentials](./credentials.md)**.
+3. Azure plugin that allows you to work with Azure Functions `npm install -g serverless-azure-functions`
+4. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit.
+5. **Set-up your [Provider Credentials](./credentials.md)**.
 
 ## Create a new service
 

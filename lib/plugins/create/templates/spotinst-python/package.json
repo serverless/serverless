@@ -7,7 +7,7 @@
     "serverless",
     "spotinst"
   ],
-  "dependencies": {
+  "devDependencies": {
     "serverless-spotinst-functions": "*"
   }
 }

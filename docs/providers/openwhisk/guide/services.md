@@ -158,7 +158,7 @@ service: users
 provider:
   name: openwhisk
   runtime: nodejs
-  memorySize: 512
+  memory: 512
 
 …
 ```
@@ -175,7 +175,7 @@ service: users
 provider:
   name: openwhisk
   runtime: nodejs
-  memorySize: 512
+  memory: 512
 
 …
 ```

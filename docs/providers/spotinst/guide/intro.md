@@ -60,22 +60,20 @@ Anything that triggers an [Spotinst Function](https://help.spotinst.com/hc/en-us
 
 ### Function Template
 
-```
-# index.js
-exports.main = function main (req, res) {
-    // The function should return a Promise.
-    return new Promise(function(resolve, reject){
-        return resolve({
-            statusCode: 200,
-            body: "success"
-        });
-    });
+```node
+# handler.js
+module.exports.main = function main (event, context, callback) {
+    callback(null, {
+    statusCode: 200, 
+    body: '{"hello":"from NodeJS8.3 function"}',
+    headers: {"Content-Type": "application/json"}
+  });
 };
 ```
 
 ### Services
 
-A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json`).  It looks like this:
+A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
 
 ```yml
 
@@ -88,10 +86,17 @@ provider:
 
 functions:
   hello:
-    runtime: nodejs4.8
+    runtime: nodejs8.3
     handler: handler.main
     memory: 128
     timeout: 30
+#    access: private
+#    cron:  # Setup scheduled trigger with cron expression
+#     active: true
+#     value: '* * * * *'
+#    environmentVariables: {
+#      Key: "Value",
+#    }
 
 ```
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.

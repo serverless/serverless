@@ -23,14 +23,17 @@ matrix:
         - SLS_IGNORE_WARNING=*
         - secure: Ia2nYzOeYvTE6qOP7DBKX3BO7s/U7TXdsvB2nlc3kOPFi//IbTVD0/cLKCAE5XqTzrrliHINSVsFcJNSfjCwmDSRmgoIGrHj5CJkWpkI6FEPageo3mdqFQYEc8CZeAjsPBNaHe6Ewzg0Ev/sjTByLSJYVqokzDCF1QostSxx1Ss6SGt1zjxeP/Hp4yOJn52VAm9IHAKYn7Y62nMAFTaaTPUQHvW0mJj6m2Z8TWyPU+2Bx6mliO65gTPFGs+PdHGwHtmSF/4IcUO504x+HjDuwzW2itomLXZmIOFfGDcFYadKWzVMAfJzoRWOcVKF4jXdMoSCOviWpHGtK35E7K956MTXkroVoWCS7V0knQDovbRZj8c8td8mS4tdprUA+TzgZoHet2atWNtMuTh79rdmwoAO+IAWJegYj62Tdfy3ycESzY+KxSaV8kysG9sR3PRFoWjZerA7MhLZEzQMORXDGjJlgwLaZfYVqjlsGe5p5etFBUTd0WbFgSwOKLoA2U/fm7WzqItkjs3UWaHuvFVvwYixGxjEVmVczS6wa2cdGpHtVD9H7km4fPEzljHqQ26v0P5e8eylgqLF2IB6mL7UqGFrAtrMvAgN/M3gnq4dTs/wq1AJIOxEP7YW7kc0NAldk8vUz6t5GzCPNcuukxAku91Awnh0twxgUywatgJLZPY=
         - secure: Dgaa5XIsA5Vbw/CYQLUAuVVsDX26C8+f1XYGwsbNmFQKbKvM8iy9lGrHlfrT3jftJkJH6re8tP1RjyZjjzLe25KPk4Tps7grNteCyiIIEDsC2aHhiXHD6zNHsItpxYusaFfyQinFWnK4CAYKWb9ZNIwHIDUIB4vq807QGAhYsnoj1Lg/ajWvtEKBwYjEzDz9OjB91lw7lpCnHtmKKw5A+TNIVGpDDZ/jRBqETsPaePtiXC9UTHZQyM3gFoeVXiJw9KSU/gjIx9REihCaWWPbnuQSeIONGGlVWY9V4DTZIsJr9/uwDcbioeXDD3G1ezGtNPPRSNTtq08QlUtE4mEtKea/+ObpllKZCeZGn6AJhMn+uqMIP95FFlqBB55YzRcLZY+Igi/qm/9LJ9RinAhxRVXiwzeQ+BdVA6jshAAzr+7wklux6lZAa0xGw9pgTv7MI4RP2LJ/LMP1ppFsnv9n/qt93Ax1VEwEu3xHZe3VTYL9tbXOPTZutf6fKjUrW7wSSuy637queESjYnnPKSb1vZcPxjSFlyh+GJvxu/3PurF9aqfiBdiorIBre+pQS4lakLtoft5nsbA+4iYUwrXR58qUPVUqQ7a0A0hedOWlp6g9ixLa6nugUP5aobJzR71T8l/IjqpnY2EEd/iINEb0XfUiZtB5zHaqFWejBtmWwCI=
-    - node_js: '6.2'
+    - node_js: '8.9'
+      env:
+        SLS_IGNORE_WARNING=*
+    - node_js: '8.9'
       env:
         - INTEGRATION_TEST=true
-        - INTEGRATION_TEST_SUITE=complex
+        - INTEGRATION_TEST_SUITE=simple
         - SLS_IGNORE_WARNING=*
         - secure: Ia2nYzOeYvTE6qOP7DBKX3BO7s/U7TXdsvB2nlc3kOPFi//IbTVD0/cLKCAE5XqTzrrliHINSVsFcJNSfjCwmDSRmgoIGrHj5CJkWpkI6FEPageo3mdqFQYEc8CZeAjsPBNaHe6Ewzg0Ev/sjTByLSJYVqokzDCF1QostSxx1Ss6SGt1zjxeP/Hp4yOJn52VAm9IHAKYn7Y62nMAFTaaTPUQHvW0mJj6m2Z8TWyPU+2Bx6mliO65gTPFGs+PdHGwHtmSF/4IcUO504x+HjDuwzW2itomLXZmIOFfGDcFYadKWzVMAfJzoRWOcVKF4jXdMoSCOviWpHGtK35E7K956MTXkroVoWCS7V0knQDovbRZj8c8td8mS4tdprUA+TzgZoHet2atWNtMuTh79rdmwoAO+IAWJegYj62Tdfy3ycESzY+KxSaV8kysG9sR3PRFoWjZerA7MhLZEzQMORXDGjJlgwLaZfYVqjlsGe5p5etFBUTd0WbFgSwOKLoA2U/fm7WzqItkjs3UWaHuvFVvwYixGxjEVmVczS6wa2cdGpHtVD9H7km4fPEzljHqQ26v0P5e8eylgqLF2IB6mL7UqGFrAtrMvAgN/M3gnq4dTs/wq1AJIOxEP7YW7kc0NAldk8vUz6t5GzCPNcuukxAku91Awnh0twxgUywatgJLZPY=
         - secure: Dgaa5XIsA5Vbw/CYQLUAuVVsDX26C8+f1XYGwsbNmFQKbKvM8iy9lGrHlfrT3jftJkJH6re8tP1RjyZjjzLe25KPk4Tps7grNteCyiIIEDsC2aHhiXHD6zNHsItpxYusaFfyQinFWnK4CAYKWb9ZNIwHIDUIB4vq807QGAhYsnoj1Lg/ajWvtEKBwYjEzDz9OjB91lw7lpCnHtmKKw5A+TNIVGpDDZ/jRBqETsPaePtiXC9UTHZQyM3gFoeVXiJw9KSU/gjIx9REihCaWWPbnuQSeIONGGlVWY9V4DTZIsJr9/uwDcbioeXDD3G1ezGtNPPRSNTtq08QlUtE4mEtKea/+ObpllKZCeZGn6AJhMn+uqMIP95FFlqBB55YzRcLZY+Igi/qm/9LJ9RinAhxRVXiwzeQ+BdVA6jshAAzr+7wklux6lZAa0xGw9pgTv7MI4RP2LJ/LMP1ppFsnv9n/qt93Ax1VEwEu3xHZe3VTYL9tbXOPTZutf6fKjUrW7wSSuy637queESjYnnPKSb1vZcPxjSFlyh+GJvxu/3PurF9aqfiBdiorIBre+pQS4lakLtoft5nsbA+4iYUwrXR58qUPVUqQ7a0A0hedOWlp6g9ixLa6nugUP5aobJzR71T8l/IjqpnY2EEd/iINEb0XfUiZtB5zHaqFWejBtmWwCI=
-    - node_js: '6.2'
+    - node_js: '8.9'
       env:
         - DISABLE_TESTS=true
         - LINTING=true
@@ -44,7 +47,6 @@ script:
   - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
   - if [[ ! -z "$DISABLE_TESTS" && ! -z "$LINTING" && -z "$INTEGRATION_TEST" ]]; then npm run lint; fi
   - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$INTEGRATION_TEST_SUITE" == "simple" ]]; then npm run simple-integration-test; fi
-  - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$INTEGRATION_TEST_SUITE" == "complex" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then npm run complex-integration-test; fi
 
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage

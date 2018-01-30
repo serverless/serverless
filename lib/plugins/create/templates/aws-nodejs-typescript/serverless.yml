@@ -10,9 +10,6 @@ provider:
   runtime: nodejs6.10
 
 functions:
-  # Example with LAMBDA-PROXY integration
-  # Invoking locally:
-  # sls webpack invoke -f hello
   hello:
     handler: handler.hello
     events:

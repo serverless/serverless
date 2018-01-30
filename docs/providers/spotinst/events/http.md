@@ -12,18 +12,8 @@ layout: Doc
 
 # HTTP
 
-Spotinst Functions can be triggered by an HTTP endpoint. To create HTTP endpoints as event sources for your Spotinst Functions, use the `http` event syntax.
+Spotinst Functions are automatically given an HTTP endpoint when they are created. This means that you do not need to specify the event type when writing your function. After you deploy your function for the first time a unique URL is generated based on the application ID, environment where your application is launched, and the function ID. Here is a sample of how the URL is created
 
-This setup specifies that the `first` function should be run when someone accesses the Functions API endpoint via a `GET` request. You can get the URL for the endpoint by running the `serverless info` command after deploying your service.
+`https://{app id}{environment id}.spotinst.io/{function id}`
 
-Here's an example:
-
-```yml
-# serverless.yml
-
-functions:
-  first:
-    handler: http
-    events:
-      - http: path
-```
+For information on your application ID, environment ID and function ID please checkout your Spotinst Functions dashboard on the [Spotinst website](https://console.spotinst.com/#/dashboard)

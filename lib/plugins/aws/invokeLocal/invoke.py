@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import sys
 from time import time
 from importlib import import_module
@@ -37,6 +38,8 @@ class FakeLambdaContext(object):
         return '1234567890'
 
 
+logging.basicConfig()
+
 parser = argparse.ArgumentParser(
     prog='invoke',
     description='Runs a Lambda entry point (handler) with an optional event',
@@ -58,6 +61,8 @@ if __name__ == '__main__':
     handler = getattr(module, args.handler_name)
 
     input = json.load(sys.stdin)
+    if sys.platform != 'win32':
+        sys.stdin = open('/dev/tty')
     context = FakeLambdaContext(**input.get('context', {}))
     result = handler(input['event'], context)
     sys.stdout.write(json.dumps(result, indent=4))

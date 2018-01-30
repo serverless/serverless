@@ -72,6 +72,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./cli-reference/plugin-search.md">Plugin Search</a></li>
         <li><a href="./cli-reference/plugin-install.md">Plugin Install</a></li>
         <li><a href="./cli-reference/plugin-uninstall.md">Plugin Uninstall</a></li>
+        <li><a href="./cli-reference/print.md">Print</a></li>
         <li><a href="./cli-reference/slstats.md">Serverless Stats</a></li>
       </ul>
     </div>
@@ -91,6 +92,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./events/schedule.md">Schedule</a></li>
         <li><a href="./events/sns.md">SNS</a></li>
         <li><a href="./events/alexa-skill.md">Alexa Skill</a></li>
+        <li><a href="./events/alexa-smart-home.md">Alexa Smart Home</a></li>
         <li><a href="./events/iot.md">IoT</a></li>
         <li><a href="./events/cloudwatch-event.md">CloudWatch Event</a></li>
         <li><a href="./events/cloudwatch-log.md">CloudWatch Log</a></li>

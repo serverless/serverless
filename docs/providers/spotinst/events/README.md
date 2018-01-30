@@ -2,6 +2,7 @@
 title: Serverless - Spotinst Functions - Events
 menuText: Spotinst Events
 layout: Doc
+menuOrder: 3
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

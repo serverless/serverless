@@ -49,3 +49,6 @@ tracking-config.json
 
 # Misc
 jest
+
+# VIM
+*.swp
