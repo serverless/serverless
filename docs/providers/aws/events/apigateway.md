@@ -872,7 +872,7 @@ functions:
 
 ```
 
-In case the application has many chilren and grandchildren paths, you also want to break them out into smaller services. 
+In case the application has many children and grandchildren paths, you also want to break them out into smaller services. 
 
 ```yml
 service: service-a
