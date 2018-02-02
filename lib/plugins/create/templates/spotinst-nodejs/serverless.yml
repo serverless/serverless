@@ -26,6 +26,12 @@ functions:
     memory: 128
     timeout: 30
     access: private
+#    activeVersions: [
+#      {
+#        "version": "$LATEST",
+#        "percentage": 100.0
+#      }
+#    ]
 #     cron:  # Setup scheduled trigger with cron expression
 #      active: true
 #      value: '* * * * *'
