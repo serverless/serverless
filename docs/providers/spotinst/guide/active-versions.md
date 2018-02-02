@@ -85,7 +85,7 @@ You can configure active versions in the serverless.yml file, but you can also u
 		2. Click 'Actions'
 		3. Select 'Configure Active Version'
 		- API: (update function)
-		```
+		```yml
 		"activeVersions": [
       			{
         			"version": "$LATEST",
