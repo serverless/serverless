@@ -41,7 +41,7 @@ The `--path` or shorthand `-p` is the location to be created with the template s
 sls deploy
 ```
 
-This will deploy your function AWS Lambda based on the settings in `serverless.yml`.
+This will deploy your function to AWS Lambda based on the settings in `serverless.yml`.
 
 ## 3. Invoke deployed function
 
