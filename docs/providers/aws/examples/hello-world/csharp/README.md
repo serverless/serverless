@@ -38,7 +38,7 @@ The `--path` or shorthand `-p` is the location to be created with the template s
 ## 2. Build using .NET CLI tools and create zip package
 
 ```
-# Linux or OSX
+# Linux or Mac OS
 ./build.sh
 ```
 
@@ -53,7 +53,7 @@ The `--path` or shorthand `-p` is the location to be created with the template s
 sls deploy
 ```
 
-This will deploy your function AWS Lambda based on the settings in `serverless.yml`.
+This will deploy your function to AWS Lambda based on the settings in `serverless.yml`.
 
 
 ## 4. Invoke deployed function
