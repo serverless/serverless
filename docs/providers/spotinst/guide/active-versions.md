@@ -20,7 +20,7 @@ The 'Latest' version refers to the most recent version created by the last updat
 *Please note: the 'Latest' tag will point to a different version number each and every time you update your function.*
 
 Default configuration for activeVersions when a new function is created:
-```
+```yml
 "activeVersions": [
 	{
 		"version": "$LATEST",
@@ -35,7 +35,7 @@ The 'Active' version can point to more than one version of your function, includ
 For example, say you wanted to test a new version of your function to determine if it was production-ready. You could specify that 10% of the traffic be routed to that new version, and route the remaining 90% to the stable version. You can gradually route more traffic to the new version as you become more confident in its performance.
 
 ### Examples
-```
+```yml
 "activeVersions": [
 	{
 		"version": "$LATEST",
@@ -46,7 +46,7 @@ For example, say you wanted to test a new version of your function to determine 
 
 100% of traffic will go to the most recently published update.
 
-```
+```yml
 "activeVersions": [
 	{
 		"version": "$LATEST",
@@ -60,7 +60,7 @@ For example, say you wanted to test a new version of your function to determine 
 ```
 80% of traffic goes to the most recently published update, and 20% goes to version 2.
 
-```
+```yml
 "activeVersions": [
 	{
 		"version": "5",
@@ -80,23 +80,24 @@ Traffic is split between versions 1. 3, and 5. Changes made to your latest versi
 
 ### Configure Active Version
 You can configure active versions in the serverless.yml file, but you can also use the Spotinst Console to configure the versions without deploying a new update. In the event you would like to change your 'Active' version configuration without updating your function, you can use the 'Configure Active Version' action from the console and the API
-		- Console:
-		1. Navigate to your function
-		2. Click 'Actions'
-		3. Select 'Configure Active Version'
-		- API: (update function)
-		```yml
-		"activeVersions": [
-      			{
-        			"version": "$LATEST",
-        			"percentage": 30
-      			},
-      			{
-        			"version": "2",
-        			"percentage": 70
-      			}
-    		],
-    	```
+- Console:
+  1. Navigate to your function
+  2. Click 'Actions'
+  3. Select 'Configure Active Version'
+  
+- API: (update function)
+```yml
+"activeVersions": [
+      {
+        "version": "$LATEST",
+        "percentage": 30
+      },
+      {
+        "version": "2",
+        "percentage": 70
+      }
+  ],
+```
 
 ### Requirements
 - The sum of all percentages must be 100%
