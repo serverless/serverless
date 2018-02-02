@@ -12,14 +12,10 @@ layout: Doc
 
 # Spotinst Functions - Active Versions
 
-In the following documentation, you can learn how to use the versioning capability within Spotinst Functions. You can also find information on how to distribute incoming traffic across multiple versions using predefined weights. 
-
 Every time you update your function, a new version is being created by default. Version numbers have a unique ID that starts at 0 and is incremented by one each update. Each function version is immutable and cannot be changed. 
 
-//TODO - what is missing?
-
 ## Latest Version
-The 'Latest' version refers to the most recent version created by the last update. Unless otherwise specified, all incoming traffic is routed to the latest version. This tag indicates that all traffic should be routed to the most recently updated version of your function without specifically citing the version ID.
+The 'Latest' version refers to the most recent version created by the last update. Unless otherwise specified, all incoming traffic is routed to the latest version. 
 
 *Please note: the 'Latest' tag will point to a different version number each and every time you update your function.*
 
@@ -33,10 +29,7 @@ Default configuration for activeVersions when a new function is created:
 ]
 ```
 
-
 ## Active Version
-'Active' version represents the current active version(s) of your function. By default, the active version is pointing to the 'Latest', meaning every update to your function will also affect your 'Active' version. However, you can override the default configuration by specifying which version(s) you would like associated with the 'Active' version.
-
 The 'Active' version can point to more than one version of your function, including 'Latest'. This allows you to distribute your incoming traffic between multiple versions and dictate what percentage is sent to each version.
 
 For example, say you wanted to test a new version of your function to determine if it was production-ready. You could specify that 10% of the traffic be routed to that new version, and route the remaining 90% to the stable version. You can gradually route more traffic to the new version as you become more confident in its performance.
@@ -86,23 +79,7 @@ For example, say you wanted to test a new version of your function to determine 
 Traffic is split between versions 1. 3, and 5. Changes made to your latest version will not affect production traffic.
 
 ### Configure Active Version
-You can configure your 'Active' version by using any of the following methods:
-- Configure 'Active' version at the time you update a function
-	- You can use the 'update' API request to change your 'Active' version configuration by adding the 'activeVersions' object. _Note: $LATEST refers to the new version created following the update request.
-	```
-    "activeVersions": [
-      	{
-       		"version": "$LATEST",
-       		"percentage": 20
-      	},
-      	{
-       		"version": "2",
-       		"percentage": 80
-      	}
-    ]
-	```
-- Explicitly configure 'Active' version
-	- In the event you would like to change your 'Active' version configuration without updating your function, you can use the 'Configure Active Version' action from the console and the API
+You can configure active versions in the serverless.yml file, but you can also use the Spotinst Console to configure the versions without deploying a new update. In the event you would like to change your 'Active' version configuration without updating your function, you can use the 'Configure Active Version' action from the console and the API
 		- Console:
 		1. Navigate to your function
 		2. Click 'Actions'
