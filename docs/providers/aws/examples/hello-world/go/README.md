@@ -113,4 +113,4 @@ serverless invoke -f world
 }
 ```
 
-Congrats you have just deployed and run your Hello World function!
+Congrats you have deployed and ran your Hello World function!

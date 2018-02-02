@@ -77,4 +77,4 @@ In your terminal window you should see the response from AWS Lambda.
 }
 ```
 
-Congrats you have just deployed and run your Hello World function!
+Congrats you have deployed and ran your Hello World function!
