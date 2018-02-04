@@ -34,7 +34,7 @@ In your terminal window you should see the response
 '{"hello":"from Python2.7 function"}'
 ```
 
-Congrats you have just deployed and ran your Hello World function!
+Congrats you have deployed and ran your Hello World function!
 
 ## Short Hand Guide
 
