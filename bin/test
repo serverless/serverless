@@ -2,7 +2,7 @@
 
 'use strict';
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', err => { console.log(`UNHANDLED! ${err.stack}`);
   throw err;
 });
 
