@@ -2,7 +2,7 @@
 
 'use strict';
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', err => { console.log(`UNHANDLED! ${err.stack}`);
   throw err;
 });
 
@@ -11,7 +11,7 @@ if (!process.env.FORCE_COLOR) process.env.FORCE_COLOR = '0';
 if (process.argv.length <= 2) {
   process.argv.push(
     '!(node_modules)/**/*.test.js',
-    '--require=sinon-bluebird',
+    // '--require=sinon-bluebird',
     '-R',
     'spec',
     '--recursive',
