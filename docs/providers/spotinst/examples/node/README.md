@@ -14,7 +14,7 @@ layout: Doc
 Make sure `serverless` is installed. 
 
 ## 1. Create a service
-`serverless create --template spotinst-nodejs --path serviceName`  `serviceName` is going to be a new directory there the JavaScript template will be loaded. Once the download is complete change into that directory. Next you will need to install the Spotinst Serverless Functions plugin by running `npm install` in the root directory. You will need to go into the serverless.yml file and add in the environment variable that you want to deploy into.
+`serverless create --template spotinst-nodejs --path serviceName`  `serviceName` is going to be a new directory where the JavaScript template will be loaded. Once the download is complete change into that directory. Next you will need to install the Spotinst Serverless Functions plugin by running `npm install` in the root directory. You will need to go into the serverless.yml file and add in the environment variable that you want to deploy into.
 
 ## 2. Deploy
 ```bash 
