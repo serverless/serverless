@@ -54,12 +54,9 @@ functions:
     memory: 128
     timeout: 30
     access: private
-#    activeVersions: [
-#      {
-#        "version": "$LATEST",
-#        "percentage": 100.0
-#      }
-#    ]
+#    activeVersions:
+#        - "version": "$LATEST"
+#          "percentage": 100.0
 #    cron:
 #      active: false
 #      value: '*/1 * * * *'
