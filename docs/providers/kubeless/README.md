@@ -30,6 +30,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./guide/functions.md">Functions</a></li>
         <li><a href="./guide/events.md">Events</a></li>
         <li><a href="./guide/deploying.md">Deploying</a></li>
+        <li><a href="./guide/packaging.md">Packaging</a></li>
         <li><a href="./guide/debugging.md">Debugging</a></li>
         <li><a href="./guide/workflow.md">Workflow</a></li>
       </ul>

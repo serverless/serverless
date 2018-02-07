@@ -31,8 +31,8 @@ Update the `credentials` and your `project` property in the `serverless.yml` fil
 
 ## 5. Invoke deployed function
 
-`serverless invoke --function helloWorld`
+`serverless invoke --function first`
 
 In your terminal window you should see a response from the Google Cloud
 
-Congrats you have just deployed and run your Hello World function!
+Congrats you have deployed and ran your Hello World function!
