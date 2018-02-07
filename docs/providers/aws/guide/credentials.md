@@ -14,7 +14,7 @@ layout: Doc
 
 The Serverless Framework needs access to your cloud provider's account so that it can create and manage resources on your behalf.
 
-This guide is for the Amazon Web Services (AWS) provider, so we'll step through the process of setting up credential for AWS and using them with Serverless.
+This guide is for the Amazon Web Services (AWS) provider, so we'll step through the process of setting up credentials for AWS and using them with Serverless.
 
 [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
 
@@ -174,6 +174,17 @@ custom:
     dev: devProfile
     prod: prodProfile
 ```
+
+#### Credentials Precedence
+If you are specifying AWS credentials in more than one place, this is the order of precedence:
+
+1. `--aws-profile` CLI option.
+2. `provider.profile` specified in serverless.yml.
+3. `provider.credentials` specified in serverless.yml.
+4. `AWS_<STAGE>_PROFILE` environment variable.
+5. `AWS_<STAGE>_SECRET_ACCESS_KEY` and `AWS_<STAGE>_ACCESS_KEY_ID` environment variables.
+6. `AWS_PROFILE` environment variable.
+7. `AWS_SECRET_ACCESS_KEY` and `AWS_ACCESS_KEY_ID` environment variables.
 
 #### Profile in place with the 'invoke local' command
 
