@@ -55,8 +55,8 @@ functions:
     timeout: 30
     access: private
 #    activeVersions:
-#        - "version": "$LATEST"
-#          "percentage": 100.0
+#        - version: $LATEST
+#          percentage: 100.0
 #    cors:
 #        enabled: # false by default
 #        origin:  # '*' by default
@@ -66,7 +66,7 @@ functions:
 #      active: true
 #      value: '* * * * *'
 #    environmentVariables:
-#      key: Value
+#      key: value
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins

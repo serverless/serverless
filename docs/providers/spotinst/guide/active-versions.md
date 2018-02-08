@@ -21,12 +21,9 @@ The 'Latest' version refers to the most recent version created by the last updat
 
 Default configuration for activeVersions when a new function is created:
 ```
-"activeVersions": [
-	{
-		"version": "$LATEST",
-		"percentage": 100.0
-	}
-]
+activeVersions:
+  - version: $LATEST
+    percentage: 100.0
 ```
 
 ## Active Version
@@ -36,45 +33,30 @@ For example, say you wanted to test a new version of your function to determine 
 
 ### Examples
 ```
-"activeVersions": [
-	{
-		"version": "$LATEST",
-		"percentage": 100.0
-	}
-]
+activeVersions:
+  - version: $LATEST
+    percentage: 100.0
 ```
 
 100% of traffic will go to the most recently published update.
 
 ```
-"activeVersions": [
-  {
-    "version": "$LATEST",
-		"percentage": 80.0
-	},
-	{
-		"version": "2",
-		"percentage": 20.0
-	}
-]
+activeVersions:
+  - version: $LATEST
+    percentage: 80.0
+  - version: 2
+    percentage: 20.0
 ```
 80% of traffic goes to the most recently published update, and 20% goes to version 2.
 
 ```
-"activeVersions": [
-	{
-		"version": "5",
-		"percentage": 50.0
-	},
-	{
-		"version": "3",
-		"percentage": 25.0
-	},
-	{
-		"version": "1",
-		"percentage": 25.0
-	}
-]
+activeVersions:
+  - version: 5
+    percentage: 50.0
+  - version: 3
+    percentage: 25.0
+  - version: 1
+    percentage: 25.0
 ```
 Traffic is split between versions 1. 3, and 5. Changes made to your latest version will not affect production traffic.
 
@@ -87,16 +69,11 @@ You can configure active versions in the serverless.yml file, but you can also u
   
 - API: (update function)
 ```
-"activeVersions": [
-      {
-        "version": "$LATEST",
-        "percentage": 30
-      },
-      {
-        "version": "2",
-        "percentage": 70
-      }
-  ],
+activeVersions:
+  - version: $LATEST
+    percentage: 70.0
+  - version: 2
+    percentage: 30.0
 ```
 
 ### Requirements
