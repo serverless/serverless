@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Active Versions
 menuText: Active Versions
-menuOrder: 12
+menuOrder: 8
 description: How to set which versions to deploy
 layout: Doc
 -->
