@@ -25,7 +25,7 @@ Here are the Framework's main concepts and how they pertain to Google Cloud Func
 
 ### Functions
 
-A Function is an [Google Cloud Function](https://cloud.google.com/functions/). It's an independent unit of deployment, like a microservice. It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
+A Function is a [Google Cloud Function](https://cloud.google.com/functions/). It's an independent unit of deployment, like a microservice. It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
 
 - *Saving a user to the database*
 - *Processing a file in a database*
