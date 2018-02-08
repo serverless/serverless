@@ -15,7 +15,7 @@ Cross-Origin Resource Sharing is a mechanism that allows restricted resources on
 
 You can enable CORS for cross-domain HTTP requests with Spotinst Functions. Add the required fields to you serverless.yml file.
 
-Example CORS object:
+### Example CORS object:
 ```yml
     cors:
         - enabled: true
@@ -24,7 +24,7 @@ Example CORS object:
           methods: "PUT,POST"
 ```
 
-Parameters:
+### Parameters:
   - enabled: Boolean
     - Specify if CORS is enabled for the function.
     - default: false
