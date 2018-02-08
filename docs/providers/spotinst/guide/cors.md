@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Credentials
 menuText: Credentials
-menuOrder: 4
+menuOrder: 7
 description: How to set up the Serverless Framework with your Spotinst Functions credentials
 layout: Doc
 -->
@@ -16,7 +16,7 @@ Cross-Origin Resource Sharing is a mechanism that allows restricted resources on
 You can enable CORS for cross-domain HTTP requests with Spotinst Functions. Add the required fields to you serverless.yml file.
 
 Example CORS object:
-```yaml
+```yml
     cors:
         - enabled: true
           origin: "http://foo.example"

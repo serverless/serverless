@@ -39,7 +39,7 @@ URL parameters can be use when a POST request is made to the endpoint of your fu
 
 ### 1. Node JS
 
-To access URL parameters in your NodeJS code you just need to put `event.query.['{Your Parameter Name}']` as needed
+To access URL parameters in your NodeJS code you just need to put `event.query['{Your Parameter Name}']` as needed
 
 ### 2. Python
 
