@@ -33,6 +33,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./guide/document-store-sdk.md">Document Store SDK</a></li>
         <li><a href="./guide/endpoint-setup.md">Endpoint Set Up</a></li>
         <li><a href="./guide/endpoint-api.md">Endpoint API Documentation</a></li>
+        <li><a href="./guide/active-versions.md">Active Versions Documentation</a></li>
       </ul>
     </div>
   </div>

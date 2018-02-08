@@ -26,6 +26,14 @@ functions:
     memory: 128
     timeout: 30
     access: private
+#    activeVersions:
+#        - "version": "$LATEST"
+#          "percentage": 100.0
+#    cors:
+#        enabled: # false by default
+#        origin:  # '*' by default
+#        headers: # 'Content-Type,Authorization' by default
+#        methods: # 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT' by default
 #     cron:  # Setup scheduled trigger with cron expression
 #      active: true
 #      value: '* * * * *'

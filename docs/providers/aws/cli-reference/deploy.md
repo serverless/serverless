@@ -25,7 +25,8 @@ serverless deploy
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 - `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
 - `--conceal` Hides secrets from the output (e.g. API Gateway key values).
-- `--aws-s3-accelerate` Enables S3 Transfer Acceleration making uploading artifacts much faster. You can read more about it [here](http://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html). **Note: When using Transfer Acceleration, additional data transfer charges may apply**
+- `--aws-s3-accelerate` Enables S3 Transfer Acceleration making uploading artifacts much faster. You can read more about it [here](http://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html). It requires additional `s3:PutAccelerateConfiguration` permissions. **Note: When using Transfer Acceleration, additional data transfer charges may apply.**
+- `--no-aws-s3-accelerate` Explicitly disables S3 Transfer Acceleration). It also requires additional `s3:PutAccelerateConfiguration` permissions.
 
 ## Artifacts
 
