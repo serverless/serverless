@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework - Spotinst Functions Guide - Credentials
-menuText: Credentials
-menuOrder: 4
-description: How to set up the Serverless Framework with your Spotinst Functions credentials
+title: Serverless Framework - Spotinst Functions Guide - CORS
+menuText: CORS
+menuOrder: 11
+description: How to enable and use CORS
 layout: Doc
 -->
 

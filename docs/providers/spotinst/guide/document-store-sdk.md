@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Document Store SDK
 menuText: Document Store SDK
-menuOrder: 7
+menuOrder: 8
 description: How to use the Document Store SDK feature
 layout: Doc
 -->

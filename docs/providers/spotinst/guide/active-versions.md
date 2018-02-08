@@ -20,7 +20,7 @@ The 'Latest' version refers to the most recent version created by the last updat
 *Please note: the 'Latest' tag will point to a different version number each and every time you update your function.*
 
 Default configuration for activeVersions when a new function is created:
-```
+```yaml
 activeVersions:
   - version: $LATEST
     percentage: 100.0
@@ -32,7 +32,7 @@ The 'Active' version can point to more than one version of your function, includ
 For example, say you wanted to test a new version of your function to determine if it was production-ready. You could specify that 10% of the traffic be routed to that new version, and route the remaining 90% to the stable version. You can gradually route more traffic to the new version as you become more confident in its performance.
 
 ### Examples
-```
+```yaml
 activeVersions:
   - version: $LATEST
     percentage: 100.0
@@ -40,7 +40,7 @@ activeVersions:
 
 100% of traffic will go to the most recently published update.
 
-```
+```yaml
 activeVersions:
   - version: $LATEST
     percentage: 80.0
@@ -49,7 +49,7 @@ activeVersions:
 ```
 80% of traffic goes to the most recently published update, and 20% goes to version 2.
 
-```
+```yaml
 activeVersions:
   - version: 5
     percentage: 50.0
@@ -68,7 +68,7 @@ You can configure active versions in the serverless.yml file, but you can also u
   3. Select 'Configure Active Version'
   
 - API: (update function)
-```
+```yaml
 activeVersions:
   - version: $LATEST
     percentage: 70.0

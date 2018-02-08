@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Endpoint API Documentation
 menuText: Endpoint API Documentation
-menuOrder: 7
+menuOrder: 10
 description: How to use the Endpoint API 
 layout: Doc
 -->

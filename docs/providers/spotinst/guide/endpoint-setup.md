@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Spotinst Functions Guide - Endpoint Setup
 menuText: Endpoint Set Up
-menuOrder: 7
+menuOrder: 9
 description: How to set up an Endpoint 
 layout: Doc
 -->
