@@ -11,8 +11,7 @@ layout: Doc
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst Functions - CORS
-Cross-Origin Resource Sharing is a mechanism that allows restricted resources on a web page to be requested from a domain outside of the original. CORS defines a way in which a web service and server can interact to determine whether or not it is safe to allow a cross-origin request. Enabling CORS for your function allows you to specify domains that are safe, and enables out-of-the-box support for preflight HTTP request (via the OPTIONS method) will return the needed ‘access-control-’ headers specified below, and the actual HTTP request will return the ‘access-control-allow-origin’ method.
-
+Cross-Origin Resource Sharing is a mechanism that allows restricted resources on a web page to be requested from a domain outside of the original. CORS defines a way in which a web service and server can interact to determine whether or not it is safe to allow a cross-origin request. Enabling CORS for your function allows you to specify safe domains, and enables out-of-the-box support for preflight HTTP requests (via the OPTIONS method) that will return the needed ‘access-control-*’ headers specified below. The actual HTTP request will return the ‘access-control-allow-origin’ method.
 You can enable CORS for cross-domain HTTP requests with Spotinst Functions. Add the required fields to you serverless.yml file.
 
 ### Example CORS object:
