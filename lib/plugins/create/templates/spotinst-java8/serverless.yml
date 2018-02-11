@@ -34,12 +34,11 @@ functions:
 #        origin:  # '*' by default
 #        headers: # 'Content-Type,Authorization' by default
 #        methods: # 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT' by default
-#     cron:  # Setup scheduled trigger with cron expression
+#    cron:  # Setup scheduled trigger with cron expression
 #      active: true
 #      value: '* * * * *'
-#    environmentVariables: {
-#      Key: "Value",
-#    }
+#    environmentVariables:
+#      key: Value
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins

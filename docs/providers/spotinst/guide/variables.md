@@ -26,9 +26,8 @@ Also you are able to enter in environment variables in the serverless.yml file. 
 functions:
   test:
     handler: handler.main
-    environmentVariables: {
-      Key: "Value"
-    }
+    environmentVariables:
+      key: value
 ```
 
 To access your variables in your code you just need to put `process.env['{Your Key}']` as needed in the handler file.

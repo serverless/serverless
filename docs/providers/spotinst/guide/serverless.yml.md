@@ -55,14 +55,18 @@ functions:
     timeout: 30
     access: private
 #    activeVersions:
-#        - "version": "$LATEST"
-#          "percentage": 100.0
-#    cron:
-#      active: false
-#      value: '*/1 * * * *'
-#    environmentVariables: {
-#      Key: "Value",
-#    }
+#        - version: $LATEST
+#          percentage: 100.0
+#    cors:
+#        enabled: # false by default
+#        origin:  # '*' by default
+#        headers: # 'Content-Type,Authorization' by default
+#        methods: # 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT' by default
+#    cron:  # Setup scheduled trigger with cron expression
+#      active: true
+#      value: '* * * * *'
+#    environmentVariables:
+#      key: value
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins
