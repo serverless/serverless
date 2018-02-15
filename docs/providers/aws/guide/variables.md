@@ -285,7 +285,7 @@ functions:
 
 You can reference JavaScript files to add dynamic data into your variables.
 
-References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`.
+References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`. The first argument to your export will be a reference to the Serverless object, containing your configuration.
 
 Here are other examples:
 
@@ -299,7 +299,9 @@ module.exports.rate = () => {
 
 ```js
 // config.js
-module.exports = () => {
+module.exports = (serverless) => {
+  serverless.cli.consoleLog('You can access Serverless config and methods as well!');
+
   return {
     property1: 'some value',
     property2: 'some other value'
