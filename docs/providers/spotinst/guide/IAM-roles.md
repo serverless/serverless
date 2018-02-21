@@ -11,12 +11,13 @@ layout: Doc
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst Functions - IAM roles
-Functions sometimes rely on outside services from Amazon such as S3, and accessing these resources often requires authorization using IAM. Spotinst Functions can be configured with the relevant permissions with the inclusion of IAM role configuration information in the serverless.yml file. See [Amazon's documentation][amazon-docs-url] for more information on IAM roles.
+Functions sometimes rely on outside services from Amazon such as S3, and accessing these resources often requires authorization using IAM. Spotinst Functions can be configured with the relevant permissions with the inclusion of IAM role information in the serverless.yml file. See [Amazon's documentation][amazon-docs-url] for more information on IAM roles.
 
 ## Requirements
 - You will need to create an IAM role on your AWS account and attach policies with the relevant permissions.
-- Only one IAM role per function.
-- Multiple functions can be associated with the same IAM role.
+- A spotinst role will be generated and linked with your AWS role
+- Only one Spotinst role per function.
+- Multiple functions can be associated with the same Spotinst role.
 
 ## YML 
 ```yaml
@@ -28,14 +29,12 @@ functions:
     timeout: 30
     access: private
     iamRoleConfig:
-      - id: ${role-id} # make sure you use envionrmental variables to obscure the role ID
-      - credentials: "encrypted-text"
+      - id: ${role-id} 
 ```
 
 ## Parameters
-- id: the role from aws
-  - AROAIIZKPBKS2LEXAMPLE
-- credentials: 
+- id: the role created on the console
+  - ex : sfr-5ea76784
 
 
 
