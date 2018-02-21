@@ -42,4 +42,4 @@ To access URL parameters in your NodeJS code you just need to put `event.query['
 
 ### 2. Python
 
-To access URL parameters in your NodeJS code you just need to put `os.environ['{Your Parameter Name}']` as needed
+To access URL parameters in your Python code you just need to put `os.environ['{Your Parameter Name}']` as needed
