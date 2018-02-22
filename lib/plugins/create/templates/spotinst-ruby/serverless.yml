@@ -26,6 +26,8 @@ functions:
     memory: 128
     timeout: 30
     access: private
+#    iamRoleConfig:
+#      roleId: # role-id
 #    activeVersions:
 #        - "version": "$LATEST"
 #          "percentage": 100.0
