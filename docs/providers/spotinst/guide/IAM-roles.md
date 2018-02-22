@@ -29,11 +29,11 @@ functions:
     timeout: 30
     access: private
     iamRoleConfig:
-      - id: ${role-id} 
+      roleId: ${role-id} 
 ```
 
 ## Parameters
-- id: the role created on the console
+- roleId: the role created on the console
   - ex : sfr-5ea76784
 
 
