@@ -45,7 +45,7 @@ functions:
           enabled: false
 ```
 
-## Backwards compatability
+## Backwards compatibility
 
 Previous syntax of this event didn't require a skill ID as parameter, but according to [Amazon's documentation](https://developer.amazon.com/docs/custom-skills/host-a-custom-skill-as-an-aws-lambda-function.html#configuring-the-alexa-skills-kit-trigger) you should restrict your lambda function to be executed only by your skill.
 
