@@ -5,6 +5,10 @@ description: Create a F# Hello World Lambda function
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/fsharp/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Hello World F# Example
 
 Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
