@@ -1,3 +1,16 @@
+# 1.26.0 (29.01.2018)
+- [AWS Go support](https://github.com/serverless/serverless/pull/4669)
+- [Support for using an existing ApiGateway and Resources](https://github.com/serverless/serverless/pull/4247)
+- [Add logRetentionInDays config](https://github.com/serverless/serverless/pull/4591)
+- [Add support of `serverless.js` configuration file](https://github.com/serverless/serverless/pull/4590)
+- [Add "did you mean..." CLI suggestions](https://github.com/serverless/serverless/pull/4586)
+- [Add `--template-path` option to `serverless create`](https://github.com/serverless/serverless/pull/4576)
+- [Add support POJO input support for Java invoke local](https://github.com/serverless/serverless/pull/4596)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.25.0...v1.26.0)
+
+
 # 1.25.0 (20.12.2017)
 - [Improve Stage and Region Usage](https://github.com/serverless/serverless/pull/4560)
 - [Add API Gateway endpoint configuration](https://github.com/serverless/serverless/pull/4531)

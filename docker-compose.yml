@@ -60,9 +60,19 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-csharp:/app
   aws-fsharp:
-    image: microsoft/dotnet:1.0.4-sdk
+    image: microsoft/dotnet:2.0-sdk
     volumes:
       - ./tmp/serverless-integration-test-aws-fsharp:/app
+  aws-go:
+    image: golang:1.9
+    volumes:
+      - ./tmp/serverless-integration-test-aws-go:/app
+      - ./tmp/serverless-integration-test-aws-go:/go/src/app
+  aws-go-dep:
+    image: yunspace/golang:1.9
+    volumes:
+      - ./tmp/serverless-integration-test-aws-go-dep:/app
+      - ./tmp/serverless-integration-test-aws-go-dep:/go/src/app
   aws-nodejs-typescript:
     image: node:6.10.3
     volumes:

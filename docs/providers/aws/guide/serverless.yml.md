@@ -159,7 +159,9 @@ functions:
           batchSize: 100
           startingPosition: LATEST
           enabled: false
-      - alexaSkill
+      - alexaSkill:
+          appId: amzn1.ask.skill.xx-xx-xx-xx
+          enabled: true
       - alexaSmartHome:
           appId: amzn1.ask.skill.xx-xx-xx-xx
           enabled: true

@@ -54,5 +54,5 @@ jest
 *.swp
 
 # DotNet
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
