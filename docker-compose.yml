@@ -56,7 +56,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
   aws-csharp:
-    image: microsoft/dotnet:2.0.5-sdk-2.1.4
+    image: microsoft/dotnet:2.0-sdk
     volumes:
       - ./tmp/serverless-integration-test-aws-csharp:/app
   aws-fsharp:
