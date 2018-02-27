@@ -497,6 +497,7 @@ This method is more complicated and involves a lot more configuration of the `ht
     "cognitoPoolClaims": {
         "sub": ""
     },
+    "enhancedAuthContext": {},
     "headers": {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate, br",
