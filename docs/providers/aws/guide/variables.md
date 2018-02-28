@@ -426,6 +426,7 @@ provider:
   name: aws
   runtime: nodejs6.10
   variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
+#  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}" # Use like this: ${AWS::stuff} - N.B: Only works for AWS!
 
 custom:
   myStage: ${{opt:stage}}
