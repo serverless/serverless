@@ -1,5 +1,4 @@
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
-import "source-map-support/register";
 
 export const hello: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
   const response = {
