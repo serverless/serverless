@@ -60,7 +60,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-csharp:/app
   aws-fsharp:
-    image: microsoft/dotnet:1.0.4-sdk
+    image: microsoft/dotnet:2.0-sdk
     volumes:
       - ./tmp/serverless-integration-test-aws-fsharp:/app
   aws-go:

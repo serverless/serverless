@@ -26,9 +26,8 @@ Also you are able to enter in environment variables in the serverless.yml file. 
 functions:
   test:
     handler: handler.main
-    environmentVariables: {
-      Key: "Value"
-    }
+    environmentVariables:
+      key: value
 ```
 
 To access your variables in your code you just need to put `process.env['{Your Key}']` as needed in the handler file.
@@ -43,4 +42,4 @@ To access URL parameters in your NodeJS code you just need to put `event.query['
 
 ### 2. Python
 
-To access URL parameters in your NodeJS code you just need to put `os.environ['{Your Parameter Name}']` as needed
+To access URL parameters in your Python code you just need to put `os.environ['{Your Parameter Name}']` as needed

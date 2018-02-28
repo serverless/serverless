@@ -32,6 +32,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./guide/endpoints.md">Endpoints</a></li>
         <li><a href="./guide/cors.md">Cross-Origin Resource Sharing</a></li>
         <li><a href="./guide/active-versions.md">Active Versions Documentation</a></li>
+        <li><a href="./guide/IAM-roles.md">IAM Roles</a></li>
       </ul>
     </div>
   </div>
