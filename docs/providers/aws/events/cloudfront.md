@@ -17,22 +17,63 @@ layout: Doc
 This will enable your Lambda@Edge function to be called by a CloudFront.
 
 ```yaml
-events:
-  - cloudFront:
-      eventType: viewer-request
-      origin: s3://bucketname.s3.amazonaws.com/files
+functions:
+  myLambdaAtEdge:
+    handler: myLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-request
+          origin: s3://bucketname.s3.amazonaws.com/files
 ```
 
-To include
+For more specific setup, origin can be a object, which uses CloudFromation yaml syntax.
 
 ```yaml
-events:
-  - cloudFront:
-      eventType: viewer-request
-      pathPattern: '/docs*'
-      origin:
-        DomainName: serverless.com
-        OriginPath: /framework
-        CustomOriginConfig:
-          OriginProtocolPolicy: match-viewer
+functions:
+  myLambdaAtEdge:
+    handler: myLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-request
+          pathPattern: '/docs*'
+          origin:
+            DomainName: serverless.com
+            OriginPath: /framework
+            CustomOriginConfig:
+              OriginProtocolPolicy: match-viewer
 ```
+
+To define functions to each event type, same origin joins the functions to same behavior.
+
+```yaml
+functions:
+  myLambdaAtEdgeViewerRequest:
+    handler: myLambdaAtEdgeViewerRequest.handler
+    events:
+      - cloudFront:
+          eventType: viewer-request
+          origin: s3://bucketname.s3.amazonaws.com/files
+  myLambdaAtEdgeViewerResponse:
+    handler: myLambdaAtEdgeViewerResponse.handler
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          origin: s3://bucketname.s3.amazonaws.com/files
+```
+
+
+Add same function to multiple behaviors
+```yaml
+functions:
+  myLambdaAtEdge:
+    handler: myLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-request
+          origin: s3://bucketname.s3.amazonaws.com/files
+      - cloudFront:
+          eventType: viewer-request
+          origin: s3://bucketname.s3.amazonaws.com/other
+```
+
+## Current gotchas
