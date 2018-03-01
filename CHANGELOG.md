@@ -1,6 +1,9 @@
 # 1.26.1 (27.02.2018)
 - [Fix lambda integration regression](https://github.com/serverless/serverless/pull/4775)
 
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.26.0...v1.26.1)
+
 # 1.26.0 (29.01.2018)
 - [AWS Go support](https://github.com/serverless/serverless/pull/4669)
 - [Support for using an existing ApiGateway and Resources](https://github.com/serverless/serverless/pull/4247)
