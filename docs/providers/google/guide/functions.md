@@ -111,7 +111,7 @@ Labels can be applied globally, to all functions in your configuration file, and
 provider:
   name: google
   labels:
-    application: Severless Example
+    application: Serverless Example
 
 functions:
   first:
@@ -129,7 +129,7 @@ functions:
 ```
 
 With the above configuration the `httpFirst` function would have two labels applied, `application` and `team`.
-The value of the `application` label would be `Severless Example`, the value of the `team` label would be `GCF Team`.
+The value of the `application` label would be `Serverless Example`, the value of the `team` label would be `GCF Team`.
 
 The `httpSecond` function would have only one label applied, `application`, and it would have a value of `Serverless Example - Documentation`.
 
