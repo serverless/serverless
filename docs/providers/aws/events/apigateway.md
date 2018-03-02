@@ -497,6 +497,7 @@ This method is more complicated and involves a lot more configuration of the `ht
     "cognitoPoolClaims": {
         "sub": ""
     },
+    "enhancedAuthContext": {},
     "headers": {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate, br",
@@ -872,7 +873,7 @@ functions:
 
 ```
 
-In case the application has many chilren and grandchildren paths, you also want to break them out into smaller services. 
+In case the application has many children and grandchildren paths, you also want to break them out into smaller services. 
 
 ```yml
 service: service-a

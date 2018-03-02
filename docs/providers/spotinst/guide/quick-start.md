@@ -6,6 +6,10 @@ description: Getting started with the Serverless Framework on AWS Lambda
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://serverless.com/framework/docs/providers/spotinst/guide/quick-start/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Spotinst - Quick Start
 
 Here is a quick guide on how to create a new serverless project using the Spotinst NodeJS template. For more detailed instruction please check out the other reference material provided. 
