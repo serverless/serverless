@@ -858,7 +858,7 @@ Now that you have these two CloudFormation templates defined in your `serverless
 
 ## Share API Gateway and API Resources
 
-As you application grows, you will have idea to break it out into multiple services. However, each serverless project generates new API Gateway by default. If you want to share same API Gateway for muliple projects, you 'll need to reference REST API ID and Root Resource ID into serverless.yml files
+As your application grows, you will likely need to break it out into multiple, smaller services. By default, each Serverless project generates a new API Gateway by default. However, you can share the same API Gateway for multiple projects by referencing its' REST API ID and Root Resource ID in `serverless.yml` as follows:
 
 ```yml
 service: service-name
