@@ -907,7 +907,7 @@ functions:
           path: /posts/{id}/comments
 ```
 
-The above example services both reference the same parent path `/posts`. However, Cloudformation will throw an error if we try to generate an existing path resource. To avoid that, we reference the resource ID of `/posts`.
+The above example services both reference the same parent path `/posts`. However, Cloudformation will throw an error if we try to generate an existing path resource. To avoid that, we reference the resource ID of `/posts`:
 
 ```yml
 service: service-a
