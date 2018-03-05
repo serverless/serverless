@@ -938,7 +938,7 @@ functions:
 ```
 
 You can define more than one path resource, but by default, Serverless will generate them from the root resource.
-`restApiRootResourceId` is optional if there a path resource isn't required for the root (`/`).
+`restApiRootResourceId` is optional if a path resource isn't required for the root (`/`).
 
 ```yml
 service: service-a
