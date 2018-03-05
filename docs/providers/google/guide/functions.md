@@ -96,3 +96,43 @@ exports.event = (event, callback) => {
   callback();
 };
 ```
+
+## Labels
+
+Google Cloud Platform supports [labels to assist in organizing resources](https://cloud.google.com/resource-manager/docs/creating-managing-labels).
+Serverless allows you to define labels to be applied to functions upon deploy.
+Labels are defined as key-value pairs.
+
+Labels can be applied globally, to all functions in your configuration file, and to specific functions.
+
+```yml
+# serverless.yml
+
+provider:
+  name: google
+  labels:
+    application: Serverless Example
+
+functions:
+  first:
+    handler: httpFirst
+    events:
+      - http: path
+    labels:
+      team: GCF Team
+  second:
+    handler: httpSecond
+    events:
+      - http: path
+    labels:
+      application: Serverless Example - Documentation
+```
+
+With the above configuration the `httpFirst` function would have two labels applied, `application` and `team`.
+The value of the `application` label would be `Serverless Example`, the value of the `team` label would be `GCF Team`.
+
+The `httpSecond` function would have only one label applied, `application`, and it would have a value of `Serverless Example - Documentation`.
+
+Labels defined under the `provider` object are applied to all functions in the file.
+Labels defined under specific functions only apply to that function.
+The labels defined under a function's object will override global labels for that function.
