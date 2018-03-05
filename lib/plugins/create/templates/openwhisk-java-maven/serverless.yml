@@ -19,7 +19,7 @@ service: openwhisk-java-maven # NOTE: update this with your service name
 # $ npm install
 provider:
   name: openwhisk
-  runtime: java8
+  runtime: java
 
 # you can add packaging information here
 package:
