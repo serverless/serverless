@@ -146,6 +146,8 @@ functions:
             - prefix: uploads/
             - suffix: .jpg
       - schedule:
+          name: my scheduled event
+          description: a description of my scheduled event's purpose
           rate: rate(10 minutes)
           enabled: false
           input:
@@ -153,6 +155,7 @@ functions:
             key2: value2
             stageParams:
               stage: dev
+          inputPath: '$.stageVariables'
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
