@@ -104,6 +104,7 @@ package: # Optional deployment packaging configuration
     - .travis.yml
   excludeDevDependencies: false # Config if Serverless should automatically exclude dev dependencies in the deployment package. Defaults to true
   artifact: path/to/my-artifact.zip # Own package that should be used. You must provide this file.
+  individually: true # Enables individual packaging for each function. If true you must provide package for each function. Defaults to false
 
 
 functions:
@@ -128,6 +129,15 @@ functions:
       subnetIds:
         - subnetId1
         - subnetId2
+    package:
+      include: # Specify the directories and files which should be included in the deployment package for this specific function.
+        - src/**
+        - handler.js
+      exclude: # Specify the directories and files which should be excluded in the deployment package for this specific function.
+        - .git/**
+        - .travis.yml
+      artifact: path/to/my-artifact.zip # Own package that should be use for this specific function. You must provide this file.
+      individually: true # Enables individual packaging for specific function. If true you must provide package for each function. Defaults to false
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
