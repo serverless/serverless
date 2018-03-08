@@ -41,31 +41,49 @@ This makes sense since related functions usually use common infrastructure resou
 
 ## Creation
 
-To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
+To create a service, use the `create` command. You must also pass in a template to select the runtime environment (e.g., node.js, python etc.) you would like to write the service in.  Additionally, you can use the `--path` option to create a sub-directory and auto-name your service. If you don't use the `--path` option, generated files such as `serverless.yml` are placed into the current directory. In general, you'll want to specify the `--path` option.
 
 ```bash
-# Create service with nodeJS template in the folder ./myService
+# Create service with aws-nodejs template in the folder ./myService
 serverless create --template aws-nodejs --path myService
 ```
 
-Here are the available runtimes for AWS Lambda:
+Here are the available templates for AWS Lambda as of March 8, 2018:
 
 * aws-nodejs
 * aws-nodejs-typescript
 * aws-nodejs-ecma-script
 * aws-python
 * aws-python3
-* aws-kotlin-jvm-maven
-* aws-kotlin-nodejs-gradle
 * aws-groovy-gradle
-* aws-java-gradle
 * aws-java-maven
+* aws-java-gradle
+* aws-kotlin-jvm-maven
+* aws-kotlin-jvm-gradle
+* aws-kotlin-nodejs-gradle
 * aws-scala-sbt
 * aws-csharp
 * aws-fsharp
 * aws-go
+* aws-go-dep
+* azure-nodejs
+* google-nodejs
+* kubeless-python
+* kubeless-nodejs
+* openwhisk-nodejs
+* openwhisk-python
+* openwhisk-swift
+* spotinst-nodejs
+* spotinst-python
+* spotinst-ruby
+* spotinst-java8
+* webtasks-nodejs
+* plugin
+* hello-world
 
-Check out the [create command docs](../cli-reference/create) for all the details and options.
+You can use `serverless create --help` to get a current list of templates.
+
+Check out the [create command docs](../cli-reference/create) for all the details and options. 
 
 ## Contents
 
