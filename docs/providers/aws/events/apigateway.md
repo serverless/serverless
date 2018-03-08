@@ -249,6 +249,30 @@ functions:
             type: aws_iam
 ```
 
+You can also use the special `API_KEY` type for using api keys:
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer: api_key
+```
+
+Which actually is just an alias for `private: true`
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          private: true
+```
+
 ### HTTP Endpoints with Custom Authorizers
 
 Custom Authorizers allow you to run an AWS Lambda Function before your targeted AWS Lambda Function.  This is useful for Microservice Architectures or when you simply want to do some Authorization before running your business logic.
