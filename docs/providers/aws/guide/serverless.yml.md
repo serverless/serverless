@@ -103,6 +103,7 @@ package: # Optional deployment packaging configuration
     - .git/**
     - .travis.yml
   excludeDevDependencies: false # Config if Serverless should automatically exclude dev dependencies in the deployment package. Defaults to true
+  artifact: path/to/my-artifact.zip # Own package that should be used. You must provide this file.
 
 
 functions:
