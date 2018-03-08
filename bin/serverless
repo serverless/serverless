@@ -10,9 +10,12 @@ const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorRe
 
 Error.stackTraceLimit = Infinity;
 
-BbPromise.config({
-  longStackTraces: true,
-});
+if (process.env.SLS_DEBUG) {
+  // For performance reasons enabled only in SLS_DEBUG mode
+  BbPromise.config({
+    longStackTraces: true,
+  });
+}
 
 process.on('unhandledRejection', (e) => {
   logError(e);

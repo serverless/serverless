@@ -12,10 +12,10 @@ layout: Doc
 
 # Triggers
 
-Functions are connected to event sources in OpenWhisk [using triggers and rules](https://github.com/apache/incubator-openwhisk/blob/master/docs/triggers_rules.md).
+Functions are connected to event sources in OpenWhisk [using triggers and rules](http://bit.ly/2wcPCJi).
 Triggers create a named event stream within the system. Triggers can be fired
 manually or connected to external data sources, like databases or message
-queues. 
+queues.
 
 Rules set up a binding between triggers and serverless functions. With an active
 rule, each time a trigger is fired, the function will be executed with the
@@ -30,7 +30,7 @@ functions:
     events:
       - trigger: my_trigger
 ```
-This configuration will create a trigger called `servicename-my_trigger` with an active rule binding `my_function` to this event stream. 
+This configuration will create a trigger called `servicename-my_trigger` with an active rule binding `my_function` to this event stream.
 
 ## Customising Rules
 
@@ -56,17 +56,17 @@ functions:
     handler: index.main
     events:
       - trigger: my_trigger
-      
+
 resources:
   triggers:
     my_trigger:
-      parameters: 
-        hello: world            
+      parameters:
+        hello: world
 ```
 
 ## Trigger Feeds
 
-Triggers can be bound to external event sources using the `feed` property. OpenWhisk [provides a catalogue](https://github.com/openwhisk/openwhisk/blob/master/docs/catalog.md) of third-party event sources bundled as [packages](https://github.com/openwhisk/openwhisk/blob/master/docs/packages.md#creating-and-using-trigger-feeds).
+Triggers can be bound to external event sources using the `feed` property. OpenWhisk [provides a catalogue](http://bit.ly/2f8CSho) of third-party event sources bundled as [packages](http://bit.ly/2wcR8Lq).
 
 This example demonstrates setting up a trigger which uses the `/whisk.system/alarms/alarm` feed. The `alarm` feed will fire a trigger according to a user-supplied cron schedule.
 
@@ -74,9 +74,9 @@ This example demonstrates setting up a trigger which uses the `/whisk.system/ala
 resources:
   triggers:
     alarm_trigger:
-      parameters: 
+      parameters:
         hello: world
       feed: /whisk.system/alarms/alarm
-      feed_parameters: 
+      feed_parameters:
         cron: '*/8 * * * * *'
 ```

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Invoke
 menuText: invoke
-menuOrder: 7
+menuOrder: 5
 description: Invoke an Azure Functions Function using the Serverless Framework
 layout: Doc
 -->

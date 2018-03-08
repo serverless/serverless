@@ -19,7 +19,7 @@ service: aws-fsharp # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: dotnetcore1.0
+  runtime: dotnetcore2.0
 
 # you can overwrite defaults here
 #  stage: dev
@@ -47,7 +47,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: bin/release/netcoreapp1.0/deploy-package.zip
+  artifact: bin/release/netcoreapp2.0/deploy-package.zip
 #  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**
@@ -67,7 +67,8 @@ functions:
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill
+#      - alexaSkill: amzn1.ask.skill.xx-xx-xx-xx
+#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
 #      - cloudwatchEvent:

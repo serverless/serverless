@@ -90,3 +90,45 @@ functions:
                 - pending
           inputPath: '$.stageVariables'
 ```
+
+## Specifying a Description
+
+You can also specify a CloudWatch Event description.
+
+```yml
+functions:
+  myCloudWatch:
+    handler: myCloudWatch.handler
+    events:
+      - cloudwatchEvent:
+          description: 'CloudWatch Event triggered on EC2 Instance pending state'
+          event:
+            source:
+              - "aws.ec2"
+            detail-type:
+              - "EC2 Instance State-change Notification"
+            detail:
+              state:
+                - pending
+```
+
+## Specifying a Name
+
+You can also specify a CloudWatch Event name. Keep in mind that the name must begin with a letter; contain only ASCII letters, digits, and hyphens; and not end with a hyphen or contain two consecutive hyphens. More infomation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-name.html).
+
+```yml
+functions:
+  myCloudWatch:
+    handler: myCloudWatch.handler
+    events:
+      - cloudwatchEvent:
+          name: 'my-cloudwatch-event-name'
+          event:
+            source:
+              - "aws.ec2"
+            detail-type:
+              - "EC2 Instance State-change Notification"
+            detail:
+              state:
+                - pending
+```

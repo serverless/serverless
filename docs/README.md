@@ -4,10 +4,14 @@ menuText: Docs
 layout: Doc
 menuItems:
   - {menuText: Getting Started, path: /framework/docs/getting-started/}
-  - {menuText: AWS, path: /framework/docs/providers/aws/}
-  - {menuText: Azure, path: /framework/docs/providers/azure/}
-  - {menuText: Google, path: /framework/docs/providers/google/}
-  - {menuText: OpenWhisk, path: /framework/docs/providers/openwhisk/}
+  - {menuText: Providers, path: /framework/docs/providers}
+  - {menuText: "- AWS", path: /framework/docs/providers/aws/}
+  - {menuText: "- Azure", path: /framework/docs/providers/azure/}
+  - {menuText: "- Google", path: /framework/docs/providers/google/}
+  - {menuText: "- OpenWhisk", path: /framework/docs/providers/openwhisk/}
+  - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
+  - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
+  - {menuText: "- Webtasks" , path: /framework/docs/providers/webtasks/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -88,6 +92,52 @@ Already using AWS or another cloud provider? Read on.
         <li><a href="./providers/google/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/google/events">Events</a></li>
         <li><a href="./providers/google/examples">Examples</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/kubeless/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless-logos-black.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/kubeless/guide/quick-start">Kubeless QuickStart</a></li>
+        <li><a href="./providers/kubeless/guide">Guide</a></li>
+        <li><a href="./providers/kubeless/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/kubeless/events">Events</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/spotinst/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/spotinst/guide/quick-start">Spotinst QuickStart</a></li>
+        <li><a href="./providers/spotinst/guide">Guide</a></li>
+        <li><a href="./providers/spotinst/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/spotinst/events">Events</a></li>
+        <li><a href="./providers/spotinst/examples">Examples</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/webtasks/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/webtask-small-grayscale.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/webtasks/guide/quick-start">Webtasks QuickStart</a></li>
+        <li><a href="./providers/webtasks/guide">Guide</a></li>
+        <li><a href="./providers/webtasks/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/webtasks/events">Events</a></li>
       </ul>
     </div>
   </div>

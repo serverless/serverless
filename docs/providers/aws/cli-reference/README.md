@@ -14,4 +14,4 @@ Welcome to the Serverless AWS Lambda CLI Reference!  Please select a section on 
 
 **Note:** Before continuing [AWS system credentials](../guide/credentials.md) are required for using the CLI.
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)

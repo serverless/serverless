@@ -25,7 +25,7 @@ Here are the Framework's main concepts and how they pertain to Google Cloud Func
 
 ### Functions
 
-A Function is an [Google Cloud Function](https://cloud.google.com/functions/). It's an independent unit of deployment, like a microservice. It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
+A Function is a [Google Cloud Function](https://cloud.google.com/functions/). It's an independent unit of deployment, like a microservice. It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
 
 - *Saving a user to the database*
 - *Processing a file in a database*
@@ -46,7 +46,7 @@ When you define an event for your Google Cloud Function in the Serverless Framew
 
 ### Services
 
-A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json`). It looks like this:
+A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json` or `serverless.js`). It looks like this:
 
 ```yml
 # serverless.yml

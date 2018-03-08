@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# NOTE this script should only be executed from the root directory (not within "scripts")
+
+rm -rf node_modules
+rm -f npm-shrinkwrap.json
+npm install
+npm prune --production
+npm shrinkwrap
+rm -f package-lock.json

@@ -10,8 +10,6 @@ BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 BbPromise.promisifyAll(S3, { suffix: 'Promised' });
 
 const logger = console;
-const pattern = process.env.MATCH || '(test)-[0-9]+-[0-9]+-dev.+';
-const regex = new RegExp(`^${pattern}/i`);
 
 const emptyS3Bucket = (bucket) => (
   S3.listObjectsPromised({ Bucket: bucket })
@@ -49,12 +47,8 @@ const cleanupS3Buckets = (token) => {
 
   return S3.listBucketsPromised()
     .then(response =>
-      response.Buckets.reduce((memo, bucket) => {
-        if (bucket.Name.match(regex)) {
-          return memo.then(() => deleteS3Bucket(bucket.Name));
-        }
-        return memo;
-      }, BbPromise.resolve())
+      response.Buckets.reduce((memo, bucket) => memo
+        .then(() => deleteS3Bucket(bucket.Name)), BbPromise.resolve())
         .then(() => {
           if (response.NextToken) {
             return cleanupS3Buckets(response.NextToken);
@@ -65,7 +59,17 @@ const cleanupS3Buckets = (token) => {
 };
 
 const cleanupCFStacks = (token) => {
-  const params = {};
+  const params = {
+    StackStatusFilter: [
+      'CREATE_FAILED',
+      'CREATE_COMPLETE',
+      'ROLLBACK_FAILED',
+      'ROLLBACK_COMPLETE',
+      'DELETE_FAILED',
+      'UPDATE_ROLLBACK_FAILED',
+      'UPDATE_ROLLBACK_COMPLETE',
+    ],
+  };
 
   if (token) {
     params.NextToken = token;
@@ -75,11 +79,9 @@ const cleanupCFStacks = (token) => {
   return CF.listStacksPromised(params)
     .then(response =>
       response.StackSummaries.reduce((memo, stack) => {
-        if (stack.StackName.match(regex)) {
-          if (['DELETE_COMPLETE', 'DELETE_IN_PROGRESS'].indexOf(stack.StackStatus) === -1) {
-            logger.log('Deleting stack', stack.StackName);
-            return memo.then(() => CF.deleteStackPromised({ StackName: stack.StackName }));
-          }
+        if (['DELETE_COMPLETE', 'DELETE_IN_PROGRESS'].indexOf(stack.StackStatus) === -1) {
+          logger.log('Deleting stack', stack.StackName);
+          return memo.then(() => CF.deleteStackPromised({ StackName: stack.StackName }));
         }
         return memo;
       }, BbPromise.resolve())

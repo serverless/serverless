@@ -16,6 +16,7 @@ Welcome to the Hello World example.
 Pick your language of choice:
 
 * [JavaScript](./node)
+* [PHP](./php)
 * [Python](./python)
 * [Swift](./swift)
 

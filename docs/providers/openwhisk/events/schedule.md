@@ -12,12 +12,12 @@ layout: Doc
 
 # Schedule
 
-This event allows you to set up scheduled invocations of your function. 
+This event allows you to set up scheduled invocations of your function.
 
 The plugin automatically configures a trigger and rule to connect your function
-to the trigger feed from the [alarm package](https://github.com/openwhisk/openwhisk/blob/master/docs/catalog.md#using-the-alarm-package).
+to the trigger feed from the [alarm package](http://bit.ly/2xSomC5).
 
-## Configuration 
+## Configuration
 
 The `schedule` event configuration is controlled by a string, based on the UNIX
 crontab syntax, in the format `cron(X X X X X)`. This can either be passed in
@@ -25,7 +25,7 @@ as a native string or through the `rate` parameter.
 
 ### Simple
 
-The following config will attach a schedule event and causes the function `crawl` to be called every minute. 
+The following config will attach a schedule event and causes the function `crawl` to be called every minute.
 
 ```yaml
 functions:

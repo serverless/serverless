@@ -41,18 +41,79 @@ custom:
 
 functions:
   hello:
-      handler: handler.hello
-      events:
-        - timer: ${self:custom.globalSchedule}
+    handler: handler.hello
+    events:
+      - timer: ${self:custom.globalSchedule}
   world:
-      handler: handler.world
-      events:
-        - timer: ${self:custom.globalSchedule}
+    handler: handler.world
+    events:
+      - timer: ${self:custom.globalSchedule}
 ```
 
 In the above example you're setting a global schedule for all functions by
 referencing the `globalSchedule` property in the same `serverless.yml` file. This
 way, you can easily change the schedule for all functions whenever you like.
+
+## Reference Variables in other Files
+You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
+
+```yml
+# myCustomFile.yml
+cron: cron(0 * * * *)
+```
+
+```yml
+# serverless.yml
+service: new-service
+provider: azure
+
+custom: ${file(./myCustomFile.yml)} # You can reference the entire file
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - timer: ${file(./myCustomFile.yml):cron} # Or you can reference a specific property
+  world:
+    handler: handler.world
+    events:
+      - timer: ${self:custom.cron} # This would also work in this case
+```
+
+
+In the above example, you're referencing the entire `myCustomFile.yml` file in the `custom` property. You need to pass the path relative to your service directory. You can also request specific properties in that file as shown in the `cron` property. It's completely recursive and you can go as deep as you want.  Additionally you can request properties that contain arrays from either YAML or JSON reference files.  Here's a YAML example for an events array:
+
+```yml
+myevents:
+  - timer: cron(0 * * * *)
+```
+
+and for JSON:
+```json
+{
+  "myevents": [{
+    "timer" : "cron(0 * * * *)"
+  }]
+}
+```
+
+In your serverless.yml, depending on the type of your source file, either have the following syntax for YAML
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events: ${file(./myCustomFile.yml):myevents
+```
+
+or for a JSON reference file use this sytax:
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events: ${file(./myCustomFile.json):myevents
+```
+
+**Note:** If the referenced file is a symlink, the targeted file will be read.
 
 ## Reference Variables in JavaScript Files
 

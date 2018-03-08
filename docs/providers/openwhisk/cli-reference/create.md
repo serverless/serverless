@@ -27,7 +27,9 @@ serverless create --template openwhisk-nodejs --path myService
 ```
 
 ## Options
-- `--template` or `-t` The name of one of the available templates. **Required**.
+- `--template` or `-t` The name of one of the available templates. **Required if --template-url and --template-path are not present**.
+- `--template-url` or `-u` The name of one of the available templates. **Required if --template and --template-path are not present**.
+- `--template-path` The local path of your template. **Required if --template and --template-url are not present**.
 - `--path` or `-p` The path where the service should be created.
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
@@ -42,6 +44,7 @@ Most commonly used templates:
 
 - openwhisk-nodejs
 - openwhisk-python
+- openwhisk-php
 - openwhisk-swift
 - plugin
 
@@ -66,6 +69,20 @@ serverless create --template openwhisk-nodejs --path my-new-service
 This example will generate scaffolding for a service with `openwhisk` as a provider and `nodejs` as runtime. The scaffolding will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless will use the already present directory.
 
 Additionally Serverless will rename the service according to the path you provide. In this example the service will be renamed to `my-new-service`.
+
+### Creating a new service using a local template
+
+```bash
+serverless create --template-path path/to/my/template/folder --path path/to/my/service --name my-new-service
+```
+
+This will copy the `path/to/my/template/folder` folder into `path/to/my/service` and rename the service to `my-new-service`.
+
+### Create service in new folder using a custom template
+
+```bash
+serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/openwhisk-nodejs --path myService
+```
 
 ### Creating a new plugin
 

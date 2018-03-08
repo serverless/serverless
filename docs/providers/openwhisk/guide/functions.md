@@ -25,7 +25,7 @@ service: myService
 provider:
   name: openwhisk
   runtime: nodejs:6 # optional, default is nodejs:default
-  memorySize: 512 # optional, default is 256
+  memory: 512 # optional, default is 256
   timeout: 30 # optional, default is 60
 
 functions:
@@ -102,6 +102,7 @@ The OpenWhisk provider plugin supports the following runtimes.
 
 - Node.js
 - Python
+- Php
 - Swift
 - Binary
 - Docker

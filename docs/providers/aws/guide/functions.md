@@ -37,6 +37,7 @@ functions:
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
+    reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
@@ -139,7 +140,7 @@ provider:
       -  Effect: "Allow"
          Action:
            - "s3:ListBucket"
-         # You can put CloudFormation syntax in here.  No one will judge you.  
+         # You can put CloudFormation syntax in here.  No one will judge you.
          # Remember, this all gets translated to CloudFormation.
          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket"} ] ] }
       -  Effect: "Allow"
@@ -226,6 +227,11 @@ Then, when you run `serverless deploy`, VPC configuration will be deployed along
 
 The Lambda function execution role must have permissions to create, describe and delete [Elastic Network Interfaces](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ElasticNetworkInterfaces.html) (ENI). When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated with your Lambda execution role. In case custom roles are provided be sure to include the proper [ManagedPolicyArns](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html#cfn-iam-role-managepolicyarns). For more information please check [configuring a Lambda Function for Amazon VPC Access](http://docs.aws.amazon.com/lambda/latest/dg/vpc.html)
 
+**VPC Lambda Internet Access**
+
+By default, when a Lambda function is executed inside a VPC, it loses internet access and some resources inside AWS may become unavailable. In order for S3 resources and DynamoDB resources to be available for your Lambda function running inside the VPC, a VPC end point needs to be created. For more information please check [VPC Endpoint for Amazon S3](https://aws.amazon.com/blogs/aws/new-vpc-endpoint-for-amazon-s3/).
+In order for other services such as Kinesis streams to be made available, a NAT Gateway needs to be configured inside the subnets that are being used to run the Lambda, for the VPC used to execute the Lambda. For more information, please check [Enable Outgoing Internet Access within VPC](https://medium.com/@philippholly/aws-lambda-enable-outgoing-internet-access-within-vpc-8dd250e11e12)
+
 ## Environment Variables
 
 You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of strings:
@@ -281,7 +287,7 @@ functions:
 
 Real-world use cases where tagging your functions is helpful include:
 
-- Cost estimations (tag functions with an environemnt tag: `environment: Production`)
+- Cost estimations (tag functions with an environment tag: `environment: Production`)
 - Keeping track of legacy code (e.g. tag functions which use outdated runtimes: `runtime: nodejs0.10`)
 - ...
 
@@ -303,15 +309,17 @@ provider:
 
 These versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
 
-## DeadLetterConfig
+## Dead Letter Queue (DLQ)
 
-You can setup `DeadLetterConfig` with the help of a SNS topic and the `onError` config parameter.
+When AWS lambda functions fail, they are [retried](http://docs.aws.amazon.com/lambda/latest/dg/retries-on-errors.html). If the retries also fail, AWS has a feature to send information about the failed request to a SNS topic or SQS queue, called the [Dead Letter Queue](http://docs.aws.amazon.com/lambda/latest/dg/dlq.html), which you can use to track and diagnose and react to lambda failures.
 
-The SNS topic needs to be created beforehand and provided as an `arn` on the function level.
+You can setup a dead letter queue for your serverless functions with the help of a SNS topic and the `onError` config parameter.
 
 **Note:** You can only provide one `onError` config per function.
 
 ### DLQ with SNS
+
+The SNS topic needs to be created beforehand and provided as an `arn` on the function level.
 
 ```yml
 service: service
@@ -323,12 +331,12 @@ provider:
 functions:
   hello:
     handler: handler.hello
-    onError: arn:aws:sns:us-east-1:XXXXXX:test
+    onError: arn:aws:sns:us-east-1:XXXXXX:test # Ref and Fn::ImportValue are supported as well
 ```
 
 ### DLQ with SQS
 
-The `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
+Although Dead Letter Queues support both SNS topics and SQS queues, the `onError` config currently only supports SNS topic arns due to a race condition when using SQS queue arns and updating the IAM role.
 
 We're working on a fix so that SQS queue arns will be supported in the future.
 

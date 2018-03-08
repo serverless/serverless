@@ -1,0 +1,27 @@
+# Welcome to Serverless!
+#
+# For full config options, check the kubeless plugin docs:
+#    https://github.com/serverless/serverless-kubeless
+#
+# For documentation on kubeless itself:
+#    http://kubeless.io
+
+# Update the service name below with your own service name
+service: capitalize
+
+# Please ensure the serverless-kubeless provider plugin is installed globally.
+# $ npm install -g serverless-kubeless
+#
+# ...before installing project dependencies to register this provider.
+# $ npm install
+
+provider:
+  name: kubeless
+  runtime: nodejs6
+
+plugins:
+  - serverless-kubeless
+
+functions:
+  capitalize:
+    handler: handler.capitalize

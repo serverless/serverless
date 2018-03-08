@@ -1,7 +1,7 @@
 <!--
 title: Serverless Rollback CLI Command
 menuText: rollback
-menuOrder: 13
+menuOrder: 14
 description: Rollback the Serverless service to a specific deployment
 layout: Doc
 -->
@@ -18,6 +18,8 @@ Rollback the Serverless service to a specific deployment.
 ```bash
 serverless rollback --timestamp timestamp
 ```
+
+If `timestamp` is not specified, Framework will show your existing deployments.
 
 ## Options
 - `--timestamp` or `-t` The deployment you want to rollback to.

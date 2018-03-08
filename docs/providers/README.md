@@ -53,7 +53,39 @@ Under the hood, the serverless framework is deploying your code to a cloud provi
       <a href="./google/">Cloud Functions Docs</a>
     </div>
   </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./kubeless/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless-logos-black.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="./kubeless/">Kubeless Docs</a>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./spotinst/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="./spotinst/">Spotinst Docs</a>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./webtasks/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/webtask-small-grayscale.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="./webtasks/">Auth0 Webtasks Docs</a>
+    </div>
+  </div>
+
 </div>
+<br/>
 <br/>
 
 ## Connecting your provider

@@ -1,0 +1,13 @@
+{
+  "name": "openwhisk-php",
+  "version": "1.0.0",
+  "description": "Sample OpenWhisk PHP serverless framework service.",
+  "main": "handler.js",
+  "scripts": {
+    "postinstall": "npm link serverless-openwhisk"
+  },
+  "keywords": [
+    "serverless",
+    "openwhisk"
+  ]
+}

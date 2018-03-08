@@ -12,7 +12,7 @@ layout: Doc
 
 # API Gateway
 
-Apache OpenWhisk has an [API gateway](https://github.com/openwhisk/openwhisk/blob/master/docs/apigateway.md) included within the platform. This service
+Apache OpenWhisk has an [API gateway](http://bit.ly/2xf9G2D) included within the platform. This service
 allows you to define public HTTP endpoints for your serverless functions.
 
 To create HTTP endpoints as Event sources for your Apache OpenWhisk Functions, use the Serverless Framework's easy API Gateway Events syntax.
@@ -22,7 +22,7 @@ To create HTTP endpoints as Event sources for your Apache OpenWhisk Functions, u
 ### Simple HTTP Endpoint
 
 This setup specifies that the `hello` function should be run when someone accesses the API gateway at `example/hello` via
-a `GET` request. 
+a `GET` request.
 
 Here's an example:
 
@@ -111,7 +111,14 @@ functions:
       - http:
           path: posts/create
           method: post
+          resp: json
 ```
+
+HTTP event configuration supports the following parameters.
+
+- `method` - HTTP method (mandatory).
+- `path` - URI path for API gateway (mandatory).
+- `resp` - controls [web action content type](https://github.com/apache/incubator-openwhisk/blob/master/docs/webactions.md#additional-features), values include: `json`, `html`, `http`, `svg`or `text` (optional, defaults to `json`).
 
 ### CORS Support
 

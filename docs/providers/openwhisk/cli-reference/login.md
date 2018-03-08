@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Login
 menuText: login
-menuOrder: 11
+menuOrder: 10
 description: Login to the serverless platform
 layout: Doc
 -->

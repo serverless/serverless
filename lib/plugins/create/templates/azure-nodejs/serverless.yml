@@ -42,7 +42,7 @@ functions:
           authLevel : anonymous
       - http: true
         x-azure-settings:
-          diections: out
+          direction: out
           name: res
 
 # The following are a few examples of other events you can configure:

@@ -1,6 +1,7 @@
 # Logs
 *.log
 npm-debug.log
+npm-shrinkwrap.json
 
 # Runtime data
 pids
@@ -48,3 +49,10 @@ tracking-config.json
 
 # Misc
 jest
+
+# VIM
+*.swp
+
+# DotNet
+[Bb]in/
+[Oo]bj/
