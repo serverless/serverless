@@ -665,7 +665,7 @@ See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/lates
     - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
     - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
     - [Enabling CORS](#enabling-cors)
-    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-awsiam-authorizers)
+    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws-iam-authorizers)
     - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
     - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
