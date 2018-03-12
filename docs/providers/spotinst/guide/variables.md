@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/guide/credentials)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/guide/variables)
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst Functions - Variables
@@ -26,9 +26,8 @@ Also you are able to enter in environment variables in the serverless.yml file. 
 functions:
   test:
     handler: handler.main
-    environmentVariables: {
-      Key: "Value"
-    }
+    environmentVariables:
+      key: value
 ```
 
 To access your variables in your code you just need to put `process.env['{Your Key}']` as needed in the handler file.
@@ -39,8 +38,8 @@ URL parameters can be use when a POST request is made to the endpoint of your fu
 
 ### 1. Node JS
 
-To access URL parameters in your NodeJS code you just need to put `event.query.['{Your Parameter Name}']` as needed
+To access URL parameters in your NodeJS code you just need to put `event.query['{Your Parameter Name}']` as needed
 
 ### 2. Python
 
-To access URL parameters in your NodeJS code you just need to put `os.environ['{Your Parameter Name}']` as needed
+To access URL parameters in your Python code you just need to put `os.environ['{Your Parameter Name}']` as needed

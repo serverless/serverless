@@ -5,23 +5,34 @@ menuOrder: 5
 description: Serverless.yml reference
 layout: Doc
 -->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://serverless.com/framework/docs/providers/spotinst/guide/serverless.yml/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Serverless.yml Reference
 
 This is an outline of a `serverless.yml` file with descriptions of the properties for reference
 
 ```yml
-# serverless.yml
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
 
-# The service can be whatever you choose. You can have multiple functions 
-# under one service
-
-service: your-service
-
-# The provider is Spotinst and the Environment ID can be found on the 
-# Spotinst Console under Functions
+service: four
 
 provider:
   name: spotinst
+  #stage: <Stage Name>  #Optional setting. By default it is set to 'dev'
   spotinst:
     environment: #{Your Environment ID}
 
@@ -38,19 +49,27 @@ provider:
 
 functions:
   function-name:
-    runtime: nodejs4.8
+    runtime: nodejs8.3
     handler: handler.main
     memory: 128
     timeout: 30
-#    access: public
-#    cron:
-#      active: false
-#      value: '*/1 * * * *'
-#    environmentVariables: {
-#      Key: "Value",
-#    }
+    access: private
+#    activeVersions:
+#        - version: $LATEST
+#          percentage: 100.0
+#    cors:
+#        enabled: # false by default
+#        origin:  # '*' by default
+#        headers: # 'Content-Type,Authorization' by default
+#        methods: # 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT' by default
+#    cron:  # Setup scheduled trigger with cron expression
+#      active: true
+#      value: '* * * * *'
+#    environmentVariables:
+#      key: value
 
-
+# extend the framework using plugins listed here:
+# https://github.com/serverless/plugins
 plugins:
   - serverless-spotinst-functions
 ```
