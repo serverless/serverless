@@ -321,7 +321,7 @@ functions:
             identityValidationExpression: someRegex
 ```
 
-You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for you policy cache. The default `type` is 'token'.
+You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for your policy cache. The default `type` is 'token'.
 
 ```yml
 functions:
@@ -858,7 +858,7 @@ Now that you have these two CloudFormation templates defined in your `serverless
 
 ## Share API Gateway and API Resources
 
-As you application grows, you will have idea to break it out into multiple services. However, each serverless project generates new API Gateway by default. If you want to share same API Gateway for muliple projects, you 'll need to reference REST API ID and Root Resource ID into serverless.yml files
+As your application grows, you will likely need to break it out into multiple, smaller services. By default, each Serverless project generates a new API Gateway. However, you can share the same API Gateway between multiple projects by referencing its REST API ID and Root Resource ID in `serverless.yml` as follows:
 
 ```yml
 service: service-name
@@ -873,7 +873,7 @@ functions:
 
 ```
 
-In case the application has many children and grandchildren paths, you also want to break them out into smaller services. 
+If your application has many nested paths, you might also want to break them out into smaller services. 
 
 ```yml
 service: service-a
@@ -907,7 +907,7 @@ functions:
           path: /posts/{id}/comments
 ```
 
-They reference the same parent path `/posts`. Cloudformation will throw error if we try to generate existed one. To avoid that, we must reference source ID of `/posts`.
+The above example services both reference the same parent path `/posts`. However, Cloudformation will throw an error if we try to generate an existing path resource. To avoid that, we reference the resource ID of `/posts`:
 
 ```yml
 service: service-a
@@ -937,7 +937,8 @@ functions:
 
 ```
 
-You can define more than one path resource. Otherwise, serverless will generate paths from root resource. `restApiRootResourceId` can be optional if there isn't path that need to be generated from the root
+You can define more than one path resource, but by default, Serverless will generate them from the root resource.
+`restApiRootResourceId` is optional if a path resource isn't required for the root (`/`).
 
 ```yml
 service: service-a
@@ -967,4 +968,4 @@ functions:
 
 ```
 
-For best practice and CI, CD friendly, we should define Cloudformation resources from early service, then use Cross-Stack References for another ones.
+To be more in line with best practices and to be CI/CD friendly, we should define CloudFormation resources from an earlier service, then use Cross-Stack References from it in future projects.
