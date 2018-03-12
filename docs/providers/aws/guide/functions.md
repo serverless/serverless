@@ -37,6 +37,7 @@ functions:
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
+    reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.

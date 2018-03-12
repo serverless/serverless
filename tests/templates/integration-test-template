@@ -37,5 +37,10 @@ serverless deploy -v
 echo "Invoking Service"
 serverless invoke --function hello
 
+if [ $template == "aws-go" ] || [ $template == "aws-go-dep" ]
+then
+  serverless invoke --function world
+fi
+
 echo "Removing Service"
 serverless remove -v
