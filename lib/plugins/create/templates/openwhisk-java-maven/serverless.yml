@@ -1,0 +1,49 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: openwhisk-java-maven # NOTE: update this with your service name
+
+# Please ensure the serverless-openwhisk provider plugin is installed globally.
+# $ npm install -g serverless-openwhisk
+# ...before installing project dependencies to register this provider.
+# $ npm install
+provider:
+  name: openwhisk
+  runtime: java
+
+# you can add packaging information here
+package:
+ artifact: target/demo-function.jar
+
+functions:
+  demo:
+    handler: com.example.FunctionApp
+
+# extend the framework using plugins listed here:
+# https://github.com/serverless/plugins
+plugins:
+  - "serverless-openwhisk"
+
+# you can define custom triggers and trigger feeds using the resources section.
+#
+#resources:
+#  triggers:
+#    my_trigger:
+#      parameters:
+#        hello: world
+#    alarm_trigger:
+#      parameters:
+#        hello: world
+#     feed: /whisk.system/alarms/alarm
+#     feed_parameters:
+#       cron: '*/8 * * * * *'
