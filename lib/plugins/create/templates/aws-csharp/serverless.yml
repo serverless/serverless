@@ -19,7 +19,7 @@ service: aws-csharp # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: dotnetcore1.0
+  runtime: dotnetcore2.0
 
 # you can overwrite defaults here
 #  stage: dev
@@ -47,7 +47,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: bin/release/netcoreapp1.0/deploy-package.zip
+  artifact: bin/release/netcoreapp2.0/deploy-package.zip
 #  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**

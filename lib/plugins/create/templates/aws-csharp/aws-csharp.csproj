@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AssemblyName>CsharpHandlers</AssemblyName>
     <PackageId>aws-csharp</PackageId>
   </PropertyGroup>
@@ -12,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <DotNetCliToolReference Include="Amazon.Lambda.Tools" Version="1.6.0" />
+    <DotNetCliToolReference Include="Amazon.Lambda.Tools" Version="2.0.1" />
   </ItemGroup>
 
 </Project>
