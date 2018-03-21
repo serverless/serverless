@@ -30,7 +30,6 @@ You should also have [go](https://golang.org/doc/install) and [make](https://www
 It is always good practice to organize your `go` projects within [GOPATH](https://golang.org/doc/code.html#GOPATH), to maximize the benefits of go tooling.
 
 ## 1. Create a service
-There are two templates for `go`:
 
 The Serverless Framework includes starter templates for various languages and providers. There are two templates for `go`.
 
@@ -50,7 +49,7 @@ sls create --template aws-go --path myService
 sls create --template aws-go-dep --path myService
 ```
 
-Using the `create` command we can specify one of the available [templates](https://serverless.com/framework/docs/providers/aws/cli-reference/create#available-templates). For this example use aws-nodejs with the `--template` or shorthand `-t` flag.
+Using the `create` command we can specify one of the available [templates](https://serverless.com/framework/docs/providers/aws/cli-reference/create#available-templates). For this example use aws-go-dep with the `--template` or shorthand `-t` flag.
 
 The `--path` or shorthand `-p` is the location to be created with the template service files.
 
