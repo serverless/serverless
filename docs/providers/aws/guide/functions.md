@@ -100,6 +100,26 @@ functions:
     memorySize: 512 # function specific
 ```
 
+You can specify an array of functions, which is useful if you separate your functions in to different files:
+
+```yml
+# serverless.yml
+...
+
+functions:
+  - ${file(./foo-functions.yml)}
+  - ${file(./bar-functions.yml)}
+```
+
+```yml
+# foo-functions.yml
+getFoo:
+  handler: handler.foo
+deleteFoo:
+  handler: handler.foo
+```
+
+
 ## Permissions
 
 Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account.  These permissions are set via an AWS IAM Role.  You can set permission policy statements within this role via the `provider.iamRoleStatements` property.
