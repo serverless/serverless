@@ -62,6 +62,8 @@ provider:
       rateLimit: 100
   stackTags: # Optional CF stack tags
     key: value
+  iamManagedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
+    - arn:aws:iam:*****:policy/some-managed-policy
   iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
     - Effect: 'Allow'
       Action:
