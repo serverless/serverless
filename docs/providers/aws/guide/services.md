@@ -116,6 +116,7 @@ provider:
       Action:
         - Update:Replace
         - Update:Delete
+      Resource: "*"
       Condition:
         StringEquals:
           ResourceType:
