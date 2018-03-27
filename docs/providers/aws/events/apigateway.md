@@ -224,6 +224,21 @@ functions:
 
 Configuring the `cors` property sets  [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
 
+To enable the `Access-Control-Max-Age` preflight response header, set the `maxAge` property in the `cors` object:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origin: '*'
+            maxAge: 86400
+```
+
 If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:
 
 ```javascript
