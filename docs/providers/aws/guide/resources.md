@@ -18,7 +18,7 @@ Using the Serverless Framework, you can define the infrastructure resources you 
 
 ## Configuration
 
-Every `serverless.yml` using the `aws` provider is a single AWS CloudFormation stack.  This is where your AWS Lambda functions and their event configurations are defined and it's how they are deployed.  When you add `resources` those resources are added into your CloudFormation stack upon `serverless deploy`.
+Every stage you deploy to with `serverless.yml` using the `aws` provider is a single AWS CloudFormation stack.  This is where your AWS Lambda functions and their event configurations are defined and it's how they are deployed.  When you add `resources` those resources are added into your CloudFormation stack upon `serverless deploy`.
 
 Define your AWS resources in a property titled `resources`.  What goes in this property is raw CloudFormation template syntax, in YAML, like this:
 
