@@ -35,6 +35,8 @@ functions:
     runtime: nodejs # optional overwrite, default is provider runtime
     memory: 512 # optional overwrite, default is 256
     timeout: 10 # optional overwrite, default is 60
+    parameters:
+      foo: bar // default parameters
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
@@ -94,7 +96,52 @@ functions:
   functionOne:
     handler: handler.functionOne
     memory: 512 # function specific
+    parameters:
+      foo: bar // default parameters
 ```
+
+## Packages
+
+OpenWhisk provides a concept called "packages" to manage related actions. Packages can contain multiple actions under a common identifier in a namespace. Configuration values needed by all actions in a package can be set as default properties on the package, rather than individually on each action.
+
+*Packages are identified using the following format:* `/namespaceName/packageName/actionName`.
+
+### Implicit Packages
+
+Functions can be assigned to packages by setting the function `name` with a package reference.
+
+```yaml
+functions:
+  foo:
+    handler: handler.foo
+    name: "myPackage/foo"
+  bar:
+    handler: handler.bar
+    name: "myPackage/bar"
+```
+
+In this example, two new actions (`foo` & `bar`) will be created using the `myPackage` package.
+
+Packages which do not exist will be automatically created during deployments. When using the `remove` command, any packages referenced in the `serverless.yml` will be deleted.
+
+### Explicit Packages
+
+Packages can also be defined explicitly to set shared configuration parameters. Default package parameters are merged into event parameters for each invocation.
+
+```yaml
+functions:
+  foo:
+    handler: handler.foo
+    name: "myPackage/foo"
+    
+resources:
+  packages:
+    myPackage:
+      parameters:
+        hello: world 
+```
+
+*Explicit packages support the following properties: `parameters`, `annotations` and `shared`.*
 
 ## Runtimes
 
