@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless Kubeless documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://gitter.im/serverless/serverless)
+If you have any questions, [search the forums](https://forum.serverless.com/) or [start your own thread](https://forum.serverless.com/)
 
 <div class="docsSections">
   <div class="docsSection">
