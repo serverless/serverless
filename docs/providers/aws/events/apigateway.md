@@ -12,6 +12,32 @@ layout: Doc
 
 # API Gateway
 
+- [Lambda Proxy Integration](#lambda-proxy-integration)
+  - [Simple HTTP Endpoint](#simple-http-endpoint)
+  - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
+  - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
+  - [Enabling CORS](#enabling-cors)
+  - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-awsiam-authorizers)
+  - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
+  - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
+  - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
+  - [Request Parameters](#request-parameters)
+- [Lambda Integration](#lambda-integration)
+  - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
+  - [Request templates](#request-templates)
+    - [Default Request Templates](#default-request-templates)
+    - [Custom Request Templates](#custom-request-templates)
+    - [Pass Through Behavior](#pass-through-behavior)
+  - [Responses](#responses)
+    - [Custom Response Headers](#custom-response-headers)
+  - [Custom Response Templates](#custom-response-templates)
+  - [Status codes](#status-codes)
+    - [Available Status Codes](#available-status-codes)
+    - [Using Status Codes](#using-status-codes)
+    - [Custom Status Codes](#custom-status-codes)
+- [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+- [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
+
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
 > - [Add a custom domain for your API Gateway](https://serverless.com/blog/serverless-api-gateway-domain/)
@@ -198,6 +224,21 @@ functions:
 
 Configuring the `cors` property sets  [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
 
+To enable the `Access-Control-Max-Age` preflight response header, set the `maxAge` property in the `cors` object:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origin: '*'
+            maxAge: 86400
+```
+
 If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:
 
 ```javascript
@@ -321,7 +362,7 @@ functions:
             identityValidationExpression: someRegex
 ```
 
-You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for you policy cache. The default `type` is 'token'.
+You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for your policy cache. The default `type` is 'token'.
 
 ```yml
 functions:
@@ -497,6 +538,7 @@ This method is more complicated and involves a lot more configuration of the `ht
     "cognitoPoolClaims": {
         "sub": ""
     },
+    "enhancedAuthContext": {},
     "headers": {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate, br",
@@ -633,33 +675,7 @@ See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/lates
 **Notes:**
 
 - A missing/empty request Content-Type is considered to be the API Gateway default (`application/json`)
-    - [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)
-- [API Gateway](#api-gateway)
-  - [Lambda Proxy Integration](#lambda-proxy-integration)
-    - [Simple HTTP Endpoint](#simple-http-endpoint)
-    - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
-    - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
-    - [Enabling CORS](#enabling-cors)
-    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-awsiam-authorizers)
-    - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
-    - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
-    - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
-    - [Request Parameters](#request-parameters)
-  - [Lambda Integration](#lambda-integration)
-    - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
-    - [Request templates](#request-templates)
-      - [Default Request Templates](#default-request-templates)
-      - [Custom Request Templates](#custom-request-templates)
-      - [Pass Through Behavior](#pass-through-behavior)
-    - [Responses](#responses)
-      - [Custom Response Headers](#custom-response-headers)
-    - [Custom Response Templates](#custom-response-templates)
-    - [Status codes](#status-codes)
-      - [Available Status Codes](#available-status-codes)
-      - [Using Status Codes](#using-status-codes)
-      - [Custom Status Codes](#custom-status-codes)
-  - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
-  - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
+- API Gateway docs refer to "WHEN_NO_TEMPLATE" (singular), but this will fail during creation as the actual value should be "WHEN_NO_TEMPLATES" (plural)
 
 ### Responses
 
@@ -857,11 +873,11 @@ Now that you have these two CloudFormation templates defined in your `serverless
 
 ## Share API Gateway and API Resources
 
-As you application grows, you will have idea to break it out into multiple services. However, each serverless project generates new API Gateway by default. If you want to share same API Gateway for muliple projects, you 'll need to reference REST API ID and Root Resource ID into serverless.yml files
+As your application grows, you will likely need to break it out into multiple, smaller services. By default, each Serverless project generates a new API Gateway. However, you can share the same API Gateway between multiple projects by referencing its REST API ID and Root Resource ID in `serverless.yml` as follows:
 
 ```yml
 service: service-name
-provider: 
+provider:
   name: aws
   apiGateway:
     restApiId: xxxxxxxxxx # REST API resource ID. Default is generated by the framework
@@ -872,13 +888,14 @@ functions:
 
 ```
 
-In case the application has many chilren and grandchildren paths, you also want to break them out into smaller services. 
+
+If your application has many nested paths, you might also want to break them out into smaller services. 
 
 ```yml
 service: service-a
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
 
 functions:
@@ -892,10 +909,10 @@ functions:
 
 ```yml
 service: service-b
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
-    restApiRootResourceId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
 
 functions:
   create:
@@ -906,17 +923,17 @@ functions:
           path: /posts/{id}/comments
 ```
 
-They reference the same parent path `/posts`. Cloudformation will throw error if we try to generate existed one. To avoid that, we must reference source ID of `/posts`.
+The above example services both reference the same parent path `/posts`. However, Cloudformation will throw an error if we try to generate an existing path resource. To avoid that, we reference the resource ID of `/posts`:
 
 ```yml
 service: service-a
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
     restApiResources:
       /posts: xxxxxxxxxx
-      
+
 functions:
   ...
 
@@ -924,10 +941,10 @@ functions:
 
 ```yml
 service: service-b
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
-    restApiRootResourceId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
     restApiResources:
       /posts: xxxxxxxxxx
 
@@ -936,18 +953,19 @@ functions:
 
 ```
 
-You can define more than one path resource. Otherwise, serverless will generate paths from root resource. `restApiRootResourceId` can be optional if there isn't path that need to be generated from the root
+You can define more than one path resource, but by default, Serverless will generate them from the root resource.
+`restApiRootResourceId` is optional if a path resource isn't required for the root (`/`).
 
 ```yml
 service: service-a
-provider: 
+provider:
   apiGateway:
-    restApiId: xxxxxxxxxx 
+    restApiId: xxxxxxxxxx
     # restApiRootResourceId: xxxxxxxxxx # Optional
     restApiResources:
       /posts: xxxxxxxxxx
       /categories: xxxxxxxxx
-      
+
 
 functions:
   listPosts:
@@ -966,4 +984,4 @@ functions:
 
 ```
 
-For best practice and CI, CD friendly, we should define Cloudformation resources from early service, then use Cross-Stack References for another ones.
+To be more in line with best practices and to be CI/CD friendly, we should define CloudFormation resources from an earlier service, then use Cross-Stack References from it in future projects.

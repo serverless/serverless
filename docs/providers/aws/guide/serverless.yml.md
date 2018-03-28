@@ -62,6 +62,8 @@ provider:
       rateLimit: 100
   stackTags: # Optional CF stack tags
     key: value
+  iamManagedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
+    - arn:aws:iam:*****:policy/some-managed-policy
   iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
     - Effect: 'Allow'
       Action:
@@ -92,6 +94,8 @@ provider:
     subnetIds:
       - subnetId1
       - subnetId2
+  notificationArns: # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
+    - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
@@ -101,6 +105,8 @@ package: # Optional deployment packaging configuration
     - .git/**
     - .travis.yml
   excludeDevDependencies: false # Config if Serverless should automatically exclude dev dependencies in the deployment package. Defaults to true
+  artifact: path/to/my-artifact.zip # Own package that should be used. You must provide this file.
+  individually: true # Enables individual packaging for each function. If true you must provide package for each function. Defaults to false
 
 
 functions:
@@ -125,6 +131,15 @@ functions:
       subnetIds:
         - subnetId1
         - subnetId2
+    package:
+      include: # Specify the directories and files which should be included in the deployment package for this specific function.
+        - src/**
+        - handler.js
+      exclude: # Specify the directories and files which should be excluded in the deployment package for this specific function.
+        - .git/**
+        - .travis.yml
+      artifact: path/to/my-artifact.zip # Own package that should be use for this specific function. You must provide this file.
+      individually: true # Enables individual packaging for specific function. If true you must provide package for each function. Defaults to false
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
@@ -144,6 +159,8 @@ functions:
             - prefix: uploads/
             - suffix: .jpg
       - schedule:
+          name: my scheduled event
+          description: a description of my scheduled event's purpose
           rate: rate(10 minutes)
           enabled: false
           input:
@@ -151,6 +168,7 @@ functions:
             key2: value2
             stageParams:
               stage: dev
+          inputPath: '$.stageVariables'
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
@@ -159,7 +177,9 @@ functions:
           batchSize: 100
           startingPosition: LATEST
           enabled: false
-      - alexaSkill
+      - alexaSkill:
+          appId: amzn1.ask.skill.xx-xx-xx-xx
+          enabled: true
       - alexaSmartHome:
           appId: amzn1.ask.skill.xx-xx-xx-xx
           enabled: true

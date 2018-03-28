@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: aws-fsharp # NOTE: update this with your service name
+service: aws-go-dep # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -19,7 +19,7 @@ service: aws-fsharp # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: dotnetcore1.0
+  runtime: go1.x
 
 # you can overwrite defaults here
 #  stage: dev
@@ -39,25 +39,28 @@ provider:
 #          - ""
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
+#            - "/*"
 
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
 
-# you can add packaging information here
 package:
-  artifact: bin/release/netcoreapp1.0/deploy-package.zip
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+ exclude:
+   - ./**
+ include:
+   - ./bin/**
 
 functions:
   hello:
-    handler: FsharpHandlers::AwsDotnetFsharp.Handler::hello
+    handler: bin/hello
+  world:
+    handler: bin/world
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
+# events:
 #    events:
 #      - http:
 #          path: users/create
@@ -66,9 +69,23 @@ functions:
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill
+#      - alexaSkill: amzn1.ask.skill.xx-xx-xx-xx
+#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
+#      - cloudwatchEvent:
+#          event:
+#            source:
+#              - "aws.ec2"
+#            detail-type:
+#              - "EC2 Instance State-change Notification"
+#            detail:
+#              state:
+#                - pending
+#      - cloudwatchLog: '/aws/lambda/hello'
+#      - cognitoUserPool:
+#          pool: MyUserPool
+#          trigger: PreSignUp
 
 #    Define function environment variables here
 #    environment:

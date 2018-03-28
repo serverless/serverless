@@ -63,6 +63,7 @@ Here are the available runtimes for AWS Lambda:
 * aws-scala-sbt
 * aws-csharp
 * aws-fsharp
+* aws-go
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
@@ -115,6 +116,7 @@ provider:
       Action:
         - Update:Replace
         - Update:Delete
+      Resource: "*"
       Condition:
         StringEquals:
           ResourceType:
