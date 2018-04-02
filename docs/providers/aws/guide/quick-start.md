@@ -64,7 +64,7 @@ $ cd my-service
 
 4. **Fetch the Function Logs**
 
-  Open up a separate tab in your console and stream all logs for a specific Function using this command.
+  Open up a separate tab in your console, set your [Provider Credentials](./credentials.md) and stream all logs for a specific Function using this command.
   ```bash
   serverless logs -f hello -t
   ```
