@@ -30,6 +30,7 @@ node_modules
 
 # IDE stuff
 **/.idea
+**/.vs
 
 # OS stuff
 .DS_Store
@@ -54,5 +55,6 @@ jest
 *.swp
 
 # DotNet
+obj/
 [Bb]in/
 [Oo]bj/
