@@ -85,6 +85,25 @@ functions:
     handler: handler.hello_two
 ```
 
+You can specify an array of functions, which is useful if you separate your functions in to different files:
+
+```yml
+# serverless.yml
+...
+
+functions:
+  - ${file(./foo-functions.yml)}
+  - ${file(./bar-functions.yml)}
+```
+
+```yml
+# foo-functions.yml
+getFoo:
+  handler: handler.foo
+deleteFoo:
+  handler: handler.foo
+```
+
 ## Runtimes
 
 The Kubeless provider plugin supports the following runtimes.
