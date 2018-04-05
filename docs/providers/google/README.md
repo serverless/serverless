@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless Google Cloud Functions documentation!
 
-If you have any questions, [search the forums](https://forum.serverless.com/) or [start your own thread](https://forum.serverless.com/)
+If you have any questions, [search the forums](https://forum.serverless.com?utm_source=framework-docs) or [start your own thread](https://forum.serverless.com?utm_source=framework-docs)
 
 **Note:** [Google Cloud system credentials](./guide/credentials.md) are required for using the CLI.
 
