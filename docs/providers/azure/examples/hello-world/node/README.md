@@ -19,7 +19,7 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 
 ## 2. Install Provider Plugin
 
-`npm install -g serverless-azure` followed by `npm install` in the service directory.
+`npm install -g serverless-azure-functions` followed by `npm install` in the service directory.
 
 ## 3. Deploy
 
