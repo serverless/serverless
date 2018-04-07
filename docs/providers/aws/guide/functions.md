@@ -254,7 +254,7 @@ In order for other services such as Kinesis streams to be made available, a NAT 
 
 ## Environment Variables
 
-You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of strings:
+You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key-value pairs of string to string:
 
 ```yml
 # serverless.yml
