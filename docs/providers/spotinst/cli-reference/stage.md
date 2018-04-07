@@ -12,14 +12,30 @@ layout: Doc
 
 # Spotinst Functions - Stage Variables
 
-You are able to set a stage variable in your function to distinguish between the multiple stages that your function maybe going through. The function is initially set to 'dev' for development but there are two ways you can change the stage if you so need. 
+Serverless allows you to specify different stages to deploy your project to. Changing the stage will change the environment your function is running on, which is helpful when you wish to keep production code partitioned from your development environment.
 
-## Through Serverless Framwork
+Your function's stage is set to 'dev' by default. You can update the stage when deploying the function, either from the command line using the serverless framework, or by modifying the serverless.yml in your project. When utilizing this feature, remember to include a config file that holds the environment IDs associated with your stages. An example config.json would look something like this:
+```json
+{
+    "dev": "env-abcd1234",
+    "prod": "env-defg5678" 
+}
+```
+
+## Through Serverless Framework
 To change the stage through the serverless framework you simply need to enter the command
 
 ```bash
 serverless deploy --stage #{Your Stage Name}
 ```
+You will also need to update the environment parameter to point to the config.json:
+```yaml
+ spotinst:
+     environment: ${file(./config.json):${opt:stage, self:provider.stage, 'dev'}}
+```
+Note that while I am using 'dev' as the default stage, you may change this parameter to a custom default stage.
+
+
 
 ## Through the .yml File
 
@@ -32,4 +48,5 @@ provider:
   spotinst:
     environment: #{Your Environment ID}
 ```
+Be sure to also modify your environment ID when you change the stage if you are not working with a config file.
 
