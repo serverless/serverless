@@ -15,11 +15,11 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 
 ## 1. Create a service
 
-`serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-app`
+`serverless install --url https://github.com/azure/boilerplate-azurefunctions --name my-sls-app`
 
 ## 2. Install Provider Plugin
 
-`npm install -g serverless-azure` followed by `npm install` in the service directory.
+`npm install -g serverless-azure-functions` followed by `npm install` in the service directory.
 
 ## 3. Deploy
 
@@ -27,7 +27,7 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 
 ## 4. Invoke deployed function
 
-`serverless invoke --function helloWorld` or `serverless invoke -f helloWorld`
+`serverless invoke --function httpjs --path httpQueryString.json` or `serverless invoke -f httpjs --path httpQueryString.json`
 
 `-f` is shorthand for `--function`
 
@@ -35,7 +35,7 @@ In your terminal window you should see the response from azure
 
 ```bash
 {
-    "payload": "Hello, World!"
+    "payload": "Hello pragna"
 }
 ```
 
