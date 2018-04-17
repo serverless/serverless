@@ -11,6 +11,7 @@ menuItems:
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
   - {menuText: Webtasks Guide, path: /framework/docs/providers/webtasks/guide/quick-start}
+  - {menuText: Alibaba Cloud Function Compute Guide, path: /framework/docs/providers/alicloud/guide/quick-start}
 -->
 
 # Getting Started with Serverless
@@ -32,6 +33,11 @@ Next up, it's time to choose where you'd like your serverless service to run.
 
 <div class="docsSections">
   <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="/framework/docs/providers/alicloud/guide/quick-start">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/alibaba-black.png" width="250" draggable="false"/>
+      </a>
+    </div>
     <div class="docsSectionHeader">
       <a href="/framework/docs/providers/aws/guide/quick-start">
         <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/aws-black.png" width="250" draggable="false"/>

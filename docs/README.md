@@ -12,6 +12,7 @@ menuItems:
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Webtasks" , path: /framework/docs/providers/webtasks/}
+  - {menuText: "- Alibaba Cloud", path: /framework/docs/providers/alicloud/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -138,6 +139,22 @@ Already using AWS or another cloud provider? Read on.
         <li><a href="./providers/webtasks/guide">Guide</a></li>
         <li><a href="./providers/webtasks/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/webtasks/events">Events</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/alicloud/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/alicloud-small-grayscale.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/alicloud/guide/quick-start">
+        Alibaba Cloud Function Compute QuickStart</a></li>
+        <li><a href="./providers/alicloud/guide">Guide</a></li>
+        <li><a href="./providers/alicloud/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/alicloud/events">Events</a></li>
       </ul>
     </div>
   </div>
