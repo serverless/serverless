@@ -163,7 +163,7 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 | **[Serverless Apigw Binary](https://github.com/maciejtreder/serverless-apigw-binary)** <br/> Plugin to enable binary support in AWS API Gateway. | [maciejtreder](http://github.com/maciejtreder) |
 | **[Serverless Apigwy Binary](https://github.com/ryanmurakami/serverless-apigwy-binary)** <br/> Serverless plugin for configuring API Gateway to return binary responses | [ryanmurakami](http://github.com/ryanmurakami) |
 | **[Serverless Aws Alias](https://github.com/HyperBrain/serverless-aws-alias)** <br/> This plugin enables use of AWS aliases on Lambda functions. | [HyperBrain](http://github.com/HyperBrain) |
-| **[Serverless Aws Documentation](https://github.com/9cookies/serverless-aws-documentation)** <br/> Serverless plugin to add documentation and models to the serverless generated API Gateway | [9cookies](http://github.com/9cookies) |
+| **[Serverless Aws Documentation](https://github.com/deliveryhero/serverless-aws-documentation)** <br/> Serverless plugin to add documentation and models to the serverless generated API Gateway | [9cookies](http://github.com/9cookies) |
 | **[Serverless Build Plugin](https://github.com/nfour/serverless-build-plugin)** <br/> A Node.js focused build plugin for serverless. | [nfour](http://github.com/nfour) |
 | **[Serverless Cf Vars](https://gitlab.com/kabo/serverless-cf-vars)** <br/> Enables use of AWS pseudo functions and Fn::Sub string substitution | [kabo](http://github.com/kabo) |
 | **[Serverless Cljs Plugin](https://github.com/nervous-systems/serverless-cljs-plugin)** <br/> Enables Clojurescript as an implementation language for Lambda handlers | [nervous-systems](http://github.com/nervous-systems) |
