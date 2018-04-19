@@ -26,7 +26,7 @@ provider:
   name: aliyun
 
 plugins:
-  - serverless-aliyun-cloudfunctions
+  - serverless-aliyun-function-compute
 
 functions:
   first:
