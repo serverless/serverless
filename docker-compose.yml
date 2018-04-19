@@ -106,6 +106,6 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-webtasks-nodejs:/app
   aliyun-nodejs:
-    image: node:6.10.3
+    image: node:8
     volumes:
       - ./tmp/serverless-integration-test-aliyun-nodejs:/app
