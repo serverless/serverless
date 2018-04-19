@@ -80,7 +80,7 @@ service: my-fc-service
 
 provider:
   name: aliyun
-  runtime: nodejs6
+  runtime: nodejs8
   credentials: ~/.aliyuncli/credentials # path must be absolute
 
 plugins:

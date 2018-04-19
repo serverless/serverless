@@ -32,7 +32,7 @@ service: new-service
 
 provider:
   name: aliyun
-  runtime: nodejs6
+  runtime: nodejs8
   credentials: ~/.aliyuncli/credentials # path must be absolute
 
 plugins:
@@ -44,7 +44,7 @@ functions:
     events:
       - oss:
           sourceArn: acs:oss:cn-shanghai:${env:ALIYUN_ACCOUNT}:my-service-resource
-          triggerConfig: 
+          triggerConfig:
             events:
               - oss:ObjectCreated:PostObject
               - oss:ObjectCreated:PutObject
@@ -61,7 +61,7 @@ service: new-service
 
 provider:
   name: aliyun
-  runtime: nodejs6
+  runtime: nodejs8
   credentials: ~/.aliyuncli/credentials # path must be absolute
 
 plugins:
@@ -103,7 +103,7 @@ service: new-service
 
 provider:
   name: aliyun
-  runtime: nodejs6
+  runtime: nodejs8
   credentials: ~/.aliyuncli/credentials # path must be absolute
 
 plugins:
@@ -136,7 +136,7 @@ service: new-service
 
 provider:
   name: aliyun
-  runtime: nodejs6
+  runtime: nodejs8
   credentials: ~/.aliyuncli/credentials # path must be absolute
 
 plugins:

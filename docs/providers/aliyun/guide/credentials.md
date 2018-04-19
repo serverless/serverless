@@ -52,12 +52,12 @@ You need to create credentials Serverless can use to create resources in your Pr
 
 ## Update the `provider` config in `serverless.yml`
 
-Open up your `serverless.yml` file and update the `provider` section with 
+Open up your `serverless.yml` file and update the `provider` section with
 the path to your credentials file (this path needs to be absolute!). It should look something like this:
 
 ```yml
 provider:
   name: aliyun
-  runtime: nodejs6
+  runtime: nodejs8
   credentials: ~/.aliyuncli/credentials
 ```
