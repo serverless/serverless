@@ -44,10 +44,10 @@ serverless --version
 
 ### Installing the Alibaba Cloud Function Compute Provider Plugin
 
-Install the latest package from npm by running:
+Install the latest plugin by running:
 
 ```
-npm install --save serverless-aliyun-function-compute
+serverless plugin install --name serverless-aliyun-function-compute
 ```
 
 ### Setting up Alibaba Cloud Function Compute
