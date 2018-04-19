@@ -33,6 +33,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 * [Contributing](#contributing)
 * [Community](#community)
 * [Consultants](#consultants)
+* [Licensing](#licensing)
 * [Previous Version 0.5.x](#v.5)
 
 ## <a name="quick-start"></a>Quick Start
@@ -431,6 +432,12 @@ These consultants use the Serverless Framework and can help you build your serve
 * [OneSpeed](https://onespeed.io/)
 * [Seraro](http://www.seraro.com/) - Who also runs Atlanta Serverless Meetup  (https://www.meetup.com/Atlanta-CABI-Camp-Cloud-AI-Blockchain-IOT) and Delhi Serverless Meetup (https://www.meetup.com/Delhi-NCR-Serverless-Architecture-Meetup/)
 ----
+
+## <a name="licensing"></a>Licensing
+
+Serverless is licensed under the [MIT License](./LICENSE.txt).
+
+All files located in the node_modules and external directories are externally maintained libraries used by this software which have their own licenses; we recommend you read them, as their terms may differ from the terms in the MIT License.
 
 # <a name="v.5"></a>Previous Serverless Version 0.5.x
 
