@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Kubeless - Plugin Search
+title: Serverless Framework Commands - Fn - Plugin Search
 menuText: Plugin Search
 menuOrder: 8
 description: Search through all available Serverless plugins
@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/plugin-search)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/cli-reference/plugin-search)
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Search

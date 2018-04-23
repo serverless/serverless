@@ -1,41 +1,41 @@
 <!--
-title: Serverless Framework - Kubeless Events - HTTP Events
+title: Serverless Framework - Fn Events - HTTP Events
 menuText: HTTP Events
 menuOrder: 1
-description: HTTP Events in Kubeless
+description: HTTP Events in Fn
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/events/http)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/events/http)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless HTTP Events
+# Fn HTTP Events
 
-The first type of events that you can create in Kubeless are HTTP events.
+The first type of events that you can create in Fn are HTTP events.
 
-When creating HTTP events, Kubeless will create a Kubernetes Service that you can call through Serverless or directly calling the HTTP endpoint.
+When creating HTTP events, Fn will create a Kubernetes Service that you can call through Serverless or directly calling the HTTP endpoint.
 
 ## Single HTTP Endpoint
 
-If you don't specify the type of event in your `serverless.yml` Kubeless will create an HTTP endpoint by default:
+If you don't specify the type of event in your `serverless.yml` Fn will create an HTTP endpoint by default:
 
 ```yml
 service: testing-pkg
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
     handler: handler.hello
 ```
 
-When deploying this `serverless.yml` file, Kubeless will create a Kubernetes service with a single endpoint. Calling that HTTP endpoint will trigger the function associated with it.
+When deploying this `serverless.yml` file, Fn will create a Kubernetes service with a single endpoint. Calling that HTTP endpoint will trigger the function associated with it.
 
 ## Multiple endpoints with Ingress rules
 
@@ -45,11 +45,11 @@ You can also deploy several endpoints in a single `serverless.yml` file:
 service: todos
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: nodejs6
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   create:
@@ -80,7 +80,7 @@ functions:
 
 ```
 
-If the events HTTP definitions contain a `path` attribute, when deploying this Serverless YAML definition, Kubeless will create the needed [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) rules to redirect each of the requests to the right service:
+If the events HTTP definitions contain a `path` attribute, when deploying this Serverless YAML definition, Fn will create the needed [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) rules to redirect each of the requests to the right service:
 
 ```
 kubectl get ingress

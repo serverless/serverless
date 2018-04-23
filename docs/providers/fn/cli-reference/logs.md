@@ -1,16 +1,16 @@
 <!--
-title: Serverless Framework Commands - Kubeless - Logs
+title: Serverless Framework Commands - Fn - Logs
 menuText: logs
 menuOrder: 4
-description: View logs of your Kubeless Function within your terminal using the Serverless Framework
+description: View logs of your Fn Function within your terminal using the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/logs)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/cli-reference/logs)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Logs
+# Fn - Logs
 
 Lets you watch the logs of a specific function.
 

@@ -1,22 +1,22 @@
 <!--
-title: Serverless Framework - Kubeless Guide - Installing The Serverless Framework and Kubeless
+title: Serverless Framework - Fn Guide - Installing The Serverless Framework and Fn
 menuText: Installation
 menuOrder: 3
-description: How to install the Serverless Framework and start using it with Kubeless
+description: How to install the Serverless Framework and start using it with Fn
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/installation)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/guide/installation)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Installation
+# Fn - Installation
 
-## Installing Kubeless in your Kubernetes cluster
+## Installing Fn in your Kubernetes cluster
 
-Kubeless runs on [Kubernetes](https://kubernetes.io), you need a working Kubernetes cluster to run kubeless. For testing you can use [minikube](https://github.com/kubernetes/minikube).
+Fn runs on [Kubernetes](https://kubernetes.io), you need a working Kubernetes cluster to run Fn. For testing you can use [minikube](https://github.com/kubernetes/minikube).
 
-Once you have a working Kubernetes cluster, you need to install the Kubeless Controller in it. To do this, follow the [installation instructions in the Kubeless README.md file](https://github.com/kubeless/kubeless#installation).
+Once you have a working Kubernetes cluster, you need to install the Fn Controller in it. To do this, follow the [installation instructions in the Fn README.md file](https://github.com/Fn/Fn#installation).
 
 ## Installing Node.js
 

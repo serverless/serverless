@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Kubeless - Deploy
+title: Serverless Framework Commands - Fn - Deploy
 menuText: deploy
 menuOrder: 2
 description: Deploy your service to the specified provider
@@ -7,12 +7,12 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/deploy)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/cli-reference/deploy)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Deploy
+# Fn - Deploy
 
-The `sls deploy` command deploys your entire service via the Kubeless API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).
+The `sls deploy` command deploys your entire service via the Fn API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).
 
 Use `serverless deploy function -f my-function` when you have made code changes and you want to quickly upload your updated code to your Kubernetes cluster.
 

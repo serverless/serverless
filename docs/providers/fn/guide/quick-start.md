@@ -1,19 +1,19 @@
 <!--
-title: Serverless Framework - Kubeless Guide - Quick Start
+title: Serverless Framework - Fn Guide - Quick Start
 menuText: Quick Start
 menuOrder: 2
-description: Getting started with the Serverless Framework on Kubeless
+description: Getting started with the Serverless Framework on Fn
 layout: Doc
 -->
 
-# Kubeless - Quick Start
+# Fn - Quick Start
 
 ## Pre-requisites
 
 1. Node.js `v6.5.0` or later.
 2. Serverless CLI `v1.20` or later. You can run
 `npm install -g serverless` to install it.
-3. Install Kubeless & Dependencies(./installation.md). 
+3. Install Fn & Dependencies(./installation.md). 
 
 ## Create a new service
 
@@ -21,7 +21,7 @@ Create a new service using the Python template, specifying a unique name and an 
 
 ```bash
 # Create a new Serverless Service/Project
-$ serverless create --template kubeless-python --path new-project
+$ serverless create --template Fn-python --path new-project
 # Change into the newly created directory
 $ cd new-project
 # Install npm dependencies
@@ -51,9 +51,9 @@ $ npm install
   Invokes the Function and returns results.
 
   ```bash
-  $ serverless invoke --function hello --data '{"Kubeless": "Welcome!"}' -l
+  $ serverless invoke --function hello --data '{"Fn": "Welcome!"}' -l
   # results
-{ body: '{"input": {"Kubeless": "Welcome!"}, "message": "Go Serverless v1.0! Your function executed successfully!"}',
+{ body: '{"input": {"Fn": "Welcome!"}, "message": "Go Serverless v1.0! Your function executed successfully!"}',
   statusCode: 200 }
    ```
 

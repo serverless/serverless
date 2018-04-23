@@ -1,18 +1,18 @@
 <!--
-title: Serverless Framework - Kubeless Guide - Deploying
+title: Serverless Framework - Fn Guide - Deploying
 menuText: Deploying
 menuOrder: 7
-description: How to deploy your Kubeless functions and their required infrastructure
+description: How to deploy your Fn functions and their required infrastructure
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/deploying)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/guide/deploying)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Deploying
+# Fn - Deploying
 
-The Serverless Framework was designed to provision your Kubeless Functions and Events.  It does this via a couple of methods designed for different types of deployments.
+The Serverless Framework was designed to provision your Fn Functions and Events.  It does this via a couple of methods designed for different types of deployments.
 
 ## Deploy All
 
@@ -26,20 +26,20 @@ Use this method when you have updated your Function, Event or Resource configura
 
 ### How It Works
 
-The Serverless Framework translates all syntax in `serverless.yml` to [the Function object API](https://github.com/kubeless/kubeless/blob/master/pkg/spec/spec.go) calls to provision your Functions and Events.
+The Serverless Framework translates all syntax in `serverless.yml` to [the Function object API](https://github.com/Fn/Fn/blob/master/pkg/spec/spec.go) calls to provision your Functions and Events.
 
-For each function in your `serverless.yml` file, Kubeless will create an Kubernetes Function object and for each HTTP event, it will create a [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/).
+For each function in your `serverless.yml` file, Fn will create an Kubernetes Function object and for each HTTP event, it will create a [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/).
 
 For example, let's take the following example `serverless.yml` file:
 
 ```yaml
 service: new-project
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
@@ -71,7 +71,7 @@ NAME                 DESIRED   CURRENT   READY     AGE
 rs/hello-699783077   1         1         1         2m
 ```
 
-Kubeless will create a [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for your function and a [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/) for each event.
+Fn will create a [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for your function and a [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/) for each event.
 
 
 ## Deploy Function

@@ -1,20 +1,20 @@
 <!--
-title: Serverless Framework - Kubeless Guide - Debugging
+title: Serverless Framework - Fn Guide - Debugging
 menuText: Debugging
 menuOrder: 8
-description: Recommendations and best practices for debugging Kubeless Functions with the Serverless Framework
+description: Recommendations and best practices for debugging Fn Functions with the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/debugging)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/guide/debugging)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Debugging
+# Fn - Debugging
 
-How can we debug errors in our Kubeless functions?
+How can we debug errors in our Fn functions?
 
-Let's imagine that we have deployed the following Python code as a Kubeless function using Serverless:
+Let's imagine that we have deployed the following Python code as a Fn function using Serverless:
 
 ```python
 import urllib2
@@ -41,11 +41,11 @@ And its corresponding Serverless YAML file:
 # serverless.yml
 service: bikesearch
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   bikesearch:
@@ -123,9 +123,9 @@ Traceback (most recent call last):
     return route.call(**args)
   File "/usr/local/lib/python2.7/site-packages/bottle.py", line 1740, in wrapper
     rv = callback(*a, **ka)
-  File "/kubeless.py", line 35, in handler
+  File "/Fn.py", line 35, in handler
     return func(bottle.request)
-  File "/kubeless/handler.py", line 5, in find
+  File "/Fn/handler.py", line 5, in find
     term = event['data']['term']
 KeyError: 'term'
 172.17.0.1 - - [25/Aug/2017:08:46:16 +0000] "POST / HTTP/1.1" 500 746 "" "" 0/6703
@@ -142,13 +142,13 @@ Traceback (most recent call last):
     return route.call(**args)
   File "/usr/local/lib/python2.7/site-packages/bottle.py", line 1740, in wrapper
     rv = callback(*a, **ka)
-  File "/kubeless.py", line 35, in handler
+  File "/Fn.py", line 35, in handler
     return func(bottle.request)
-  File "/kubeless/handler.py", line 5, in find
+  File "/Fn/handler.py", line 5, in find
     term = event['data']['term']
 KeyError: 'term'
 ```
 
 It should be clear from the second-to-last line that the error originates in an incorrect key name.
 
-This is a very basic example of debugging a Kubeless function, but it should hopefully highlight the basic principles. Obviously, in production environments, you would want to have more formal and sophisticated error handling built into your code.
+This is a very basic example of debugging a Fn function, but it should hopefully highlight the basic principles. Obviously, in production environments, you would want to have more formal and sophisticated error handling built into your code.

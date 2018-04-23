@@ -1,16 +1,16 @@
 <!--
-title: Serverless Framework Commands - Kubeless - Invoke
+title: Serverless Framework Commands - Fn - Invoke
 menuText: invoke
 menuOrder: 3
-description: Invoke an Kubeless Function using the Serverless Framework
+description: Invoke an Fn Function using the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/invoke)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/cli-reference/invoke)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Invoke
+# Fn - Invoke
 
 Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
 
@@ -29,7 +29,7 @@ serverless invoke --function functionName
 
 ## Examples
 
-### Kubeless
+### Fn
 
 ```bash
 serverless invoke --function functionName

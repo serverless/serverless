@@ -1,6 +1,6 @@
 <!--
-title: Serverless - Kubeless Documentation
-menuText: Kubeless
+title: Serverless - Fn Documentation
+menuText: Fn
 layout: Doc
 -->
 
@@ -8,9 +8,9 @@ layout: Doc
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless Provider Documentation
+# Fn Provider Documentation
 
-Welcome to the Serverless Kubeless documentation!
+Welcome to the Serverless Fn documentation!
 
 If you have any questions, [search the forums](https://forum.serverless.com?utm_source=framework-docs) or [start your own thread](https://forum.serverless.com?utm_source=framework-docs)
 
@@ -18,7 +18,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless_guide.jpg" alt="Serverless Framework Kubeless Guide" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/Fn_guide.jpg" alt="Serverless Framework Fn Guide" width="250" draggable="false"/>
       </a>
     </div>
     <div class="test">
@@ -40,7 +40,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless_cli_ref.jpg" alt="Serverless Framework Kubeless CLI Reference" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/Fn_cli_ref.jpg" alt="Serverless Framework Fn CLI Reference" width="250" draggable="false"/>
       </a>
     </div>
     <div>
@@ -62,7 +62,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless_events.jpg" alt="Serverless Framework Kubeless Events Reference" width="250" draggable="false"/>
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/Fn_events.jpg" alt="Serverless Framework Fn Events Reference" width="250" draggable="false"/>
       </a>
     </div>
     <div>

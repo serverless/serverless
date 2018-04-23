@@ -1,36 +1,36 @@
 <!--
-title: Serverless Framework - Kubeless Guide - Functions
+title: Serverless Framework - Fn Guide - Functions
 menuText: Functions
 menuOrder: 5
-description: How to configure Kubeless functions in the Serverless Framework
+description: How to configure Fn functions in the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/functions)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/guide/functions)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Functions
+# Fn - Functions
 
-If you are using Kubeless as a provider, all *functions* inside the service are Kubernetes Function.v1.k8s.io objects.
+If you are using Fn as a provider, all *functions* inside the service are Kubernetes Function.v1.k8s.io objects.
 
 ## Configuration
 
-All of the Kubeless Functions in your serverless service can be found in `serverless.yml` under the `functions` property.
+All of the Fn Functions in your serverless service can be found in `serverless.yml` under the `functions` property.
 
 ```yml
 # serverless.yml
 service: my-service
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
   memorySize: 512M # optional, maximum memory
   timeout: 10 # optional, in seconds, default is 180
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   # The top name will be the name of the Function object
@@ -72,11 +72,11 @@ You can add as many functions as you want within this property.
 service: my-service
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello_one:
@@ -106,7 +106,7 @@ deleteFoo:
 
 ## Runtimes
 
-The Kubeless provider plugin supports the following runtimes.
+The Fn provider plugin supports the following runtimes.
 
 - Node.js
 - Python
@@ -114,7 +114,7 @@ The Kubeless provider plugin supports the following runtimes.
 
 Please see the following repository for sample projects using those runtimes:
 
-[https://github.com/serverless/serverless-kubeless/tree/master/examples](https://github.com/serverless/serverless-kubeless/tree/master/examples)
+[https://github.com/serverless/serverless-Fn/tree/master/examples](https://github.com/serverless/serverless-Fn/tree/master/examples)
 
 ## Installing dependencies
 
@@ -133,9 +133,9 @@ You can add environment variable configuration to a specific function in `server
 ```yml
 # serverless.yml
 service: service-name
-provider: kubeless
+provider: Fn
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
@@ -150,13 +150,13 @@ Or if you want to apply environment variable configuration to all functions in y
 # serverless.yml
 service: service-name
 provider:
-  name: kubeless
+  name: Fn
   environment:
     SYSTEM_NAME: mySystem
     TABLE_NAME: tableName1
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
@@ -178,10 +178,10 @@ Those labels will appear in deployments, services and pods and will make it easi
 
 ```yml
 provider:
-  name: kubeless
+  name: Fn
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
@@ -196,10 +196,10 @@ It is possible to define a custom hostname and path that will be used to serve a
 
 ```yml
 provider:
-  name: kubeless
+  name: Fn
   hostname: myhostname.io
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
@@ -215,10 +215,10 @@ If no hostname is given but a function specifies a `path`, the plugin will use t
 
 ```yml
 provider:
-  name: kubeless
+  name: Fn
   defaultDNSResolution: 'xip.io'
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
@@ -234,20 +234,20 @@ The final URL in which the function will be listening can be retrieved executing
 
 ## Custom images (alpha feature)
 
-It is possible to skip the Kubeless build system and specify a prebuilt image to run a function. This feature is useful for using Kubeless with languages that are still not supported or if the function package [is over 1MB](./packaging.md#package-maximum-size). To get more information about how to use custom images visit the [upstream documentation](https://github.com/kubeless/kubeless/blob/master/docs/runtimes.md#custom-runtime-alpha).
+It is possible to skip the Fn build system and specify a prebuilt image to run a function. This feature is useful for using Fn with languages that are still not supported or if the function package [is over 1MB](./packaging.md#package-maximum-size). To get more information about how to use custom images visit the [upstream documentation](https://github.com/Fn/Fn/blob/master/docs/runtimes.md#custom-runtime-alpha).
 
 ```yml
 service: hello
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   hello:
     handler: handler.hello
-    image: tuna/kubeless-python:0.0.6
+    image: tuna/Fn-python:0.0.6
 ```

@@ -1,28 +1,28 @@
 <!--
-title: Serverless Framework - Kubeless Events - Schedule
+title: Serverless Framework - Fn Events - Schedule
 menuText: Schedule
 menuOrder: 3
-description:  Scheduled Events in Kubeless
+description:  Scheduled Events in Fn
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/events/schedule)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/events/schedule)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless Scheduled Events
+# Fn Scheduled Events
 
-Kubeless functions can be triggered following a certain schedule. The schedule can be specified events section of the `serverless.yml` following the Cron notation:
+Fn functions can be triggered following a certain schedule. The schedule can be specified events section of the `serverless.yml` following the Cron notation:
 
 ```
 service: clock
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: nodejs6
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   clock:
@@ -31,4 +31,4 @@ functions:
       - schedule: "* * * * *"
 ```
 
-When deploying this `serverless.yml` file, Kubeless will create a Kubernetes cron job that will trigger the function `printClock` every minute.
+When deploying this `serverless.yml` file, Fn will create a Kubernetes cron job that will trigger the function `printClock` every minute.

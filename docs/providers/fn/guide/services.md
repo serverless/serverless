@@ -1,18 +1,18 @@
 <!--
-title: Serverless Framework - Kubeless Guide - Services
+title: Serverless Framework - Fn Guide - Services
 menuText: Services
 menuOrder: 4
-description: How to manage and configure serverless services, which contain your Kubeless functions and their events.
+description: How to manage and configure serverless services, which contain your Fn functions and their events.
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/services)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/guide/services)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Services
+# Fn - Services
 
-A `service` in the Serverless Framework is like a project ((not to be confused with [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/).  It's where you define your Kubeless Functions and the `events` that trigger them, all in a file called `serverless.yml`.
+A `service` in the Serverless Framework is like a project ((not to be confused with [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/).  It's where you define your Fn Functions and the `events` that trigger them, all in a file called `serverless.yml`.
 
 To get started building your first Serverless Framework project, create a `service`.
 
@@ -43,13 +43,13 @@ To create a service, use the `create` command. You must also pass in a runtime (
 
 ```bash
 # Create service with the Python template in the folder ./new-project
-$ serverless create --template kubeless-python --path new-project
+$ serverless create --template Fn-python --path new-project
 ```
 
-Here are the available runtimes for Kubeless using the Serverless plugin:
+Here are the available runtimes for Fn using the Serverless plugin:
 
-* kubeless-python
-* kubeless-nodejs
+* Fn-python
+* Fn-nodejs
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
@@ -66,8 +66,8 @@ Each `service` configuration is managed in the `serverless.yml` file. The main r
 
 - Declare a Serverless service
 - Define one or more functions in the service
-    - Define the provider the service will be deployed to (in our case, kubeless)
-    - Define any custom plugins to be used (in our case, we will need to use the serverless-kubeless plugin)
+    - Define the provider the service will be deployed to (in our case, Fn)
+    - Define any custom plugins to be used (in our case, we will need to use the serverless-Fn plugin)
     - Define events that trigger each function to execute (e.g. HTTP requests)
     - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
     - Allow flexible configuration using Serverless Variables
@@ -80,11 +80,11 @@ You can see the name of the service, the provider configuration and the first fu
 # several functions. Not to be confused with K8s services
 service: new-project
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 
 plugins:
-  - serverless-kubeless
+  - serverless-Fn
 
 functions:
   # The top name will be the name of the Function object
@@ -100,7 +100,7 @@ The `handler.py` file contains your function code. The function definition in `s
 
 ### package.json
 
-The `package.json` file is the npm package definition of our functions with all their dependencies, including the kubeless-serverless plugin.
+The `package.json` file is the npm package definition of our functions with all their dependencies, including the Fn-serverless plugin.
 
 ## Deployment
 
@@ -112,7 +112,7 @@ To deploy a service, use the `deploy` command:
 serverless deploy
 ```
 
-Check out the [deployment guide](https://serverless.com/framework/docs/providers/kubeless/guide/deploying/) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
+Check out the [deployment guide](https://serverless.com/framework/docs/providers/Fn/guide/deploying/) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
 
 ## Removal
 
@@ -145,7 +145,7 @@ frameworkVersion: "=1.20"
 service: users
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 …
 ```
@@ -160,7 +160,7 @@ frameworkVersion: ">=1.20 <2.0.0"
 service: users
 
 provider:
-  name: kubeless
+  name: Fn
   runtime: python2.7
 
 …

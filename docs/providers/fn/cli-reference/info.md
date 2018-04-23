@@ -1,16 +1,16 @@
 <!--
-title: Serverless Framework Commands - Kubeless - Info
+title: Serverless Framework Commands - Fn - Info
 menuText: info
 menuOrder: 5
-description: Display information about your deployed service and the Kubeless Functions it contains.
+description: Display information about your deployed service and the Fn Functions it contains.
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/info)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/cli-reference/info)
 <!-- DOCS-SITE-LINK:END -->
 
-# Kubeless - Info
+# Fn - Info
 
 Displays information about the deployed service.
 
@@ -26,7 +26,7 @@ serverless info
 
 ## Examples
 
-On Kubeless the info plugin uses the Kubernetes API to gather the necessary
+On Fn the info plugin uses the Kubernetes API to gather the necessary
 information about deployed functions and Kubernetes services. See the example
 below for an example output.
 
