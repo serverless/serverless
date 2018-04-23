@@ -5,7 +5,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/guide/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/guide/)
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Fn Guide

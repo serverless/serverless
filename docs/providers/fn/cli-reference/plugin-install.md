@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/cli-reference/plugin-install)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/cli-reference/plugin-install)
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Install

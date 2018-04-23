@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/cli-reference/invoke)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/cli-reference/invoke)
 <!-- DOCS-SITE-LINK:END -->
 
 # Fn - Invoke

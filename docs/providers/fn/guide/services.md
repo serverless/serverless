@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/guide/services)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/guide/services)
 <!-- DOCS-SITE-LINK:END -->
 
 # Fn - Services
@@ -112,7 +112,7 @@ To deploy a service, use the `deploy` command:
 serverless deploy
 ```
 
-Check out the [deployment guide](https://serverless.com/framework/docs/providers/Fn/guide/deploying/) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
+Check out the [deployment guide](https://serverless.com/framework/docs/providers/fn/guide/deploying/) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
 
 ## Removal
 

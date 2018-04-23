@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/Fn/events/schedule)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/events/schedule)
 <!-- DOCS-SITE-LINK:END -->
 
 # Fn Scheduled Events
