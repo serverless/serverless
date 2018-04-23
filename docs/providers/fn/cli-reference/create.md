@@ -17,21 +17,21 @@ Creates a new Serverless service in the current working directory based on the p
 **Create service in current working directory:**
 
 ```bash
-serverless create --template Fn-python
+serverless create --template fn-nodejs
 ```
 
 ```bash
-serverless create --template Fn-nodejs
+serverless create --template fn-go
 ```
 
 **Create service in new folder:**
 
 ```bash
-serverless create --template Fn-python --path my-service
+serverless create --template fn-nodejs --path my-service
 ```
 
 ```bash
-serverless create --template Fn-nodejs --path my-service
+serverless create --template fn-nodejs --path my-service
 ```
 
 ## Options
@@ -50,28 +50,28 @@ To see a list of available templates run `serverless create --help`
 
 These are the current available templates for Fn:
 
-- Fn-nodejs
-- Fn-python
+- fn-nodejs
+- fn-go
 
 ## Examples
 
 ### Creating a new Serverless service
 
 ```bash
-serverless create --template Fn-python --name my-special-service
+serverless create --template fn-nodejs --name my-special-service
 ```
 
-This example will generate scaffolding for a service with `Fn` as a provider and `python2.7` as runtime. The scaffolding will be generated in the current working directory.
+This example will generate scaffolding for a service with `Fn` as a provider and `nodejs` as runtime. The scaffolding will be generated in the current working directory.
 
 The provider which is used for deployment later on is Fn.
 
 ### Creating a named service in a (new) directory
 
 ```bash
-serverless create --template Fn-python --path my-new-service
+serverless create --template fn-nodejs --path my-new-service
 ```
 
-This example will generate scaffolding for a service with `Fn` as a provider and `python2.7` as runtime. The scaffolding will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless will use the already present directory.
+This example will generate scaffolding for a service with `Fn` as a provider and `nodejs` as runtime. The scaffolding will be generated in the `my-new-service` directory. This directory will be created if not present. Otherwise Serverless will use the already present directory.
 
 Additionally Serverless will rename the service according to the path you provide. In this example the service will be renamed to `my-new-service`.
 
