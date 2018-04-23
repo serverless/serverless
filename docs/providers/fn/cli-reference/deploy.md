@@ -14,30 +14,19 @@ layout: Doc
 
 The `sls deploy` command deploys your entire service via the Fn API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).
 
-Use `serverless deploy function -f my-function` when you have made code changes and you want to quickly upload your updated code to your Kubernetes cluster.
+Use `serverless deploy function -f my-function` when you have made code changes and you want to quickly upload your updated code to your Fn server or cluster.
 
 ```bash
 serverless deploy
 ```
 
-This is the simplest deployment usage possible. With this command Serverless will deploy your service to the default Kubernetes cluster in your kubeconfig file.
+This is the simplest deployment usage possible. With this command Serverless will deploy your service to the configured Fn server.
 
 ## Options
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
-- `--package` or `-p` The path of a previously packaged deployment to get deployed (skips packaging step).
-- `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
-
-## Artifacts
-
-After the `serverless deploy` command runs all created deployment artifacts are placed in the `.serverless` folder of the service.
+- `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut
 
 ## Provided lifecycle events
-- `deploy:cleanup`
-- `deploy:initialize`
-- `deploy:setupProviderConfiguration`
-- `deploy:createDeploymentArtifacts`
-- `deploy:compileFunctions`
-- `deploy:compileEvents`
 - `deploy:deploy`
 - `deploy:function:deploy`
