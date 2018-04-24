@@ -42,11 +42,25 @@ do this by adding the name of the Plugin to the `plugins` section in the
 plugins:
   - custom-serverless-plugin
 ```
+The `plugins` section supports two formats:
 
-Plugins might want to add extra information which should be accessible to
-Serverless. The `custom` section in the `serverless.yml` file is the place where
-you can add necessary configurations for your plugins (the plugins
-author/documentation will tell you if you need to add anything there):
+Array object:
+```yml
+plugins:
+  - plugin1
+  - plugin2
+```
+
+Enhanced plugins object:
+```yml
+plugins:
+  localPath: './custom_serverless_plugins'
+  modules:
+    - plugin1
+    - plugin2
+```
+
+Plugins might want to add extra information which should be accessible to Serverless. The `custom` section in the `serverless.yml` file is the place where you can add necessary configurations for your plugins (the plugins author / documentation will tell you if you need to add anything there):
 
 ```yml
 plugins:
@@ -58,18 +72,28 @@ custom:
 
 ## Service local plugin
 
-If you are working on a plugin or have a plugin that is just designed for one
-project you can add them to the `.serverless_plugins` directory at the root of
-your service, and in the `plugins` array in `serverless.yml`.
+If you are working on a plugin or have a plugin that is just designed for one project they can be loaded from the local folder. Local plugins can be added in the `plugins` array in `serverless.yml`.
 
-The plugin will be loaded based on being named `custom-serverless-plugin.js` or
-`custom-serverless-plugin\index.js` in the root of `.serverless_plugins` folder.
+By default local plugins can be added to the `.serverless_plugins` directory at the root of your service, and in the `plugins` array in `serverless.yml`.
+```yml
+plugins:
+  - custom-serverless-plugin
+```
+
+Local plugins folder can be changed by enhancing `plugins` object:
+```yml
+plugins:
+  localPath: './custom_serverless_plugins'
+  modules:
+    - custom-serverless-plugin
+```
+The `custom-serverless-plugin` will be loaded from the `custom_serverless_plugins` directory at the root of your service. If the `localPath` is not provided or empty `.serverless_plugins` directory will be taken as the `localPath`.
+
+The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin\index.js` in the root of `localPath` folder (`.serverless_plugins` by default).
 
 ### Load Order
 
-Keep in mind that the order you define your plugins matters. When Serverless
-loads all the core plugins and then the custom plugins in the order you've
-defined them.
+Keep in mind that the order you define your plugins matters. When Serverless loads all the core plugins and then the custom plugins in the order you've defined them.
 
 ```yml
 # serverless.yml
