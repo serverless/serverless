@@ -18,10 +18,7 @@ The `sls remove` command will remove the deployed service, defined in your curre
 serverless remove
 ```
 
-It will remove the Fn Function objects from your Kubernetes cluster, the Kubernetes Deployments and the Kubernetes Services associated with the Serverless service.
-
-## Options
-- `--verbose` or `-v` Shows additional information during the removal.
+It will remove the Fn Function functions from your Fn server.
 
 ## Provided lifecycle events
 - `remove:remove`
