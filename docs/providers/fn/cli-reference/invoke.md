@@ -35,19 +35,13 @@ serverless invoke --function functionName
 serverless invoke --function functionName
 ```
 
-This example will invoke your deployed function on the configured platform
+This example will invoke your deployed function on the configured Fn Api Url
 endpoint. This will output the result of the invocation in your terminal.
 
 #### Function invocation with data
 
 ```bash
 serverless invoke --function functionName --data '{"name": "Bernie"}'
-```
-
-#### Function invocation with data from standard input
-
-```bash
-node dataGenerator.js | serverless invoke --function functionName
 ```
 
 #### Function invocation with logging
