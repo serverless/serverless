@@ -16,7 +16,7 @@ The Serverless Framework helps you develop and deploy serverless applications us
 
 The Serverless Framework is different than other application frameworks because:
 * It manages your code as well as your infrastructure
-* It supports multiple languages (Node.js, Python, Ruby)
+* It supports multiple languages (Node.js, Python, Ruby, Go)
 
 ## Core Concepts
 
@@ -24,7 +24,7 @@ Here are the Serverless Framework's main concepts and how they pertain to Fn.
 
 ### Functions
 
-A Function is a [Fn Function](http://Fn.io/).  It's an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
+A Function is a [Fn Function](http://fnproject.io/).  It's an independent unit of deployment, like a microservice.  It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
 
 * *Saving a user to the database*
 * *Processing a file in a database*
@@ -42,19 +42,19 @@ Anything that triggers an Fn Event to execute is regarded by the Framework as an
 
 ### Services
 
-A **Service** is the Serverless Framework's unit of organization (not to be confused with [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/).  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions and the Events that trigger them, all in one file entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
+A **Service** is the Serverless Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions and the Events that trigger them, all in one file entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
 
 ```yml
 # serverless.yml
 
-service: users
+service: hello-world
 
 functions: # Your "Functions"
-  usersCreate:
-    handler: hello.hello # The code to call as a response to the event
-    events: # The "Events" that trigger this function
-      - http: 
-          path: /hello
+  hello:
+    name: hi
+    version: 0.0.1
+    path: /boom
+    runtime: go
 ```
 
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
