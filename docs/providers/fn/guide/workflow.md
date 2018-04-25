@@ -18,9 +18,8 @@ Intro. Quick recommendations and tips for various processes.
 
 1. Write your functions
 2. Use `serverless deploy` only when you've made changes to `serverless.yml` and in CI/CD systems.
-3. Use `serverless deploy function -f myFunction` to rapidly deploy changes when you are working on a specific Fn Function.
+3. Use `serverless deploy -f myFunction` to rapidly deploy changes when you are working on a specific Fn Function.
 4. Use `serverless invoke -f myFunction -l` to test your Fn Functions.
-5. Open up a separate tab in your console and stream logs in there via `serverless logs -f myFunction -t`.
 6. Write tests to run locally.
 
 ### Larger Projects
@@ -35,10 +34,10 @@ A handy list of commands to use when developing with the Serverless Framework.
 Creates a new Service
 
 ```
-serverless create -p [SERVICE NAME] -t Fn-python
+serverless create -p [SERVICE NAME] -t fn-nodejs
 ```
 ```
-serverless create -p [SERVICE NAME] -t Fn-nodejs
+serverless create -p [SERVICE NAME] -t fn-go
 ```
 
 ##### Deploy All
@@ -50,13 +49,13 @@ serverless deploy
 ##### Deploy Function
 Use this to quickly overwrite your Fn Functinos, allowing you to develop faster.
 ```
-serverless deploy function -f [FUNCTION NAME]
+serverless deploy -f [FUNCTION NAME]
 ```
 
 ##### Invoke Function
 Invokes an Fn Function and returns logs.
 ```
-serverless invoke function -f [FUNCTION NAME] -l
+serverless invoke -f [FUNCTION NAME] -l
 ```
 
 ##### Streaming Logs
