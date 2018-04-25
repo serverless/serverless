@@ -12,21 +12,17 @@ layout: Doc
 
 # Fn - Installation
 
-## Installing Fn in your Kubernetes cluster
+## Installing Fn
 
-Fn runs on [Kubernetes](https://kubernetes.io), you need a working Kubernetes cluster to run Fn. For testing you can use [minikube](https://github.com/kubernetes/minikube).
+[Fn](https://github.com/fnproject/fn) can be run in its simplest form as a docker container:
 
-Once you have a working Kubernetes cluster, you need to install the Fn Controller in it. To do this, follow the [installation instructions in the Fn README.md file](https://github.com/Fn/Fn#installation).
+```
+docker run --name fnserver --rm -i -v $(pwd)/data:/app/data -v \
+/var/run/docker.sock:/var/run/docker.sock --privileged -p 8080:8080 \
+--entrypoint ./fnserver fnproject/fnserver
+```
 
-## Installing Node.js
-
-Serverless is a [Node.js](https://nodejs.org) CLI tool so the first thing you need to do is to install Node.js on your machine.
-
-Go to the official [Node.js website](https://nodejs.org), download and follow the [installation instructions](https://nodejs.org/en/download/) to install Node.js on your local machine.
-
-**Note:** Serverless runs on Node v4 or higher.
-
-You can verify that Node.js is installed successfully by running `node --version` in your terminal. You should see the corresponding Node version number printed out.
+For more advanced and robust install options see: [Operating FN](https://github.com/fnproject/fn/blob/master/docs/README.md#for-operators)
 
 ## Installing the Serverless Framework
 
@@ -49,4 +45,3 @@ To see which version of serverless you have installed run:
 ```bash
 serverless --version
 ```
-
