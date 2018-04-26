@@ -53,8 +53,10 @@ functions: # Your "Functions"
   hello:
     name: hi
     version: 0.0.1
-    path: /boom
     runtime: go
+    events:
+        - http:
+            path: /hello
 ```
 
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
