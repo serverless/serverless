@@ -108,7 +108,7 @@ Next up, it's time to choose where you'd like your serverless service to run.
       </a>
     </div>
     <div style="text-align:center;">
-      <a href="/framework/docs/providers/fm/guide/quick-start">Fn<br/>Quick Start Guide</a>
+      <a href="/framework/docs/providers/fn/guide/quick-start">Fn<br/>Quick Start Guide</a>
     </div>
   </div>
 </div>
