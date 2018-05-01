@@ -33,53 +33,28 @@ For each function in your `serverless.yml` file, Fn will create an Fn Function.
 For example, let's take the following example `serverless.yml` file:
 
 ```yaml
-service: new-project
-provider:
-  name: Fn
-  runtime: python2.7
 
-plugins:
-  - serverless-Fn
+service: hello-world
 
-functions:
+functions: # Your "Functions"
   hello:
-    handler: handler.hello
-```
-
-When deploying that file, the following objects will be created in your Kubernetes cluster:
-
-```
-$ kubectl get functions
-
-NAME      KIND
-hello     Function.v1.k8s.io
-```
+    name: hi
+    version: 0.0.1
+    runtime: go
+    events:
+        - http:
+            path: /hello
 
 ```
-$ kubectl get all
 
-NAME                       READY     STATUS    RESTARTS   AGE
-po/hello-699783077-dk15r   1/1       Running   0          2m
-
-NAME             CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
-svc/hello        10.0.0.39    <none>        8080/TCP   2m
-
-NAME           DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-deploy/hello   1         1         1            1           2m
-
-NAME                 DESIRED   CURRENT   READY     AGE
-rs/hello-699783077   1         1         1         2m
-```
-
-Fn will create a [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for your function and a [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/) for each event.
-
+When deploying that file FN will provide you with one endpoint that you can hit at: `FN_API_URL/r/hello-world/hello`
 
 ## Deploy Function
 
 This deployment method updates or deploys a single function. It performs the platform API call to deploy your package without the other resources. It is much faster than redeploying your whole service each time.
 
 ```bash
-serverless deploy function --function myFunction
+serverless deploy --function myFunction
 ```
 
 ### Tips
