@@ -141,4 +141,19 @@ Already using AWS or another cloud provider? Read on.
       </ul>
     </div>
   </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/fn/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/fn/guide/quick-start">Fn QuickStart</a></li>
+        <li><a href="./providers/fn/guide">Guide</a></li>
+        <li><a href="./providers/fn/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/fn/events">Events</a></li>
+      </ul>
+    </div>
+  </div>
 </div>
