@@ -1,5 +1,5 @@
-# Welcome to serverless. Read the docs
-# https://serverless.com/framework/docs/
+# Welcome to serverless. Read the fn provider docs
+# https://serverless.com/framework/docs/providers/fn/
 
 # Serverless.yml is the configuration the CLI
 # uses to deploy your code to your provider of choice
@@ -16,9 +16,10 @@ provider:
 
 plugins:
   - serverless-fn
+
 # The `functions` block defines what code to deploy
 functions:
-  hello:
+  hello: # <- hello references the ./hello folder and the func.js file inside
     name: hello
     version: 0.0.1
     idletimeout: 45
