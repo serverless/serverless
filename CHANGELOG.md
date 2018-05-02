@@ -1,3 +1,24 @@
+# 1.27.0 (02.05.2018)
+- [Add maxAge option for CORS](https://github.com/serverless/serverless/pull/4639)
+- [Add fn integration](https://github.com/serverless/serverless/pull/4934)
+- [iamManagedPolicies merging with Vpc config](https://github.com/serverless/serverless/pull/4879)
+- [Support arrays in function definition too](https://github.com/serverless/serverless/pull/4847)
+- [Add iam managed policies](https://github.com/serverless/serverless/pull/4793)
+- [Pass authorizer custom context to target lambda](https://github.com/serverless/serverless/pull/4773)
+- [Allow UsagePlan's to be created without ApiKeys defined](https://github.com/serverless/serverless/pull/4768)
+- [Added name property to cloudwatchEvent CF template](https://github.com/serverless/serverless/pull/4763)
+- [Java maven templates for OpenWhisk](https://github.com/serverless/serverless/pull/4758)
+- [Pass serverless variable when calling function in referenced file](https://github.com/serverless/serverless/pull/4743)
+- [Eliminate/Report Hung Promises, Prepopulate Stage and Region, Handle Quoted Strings](https://github.com/serverless/serverless/pull/4713)
+- [Restricting alexaSkill functions to specific Alexa skills](https://github.com/serverless/serverless/pull/4701)
+- [Add support for concurrency option in AWS Lambda](https://github.com/serverless/serverless/pull/4694)
+- [Fix concurrency upload](https://github.com/serverless/serverless/pull/4677)
+- [Support AWS GovCloud and China region deployments](https://github.com/serverless/serverless/pull/4665)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.26.1...v1.27.0)
+
+
 # 1.26.1 (27.02.2018)
 - [Fix lambda integration regression](https://github.com/serverless/serverless/pull/4775)
 
