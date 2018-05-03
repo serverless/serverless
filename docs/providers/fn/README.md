@@ -18,7 +18,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/Fn_guide.jpg" alt="Serverless Framework Fn Guide" width="250" draggable="false"/>
+        Fn Guide
       </a>
     </div>
     <div class="test">
@@ -39,7 +39,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/Fn_cli_ref.jpg" alt="Serverless Framework Fn CLI Reference" width="250" draggable="false"/>
+        Fn CLI Reference
       </a>
     </div>
     <div>
@@ -61,7 +61,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/Fn_events.jpg" alt="Serverless Framework Fn Events Reference" width="250" draggable="false"/>
+        Fn Events Reference
       </a>
     </div>
     <div>
