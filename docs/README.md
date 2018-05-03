@@ -7,6 +7,7 @@ menuItems:
   - {menuText: Providers, path: /framework/docs/providers}
   - {menuText: "- AWS", path: /framework/docs/providers/aws/}
   - {menuText: "- Azure", path: /framework/docs/providers/azure/}
+  - {menuText: "- fn", path: /framework/docs/providers/fn/}
   - {menuText: "- Google", path: /framework/docs/providers/google/}
   - {menuText: "- OpenWhisk", path: /framework/docs/providers/openwhisk/}
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}

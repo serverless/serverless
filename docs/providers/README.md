@@ -86,7 +86,7 @@ Under the hood, the serverless framework is deploying your code to a cloud provi
   <div class="docsSection">
     <div class="docsSectionHeader">
       <a href="./fn/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-black.png" width="250" draggable="false"/>
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
       </a>
     </div>
     <div style="text-align:center;">
