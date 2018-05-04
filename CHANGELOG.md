@@ -1,3 +1,10 @@
+# 1.27.1 (04.05.2018)
+- [Fix customVariable syntax use](https://github.com/serverless/serverless/pull/4947)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.0...v1.27.1)
+
+
 # 1.27.0 (02.05.2018)
 - [Add maxAge option for CORS](https://github.com/serverless/serverless/pull/4639)
 - [Add fn integration](https://github.com/serverless/serverless/pull/4934)
