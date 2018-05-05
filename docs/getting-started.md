@@ -6,6 +6,7 @@ menuOrder: 0
 menuItems:
   - {menuText: AWS Guide, path: /framework/docs/providers/aws/guide/quick-start}
   - {menuText: Azure Functions Guide, path: /framework/docs/providers/azure/guide/quick-start}
+  - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
   - {menuText: OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
