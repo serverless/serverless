@@ -984,4 +984,118 @@ functions:
 
 ```
 
-To be more in line with best practices and to be CI/CD friendly, we should define CloudFormation resources from an earlier service, then use Cross-Stack References from it in future projects.
+### Easiest and CI/CD friendly example of using shared API Gateway and API Resources.
+
+You can define your API Gateway resource in one of the former service and export the `restApiId` and `restApiRootResourceId` using cloudformation cross-stack references.
+
+```yml
+service: service-a
+
+resources:
+  Resources:
+    YourApiGateway:
+      Type: AWS::ApiGateway::RestApi 
+      Properties:
+        Name: YourApiGatewayName
+
+    Outputs:
+      apiGatewayRestApiId:
+        Value:
+          Ref: YourApiGatewayName
+        Export:
+          Name: apiGateway-restApiId
+      
+      apiGatewayRestApiRootResourceId:
+        Value:
+           Fn::GetAtt:
+            - YourApiGateway
+            - RootResourceId 
+        Export:
+          Name: apiGateway-rootResourceId
+  
+  provider:
+    apiGateway:
+      restApiId: 
+        Ref: YourApiGatewayName
+      restApiResources:
+        Fn::GetAtt:
+            - YourApiGateway
+            - RootResourceId
+
+functions: ......
+```
+
+This creates API gateway and then exports the `restApiId` and `rootResourceId` values using cloudformation crosss stack output. 
+We will import this and reference in future services.
+
+```yml
+service: service-b
+
+provider:
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': apiGateway-restApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': apiGateway-rootResourceId
+
+```
+
+You can use this method to share your API Gateway across services in same region. Read about this limitation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html).
+
+
+### Manually Configuring shared API Gateway 
+
+Use AWS console on browser, navigate to the API Gateway console. Select your already existing API Gateway. 
+Top Navbar should look like this
+
+```
+    APIs>apigateway-Name (xxxxxxxxxx)>Resources>/ (yyyyyyyyyy)
+```
+
+Here xxxxxxxxx is your restApiId and yyyyyyyyyy the restApiRootResourceId.
+
+#### Note while using authorizers with shared API Gateway
+AWS API Gateway allows only 1 Authorizer for 1 ARN, This is okay when you use conventional serverless setup, because each stage and service will create different API Gateway. But this can cause problem when using authorizers with shared API Gateway. If we use the same authorizer directly in different services like this. 
+
+```yml
+service: service-c
+
+provider:
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': apiGateway-restApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': apiGateway-rootResourceId
+
+functions:
+  deleteUser:
+    events:
+      - http:
+        path: /users/{userId}
+        authorizer:
+          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn 
+```
+
+
+```yml
+service: service-d
+
+provider:
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': apiGateway-restApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': apiGateway-rootResourceId
+
+functions:
+  deleteProject:
+    events:
+      - http:
+        path: /project/{projectId}
+        authorizer:
+          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn 
+```
+
+we encounter error from cloudformation as reported [here](https://github.com/serverless/serverless/issues/4711).
+A proper fix for this is work in progress [here](https://github.com/serverless/serverless/pull/4197) and is marked under milestone for version 1.28.
+Until then you can either use the above PR as monkeypatch (as explained in the PR comments) or you can add a unique `name` attribute to `authorizer` in each function. This creates different API Gateway authorizer for each function, bound to the same API Gateway.
