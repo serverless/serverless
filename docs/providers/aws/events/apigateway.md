@@ -1025,7 +1025,7 @@ resources:
 functions: ......
 ```
 
-This creates API gateway and then exports the `restApiId` and `rootResourceId` values using cloudformation crosss stack output. 
+This creates API gateway and then exports the `restApiId` and `rootResourceId` values using cloudformation cross stack output.
 We will import this and reference in future services.
 
 ```yml
