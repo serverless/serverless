@@ -1,3 +1,10 @@
+# 1.27.2 (07.05.2018)
+- [Revived getAccountId method](https://github.com/serverless/serverless/pull/4956)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.1...v1.27.2)
+
+
 # 1.27.1 (04.05.2018)
 - [Fix customVariable syntax use](https://github.com/serverless/serverless/pull/4947)
 
