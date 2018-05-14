@@ -1,10 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 
-group = 'com.serverless'
+group = 'com.example.conversion'
 version = 'dev'
 
-description = """hello"""
+description = """converter"""
 
 
 sourceCompatibility = 1.5
@@ -26,6 +26,12 @@ buildscript {
   }
 }
 
+plugins {
+  id "de.undercouch.download" version "3.4.3"
+  id "com.moowork.node" version "1.2.0"
+}
+
+
 apply plugin: 'kotlin'
 apply plugin: "io.spring.dependency-management"
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -45,16 +51,40 @@ repositories {
 
 dependencies {
   compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: '1.1.51'
-
-  compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version:'1.1.0'
   compile group: 'com.amazonaws', name: 'aws-lambda-java-log4j2', version:'1.0.0'
+  compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.323'
+  compile group: 'com.amazonaws', name: 'aws-lambda-java-core', version:'1.1.0'
   compile group: 'com.amazonaws', name: 'aws-lambda-java-events', version:'2.0.1'
-
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version:'2.8.5'
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.8.5'
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version:'2.8.5'
+  compile group: 'net.bramp.ffmpeg', name: 'ffmpeg', version: '0.6.2'
 }
 
-task deploy(type: Exec, dependsOn: 'shadowJar') {
-  commandLine 'serverless', 'deploy'
+
+node {
+  version = '8.11.1'
 }
+
+task ffmpegDownload(type: Download) {
+  src([
+      "https://example.com/ffmpeg",
+      "https://example.com/ffprobe"
+  ])
+  dest "src/main/resources"
+  onlyIfModified true
+}
+
+task ffmpegMakeExecutable(type: Exec) {
+  commandLine "chmod", "-R", "u+x", "src/main/resources"
+}
+
+task addServerless(type: YarnTask) {
+  args = ['add', 'serverless']
+}
+
+task deploy(type: NodeTask, dependsOn: 'shadowJar') {
+  script = file('node_modules/.bin/serverless')
+  args = ['deploy']
+}
+
+ffmpegMakeExecutable.dependsOn(ffmpegDownload)
+deploy.dependsOn(ffmpegMakeExecutable)
+deploy.dependsOn(addServerless)
