@@ -176,6 +176,8 @@ Using the `labels` configuration makes it possible to add `key` / `value` labels
 
 Those labels will appear in deployments, services and pods and will make it easier to group functions by label or find functions with a common label.
 
+Note that variable types are interpolated by the Serverless Framework in `serverless.yml`. Specifying a value that can be interpolated as anything other than a string (for example, `true`) is not supported and will cause issues for your `kubeless` deployment.
+
 ```yml
 provider:
   name: kubeless
