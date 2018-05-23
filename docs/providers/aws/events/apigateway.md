@@ -1109,7 +1109,7 @@ A proper fix for this is work is using [Share Authorizer](#share-authorizer) or 
 
 ## Share Authorizer
 
-Auto-created Authorizer is convenient for conventional setup. However, when you need to define your custom Authorizer, or use `COGNITO_USER_POOLS` authorizer with shared API Gateway, it is painful because of AWS limitation. Sharing Authorizer is a better way to do 
+Auto-created Authorizer is convenient for conventional setup. However, when you need to define your custom Authorizer, or use `COGNITO_USER_POOLS` authorizer with shared API Gateway, it is painful because of AWS limitation. Sharing Authorizer is a better way to do. 
 
 ```yml
 functions:
