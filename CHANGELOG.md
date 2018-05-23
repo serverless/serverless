@@ -1,3 +1,11 @@
+# 1.27.3 (23.05.2018)
+- [Retry unconditionally when receiving 429](https://github.com/serverless/serverless/pull/4986)
+- [Support Custom Authorizer Type (COGNITO_USER_POOLS) with authorizeId](https://github.com/serverless/serverless/pull/4197)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.2...v1.27.3)
+
+
 # 1.27.2 (07.05.2018)
 - [Revived getAccountId method](https://github.com/serverless/serverless/pull/4956)
 
