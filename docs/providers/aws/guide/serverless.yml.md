@@ -96,6 +96,9 @@ provider:
       - subnetId2
   notificationArns: # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
+  tags: # Optional service wide function tags
+    foo: bar
+    baz: qux
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
