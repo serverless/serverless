@@ -17,7 +17,7 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 `serverless create --template openwhisk-swift --path myService` or `sls create --template openwhisk-swift --path myService`, where 'myService' is a new folder to be created with template service files.  Change directories into this new folder.
 
 ## 2. Install Provider Plugin
-`npm install -g serverless-openwhisk` followed by `npm install` in the service directory.
+`npm install` in the service directory.
 
 ## 3. Deploy
 `serverless deploy` or `sls deploy`. `sls` is shorthand for the Serverless CLI command
