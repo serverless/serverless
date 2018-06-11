@@ -81,7 +81,7 @@
     "markdown-link": "^0.1.1",
     "markdown-magic": "^0.1.19",
     "markdown-table": "^1.1.1",
-    "mocha": "^3.0.2",
+    "mocha": "^5.2.0",
     "mocha-lcov-reporter": "^1.2.0",
     "mock-require": "^1.3.0",
     "parse-github-url": "^1.0.1",
