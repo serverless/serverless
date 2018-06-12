@@ -410,6 +410,7 @@ Check out our [help wanted](https://github.com/serverless/serverless/labels/help
 
 ## <a name="consultants"></a>Consultants
 These consultants use the Serverless Framework and can help you build your serverless projects.
+* [Andrew Griffiths](https://www.andrewgriffithsonline.com/) - Independent consultant specialising in serverless technology
 * [Trek10](https://www.trek10.com/)
 * [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
 * [SC5 Online](https://sc5.io)
