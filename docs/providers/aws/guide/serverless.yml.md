@@ -80,6 +80,7 @@ provider:
       Resource: "*"
     - Effect: Deny
       Principal: "*"
+      Resource: "*"
       Action:
         - Update:Replace
         - Update:Delete
