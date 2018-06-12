@@ -26,7 +26,9 @@ serverless print
 
 ## Options
 
-- None
+- `format` Print configuration in given format ("yaml", "json", "text"). Default: yaml
+- `path` Period-separated path to print a sub-value (eg: "provider.name")
+- `transform` Transform-function to apply to the value (currently only "keys" is supported)
 
 ## Examples:
 
@@ -66,4 +68,16 @@ functions:
     handler: handler.world
     events:
       - timer: cron(0 * * * *) # <-- Resolved
+```
+
+This prints the provider name:
+
+```bash
+sls print --path provider --format text
+```
+
+And this prints all function names:
+
+```bash
+sls print --path functions --transform keys --format text
 ```
