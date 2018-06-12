@@ -20,32 +20,13 @@ Account credentials for OpenWhisk can be provided through a configuration file o
 - *OW_APIHOST* - Platform endpoint, e.g. `openwhisk.ng.bluemix.net`
 - *OW_AUTH* - Authentication key, e.g. `xxxxxx:yyyyy
 
+### Have you installed the provider plugin?
 
-
-### Have you installed and setup the provider plugin?
-
-Using the framework with the OpenWhisk platform needs you to install the provider plugin and link this to your service. 
-
-####  Install the provider plugin
+Install project dependencies which includes the OpenWhisk provider plugin.
 
 ```
-$ npm install --global serverless-openwhisk
-```
-
-*Due to an [outstanding issue](https://github.com/serverless/serverless/issues/2895) with provider plugins, the [OpenWhisk provider](https://github.com/serverless/serverless-openwhisk) must be installed as a global module.*
-
-
-#### Link provider plugin to service directory
-
-Using `npm link` will import the provider plugin into the service directory. Running `npm install` will automatically perform this using a `post install` script.
-
-```
-$ npm link serverless-openwhisk
-or
 $ npm install
 ```
-
-
 
 **_…and that's it!_**
 

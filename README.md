@@ -431,6 +431,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Emerging Technology Advisors](https://www.emergingtechnologyadvisors.com)
 * [OneSpeed](https://onespeed.io/)
 * [Seraro](http://www.seraro.com/) - Who also runs Atlanta Serverless Meetup  (https://www.meetup.com/Atlanta-CABI-Camp-Cloud-AI-Blockchain-IOT) and Delhi Serverless Meetup (https://www.meetup.com/Delhi-NCR-Serverless-Architecture-Meetup/)
+* [superluminar](https://superluminar.io) - runs serverlessdays Hamburg and Serverless Meetup Hamburg
 ----
 
 ## <a name="licensing"></a>Licensing
