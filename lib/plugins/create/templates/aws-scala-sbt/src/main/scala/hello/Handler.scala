@@ -5,9 +5,9 @@ import scala.collection.JavaConverters
 
 class Handler extends RequestHandler[Request, Response] {
 
-	def handleRequest(input: Request, context: Context): Response = {
-		Response("Go Serverless v1.0! Your function executed successfully!", input)
-	}
+  def handleRequest(input: Request, context: Context): Response = {
+    Response("Go Serverless v1.0! Your function executed successfully!", input)
+  }
 }
 
 class ApiGatewayHandler extends RequestHandler[Request, ApiGatewayResponse] {

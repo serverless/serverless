@@ -13,56 +13,17 @@
 
 service: openwhisk-php # NOTE: update this with your service name
 
-# Please ensure the serverless-openwhisk provider plugin is installed globally.
-# $ npm install -g serverless-openwhisk
-# ...before installing project dependencies to register this provider.
+# Remember to install project dependencies to register the provider plugin.
 # $ npm install
 provider:
   name: openwhisk
   runtime: php
 
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
 functions:
   hello:
     handler: handler.hello
-
-#    Functions can be defined using sequences rather than referring 
-#    to a handler.
-#    sequence:
-#      - parse_input
-#      - do_some_algorithm
-#      - construct_output
-
-#    The following are a few example events you can configure
-#    Check the event documentation for details
-#    events:
-#      - http: GET /api/users/create
-#      - trigger: trigger_name
-
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins
 plugins:
   - serverless-openwhisk
-
-# you can define custom triggers and trigger feeds using the resources section.
-#
-#resources:
-#  triggers:
-#    my_trigger:
-#      parameters: 
-#        hello: world    
-#    alarm_trigger:
-#      parameters: 
-#        hello: world
-#     feed: /whisk.system/alarms/alarm
-#     feed_parameters: 
-#       cron: '*/8 * * * * *'
