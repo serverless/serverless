@@ -128,6 +128,7 @@
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "tabtab": "^2.2.2",
+    "untildify": "^3.0.3",
     "update-notifier": "^2.2.0",
     "uuid": "^2.0.2",
     "write-file-atomic": "^2.1.0",
