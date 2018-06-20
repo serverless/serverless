@@ -1,21 +1,16 @@
 <!--
-title: Serverless - Platform Documentation
+title: Serverless - Dashboard Documentation
 menuText: Platform
 layout: Doc
-menuItems:
-  - {menuText: emit, path: /framework/docs/platform/commands/emit/}
-  - {menuText: login, path: /framework/docs/platform/commands/login/}
-  - {menuText: logout, path: /framework/docs/platform/commands/logout/}
-  - {menuText: run, path: /framework/docs/platform/commands/run/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/platform)
 <!-- DOCS-SITE-LINK:END -->
 
-# Serverless Platform (Beta)
+# Serverless Dashboard (Beta)
 
-The Serverless Platform is currently in experimental beta. If you'd like to participate in the beta, simply follow the instructions below.
+The Serverless Dashboard is currently in experimental beta. If you'd like to participate in the beta, simply follow the instructions below.
 
 ## Set-Up
 
@@ -33,42 +28,45 @@ $ serverless -v
 
 ## Usage
 
-First, register or log in to the Serverless platform in via the CLI
+First, register or log in to the Serverless dashboard in via the CLI
 
 ```sh
 $ serverless login
 ```
 
-After logging into the platform via the Serverless framework CLI every deploy will be published **privately** to the Serverless Platform. It allows you to view and share your deployed services.
+After logging into the dashboard, make a note of your tenant, and create a new application by clicking on "+ App" button in the applications page.
 
-Give it a try with a new service, or an existing service:
+![Serverless Dashboard - Tenant](../../assets/tenant.png?raw=true "Serverless Dashboard - Tenant")
+![Serverless Dashboard - Create Application](../../assets/tenant.png?raw=true "Serverless Dashboard - Create Application")
+
+After creating your serverless application, add this application and your tenant to your service `serverless.yml` file:
+
+
+```yml
+service: my-service
+
+tenant: eahefnawy
+app: my-app
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - hello.world
+      - http:
+          path: hello/world
+          method: post
+          cors: true
+```
+
+Now that you've logged in and added your tenant and app, every time you deploy, your service will be published **privately** to the Serverless Dashboard:
 
 ```sh
 $ serverless deploy
 ```
 
-Then visit https://platform.serverless.com/ in your browser.
-
-**Note:** You can toggle auto-publishing by adding the `publish` config in `serverless.yml`:
-
-```yml
-service:
-  name: my-service
-  publish: false # disable auto-publishing
-```
-
-## Beta CLI Commands
-
-Logging in to the platform enables access to beta features of the Serverless framework.
-
-### [`serverless run`](./commands/run.md)
-Start local development mode for a Serverless service. This mode downloads and installs the [event-gateway](https://github.com/serverless/event-gateway) and the [serverless emulator](https://github.com/serverless/emulator). Both of these are used to emulate a serverless service and develop against them locally.
-
-### [`serverless emit`](./commands/emit.md)
-Emit an event to an event-gateway.
-
-### [`serverless login`](./commands/login.md)
-Register or log in to the platform.
-
-### [`serverless logout`](./commands/logout.md)
-Logout of the platform.
+Then visit https://dashboard.serverless.com/ in your browser to view and manage your service.
