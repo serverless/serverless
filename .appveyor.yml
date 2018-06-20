@@ -10,6 +10,7 @@ install:
   # Get the version of Node.js
   - ps: Install-Product node $Env:NODEJS_VERSION
   # install modules
+  - rm -rf node_modules
   - npm install
   - node --version
   - npm --version
