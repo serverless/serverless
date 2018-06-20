@@ -115,7 +115,6 @@
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
-    "n": "^2.1.12",
     "node-fetch": "^1.6.0",
     "object-hash": "^1.2.0",
     "promise-queue": "^2.2.3",
