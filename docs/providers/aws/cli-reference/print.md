@@ -26,7 +26,9 @@ serverless print
 
 ## Options
 
-- None
+- `format` Print configuration in given format ("yaml", "json", "text"). Default: yaml
+- `path` Period-separated path to print a sub-value (eg: "provider.name")
+- `transform` Transform-function to apply to the value (currently only "keys" is supported)
 
 ## Examples:
 
@@ -75,4 +77,16 @@ resources:
       Type: 'AWS::S3::Bucket'
       Properties:
         BucketName: test # <-- Resolved
+```
+
+This prints the provider name:
+
+```bash
+sls print --path provider.name --format text
+```
+
+And this prints all function names:
+
+```bash
+sls print --path functions --transform keys --format text
 ```
