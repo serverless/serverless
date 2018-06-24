@@ -391,6 +391,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 | **[Serverless Q A Example](https://github.com/jacksoncharles/serverless-qa-template-api)** <br/> Inspired by the AWS example forum. A multitenancy Q&A template for surveys, forums and more | [jacksoncharles](http://github.com/jacksoncharles) |
 | **[Personal Access Tokens Cron Check](https://github.com/madtrick/cfpat-audit)** <br/> Audit for leaked PAT in your Contentful organization. How to use serverless as cronjobs to keep your Personal Access Tokens secure | [madtrick](http://github.com/madtrick) |
 | **[Slack Lunch Club](https://github.com/mikestaub/slack-lunch-club)** <br/> Weekly lunch matches with your slack teams. PWA built with Serverless, React, GraphQL, ArangoDB, and AWS | [mikestaub](http://github.com/mikestaub) |
+| **[Slack GitHub stats bot](https://github.com/threadheap/github-stats-bot)** <br/> Slack bot that returns contributions stats for selected repository. Build with Typescript, React, PhantomJS and Nivo | [pavelvlasov](https://github.com/pavelvlasov) |
 <!-- AUTO-GENERATED-CONTENT:END This table is generated from https://github.com/serverless/examples/blob/master/community-examples.json please make additions there -->
 
 ## <a name="contributing"></a>Contributing
