@@ -12,7 +12,7 @@ layout: Doc
 
 # Workflow
 
-Intro. Quick recommendations and tips for various processes.
+Quick recommendations and tips for various processes.
 
 ### Development Workflow
 
