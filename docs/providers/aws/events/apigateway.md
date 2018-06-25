@@ -43,6 +43,7 @@ layout: Doc
     - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
       - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
   - [Share Authorizer](#share-authorizer)
+  - [Resource Policy](#resource-policy)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -1150,4 +1151,26 @@ resources:
         ProviderARNs: 
           - arn:aws:cognito-idp:${self:provider.region}:xxxxxx:userpool/abcdef 
           
+```
+
+## Resource Policy
+
+Resource policies are policy documents that are used to control the invocation of the API. Find more use cases from the [Apigateway Resource Policies](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-resource-policies.html) documentation.
+
+```yml
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+  resourcePolicy:
+    - Effect: Allow
+      Principal: "*"
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
+      Condition:
+        IpAddress:
+          aws:SourceIp:
+            - "123.123.123.123"
+
 ```
