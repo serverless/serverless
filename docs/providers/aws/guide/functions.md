@@ -290,6 +290,7 @@ functions:
     environment:
       TABLE_NAME: tableName2
 ```
+If you want your function's environment variables to have the same values from your machine's environment variables, please read the documentation about [Referencing Environment Variables](./variables.md).
 
 ## Tags
 
