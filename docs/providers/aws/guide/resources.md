@@ -29,7 +29,7 @@ service: usersCrud
 provider: aws
 functions:
 
-resources:  // CloudFormation template syntax
+resources:  # CloudFormation template syntax
   Resources:
     usersTable:
       Type: AWS::DynamoDB::Table
