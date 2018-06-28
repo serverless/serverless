@@ -36,7 +36,7 @@ functions:
 
 ## Setting the BatchSize
 
-For the SQS event integration, you can set the `batchSize`, which effects how many SQS messages will be included in a single Lambda invocation. The default `batchSize` is 10.
+For the SQS event integration, you can set the `batchSize`, which effects how many SQS messages will be included in a single Lambda invocation. The default `batchSize` is 10, and the max `batchSize` is 10.
 
 ```yml
 functions:
@@ -45,5 +45,5 @@ functions:
     events:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
-          batchSize: 100
+          batchSize: 10
 ```
