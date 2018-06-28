@@ -47,7 +47,7 @@ Give it a try with a new service, or an existing service:
 $ serverless deploy
 ```
 
-Then visit https://platform.serverless.com/ in your browser.
+Then visit https://dashboard.serverless.com/ in your browser.
 
 **Note:** You can toggle auto-publishing by adding the `publish` config in `serverless.yml`:
 
