@@ -99,6 +99,16 @@ provider:
       - subnetId2
   notificationArns: # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
+  resourcePolicy:
+    - Effect: Allow
+      Principal: "*"
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
+      Condition:
+        IpAddress:
+          aws:SourceIp:
+            - "123.123.123.123"
   tags: # Optional service wide function tags
     foo: bar
     baz: qux
