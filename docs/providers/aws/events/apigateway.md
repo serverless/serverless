@@ -472,7 +472,7 @@ Clients connecting to this Rest API will then need to set any of these API keys 
 
 API Gateway [supports regional endpoints](https://aws.amazon.com/about-aws/whats-new/2017/11/amazon-api-gateway-supports-regional-api-endpoints/) for associating your API Gateway REST APIs with a particular region. This can reduce latency if your requests originate from the same region as your REST API and can be helpful in building multi-region applications.
 
-By default, the Serverless Framework deploys your REST API using the EDGE endpoint configuration. If you would like to use the REGIONAL configuration, set the `endpointType` parameter in your `provider` block.
+By default, the Serverless Framework deploys your REST API using the EDGE endpoint configuration. If you would like to use the REGIONAL or PRIVATE configuration, set the `endpointType` parameter in your `provider` block.
 
 Here's an example configuration for setting the endpoint configuration for your service Rest API:
 
