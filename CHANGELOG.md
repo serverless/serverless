@@ -1,3 +1,20 @@
+# 1.28.0 (04.07.2018)
+- [Add SQS event integration](https://github.com/serverless/serverless/pull/5074)
+- [Integration with the Serverless Dashboard](https://github.com/serverless/serverless/pull/5043)
+- [Add APIG resource policy](https://github.com/serverless/serverless/pull/5071)
+- [Add PRIVATE endpoint type](https://github.com/serverless/serverless/pull/5080)
+- [Added ability to create custom stack names and API names](https://github.com/serverless/serverless/pull/4951)
+- [Add print options to allow digging, transforming and formatting](https://github.com/serverless/serverless/pull/5036)
+- [only use json-cycles when opt-in, for state serialization](https://github.com/serverless/serverless/pull/5029)
+- [Make function tags inherit provider tags](https://github.com/serverless/serverless/pull/5007)
+- [Make local plugins folder configurable](https://github.com/serverless/serverless/pull/4892)
+- [More flexible version constraint for AWS Lambda Go library](https://github.com/serverless/serverless/pull/5045)
+- [Update aws-java-maven template to use Log4J2 as recommended by AWS](https://github.com/serverless/serverless/pull/5032)
+- [Fix binary support for pre-flight requests (OPTIONS method)](https://github.com/serverless/serverless/pull/4895)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.0...v1.28.0)
+
 # 1.27.0 (02.05.2018)
 - [Add maxAge option for CORS](https://github.com/serverless/serverless/pull/4639)
 - [Add fn integration](https://github.com/serverless/serverless/pull/4934)
