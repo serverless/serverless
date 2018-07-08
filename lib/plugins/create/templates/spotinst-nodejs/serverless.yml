@@ -21,7 +21,7 @@ provider:
 
 functions:
   hello:
-    runtime: nodejs8.3
+    runtime: nodejs8.10
     handler: handler.main
     memory: 128
     timeout: 30
