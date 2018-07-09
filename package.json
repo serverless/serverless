@@ -92,7 +92,7 @@
   },
   "dependencies": {
     "@serverless/fdk": "^0.5.1",
-    "@serverless/platform-sdk": "^0.1.5",
+    "@serverless/platform-sdk": "file:../platform-sdk",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.228.0",
