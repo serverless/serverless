@@ -43,6 +43,7 @@ layout: Doc
     - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
       - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
   - [Share Authorizer](#share-authorizer)
+  - [Resource Policy](#resource-policy)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -472,7 +473,7 @@ Clients connecting to this Rest API will then need to set any of these API keys 
 
 API Gateway [supports regional endpoints](https://aws.amazon.com/about-aws/whats-new/2017/11/amazon-api-gateway-supports-regional-api-endpoints/) for associating your API Gateway REST APIs with a particular region. This can reduce latency if your requests originate from the same region as your REST API and can be helpful in building multi-region applications.
 
-By default, the Serverless Framework deploys your REST API using the EDGE endpoint configuration. If you would like to use the REGIONAL configuration, set the `endpointType` parameter in your `provider` block.
+By default, the Serverless Framework deploys your REST API using the EDGE endpoint configuration. If you would like to use the REGIONAL or PRIVATE configuration, set the `endpointType` parameter in your `provider` block.
 
 Here's an example configuration for setting the endpoint configuration for your service Rest API:
 
@@ -1150,4 +1151,26 @@ resources:
         ProviderARNs: 
           - arn:aws:cognito-idp:${self:provider.region}:xxxxxx:userpool/abcdef 
           
+```
+
+## Resource Policy
+
+Resource policies are policy documents that are used to control the invocation of the API. Find more use cases from the [Apigateway Resource Policies](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-resource-policies.html) documentation.
+
+```yml
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+  resourcePolicy:
+    - Effect: Allow
+      Principal: "*"
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
+      Condition:
+        IpAddress:
+          aws:SourceIp:
+            - "123.123.123.123"
+
 ```

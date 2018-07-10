@@ -28,6 +28,8 @@ provider:
   runtime: nodejs6.10
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
+  stackName: custom-stack-name # Use a custom name for the CloudFormation stack
+  apiName: custom-api-name # Use a custom name for the API Gateway API
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
@@ -97,6 +99,16 @@ provider:
       - subnetId2
   notificationArns: # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
+  resourcePolicy:
+    - Effect: Allow
+      Principal: "*"
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
+      Condition:
+        IpAddress:
+          aws:SourceIp:
+            - "123.123.123.123"
   tags: # Optional service wide function tags
     foo: bar
     baz: qux
