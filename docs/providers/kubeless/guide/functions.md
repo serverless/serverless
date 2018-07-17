@@ -169,6 +169,60 @@ functions:
     environment:
       TABLE_NAME: tableName2
 ```
+## Secrets
+
+Kubernetes [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) can be linked to your serverless function by mounting the file or defining environment variables. These can be configured as such in `serverless.yml`.
+
+Given the kubernetes secret named `secret1` created by:
+`kubectl create secret generic secret1 --from-literal=username=produser --from-literal=password=happy`
+
+We can access it like so:
+
+**Mounting**
+```yml
+service: service-name
+provider:
+  name: kubeless
+
+plugins:
+  - serverless-kubeless
+
+functions:
+  users:
+    # The kubernetes secret  will be mounted at `/secret1`
+    # Note that the secret cannot have any `/`'s in the name
+    handler: handler.users
+    secrets:
+      - secret1
+
+```
+
+**Environment Variables**
+```yml
+service: service-name
+provider:
+  name: kubeless
+  environment:
+    SYSTEM_NAME: mySystem
+    TABLE_NAME: tableName1
+
+plugins:
+  - serverless-kubeless
+
+functions:
+  users:
+    # The kubernetes secret  will be mounted at `/secret1`
+    # Note that the secret cannot have any `/`'s in the name
+    handler: handler.users
+    environment:
+    # The environment variable `PROD_USER_PASSWORD` would be set to "happy"
+      - name: PROD_USER_PASSWORD
+        valueFrom:
+            secretKeyRef:
+              - name: secret1
+                key: password
+```
+
 
 ## Labels
 
