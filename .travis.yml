@@ -37,6 +37,14 @@ matrix:
       env:
         - DISABLE_TESTS=true
         - LINTING=true
+    - node_js: '10.6'
+      env:
+        - DISABLE_TESTS=true
+        - LINTING=true
+    - node_js: '10.7'
+      env:
+        - DISABLE_TESTS=true
+        - LINTING=true
 
 sudo: false
 
