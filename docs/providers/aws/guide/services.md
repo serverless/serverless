@@ -64,6 +64,7 @@ Here are the available runtimes for AWS Lambda:
 * aws-csharp
 * aws-fsharp
 * aws-go
+* aws-go-dep
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
