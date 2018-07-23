@@ -15,6 +15,10 @@ services:
       - AWS_PROFILE
       - AWS_SESSION_TOKEN
       - AWS_SECURITY_TOKEN
+  aws-clojure-gradle:
+    image: java:8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-clojure-gradle:/app    
   aws-nodejs:
     image: node:5.11.1
     volumes:
