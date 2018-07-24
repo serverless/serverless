@@ -5,16 +5,15 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// Response is the default struct required to reply to an AWS Lambda request
-type Response struct {
-	StatusCode      int               `json:"statusCode"`
-	IsBase64Encoded bool              `json:"isBase64Encoded"`
-	Body            string            `json:"body"`
-	Headers         map[string]string `json:"headers"`
-}
+// Response is of type APIGatewayProxyResponse since we're leveraging the
+// AWS Lambda Proxy Request functionality (default behavior)
+//
+// https://serverless.com/framework/docs/providers/aws/events/apigateway/#lambda-proxy-integration
+type Response events.APIGatewayProxyResponse
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context) (Response, error) {
