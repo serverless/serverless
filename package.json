@@ -91,7 +91,7 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/platform-sdk": "file:../platform-sdk",
+    "@serverless/platform-sdk": "^0.2.0",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.228.0",
