@@ -4,6 +4,7 @@
 
 const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
+const platform = require('@serverless/platform-sdk');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
@@ -39,7 +40,17 @@ const invocationId = uuid.v4();
 
   serverless.invocationId = invocationId;
 
-  return serverless.init().then(() => serverless.run());
+  return serverless.init().then(() => serverless.run()).catch((e) => {
+    if (serverless.service.deployment && serverless.service.deployment.deploymentId) {
+      const deploymentData = serverless.service.deployment;
+      deploymentData.status = 'Failed';
+      return platform.updateDeployment(deploymentData)
+        .then(() => {
+          throw e;
+        });
+    }
+    throw e;
+  });
 }).catch(e => {
   process.exitCode = 1;
   logError(e);
