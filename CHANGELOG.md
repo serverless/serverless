@@ -1,3 +1,10 @@
+# 1.29.0 (26.07.2018)
+- [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
+- [Serverless Dashboard Updates: Subscriptions, Resources, Deploys and Refresh Tokens](https://github.com/serverless/serverless/pull/5127)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.28.0...v1.29.0)
+
 # 1.28.0 (04.07.2018)
 - [Add SQS event integration](https://github.com/serverless/serverless/pull/5074)
 - [Integration with the Serverless Dashboard](https://github.com/serverless/serverless/pull/5043)
