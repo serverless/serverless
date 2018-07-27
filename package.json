@@ -63,6 +63,7 @@
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
+    "testEnvironment": "node",
     "setupTestFrameworkScriptFile": "<rootDir>/tests/setupTests.js"
   },
   "devDependencies": {
