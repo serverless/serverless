@@ -42,7 +42,13 @@ const invocationId = uuid.v4();
 
   return serverless.init().then(() => serverless.run()).catch((e) => {
     if (serverless.service.deployment && serverless.service.deployment.deploymentId) {
-      const deploymentData = serverless.service.deployment;
+      const deploymentData = {
+        tenant: serverless.service.deployment.tenant,
+        app: serverless.service.deployment.app,
+        serviceName: serverless.service.deployment.serviceName,
+        deploymentId: serverless.service.deployment.deploymentId,
+        accessKey: serverless.service.deployment.accessKey,
+      };
       deploymentData.status = 'Failed';
       return platform.updateDeployment(deploymentData)
         .then(() => {
