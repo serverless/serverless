@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.29.0",
+  "version": "1.29.1",
   "engines": {
     "node": ">=4.0"
   },
@@ -63,6 +63,7 @@
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
+    "testEnvironment": "node",
     "setupTestFrameworkScriptFile": "<rootDir>/tests/setupTests.js"
   },
   "devDependencies": {

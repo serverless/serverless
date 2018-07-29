@@ -1,6 +1,11 @@
+# 1.29.1 (28.07.2018)
+- [Fixed a bug when using APIG root path with Serverless Dashboard](https://github.com/serverless/serverless/pull/5170)
+
 # 1.29.0 (26.07.2018)
 - [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
 - [Serverless Dashboard Updates: Subscriptions, Resources, Deploys and Refresh Tokens](https://github.com/serverless/serverless/pull/5127)
+- [Support `invoke local` of AWS Lambda Async Functions](https://github.com/serverless/serverless/pull/4912)
+- [Improve aws-scala-sbt template](https://github.com/serverless/serverless/pull/5086)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.28.0...v1.29.0)
