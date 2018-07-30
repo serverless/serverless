@@ -1,5 +1,15 @@
+# 1.29.2 (29.07.2018)
+- [Fixed a bug when using APIG lambda integration with Serverless Dashboard](https://github.com/serverless/serverless/pull/5174)
+- [Fixed a bug by transforming env var to string when setting num value](https://github.com/serverless/serverless/pull/5166)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.1...v1.29.2)
+
 # 1.29.1 (28.07.2018)
 - [Fixed a bug when using APIG root path with Serverless Dashboard](https://github.com/serverless/serverless/pull/5170)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.0...v1.29.1)
 
 # 1.29.0 (26.07.2018)
 - [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
