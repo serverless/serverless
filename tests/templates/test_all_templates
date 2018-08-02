@@ -8,6 +8,7 @@ function integration-test {
   $DIR/integration-test-template $@
 }
 
+integration-test aws-clojure-gradle ./gradlew build
 integration-test aws-csharp './build.sh'
 integration-test aws-fsharp './build.sh'
 integration-test aws-go 'cd /go/src/app && make build'
