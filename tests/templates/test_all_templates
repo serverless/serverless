@@ -9,6 +9,7 @@ function integration-test {
 }
 
 integration-test aws-clojure-gradle ./gradlew build
+integration-test aws-clojurescript-gradle ./gradlew build
 integration-test aws-csharp './build.sh'
 integration-test aws-fsharp './build.sh'
 integration-test aws-go 'cd /go/src/app && make build'
