@@ -50,6 +50,7 @@ serverless create --template aws-nodejs --path myService
 
 Here are the available runtimes for AWS Lambda:
 
+* aws-clojurescript-gradle
 * aws-clojure-gradle
 * aws-nodejs
 * aws-nodejs-typescript
