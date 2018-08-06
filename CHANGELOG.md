@@ -1,3 +1,25 @@
+# 1.29.2 (29.07.2018)
+- [Fixed a bug when using APIG lambda integration with Serverless Dashboard](https://github.com/serverless/serverless/pull/5174)
+- [Fixed a bug by transforming env var to string when setting num value](https://github.com/serverless/serverless/pull/5166)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.1...v1.29.2)
+
+# 1.29.1 (28.07.2018)
+- [Fixed a bug when using APIG root path with Serverless Dashboard](https://github.com/serverless/serverless/pull/5170)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.0...v1.29.1)
+
+# 1.29.0 (26.07.2018)
+- [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
+- [Serverless Dashboard Updates: Subscriptions, Resources, Deploys and Refresh Tokens](https://github.com/serverless/serverless/pull/5127)
+- [Support `invoke local` of AWS Lambda Async Functions](https://github.com/serverless/serverless/pull/4912)
+- [Improve aws-scala-sbt template](https://github.com/serverless/serverless/pull/5086)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.28.0...v1.29.0)
+
 # 1.28.0 (04.07.2018)
 - [Add SQS event integration](https://github.com/serverless/serverless/pull/5074)
 - [Integration with the Serverless Dashboard](https://github.com/serverless/serverless/pull/5043)

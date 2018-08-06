@@ -50,6 +50,8 @@ serverless create --template aws-nodejs --path myService
 
 Here are the available runtimes for AWS Lambda:
 
+* aws-clojurescript-gradle
+* aws-clojure-gradle
 * aws-nodejs
 * aws-nodejs-typescript
 * aws-nodejs-ecma-script
@@ -64,6 +66,7 @@ Here are the available runtimes for AWS Lambda:
 * aws-csharp
 * aws-fsharp
 * aws-go
+* aws-go-dep
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 

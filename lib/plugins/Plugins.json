@@ -1,6 +1,5 @@
 {
   "plugins": [
-    "./run/index.js",
     "./config/config.js",
     "./create/create.js",
     "./install/install.js",
@@ -21,7 +20,6 @@
     "./plugin/uninstall/uninstall.js",
     "./plugin/list/list.js",
     "./plugin/search/search.js",
-    "./emit/index.js",
     "./aws/configCredentials/awsConfigCredentials.js",
     "./aws/provider/awsProvider.js",
     "./aws/common/index.js",
