@@ -6,6 +6,7 @@ menuOrder: 0
 menuItems:
   - {menuText: AWS Guide, path: /framework/docs/providers/aws/guide/quick-start}
   - {menuText: Azure Functions Guide, path: /framework/docs/providers/azure/guide/quick-start}
+  - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
   - {menuText: OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
@@ -101,5 +102,14 @@ Next up, it's time to choose where you'd like your serverless service to run.
       <a href="/framework/docs/providers/webtasks/guide/quick-start">Webtasks<br/>Quick Start Guide</a>
     </div>
   </div>
-
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="/framework/docs/providers/fn/guide/quick-start">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="/framework/docs/providers/fn/guide/quick-start">Fn<br/>Quick Start Guide</a>
+    </div>
+  </div>
 </div>

@@ -48,6 +48,8 @@ To see a list of available templates run `serverless create --help`
 
 Most commonly used templates:
 
+- aws-clojurescript-gradle
+- aws-clojure-gradle
 - aws-nodejs
 - aws-nodejs-typescript
 - aws-nodejs-ecma-script

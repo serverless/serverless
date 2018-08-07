@@ -1,0 +1,33 @@
+# Welcome to serverless. Read the fn provider docs
+# https://serverless.com/framework/docs/providers/fn/
+
+# Serverless.yml is the configuration the CLI
+# uses to deploy your code to your provider of choice
+
+# The `service` block is the name of the service
+service:
+    name: hello-world
+#    config:
+#        some: 'val'
+
+# The `provider` block defines where your service will be deployed
+provider:
+  name: fn
+
+plugins:
+  - serverless-fn
+
+# The `functions` block defines what code to deploy
+functions:
+  hello: # <- hello references the ./hello folder and the func.js file inside
+    name: hello
+    version: 0.0.1
+    idletimeout: 45
+    format: json
+    memory: 256
+#    config:
+#        another: value
+    runtime: node
+    events:
+        - http:
+            path: /hello

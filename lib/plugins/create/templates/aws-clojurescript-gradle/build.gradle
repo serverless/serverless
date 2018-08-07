@@ -1,0 +1,39 @@
+plugins {
+  id 'gradle-clojure.clojurescript' version '0.4.0'
+}
+
+group = 'serverless'
+version = '0.1.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+  maven {
+    name = 'clojars'
+    url = 'https://repo.clojars.org'
+  }
+}
+
+dependencies {
+  implementation 'org.clojure:clojurescript:1.10.312'
+  devImplementation 'org.clojure:java.classpath'
+}
+
+clojurescript {
+  builds {
+    all {
+      compiler {
+        outputTo = 'functions.js'
+        outputDir = 'js/out'
+        target = 'nodejs'
+        optimizations = 'simple'
+        npmDeps = ['moment': '2.22.2']
+        installDeps = true
+        verbose = true
+      }
+    }
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '4.9'
+}

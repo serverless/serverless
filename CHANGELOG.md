@@ -1,3 +1,63 @@
+# 1.29.2 (29.07.2018)
+- [Fixed a bug when using APIG lambda integration with Serverless Dashboard](https://github.com/serverless/serverless/pull/5174)
+- [Fixed a bug by transforming env var to string when setting num value](https://github.com/serverless/serverless/pull/5166)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.1...v1.29.2)
+
+# 1.29.1 (28.07.2018)
+- [Fixed a bug when using APIG root path with Serverless Dashboard](https://github.com/serverless/serverless/pull/5170)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.0...v1.29.1)
+
+# 1.29.0 (26.07.2018)
+- [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
+- [Serverless Dashboard Updates: Subscriptions, Resources, Deploys and Refresh Tokens](https://github.com/serverless/serverless/pull/5127)
+- [Support `invoke local` of AWS Lambda Async Functions](https://github.com/serverless/serverless/pull/4912)
+- [Improve aws-scala-sbt template](https://github.com/serverless/serverless/pull/5086)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.28.0...v1.29.0)
+
+# 1.28.0 (04.07.2018)
+- [Add SQS event integration](https://github.com/serverless/serverless/pull/5074)
+- [Integration with the Serverless Dashboard](https://github.com/serverless/serverless/pull/5043)
+- [Add APIG resource policy](https://github.com/serverless/serverless/pull/5071)
+- [Add PRIVATE endpoint type](https://github.com/serverless/serverless/pull/5080)
+- [Added ability to create custom stack names and API names](https://github.com/serverless/serverless/pull/4951)
+- [Add print options to allow digging, transforming and formatting](https://github.com/serverless/serverless/pull/5036)
+- [only use json-cycles when opt-in, for state serialization](https://github.com/serverless/serverless/pull/5029)
+- [Make function tags inherit provider tags](https://github.com/serverless/serverless/pull/5007)
+- [Make local plugins folder configurable](https://github.com/serverless/serverless/pull/4892)
+- [More flexible version constraint for AWS Lambda Go library](https://github.com/serverless/serverless/pull/5045)
+- [Update aws-java-maven template to use Log4J2 as recommended by AWS](https://github.com/serverless/serverless/pull/5032)
+- [Fix binary support for pre-flight requests (OPTIONS method)](https://github.com/serverless/serverless/pull/4895)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.0...v1.28.0)
+
+# 1.27.0 (02.05.2018)
+- [Add maxAge option for CORS](https://github.com/serverless/serverless/pull/4639)
+- [Add fn integration](https://github.com/serverless/serverless/pull/4934)
+- [iamManagedPolicies merging with Vpc config](https://github.com/serverless/serverless/pull/4879)
+- [Support arrays in function definition too](https://github.com/serverless/serverless/pull/4847)
+- [Add iam managed policies](https://github.com/serverless/serverless/pull/4793)
+- [Pass authorizer custom context to target lambda](https://github.com/serverless/serverless/pull/4773)
+- [Allow UsagePlan's to be created without ApiKeys defined](https://github.com/serverless/serverless/pull/4768)
+- [Added name property to cloudwatchEvent CF template](https://github.com/serverless/serverless/pull/4763)
+- [Java maven templates for OpenWhisk](https://github.com/serverless/serverless/pull/4758)
+- [Pass serverless variable when calling function in referenced file](https://github.com/serverless/serverless/pull/4743)
+- [Eliminate/Report Hung Promises, Prepopulate Stage and Region, Handle Quoted Strings](https://github.com/serverless/serverless/pull/4713)
+- [Restricting alexaSkill functions to specific Alexa skills](https://github.com/serverless/serverless/pull/4701)
+- [Add support for concurrency option in AWS Lambda](https://github.com/serverless/serverless/pull/4694)
+- [Fix concurrency upload](https://github.com/serverless/serverless/pull/4677)
+- [Support AWS GovCloud and China region deployments](https://github.com/serverless/serverless/pull/4665)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.26.1...v1.27.0)
+
+
 # 1.26.1 (27.02.2018)
 - [Fix lambda integration regression](https://github.com/serverless/serverless/pull/4775)
 

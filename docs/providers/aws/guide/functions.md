@@ -254,7 +254,7 @@ In order for other services such as Kinesis streams to be made available, a NAT 
 
 ## Environment Variables
 
-You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key/value collection of strings:
+You can add environment variable configuration to a specific function in `serverless.yml` by adding an `environment` object property in the function configuration. This object should contain a key-value pairs of string to string:
 
 ```yml
 # serverless.yml
@@ -290,6 +290,7 @@ functions:
     environment:
       TABLE_NAME: tableName2
 ```
+If you want your function's environment variables to have the same values from your machine's environment variables, please read the documentation about [Referencing Environment Variables](./variables.md).
 
 ## Tags
 
@@ -303,6 +304,28 @@ functions:
     handler: handler.hello
     tags:
       foo: bar
+```
+
+Or if you want to apply tags configuration to all functions in your service, you can add the configuration to the higher level `provider` object. Tags configured at the function level are merged with those at the provider level, so your function with specific tags will get the tags defined at the provider level. If a tag with the same key is defined at both the function and provider levels, the function-specific value overrides the provider-level default value. For example:
+
+```yml
+# serverless.yml
+service: service-name
+provider:
+  name: aws
+  tags:
+    foo: bar
+    baz: qux
+
+functions:
+  hello:
+    # this function will inherit the service level tags config above
+    handler: handler.hello
+  users:
+    # this function will overwrite the foo tag and inherit the baz tag
+    handler: handler.users
+    tags:
+      foo: quux
 ```
 
 Real-world use cases where tagging your functions is helpful include:

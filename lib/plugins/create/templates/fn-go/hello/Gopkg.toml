@@ -1,0 +1,8 @@
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/fnproject/fdk-go"
+
+[prune]
+  go-tests = true
+  unused-packages = true
