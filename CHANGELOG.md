@@ -1,3 +1,18 @@
+# 1.29.2 (09.08.2018)
+- [Added support for multiple access keys for multiple tenants](https://github.com/serverless/serverless/pull/5189)
+- [Fixed a publishing bug when having more than 100 resources](https://github.com/serverless/serverless/pull/5189)
+- [Add Windows support for spawning mvn](https://github.com/serverless/serverless/pull/5028)
+- [Update spawn API with {shell=true}](https://github.com/serverless/serverless/pull/5192)
+- [AWS Clojurescript Gradle Template](https://github.com/serverless/serverless/pull/5147)
+- [Use latest dotnet runtime in AWS Lambda](https://github.com/serverless/serverless/pull/5107)
+- [Ignore null errors to allow resolution instead of rejection on undefined SSM variables](https://github.com/serverless/serverless/pull/5119)
+- [Fixed a bug when using deep variable references](https://github.com/serverless/serverless/pull/5156)
+- [Add support for installing templates and boilerplates from GitLab](https://github.com/serverless/serverless/pull/5116)
+- [Fixed that create command didn't use the service name given as -n option](https://github.com/serverless/serverless/pull/5082)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.2...v1.30.0)
+
 # 1.29.2 (29.07.2018)
 - [Fixed a bug when using APIG lambda integration with Serverless Dashboard](https://github.com/serverless/serverless/pull/5174)
 - [Fixed a bug by transforming env var to string when setting num value](https://github.com/serverless/serverless/pull/5166)
