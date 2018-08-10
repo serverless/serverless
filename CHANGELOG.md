@@ -1,4 +1,4 @@
-# 1.29.2 (09.08.2018)
+# 1.30.0 (09.08.2018)
 - [Added support for multiple access keys for multiple tenants](https://github.com/serverless/serverless/pull/5189)
 - [Fixed a publishing bug when having more than 100 resources](https://github.com/serverless/serverless/pull/5189)
 - [Add Windows support for spawning mvn](https://github.com/serverless/serverless/pull/5028)
