@@ -1,3 +1,57 @@
+# 1.30.0 (09.08.2018)
+- [Added support for multiple access keys for multiple tenants](https://github.com/serverless/serverless/pull/5189)
+- [Fixed a publishing bug when having more than 100 resources](https://github.com/serverless/serverless/pull/5189)
+- [Add Windows support for spawning mvn](https://github.com/serverless/serverless/pull/5028)
+- [Update spawn API with {shell=true}](https://github.com/serverless/serverless/pull/5192)
+- [AWS Clojurescript Gradle Template](https://github.com/serverless/serverless/pull/5147)
+- [Use latest dotnet runtime in AWS Lambda](https://github.com/serverless/serverless/pull/5107)
+- [Ignore null errors to allow resolution instead of rejection on undefined SSM variables](https://github.com/serverless/serverless/pull/5119)
+- [Fixed a bug when using deep variable references](https://github.com/serverless/serverless/pull/5156)
+- [Add support for installing templates and boilerplates from GitLab](https://github.com/serverless/serverless/pull/5116)
+- [Fixed that create command didn't use the service name given as -n option](https://github.com/serverless/serverless/pull/5082)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.2...v1.30.0)
+
+# 1.29.2 (29.07.2018)
+- [Fixed a bug when using APIG lambda integration with Serverless Dashboard](https://github.com/serverless/serverless/pull/5174)
+- [Fixed a bug by transforming env var to string when setting num value](https://github.com/serverless/serverless/pull/5166)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.1...v1.29.2)
+
+# 1.29.1 (28.07.2018)
+- [Fixed a bug when using APIG root path with Serverless Dashboard](https://github.com/serverless/serverless/pull/5170)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.0...v1.29.1)
+
+# 1.29.0 (26.07.2018)
+- [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
+- [Serverless Dashboard Updates: Subscriptions, Resources, Deploys and Refresh Tokens](https://github.com/serverless/serverless/pull/5127)
+- [Support `invoke local` of AWS Lambda Async Functions](https://github.com/serverless/serverless/pull/4912)
+- [Improve aws-scala-sbt template](https://github.com/serverless/serverless/pull/5086)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.28.0...v1.29.0)
+
+# 1.28.0 (04.07.2018)
+- [Add SQS event integration](https://github.com/serverless/serverless/pull/5074)
+- [Integration with the Serverless Dashboard](https://github.com/serverless/serverless/pull/5043)
+- [Add APIG resource policy](https://github.com/serverless/serverless/pull/5071)
+- [Add PRIVATE endpoint type](https://github.com/serverless/serverless/pull/5080)
+- [Added ability to create custom stack names and API names](https://github.com/serverless/serverless/pull/4951)
+- [Add print options to allow digging, transforming and formatting](https://github.com/serverless/serverless/pull/5036)
+- [only use json-cycles when opt-in, for state serialization](https://github.com/serverless/serverless/pull/5029)
+- [Make function tags inherit provider tags](https://github.com/serverless/serverless/pull/5007)
+- [Make local plugins folder configurable](https://github.com/serverless/serverless/pull/4892)
+- [More flexible version constraint for AWS Lambda Go library](https://github.com/serverless/serverless/pull/5045)
+- [Update aws-java-maven template to use Log4J2 as recommended by AWS](https://github.com/serverless/serverless/pull/5032)
+- [Fix binary support for pre-flight requests (OPTIONS method)](https://github.com/serverless/serverless/pull/4895)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.0...v1.28.0)
+
 # 1.27.0 (02.05.2018)
 - [Add maxAge option for CORS](https://github.com/serverless/serverless/pull/4639)
 - [Add fn integration](https://github.com/serverless/serverless/pull/4934)

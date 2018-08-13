@@ -47,7 +47,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: build/distributions/hello.zip
+  artifact: ${file(build/build.json):distribution}
 
 functions:
   hello:

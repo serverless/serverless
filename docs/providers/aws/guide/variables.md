@@ -57,7 +57,7 @@ provider:
     MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
 ```
 
-If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
+If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
 
 **How that works:**
 
@@ -66,7 +66,7 @@ If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${f
 3. `${file(./config.qa.json):CREDS}` is found & the `CREDS` value is read
 4. `MY_SECRET` value is set
 
-Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and used.
+Likewise, if `sls deploy --stage prod` is run the `config.prod.json` file would be found and used.
 
 If no `--stage` flag is provided, the second parameter defined in `${opt:stage, 'dev'}` a.k.a `dev` will be used and result in `${file(./config.dev.json):CREDS}`.
 
