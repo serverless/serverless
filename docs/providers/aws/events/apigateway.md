@@ -602,7 +602,7 @@ Both templates give you access to the following properties you can access with t
 - principalId
 - stage
 - headers
-- query
+- queryStringParameters
 - path
 - identity
 - stageVariables
