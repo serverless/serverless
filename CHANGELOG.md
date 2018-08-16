@@ -1,3 +1,11 @@
+# 1.30.1 (16.08.2018)
+- [Fix CI deployment to Serverless Platform](https://github.com/serverless/serverless/issues/5182)
+- [Fix a minor resources ID issue on Serverless Platform](https://github.com/serverless/serverless/pull/5208)
+- [Update nodejs template to 8.10](https://github.com/serverless/serverless/pull/5088)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.0...v1.30.1)
+
 # 1.30.0 (09.08.2018)
 - [Added support for multiple access keys for multiple tenants](https://github.com/serverless/serverless/pull/5189)
 - [Fixed a publishing bug when having more than 100 resources](https://github.com/serverless/serverless/pull/5189)
