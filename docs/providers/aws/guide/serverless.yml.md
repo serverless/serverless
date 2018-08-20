@@ -25,9 +25,9 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 
 provider:
   name: aws
-  runtime: nodejs6.10
-  stage: dev # Set the default stage used. Default is dev
-  region: us-east-1 # Overwrite the default region used. Default is us-east-1
+  runtime: nodejs8.10
+  stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
+  region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
   apiName: custom-api-name # Use a custom name for the API Gateway API
   profile: production # The default profile to use with this service
