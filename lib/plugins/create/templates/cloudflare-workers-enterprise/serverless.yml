@@ -1,0 +1,35 @@
+service:
+    name: hello-world
+    config:
+      accountId: CLOUDFLARE_ACCOUNT_ID 
+      zoneId: CLOUDFLARE_ZONE_ID 
+      workers:
+        hello:
+          routes:
+            - example.com/hello/*
+        foo_script:
+          routes:
+            - example.com/foo/*
+
+provider:
+  name: cloudflare
+
+plugins:
+  - serverless-cloudflare-workers
+
+functions:
+  helloWorld:
+    worker: hello
+    script: helloWorld
+    events:
+      - http:
+          url: example.com/hello/user
+          method: GET
+
+  foo:
+    worker: foo_script
+    script: bar
+    events:
+      - http:
+          url: example.com/foo/bar
+          method: GET
