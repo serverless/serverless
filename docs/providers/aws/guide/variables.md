@@ -379,6 +379,32 @@ resources:
 
 The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded into the `Resources` section.
 
+In order to use multiple resource files combined with resources inside the `serverless.yml` you can use an array.
+
+```yml
+resources:
+  - Resource:
+      ApiGatewayRestApi:
+        Type: AWS::ApiGateway::RestApi
+
+  - ${file(resources/first-cf-resources.yml)}
+  - ${file(resources/second-cf-resources.yml)}
+
+  - Outputs:
+      CognitoUserPoolId:
+      Value:
+        Ref: CognitoUserPool
+```
+
+Each of your cloudformation files has to start with a `Resource` entity
+
+```yml
+Resource:
+  Type: 'AWS::S3::Bucket'
+  Properties:
+    BucketName: some-bucket-name
+```
+
 ## Nesting Variable References
 The Serverless variable system allows you to nest variable references within each other for ultimate flexibility. So you can reference certain variables based on other variables. Here's an example:
 
