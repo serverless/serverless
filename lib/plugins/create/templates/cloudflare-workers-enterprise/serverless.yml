@@ -25,6 +25,9 @@ functions:
       - http:
           url: example.com/hello/user
           method: GET
+          headers:
+            foo: bar
+            x-client-data: value
 
   foo:
     worker: foo_script
@@ -33,3 +36,6 @@ functions:
       - http:
           url: example.com/foo/bar
           method: GET
+          headers:
+            foo: bar
+            x-client-data: value

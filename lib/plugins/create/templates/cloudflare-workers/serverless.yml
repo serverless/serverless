@@ -22,3 +22,6 @@ functions:
       - http:
           url: example.com/hello/user
           method: GET
+          headers:
+            foo: bar
+            x-client-data: value
