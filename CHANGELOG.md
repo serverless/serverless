@@ -1,3 +1,10 @@
+# 1.30.3 (28.08.2018)
+- [Fix CORS race condition](https://github.com/serverless/serverless/pull/5256)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.2...v1.30.3)
+
+
 # 1.30.2 (28.08.2018)
 - [Fixed a bug when using DynamoDB events with Serverless Platform](https://github.com/serverless/serverless/pull/5237)
 - [Fixed a bug when using deep variable references](https://github.com/serverless/serverless/pull/5224)
