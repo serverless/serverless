@@ -1,3 +1,12 @@
+# 1.30.2 (28.08.2018)
+- [Fixed a bug when using DynamoDB events with Serverless Platform](https://github.com/serverless/serverless/pull/5237)
+- [Fixed a bug when using deep variable references](https://github.com/serverless/serverless/pull/5224)
+- [Fixed an issue with Makefile of the aws-go-dep template](https://github.com/serverless/serverless/pull/5227)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.1...v1.30.2)
+
+
 # 1.30.1 (16.08.2018)
 - [Fix CI deployment to Serverless Platform](https://github.com/serverless/serverless/issues/5182)
 - [Fix a minor resources ID issue on Serverless Platform](https://github.com/serverless/serverless/pull/5208)
