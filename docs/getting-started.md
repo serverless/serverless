@@ -11,7 +11,6 @@ menuItems:
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
-  - {menuText: Webtasks Guide, path: /framework/docs/providers/webtasks/guide/quick-start}
 -->
 
 # Getting Started with Serverless
@@ -90,16 +89,6 @@ Next up, it's time to choose where you'd like your serverless service to run.
     </div>
     <div style="text-align:center;">
       <a href="/framework/docs/providers/spotinst/guide/quick-start">Spotinst<br/>Quick Start Guide</a>
-    </div>
-  </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="/framework/docs/providers/webtasks/guide/quick-start">
-        <img src="  https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/webtask-small-grayscale.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="/framework/docs/providers/webtasks/guide/quick-start">Webtasks<br/>Quick Start Guide</a>
     </div>
   </div>
   <div class="docsSection">
