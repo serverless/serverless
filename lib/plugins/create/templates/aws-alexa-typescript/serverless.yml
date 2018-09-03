@@ -11,12 +11,10 @@ provider:
 
 custom:
   alexa:
-    # Step 1: Paste your vendor ID from here: https://developer.amazon.com/mycid.html
-    vendorId: XXXXXXXXXXXXXX
-    # Step 2: Run `sls alexa auth` to authenticate
-    # Step 3: Run `sls alexa create --name "Serverless Alexa Typescript" --locale en-GB --type custom` to create a new skill
+    # Step 1: Run `sls alexa auth` to authenticate
+    # Step 2: Run `sls alexa create --name "Serverless Alexa Typescript" --locale en-GB --type custom` to create a new skill
     skills:
-        # Step 4: Paste the skill id returned by the create command here:
+        # Step 3: Paste the skill id returned by the create command here:
       - id: amzn1.ask.skill.xxxx-xxxx-xxxx-xxxx-xxxx
         manifest:
           publishingInformation:
@@ -26,12 +24,12 @@ custom:
           apis:
             custom:
               endpoint:
-                # Step 5: Deploy your Serverless stack
-                # Step 6: Paste the ARN of your lambda here:
+                # Step 4: Do your first deploy of your Serverless stack
+                # Step 5: Paste the ARN of your lambda here:
                 uri: arn:aws:lambda:[region]:[account-id]:function:[function-name]
-                # Step 7: Run `sls alexa update` to deploy the skill manifest
-                # Step 8: Run `sls alexa build` to build the skill interaction model
-                # Step 9: Enable the skill in the Alexa app to start testing.
+                # Step 6: Run `sls alexa update` to deploy the skill manifest
+                # Step 7: Run `sls alexa build` to build the skill interaction model
+                # Step 8: Enable the skill in the Alexa app to start testing.
           manifestVersion: '1.0'
         models:
           en-GB:
