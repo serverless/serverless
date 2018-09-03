@@ -76,5 +76,3 @@ If at any point, you no longer need your service, you can run the following comm
 ```bash
 serverless remove
 ```
-
-Check out the [Serverless Framework Guide](./README.md) for more information.
