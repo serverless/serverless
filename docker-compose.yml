@@ -85,6 +85,10 @@ services:
     image: node:6.10.3
     volumes:
       - ./tmp/serverless-integration-test-aws-nodejs-typescript:/app
+  aws-alexa-typescript:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-alexa-typescript:/app
   aws-nodejs-ecma-script:
     image: node:6.10.3
     volumes:
