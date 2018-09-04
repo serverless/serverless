@@ -28,6 +28,7 @@ serverless invoke local --function functionName
 - `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 - `--contextPath` or `-x`, The path to a json file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
 - `--context` or `-c`, String data to be passed as a context to your function. Same like with `--data`, context included in `--contextPath` will overwrite the context you passed with `--context` flag.
+- `--log` or `-l` will output logging data of the invocation. Default is false.
 
 ## Environment
 
