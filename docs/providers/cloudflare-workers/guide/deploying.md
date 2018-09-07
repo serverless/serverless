@@ -15,7 +15,7 @@ The Serverless Framework was designed to provision your Cloudflare Workers Funct
  
 ## prerequisites
  
-In order to deploy your Cloudflare Worker, you need to set your Cloudflare email as an environmental variable called `CLOUDFLARE_AUTH_EMAIL`, and your Cloudflare Global API Key as an environmental variable called `CLOUDFLARE_AUTH_KEY`. You will also need to set `accountId` and `zoneId` in `serverless.yml` under `service.config`, the first part of the path when you open [Cloudflare dashboard] as a logged in user is your `accountId`, e.g. `dash.cloudflare.com/{accountId}`. And the `zoneId` can be found from the overview tab after selecting the desired zone from the [Cloudflare dashboard](https://dash.cloudflare.com/).
+In order to deploy your Cloudflare Worker, you need to set your Cloudflare email as an environmental variable called `CLOUDFLARE_AUTH_EMAIL`, and your Cloudflare Global API Key as an environmental variable called `CLOUDFLARE_AUTH_KEY`. You will also need to set `accountId` and `zoneId` in `serverless.yml` under `service.config`. The first part of the path when you open [Cloudflare dashboard](https://dash.cloudflare.com/) as a logged in user is your `accountId`, e.g. `dash.cloudflare.com/{accountId}`. And the `zoneId` can be found from the overview tab after selecting the desired zone from the [Cloudflare dashboard](https://dash.cloudflare.com/).
  
 Environmental variables are variables that live inside your terminal.
 
