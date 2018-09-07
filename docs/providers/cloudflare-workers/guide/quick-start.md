@@ -34,7 +34,7 @@ The `cloudflare-workers` template still supports [conditional routing](https://d
 
 ## Deploy, test and diagnose your service
 
-You will need to set your Global API key from Cloudflare as an environmental variable named `CLOUDFLARE_AUTH_KEY`, and your Cloudflare account email as an environmental variable named `CLOUDFLARE_AUTH_EMAIL`. You can get your Global API key from your [Cloudflare profile](https://dash.cloudflare.com/profile) page. You will also need to set `zoneId` for your domain name in `serverless.yml` under `service.config`, the `zoneId` can be found from the overview tab after selecting the desired zone from the [Cloudflare dashboard](https://dash.cloudflare.com/).
+You will need to set your Global API key from Cloudflare as an environmental variable named `CLOUDFLARE_AUTH_KEY`, and your Cloudflare account email as an environmental variable named `CLOUDFLARE_AUTH_EMAIL`. You can get your Global API key from your [Cloudflare profile](https://dash.cloudflare.com/profile) page. You will also need to set `accountId` and `zoneId` in `serverless.yml` under `service.config`, the first part of the path when you open [Cloudflare dashboard] as a logged in user is your `accountId`, e.g. `dash.cloudflare.com/{accountId}`. And the `zoneId` can be found from the overview tab after selecting the desired zone from the [Cloudflare dashboard](https://dash.cloudflare.com/).
 
 Environmental variables are variables that live inside your terminal.
 
