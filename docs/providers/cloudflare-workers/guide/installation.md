@@ -54,4 +54,4 @@ To see which version of serverless you have installed run:
 serverless --version
 ```
 
-Remember, you need version 1.31 to use Cloudflare Workers with Serverless.
+Remember, you need at least version 1.31.0 to use Cloudflare Workers with Serverless.
