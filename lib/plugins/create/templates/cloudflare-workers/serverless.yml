@@ -1,15 +1,15 @@
 service:
     name: hello-world
-    config:
-      accountId: CLOUDFLARE_ACCOUNT_ID 
-      zoneId: CLOUDFLARE_ZONE_ID 
-      workers:
-        hello:
-          routes:
-            - example.com/hello/*
 
 provider:
   name: cloudflare
+  config:
+    accountId: CLOUDFLARE_ACCOUNT_ID
+    zoneId: CLOUDFLARE_ZONE_ID
+    workers:
+      hello:
+        routes:
+        - example.com/hello/*
 
 plugins:
   - serverless-cloudflare-workers
