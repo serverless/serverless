@@ -23,7 +23,7 @@ The Serverless Framework is different than other application frameworks because:
 Here are the Serverless Framework's main concepts and how they pertain to Cloudflare Workers.
  
 ### Functions
-A Function is a Cloudflare Worker. It's an independent unit of deployment, like a microservice. It's merely code, deployed on Cloudflare’s 151+ PoPs (points of presence), that is most often written to perform a single job, such as:
+A Function is a Cloudflare Worker. It's an independent unit of deployment, like a microservice. It's merely code, deployed on Cloudflare’s 152+ PoPs (points of presence), that is most often written to perform a single job, such as:
 * *Performing A/B Testing*
 * *Custom routing based on user location, custom headers, etc.*
 * *Hosting webhook endpoints*
