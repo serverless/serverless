@@ -28,7 +28,7 @@ $ cd new-project
 $ npm install
 ```
 
-Note: there are two templates for Cloudflare Workers: `cloudflare-workers` and `cloudflare-workers-enterprise`. The enterprise template sets up a project that can natively deploy [multiple scripts](https://developers.cloudflare.com/workers/api/config-api-for-enterprise/), each with their own routes. It requires an enterprise Cloudflare account to use.
+Note: there are two templates for [Cloudflare Workers](https://www.cloudflare.com/products/cloudflare-workers/): `cloudflare-workers` and `cloudflare-workers-enterprise`. The enterprise template sets up a project that can natively deploy [multiple scripts](https://developers.cloudflare.com/workers/api/config-api-for-enterprise/), each with their own routes. It requires an enterprise Cloudflare account to use.
 
 The `cloudflare-workers` template still supports [conditional routing](https://developers.cloudflare.com/workers/recipes/conditional-routing/) and multiple scripts if you use a tool like [webpack](https://developers.cloudflare.com/workers/writing-workers/using-npm-modules/).
 
