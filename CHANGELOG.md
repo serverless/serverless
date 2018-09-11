@@ -1,3 +1,18 @@
+# 1.31.0 (11.09.2018)
+- [Add support for Cloudflare Workers](https://github.com/serverless/serverless/pull/5258)
+- [docs: Fix mismatch in AWS Metrics](https://github.com/serverless/serverless/pull/5276)
+- [Add new template for AWS Alexa Typescript](https://github.com/serverless/serverless/pull/5266)
+- [Remove `/tmp/node-dependencies*`](https://github.com/serverless/serverless/pull/5079)
+- [Adds FilterPolicy to SNS event](https://github.com/serverless/serverless/pull/5229)
+- [Update API Gateway Default Request Templates](https://github.com/serverless/serverless/pull/5222)
+- [Update serverless.yml.md](https://github.com/serverless/serverless/pull/5236)
+- [Fix for #3069 - Failing to handle schedule event body params](https://github.com/serverless/serverless/pull/5268)
+- [Remove redundant link to same docs page](https://github.com/serverless/serverless/pull/5243)
+
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.3...v1.31.0)
+
 # 1.30.3 (28.08.2018)
 - [Fix CORS race condition](https://github.com/serverless/serverless/pull/5256)
 
