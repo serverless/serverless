@@ -7,7 +7,7 @@ layout: Doc
 -->
  
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare-workers/events/http)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/events/http)
 <!-- DOCS-SITE-LINK:END -->
  
 

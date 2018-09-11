@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare-workers/guide/quick-start)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/guide/quick-start)
 <!-- DOCS-SITE-LINK:END -->
 
 # Cloudflare Workers - Quickstart

@@ -7,7 +7,7 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare-workers/cli-reference/plugin-uninstall)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/cli-reference/plugin-uninstall)
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Uninstall
