@@ -18,7 +18,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
  <div class="docsSection">
    <div class="docsSectionHeader">
      <a href="./guide/">
-       Cloudflare Workers Guide
+      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/guide.png" alt="Serverless Framework Cloudflare Workers Guide" width="250" draggable="false"/>
      </a>
    </div>
    <div class="test">
@@ -39,7 +39,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
  <div class="docsSection">
    <div class="docsSectionHeader">
      <a href="./cli-reference/">
-       Cloudflare Workers CLI Reference
+       <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cli.png" alt="Serverless Framework Cloudflare Workers CLI Reference" width="250" draggable="false"/>
      </a>
    </div>
    <div>
@@ -59,7 +59,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
  <div class="docsSection">
    <div class="docsSectionHeader">
      <a href="./events/">
-       Cloudflare Workers Events Reference
+       <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/events.png" alt="Serverless Framework Cloudflare Workers Events Reference" width="250" draggable="false"/>
      </a>
    </div>
    <div>
