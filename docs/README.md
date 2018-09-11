@@ -13,6 +13,7 @@ menuItems:
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Webtasks" , path: /framework/docs/providers/webtasks/}
+  - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
