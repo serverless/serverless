@@ -13,7 +13,7 @@ layout: Doc
 
 # Cloudflare Workers - Introduction
 
-The Serverless Framework helps you develop and deploy serverless applications using Cloudflare Workers. It's a CLI that offers structure, automation, and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
+The Serverless Framework helps you develop and deploy serverless applications using Cloudflare Workers. It's a CLI that offers structure, automation, and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events). It lets you manage your Worker routing in a flat configuration file that you can keep in alongside the rest of your code in version control, and the Serverless Framework will intelligently manage your routes as they change.
  
 The Serverless Framework is different than other application frameworks because:
 * It manages your code as well as your infrastructure

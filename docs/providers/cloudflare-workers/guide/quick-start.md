@@ -56,13 +56,13 @@ You’ll need to redefine your environmental variables after each time you close
 
 1. **Deploy the Service**
 
-Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time. If you've made changes to your routes since last deploying, the Serverless Framework will update them on the server for you.
  
 ```bash
 serverless deploy
 ```
 
-2. **Deploy the Function**
+1. **Deploy the Function**
 
 Use this to quickly upload and overwrite your function code, allowing you to develop faster.
  

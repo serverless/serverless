@@ -44,12 +44,12 @@ This is the main method for doing deployments with the Serverless Framework:
 serverless deploy
 ```
 
-Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to your Cloudflare Worker.
+Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to your Cloudflare Worker. If you've made changes to any of your routes since last deploying, the Serverless Framework will update them on the server for you.
  
 ### How It Works
 The Serverless Framework reads in `serverless.yml` and uses it to provision your Functions.
  
-For each defined function in your `serverless.yml` file, the Framework will create a Cloudflare Workers script.
+For each defined Function in your `serverless.yml` file, the Framework will create a Cloudflare Workers script. This means that only enterprise customers can declare more than one Function, but anyone can use [webpack](https://developers.cloudflare.com/workers/writing-workers/using-npm-modules/) to package their application into a single script. 
  
 For example, let's take the following example `serverless.yml` file:
  
@@ -108,6 +108,8 @@ This deployment method updates or deploys a single function. It performs the pla
 ```bash
 serverless deploy --function myFunction
 ```
+
+If you've made changes to the routes corresponding to this Function since last deploying, the Serverless Framework will update them on the server for you.
 
 ### Tips
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
