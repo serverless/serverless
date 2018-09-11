@@ -157,4 +157,19 @@ Already using AWS or another cloud provider? Read on.
       </ul>
     </div>
   </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/cloudflare-workers/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/cloudflare-workers/guide/quick-start">Cloudflare Workers QuickStart</a></li>
+        <li><a href="./providers/cloudflare-workers/guide">Guide</a></li>
+        <li><a href="./providers/cloudflare-workers/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/cloudflare-workers/events">Events</a></li>
+      </ul>
+    </div>
+  </div>
 </div>
