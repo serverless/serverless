@@ -62,7 +62,7 @@ Use this when you have made changes to your Functions, Events or Resources in `s
 serverless deploy
 ```
 
-1. **Deploy the Function**
+2. **Deploy the Function**
 
 Use this to quickly upload and overwrite your function code, allowing you to develop faster.
  
