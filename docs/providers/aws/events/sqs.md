@@ -18,6 +18,8 @@ The ARN for the queue can be specified as a string, the reference to the ARN of 
 
 **Note:** The `sqs` event will hook up your existing SQS Queue to a Lambda function. Serverless won't create a new queue for you.
 
+**IMPORTANT:** AWS is [not supporting FIFO queue](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html) to trigger Lambda function so your queue(s) **must be** a standard queue.
+
 ```yml
 functions:
   compute:
