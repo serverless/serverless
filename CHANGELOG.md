@@ -1,3 +1,11 @@
+# 1.32.0 (17.09.2018)
+- [Update quick-start.md](https://github.com/serverless/serverless/pull/5290)
+- [Backend state item generation and multi-region support](https://github.com/serverless/serverless/pull/5265)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.31.0...v1.32.0)
+
+
 # 1.31.0 (11.09.2018)
 - [Add support for Cloudflare Workers](https://github.com/serverless/serverless/pull/5258)
 - [docs: Fix mismatch in AWS Metrics](https://github.com/serverless/serverless/pull/5276)
@@ -9,9 +17,9 @@
 - [Fix for #3069 - Failing to handle schedule event body params](https://github.com/serverless/serverless/pull/5268)
 - [Remove redundant link to same docs page](https://github.com/serverless/serverless/pull/5243)
 
-
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.3...v1.31.0)
+
 
 # 1.30.3 (28.08.2018)
 - [Fix CORS race condition](https://github.com/serverless/serverless/pull/5256)
@@ -37,6 +45,7 @@
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.0...v1.30.1)
 
+
 # 1.30.0 (09.08.2018)
 - [Added support for multiple access keys for multiple tenants](https://github.com/serverless/serverless/pull/5189)
 - [Fixed a publishing bug when having more than 100 resources](https://github.com/serverless/serverless/pull/5189)
@@ -52,6 +61,7 @@
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.2...v1.30.0)
 
+
 # 1.29.2 (29.07.2018)
 - [Fixed a bug when using APIG lambda integration with Serverless Dashboard](https://github.com/serverless/serverless/pull/5174)
 - [Fixed a bug by transforming env var to string when setting num value](https://github.com/serverless/serverless/pull/5166)
@@ -59,11 +69,13 @@
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.1...v1.29.2)
 
+
 # 1.29.1 (28.07.2018)
 - [Fixed a bug when using APIG root path with Serverless Dashboard](https://github.com/serverless/serverless/pull/5170)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.0...v1.29.1)
+
 
 # 1.29.0 (26.07.2018)
 - [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
@@ -73,6 +85,7 @@
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.28.0...v1.29.0)
+
 
 # 1.28.0 (04.07.2018)
 - [Add SQS event integration](https://github.com/serverless/serverless/pull/5074)
@@ -90,6 +103,7 @@
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.0...v1.28.0)
+
 
 # 1.27.0 (02.05.2018)
 - [Add maxAge option for CORS](https://github.com/serverless/serverless/pull/4639)
@@ -117,6 +131,7 @@
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.26.0...v1.26.1)
+
 
 # 1.26.0 (29.01.2018)
 - [AWS Go support](https://github.com/serverless/serverless/pull/4669)
@@ -204,7 +219,6 @@
 - [Added --function option to deploy command](https://github.com/serverless/serverless/pull/4192)
 - [Fixed a bug with Kinesis events](https://github.com/serverless/serverless/pull/4084)
 - [Fixed a bug with packaging](https://github.com/serverless/serverless/pull/4189)
-
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.1...v1.22.0)
