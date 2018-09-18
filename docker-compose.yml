@@ -15,6 +15,14 @@ services:
       - AWS_PROFILE
       - AWS_SESSION_TOKEN
       - AWS_SECURITY_TOKEN
+  aws-clojure-gradle:
+    image: java:8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-clojure-gradle:/app
+  aws-clojurescript-gradle:
+    image: pgoudreau/docker-maven-node
+    volumes:
+      - ./tmp/serverless-integration-test-aws-clojurescript-gradle:/app          
   aws-nodejs:
     image: node:5.11.1
     volumes:
@@ -77,6 +85,10 @@ services:
     image: node:6.10.3
     volumes:
       - ./tmp/serverless-integration-test-aws-nodejs-typescript:/app
+  aws-alexa-typescript:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-alexa-typescript:/app
   aws-nodejs-ecma-script:
     image: node:6.10.3
     volumes:

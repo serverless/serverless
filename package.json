@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.28.0",
+  "version": "1.32.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -63,6 +63,7 @@
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
+    "testEnvironment": "node",
     "setupTestFrameworkScriptFile": "<rootDir>/tests/setupTests.js"
   },
   "devDependencies": {
@@ -91,8 +92,7 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/fdk": "^0.5.1",
-    "@serverless/platform-sdk": "^0.1.5",
+    "@serverless/platform-sdk": "^0.3.0",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.228.0",

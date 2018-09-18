@@ -602,7 +602,7 @@ Both templates give you access to the following properties you can access with t
 - principalId
 - stage
 - headers
-- query
+- queryStringParameters
 - path
 - identity
 - stageVariables
@@ -1005,25 +1005,25 @@ resources:
       Properties:
         Name: YourApiGatewayName
 
-    Outputs:
-      apiGatewayRestApiId:
-        Value:
-          Ref: YourApiGatewayName
-        Export:
-          Name: apiGateway-restApiId
-      
-      apiGatewayRestApiRootResourceId:
-        Value:
-           Fn::GetAtt:
-            - YourApiGateway
-            - RootResourceId 
-        Export:
-          Name: apiGateway-rootResourceId
+  Outputs:
+    apiGatewayRestApiId:
+      Value:
+        Ref: YourApiGateway
+      Export:
+        Name: apiGateway-restApiId
+    
+    apiGatewayRestApiRootResourceId:
+      Value:
+         Fn::GetAtt:
+          - YourApiGateway
+          - RootResourceId 
+      Export:
+        Name: apiGateway-rootResourceId
   
   provider:
     apiGateway:
       restApiId: 
-        Ref: YourApiGatewayName
+        Ref: YourApiGateway
       restApiResources:
         Fn::GetAtt:
             - YourApiGateway
