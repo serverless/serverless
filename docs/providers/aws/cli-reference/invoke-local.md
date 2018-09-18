@@ -12,7 +12,7 @@ layout: Doc
 
 # AWS - Invoke Local
 
-This runs your code locally by emulating the AWS Lambda environment. Please keep in mind, it's not a 100% perfect emulation, there may be some differences, but it works for the vast majority of users.  We mock the `context` with simple mock data.
+This runs your code locally by emulating the AWS Lambda environment. Note that you have to 'deploy' it first. Please keep in mind, it's not a 100% perfect emulation, there may be some differences, but it works for the vast majority of users.  We mock the `context` with simple mock data.
 
 ```bash
 serverless invoke local --function functionName
