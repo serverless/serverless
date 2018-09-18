@@ -2,7 +2,9 @@ service: gcf-nodejs # NOTE: Don't put the word "google" in here
 
 provider:
   name: google
-  runtime: nodejs
+  stage: dev
+  runtime: nodejs8
+  region: us-central1
   project: my-project
   # the path to the credentials file needs to be absolute
   credentials: ~/.gcloud/keyfile.json
@@ -23,11 +25,9 @@ functions:
     handler: http
     events:
       - http: path
-
   # NOTE: the following uses an "event" event (pubSub event in this case).
   # Please create the corresponding resources in the Google Cloud
   # before deploying this service through Serverless
-
   #second:
   #  handler: event
   #  events:
