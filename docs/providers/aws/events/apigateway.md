@@ -939,7 +939,7 @@ provider:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
     restApiResources:
-      /posts: xxxxxxxxxx
+      /posts: 'xxxxxxxxxx'
 
 functions:
   ...
@@ -953,7 +953,7 @@ provider:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
     restApiResources:
-      /posts: xxxxxxxxxx
+      /posts: 'xxxxxxxxxx'
 
 functions:
   ...
@@ -970,8 +970,8 @@ provider:
     restApiId: xxxxxxxxxx
     # restApiRootResourceId: xxxxxxxxxx # Optional
     restApiResources:
-      /posts: xxxxxxxxxx
-      /categories: xxxxxxxxx
+      /posts: 'xxxxxxxxxx'
+      /categories: 'xxxxxxxxx'
 
 
 functions:
