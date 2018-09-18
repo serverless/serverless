@@ -42,7 +42,7 @@ functions:
           # Defines the method used by serverless when the `invoke` command is used. Cloudflare Workers only support GET requests for now
           method: GET
           headers:
-	greeting: hi
+            greeting: hi
 ```
 
 Let's invoke correctly that function

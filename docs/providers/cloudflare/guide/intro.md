@@ -66,6 +66,7 @@ functions:
     events:
       - http:
           url: example.com/hello/user
+          # Defines the method used by serverless when the `invoke` command is used. Cloudflare Workers only support GET requests for now
           method: GET
           headers:
             someKey: someValue
