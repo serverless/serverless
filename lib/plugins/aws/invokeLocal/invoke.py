@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 import sys
-from time import time
+from time import strftime, time
 from importlib import import_module
 
 class FakeLambdaContext(object):
@@ -43,7 +43,7 @@ class FakeLambdaContext(object):
 
     @property
     def log_stream_name(self):
-        return '2018/09/12/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
+        return strftime('%Y/%m/%d') +'/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
 
 logging.basicConfig()
 
