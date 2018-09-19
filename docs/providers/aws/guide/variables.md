@@ -18,7 +18,7 @@ They are especially useful when providing secrets for your service to use and wh
 
 ## Syntax
 
-To use variables, you will need to reference values enclosed in `${}` brackets. 
+To use variables, you will need to reference values enclosed in `${}` brackets.
 
 ```yml
 # serverless.yml file
@@ -27,11 +27,11 @@ yamlKeyXYZ: ${variableSource} # see list of current variable sources below
 otherYamlKey: ${variableSource, defaultValue}
 ```
 
-You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax. 
+You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax.
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
-## Current variable sources: 
+## Current variable sources:
 
 - [environment variables](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-environment-variables)
 - [CLI options](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-cli-options)
@@ -57,7 +57,7 @@ provider:
     MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
 ```
 
-If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
+If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined.
 
 **How that works:**
 
@@ -427,8 +427,8 @@ service: new-service
 provider:
   name: aws
   runtime: nodejs6.10
-  variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
-#  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml -- e.g. ${AWS::Region}. All other Serverless variables work as usual.
+  variableSyntax: "\\${{([ ~:a-zA-Z0-9._@\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
+#  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml -- e.g. ${AWS::Region}. All other Serverless variables work as usual.
 
 custom:
   myStage: ${{opt:stage}}
