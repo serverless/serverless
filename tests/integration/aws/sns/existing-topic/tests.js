@@ -2,8 +2,8 @@
 
 const path = require('path');
 const expect = require('chai').expect;
-const Utils = require('../../../../utils/index');
 const uuid = require('uuid');
+const Utils = require('../../../../utils/index');
 
 describe('AWS - SNS: Existing topic with single function', () => {
   const snsTopic = uuid.v4();

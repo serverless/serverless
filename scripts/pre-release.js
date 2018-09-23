@@ -1,8 +1,8 @@
 'use strict';
 
+const path = require('path');
 const writeFile = require('../lib/utils/fs/writeFile');
 const getTrackingConfigFileName = require('../lib/utils/getTrackingConfigFileName');
-const path = require('path');
 
 const trackingConfigFilePath = path.join(process.cwd(), getTrackingConfigFileName());
 

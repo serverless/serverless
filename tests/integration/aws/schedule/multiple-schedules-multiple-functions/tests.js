@@ -2,8 +2,8 @@
 
 const path = require('path');
 const expect = require('chai').expect;
-const Utils = require('../../../../utils/index');
 const BbPromise = require('bluebird');
+const Utils = require('../../../../utils/index');
 
 describe('AWS - Schedule: Multiple schedules with multiple functions', () => {
   beforeAll(() => {

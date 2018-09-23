@@ -2,11 +2,11 @@
 
 'use strict';
 
-const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const platform = require('@serverless/platform-sdk');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
+const autocomplete = require('../lib/utils/autocomplete');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
 
 Error.stackTraceLimit = Infinity;
