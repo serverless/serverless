@@ -28,6 +28,7 @@ serverless invoke -f functionName
 * `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 * `--contextPath` or `-x`, The path to a json file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
 * `--context` or `-c`, String data to be passed as a context to your function. Same like with `--data`, context included in `--contextPath` will overwrite the context you passed with `--context` flag.
+* `--env` or `-e` String representing an environment variable to set when invoking your function, in the form `<name>=<value>`. Can be repeated for more than one environment variable.
 
 > Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
 
@@ -53,4 +54,14 @@ serverless invoke local -f functionName -p path/to/file.json
 # OR
 
 serverless invoke local -f functionName -p path/to/file.yaml
+```
+
+### Local function invocation, setting environment variables
+
+```bash
+serverless invoke local -f functionName -e VAR1=value1
+
+# Or more than one variable
+
+serverless invoke local -f functionName -e VAR1=value1 -e VAR2=value2
 ```
