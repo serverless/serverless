@@ -95,3 +95,20 @@ functions:
           topicName: aggregate
           displayName: Data aggregation pipeline
 ```
+
+## Setting a filter policy
+
+This event definition creates an SNS topic which subscription uses a filter policy. The filter policy filters out messages that don't have attribute key `pet` with value `dog` or `cat`.
+
+```yml
+functions:
+  pets:
+    handler: pets.handler
+    events:
+      - sns:
+          topicName: pets
+          filterPolicy:
+            pet:
+              - dog
+              - cat
+```
