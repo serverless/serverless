@@ -112,4 +112,14 @@ Next up, it's time to choose where you'd like your serverless service to run.
       <a href="/framework/docs/providers/fn/guide/quick-start">Fn<br/>Quick Start Guide</a>
     </div>
   </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="/framework/docs/providers/cloudflare/guide/quick-start">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="/framework/docs/providers/cloudflare/guide/quick-start">Cloudflare Workers<br/>Quick Start Guide</a>
+    </div>
+  </div>
 </div>
