@@ -22,7 +22,7 @@ services:
   aws-clojurescript-gradle:
     image: pgoudreau/docker-maven-node
     volumes:
-      - ./tmp/serverless-integration-test-aws-clojurescript-gradle:/app          
+      - ./tmp/serverless-integration-test-aws-clojurescript-gradle:/app
   aws-nodejs:
     image: node:5.11.1
     volumes:
@@ -113,7 +113,3 @@ services:
     image: maven:3-jdk-8
     volumes:
       - ./tmp/serverless-integration-test-spotinst-java8:/app
-  webtasks-nodejs:
-    image: node:6.10.3
-    volumes:
-      - ./tmp/serverless-integration-test-webtasks-nodejs:/app
