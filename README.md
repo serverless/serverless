@@ -263,6 +263,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 -->
 | Project Name | Author |
 |:-------------|:------:|
+| **[Serverless Pipeline](https://github.com/msfidelis/serverless-pipeline)** <br/> Simple CI/CD Pipeline to Serverless Projects on AWS using Codepipeline, Codebuild and Terraform | [msfidelis](http://github.com/msfidelis) |
 | **[Jwtauthorizr](https://github.com/serverlessbuch/jwtAuthorizr)** <br/> Custom JWT Authorizer Lambda function for Amazon API Gateway with Bearer JWT | [serverlessbuch](http://github.com/serverlessbuch) |
 | **[Serverless Graphql Api](https://github.com/boazdejong/serverless-graphql-api)** <br/> Serverless GraphQL API using Lambda and DynamoDB | [boazdejong](http://github.com/boazdejong) |
 | **[Serverless Screenshot](https://github.com/svdgraaf/serverless-screenshot)** <br/> Serverless Screenshot Service using PhantomJS | [svdgraaf](http://github.com/svdgraaf) |
