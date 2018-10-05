@@ -15,9 +15,9 @@ service: spotinst-ruby # NOTE: update this with your service name
 
 provider:
   name: spotinst
-  #stage: <Stage Name>  #Optional setting. By default it is set to 'dev'
+  #stage: <Stage Name>  #Optional. Defaults to 'dev', see https://help.spotinst.com/hc/en-us/articles/115005893409
   spotinst:
-    #environment: <env-XXXX> # NOTE: Remember to add the environment ID
+    environment: #<env-XXXX> Required.
 
 functions:
   hello:
@@ -26,6 +26,8 @@ functions:
     memory: 128
     timeout: 30
     access: private
+#    iamRoleConfig:
+#      roleId: # role-id
 #    activeVersions:
 #        - "version": "$LATEST"
 #          "percentage": 100.0
@@ -35,11 +37,10 @@ functions:
 #        headers: # 'Content-Type,Authorization' by default
 #        methods: # 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT' by default
 #    cron:  # Setup scheduled trigger with cron expression
-#     active: true
-#     value: '* * * * *'
-#    environmentVariables: {
-#      Key: "Value",
-#    }
+#      active: true
+#      value: '* * * * *'
+#    environmentVariables:
+#      key: Value
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins

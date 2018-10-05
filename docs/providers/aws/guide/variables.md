@@ -57,7 +57,7 @@ provider:
     MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
 ```
 
-If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
+If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
 
 **How that works:**
 
@@ -66,7 +66,7 @@ If `sls deploy --stage qa` is ran, the option `stage=qa` is used inside the `${f
 3. `${file(./config.qa.json):CREDS}` is found & the `CREDS` value is read
 4. `MY_SECRET` value is set
 
-Likewise, if `sls deploy --stage prod` is ran the `config.prod.json` file would be found and used.
+Likewise, if `sls deploy --stage prod` is run the `config.prod.json` file would be found and used.
 
 If no `--stage` flag is provided, the second parameter defined in `${opt:stage, 'dev'}` a.k.a `dev` will be used and result in `${file(./config.dev.json):CREDS}`.
 
@@ -285,7 +285,7 @@ functions:
 
 You can reference JavaScript files to add dynamic data into your variables.
 
-References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`.
+References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`. The first argument to your export will be a reference to the Serverless object, containing your configuration.
 
 Here are other examples:
 
@@ -299,7 +299,9 @@ module.exports.rate = () => {
 
 ```js
 // config.js
-module.exports = () => {
+module.exports = (serverless) => {
+  serverless.cli.consoleLog('You can access Serverless config and methods as well!');
+
   return {
     property1: 'some value',
     property2: 'some other value'
@@ -426,6 +428,7 @@ provider:
   name: aws
   runtime: nodejs6.10
   variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
+#  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml -- e.g. ${AWS::Region}. All other Serverless variables work as usual.
 
 custom:
   myStage: ${{opt:stage}}

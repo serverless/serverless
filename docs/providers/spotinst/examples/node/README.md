@@ -42,4 +42,4 @@ Congrats you have deployed and ran your Hello World function!
 
 `-t` is short hand for `--template`
 
-`-p` is short hang for `--path`
+`-p` is short hand for `--path`

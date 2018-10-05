@@ -45,7 +45,17 @@ provider:
              - "/*"
 
 ```
+Alongside `provider.iamRoleStatements` managed policies can also be added to this service-wide Role, define managed policies in `provider.iamManagedPolicies`. These will also be merged into the generated IAM Role so you can use `Join`, `Ref` or any other CloudFormation method or feature here too.
+```yml
+service: new-service
 
+provider:
+  name: aws
+  iamManagedPolicies:
+    - 'some:aws:arn:xxx:*:*'
+    - 'someOther:aws:arn:xxx:*:*'
+    - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWSAccountId' }, 'some/path']] }
+```
 ## Custom IAM Roles
 
 **WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
@@ -87,7 +97,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /my/default/path/
-        RoleName: MyDefaultRole
+        RoleName: MyDefaultRole # required if you want to use 'serverless deploy --function' later on
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:

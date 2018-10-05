@@ -17,11 +17,11 @@ layout: Doc
 
 ## Create a new service
 
-Create a new service using the Python template, specifying a unique name and an optional path for your service.
+Create a new service using the NodeJS template, specifying a unique name and an optional path for your service.
 
 ```bash
 # Create a new Serverless Service/Project
-$ serverless create --template kubeless-python --path new-project
+$ serverless create --template kubeless-nodejs --path new-project
 # Change into the newly created directory
 $ cd new-project
 # Install npm dependencies

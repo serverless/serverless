@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless AWS Functions documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
+If you have any questions, [search the forums](https://forum.serverless.com?utm_source=framework-docs) or [start your own thread](https://forum.serverless.com?utm_source=framework-docs)
 
 **Note:** [AWS system credentials](./guide/credentials.md) are required for using serverless + AWS.
 
@@ -91,6 +91,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./events/s3.md">S3</a></li>
         <li><a href="./events/schedule.md">Schedule</a></li>
         <li><a href="./events/sns.md">SNS</a></li>
+        <li><a href="./events/sqs.md">SQS</a></li>
         <li><a href="./events/alexa-skill.md">Alexa Skill</a></li>
         <li><a href="./events/alexa-smart-home.md">Alexa Smart Home</a></li>
         <li><a href="./events/iot.md">IoT</a></li>

@@ -78,7 +78,7 @@ functions: # Your "Functions"
         x-azure-settings:
           name: req
           methods:
-           - POST
+           - post
           route: /users/create
   usersDelete:
     events:
@@ -86,7 +86,7 @@ functions: # Your "Functions"
         x-azure-settings:
           name: req
           methods:
-           - DELETE
+           - delete
           route: /users/delete
 ```
 

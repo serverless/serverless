@@ -12,7 +12,7 @@ layout: Doc
 
 Welcome to the Serverless Spotinst documentation!
 
-If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
+If you have any questions, [search the forums](https://forum.serverless.com?utm_source=framework-docs) or [start your own thread](https://forum.serverless.com?utm_source=framework-docs)
 
 <div class="docsSections">
   <div class="docsSection">
@@ -32,6 +32,7 @@ If you have questions, join the [chat in gitter](https://gitter.im/serverless/se
         <li><a href="./guide/endpoints.md">Endpoints</a></li>
         <li><a href="./guide/cors.md">Cross-Origin Resource Sharing</a></li>
         <li><a href="./guide/active-versions.md">Active Versions Documentation</a></li>
+        <li><a href="./guide/IAM-roles.md">IAM Roles</a></li>
       </ul>
     </div>
   </div>

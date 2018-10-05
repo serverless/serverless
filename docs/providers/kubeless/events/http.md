@@ -80,7 +80,7 @@ functions:
 
 ```
 
-If the events HTTP definitions contain a `path` attribute, when deploying this Serverless YAML definition, Kubeless will create the needed [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) rules to redirect each of the requests to the right service:
+If the events HTTP definitions contain a `path` attribute, when deploying this Serverless YAML definition, Kubeless will create the needed [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) rules to redirect each of the requests to the right service. You will need to create an [Ingress Controller](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-controllers) to make use of your Ingress rule(s):
 
 ```
 kubectl get ingress
