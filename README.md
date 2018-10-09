@@ -337,7 +337,9 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 This table is generated from https://github.com/serverless/examples/blob/master/community-examples.json please make additions there
 -->
 | Project Name | Author |
-| :----------- | :----: |
+|:-------------|:------:|
+| **[Serverless Pipeline](https://github.com/msfidelis/serverless-pipeline)** <br/> Simple CI/CD Pipeline to Serverless Projects on AWS using Codepipeline, Codebuild and Terraform | [msfidelis](http://github.com/msfidelis) |
+| **[Jwtauthorizr](https://github.com/serverlessbuch/jwtAuthorizr)** <br/> Custom JWT Authorizer Lambda function for Amazon API Gateway with Bearer JWT | [serverlessbuch](http://github.com/serverlessbuch) |
 | **[AWS Demo Java Spring Cloud Function Serverless](https://github.com/mbsambangi/aws-java-spring-cloud-function-demo)** <br/> If Java is your choice of programming language-Spring Cloud Function,Serverless Framework makes a great technology stack. It boosts developer productivity by decoupling from Vendor specific FaaS API, and deployment activities. | [mbsambangi](http://github.com/mbsambangi) |
 | **[Serverless Architecture Boilerplate](https://github.com/msfidelis/serverless-architecture-boilerplate)** <br/> Boilerplate to organize and deploy big projects using Serverless and CloudFormation on AWS | [msfidelis](http://github.com/msfidelis) |
 | **[Bablebot](https://github.com/abiglobalhealth/babelbot)** <br/> Lambda + API Gateway: Zero-to-chatbot in <10 lines of JS. Built-in integrations for Messenger, Telegram, Kik, Line, Twilio, Skype, and Wechat. Or roll your own! | [abiglobalhealth](http://github.com/abiglobalhealth) |
