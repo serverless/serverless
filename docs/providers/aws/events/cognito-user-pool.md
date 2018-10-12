@@ -109,7 +109,7 @@ functions:
 
 resources:
   Resources:
-    CognitoUserPoolMyUserPool:
+    MyUserPool:
       Type: AWS::Cognito::UserPool
 ```
 
