@@ -20,7 +20,7 @@ layout: Doc
 
 Check out the following links for tutorial walkthroughs:
 
-- [Build an Node.js REST API](/blog/serverless-express-rest-api/)
+- [Build a Node.js REST API](/blog/serverless-express-rest-api/)
 - [Deploy a GraphQL endpoint](/blog/make-serverless-graphql-api-using-lambda-dynamodb/)
 
 Or follow the steps below for creating & deploying a simple service and learning some simple Serverless commands.
@@ -76,5 +76,3 @@ If at any point, you no longer need your service, you can run the following comm
 ```bash
 serverless remove
 ```
-
-Check out the [Serverless Framework Guide](./README.md) for more information.
