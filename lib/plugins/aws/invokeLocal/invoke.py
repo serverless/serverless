@@ -45,6 +45,10 @@ class FakeLambdaContext(object):
     def log_stream_name(self):
         return strftime('%Y/%m/%d') +'/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
 
+    @property
+    def log(self):
+        return sys.stdout.write
+
 logging.basicConfig()
 
 parser = argparse.ArgumentParser(
