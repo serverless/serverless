@@ -56,7 +56,7 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/azure/guide/quick-start">Azure QuickStart</a></li>
+        <li><a href="./providers/azure/guide/quick-start.md">Azure QuickStart</a></li>
         <li><a href="./providers/azure/guide">Guide</a></li>
         <li><a href="./providers/azure/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/azure/events">Events</a></li>
