@@ -27,7 +27,7 @@ cycles and not production deployments
 - `--function` or `-f` The name of the function which should be deployed
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
-- `--update-config` or `-u` Pushes ONLY Lambda-level configuration changes e.g. timeout or memorySize
+- `--update-config` or `-u` Pushes ONLY Lambda-level configuration changes e.g. handler, timeout or memorySize
 
 ## Examples
 
