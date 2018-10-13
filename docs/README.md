@@ -40,7 +40,7 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/aws/guide/quick-start">AWS QuickStart</a></li>
+        <li><a href="./providers/aws/guide/quick-start.md">AWS QuickStart</a></li>
         <li><a href="./providers/aws/guide">Guide</a></li>
         <li><a href="./providers/aws/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/aws/events">Events</a></li>
