@@ -65,6 +65,9 @@ Most commonly used templates:
 - aws-scala-sbt
 - aws-csharp
 - aws-fsharp
+- aws-go
+- aws-go-dep
+- aws-go-mod
 - plugin
 
 ## Examples
