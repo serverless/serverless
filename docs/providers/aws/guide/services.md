@@ -107,6 +107,7 @@ provider:
   deploymentBucket:
     name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
     serverSideEncryption: AES256 # when using server-side encryption
+  deploymentPrefix: serverless # Overwrite the default S3 prefix under which deployed artifacts should be stored. Default is serverless
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value
