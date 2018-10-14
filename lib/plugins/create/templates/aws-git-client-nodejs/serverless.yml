@@ -28,6 +28,7 @@ custom:
 functions:
   gitClient:
     handler: index.handler
+    timeout: 60 # lambda-git might take a while
     events:
       - git: ${self:custom.repo}
       # you can add other CodeCommit events here
