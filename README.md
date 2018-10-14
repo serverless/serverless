@@ -419,6 +419,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 | **[Daily Instance Backups With AMI Rotation](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots)** <br/> A simple Python application which scans through your entire AWS account for tagged instances, makes daily AMIs of them, and rotates their backups automatically | [AndrewFarley](http://github.com/AndrewFarley) |
 | **[Serverless Instagram Crawler](https://github.com/kimcoder/serverless-instagram-crawler)** <br/> Instagram hashtag Crawler with Lambda & DynamoDB. | [kimcoder](http://github.com/kimcoder) |
 | **[Serving Binary Files](https://github.com/thomastoye/serverless-binary-files-xlsx)** <br/> Small example showing how to serve binary files using Serverless on AWS with the serverless-apigw-binary plugin, using generated Excel files as an example | [thomastoye](http://github.com/thomastoye) |
+| **[Serverless CloudWatch Proxy](https://github.com/abbasdgr8/cloudwatch-proxy)** <br/> Logging adapter that consumes log streams from AWS CloudWatch, streams them to other log destinations | [abbasdgr8](http://github.com/abbasdgr8) |
 <!-- AUTO-GENERATED-CONTENT:END This table is generated from https://github.com/serverless/examples/blob/master/community-examples.json please make additions there -->
 
 ## <a name="contributing"></a>Contributing
