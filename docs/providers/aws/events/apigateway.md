@@ -246,6 +246,31 @@ functions:
             maxAge: 86400
 ```
 
+If you are using CloudFront or another CDN for your API Gateway, you may want to setup a `Cache-Control` header to allow for OPTIONS request to be cached to avoid the additional hop.  
+
+To enable the `Cache-Control` header on preflight response, set the `cacheControl` property in the `cors` object:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+```
+
 If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:
 
 ```javascript
@@ -602,7 +627,7 @@ Both templates give you access to the following properties you can access with t
 - principalId
 - stage
 - headers
-- query
+- queryStringParameters
 - path
 - identity
 - stageVariables

@@ -52,6 +52,7 @@ Most commonly used templates:
 - aws-clojure-gradle
 - aws-nodejs
 - aws-nodejs-typescript
+- aws-alexa-typescript
 - aws-nodejs-ecma-script
 - aws-python
 - aws-python3
@@ -64,6 +65,9 @@ Most commonly used templates:
 - aws-scala-sbt
 - aws-csharp
 - aws-fsharp
+- aws-go
+- aws-go-dep
+- aws-go-mod
 - plugin
 
 ## Examples

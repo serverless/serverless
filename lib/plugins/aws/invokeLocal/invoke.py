@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 import sys
-from time import time
+from time import strftime, time
 from importlib import import_module
 
 class FakeLambdaContext(object):
@@ -31,12 +31,23 @@ class FakeLambdaContext(object):
 
     @property
     def memory_limit_in_mb(self):
-        return 1024
+        return '1024'
 
     @property
     def aws_request_id(self):
         return '1234567890'
 
+    @property
+    def log_group_name(self):
+        return '/aws/lambda/' + self.name
+
+    @property
+    def log_stream_name(self):
+        return strftime('%Y/%m/%d') +'/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
+
+    @property
+    def log(self):
+        return sys.stdout.write
 
 logging.basicConfig()
 

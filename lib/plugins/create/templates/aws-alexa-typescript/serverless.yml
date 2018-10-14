@@ -1,0 +1,48 @@
+service:
+  name: aws-alexa-typescript
+
+plugins:
+  - serverless-webpack
+  - serverless-alexa-skills
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+custom:
+  alexa:
+    # Step 1: Run `sls alexa auth` to authenticate
+    # Step 2: Run `sls alexa create --name "Serverless Alexa Typescript" --locale en-GB --type custom` to create a new skill
+    skills:
+        # Step 3: Paste the skill id returned by the create command here:
+      - id: amzn1.ask.skill.xxxx-xxxx-xxxx-xxxx-xxxx
+        manifest:
+          publishingInformation:
+            locales:
+              en-GB:
+                name: Serverless Alexa Typescript
+          apis:
+            custom:
+              endpoint:
+                # Step 4: Do your first deploy of your Serverless stack
+                # Step 5: Paste the ARN of your lambda here:
+                uri: arn:aws:lambda:[region]:[account-id]:function:[function-name]
+                # Step 6: Run `sls alexa update` to deploy the skill manifest
+                # Step 7: Run `sls alexa build` to build the skill interaction model
+                # Step 8: Enable the skill in the Alexa app to start testing.
+          manifestVersion: '1.0'
+        models:
+          en-GB:
+            interactionModel:
+              languageModel:
+                invocationName: serverless typescript
+                intents:
+                  - name: HelloIntent
+                    samples:
+                      - 'hello'
+
+functions:
+  alexa:
+    handler: handler.alexa
+    events:
+      - alexaSkill: ${self:custom.alexa.skills.0.id}

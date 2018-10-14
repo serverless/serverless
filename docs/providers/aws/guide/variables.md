@@ -33,15 +33,15 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 ## Current variable sources: 
 
-- [environment variables](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-environment-variables)
-- [CLI options](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-cli-options)
-- [other properties defined in `serverless.yml`](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-properties-in-serverlessyml)
-- [external YAML/JSON files](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-other-files)
-- [variables from S3](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-s3-objects)
-- [variables from AWS SSM Parameter Store](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-using-the-ssm-parameter-store)
-- [CloudFormation stack outputs](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs)
-- [properties exported from Javascript files (sync or async)](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-javascript-files)
-- [Pseudo Parameters Reference](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-Pseudo-Parameters-Reference)
+- [environment variables](#referencing-environment-variables)
+- [CLI options](#referencing-cli-options)
+- [other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
+- [external YAML/JSON files](#reference-variables-in-other-files)
+- [variables from S3](#referencing-s3-objects)
+- [variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
+- [CloudFormation stack outputs](#reference-cloudformation-outputs)
+- [properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
+- [Pseudo Parameters Reference](#referencing-Pseudo-Parameters-Reference)
 
 ## Recursively reference properties
 

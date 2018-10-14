@@ -12,7 +12,7 @@ menuItems:
   - {menuText: "- OpenWhisk", path: /framework/docs/providers/openwhisk/}
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
-  - {menuText: "- Webtasks" , path: /framework/docs/providers/webtasks/}
+  - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -40,7 +40,7 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/aws/guide/quick-start">AWS QuickStart</a></li>
+        <li><a href="./providers/aws/guide/quick-start.md">AWS QuickStart</a></li>
         <li><a href="./providers/aws/guide">Guide</a></li>
         <li><a href="./providers/aws/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/aws/events">Events</a></li>
@@ -56,7 +56,7 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/azure/guide/quick-start">Azure QuickStart</a></li>
+        <li><a href="./providers/azure/guide/quick-start.md">Azure QuickStart</a></li>
         <li><a href="./providers/azure/guide">Guide</a></li>
         <li><a href="./providers/azure/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/azure/events">Events</a></li>
@@ -129,21 +129,6 @@ Already using AWS or another cloud provider? Read on.
   </div>
   <div class="docsSection">
     <div class="docsSectionHeader">
-      <a href="./providers/webtasks/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/webtask-small-grayscale.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div>
-      <ul>
-        <li><a href="./providers/webtasks/guide/quick-start">Webtasks QuickStart</a></li>
-        <li><a href="./providers/webtasks/guide">Guide</a></li>
-        <li><a href="./providers/webtasks/cli-reference">CLI Reference</a></li>
-        <li><a href="./providers/webtasks/events">Events</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
       <a href="./providers/fn/">
         <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
       </a>
@@ -154,6 +139,21 @@ Already using AWS or another cloud provider? Read on.
         <li><a href="./providers/fn/guide">Guide</a></li>
         <li><a href="./providers/fn/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/fn/events">Events</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./providers/cloudflare/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div>
+      <ul>
+        <li><a href="./providers/cloudflare/guide/quick-start">Cloudflare Workers QuickStart</a></li>
+        <li><a href="./providers/cloudflare/guide">Guide</a></li>
+        <li><a href="./providers/cloudflare/cli-reference">CLI Reference</a></li>
+        <li><a href="./providers/cloudflare/events">Events</a></li>
       </ul>
     </div>
   </div>
