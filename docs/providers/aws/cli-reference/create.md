@@ -67,7 +67,7 @@ Most commonly used templates:
 - aws-fsharp
 - aws-go
 - aws-go-dep
-- aws-go-modules
+- aws-go-mod
 - plugin
 
 ## Examples
