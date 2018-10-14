@@ -1,0 +1,88 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: aws-codecommit-nodejs # NOTE: update this with your service name
+
+# You can pin your service to only deploy with a specific Serverless version
+# which supports git (CodeCommit) events.
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+custom:
+  repo: myRepo # your repo name
+
+functions:
+  codeCommitClient:
+    handler: index.handler
+    role: roleCodeCommit
+    events:
+      - git: ${self:custom.repo}
+      # you can add other CodeCommit events here
+      # - git: otherRepository
+
+resources:
+  Resources:
+    roleCodeCommit: # beware of the CodeCommit active users charges
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: codeCommit
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        # TODO: uncomment the lines below for a broad set of CodeCommit permissions
+        #ManagedPolicyArns:
+        #  - 'arn:aws:iam::aws:policy/AWSCodeCommitFullAccess'
+        Policies:
+          - PolicyName: gitPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow # CloudWatch
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - - 'arn'
+                        - Ref: 'AWS::Partition'
+                        - 'logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*'
+                - Effect: Allow # CodeCommit
+                  Action:
+                    # Check out CodeCommit permissions:
+                    # https://docs.aws.amazon.com/codecommit/latest/userguide/auth-and-access-control-permissions-reference.html
+                    - codecommit:ListBranches # listing branches using CodeCommit API
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - - 'arn'
+                        - Ref: 'AWS::Partition'
+                        - 'codecommit'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - ${self:custom.repo}

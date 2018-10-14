@@ -96,6 +96,7 @@ functions:
 #      - cognitoUserPool:
 #          pool: MyUserPool
 #          trigger: PreSignUp
+#      - git: MyRepository
 
 #    Define function environment variables here
 #    environment:

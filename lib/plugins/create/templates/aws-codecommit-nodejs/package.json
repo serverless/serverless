@@ -1,0 +1,17 @@
+{
+  "name": "aws-codecommit-nodejs",
+  "version": "1.0.0",
+  "description": "CodeCommit example using AWS API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.334.0"
+  },
+  "devDependencies": {
+    "serverless": "^1.32.0"
+  },
+  "author": "Marcelo Bernardes (https://github.com/marcelobern)",
+  "license": "MIT"
+}

@@ -1,0 +1,65 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: aws-git-client-nodejs # NOTE: update this with your service name
+
+# You can pin your service to only deploy with a specific Serverless version
+# which supports git (CodeCommit) events.
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+custom:
+  repo: myRepo # your repo name
+
+functions:
+  gitClient:
+    handler: index.handler
+    events:
+      - git: ${self:custom.repo}
+      # you can add other CodeCommit events here
+      # - git: otherRepository
+    environment:
+      BASE_REPO_PATH: '/tmp' # any writable path within lambda
+      # TODO: below environment variables are not safe --- DO NOT USE IN PRODUCTION
+      SSH_KEY_ID: 'ADD_YOUR_SSH_KEY_ID_HERE' # retrieve from IAM after upload CodeCommit ssh key
+      SSH_KEY: 'ADD_YOUR_SSH_KEY_HERE' # retrieve from IAM after upload CodeCommit ssh key
+
+resources:
+  Resources:
+    userCodeCommit: # beware of the CodeCommit active users charges
+      # If using ssh create & upload CodeCommit ssh key to this user account
+      Type: AWS::IAM::User
+      Properties:
+        UserName: codeCommit # you can change this user's name
+        Policies:
+          - PolicyName: gitPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action: # permissions below work for git clients, use other permissions if using CodeCommit API
+                    - codecommit:GitPull
+                    - codecommit:GitPush
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      - - 'arn'
+                        - Ref: 'AWS::Partition'
+                        - 'codecommit'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - ${self:custom.repo}

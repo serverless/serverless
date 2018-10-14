@@ -1,0 +1,19 @@
+{
+  "name": "aws-git-client-nodejs",
+  "version": "1.0.0",
+  "description": "CodeCommit example using git client",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "async": "^2.6.1",
+    "lambda-git": "^0.1.2",
+    "simple-git": "^1.95.0"
+  },
+  "devDependencies": {
+    "serverless": "^1.32.0"
+  },
+  "author": "Marcelo Bernardes (https://github.com/marcelobern)",
+  "license": "MIT"
+}
