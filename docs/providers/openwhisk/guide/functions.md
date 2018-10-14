@@ -156,11 +156,12 @@ functions:
 resources:
   packages:
     myPackage:
+      name: optionalCustomName
       parameters:
         hello: world
 ```
 
-*Explicit packages support the following properties: `parameters`, `annotations` and `shared`.*
+*Explicit packages support the following properties: `name`, `parameters`, `annotations` and `shared`.*
 
 ## Binding Services (IBM Cloud Functions)
 
