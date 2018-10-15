@@ -94,6 +94,14 @@ services:
     image: node:6.10.3
     volumes:
       - ./tmp/serverless-integration-test-aws-alexa-typescript:/app
+  aws-codecommit-nodejs:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-codecommit-nodejs:/app
+  aws-git-client-nodejs:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-git-client-nodejs:/app
   aws-nodejs-ecma-script:
     image: node:6.10.3
     volumes:

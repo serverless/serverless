@@ -27,6 +27,8 @@ integration-test aws-kotlin-jvm-maven
 integration-test aws-kotlin-nodejs-gradle
 integration-test aws-nodejs-typescript
 integration-test aws-alexa-typescript
+integration-test aws-codecommit-nodejs
+integration-test aws-git-client-nodejs
 integration-test aws-nodejs-ecma-script
 integration-test google-nodejs
 integration-test spotinst-nodejs
