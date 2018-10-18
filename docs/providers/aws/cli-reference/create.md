@@ -53,6 +53,8 @@ Most commonly used templates:
 - aws-nodejs
 - aws-nodejs-typescript
 - aws-alexa-typescript
+- aws-codecommit-nodejs
+- aws-git-client-nodejs
 - aws-nodejs-ecma-script
 - aws-python
 - aws-python3
