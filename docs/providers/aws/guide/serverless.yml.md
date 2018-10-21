@@ -54,6 +54,7 @@ provider:
     restApiResources: # List of existing resources that were created in the REST API. This is required or the stack will be conflicted
       '/users': xxxxxxxxxx
       '/users/create': xxxxxxxxxx
+    apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
 
   usagePlan: # Optional usage plan configuration
     quota:

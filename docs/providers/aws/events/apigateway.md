@@ -24,6 +24,7 @@ layout: Doc
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
     - [Configuring endpoint types](#configuring-endpoint-types)
     - [Request Parameters](#request-parameters)
+    - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
   - [Lambda Integration](#lambda-integration)
     - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
     - [Request templates](#request-templates)
@@ -551,6 +552,40 @@ functions:
             parameters:
               paths:
                 id: true
+```
+
+### Setting source of API key for metering requests
+
+API Gateway provide a feature for metering your API's requests and you can choice [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  apiGateway:
+    apiKeySourceType: HEADER
+functions:
+  hello:
+    events:
+      - http:
+          path: hello
+          method: get
+```
+
+Another option is AUTHORIZER. If you set this, API Gateway will acquire that key from UsageIdentifierKey which is provided by custom authorizer.
+
+```yml
+service: my-service
+provider:
+  name: aws
+  apiGateway:
+    apiKeySourceType: AUTHORIZER
+functions:
+  hello:
+    events:
+      - http:
+          path: hello
+          method: get
 ```
 
 ## Lambda Integration
