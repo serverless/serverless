@@ -73,8 +73,6 @@ if __name__ == '__main__':
         tty = subprocess.run('tty')
         if tty.returncode == 0:
             sys.stdin = open('/dev/tty')
-        else:
-            print('No TTY found. Ignoring')
 
     context = FakeLambdaContext(**input.get('context', {}))
     result = handler(input['event'], context)
