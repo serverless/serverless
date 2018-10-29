@@ -214,6 +214,7 @@ The OpenWhisk provider plugin supports the following runtimes.
 - Python
 - Java
 - Php
+- Ruby
 - Swift
 - Binary
 - Docker

@@ -51,6 +51,7 @@ Here are the available runtimes for Apache OpenWhisk:
 * openwhisk-nodejs
 * openwhisk-php
 * openwhisk-python
+* openwhisk-ruby
 * openwhisk-swift
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
