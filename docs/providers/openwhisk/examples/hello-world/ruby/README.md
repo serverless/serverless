@@ -1,3 +1,10 @@
+<!--
+title: Hello World Ruby Example
+menuText: Hello World Ruby Example
+description: Create a Ruby Hello World OpenWhisk function
+layout: Doc
+-->
+
 # Serverless OpenWhisk Ruby Template
 
 Hello! 😎
