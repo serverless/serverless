@@ -334,6 +334,25 @@ Real-world use cases where tagging your functions is helpful include:
 - Keeping track of legacy code (e.g. tag functions which use outdated runtimes: `runtime: nodejs0.10`)
 - ...
 
+## Layers
+
+Using the `layers` configuration makes it possible for your function to use
+[Lambda Layers](https://LINK-TO-AWS-DOCS-ABOUT-LAYERS)
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    layers:
+      - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y
+```
+
+Layers can be used in combination with `runtime: provided` to implement your own custom runtime on
+AWS Lambda.
+
+To publish Lambda Layers, check out the
+[serverless-lambda-layers plugin](https://github.com/serverless/lambda-layers-plugin).
+
 ## Log Group Resources
 
 By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
