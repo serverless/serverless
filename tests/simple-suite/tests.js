@@ -69,7 +69,7 @@ describe('Service Lifecyle Integration Test', () => {
     let timestamp;
     const listDeploys = execSync(`${serverlessExec} deploy list`);
     const output = listDeploys.toString();
-    const match = output.match(new RegExp('Timestamp: (.+)'));
+    const match = output.match(new RegExp('Datetime: (.+)'));
     if (match) {
       timestamp = match[1];
     }
