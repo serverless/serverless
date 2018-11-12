@@ -51,9 +51,9 @@ $ npm install
   Invokes the Function and returns results.
 
   ```bash
-  $ serverless invoke --function capitalize --data '{"KUBELESS": "Welcome!"}' -l
+  $ serverless invoke --function capitalize --data '"WELCOME TO KUBELESS!"' -l
   # results
-{kubeless: 'welcome!'}
+"Welcome To Kubeless!"
    ```
 
 4. **Fetch the Function Logs**
