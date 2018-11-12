@@ -43,7 +43,7 @@ $ npm install
   Use this to quickly upload and overwrite your function code, allowing you to develop faster.
 
   ```bash
-  serverless deploy function -f hello
+  serverless deploy function -f capitalize
   ```
 
 3. **Invoke the Function**
@@ -51,17 +51,16 @@ $ npm install
   Invokes the Function and returns results.
 
   ```bash
-  $ serverless invoke --function hello --data '{"Kubeless": "Welcome!"}' -l
+  $ serverless invoke --function capitalize --data '{"KUBELESS": "Welcome!"}' -l
   # results
-{ body: '{"input": {"Kubeless": "Welcome!"}, "message": "Go Serverless v1.0! Your function executed successfully!"}',
-  statusCode: 200 }
+{kubeless: 'welcome!'}
    ```
 
 4. **Fetch the Function Logs**
 
   Open up a separate tab in your console and stream all logs for a specific Function using this command.
   ```bash
-  serverless logs -f hello -t
+  serverless logs -f capitalize -t
   ```
 
 ## Cleanup
