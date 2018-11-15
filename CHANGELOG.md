@@ -1,3 +1,10 @@
+# 1.33.1 (15.11.2018)
+ - [fix issue with `sls deploy --verbose --stage foobar`](https://github.com/serverless/serverless/pull/5492)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.33.0...v1.33.1)
+
+
 # 1.33.0 (15.11.2018)
  - [2116 consistent errors missing config](https://github.com/serverless/serverless/pull/5298)
  - [Update plugin version of google-nodejs template](https://github.com/serverless/serverless/pull/5473)
