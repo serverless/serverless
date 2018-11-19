@@ -1,3 +1,12 @@
+# 1.33.2 (18.11.2018)
+ - [fix `invoke local` with python2.7 projects](https://github.com/serverless/serverless/pull/5500)
+ - [fix `logs --tail`](https://github.com/serverless/serverless/pull/5503)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.33.1...v1.33.2)
+
+
+
 # 1.33.1 (15.11.2018)
  - [fix issue with `sls deploy --verbose --stage foobar`](https://github.com/serverless/serverless/pull/5492)
 
