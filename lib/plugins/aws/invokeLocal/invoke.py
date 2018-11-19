@@ -74,8 +74,11 @@ if __name__ == '__main__':
 
     input = json.load(sys.stdin)
     if sys.platform != 'win32':
-        tty = subprocess.run('tty', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if tty.returncode == 0:
+        try:
+            subprocess.check_call('tty', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except (OSError, subprocess.CalledProcessError):
+            pass
+        else:
             sys.stdin = open('/dev/tty')
 
     context = FakeLambdaContext(**input.get('context', {}))
