@@ -43,7 +43,7 @@ To let the Serverless Framework access your AWS account, we're going to **create
 
 1. Create or login to your Amazon Web Services Account and go to the Identity & Access Management (IAM) page.
 
-2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-admin`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Create policy**. Select the **JSON** tab, add the following JSON file:
+2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-agent`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Create policy**. Select the **JSON** tab, add the following JSON file:
 
 ```{
   "Version": "2012-10-17",
