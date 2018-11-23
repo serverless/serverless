@@ -39,7 +39,7 @@ While in the AWS Free Tier, you can build an entire application on AWS Lambda, A
 
 ### Creating AWS Access Keys
 
-To let the Serverless Framework access your AWS account, we're going to **create an IAM User*, and attach a JSON file policy to your new user. This IAM User will have its own set of AWS Access Keys.
+To let the Serverless Framework access your AWS account, we're going to **create an IAM User**, and attach a JSON file policy to your new user. This IAM User will have its own set of AWS Access Keys.
 
 1. Create or login to your Amazon Web Services Account and go to the Identity & Access Management (IAM) page.
 
