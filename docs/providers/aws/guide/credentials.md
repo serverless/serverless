@@ -26,7 +26,8 @@ Here's how to set up the Serverless Framework with your Amazon Web Services acco
 
 If you're new to Amazon Web Services, make sure you put in a credit card.
 
-All AWS users get access to the Free Tier for [AWS Lambda](https://aws.amazon.com/lambda/pricing/). AWS Lambda is part of the non-expiring [AWS Free Tier](https://aws.amazon.com/free/#AWS_FREE_TIER).
+All AWS users get access to the Free Tier for [AWS Lambda](https://aws.amazon.com/lambda/pricing/). AWS Lambda is part of the non-expiring [AWS Free Tier](https://aws.amazon.com/free/#AWS_FREE_TIER). For additional pricing information for AWS Lambda and Gateway [here](https://aws.amazon.com/lambda/pricing/). If you're using additional AWS services, they could incur additional costs. Please review pricing for you services on AWS [here](https://aws.amazon.com/pricing/).
+
 
 If you don't have a credit card set up, you may not be able to deploy your resources and you may run into this error:
 
@@ -38,7 +39,130 @@ While in the AWS Free Tier, you can build an entire application on AWS Lambda, A
 
 ### Creating AWS Access Keys
 
-To let the Serverless Framework access your AWS account, we're going to **create an IAM User with Admin access**, which can configure the services in your AWS account.  This IAM User will have its own set of AWS Access Keys.
+To let the Serverless Framework access your AWS account, we're going to **create an IAM User**, and attach a JSON file policy to your new user. This IAM User will have its own set of AWS Access Keys.
+
+1. Create or login to your Amazon Web Services Account and go to the Identity & Access Management (IAM) page.
+
+2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-agent`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Create policy**. Select the **JSON** tab, add the following JSON file:
+
+```{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "apigateway:*",
+      "Effect": "Allow",
+      "Resource": "arn:aws:apigateway:*::/restapis/GATEWAY_ID/*"
+    },
+    {
+      "Action": [
+        "apigateway:GET",
+        "lambda:AddPermission",
+        "lambda:CreateAlias",
+        "lambda:DeleteFunction",
+        "lambda:InvokeFunction",
+        "lambda:PublishVersion",
+        "lambda:RemovePermission"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:apigateway:*::/restapis",
+        "arn:aws:lambda:*:*:function:*"
+      ]
+    },
+    {
+      "Action": [
+        "cloudformation:CancelUpdateStack",
+        "cloudformation:ContinueUpdateRollback",
+        "cloudformation:CreateChangeSet",
+        "cloudformation:CreateStack",
+        "cloudformation:CreateUploadBucket",
+        "cloudformation:DeleteStack",
+        "cloudformation:Describe*",
+        "cloudformation:EstimateTemplateCost",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:Get*",
+        "cloudformation:List*",
+        "cloudformation:PreviewStackUpdate",
+        "cloudformation:UpdateStack",
+        "cloudformation:UpdateTerminationProtection",
+        "cloudformation:ValidateTemplate",
+        "dynamodb:CreateTable",
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "ec2:AttachInternetGateway",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateNetworkAcl",
+        "ec2:CreateNetworkAclEntry",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSubnet",
+        "ec2:CreateTags",
+        "ec2:CreateVpc",
+        "ec2:DeleteInternetGateway",
+        "ec2:DeleteNetworkAcl",
+        "ec2:DeleteNetworkAclEntry",
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteVpc",
+        "ec2:Describe*",
+        "ec2:DetachInternetGateway",
+        "ec2:ModifyVpcAttribute",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:DeleteRolePolicy",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:PutRolePolicy",
+        "kinesis:CreateStream",
+        "kinesis:DeleteStream",
+        "kinesis:DescribeStream",
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:FilterLogEvents",
+        "logs:GetLogEvents",
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:DeleteBucketPolicy",
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:ListAllMyBuckets",
+        "s3:ListBucket",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketTagging",
+        "s3:PutBucketWebsite",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutObject",
+        "states:CreateStateMachine",
+        "states:DeleteStateMachine"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:Get*",
+        "lambda:List*",
+        "lambda:Update*"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:lambda:*:*:function:*"
+    }
+  ]
+}
+```
+
+When you are finished, select **Review policy**. You can assign this policy a **Name** and **Description**, then choose **Create Policy**. Check everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps.  That is, if you don't use separate AWS accounts for stages/apps, which is most common.
+
+3. View and copy the **API Key** & **Secret** to a temporary place. You'll need it in the next step.
+
+As you add additional functions and services, your permission needs will change. Though not advised, you can **create an IAM User with Admin access**, which can configure the services in your AWS account.  This IAM User will have its own set of AWS Access Keys.
 
 **Note:** In a production environment, we recommend reducing the permissions to the IAM User which the Framework uses.  Unfortunately, the Framework's functionality is growing so fast, we can't yet offer you a finite set of permissions it needs (we're working on this).  Consider using a separate AWS account in the interim, if you cannot get permission to your organization's primary AWS accounts.
 
@@ -47,6 +171,9 @@ To let the Serverless Framework access your AWS account, we're going to **create
 2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-admin`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Attach existing policies directly**. Search for and select **AdministratorAccess** then click **Next: Review**. Check everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps.  That is, if you don't use separate AWS accounts for stages/apps, which is most common.
 
 3. View and copy the **API Key** & **Secret** to a temporary place. You'll need it in the next step.
+
+
+**Note:** In a production environment, we recommend reducing the permissions to the IAM User which the Framework uses.  Unfortunately, the Framework's functionality is growing so fast, we can't yet offer you a finite set of permissions it needs (we're working on this).  Consider using a separate AWS account in the interim, if you cannot get permission to your organization's primary AWS accounts.
 
 ### Using AWS Access Keys
 

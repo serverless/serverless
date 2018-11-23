@@ -75,6 +75,9 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 
+
+* For information on multi-region deployments, [checkout this article](https://serverless.com/blog/build-multiregion-multimaster-application-dynamodb-global-tables).
+
 ## Deploy Function
 
 This deployment method does not touch your AWS CloudFormation Stack.  Instead, it simply overwrites the zip file of the current function on AWS.  This method is much faster, since it does not rely on CloudFormation.
@@ -112,3 +115,5 @@ serverless deploy --package path-to-package
 
 - The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
 - The deploy process bypasses the package step and uses the existing package to deploy and update CloudFormation stacks.
+
+
