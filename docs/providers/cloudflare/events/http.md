@@ -12,10 +12,9 @@ layout: Doc
  
 
 # Cloudflare Workers - HTTP Events
-The only type of event that is supported in Cloudflare Workers is HTTP events, so defining events in your `serverless.yml` is optional. Defined events in your `serverless.yml` are only used by the `serverless invoke` command, which can be useful for testing your Functions.
  
 ## Serverless Yml
-When creating a service your serverless yml will define which endpoint is used for your function when you run the [`serverless invoke`](../cli-reference/invoke.md) command.
+When creating a service your serverless yml will define which endpoint is used for your function and  when you run the [`serverless invoke`](../cli-reference/invoke.md) command.
  
 ```yml
 # serverless.yml
@@ -23,7 +22,7 @@ When creating a service your serverless yml will define which endpoint is used f
 functions:
   helloWorld:
     # What the script will be called on Cloudflare
-    worker: hello
+    name: hello
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     events:

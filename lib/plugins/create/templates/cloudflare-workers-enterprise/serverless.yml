@@ -6,35 +6,28 @@ provider:
   config:
     accountId: CLOUDFLARE_ACCOUNT_ID
     zoneId: CLOUDFLARE_ZONE_ID
-    workers:
-      hello:
-        routes:
-        - example.com/hello/*
-      foo_script:
-        routes:
-        - example.com/foo/*
 
 plugins:
   - serverless-cloudflare-workers
 
 functions:
   helloWorld:
-    worker: hello
+    name: hello
     script: helloWorld
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           method: GET
           headers:
             foo: bar
             x-client-data: value
 
   foo:
-    worker: foo_script
+    name: foo_script
     script: bar
     events:
       - http:
-          url: example.com/foo/bar
+          url: example.com/foo/*
           method: GET
           headers:
             foo: bar

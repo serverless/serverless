@@ -33,7 +33,7 @@ And its corresponding Serverless yml file:
 functions:
   helloWorld:
     # What the script will be called on Cloudflare
-    worker: hello
+    name: hello
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     events:
