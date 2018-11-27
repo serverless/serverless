@@ -26,10 +26,6 @@ service:
     config:
       accountId: CLOUDFLARE_ACCOUNT_ID 
       zoneId: CLOUDFLARE_ZONE_ID 
-      workers:
-        hello:
-          routes:
-            - example.com/hello/*
 
 provider:
   name: cloudflare
@@ -40,13 +36,13 @@ plugins:
 functions:
   helloWorld:
     # What the script will be called on Cloudflare
-    worker: hello
+    name: hello
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are only relevant to the `serverless invoke` command and don’t affect deployment in any way
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           method: GET
           headers:
             someKey: someValue
@@ -76,13 +72,6 @@ service:
     config:
       accountId: CLOUDFLARE_ACCOUNT_ID 
       zoneId: CLOUDFLARE_ZONE_ID 
-      workers:
-        hello:
-          routes:
-            - example.com/hello/*
-        foo_script:
-          routes:
-            - example.com/foo/*
 
 provider:
   name: cloudflare
@@ -93,13 +82,13 @@ plugins:
 functions:
   helloWorld:
     # What the script will be called on Cloudflare
-    worker: hello
+    name: hello
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are only relevant to the `serverless invoke` command and don’t affect deployment in any way
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           method: GET
           headers:
             someKey: someValue
@@ -107,13 +96,12 @@ functions:
 
   # Only Enterprise accounts would be allowed to add this second function and its corresponding route above
   foo:
-    worker: foo_script
+    name: foo_script
     script: bar
     events:
       - http:
-          url: example.com/foo/bar
+          url: example.com/foo/*
           method: GET
 ```
 The `script` property is what the Cloudflare Worker will be called on Cloudflare’s data centers.
  
-The `events` property is optional and is only relevant for using the `serverless invoke` command. Check out the [`events`](./events.md) guide for more information.

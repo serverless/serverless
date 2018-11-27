@@ -61,13 +61,6 @@ service:
     config:
       accountId: CLOUDFLARE_ACCOUNT_ID 
       zoneId: CLOUDFLARE_ZONE_ID 
-      workers:
-        hello:
-          routes:
-            - example.com/hello/*
-        foo_script:
-          routes:
-            - example.com/foo/*
 
 provider:
   name: cloudflare
@@ -78,13 +71,13 @@ plugins:
 functions:
   helloWorld:
     # What the script will be called on Cloudflare
-    worker: hello
+    name: hello
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are optional to declare and only affect the `serverless invoke` command
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           method: GET
           headers:
             greeting: hi
@@ -92,11 +85,11 @@ functions:
 
   # Only Enterprise accounts would be allowed to add this second function
   foo:
-    worker: foo_script
+    name: foo_script
     script: bar
     events:
       - http:
-          url: example.com/foo/bar
+          url: example.com/foo/*
           method: GET
 ```
 

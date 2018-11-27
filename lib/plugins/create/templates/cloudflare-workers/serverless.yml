@@ -6,21 +6,17 @@ provider:
   config:
     accountId: CLOUDFLARE_ACCOUNT_ID
     zoneId: CLOUDFLARE_ZONE_ID
-    workers:
-      hello:
-        routes:
-        - example.com/hello/*
 
 plugins:
   - serverless-cloudflare-workers
 
 functions:
   helloWorld:
-    worker: hello
+    name: hello
     script: helloWorld  # there must be a file called helloWorld.js
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           method: GET
           headers:
             foo: bar
