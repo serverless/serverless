@@ -1,3 +1,17 @@
+# 1.34.0 (29.11.2018)
+ - [Lambda Layers support](https://github.com/serverless/serverless/pull/5538)
+ - [Python3.7 support](https://github.com/serverless/serverless/pull/5505)
+ - [Updating roles requirement for GCF deployment](https://github.com/serverless/serverless/pull/5490)
+ - [Support returning promises from serverless.js](https://github.com/serverless/serverless/pull/4827)
+ - [update CloudFlare worker docs to new more consistent config](https://github.com/serverless/serverless/pull/5521)
+ - [fix --aws-profile so it overrides profile defined in serverless.yml](https://github.com/serverless/serverless/pull/5516)
+ - [Fix invoke local when using a callback in nodejs](https://github.com/serverless/serverless/pull/5525)
+ - [Fix parsing of --data & --context option with invoke local](https://github.com/serverless/serverless/pull/5512)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.33.2...v1.34.0)
+
+
 # 1.33.2 (18.11.2018)
  - [fix `invoke local` with python2.7 projects](https://github.com/serverless/serverless/pull/5500)
  - [fix `logs --tail`](https://github.com/serverless/serverless/pull/5503)
