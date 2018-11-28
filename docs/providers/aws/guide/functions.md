@@ -350,8 +350,7 @@ functions:
 Layers can be used in combination with `runtime: provided` to implement your own custom runtime on
 AWS Lambda.
 
-To publish Lambda Layers, check out the
-[serverless-lambda-layers plugin](https://github.com/serverless/lambda-layers-plugin).
+To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
 
 ## Log Group Resources
 
