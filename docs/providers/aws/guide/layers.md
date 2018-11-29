@@ -13,7 +13,7 @@ layout: Doc
 # AWS - Layers
 
 If you are using AWS as a provider, all *layers* inside the service are [AWS Lambda
-layers](https://LINKTOAWSDOCS).
+layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
 
 ## Configuration
 

@@ -337,7 +337,7 @@ Real-world use cases where tagging your functions is helpful include:
 ## Layers
 
 Using the `layers` configuration makes it possible for your function to use
-[Lambda Layers](https://LINK-TO-AWS-DOCS-ABOUT-LAYERS)
+[Lambda Layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/)
 
 ```yml
 functions:
