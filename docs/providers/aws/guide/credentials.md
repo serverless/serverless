@@ -47,115 +47,115 @@ To let the Serverless Framework access your AWS account, we're going to **create
 
 ```json
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "apigateway:*",
-      "Effect": "Allow",
-      "Resource": "arn:aws:apigateway:*::/restapis/GATEWAY_ID/*"
-    },
-    {
-      "Action": [
-        "apigateway:GET",
-        "lambda:AddPermission",
-        "lambda:CreateAlias",
-        "lambda:DeleteFunction",
-        "lambda:InvokeFunction",
-        "lambda:PublishVersion",
-        "lambda:RemovePermission"
-      ],
-      "Effect": "Allow",
-      "Resource": [
-        "arn:aws:apigateway:*::/restapis",
-        "arn:aws:lambda:*:*:function:*"
-      ]
-    },
-    {
-      "Action": [
-        "cloudformation:CancelUpdateStack",
-        "cloudformation:ContinueUpdateRollback",
-        "cloudformation:CreateChangeSet",
-        "cloudformation:CreateStack",
-        "cloudformation:CreateUploadBucket",
-        "cloudformation:DeleteStack",
-        "cloudformation:Describe*",
-        "cloudformation:EstimateTemplateCost",
-        "cloudformation:ExecuteChangeSet",
-        "cloudformation:Get*",
-        "cloudformation:List*",
-        "cloudformation:PreviewStackUpdate",
-        "cloudformation:UpdateStack",
-        "cloudformation:UpdateTerminationProtection",
-        "cloudformation:ValidateTemplate",
-        "dynamodb:CreateTable",
-        "dynamodb:DeleteTable",
-        "dynamodb:DescribeTable",
-        "ec2:AttachInternetGateway",
-        "ec2:AuthorizeSecurityGroupIngress",
-        "ec2:CreateInternetGateway",
-        "ec2:CreateNetworkAcl",
-        "ec2:CreateNetworkAclEntry",
-        "ec2:CreateRouteTable",
-        "ec2:CreateSecurityGroup",
-        "ec2:CreateSubnet",
-        "ec2:CreateTags",
-        "ec2:CreateVpc",
-        "ec2:DeleteInternetGateway",
-        "ec2:DeleteNetworkAcl",
-        "ec2:DeleteNetworkAclEntry",
-        "ec2:DeleteRouteTable",
-        "ec2:DeleteSecurityGroup",
-        "ec2:DeleteSubnet",
-        "ec2:DeleteVpc",
-        "ec2:Describe*",
-        "ec2:DetachInternetGateway",
-        "ec2:ModifyVpcAttribute",
-        "iam:CreateRole",
-        "iam:DeleteRole",
-        "iam:DeleteRolePolicy",
-        "iam:GetRole",
-        "iam:PassRole",
-        "iam:PutRolePolicy",
-        "kinesis:CreateStream",
-        "kinesis:DeleteStream",
-        "kinesis:DescribeStream",
-        "logs:CreateLogGroup",
-        "logs:DeleteLogGroup",
-        "logs:DescribeLogGroups",
-        "logs:DescribeLogStreams",
-        "logs:FilterLogEvents",
-        "logs:GetLogEvents",
-        "s3:CreateBucket",
-        "s3:DeleteBucket",
-        "s3:DeleteBucketPolicy",
-        "s3:DeleteObject",
-        "s3:DeleteObjectVersion",
-        "s3:GetObject",
-        "s3:GetObjectVersion",
-        "s3:ListAllMyBuckets",
-        "s3:ListBucket",
-        "s3:PutBucketPolicy",
-        "s3:PutBucketTagging",
-        "s3:PutBucketWebsite",
-        "s3:PutEncryptionConfiguration",
-        "s3:PutObject",
-        "states:CreateStateMachine",
-        "states:DeleteStateMachine"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
-    },
-    {
-      "Action": [
-        "lambda:CreateFunction",
-        "lambda:Get*",
-        "lambda:List*",
-        "lambda:Update*"
-      ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:lambda:*:*:function:*"
-    }
-  ]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "apigateway:*",
+            "Effect": "Allow",
+            "Resource": "arn:aws:apigateway:*::/restapis/GATEWAY_ID/*"
+        },
+        {
+            "Action": [
+                "apigateway:GET",
+                "lambda:AddPermission",
+                "lambda:CreateAlias",
+                "lambda:DeleteFunction",
+                "lambda:InvokeFunction",
+                "lambda:PublishVersion",
+                "lambda:RemovePermission"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:apigateway:*::/restapis",
+                "arn:aws:lambda:*:*:function:*"
+            ]
+        },
+        {
+            "Action": [
+                "cloudformation:CancelUpdateStack",
+                "cloudformation:ContinueUpdateRollback",
+                "cloudformation:CreateChangeSet",
+                "cloudformation:CreateStack",
+                "cloudformation:CreateUploadBucket",
+                "cloudformation:DeleteStack",
+                "cloudformation:Describe*",
+                "cloudformation:EstimateTemplateCost",
+                "cloudformation:ExecuteChangeSet",
+                "cloudformation:Get*",
+                "cloudformation:List*",
+                "cloudformation:PreviewStackUpdate",
+                "cloudformation:UpdateStack",
+                "cloudformation:UpdateTerminationProtection",
+                "cloudformation:ValidateTemplate",
+                "dynamodb:CreateTable",
+                "dynamodb:DeleteTable",
+                "dynamodb:DescribeTable",
+                "ec2:AttachInternetGateway",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:CreateInternetGateway",
+                "ec2:CreateNetworkAcl",
+                "ec2:CreateNetworkAclEntry",
+                "ec2:CreateRouteTable",
+                "ec2:CreateSecurityGroup",
+                "ec2:CreateSubnet",
+                "ec2:CreateTags",
+                "ec2:CreateVpc",
+                "ec2:DeleteInternetGateway",
+                "ec2:DeleteNetworkAcl",
+                "ec2:DeleteNetworkAclEntry",
+                "ec2:DeleteRouteTable",
+                "ec2:DeleteSecurityGroup",
+                "ec2:DeleteSubnet",
+                "ec2:DeleteVpc",
+                "ec2:Describe*",
+                "ec2:DetachInternetGateway",
+                "ec2:ModifyVpcAttribute",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:DeleteRolePolicy",
+                "iam:GetRole",
+                "iam:PassRole",
+                "iam:PutRolePolicy",
+                "kinesis:CreateStream",
+                "kinesis:DeleteStream",
+                "kinesis:DescribeStream",
+                "logs:CreateLogGroup",
+                "logs:DeleteLogGroup",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "logs:FilterLogEvents",
+                "logs:GetLogEvents",
+                "s3:CreateBucket",
+                "s3:DeleteBucket",
+                "s3:DeleteBucketPolicy",
+                "s3:DeleteObject",
+                "s3:DeleteObjectVersion",
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:ListAllMyBuckets",
+                "s3:ListBucket",
+                "s3:PutBucketPolicy",
+                "s3:PutBucketTagging",
+                "s3:PutBucketWebsite",
+                "s3:PutEncryptionConfiguration",
+                "s3:PutObject",
+                "states:CreateStateMachine",
+                "states:DeleteStateMachine"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Action": [
+                "lambda:CreateFunction",
+                "lambda:Get*",
+                "lambda:List*",
+                "lambda:Update*"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:lambda:*:*:function:*"
+        }
+    ]
 }
 ```
 
