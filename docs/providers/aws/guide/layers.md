@@ -109,8 +109,8 @@ layers:
   layerOne:
     path: layerOne
     allowedAccounts:
-      - 111111111111 # a specific account
-      - 222222222222 # a different specific account
+      - 111111111111 # a specific account ID
+      - 222222222222 # a different specific account ID
 ```
 
 Another example, making the layer publicly accessible:
