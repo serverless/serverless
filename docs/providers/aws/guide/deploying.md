@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Deploying
 menuText: Deploying
-menuOrder: 8
+menuOrder: 9
 description: How to deploy your AWS Lambda functions and their required infrastructure
 layout: Doc
 -->

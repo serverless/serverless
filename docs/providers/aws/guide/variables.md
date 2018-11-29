@@ -1,7 +1,7 @@
 <!--
 title: Serverless Variables
 menuText: Variables
-menuOrder: 10
+menuOrder: 11
 description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
 layout: Doc
 -->
