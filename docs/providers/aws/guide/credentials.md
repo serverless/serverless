@@ -43,7 +43,7 @@ To let the Serverless Framework access your AWS account, we're going to **create
 
 1. Create or login to your Amazon Web Services Account and go to the Identity & Access Management (IAM) page.
 
-2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-agent`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Create policy**. Select the **JSON** tab, add the following JSON file you'll find in [this gist](https://gist.github.com/thomcrowe/80b60b91a3e6e1db8c16b1079b190bdb).
+2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-agent`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Create policy**. Select the **JSON** tab, add the following JSON file you'll find in [this gist](https://gist.github.com/ServerlessBot/7618156b8671840a539f405dea2704c8).
 
 When you are finished, select **Review policy**. You can assign this policy a **Name** and **Description**, then choose **Create Policy**. Check everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps.  That is, if you don't use separate AWS accounts for stages/apps, which is most common.
 
