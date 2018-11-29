@@ -2,7 +2,7 @@
 title: Serverless Framework - AWS Lambda Guide - IAM
 description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
 menuText: IAM
-menuOrder: 12
+menuOrder: 13
 layout: Doc
 -->
 

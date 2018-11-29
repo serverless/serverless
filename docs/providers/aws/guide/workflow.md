@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Guide - AWS Lambda - Workflow
 menuText: Workflow
-menuOrder: 14
+menuOrder: 15
 description: A guide and cheatsheet containing CLI commands and workflow recommendations.
 layout: Doc
 -->
