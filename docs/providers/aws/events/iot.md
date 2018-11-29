@@ -74,7 +74,7 @@ functions:
 
 ## Set Permission Only
 
-If you only need your function to be triggered by a rule without creating it, you may provide the rule ARN in the `arn` property. This may be useful when invoke from another rule via the [aws_lambda sql function](https://docs.aws.amazon.com/iot/latest/developerguide/iot-sql-functions.html#iot-func-aws-lambda).
+If you only need your function to be triggered by a rule without creating it, you may provide the rule ARN in the `arn` property. This may be useful when invoked from another rule via the [aws_lambda sql function](https://docs.aws.amazon.com/iot/latest/developerguide/iot-sql-functions.html#iot-func-aws-lambda).
 
 ```yml
 functions:
