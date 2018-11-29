@@ -52,9 +52,9 @@ layers:
   layerOne:
     path: layerOne
     description: optional description for your layer
-  layerctionTwo:
+  layerTwo:
     path: layerTwo
-  layerctionThree:
+  layerThree:
     path: layerThree
 ```
 
