@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/iot)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # IoT
@@ -68,4 +70,17 @@ functions:
       - iot:
           sql: "SELECT * FROM 'some_topic'"
           sqlVersion: "beta"
+```
+
+## Set Permission Only
+
+If you only need your function to be triggered by a rule without creating it, you may provide the rule ARN in the `arn` property. This may be useful when invoke from another rule via the [aws_lambda sql function](https://docs.aws.amazon.com/iot/latest/developerguide/iot-sql-functions.html#iot-func-aws-lambda).
+
+```yml
+functions:
+  myIoT:
+    handler: myIoT.handler
+    events:
+      - iot:
+          arn: "arn:aws:iot:us-east-1:account_id:rule/rule_name"
 ```
