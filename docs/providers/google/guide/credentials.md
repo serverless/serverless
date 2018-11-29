@@ -54,11 +54,18 @@ You need to create credentials Serverless can use to create resources in your Pr
 2. Click on "Create credentials" and select "Service account key".
 3. Select "New service account" in the "Service account" dropdown.
 4. Enter a name for your "Service account name" (e.g. "serverless-framework").
-5. Select "Project" --> "Owner" as the "Role".
-6. The "Key type" should be "JSON".
-7. Click on "Create" to create your private key.
-8. That's your so called `keyfile` which should be downloaded on your machine.
-9. Save the `keyfile` somewhere secure. We recommend making a folder in your root folder and putting it there. Like this, `~/.gcloud/keyfile.json`. You can change the file name from `keyfile` to anything. Remember the path you saved it to.
+5. The "Key type" should be "JSON".
+6. Click on "Create" to create your private key.
+7. That's your so called `keyfile` which should be downloaded on your machine.
+8. Save the `keyfile` somewhere secure. We recommend making a folder in your root folder and putting it there. Like this, `~/.gcloud/keyfile.json`. You can change the file name from `keyfile` to anything. Remember the path you saved it to.
+
+## Assign Roles
+
+Once the keyfile has been created, the service account needs the non primitive roles to deploy functions on Google cloud platform
+
+1. Navigate to IAM & Admin screen
+2. Select the service account that has been created
+3. Add `Deployment Manager Editor` `Storage Admin` `Logging Admin` `Cloud Function Developer` roles
 
 ## Update the `provider` config in `serverless.yml`
 
