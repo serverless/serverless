@@ -55,6 +55,7 @@ provider:
       '/users': xxxxxxxxxx
       '/users/create': xxxxxxxxxx
     apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
+    minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
 
   usagePlan: # Optional usage plan configuration
     quota:
