@@ -1,3 +1,10 @@
+# 1.34.1 (30.11.2018)
+ - [Add aws-ruby template](https://github.com/serverless/serverless/pull/5546)
+ - [Add support for API Gateway payload compression](https://github.com/serverless/serverless/pull/5529)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.34.0...v1.34.1)
+
 # 1.34.0 (29.11.2018)
  - [Lambda Layers support](https://github.com/serverless/serverless/pull/5538)
  - [Python3.7 support](https://github.com/serverless/serverless/pull/5505)
