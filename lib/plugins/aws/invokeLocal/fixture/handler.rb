@@ -5,3 +5,11 @@ def withRemainingTime(event:, context:)
 
   {"start" => start, "stop" => stop}
 end
+
+module MyModule
+  class MyClass
+    def self.my_class_method(event:, context:)
+      {"foo" => "bar"}
+    end
+  end
+end

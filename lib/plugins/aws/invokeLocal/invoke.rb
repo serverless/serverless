@@ -48,19 +48,21 @@ if __FILE__ == $0
     exit 1
   end
 
-  handler_path = "#{ARGV[0]}.rb"
+  handler_path = ARGV[0]
   handler_name = ARGV[1]
+
+  input = JSON.load($stdin) || {}
+
+  $LOAD_PATH << "."
+  require(handler_path)
 
   # handler name is either a global method or a static method in a class
   # my_method or MyModule::MyClass.my_method
-  input = JSON.load($stdin) || {}
-  $LOAD_PATH << "."
-  $LOAD_PATH << "lib"
-  load(handler_path)
-  handler = method(handler_name)
+  handler_method, handler_class = handler_name.split(".").reverse
+  handler_class ||= "Kernel"
 
   context = FakeLambdaContext.new(**input.fetch('context', {}))
-  result = handler.call(event: input['event'], context: context)
+  result = Object.const_get(handler_class).send(handler_method, event: input['event'], context: context)
 
   puts result.to_json
 end
