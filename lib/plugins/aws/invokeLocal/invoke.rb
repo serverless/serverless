@@ -53,8 +53,7 @@ if __FILE__ == $0
 
   input = JSON.load($stdin) || {}
 
-  $LOAD_PATH << "."
-  require(handler_path)
+  require("./#{handler_path}")
 
   # handler name is either a global method or a static method in a class
   # my_method or MyModule::MyClass.my_method
