@@ -93,6 +93,21 @@ layers:
         - layerSourceTarball.tar.gz
 ```
 
+You can also specify a prebuilt archive to create your layer. When you do this, you do not need to specify the `path` element of your layer.
+
+```yml
+# serverless.yml
+service: myService
+
+provider:
+  name: aws
+
+layers:
+  layerOne:
+    package:
+      artifact: layerSource.zip
+```
+
 
 ## Permissions
 
