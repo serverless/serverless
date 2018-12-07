@@ -383,7 +383,7 @@ In order to use multiple resource files combined with resources inside the `serv
 
 ```yml
 resources:
-  - Resource:
+  - Resources:
       ApiGatewayRestApi:
         Type: AWS::ApiGateway::RestApi
 
@@ -396,7 +396,7 @@ resources:
         Ref: CognitoUserPool
 ```
 
-Each of your cloudformation files has to start with a `Resource` entity
+Each of your cloudformation files has to start with a `Resources` entity
 
 ```yml
 Resource:
