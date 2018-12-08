@@ -155,6 +155,19 @@ functions:
 ```
 In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
 
+You can also reference CloudFormation stack in another regions with the `cf.REGION:stackName.outputKey` syntax. For example:
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+      name: ${cf.us-west-2:another-service-dev.functionPrefix}-hello
+      handler: handler.hello
+  world:
+      name: ${cf.ap-northeast-1:another-stack.functionPrefix}-world
+      handler: handler.world
+```
+
 You can reference [CloudFormation stack outputs export values](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) as well. For example:
 
 ```yml
