@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Serverless.yml Reference
 menuText: Serverless.yml
-menuOrder: 15
+menuOrder: 16
 description: A list of all available properties on serverless.yml for AWS
 layout: Doc
 -->
@@ -55,6 +55,7 @@ provider:
       '/users': xxxxxxxxxx
       '/users/create': xxxxxxxxxx
     apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
+    minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
 
   usagePlan: # Optional usage plan configuration
     quota:
@@ -158,6 +159,8 @@ functions:
         - .travis.yml
       artifact: path/to/my-artifact.zip # Own package that should be use for this specific function. You must provide this file.
       individually: true # Enables individual packaging for specific function. If true you must provide package for each function. Defaults to false
+    layers: # An optional list Lambda Layers to use
+      - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y # Layer Version ARN
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint

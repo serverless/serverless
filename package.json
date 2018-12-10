@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.33.2",
+  "version": "1.34.1",
   "engines": {
     "node": ">=4.0"
   },
@@ -58,8 +58,7 @@
     "integration-test-cleanup": "node scripts/integration-test-cleanup.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
-    "postinstall": "node ./scripts/postinstall.js",
-    "prepublishOnly": "./scripts/shrinkwrap && node ./scripts/pre-release.js"
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
@@ -115,6 +114,7 @@
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
+    "nanomatch": "^1.2.13",
     "node-fetch": "^1.6.0",
     "object-hash": "^1.2.0",
     "promise-queue": "^2.2.3",

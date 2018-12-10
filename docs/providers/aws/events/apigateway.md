@@ -45,6 +45,7 @@ layout: Doc
       - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
   - [Share Authorizer](#share-authorizer)
   - [Resource Policy](#resource-policy)
+  - [Compression](#compression)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -1233,4 +1234,15 @@ provider:
           aws:SourceIp:
             - "123.123.123.123"
 
+```
+
+## Compression
+
+API Gateway allows for clients to receive [compressed payloads](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-gzip-compression-decompression.html), and supports various [content encodings](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-enable-compression.html#api-gateway-supported-content-encodings).
+
+```yml
+provider:
+  name: aws
+  apiGateway:
+    minimumCompressionSize: 1024
 ```

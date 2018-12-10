@@ -14,7 +14,7 @@ layout: Doc
 2. Serverless CLI `v1.9.0` or later. You can run 
 `npm install -g serverless` to install it.
 3. An AWS account. If you don't already have one, you can sign up for a [free trial](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) that includes 1 million free Lambda requests per month.
-4. **Set-up your [Provider Credentials](./credentials.md)**. [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
+4. **Set-up your [Provider Credentials](./credentials.md)** -> [Watch the video on setting up credentials](https://www.youtube.com/watch?v=KngM5bfpttA)
 
 ## Tutorials
 

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Variables
 menuText: Variables
-menuOrder: 10
+menuOrder: 11
 description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
 layout: Doc
 -->
@@ -422,7 +422,7 @@ In order to use multiple resource files combined with resources inside the `serv
 
 ```yml
 resources:
-  - Resource:
+  - Resources:
       ApiGatewayRestApi:
         Type: AWS::ApiGateway::RestApi
 
@@ -435,7 +435,7 @@ resources:
         Ref: CognitoUserPool
 ```
 
-Each of your cloudformation files has to start with a `Resource` entity
+Each of your cloudformation files has to start with a `Resources` entity
 
 ```yml
 Resource:
