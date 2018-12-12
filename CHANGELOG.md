@@ -1,3 +1,21 @@
+# 1.35.0 (13.12.2018)
+ - [Fix logRetentionInDays regression in AWS](https://github.com/serverless/serverless/pull/5562)
+ - [`invoke local` support for Ruby lambdas](https://github.com/serverless/serverless/pull/5559)
+ - [Set reserved concurrency in cfn template even if zero](https://github.com/serverless/serverless/pull/5566)
+ - [Fix `--env` being shadowed when using `sls invoke local`](https://github.com/serverless/serverless/pull/5565)
+ - [Preserve whitespace in variable literal defaults](https://github.com/serverless/serverless/pull/5571)
+ - [Drastically improved dev dependency exclusion performance](https://github.com/serverless/serverless/pull/5574)
+ - [Extend ${cf} syntax to get output from another region](https://github.com/serverless/serverless/pull/5579)
+ - [Upgrade aws-sdk dep to fix issues with using AWS Profiles](https://github.com/serverless/serverless/pull/5587)
+ - Documentation updates
+
+**Note**: the above change to preserve whitespace in variable defaults in `serverless.yaml` makes
+it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:foobar}` instead.
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.34.1...v1.35.0)
+
+
 # 1.34.1 (30.11.2018)
  - [Add aws-ruby template](https://github.com/serverless/serverless/pull/5546)
  - [Add support for API Gateway payload compression](https://github.com/serverless/serverless/pull/5529)
