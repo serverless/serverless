@@ -1,4 +1,4 @@
-# 1.35.0 (13.12.2018)
+# 1.35.0 (2018-12-13)
  - [Fix logRetentionInDays regression in AWS](https://github.com/serverless/serverless/pull/5562)
  - [`invoke local` support for Ruby lambdas](https://github.com/serverless/serverless/pull/5559)
  - [Set reserved concurrency in cfn template even if zero](https://github.com/serverless/serverless/pull/5566)
@@ -16,14 +16,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
  - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.34.1...v1.35.0)
 
 
-# 1.34.1 (30.11.2018)
+# 1.34.1 (2018-11-30)
  - [Add aws-ruby template](https://github.com/serverless/serverless/pull/5546)
  - [Add support for API Gateway payload compression](https://github.com/serverless/serverless/pull/5529)
 
 ## Meta
  - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.34.0...v1.34.1)
 
-# 1.34.0 (29.11.2018)
+# 1.34.0 (2018-11-29)
  - [Lambda Layers support](https://github.com/serverless/serverless/pull/5538)
  - [Python3.7 support](https://github.com/serverless/serverless/pull/5505)
  - [Updating roles requirement for GCF deployment](https://github.com/serverless/serverless/pull/5490)
@@ -37,7 +37,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
  - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.33.2...v1.34.0)
 
 
-# 1.33.2 (18.11.2018)
+# 1.33.2 (2018-11-18)
  - [fix `invoke local` with python2.7 projects](https://github.com/serverless/serverless/pull/5500)
  - [fix `logs --tail`](https://github.com/serverless/serverless/pull/5503)
 
@@ -46,14 +46,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 
 
 
-# 1.33.1 (15.11.2018)
+# 1.33.1 (2018-11-15)
  - [fix issue with `sls deploy --verbose --stage foobar`](https://github.com/serverless/serverless/pull/5492)
 
 ## Meta
  - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.33.0...v1.33.1)
 
 
-# 1.33.0 (15.11.2018)
+# 1.33.0 (2018-11-15)
  - [2116 consistent errors missing config](https://github.com/serverless/serverless/pull/5298)
  - [Update plugin version of google-nodejs template](https://github.com/serverless/serverless/pull/5473)
  - [insert line break to suppress warning](https://github.com/serverless/serverless/pull/5445)
@@ -115,7 +115,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
  - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.32.0...v1.33.0)
 
 
-# 1.32.0 (17.09.2018)
+# 1.32.0 (2018-09-17)
 - [Update quick-start.md](https://github.com/serverless/serverless/pull/5290)
 - [Backend state item generation and multi-region support](https://github.com/serverless/serverless/pull/5265)
 
@@ -123,7 +123,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.31.0...v1.32.0)
 
 
-# 1.31.0 (11.09.2018)
+# 1.31.0 (2018-09-11)
 - [Add support for Cloudflare Workers](https://github.com/serverless/serverless/pull/5258)
 - [docs: Fix mismatch in AWS Metrics](https://github.com/serverless/serverless/pull/5276)
 - [Add new template for AWS Alexa Typescript](https://github.com/serverless/serverless/pull/5266)
@@ -138,14 +138,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.3...v1.31.0)
 
 
-# 1.30.3 (28.08.2018)
+# 1.30.3 (2018-08-28)
 - [Fix CORS race condition](https://github.com/serverless/serverless/pull/5256)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.2...v1.30.3)
 
 
-# 1.30.2 (28.08.2018)
+# 1.30.2 (2018-08-28)
 - [Fixed a bug when using DynamoDB events with Serverless Platform](https://github.com/serverless/serverless/pull/5237)
 - [Fixed a bug when using deep variable references](https://github.com/serverless/serverless/pull/5224)
 - [Fixed an issue with Makefile of the aws-go-dep template](https://github.com/serverless/serverless/pull/5227)
@@ -154,7 +154,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.1...v1.30.2)
 
 
-# 1.30.1 (16.08.2018)
+# 1.30.1 (2018-08-16)
 - [Fix CI deployment to Serverless Platform](https://github.com/serverless/serverless/issues/5182)
 - [Fix a minor resources ID issue on Serverless Platform](https://github.com/serverless/serverless/pull/5208)
 - [Update nodejs template to 8.10](https://github.com/serverless/serverless/pull/5088)
@@ -163,7 +163,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.30.0...v1.30.1)
 
 
-# 1.30.0 (09.08.2018)
+# 1.30.0 (2018-08-09)
 - [Added support for multiple access keys for multiple tenants](https://github.com/serverless/serverless/pull/5189)
 - [Fixed a publishing bug when having more than 100 resources](https://github.com/serverless/serverless/pull/5189)
 - [Add Windows support for spawning mvn](https://github.com/serverless/serverless/pull/5028)
@@ -179,7 +179,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.2...v1.30.0)
 
 
-# 1.29.2 (29.07.2018)
+# 1.29.2 (2018-07-29)
 - [Fixed a bug when using APIG lambda integration with Serverless Dashboard](https://github.com/serverless/serverless/pull/5174)
 - [Fixed a bug by transforming env var to string when setting num value](https://github.com/serverless/serverless/pull/5166)
 
@@ -187,14 +187,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.1...v1.29.2)
 
 
-# 1.29.1 (28.07.2018)
+# 1.29.1 (2018-07-28)
 - [Fixed a bug when using APIG root path with Serverless Dashboard](https://github.com/serverless/serverless/pull/5170)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.29.0...v1.29.1)
 
 
-# 1.29.0 (26.07.2018)
+# 1.29.0 (2018-07-26)
 - [Fixes issue with Node 10.7.0](https://github.com/serverless/serverless/issues/5133)
 - [Serverless Dashboard Updates: Subscriptions, Resources, Deploys and Refresh Tokens](https://github.com/serverless/serverless/pull/5127)
 - [Support `invoke local` of AWS Lambda Async Functions](https://github.com/serverless/serverless/pull/4912)
@@ -204,7 +204,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.28.0...v1.29.0)
 
 
-# 1.28.0 (04.07.2018)
+# 1.28.0 (2018-07-04)
 - [Add SQS event integration](https://github.com/serverless/serverless/pull/5074)
 - [Integration with the Serverless Dashboard](https://github.com/serverless/serverless/pull/5043)
 - [Add APIG resource policy](https://github.com/serverless/serverless/pull/5071)
@@ -222,7 +222,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.27.0...v1.28.0)
 
 
-# 1.27.0 (02.05.2018)
+# 1.27.0 (2018-05-02)
 - [Add maxAge option for CORS](https://github.com/serverless/serverless/pull/4639)
 - [Add fn integration](https://github.com/serverless/serverless/pull/4934)
 - [iamManagedPolicies merging with Vpc config](https://github.com/serverless/serverless/pull/4879)
@@ -243,14 +243,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.26.1...v1.27.0)
 
 
-# 1.26.1 (27.02.2018)
+# 1.26.1 (2018-02-27)
 - [Fix lambda integration regression](https://github.com/serverless/serverless/pull/4775)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.26.0...v1.26.1)
 
 
-# 1.26.0 (29.01.2018)
+# 1.26.0 (2018-01-29)
 - [AWS Go support](https://github.com/serverless/serverless/pull/4669)
 - [Support for using an existing ApiGateway and Resources](https://github.com/serverless/serverless/pull/4247)
 - [Add logRetentionInDays config](https://github.com/serverless/serverless/pull/4591)
@@ -263,7 +263,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.25.0...v1.26.0)
 
 
-# 1.25.0 (20.12.2017)
+# 1.25.0 (2017-12-20)
 - [Improve Stage and Region Usage](https://github.com/serverless/serverless/pull/4560)
 - [Add API Gateway endpoint configuration](https://github.com/serverless/serverless/pull/4531)
 - [Add cache to Variables class](https://github.com/serverless/serverless/pull/4499)
@@ -282,7 +282,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.24.1...v1.25.0)
 
 
-# 1.24.1 (07.11.2017)
+# 1.24.1 (2017-11-07)
 - [Fix this.userStats.track is not a function error when tailing function logs](https://github.com/serverless/serverless/pull/4441)
 - [Improve variables test](https://github.com/serverless/serverless/pull/4450)
 - [Error when file referenced in serverless.yml does not exist](https://github.com/serverless/serverless/pull/4448)
@@ -291,7 +291,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.24.0...v1.24.1)
 
 
-# 1.24.0 (01.11.2017)
+# 1.24.0 (2017-11-01)
 - [Run "serverless deploy list" if timestamp is not specified in rollback command](https://github.com/serverless/serverless/pull/4297)
 - [Add alexaSmartHome event](https://github.com/serverless/serverless/pull/4238)
 - [Distinguish plugin initialization error from plugin not found error](https://github.com/serverless/serverless/pull/4322)
@@ -314,7 +314,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.23.0...v1.24.0)
 
 
-# 1.23.0 (21.09.2017)
+# 1.23.0 (2017-09-21)
 - [Obey VIRTUAL_ENV on Windows](https://github.com/serverless/serverless/pull/4286)
 - [Implement pinging for the CLI login](https://github.com/serverless/serverless/pull/4206)
 - [Fixed a bug with deploy function not inheriting provider config](https://github.com/serverless/serverless/pull/4262)
@@ -325,7 +325,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.22.0...v1.23.0)
 
 
-# 1.22.0 (13.09.2017)
+# 1.22.0 (2017-09-13)
 - [Serverless now fails if provided profile is not valid](https://github.com/serverless/serverless/pull/4245)
 - [Removed escaping of double quotes around string values in Serverless Variables](https://github.com/serverless/serverless/pull/4224)
 - [Added 4 new plugin commands](https://github.com/serverless/serverless/pull/4046)
@@ -341,14 +341,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.1...v1.22.0)
 
 
-# 1.21.1 (06.09.2017)
+# 1.21.1 (2017-09-06)
 - [Preserve file encoding during packaging process](https://github.com/serverless/serverless/pull/4189)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.21.0...v1.21.1)
 
 
-# 1.21.0 (30.08.2017)
+# 1.21.0 (2017-08-30)
 - [Allow custom CLI class instances](https://github.com/serverless/serverless/pull/4160)
 - [Add support in Spotinst Functions](https://github.com/serverless/serverless/pull/4127)
 - [Add PHP support for OpenWhisk](https://github.com/serverless/serverless/pull/4153)
@@ -366,14 +366,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.2...v1.21.0)
 
 
-# 1.20.2 (17.08.2017)
+# 1.20.2 (2017-08-17)
 - [Bump event-gateway version to 0.5.15](https://github.com/serverless/serverless/pull/4116)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.1...v1.20.2)
 
 
-# 1.20.1 (17.08.2017)
+# 1.20.1 (2017-08-17)
 - [Rethrow original plugin error in debug mode](https://github.com/serverless/serverless/pull/4091)
 - [Add platform gate to serverless run / emit](https://github.com/serverless/serverless/pull/4103)
 
@@ -381,7 +381,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.20.0...v1.20.1)
 
 
-# 1.20.0 (16.08.2017)
+# 1.20.0 (2017-08-16)
 - [Add Serverless Run plugin](https://github.com/serverless/serverless/pull/4034)
 - [Add Serverless Emit plugin](https://github.com/serverless/serverless/pull/4038)
 - [Kubeless template for python and nodejs](https://github.com/serverless/serverless/pull/3970)
@@ -391,7 +391,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.19.0...v1.20.0)
 
 
-# 1.19.0 (02.08.2017)
+# 1.19.0 (2017-08-02)
 - [Removed provider name validation](https://github.com/serverless/serverless/pull/3941)
 - [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
 - [Fixed a bug with "deploy list functions"](https://github.com/serverless/serverless/pull/3971)
@@ -401,7 +401,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.1...v1.19.0)
 
 
-# 1.18.1 (28.07.2017)
+# 1.18.1 (2017-07-28)
 - [Fixed a bug with Serverless Variables](https://github.com/serverless/serverless/pull/3996)
 - [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3975)
 
@@ -409,7 +409,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.18.0...v1.18.1)
 
 
-# 1.18.0 (20.07.2017)
+# 1.18.0 (2017-07-20)
 - [Added support for a new "default" property for Plugins CLI options](https://github.com/serverless/serverless/pull/3808)
 - [Fixed a bug with dev dependencies exclusion](https://github.com/serverless/serverless/pull/3889)
 - [Added support for a new "publish" property to opt-out from Platform publishing](https://github.com/serverless/serverless/pull/3950)
@@ -426,7 +426,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.17.0...v1.18.0)
 
 
-# 1.17.0 (05.07.2017)
+# 1.17.0 (2017-07-05)
 - Cleanup F# build template output on macOS - #3897
 - Add disable flag for OpenWhisk functions - #3830
 - Only redeploy when the code/config changes - #3838
@@ -439,14 +439,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.1...v1.17.0)
 
 
-# 1.16.1 (26.06.2017)
+# 1.16.1 (2017-06-26)
 - CI/CD fix for the Serverless Platform - #3829
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.16.0...v1.16.1)
 
 
-# 1.16.0 (21.06.2017)
+# 1.16.0 (2017-06-21)
 - Added support for usage plans to APIG - #3819
 - Optmizied packaging to exclude dev dependencies - #3737
 - Added support for S3 server side encryption - #3804
@@ -458,21 +458,21 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.0...v1.16.0)
 
 
-# 1.15.3 (12.06.2017)
+# 1.15.3 (2017-06-12)
 - Fixed autocomplete bug with help option - #3781
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.2...v1.15.3)
 
 
-# 1.15.2 (10.06.2017)
+# 1.15.2 (2017-06-10)
 - Fixed installation error - #3763
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.15.0...v1.15.2)
 
 
-# 1.15.0 (08.06.2017)
+# 1.15.0 (2017-06-08)
 - Added autocomplete support to the CLI - #3753
 - Added KMS key support - #3672
 - Added Cognito User pool support - #3657
@@ -485,7 +485,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.14.0...v1.15.0)
 
-# 1.14.0 (24.05.2017)
+# 1.14.0 (2017-05-24)
 - Added login command - #3558
 - Added support for DeadLetter Config with SNS - #3609
 - Added support for S3 variables - #3592
@@ -500,14 +500,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.2...v1.14.0)
 
 
-# 1.13.2 (15.05.2017)
+# 1.13.2 (2017-05-15)
 - Fixed a bug when using dot notation in YAML keys (#3620)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.1...v1.13.2)
 
 
-# 1.13.1 (12.05.2017)
+# 1.13.1 (2017-05-12)
 - Fixed bug when referencing variables from other variable object values (#3604)
 - Fixed bug when packaging a functions-free service (#3598)
 
@@ -515,7 +515,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.13.0...v1.13.1)
 
 
-# 1.13.0 (10.05.2017)
+# 1.13.0 (2017-05-10)
 - Added support for cross service communication via CloudFormation outputs (#3575)
 - Add Lambda tagging functionality (#3548)
 - Added support for Promises in the variable system (#3554)
@@ -526,13 +526,13 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.12.0...v1.13.0)
 
-# 1.12.1 (27.04.2017)
+# 1.12.1 (2017-04-27)
 - Fix bug when using the package command with the variable system (#3527)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.12.0...v1.12.1)
 
-# 1.12.0 (26.04.2017)
+# 1.12.0 (2017-04-26)
 - Separated packaging and deployment with a new package command (#3344)
 - Extend OpenWhisk runtime support (#3454)
 - Upgrade gradle wrapper to 3.5 (#3466)
@@ -542,7 +542,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - Added support for Python 3.6 for Lambda (#3483)
 - Added new syntax to specify ARN for SNS events (#3505)
 
-# 1.11.0 (12.04.2017)
+# 1.11.0 (2017-04-12)
 - Add CloudWatch Logs Event Source (#3407)
 - Add version description from function (#3429)
 - Add support for packaging functions individually (#3433)
@@ -554,14 +554,14 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 # 1.10.2 (3.04.2017)
 - Add support for packaging functions individually at the function level (#3433)
 
-# 1.10.1 (30.03.2017)
+# 1.10.1 (2017-03-30)
 - Update serverless-alpha detection (#3423)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.10.0...v1.10.1)
 
 
-# 1.10.0 (29.03.2017)
+# 1.10.0 (2017-03-29)
 - Fixed bug with ANY http method (#3304)
 - Reduced unit test time significantly (#3359)
 - Added AWS Groovy Gradle Template (#3353)
@@ -577,7 +577,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.9.0...v1.10.0)
 
-# 1.9.0 (14.03.2017)
+# 1.9.0 (2017-03-14)
 - Fixed bug with serverless plugins lookup (#3180)
 - Fixed bug with `serverless create` generated .gitignore (#3355)
 - Fixed bug with authorizer claims (#3187)
@@ -590,7 +590,7 @@ it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:fooba
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.8.0...v1.9.0)
 
 
-# 1.8.0 (28.02.2017)
+# 1.8.0 (2017-02-28)
 ## Non-Breaking Changes
 
 - Fixed bug with deployment progress monitoring (#3297)
@@ -609,7 +609,7 @@ The function name displayed when you run `sls info` is now the short function na
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.7.0...v1.8.0)
 
-# 1.7.0 (14.02.2017)
+# 1.7.0 (2017-02-14)
 - Added CloudWatch event source (#3102)
 - Fixed average functions duration calculation in "sls metrics" output (#3067)
 - Added SLS_IGNORE_WARNINGS flag and logging upcoming breaking changes (#3217)
@@ -619,10 +619,10 @@ The function name displayed when you run `sls info` is now the short function na
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.6.1...v1.7.0)
 
-# 1.6.1 (31.01.2017)
+# 1.6.1 (2017-01-31)
 A minimal patch release that fixes an issue with rendering README.md on npm registry.
 
-# 1.6.0 (30.01.2017)
+# 1.6.0 (2017-01-30)
 
 **Important Note:** This release includes breaking changes. If your services stopped working after upgrading to v1.6.0, please read the following section.
 
@@ -658,7 +658,7 @@ We've finally dropped support for the `defaults` property which we introduced in
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.5.1...v1.6.0)
 
-# 1.5.1 (19.01.2017)
+# 1.5.1 (2017-01-19)
 
 ## Bug Fixes
 - Fix bug with multi line values is given in IoT events (#3095)
@@ -669,7 +669,7 @@ We've finally dropped support for the `defaults` property which we introduced in
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.5.0...v1.5.1)
 
 
-# 1.5.0 (05.01.2017)
+# 1.5.0 (2017-01-05)
 
 ## Features
 * [Added IoT event source support](https://github.com/serverless/serverless/blob/master/docs/providers/aws/events/iot.md) (#2954)
@@ -689,7 +689,7 @@ We've finally dropped support for the `defaults` property which we introduced in
 * [Github Milestone](https://github.com/serverless/serverless/milestone/20?closed=1)
 * [Comparison since last release](https://github.com/serverless/serverless/compare/v1.4.0...v1.5.0)
 
-# 1.4.0 (15.12.2016)
+# 1.4.0 (2016-12-15)
 
 ## Features
 * [Alexa event support](https://github.com/serverless/serverless/issues/2875) (#2875)
@@ -711,7 +711,7 @@ We've finally dropped support for the `defaults` property which we introduced in
 * [Github Milestone](https://github.com/serverless/serverless/milestone/18?closed=1)
 * [Comparison since last release](https://github.com/serverless/serverless/compare/v1.3.0...v1.4.0)
 
-# 1.3.0 (02.12.2016)
+# 1.3.0 (2016-12-02)
 
 ## Features
 * [Metrics support](https://serverless.com/framework/docs/providers/aws/cli-reference/metrics/) (#1650)
@@ -734,7 +734,7 @@ We've finally dropped support for the `defaults` property which we introduced in
 * [Github Milestone](https://github.com/serverless/serverless/milestone/17?closed=1)
 * [Comparison since last release](https://github.com/serverless/serverless/compare/v1.2.1...v1.3.0)
 
-# 1.2.0 (22.11.2016)
+# 1.2.0 (2016-11-22)
 
 ## Features
 * [Lambda environment variables support](https://serverless.com/framework/docs/providers/aws/guide/functions#environment-variables) (#2748)
@@ -752,7 +752,7 @@ We've finally dropped support for the `defaults` property which we introduced in
 * [Github Milestone](https://github.com/serverless/serverless/milestone/16?closed=1)
 * [Comparison since last release](https://github.com/serverless/serverless/compare/v1.1.0...v1.2.0)
 
-# 1.1.0 (02.11.2016)
+# 1.1.0 (2016-11-02)
 
 ## Future breaking changes
 We will include the LogGroup for your Lambda function in the CloudFormation template in the future. This will break deployments to existing applications because the log group was already created. You will get a warning about this if you deploy currently. We will force this behaviour in a future release, for now you can set it through the `cfLogs: true` parameter in your provider config. This change will also limit the logging rights to only this LogGroup, which should have no impact on your environment. You can read more in [our docs](https://serverless.com/framework/docs/providers/aws/guide/functions#log-group-resources).
@@ -781,7 +781,7 @@ We will include the LogGroup for your Lambda function in the CloudFormation temp
 * [Github Milestone](https://github.com/serverless/serverless/milestone/15)
 * [Comparison since last release](https://github.com/serverless/serverless/compare/v1.0.3...v1.1.0)
 
-# 1.0.3 (21.10.2016)
+# 1.0.3 (2016-10-21)
 
 Following is a selection of features, bug fixes and other changes we did since 1.0.2.
 You can also check out all changes in the [Github Compare View](https://github.com/serverless/serverless/compare/v1.0.2...v1.0.3)
@@ -803,16 +803,16 @@ You can also check out all changes in the [Github Compare View](https://github.c
 ## Other
 * Migrate Integration tests into main repository (#2438)
 
-# 1.0.2 (13.10.2016)
+# 1.0.2 (2016-10-13)
 
 * Clean up NPM package (#2352)
 * Clean up Stats functionality (#2345)
 
-# 1.0.1 (12.10.2016)
+# 1.0.1 (2016-10-12)
 
 Accidentally released 1.0.1 to NPM, so we have to skip this version (added here to remove confusion)
 
-# 1.0.0 (12.10.2016)
+# 1.0.0 (2016-10-12)
 
 ## Breaking Changes
 
