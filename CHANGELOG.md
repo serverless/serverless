@@ -9,9 +9,6 @@
  - [Upgrade aws-sdk dep to fix issues with using AWS Profiles](https://github.com/serverless/serverless/pull/5587)
  - Documentation updates
 
-**Note**: the above change to preserve whitespace in variable defaults in `serverless.yaml` makes
-it so that spaces like `${opt: foobar}` are no longer accepted. Use `${opt:foobar}` instead.
-
 ## Meta
  - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.34.1...v1.35.0)
 
