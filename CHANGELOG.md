@@ -1,4 +1,4 @@
-# 1.35.1 (2018-12-17)
+# 1.35.1 (2018-12-18)
  - [fixed regression preventing including files outside working dir](https://github.com/serverless/serverless/pull/5602)
  - [Update ruby template gitignore](https://github.com/serverless/serverless/pull/5599)
 
