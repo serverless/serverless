@@ -738,7 +738,7 @@ There are 3 available options:
 |WHEN_NO_MATCH     |  Content-Type does not match defined template | Never                                                                   |
 |WHEN_NO_TEMPLATES |  No templates were defined                    | One or more templates defined, but Content-Type does not match          |
 
-See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html#integration-passthrough-behaviors) for detailed descriptions of these options.
+See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/integration-passthrough-behaviors.html) for detailed descriptions of these options.
 
 **Notes:**
 
