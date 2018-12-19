@@ -23,12 +23,24 @@ provider:
 #  region: us-east-1
 
 custom:
-  repo: myRepo # your repo name
+  repo: myRepo # NOTE: update this with your repo name
+
+layers:
+  git:
+    path: node_modules/git-lambda-layer
+    description: 'git binaries from https://github.com/lambci/git-lambda-layer/'
+    licenseInfo: MIT
+    allowedAccounts:
+      - '*' # use '*' to give permission to all AWS accounts
+    package:
+      artifact: node_modules/git-lambda-layer/layer.zip
 
 functions:
   gitClient:
     handler: index.handler
-    timeout: 60 # lambda-git might take a while
+    timeout: 60 # remote git operations might take a while
+    layers:
+      - {Ref: GitLambdaLayer}
     events:
       - git: ${self:custom.repo}
       # you can add other CodeCommit events here
@@ -36,8 +48,8 @@ functions:
     environment:
       BASE_REPO_PATH: '/tmp' # any writable path within lambda
       # TODO: below environment variables are not safe --- DO NOT USE IN PRODUCTION
-      SSH_KEY_ID: 'ADD_YOUR_SSH_KEY_ID_HERE' # retrieve from IAM after upload CodeCommit ssh key
-      SSH_KEY: 'ADD_YOUR_SSH_KEY_HERE' # retrieve from IAM after upload CodeCommit ssh key
+      SSH_KEY_ID: 'ADD_YOUR_SSH_KEY_ID_HERE' # retrieve from IAM after uploading CodeCommit ssh key
+      SSH_KEY: 'ADD_YOUR_SSH_KEY_HERE' # retrieve from IAM after uploading CodeCommit ssh key
 
 resources:
   Resources:

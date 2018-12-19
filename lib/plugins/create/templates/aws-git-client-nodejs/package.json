@@ -8,11 +8,11 @@
   },
   "dependencies": {
     "async": "^2.6.1",
-    "lambda-git": "^0.1.2",
     "simple-git": "^1.95.0"
   },
   "devDependencies": {
-    "serverless": "^1.32.0"
+    "git-lambda-layer": "lambci/git-lambda-layer",
+    "serverless": "^1.35.0"
   },
   "author": "Marcelo Bernardes (https://github.com/marcelobern)",
   "license": "MIT"

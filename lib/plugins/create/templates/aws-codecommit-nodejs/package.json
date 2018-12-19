@@ -6,11 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "aws-sdk": "^2.334.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "serverless": "^1.32.0"
+    "serverless": "^1.35.0"
   },
   "author": "Marcelo Bernardes (https://github.com/marcelobern)",
   "license": "MIT"
