@@ -25,7 +25,6 @@ The `slstats` plugin offers functionality to globally disable tracking via a pro
 
 While the command does need to be run from within a serverless project directory, it is a global configuration that only need be run a single time for your CLI user environment.
 
-Once disabled, usage events will no longer be sent from any of your serverless CLI usage.
 Once disabled, usage events will no longer be sent from any of your serverless CLI usage. While the command does need to be run from within a serverless project directory, it is a global configuration.
 
 ## Events We Collect
