@@ -48,7 +48,13 @@ The deployment will fail with an error that a resource limit exceeded if you rep
 
 This is caused by the fact that CloudFormation tries to attach the new subscription filter before detaching the old one. CloudWatch Logs only support one subscription filter per log group as you can read in the documentation about [CloudWatch Logs Limits](http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html).
 
-Please keep this gotcha in mind when using this event. We will fix it in an upcoming release.
+You're able to pass an option on your `serverless.yml` file in order to allow the `serverless` CLI to delete the resources manually using `aws-sdk`, to circumvent the problem. With this option enabled, the ResourceLimitExceeded won't trigger because the subscription filter is going to be deleted before it during the `serverless deploy` call. Note that enabling this option may lead on inconsistencies on your CloudFormation stack as deleting resources managed by a CloudFormation stack manually is, acknowledged, a bad practice.
+
+```yml
+provider:
+  cloudWatchLogs:
+    forceUpdateSubscriptionFilters: true
+```
 
 ### Example
 
