@@ -29,8 +29,8 @@ serverless invoke --function helloWorld
  ...
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    name: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     events:

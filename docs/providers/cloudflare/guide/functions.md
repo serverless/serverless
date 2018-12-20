@@ -35,8 +35,8 @@ plugins:
 
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    name: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are only relevant to the `serverless invoke` command and don’t affect deployment in any way
@@ -81,8 +81,8 @@ plugins:
 
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    name: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are only relevant to the `serverless invoke` command and don’t affect deployment in any way
@@ -96,7 +96,7 @@ functions:
 
   # Only Enterprise accounts would be allowed to add this second function and its corresponding route above
   foo:
-    name: foo_script
+    name: foo
     script: bar
     events:
       - http:
