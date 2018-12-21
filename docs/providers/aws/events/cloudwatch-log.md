@@ -40,22 +40,6 @@ functions:
           filter: '{$.userIdentity.type = Root}'
 ```
 
-## Current gotchas
-
-There's currently one gotcha you might face if you use this event definition.
-
-The deployment will fail with an error that a resource limit exceeded if you replace the `logGroup` name of one function with the `logGroup` name of another function in your `serverless.yml` file and run `serverless deploy` (see below for an in-depth example).
-
-This is caused by the fact that CloudFormation tries to attach the new subscription filter before detaching the old one. CloudWatch Logs only support one subscription filter per log group as you can read in the documentation about [CloudWatch Logs Limits](http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html).
-
-You're able to pass an option on your `serverless.yml` file in order to allow the `serverless` CLI to delete the resources manually using `aws-sdk`, to circumvent the problem. With this option enabled, the ResourceLimitExceeded won't trigger because the subscription filter is going to be deleted before it during the `serverless deploy` call. Note that enabling this option may lead on inconsistencies on your CloudFormation stack as deleting resources managed by a CloudFormation stack manually is, acknowledged, a bad practice.
-
-```yml
-provider:
-  cloudWatchLogs:
-    forceUpdateSubscriptionFilters: true
-```
-
 ### Example
 
 Update your `serverless.yml` file as follows and run `serverless deploy`.
