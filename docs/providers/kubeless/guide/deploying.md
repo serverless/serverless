@@ -24,6 +24,8 @@ serverless deploy -v
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to your Kubernetes cluster.
 
+**Note:** You can specify a different configuration file name with the the `--config` option. 
+
 ### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to [the Function object API](https://github.com/kubeless/kubeless/blob/master/pkg/spec/spec.go) calls to provision your Functions and Events.
