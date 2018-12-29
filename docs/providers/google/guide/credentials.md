@@ -46,26 +46,22 @@ Go to the <a href="https://console.cloud.google.com/apis/dashboard" target="_bla
 - Google Cloud Storage
 - Stackdriver Logging
 
-## Get credentials
+## Get credentials & assign roles
 
-You need to create credentials Serverless can use to create resources in your Project.
+You need to create credentials with appropriate roles Serverless can use to create resources in your Project.
 
-1. Go to the <a href="https://console.cloud.google.com/apis" target="_blank">Google Cloud API Manager</a> and select "Credentials" on the left.
-2. Click on "Create credentials" and select "Service account key".
-3. Select "New service account" in the "Service account" dropdown.
-4. Enter a name for your "Service account name" (e.g. "serverless-framework").
-5. The "Key type" should be "JSON".
-6. Click on "Create" to create your private key.
-7. That's your so called `keyfile` which should be downloaded on your machine.
-8. Save the `keyfile` somewhere secure. We recommend making a folder in your root folder and putting it there. Like this, `~/.gcloud/keyfile.json`. You can change the file name from `keyfile` to anything. Remember the path you saved it to.
-
-## Assign Roles
-
-Once the keyfile has been created, the service account needs the non primitive roles to deploy functions on Google cloud platform
-
-1. Navigate to IAM & Admin screen
-2. Select the service account that has been created
-3. Add `Deployment Manager Editor` `Storage Admin` `Logging Admin` `Cloud Function Developer` roles
+1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a>.
+2. Choose the project that you are working on from the top drop down
+3. Click `IAM & admin` menu on left-sidebar
+4. Then click `Service accounts` on left-sidebar
+5. Click `CREATE SERVICE ACCOUNT` button on the top
+6. Input Service account name and Service account ID will be generated automatically for you. Change it if you wish to.
+7. Click `Create` button
+8. Add `Deployment Manager Editor` `Storage Admin` `Logging Admin` `Cloud Functions Developer` roles and click `Continue`
+9. Click `+CREATE KEY` button and select `JSON` key type and click `Create` button
+10. You will see a json (AKA `keyfile`) file downloaded
+11. Click `Done` button
+12. Save the `keyfile` somewhere secure. We recommend making a folder in your root folder and putting it there. Like this, `~/.gcloud/keyfile.json`. You can change the file name from `keyfile` to anything. Remember the path you saved it to.
 
 ## Update the `provider` config in `serverless.yml`
 

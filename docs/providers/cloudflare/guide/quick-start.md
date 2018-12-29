@@ -86,7 +86,7 @@ Your Function must have the `events` field populated in order for the `serverles
 # serverless.yml
 ...
 foo:
-    name: foo_script
+    name: foo
     script: bar
     events:
       - http:
