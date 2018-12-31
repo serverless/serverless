@@ -11,7 +11,7 @@ plugins:
   - serverless-cloudflare-workers
 
 functions:
-  helloWorld:
+  hello:
     name: hello
     script: helloWorld  # there must be a file called helloWorld.js
     events:

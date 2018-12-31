@@ -1,3 +1,10 @@
+# 1.35.1 (2018-12-18)
+ - [fixed regression preventing including files outside working dir](https://github.com/serverless/serverless/pull/5602)
+ - [Update ruby template gitignore](https://github.com/serverless/serverless/pull/5599)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.35.0...v1.35.1)
+
 # 1.35.0 (2018-12-13)
  - [Fix logRetentionInDays regression in AWS](https://github.com/serverless/serverless/pull/5562)
  - [`invoke local` support for Ruby lambdas](https://github.com/serverless/serverless/pull/5559)

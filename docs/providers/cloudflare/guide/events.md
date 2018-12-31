@@ -12,7 +12,7 @@ layout: Doc
 
 
 # Cloudflare Workers - Events
-Simply put, events are the things that trigger your functions to run. C
+Simply put, events are the things that trigger your functions to run.
  
 If you are using Cloudflare Workers as your provider, all `events` in the service are HTTP Events, because that is the only event that Cloudflare Workers currently support.
  
@@ -22,8 +22,8 @@ If you are using Cloudflare Workers as your provider, all `events` in the servic
  
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    name: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # If you would like to develop using multiple scripts or libraries, you can automatically bundle with a simple predefined configuration.
@@ -57,6 +57,6 @@ async function handleRequest(request) {
 }
 ```
 
-If your handler script looks like the above, thbe includeMe script will be packed into the final script on deployment.
+If your handler script looks like the above, the includeMe script will be packed into the final script on deployment.
  
 [View the Cloudflare Workers events section for more information on HTTP events](../events).
