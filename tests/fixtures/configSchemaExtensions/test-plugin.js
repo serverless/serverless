@@ -25,7 +25,7 @@ class TestPlugin {
       required: ['someCustomStringProp'],
     });
 
-    serverless.configSchemaHandler.defineFunctionEvent('someEvent', {
+    serverless.configSchemaHandler.defineFunctionEvent('someProvider', 'someEvent', {
       type: 'object',
       properties: {
         someRequiredStringProp: { type: 'string' },

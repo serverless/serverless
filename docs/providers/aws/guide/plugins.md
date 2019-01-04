@@ -491,7 +491,7 @@ class NewEventPlugin {
     this.serverless = serverless;
 
     // Create schema for your properties. For reference use https://github.com/ajv-validator/ajv
-    serverless.configSchemaHandler.defineFunctionEvent('yourPluginEvent', {
+    serverless.configSchemaHandler.defineFunctionEvent('providerName', 'yourPluginEvent', {
       type: 'object',
       properties: {
         someProp: { type: 'string' },
@@ -530,6 +530,22 @@ class NewProviderPlugin {
       function: {
         properties: { handler: { type: 'string' } },
       },
+
+      // You can define event schemas here or via `defineFunctionEvent` helper
+      functionEvents: [
+        {
+          name: 'someEvent',
+          schema: {
+            type: 'object',
+            properties: {
+              someRequiredStringProp: { type: 'string' },
+              someNumberProp: { type: 'number' },
+            },
+            required: ['someRequiredStringProp'],
+            additionalProperties: false,
+          },
+        },
+      ],
     });
   }
 }
