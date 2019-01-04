@@ -417,11 +417,11 @@ Command names need to be unique. If we load two commands and both want to specif
 
 If your plugin adds support for additional params in `serverless.yaml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
 
-The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperty`, `defineCustomEvent` or `defineProvider` helplers.
+The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperties`, `defineCustomEvent` or `defineProvider` helplers.
 
 We'll walk though those heplers. You may also want to check out examples from [helpers tests](tests/fixtures/configSchemaExtensions/test-plugin.js)
 
-#### `defineCustomProperty` helper
+#### `defineCustomProperties` helper
 
 Let's say your plugin depends on some properties defined in `custom` section of `serverless.yaml` file.
 
@@ -450,7 +450,7 @@ class NewEventPlugin {
     };
 
     // Attach your piece of schema to main schema
-    serverless.configSchemaHandler.defineCustomProperty('yourPlugin', newCustomPropSchema);
+    serverless.configSchemaHandler.defineCustomProperties(newCustomPropSchema);
   }
 }
 ```
@@ -507,7 +507,7 @@ class NewEventPlugin {
 This way, if user sets `anotherProp` by mistake to `some-string`, the Framework would display an error:
 
 ```
-Serverless: Configuration error: functions['someFunc'].events[0].yourPluginEvent.anotherProp should be number
+Serverless: Configuration error: functions.someFunc.events[0].yourPluginEvent.anotherProp should be number
 ```
 
 #### `defineProvider` helper
@@ -529,7 +529,6 @@ class NewProviderPlugin {
       },
       function: {
         properties: { handler: { type: 'string' } },
-        additionalProperties: true,
       },
     });
   }
