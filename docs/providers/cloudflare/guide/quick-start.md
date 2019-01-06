@@ -14,7 +14,7 @@ layout: Doc
 
 ## Pre-requisites
 Node.js `v6.5.0` or later.
-Serverless CLI `v1.31.0` or later. You can run `npm install -g serverless` to install it.
+Serverless CLI `v1.31.0` or later. You can run `npm install -g serverless` to install it. you also need our `serverless-cloudflare-workers` plugin. You can install it in your project with `npm install --save serverless-cloudflare-workers`.
 
 ## Create a new service
 Create a new service using either the `cloudflare-workers` or `cloudflare-workers-enterprise` template, depending on your Cloudflare domain’s plan level, and specifying a unique name and an optional path for your service.
@@ -80,13 +80,13 @@ serverless invoke --function helloWorld
 Hello world
 ```
 
-Note that for `invoke`, your Function must have the `events` field populated in order for the `serverless` tool to know exactly which route to request. Defining the `headers` field is optional.
+Your Function must have the `events` field populated in order for the `serverless` tool to know exactly which route to request. Defining the `headers` field is optional.
 
 ```yml
 # serverless.yml
 ...
 foo:
-    worker: foo_script
+    name: foo
     script: bar
     events:
       - http:

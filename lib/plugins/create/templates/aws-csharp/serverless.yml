@@ -45,16 +45,19 @@ provider:
 #  environment:
 #    variable1: value1
 
-# you can add packaging information here
 package:
-  artifact: bin/release/netcoreapp2.1/deploy-package.zip
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+  individually: true
 
 functions:
   hello:
     handler: CsharpHandlers::AwsDotnetCsharp.Handler::Hello
+
+    # you can add packaging information here
+    package:
+      artifact: bin/release/netcoreapp2.1/hello.zip
+    #  exclude:
+    #    - exclude-me.js
+    #    - exclude-me-dir/**
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

@@ -11,6 +11,7 @@ menuItems:
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
+  - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
 -->
 
 # Getting Started with Serverless

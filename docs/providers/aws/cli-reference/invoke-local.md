@@ -107,7 +107,7 @@ serverless invoke local -f functionName -e VAR1=value1 -e VAR2=value2
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs, Python & Java runtimes.
+Currently, `invoke local` only supports the NodeJs, Python, Java, & Ruby runtimes.
 
 **Note:** In order to get correct output when using Java runtime, your Response class must implement `toString()` method.
 

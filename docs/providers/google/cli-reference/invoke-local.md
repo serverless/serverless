@@ -23,7 +23,7 @@ serverless invoke local -f functionName
 ## Options
 
 * `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
-  \_ `--data` or `-d` Data you want to pass into the function
+* `--data` or `-d` Data you want to pass into the function
 * `--path` or `-p` Path to JSON or YAML file holding input data. This path is relative to the root directory of the service.
 * `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 * `--contextPath` or `-x`, The path to a json file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
