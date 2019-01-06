@@ -11,7 +11,6 @@
     "simple-git": "^1.95.0"
   },
   "devDependencies": {
-    "git-lambda-layer": "^0.0.0",
     "serverless": "^1.35.0"
   },
   "author": "Marcelo Bernardes (https://github.com/marcelobern)",

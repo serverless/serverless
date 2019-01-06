@@ -25,22 +25,17 @@ provider:
 custom:
   repo: myRepo # NOTE: update this with your repo name
 
-layers:
-  git:
-    path: node_modules/git-lambda-layer
-    description: 'git binaries from https://github.com/lambci/git-lambda-layer/'
-    licenseInfo: MIT
-    allowedAccounts:
-      - '*' # use '*' to give permission to all AWS accounts
-    package:
-      artifact: node_modules/git-lambda-layer/layer.zip
-
 functions:
   gitClient:
     handler: index.handler
     timeout: 60 # remote git operations might take a while
     layers:
-      - {Ref: GitLambdaLayer}
+      - 'Fn::Join': # git layer from https://github.com/lambci/git-lambda-layer
+        - ':'
+        -
+          - 'arn:aws:lambda'
+          - Ref: 'AWS::Region'
+          - 553035198032:layer:git:3
     events:
       - git: ${self:custom.repo}
       # you can add other CodeCommit events here
