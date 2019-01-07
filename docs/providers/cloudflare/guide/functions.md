@@ -23,12 +23,12 @@ All of the Cloudflare Workers in your serverless service can be found in `server
  
 service:
     name: hello-world
-    config:
-      accountId: CLOUDFLARE_ACCOUNT_ID 
-      zoneId: CLOUDFLARE_ZONE_ID 
 
 provider:
   name: cloudflare
+  config:
+    accountId: CLOUDFLARE_ACCOUNT_ID 
+    zoneId: CLOUDFLARE_ZONE_ID 
 
 plugins:
   - serverless-cloudflare-workers
@@ -69,12 +69,12 @@ If you have an Enterprise Cloudflare account, you can add multiple Cloudflare Wo
  
 service:
     name: hello-world
-    config:
-      accountId: CLOUDFLARE_ACCOUNT_ID 
-      zoneId: CLOUDFLARE_ZONE_ID 
 
 provider:
   name: cloudflare
+  config:
+    accountId: CLOUDFLARE_ACCOUNT_ID 
+    zoneId: CLOUDFLARE_ZONE_ID 
 
 plugins:
   - serverless-cloudflare-workers

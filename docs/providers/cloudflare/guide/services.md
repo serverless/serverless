@@ -79,12 +79,12 @@ You can see the name of the service, the provider configuration and the first fu
  
 service:
     name: hello-world
-    config:
-      accountId: CLOUDFLARE_ACCOUNT_ID 
-      zoneId: CLOUDFLARE_ZONE_ID 
 
 provider:
   name: cloudflare
+  config:
+    accountId: CLOUDFLARE_ACCOUNT_ID 
+    zoneId: CLOUDFLARE_ZONE_ID 
 
 plugins:
   - serverless-cloudflare-workers
