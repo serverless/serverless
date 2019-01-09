@@ -1,3 +1,24 @@
+# 1.36.0 (2019-01-10)
+ - [Log AWS SDK calls in debug mode](https://github.com/serverless/serverless/pull/5604)
+ - [Added currently supported regions for GCP functions](https://github.com/serverless/serverless/pull/5601)
+ - [Update Cloudflare Templates](https://github.com/serverless/serverless/pull/5620)
+ - [AWS: Validate rate/cron syntax before Deploy](https://github.com/serverless/serverless/pull/5635)
+ - [Fix error log output](https://github.com/serverless/serverless/pull/5378)
+ - [Support for native async/await in AWS Lambda for aws-nodejs-typescript template ](https://github.com/serverless/serverless/pull/5607)
+ - [aws-csharp create template uses handler-specific artifact](https://github.com/serverless/serverless/pull/5411)
+ - [change behaviour on initial stack create failed](https://github.com/serverless/serverless/pull/5631)
+ - [Add warning for multiple functions having same handler](https://github.com/serverless/serverless/pull/5638)
+ - [AWS: Add API Gateway stage name validation.](https://github.com/serverless/serverless/pull/5639)
+ - [fix Cloudflare template config](https://github.com/serverless/serverless/pull/5651)
+ - [AWS: Fix ${cf.REGION} syntax causes deployment in wrong region](https://github.com/serverless/serverless/pull/5650)
+ - [support for @ symbol in ${file()} variables paths](https://github.com/serverless/serverless/pull/5312)
+ - [Fix ResourceLimitExceeded for cloudwatchLog event](https://github.com/serverless/serverless/pull/5554)
+ - various documentation updates (#5625, #5613, #5628, #5659, #5618, #5437, #5623, #5627)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.35.1...v1.36.0)
+
+
 # 1.35.1 (2018-12-18)
  - [fixed regression preventing including files outside working dir](https://github.com/serverless/serverless/pull/5602)
  - [Update ruby template gitignore](https://github.com/serverless/serverless/pull/5599)
