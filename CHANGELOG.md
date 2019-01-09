@@ -13,7 +13,7 @@
  - [AWS: Fix ${cf.REGION} syntax causes deployment in wrong region](https://github.com/serverless/serverless/pull/5650)
  - [support for @ symbol in ${file()} variables paths](https://github.com/serverless/serverless/pull/5312)
  - [Fix ResourceLimitExceeded for cloudwatchLog event](https://github.com/serverless/serverless/pull/5554)
- - various documentation updates (#5625, #5613, #5628, #5659, #5618, #5437, #5623, #5627)
+ - various documentation updates (#5625, #5613, #5628, #5659, #5618, #5437, #5623, #5627, #5665)
 
 ## Meta
  - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.35.1...v1.36.0)
