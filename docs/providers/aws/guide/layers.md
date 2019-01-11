@@ -23,7 +23,7 @@ All of the Lambda layers in your serverless service can be found in `serverless.
 # serverless.yml
 service: myService
 
-provider:ad
+provider:
   name: aws
 
 layers:
