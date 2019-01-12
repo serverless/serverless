@@ -8,8 +8,6 @@
     "./invoke/invoke.js",
     "./info/info.js",
     "./logs/logs.js",
-    "./login/login.js",
-    "./logout/logout.js",
     "./metrics/metrics.js",
     "./print/print.js",
     "./remove/remove.js",
@@ -48,7 +46,6 @@
     "./aws/package/compile/events/sqs/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
-    "./aws/invokeLocal/index.js",
-    "./platform/platform.js"
+    "./aws/invokeLocal/index.js"
   ]
 }
