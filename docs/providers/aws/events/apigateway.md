@@ -46,6 +46,7 @@ layout: Doc
   - [Share Authorizer](#share-authorizer)
   - [Resource Policy](#resource-policy)
   - [Compression](#compression)
+  - [Enable X-Ray Tracing](#xray-tracing)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -1245,4 +1246,19 @@ provider:
   name: aws
   apiGateway:
     minimumCompressionSize: 1024
+```
+
+## XRay Tracing
+
+API Gateway supports a form of out of the box distributed tracing via  [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/xray/latest/devguide/xray-services-apigateway.html). To enable this feature for your serverless
+application's API Gateway add the following to your `serverless.yml`
+
+```yml
+# serverless.yml
+
+provider:
+  name: aws
+  apiGateway:
+    stageDescription:
+      enableTracing: true
 ```
