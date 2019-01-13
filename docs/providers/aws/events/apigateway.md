@@ -1250,7 +1250,7 @@ provider:
 
 ## XRay Tracing
 
-API Gateway supports a form of out of the box distributed tracing via  [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/xray/latest/devguide/xray-services-apigateway.html). To enable this feature for your serverless
+API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless
 application's API Gateway add the following to your `serverless.yml`
 
 ```yml
