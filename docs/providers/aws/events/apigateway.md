@@ -1260,5 +1260,5 @@ provider:
   name: aws
   apiGateway:
     stageDescription:
-      enableTracing: true
+      tracingEnabled: true
 ```
