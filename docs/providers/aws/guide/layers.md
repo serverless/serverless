@@ -58,7 +58,7 @@ layers:
     path: layerThree
 ```
 
-Your functions can either inherit their packaging settings from the global `package` property.
+Your layers can either inherit their packaging settings from the global `package` property.
 
 ```yml
 # serverless.yml
