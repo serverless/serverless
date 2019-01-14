@@ -1,3 +1,10 @@
+# 1.36.1 (2019-01-14)
+ - [Update layers.md](https://github.com/serverless/serverless/pull/5678)
+ - [AWS: Fix stage name validation timing and allow hyphen](https://github.com/serverless/serverless/pull/5686)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.0...v1.36.1)
+
 # 1.36.0 (2019-01-10)
  - [Log AWS SDK calls in debug mode](https://github.com/serverless/serverless/pull/5604)
  - [Added currently supported regions for GCP functions](https://github.com/serverless/serverless/pull/5601)
