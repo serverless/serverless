@@ -146,12 +146,12 @@ For example you define different profiles in `~/.aws/credentials`
 
 ```ini
 [profileName1]
-aws_access_key_id=***************
-aws_secret_access_key=***************
+aws_access_key_id=****************
+aws_secret_access_key=****************
 
 [profileName2]
-aws_access_key_id=***************
-aws_secret_access_key=***************
+aws_access_key_id=****************
+aws_secret_access_key=****************
 ```
 
 Now you can switch per project (/ API) by executing once when you start your project:
