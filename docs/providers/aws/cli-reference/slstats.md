@@ -12,7 +12,7 @@ layout: Doc
 
 # Serverless Statistics and Usage Tracking
 
-The Serverless Framework development is driven by usage and demand of our community. We understand what users are doing by collecting various events and usage data, and we use this data to iterate and improve Serverless based on this gained insight. This includes things like providers, runtimes, event types, function memory size and timeout, plugins installed, and a bit about the environment of the CLI like operating systems, within a CI system or docker container, node.js version, etc. If you'd prefer, you can [disable usage tracking](#disable-statistics-and-usage-tracking].
+The Serverless Framework development is driven by usage and demand of our community. We understand what users are doing by collecting various events and usage data, and we use this data to iterate and improve Serverless based on this gained insight. This includes things like providers, runtimes, event types, function memory size and timeout, plugins installed, and a bit about the environment of the CLI like operating systems, within a CI system or docker container, node.js version, etc. If you'd prefer, you can [disable usage tracking](#disable-statistics-and-usage-tracking).
 
 We do not use event payloads to collect any identifying information, and the data is used in aggregate to understand the community as a whole. The one exception is if you are logged in to the Serverless Platform we collect information about your logged in user such as your `userId`, more information can be found in the [signed in to platform section](#signed-in-to-the-platform).
 
