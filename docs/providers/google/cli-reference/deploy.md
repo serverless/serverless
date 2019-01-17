@@ -18,6 +18,9 @@ The `serverless deploy` command deploys your entire service via the Google Cloud
 serverless deploy
 ```
 
+## Options
+- `--config` or `-c` Path to your conifguration file, if other than `serverless.yml|.yaml|.js|.json`.
+
 ## Artifacts
 
 After the `serverless deploy` command runs all created deployment artifacts are placed in the `.serverless` folder of the service.
