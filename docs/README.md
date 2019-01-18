@@ -3,6 +3,7 @@ title: Serverless Framework Documentation
 menuText: Docs
 layout: Doc
 menuItems:
+  - {menuText: "Getting Started", path: /framework/docs/getting-started/}
   - {menuText: Providers, path: /framework/docs/providers}
   - {menuText: "- AWS", path: /framework/docs/providers/aws/}
   - {menuText: "- Azure", path: /framework/docs/providers/azure/}
