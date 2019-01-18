@@ -60,6 +60,8 @@ if __FILE__ == $0
   handler_method, handler_class = handler_name.split(".").reverse
   handler_class ||= "Kernel"
 
+  $stdin.reopen "/dev/tty", "a+" unless Gem.win_platform? || $stdin.tty?
+
   context = FakeLambdaContext.new(**input.fetch('context', {}))
   result = Object.const_get(handler_class).send(handler_method, event: input['event'], context: context)
 
