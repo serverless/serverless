@@ -15,7 +15,7 @@ describe('AWS - General: Environment variables test', () => {
   it('should expose environment variables', () => {
     const invoked = execSync(`${Utils.serverlessExec} invoke --function hello --noGreeting true`);
 
-    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
 
     expect(result.environment_variables.provider_level_variable_1)
       .to.be.equal('provider_level_1');

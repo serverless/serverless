@@ -154,7 +154,7 @@ module.exports = {
 
         const params = {
           topic,
-          payload: new Buffer(message),
+          payload: Buffer.from(message),
         };
 
         return IotData.publishPromised(params);
@@ -207,7 +207,7 @@ module.exports = {
 
   getFunctionLogs(functionName) {
     const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`);
-    const logsString = new Buffer(logs, 'base64').toString();
+    const logsString = Buffer.from(logs, 'base64').toString();
     process.stdout.write(logsString);
     return logsString;
   },

@@ -39,7 +39,7 @@ describe('Service Lifecyle Integration Test', () => {
 
   it('should invoke function from aws', () => {
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
-    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
     // parse it once again because the body is stringified to be LAMBDA-PROXY ready
     const message = JSON.parse(result.body).message;
     expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
@@ -61,7 +61,7 @@ describe('Service Lifecyle Integration Test', () => {
 
   it('should invoke updated function from aws', () => {
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
-    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Service Update Succeeded');
   });
 
@@ -79,7 +79,7 @@ describe('Service Lifecyle Integration Test', () => {
     execSync(`${serverlessExec} rollback -t ${timestamp}`);
 
     const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
-    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
     // parse it once again because the body is stringified to be LAMBDA-PROXY ready
     const message = JSON.parse(result.body).message;
     expect(message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');

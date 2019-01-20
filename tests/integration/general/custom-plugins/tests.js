@@ -24,7 +24,7 @@ describe('General: Custom plugins test', () => {
     const pluginExecution = execSync(`${Utils.serverlessExec} greet`);
 
     // note: the result will return a newline at the end
-    const result = new Buffer(pluginExecution, 'base64').toString();
+    const result = Buffer.from(pluginExecution, 'base64').toString();
 
     expect(result).to.equal('Hello from the greeter plugin!');
   });

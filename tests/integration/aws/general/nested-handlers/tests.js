@@ -15,7 +15,7 @@ describe('AWS - General: Nested handlers test', () => {
   it('should invoke the nested handler function from AWS', () => {
     const invoked = execSync(`${Utils.serverlessExec} invoke --function hello --noGreeting true`);
 
-    const result = JSON.parse(new Buffer(invoked, 'base64').toString());
+    const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Go Serverless v1.0! Your function executed successfully!');
   });
 

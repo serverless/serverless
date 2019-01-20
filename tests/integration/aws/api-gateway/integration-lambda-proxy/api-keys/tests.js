@@ -41,7 +41,7 @@ describe('AWS - API Gateway (Integration: Lambda Proxy): API keys test', () => {
 
   beforeAll(() => {
     const info = execSync(`${Utils.serverlessExec} info`);
-    const stringifiedOutput = (new Buffer(info, 'base64').toString());
+    const stringifiedOutput = (Buffer.from(info, 'base64').toString());
     // some regex magic to extract the first API key value from the info output
     apiKey = stringifiedOutput.match(/(api keys:\n)(\s*)(.+):(\s*)(.+)/)[5];
   });
