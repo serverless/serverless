@@ -19,6 +19,7 @@ Here is a list of all available properties in `serverless.yml` when the provider
 
 service:
   name: myService
+  warnDuplicateHandlers: false # If truthy, duplicate handlers in functions are warned. Default is false.
   awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption for all functions
 
 frameworkVersion: ">=1.0.0 <2.0.0"
