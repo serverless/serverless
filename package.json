@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.36.1",
+  "version": "1.36.2",
   "engines": {
     "node": ">=4.0"
   },
@@ -91,7 +91,6 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/platform-sdk": "^0.3.0",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.373.0",
