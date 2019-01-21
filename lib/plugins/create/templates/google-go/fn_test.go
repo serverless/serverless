@@ -13,7 +13,7 @@ func TestHello(t *testing.T) {
 		wantStatus int
 		wantString string
 	}{
-		"name specified":     {"toshi0607", http.StatusOK, "Hello, toshi0607!"},
+		"name specified":     {"jdoe", http.StatusOK, "Hello, jdoe!"},
 		"name not specified": {"", http.StatusOK, "Hello, someone!"},
 	}
 
