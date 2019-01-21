@@ -1,3 +1,20 @@
+# 1.36.2 (2019-01-21)
+ - [AWS: Request cache should add region as key to prevent cross-region cache collision](https://github.com/serverless/serverless/pull/5694)
+ - [Fixed a link](https://github.com/serverless/serverless/pull/5707)
+ - [Clarify docs for the http key for GCF](https://github.com/serverless/serverless/pull/5680)
+ - [Fix awsProvider.js : "Cannot use 'in' operator to search for '0'](https://github.com/serverless/serverless/pull/5688)
+ - [Fix array notation in stream ARN](https://github.com/serverless/serverless/pull/5702)
+ - [Remove platform code](https://github.com/serverless/serverless/pull/5687)
+ - [Increase @types/aws-lambda version in aws-nodejs-typescript template](https://github.com/serverless/serverless/pull/5695)
+ - [Update aws-scala-sbt template](https://github.com/serverless/serverless/pull/5725)
+ - [docs: Kubeless secrets](https://github.com/serverless/serverless/pull/5130)
+ - [docs menu sidebar - added [Getting Started] above [Providers]](https://github.com/serverless/serverless/pull/5721)
+ - [Fix layer doc reference to functions (should be layers)](https://github.com/serverless/serverless/pull/5697)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.1...v1.36.2)
+
+
 # 1.36.1 (2019-01-14)
  - [Update layers.md](https://github.com/serverless/serverless/pull/5678)
  - [AWS: Fix stage name validation timing and allow hyphen](https://github.com/serverless/serverless/pull/5686)
