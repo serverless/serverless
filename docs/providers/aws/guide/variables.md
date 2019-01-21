@@ -41,7 +41,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
 - [properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
-- [Pseudo Parameters Reference](#referencing-Pseudo-Parameters-Reference)
+- [Pseudo Parameters Reference](#pseudo-parameters-reference)
 
 ## Recursively reference properties
 
