@@ -106,6 +106,7 @@ services:
     image: golang:1.11
     volumes:
       - ./tmp/serverless-integration-test-google-go:/app
+      - ./tmp/serverless-integration-test-google-go:/go/src/app
   spotinst-nodejs:
     image: node:4.8
     volumes:
