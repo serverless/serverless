@@ -42,6 +42,11 @@ class FakeLambdaContext
   end
 end
 
+
+def attach_tty
+  $stdin.reopen "/dev/tty", "a+" unless Gem.win_platform? || $stdin.tty? || !File.exist?("/dev/tty")
+end
+
 if __FILE__ == $0
   unless ARGV[0] && ARGV[1]
     puts "Usage: invoke.rb <handler_path> <handler_name>"
@@ -60,7 +65,7 @@ if __FILE__ == $0
   handler_method, handler_class = handler_name.split(".").reverse
   handler_class ||= "Kernel"
 
-  $stdin.reopen "/dev/tty", "a+" unless Gem.win_platform? || $stdin.tty?
+  attach_tty
 
   context = FakeLambdaContext.new(**input.fetch('context', {}))
   result = Object.const_get(handler_class).send(handler_method, event: input['event'], context: context)
