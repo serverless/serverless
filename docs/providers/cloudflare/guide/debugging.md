@@ -32,8 +32,8 @@ And its corresponding Serverless yml file:
 ...
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    worker: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     events:
@@ -42,7 +42,7 @@ functions:
           # Defines the method used by serverless when the `invoke` command is used. Cloudflare Workers only support GET requests for now
           method: GET
           headers:
-	greeting: hi
+            greeting: hi
 ```
 
 Let's invoke correctly that function

@@ -51,6 +51,7 @@ Here are the available runtimes for Apache OpenWhisk:
 * openwhisk-nodejs
 * openwhisk-php
 * openwhisk-python
+* openwhisk-ruby
 * openwhisk-swift
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
@@ -196,5 +197,10 @@ To execute the locally installed Serverless executable you have to reference the
 
 Example:
 ```
-node ./node_modules/serverless/bin/serverless deploy
+node node_modules/.bin/serverless deploy
+```
+
+Or with npx (bundled with npm >= 5.2.0)
+```
+npx serverless deploy
 ```

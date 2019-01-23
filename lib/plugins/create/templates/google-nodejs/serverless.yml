@@ -6,6 +6,9 @@ provider:
   runtime: nodejs8
   region: us-central1
   project: my-project
+  # The GCF credentials can be a little tricky to set up. Luckily we've documented this for you here:
+  # https://serverless.com/framework/docs/providers/google/guide/credentials/
+  #
   # the path to the credentials file needs to be absolute
   credentials: ~/.gcloud/keyfile.json
 

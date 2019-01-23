@@ -58,6 +58,7 @@ Here are the available runtimes for AWS Lambda:
 * aws-nodejs-ecma-script
 * aws-python
 * aws-python3
+* aws-ruby
 * aws-kotlin-jvm-maven
 * aws-kotlin-nodejs-gradle
 * aws-groovy-gradle
@@ -107,6 +108,7 @@ provider:
   deploymentBucket:
     name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
     serverSideEncryption: AES256 # when using server-side encryption
+  deploymentPrefix: serverless # Overwrite the default S3 prefix under which deployed artifacts should be stored. Default is serverless
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value
@@ -196,7 +198,7 @@ To easily remove your Service from your AWS account, you can use the `remove` co
 
 Run `serverless remove -v` to trigger the removal process. As in the deploy step we're also running in the `verbose` mode so you can see all details of the remove process.
 
-Serverless will start the removal and informs you about it's process on the console. A success message is printed once the whole service is removed.
+Serverless will start the removal and informs you about its process on the console. A success message is printed once the whole service is removed.
 
 The removal process will only remove the service on your provider's infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
 

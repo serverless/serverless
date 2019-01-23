@@ -7,6 +7,8 @@ environment:
     - NODEJS_VERSION: "8"
 
 install:
+  # For Ruby invoke local testing
+  - set PATH=C:\Ruby25\bin;%PATH%
   # Get the version of Node.js
   - ps: Install-Product node $Env:NODEJS_VERSION
   # install modules
