@@ -11,6 +11,7 @@ menuItems:
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
+  - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
 -->
 
 # Getting Started with Serverless
@@ -22,8 +23,6 @@ First things first, let's get the Serverless framework installed on your machine
 npm install -g serverless
 # Updating serverless from a previous version of serverless
 npm install -g serverless
-# Login to the serverless platform (optional)
-serverless login
 ```
 
 Next up, it's time to choose where you'd like your serverless service to run.

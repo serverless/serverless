@@ -2,7 +2,7 @@
 title: Serverless Framework - AWS Lambda Guide - IAM
 description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
 menuText: IAM
-menuOrder: 12
+menuOrder: 13
 layout: Doc
 -->
 
@@ -56,6 +56,7 @@ provider:
     - 'someOther:aws:arn:xxx:*:*'
     - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWSAccountId' }, 'some/path']] }
 ```
+
 ## Custom IAM Roles
 
 **WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
@@ -330,4 +331,5 @@ resources:
                     - ec2:DetachNetworkInterface
                     - ec2:DeleteNetworkInterface
                   Resource: "*"
+                 
 ```

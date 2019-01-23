@@ -3,7 +3,7 @@ title: Serverless Framework Documentation
 menuText: Docs
 layout: Doc
 menuItems:
-  - {menuText: Getting Started, path: /framework/docs/getting-started/}
+  - {menuText: "Getting Started", path: /framework/docs/getting-started/}
   - {menuText: Providers, path: /framework/docs/providers}
   - {menuText: "- AWS", path: /framework/docs/providers/aws/}
   - {menuText: "- Azure", path: /framework/docs/providers/azure/}
@@ -13,6 +13,7 @@ menuItems:
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
+  - {menuText: Enterprise, path: https://www.github.com/serverless/enterprise}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
@@ -40,7 +41,7 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/aws/guide/quick-start">AWS QuickStart</a></li>
+        <li><a href="./providers/aws/guide/quick-start.md">AWS QuickStart</a></li>
         <li><a href="./providers/aws/guide">Guide</a></li>
         <li><a href="./providers/aws/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/aws/events">Events</a></li>
@@ -56,7 +57,7 @@ Already using AWS or another cloud provider? Read on.
     </div>
     <div>
       <ul>
-        <li><a href="./providers/azure/guide/quick-start">Azure QuickStart</a></li>
+        <li><a href="./providers/azure/guide/quick-start.md">Azure QuickStart</a></li>
         <li><a href="./providers/azure/guide">Guide</a></li>
         <li><a href="./providers/azure/cli-reference">CLI Reference</a></li>
         <li><a href="./providers/azure/events">Events</a></li>

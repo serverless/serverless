@@ -8,8 +8,6 @@
     "./invoke/invoke.js",
     "./info/info.js",
     "./logs/logs.js",
-    "./login/login.js",
-    "./logout/logout.js",
     "./metrics/metrics.js",
     "./print/print.js",
     "./remove/remove.js",
@@ -32,6 +30,7 @@
     "./aws/remove/index.js",
     "./aws/rollback/index.js",
     "./aws/rollbackFunction/index.js",
+    "./aws/package/compile/layers/index.js",
     "./aws/package/compile/functions/index.js",
     "./aws/package/compile/events/schedule/index.js",
     "./aws/package/compile/events/s3/index.js",
@@ -47,7 +46,6 @@
     "./aws/package/compile/events/sqs/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
-    "./aws/invokeLocal/index.js",
-    "./platform/platform.js"
+    "./aws/invokeLocal/index.js"
   ]
 }

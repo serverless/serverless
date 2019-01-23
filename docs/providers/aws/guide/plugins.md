@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Plugins
 menuText: Plugins
-menuOrder: 13
+menuOrder: 14
 description: How to install and create Plugins to extend or overwrite the functionality of the Serverless Framework
 layout: Doc
 -->

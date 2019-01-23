@@ -1,3 +1,4 @@
+import subprocess
 import argparse
 import json
 import logging
@@ -45,6 +46,10 @@ class FakeLambdaContext(object):
     def log_stream_name(self):
         return strftime('%Y/%m/%d') +'/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
 
+    @property
+    def log(self):
+        return sys.stdout.write
+
 logging.basicConfig()
 
 parser = argparse.ArgumentParser(
@@ -69,7 +74,13 @@ if __name__ == '__main__':
 
     input = json.load(sys.stdin)
     if sys.platform != 'win32':
-        sys.stdin = open('/dev/tty')
+        try:
+            subprocess.check_call('tty', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except (OSError, subprocess.CalledProcessError):
+            pass
+        else:
+            sys.stdin = open('/dev/tty')
+
     context = FakeLambdaContext(**input.get('context', {}))
     result = handler(input['event'], context)
     sys.stdout.write(json.dumps(result, indent=4))
