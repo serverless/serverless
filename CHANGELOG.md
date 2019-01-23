@@ -1,3 +1,16 @@
+# 1.36.3 (2019-01-23)
+ - [AWS: Consolidates Lambda::Permission objects for cloudwatchLog events](https://github.com/serverless/serverless/pull/5531)
+ - [Suppress confusing warning "A valid undefined..." ](https://github.com/serverless/serverless/pull/5723)
+ - [Add google go template](https://github.com/serverless/serverless/pull/5726)
+ - [Provide AWS_PROFILE from configuration for invoke local](https://github.com/serverless/serverless/pull/5662)
+ - [Test that CLI does not convert numeric option to number](https://github.com/serverless/serverless/pull/5727)
+ - [Remove duplicate-handler warnings based on community feedback.](https://github.com/serverless/serverless/pull/5733)
+ - [Enable download template from a private github repo using personal access token](https://github.com/serverless/serverless/pull/5715)
+ - [Fix sls plugin install -n @scoped/package](https://github.com/serverless/serverless/pull/5736)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.2...v1.36.3)
+
 # 1.36.2 (2019-01-21)
  - [AWS: Request cache should add region as key to prevent cross-region cache collision](https://github.com/serverless/serverless/pull/5694)
  - [Fixed a link](https://github.com/serverless/serverless/pull/5707)
