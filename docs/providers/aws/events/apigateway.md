@@ -255,7 +255,7 @@ functions:
             allowCredentials: false
 ```
 
-Please note that since you can't send multiple values for [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), this configuration uses a response template to check if the request origin matches one of your provided `origins` like so:
+Please note that since you can't send multiple values for [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), this configuration uses a response template to check if the request origin matches one of your provided `origins` and overrides the header with the following code:
 
 ```
 #set($origin = $input.params("Origin")
