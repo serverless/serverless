@@ -23,8 +23,6 @@ First things first, let's get the Serverless framework installed on your machine
 npm install -g serverless
 # Updating serverless from a previous version of serverless
 npm install -g serverless
-# Login to the serverless platform (optional)
-serverless login
 ```
 
 Next up, it's time to choose where you'd like your serverless service to run.
