@@ -7,14 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "source-map-support": "^0.5.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.1",
+    "@types/aws-lambda": "^8.10.17",
     "@types/node": "^8.0.57",
     "serverless-webpack": "^5.1.1",
+    "source-map-support": "^0.5.6",
     "ts-loader": "^4.2.0",
-    "typescript": "^2.8.1",
+    "typescript": "^2.9.2",
     "webpack": "^4.5.0"
   },
   "author":

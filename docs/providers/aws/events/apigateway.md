@@ -18,12 +18,13 @@ layout: Doc
     - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
     - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
     - [Enabling CORS](#enabling-cors)
-    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws-iam-authorizers)
+    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws_iam-authorizers)
     - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
     - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
     - [Configuring endpoint types](#configuring-endpoint-types)
     - [Request Parameters](#request-parameters)
+    - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
   - [Lambda Integration](#lambda-integration)
     - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
     - [Request templates](#request-templates)
@@ -44,6 +45,7 @@ layout: Doc
       - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
   - [Share Authorizer](#share-authorizer)
   - [Resource Policy](#resource-policy)
+  - [Compression](#compression)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -244,6 +246,31 @@ functions:
           cors:
             origin: '*'
             maxAge: 86400
+```
+
+If you are using CloudFront or another CDN for your API Gateway, you may want to setup a `Cache-Control` header to allow for OPTIONS request to be cached to avoid the additional hop.  
+
+To enable the `Cache-Control` header on preflight response, set the `cacheControl` property in the `cors` object:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
 ```
 
 If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:
@@ -528,6 +555,40 @@ functions:
                 id: true
 ```
 
+### Setting source of API key for metering requests
+
+API Gateway provide a feature for metering your API's requests and you can choice [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  apiGateway:
+    apiKeySourceType: HEADER
+functions:
+  hello:
+    events:
+      - http:
+          path: hello
+          method: get
+```
+
+Another option is AUTHORIZER. If you set this, API Gateway will acquire that key from UsageIdentifierKey which is provided by custom authorizer.
+
+```yml
+service: my-service
+provider:
+  name: aws
+  apiGateway:
+    apiKeySourceType: AUTHORIZER
+functions:
+  hello:
+    events:
+      - http:
+          path: hello
+          method: get
+```
+
 ## Lambda Integration
 
 This method is more complicated and involves a lot more configuration of the `http` event syntax.
@@ -602,7 +663,7 @@ Both templates give you access to the following properties you can access with t
 - principalId
 - stage
 - headers
-- query
+- queryStringParameters
 - path
 - identity
 - stageVariables
@@ -677,7 +738,7 @@ There are 3 available options:
 |WHEN_NO_MATCH     |  Content-Type does not match defined template | Never                                                                   |
 |WHEN_NO_TEMPLATES |  No templates were defined                    | One or more templates defined, but Content-Type does not match          |
 
-See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html#integration-passthrough-behaviors) for detailed descriptions of these options.
+See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/integration-passthrough-behaviors.html) for detailed descriptions of these options.
 
 **Notes:**
 
@@ -1005,25 +1066,25 @@ resources:
       Properties:
         Name: YourApiGatewayName
 
-    Outputs:
-      apiGatewayRestApiId:
-        Value:
-          Ref: YourApiGatewayName
-        Export:
-          Name: apiGateway-restApiId
-      
-      apiGatewayRestApiRootResourceId:
-        Value:
-           Fn::GetAtt:
-            - YourApiGateway
-            - RootResourceId 
-        Export:
-          Name: apiGateway-rootResourceId
+  Outputs:
+    apiGatewayRestApiId:
+      Value:
+        Ref: YourApiGateway
+      Export:
+        Name: apiGateway-restApiId
+    
+    apiGatewayRestApiRootResourceId:
+      Value:
+         Fn::GetAtt:
+          - YourApiGateway
+          - RootResourceId 
+      Export:
+        Name: apiGateway-rootResourceId
   
   provider:
     apiGateway:
       restApiId: 
-        Ref: YourApiGatewayName
+        Ref: YourApiGateway
       restApiResources:
         Fn::GetAtt:
             - YourApiGateway
@@ -1173,4 +1234,15 @@ provider:
           aws:SourceIp:
             - "123.123.123.123"
 
+```
+
+## Compression
+
+API Gateway allows for clients to receive [compressed payloads](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-gzip-compression-decompression.html), and supports various [content encodings](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-enable-compression.html#api-gateway-supported-content-encodings).
+
+```yml
+provider:
+  name: aws
+  apiGateway:
+    minimumCompressionSize: 1024
 ```
