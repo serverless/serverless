@@ -33,14 +33,14 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 ## Current variable sources:
 
-- [environment variables](#referencing-environment-variables)
+- [Environment variables](#referencing-environment-variables)
 - [CLI options](#referencing-cli-options)
-- [other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
-- [external YAML/JSON files](#reference-variables-in-other-files)
-- [variables from S3](#referencing-s3-objects)
-- [variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
+- [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
+- [External YAML/JSON files](#reference-variables-in-other-files)
+- [Variables from S3](#referencing-s3-objects)
+- [Variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
-- [properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
+- [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Pseudo Parameters Reference](#pseudo-parameters-reference)
 
 ## Recursively reference properties
