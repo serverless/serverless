@@ -438,7 +438,7 @@ resources:
 Each of your cloudformation files has to start with a `Resources` entity
 
 ```yml
-Resource:
+Resources:
   Type: 'AWS::S3::Bucket'
   Properties:
     BucketName: some-bucket-name
