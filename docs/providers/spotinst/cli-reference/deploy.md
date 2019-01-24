@@ -21,3 +21,5 @@ serverless deploy -v
 ## Options
 - `--package` or `-p` path to a pre-packaged directory and skip packaging step.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
+- `--individually` Override package configuration in `serverless.yml` and explicitly package functions individually.
+- `--no-individually` Override package configuration in `serverless.yml` and disables individual packaging.

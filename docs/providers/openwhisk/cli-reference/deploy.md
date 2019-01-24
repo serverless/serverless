@@ -22,6 +22,8 @@ serverless deploy
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 - `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
+- `--individually` Override package configuration in `serverless.yml` and explicitly package functions individually.
+- `--no-individually` Override package configuration in `serverless.yml` and disables individual packaging.
 
 ## Artifacts
 

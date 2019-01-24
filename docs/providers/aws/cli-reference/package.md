@@ -22,6 +22,8 @@ serverless package
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--package` or `-p` path to the custom packaging directory you want.
+- `--individually` Override package configuration in `serverless.yml` and explicitly package functions individually.
+- `--no-individually` Override package configuration in `serverless.yml` and disables individual packaging.
 
 ## Examples
 

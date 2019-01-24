@@ -27,6 +27,8 @@ This is the simplest deployment usage possible. With this command Serverless wil
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 - `--package` or `-p` The path of a previously packaged deployment to get deployed (skips packaging step).
 - `--function` or `-f` Invoke `deploy function` (see above). Convenience shortcut - cannot be used with `--package`.
+- `--individually` Override package configuration in `serverless.yml` and explicitly package functions individually.
+- `--no-individually` Override package configuration in `serverless.yml` and disables individual packaging.
 
 ## Artifacts
 
