@@ -25,6 +25,7 @@ Commands
 * Pass "--verbose" to this command to get in-depth plugin info
 * Pass "--no-color" to disable CLI colors
 * Pass "--help" after any <command> for contextual help
+* Pass "--file <file>" to specify the config that should be used
 ```
 
 ## 1. Create a service
