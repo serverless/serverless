@@ -235,5 +235,5 @@ module.exports = {
       }
     }
     return originals;
-  }
+  },
 };
