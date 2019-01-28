@@ -231,7 +231,7 @@ functions:
             allowCredentials: false
 ```
 
-To allow multipe origins, you can use the following configuration and provide an array in the `origins` field rather than using `origin`:
+To allow multipe origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
 
 ```yml
 functions:
@@ -244,7 +244,7 @@ functions:
           cors:
             origins:
               - http://example.com
-              - http://*.amazonaws.com
+              - http://example2.com
             headers:
               - Content-Type
               - X-Amz-Date
