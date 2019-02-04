@@ -39,6 +39,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [External YAML/JSON files](#reference-variables-in-other-files)
 - [Variables from S3](#referencing-s3-objects)
 - [Variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
+- [Variables from AWS Secrets Manager](#reference-variables-using-aws-secrets-manager)
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Pseudo Parameters Reference](#pseudo-parameters-reference)
