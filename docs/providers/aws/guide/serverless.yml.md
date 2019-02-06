@@ -137,7 +137,7 @@ functions:
     runtime: nodejs6.10 # Runtime for this specific function. Overrides the default which is set on the provider level
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
-    onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn (Ref and Fn::ImportValue are supported as well) which will be used for the DeadLetterConfig
+    onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic / SQS arn (Ref, Fn::GetAtt and Fn::ImportValue are supported as well) which will be used for the DeadLetterConfig
     awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption (overwrites the one defined on the service level)
     environment: # Function level environment variables
       functionEnvVar: 12345678
