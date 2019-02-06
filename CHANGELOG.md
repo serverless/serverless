@@ -1,3 +1,29 @@
+# 1.37.0 (2019-02-06)
+
+- [Fixes for AWS cors config issues](https://github.com/serverless/serverless/pull/5785)
+- [Preserve whitespaces in single-quote literal fallback](https://github.com/serverless/serverless/pull/5775)
+- [AWS: Add fallback support in ${cf} and ${s3}](https://github.com/serverless/serverless/pull/5758)
+- [Throw an error if plugin is executed outside of a serverless directory](https://github.com/serverless/serverless/pull/5636)
+- [Require provider.credentials vars to be resolved before s3/ssm/cf vars](https://github.com/serverless/serverless/pull/5763)
+- [Provide multi origin cors values](https://github.com/serverless/serverless/pull/5740)
+- [handle layers paths with trailing slash and leading ./ or just .](https://github.com/serverless/serverless/pull/5656)
+- [Resolve profile before performing aws-sdk dependent actions](https://github.com/serverless/serverless/pull/5744)
+- [Fix assuming a role with an AWS profile](https://github.com/serverless/serverless/pull/5739)
+- [Allows Fn::GetAtt with Lambda DLQ-onError](https://github.com/serverless/serverless/pull/5139)
+- [Fix #5664 - Rollback fails due to a timestamp parsing error](https://github.com/serverless/serverless/pull/5710)
+- [AWS: Tell S3 bucket name and how to recover if deployment bucket does not exist](https://github.com/serverless/serverless/pull/5714)
+- [Do not print logs if print command is used.](https://github.com/serverless/serverless/pull/5728)
+- [Default to error code if message is non-existent](https://github.com/serverless/serverless/pull/4794)
+- [Add resource count and warning to info display](https://github.com/serverless/serverless/pull/4822)
+- [Add uploaded file name to log while AWS deploy](https://github.com/serverless/serverless/pull/5495)
+- [Enable tab completion for slss shortcut](https://github.com/serverless/serverless/pull/4712)
+- [Upgrade google-cloudfunctions to v2 and set defaults to node8 etc](https://github.com/serverless/serverless/pull/5311)
+- [Convert reservedConcurrency to integer to allow use env var](https://github.com/serverless/serverless/pull/5705)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.3...v1.37.0)
+
+
 # 1.36.3 (2019-01-23)
  - [AWS: Consolidates Lambda::Permission objects for cloudwatchLog events](https://github.com/serverless/serverless/pull/5531)
  - [Suppress confusing warning "A valid undefined..." ](https://github.com/serverless/serverless/pull/5723)
