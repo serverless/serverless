@@ -44,7 +44,11 @@ end
 
 
 def attach_tty
-  $stdin.reopen "/dev/tty", "a+" unless Gem.win_platform? || $stdin.tty? || !File.exist?("/dev/tty")
+  unless Gem.win_platform? || $stdin.tty? || !File.exist?("/dev/tty")
+    $stdin.reopen "/dev/tty", "a+"
+  end
+rescue
+  puts "tty unavailable"
 end
 
 if __FILE__ == $0
