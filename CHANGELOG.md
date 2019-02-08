@@ -1,3 +1,11 @@
+# 1.37.1 (2019-02-08)
+
+- [Fix makeDeepVariable replacement](https://github.com/serverless/serverless/pull/5809)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.37.0...v1.37.1)
+
+
 # 1.37.0 (2019-02-06)
 
 - [Fixes for AWS cors config issues](https://github.com/serverless/serverless/pull/5785)
