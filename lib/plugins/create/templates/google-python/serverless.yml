@@ -1,4 +1,4 @@
-service: gcf-python# NOTE: Don't put the word "google" in here
+service: gcf-python # NOTE: Don't put the word "google" in here
 
 provider:
   name: google
