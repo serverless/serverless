@@ -69,12 +69,11 @@ functions:
       - sns:
           arn:
             Fn::Join:
-              - ""
-              - - "arn:aws:sns:"
+              - ":"
+              - - "arn:aws:sns"
                 - Ref: "AWS::Region"
-                - ":"
                 - Ref: "AWS::AccountId"
-                - ":MyCustomTopic"
+                - "MyCustomTopic"
           topicName: MyCustomTopic
 ```
 
