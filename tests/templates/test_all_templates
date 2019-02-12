@@ -31,6 +31,7 @@ integration-test aws-nodejs-typescript
 integration-test aws-alexa-typescript
 integration-test aws-nodejs-ecma-script
 integration-test google-nodejs
+integration-test google-python
 integration-test google-go
 integration-test spotinst-nodejs
 integration-test spotinst-python
