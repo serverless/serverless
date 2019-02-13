@@ -66,7 +66,8 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
   ```
 
 * You can specify your own S3 bucket which should be used to store all the deployment artifacts.
-  The `deploymentBucket` config which is nested under `provider` lets you e.g. set the `name` or the `serverSideEncryption` method for this bucket
+  The `deploymentBucket` config which is nested under `provider` lets you e.g. set the `name` or the `serverSideEncryption` method for this bucket. If you don't provide your own bucket, Serverless
+  will create a bucket which uses default AES256 encryption.
 
 * You can specify your own S3 prefix which should be used to store all the deployment artifacts.
   The `deploymentPrefix` config which is nested under `provider` lets you set the prefix under which the deployment artifacts will be stored. If not specified, defaults to `serverless`.
