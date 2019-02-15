@@ -108,10 +108,8 @@ provider:
     name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
     serverSideEncryption: AES256 # when using server-side encryption
     tags: # Tags that will be added to each of the deployment resources
-      - Key: "key1"
-        Value: "value1"
-      - Key: "key2"
-        Value: "value2"
+      key1: value1
+      key2: value2
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value
