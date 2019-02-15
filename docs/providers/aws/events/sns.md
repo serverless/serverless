@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SNS
 menuText: SNS
-menuOrder: 5
+menuOrder: 6
 description:  Setting up AWS SNS Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
