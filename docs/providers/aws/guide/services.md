@@ -48,7 +48,7 @@ To create a service, use the `create` command. You must also pass in a runtime (
 serverless create --template aws-nodejs --path myService
 ```
 
-Here are the available runtimes for AWS Lambda:
+Here are the available templates for AWS Lambda:
 
 * aws-clojurescript-gradle
 * aws-clojure-gradle
