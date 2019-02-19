@@ -1116,7 +1116,7 @@ resources:
           - MyApiGW
           - RootResourceId
       Export:
-        Name: myApiGateway-rootResourceId
+        Name: MyApiGateway-rootResourceId
 ```
 
 This creates API gateway and then exports the `restApiId` and `rootResourceId` values using cloudformation cross stack output.
@@ -1128,9 +1128,9 @@ service: service-a
 provider:
   apiGateway:
     restApiId:
-      'Fn::ImportValue': apiGateway-restApiId
+      'Fn::ImportValue': MyApiGateway-restApiId
     restApiRootResourceId:
-      'Fn::ImportValue': apiGateway-rootResourceId
+      'Fn::ImportValue': MyApiGateway-rootResourceId
 
 functions:
   service-a-functions
@@ -1141,9 +1141,9 @@ service: service-b
 provider:
   apiGateway:
     restApiId:
-      'Fn::ImportValue': apiGateway-restApiId
+      'Fn::ImportValue': MyApiGateway-restApiId
     restApiRootResourceId:
-      'Fn::ImportValue': apiGateway-rootResourceId
+      'Fn::ImportValue': MyApiGateway-rootResourceId
 
 functions:
   service-b-functions
