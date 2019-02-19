@@ -48,7 +48,7 @@ To create a service, use the `create` command. You must also pass in a runtime (
 serverless create --template aws-nodejs --path myService
 ```
 
-Here are the available runtimes for AWS Lambda:
+Here are the available templates for AWS Lambda:
 
 * aws-clojurescript-gradle
 * aws-clojure-gradle
@@ -58,6 +58,8 @@ Here are the available runtimes for AWS Lambda:
 * aws-nodejs-ecma-script
 * aws-python
 * aws-python3
+* aws-ruby
+* aws-provided
 * aws-kotlin-jvm-maven
 * aws-kotlin-nodejs-gradle
 * aws-groovy-gradle
@@ -110,6 +112,7 @@ provider:
     tags: # Tags that will be added to each of the deployment resources
       key1: value1
       key2: value2
+  deploymentPrefix: serverless # Overwrite the default S3 prefix under which deployed artifacts should be stored. Default is serverless
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags
    key: value
@@ -199,7 +202,7 @@ To easily remove your Service from your AWS account, you can use the `remove` co
 
 Run `serverless remove -v` to trigger the removal process. As in the deploy step we're also running in the `verbose` mode so you can see all details of the remove process.
 
-Serverless will start the removal and informs you about it's process on the console. A success message is printed once the whole service is removed.
+Serverless will start the removal and informs you about its process on the console. A success message is printed once the whole service is removed.
 
 The removal process will only remove the service on your provider's infrastructure. The service directory will still remain on your local machine so you can still modify and (re)deploy it to another stage, region or provider later on.
 

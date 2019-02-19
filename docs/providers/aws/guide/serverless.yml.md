@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Serverless.yml Reference
 menuText: Serverless.yml
-menuOrder: 15
+menuOrder: 16
 description: A list of all available properties on serverless.yml for AWS
 layout: Doc
 -->
@@ -40,6 +40,7 @@ provider:
     tags: # Tags that will be added to each of the deployment resources
       key1: value1
       key2: value2
+  deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
   role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
   cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   versionFunctions: false # Optional function versioning
@@ -56,6 +57,8 @@ provider:
     restApiResources: # List of existing resources that were created in the REST API. This is required or the stack will be conflicted
       '/users': xxxxxxxxxx
       '/users/create': xxxxxxxxxx
+    apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
+    minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
 
   usagePlan: # Optional usage plan configuration
     quota:
@@ -137,7 +140,7 @@ functions:
     runtime: nodejs6.10 # Runtime for this specific function. Overrides the default which is set on the provider level
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
-    onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic arn (Ref and Fn::ImportValue are supported as well) which will be used for the DeadLetterConfig
+    onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic / SQS arn (Ref, Fn::GetAtt and Fn::ImportValue are supported as well) which will be used for the DeadLetterConfig
     awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption (overwrites the one defined on the service level)
     environment: # Function level environment variables
       functionEnvVar: 12345678
@@ -159,6 +162,8 @@ functions:
         - .travis.yml
       artifact: path/to/my-artifact.zip # Own package that should be use for this specific function. You must provide this file.
       individually: true # Enables individual packaging for specific function. If true you must provide package for each function. Defaults to false
+    layers: # An optional list Lambda Layers to use
+      - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y # Layer Version ARN
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
@@ -171,6 +176,8 @@ functions:
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
+      - websocket:
+          route: $connect
       - s3:
           bucket: photos
           event: s3:ObjectCreated:*

@@ -16,7 +16,7 @@ The Framework uses new event-driven compute services, like AWS Lambda, Google Cl
 
 Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
-<a href="https://serverless.com/framework/" target="_blank">Watch the video guide here.</a>
+<a href="https://www.youtube.com/watch?v=bFHmgqbAh4M" target="_blank">Watch the video guide here.</a>
 
 <a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
 
@@ -133,7 +133,7 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="features"></a>Features
 
-* Supports Node.js, Python, Java, Scala, C#, F#, Go, Groovy, Kotlin, PHP & Swift.
+* Supports Node.js, Python, Java, Scala, C#, F#, Go, Groovy, Kotlin, PHP & Swift, Ruby.
 * Manages the lifecycle of your serverless architecture (build, deploy, update, delete).
 * Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation).
 * Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams.
@@ -337,7 +337,9 @@ This table is generated from https://github.com/serverless/plugins/blob/master/p
 This table is generated from https://github.com/serverless/examples/blob/master/community-examples.json please make additions there
 -->
 | Project Name | Author |
-| :----------- | :----: |
+|:-------------|:------:|
+| **[Serverless Pipeline](https://github.com/msfidelis/serverless-pipeline)** <br/> Simple CI/CD Pipeline to Serverless Projects on AWS using Codepipeline, Codebuild and Terraform | [msfidelis](http://github.com/msfidelis) |
+| **[Jwtauthorizr](https://github.com/serverlessbuch/jwtAuthorizr)** <br/> Custom JWT Authorizer Lambda function for Amazon API Gateway with Bearer JWT | [serverlessbuch](http://github.com/serverlessbuch) |
 | **[AWS Demo Java Spring Cloud Function Serverless](https://github.com/mbsambangi/aws-java-spring-cloud-function-demo)** <br/> If Java is your choice of programming language-Spring Cloud Function,Serverless Framework makes a great technology stack. It boosts developer productivity by decoupling from Vendor specific FaaS API, and deployment activities. | [mbsambangi](http://github.com/mbsambangi) |
 | **[Serverless Architecture Boilerplate](https://github.com/msfidelis/serverless-architecture-boilerplate)** <br/> Boilerplate to organize and deploy big projects using Serverless and CloudFormation on AWS | [msfidelis](http://github.com/msfidelis) |
 | **[Bablebot](https://github.com/abiglobalhealth/babelbot)** <br/> Lambda + API Gateway: Zero-to-chatbot in <10 lines of JS. Built-in integrations for Messenger, Telegram, Kik, Line, Twilio, Skype, and Wechat. Or roll your own! | [abiglobalhealth](http://github.com/abiglobalhealth) |
@@ -403,6 +405,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 | **[AWS Cognito Custom User Pool Example](https://github.com/bsdkurt/aws-node-custom-user-pool)** <br/> Example CloudFormation custom resource backed by a lambda using Cognito User Pools | [bsdkurt](http://github.com/bsdkurt) |
 | **[Serverless Lambda Protobuf Responses](https://github.com/theburningmonk/lambda-protobuf-demo)** <br/> Demo using API Gateway and Lambda with Protocol Buffer | [theburningmonk](http://github.com/theburningmonk) |
 | **[Serverless Telegram Bot](https://github.com/jonatasbaldin/serverless-telegram-bot)** <br/> This example demonstrates how to setup an echo Telegram Bot using the Serverless Framework ⚡🤖 | [jonatasbaldin](http://github.com/jonatasbaldin) |
+| **[Serverless Line Bot](https://github.com/jiyeonseo/azure-line-bot-example)** <br/> Echo Line bot using Azure Function with Node.js | [jiyeonseo](http://github.com/jiyeonseo) |
 | **[Serverless Dashboard For Atom Editor](https://github.com/horike37/serverless-dashboard-for-atom)** <br/> Atom editor package which allows you to deploy and visualize your serverless services with Serverless Framework on your editor. | [horike37](http://github.com/horike37) |
 | **[Serverless Lambda Vpc Nat Redis](https://github.com/ittus/aws-lambda-vpc-nat-examples)** <br/> Demo using API Gateway and Lambda with VPC and NAT to access Internet and AWS Resource | [ittus](http://github.com/ittus) |
 | **[Serverless Gitlab CI](https://github.com/bvincent1/serverless-gitlab-ci)** <br/> Simple Gitlab CI template for automatic testing and deployments | [bvincent1](http://github.com/bvincent1) |
@@ -416,6 +419,7 @@ This table is generated from https://github.com/serverless/examples/blob/master/
 | **[Daily Instance Backups With AMI Rotation](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots)** <br/> A simple Python application which scans through your entire AWS account for tagged instances, makes daily AMIs of them, and rotates their backups automatically | [AndrewFarley](http://github.com/AndrewFarley) |
 | **[Serverless Instagram Crawler](https://github.com/kimcoder/serverless-instagram-crawler)** <br/> Instagram hashtag Crawler with Lambda & DynamoDB. | [kimcoder](http://github.com/kimcoder) |
 | **[Serving Binary Files](https://github.com/thomastoye/serverless-binary-files-xlsx)** <br/> Small example showing how to serve binary files using Serverless on AWS with the serverless-apigw-binary plugin, using generated Excel files as an example | [thomastoye](http://github.com/thomastoye) |
+| **[Serverless CloudWatch Proxy](https://github.com/abbasdgr8/cloudwatch-proxy)** <br/> Logging adapter that consumes log streams from AWS CloudWatch, streams them to other log destinations | [abbasdgr8](http://github.com/abbasdgr8) |
 <!-- AUTO-GENERATED-CONTENT:END This table is generated from https://github.com/serverless/examples/blob/master/community-examples.json please make additions there -->
 
 ## <a name="contributing"></a>Contributing

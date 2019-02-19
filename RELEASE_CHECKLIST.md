@@ -8,7 +8,7 @@ More info about our release process can be found in the [`RELEASE_PROCESS.md`](.
 
 - [ ] Look through all open issues and PRs (if any) of that milestone and close them / move them to another
 milestone if still open
-- [ ] Look through all closed issues and PRs of that milestone to see what has changed. Run `./scripts/prs-since-last tag` or if you want to run against a specific tag `./scripts/prs-since-last tag v1.20.0` to get a list of all merged PR's since a specific tag
+- [ ] Look through all closed issues and PRs of that milestone to see what has changed. Run `./scripts/prs-since-last-tag` or if you want to run against a specific tag `./scripts/prs-since-last-tag v1.20.0` to get a list of all merged PR's since a specific tag
 - [ ] Close milestone on GitHub
 - [ ] Create a new draft release in GitHub
 
@@ -36,6 +36,7 @@ milestone if still open
 ## Releasing
 
 - [ ] Publish the GitHub release draft (Travis CI will automatically publish the new release to `npm`)
+- [ ] Update the branch ref in the site repo so docs are updated: https://github.com/serverless/site/blob/master/scripts/docs/config.js#L8
 
 ## Validate Release
 

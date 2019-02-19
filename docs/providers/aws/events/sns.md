@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SNS
 menuText: SNS
-menuOrder: 5
+menuOrder: 6
 description:  Setting up AWS SNS Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
@@ -69,12 +69,11 @@ functions:
       - sns:
           arn:
             Fn::Join:
-              - ""
-              - - "arn:aws:sns:"
+              - ":"
+              - - "arn:aws:sns"
                 - Ref: "AWS::Region"
-                - ":"
                 - Ref: "AWS::AccountId"
-                - ":MyCustomTopic"
+                - "MyCustomTopic"
           topicName: MyCustomTopic
 ```
 

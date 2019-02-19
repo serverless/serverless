@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.30.3",
+  "version": "1.37.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -58,8 +58,7 @@
     "integration-test-cleanup": "node scripts/integration-test-cleanup.js",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
-    "postinstall": "node ./scripts/postinstall.js",
-    "prepublishOnly": "./scripts/shrinkwrap && node ./scripts/pre-release.js"
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
@@ -92,10 +91,9 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/platform-sdk": "^0.2.1",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.228.0",
+    "aws-sdk": "^2.373.0",
     "bluebird": "^3.5.0",
     "chalk": "^2.0.0",
     "ci-info": "^1.1.1",
@@ -115,6 +113,7 @@
     "lodash": "^4.13.1",
     "minimist": "^1.2.0",
     "moment": "^2.13.0",
+    "nanomatch": "^1.2.13",
     "node-fetch": "^1.6.0",
     "object-hash": "^1.2.0",
     "promise-queue": "^2.2.3",
@@ -124,6 +123,7 @@
     "semver": "^5.0.3",
     "semver-regex": "^1.0.0",
     "tabtab": "^2.2.2",
+    "untildify": "^3.0.3",
     "update-notifier": "^2.2.0",
     "uuid": "^2.0.2",
     "write-file-atomic": "^2.1.0",

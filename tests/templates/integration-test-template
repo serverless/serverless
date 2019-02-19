@@ -37,7 +37,7 @@ serverless deploy -v
 echo "Invoking Service"
 serverless invoke --function hello
 
-if [ $template == "aws-go" ] || [ $template == "aws-go-dep" ]
+if [ $template == "aws-go" ] || [ $template == "aws-go-dep" ] || [ $template == "aws-go-mod" ]
 then
   serverless invoke --function world
 fi

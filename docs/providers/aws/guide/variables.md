@@ -1,7 +1,7 @@
 <!--
 title: Serverless Variables
 menuText: Variables
-menuOrder: 10
+menuOrder: 11
 description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
 layout: Doc
 -->
@@ -18,7 +18,7 @@ They are especially useful when providing secrets for your service to use and wh
 
 ## Syntax
 
-To use variables, you will need to reference values enclosed in `${}` brackets. 
+To use variables, you will need to reference values enclosed in `${}` brackets.
 
 ```yml
 # serverless.yml file
@@ -27,21 +27,22 @@ yamlKeyXYZ: ${variableSource} # see list of current variable sources below
 otherYamlKey: ${variableSource, defaultValue}
 ```
 
-You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax. 
+You can define your own variable syntax (regex) if it conflicts with CloudFormation's syntax.
 
 **Note:** You can only use variables in `serverless.yml` property **values**, not property keys. So you can't use variables to generate dynamic logical IDs in the custom resources section for example.
 
-## Current variable sources: 
+## Current variable sources:
 
-- [environment variables](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-environment-variables)
-- [CLI options](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-cli-options)
-- [other properties defined in `serverless.yml`](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-properties-in-serverlessyml)
-- [external YAML/JSON files](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-other-files)
-- [variables from S3](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-s3-objects)
-- [variables from AWS SSM Parameter Store](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-using-the-ssm-parameter-store)
-- [CloudFormation stack outputs](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs)
-- [properties exported from Javascript files (sync or async)](https://serverless.com/framework/docs/providers/aws/guide/variables#reference-variables-in-javascript-files)
-- [Pseudo Parameters Reference](https://serverless.com/framework/docs/providers/aws/guide/variables#referencing-Pseudo-Parameters-Reference)
+- [Environment variables](#referencing-environment-variables)
+- [CLI options](#referencing-cli-options)
+- [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
+- [External YAML/JSON files](#reference-variables-in-other-files)
+- [Variables from S3](#referencing-s3-objects)
+- [Variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
+- [Variables from AWS Secrets Manager](#reference-variables-using-aws-secrets-manager)
+- [CloudFormation stack outputs](#reference-cloudformation-outputs)
+- [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
+- [Pseudo Parameters Reference](#pseudo-parameters-reference)
 
 ## Recursively reference properties
 
@@ -57,7 +58,7 @@ provider:
     MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
 ```
 
-If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined. 
+If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined.
 
 **How that works:**
 
@@ -155,6 +156,45 @@ functions:
 ```
 In that case, the framework will fetch the values of those `functionPrefix` outputs from the provided stack names and populate your variables. There are many use cases for this functionality and it allows your service to communicate with other services/stacks.
 
+You can add such custom output to CloudFormation stack. For example:
+```yml
+service: another-service
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: ap-northeast-1
+  memorySize: 512
+functions:
+  hello:
+    name: ${self:custom.functionPrefix}hello
+    handler: handler.hello
+custom:
+  functionPrefix: "my-prefix-"
+resources:
+  Outputs:
+    functionPrefix:
+      Value: ${self:custom.functionPrefix}
+      Export:
+        Name: functionPrefix
+    memorySize:
+      Value: ${self:provider.memorySize}
+      Export:
+        Name: memorySize
+```
+
+You can also reference CloudFormation stack in another regions with the `cf.REGION:stackName.outputKey` syntax. For example:
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+      name: ${cf.us-west-2:another-service-dev.functionPrefix}-hello
+      handler: handler.hello
+  world:
+      name: ${cf.ap-northeast-1:another-stack.functionPrefix}-world
+      handler: handler.world
+```
+
 You can reference [CloudFormation stack outputs export values](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) as well. For example:
 
 ```yml
@@ -216,6 +256,54 @@ custom:
 ```
 
 In this example, the serverless variable will contain the decrypted value of the SecureString.
+
+## Reference Variables using AWS Secrets Manager
+Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html). Use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager~true` syntax(note `~true` as secrets are always encrypted). For example:
+
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: ${ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager~true}
+```
+
+In this example, the serverless variable will contain the decrypted value of the secret.
+
+Variables can also be object, since AWS Secrets Manager can store secrets not only in plain text but also in JSON.
+
+If the above secret `secret_ID_in_Secrets_Manager` is something like below,
+
+```json
+{
+  "num": 1,
+  "str": "secret",
+  "arr": [true, false]
+}
+```
+
+variables will be resolved like
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: 
+    num: 1
+    str: secret
+    arr:
+      - true
+      - false
+```
+
 
 ## Reference Variables in Other Files
 You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
@@ -379,6 +467,32 @@ resources:
 
 The corresponding resources which are defined inside the `cloudformation-resources.json` file will be resolved and loaded into the `Resources` section.
 
+In order to use multiple resource files combined with resources inside the `serverless.yml` you can use an array.
+
+```yml
+resources:
+  - Resources:
+      ApiGatewayRestApi:
+        Type: AWS::ApiGateway::RestApi
+
+  - ${file(resources/first-cf-resources.yml)}
+  - ${file(resources/second-cf-resources.yml)}
+
+  - Outputs:
+      CognitoUserPoolId:
+      Value:
+        Ref: CognitoUserPool
+```
+
+Each of your cloudformation files has to start with a `Resources` entity
+
+```yml
+Resources:
+  Type: 'AWS::S3::Bucket'
+  Properties:
+    BucketName: some-bucket-name
+```
+
 ## Nesting Variable References
 The Serverless variable system allows you to nest variable references within each other for ultimate flexibility. So you can reference certain variables based on other variables. Here's an example:
 
@@ -427,8 +541,8 @@ service: new-service
 provider:
   name: aws
   runtime: nodejs6.10
-  variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
-#  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml -- e.g. ${AWS::Region}. All other Serverless variables work as usual.
+  variableSyntax: "\\${{([ ~:a-zA-Z0-9._@\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
+#  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml -- e.g. ${AWS::Region}. All other Serverless variables work as usual.
 
 custom:
   myStage: ${{opt:stage}}

@@ -41,6 +41,8 @@ To see a list of available templates run `serverless create --help`
 Most commonly used templates:
 
 - google-nodejs
+- google-go
+- google-python
 
 ## Examples
 
