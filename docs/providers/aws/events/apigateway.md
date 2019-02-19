@@ -40,7 +40,7 @@ layout: Doc
       - [Custom Status Codes](#custom-status-codes)
   - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
   - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
-    - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-ci-cd-friendly-example-of-using-shared-api-gateway-and-api-resources)
+    - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
     - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
       - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
   - [Share Authorizer](#share-authorizer)
