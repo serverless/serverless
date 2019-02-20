@@ -1,3 +1,34 @@
+# 1.38.0 (2019-02-20)
+
+ - [Set timout & others on context in python invoke local](https://github.com/serverless/serverless/pull/5796)
+ - [Append in Custom Syntax](https://github.com/serverless/serverless/pull/5799)
+ - [Don't load config for `config`](https://github.com/serverless/serverless/pull/5798)
+ - [Replace blocking fs.readFileSync with non blocking fs.readFile in checkForChanges.js](https://github.com/serverless/serverless/pull/5791)
+ - [Added layer option for deploy function update-config](https://github.com/serverless/serverless/pull/5787)
+ - [fix makeDeepVariable replacement](https://github.com/serverless/serverless/pull/5809)
+ - [Make local ruby pry work](https://github.com/serverless/serverless/pull/5718)
+ - [Replace \ with / in paths on windows before passing to nanomatch](https://github.com/serverless/serverless/pull/5808)
+ - [Support deploying GoLang to AWS from Windows!](https://github.com/serverless/serverless/pull/5813)
+ - [Fix windows go rework](https://github.com/serverless/serverless/pull/5816)
+ - [Make use of join operator first argument in sns docs](https://github.com/serverless/serverless/pull/5826)
+ - [add support for command type='container'](https://github.com/serverless/serverless/pull/5821)
+ - [Add Google Python function template](https://github.com/serverless/serverless/pull/5819)
+ - [Update config-credentials.md](https://github.com/serverless/serverless/pull/5827)
+ - [Update bucket conf to default AES256 encryption.](https://github.com/serverless/serverless/pull/5800)
+ - [Fix: override wildcard glob pattern (**) in resolveFilePathsFromPatterns](https://github.com/serverless/serverless/pull/5825)
+ - [Indicate unused context in aws-nodejs-typescipt](https://github.com/serverless/serverless/pull/5832)
+ - [Add stack trace to aws/invokeLocal errors](https://github.com/serverless/serverless/pull/5835)
+ - [Missing underscore](https://github.com/serverless/serverless/pull/5836)
+ - [Updating cloudformation resource reference url](https://github.com/serverless/serverless/pull/5690)
+ - [Docs: Replacing "runtimes" with "templates"](https://github.com/serverless/serverless/pull/5843)
+ - [Add support for websockets event](https://github.com/serverless/serverless/pull/5824)
+ - [AWS: ${ssm} resolve vairbale as JSON if it is stored as JSON in Secrets Manager](https://github.com/serverless/serverless/pull/5842)
+ - [Fix service name in template install message](https://github.com/serverless/serverless/pull/5839)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.37.1...v1.38.0)
+
+
 # 1.37.0 (2019-02-06)
 
 - [Fixes for AWS cors config issues](https://github.com/serverless/serverless/pull/5785)
