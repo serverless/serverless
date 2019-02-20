@@ -58,3 +58,6 @@ jest
 obj/
 [Bb]in/
 [Oo]bj/
+
+#VSCode
+.VSCode
