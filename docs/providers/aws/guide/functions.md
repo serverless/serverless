@@ -28,6 +28,8 @@ provider:
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
+  tracingConfig: # optional, enables tracing for all functions (can be 'Active' or 'PassThrough')
+    mode: Active
 
 functions:
   hello:
@@ -38,6 +40,8 @@ functions:
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
+    tracingConfig: # optional, overwrite, can be 'Active' or 'PassThrough'
+      mode: PassThrough
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
@@ -430,3 +434,31 @@ functions:
 ### Secrets using environment variables and KMS
 
 When storing secrets in environment variables, AWS [strongly suggests](http://docs.aws.amazon.com/lambda/latest/dg/env_variables.html#env-storing-sensitive-data) encrypting sensitive information. AWS provides a [tutorial](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-env_console.html) on using KMS for this purpose.
+
+## AWS X-Ray Tracing
+
+You can enable [AWS X-Ray Tracing](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the optional `tracingConfig` config variable in conjucntion with the `mode` property:
+
+```yml
+service: myService
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  tracingConfig:
+    mode: Active
+```
+
+You can also set this variable on a per-function basis. This will override the provider level setting if present:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    tracingConfig:
+      mode: Active
+  goodbye:
+    handler: handler.goodbye
+    tracingConfig:
+      mode: PassThrough
+```
