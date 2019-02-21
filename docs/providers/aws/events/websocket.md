@@ -18,7 +18,7 @@ The Serverless Framework makes it possible to setup an [API Gateway powered](htt
 
 ## Event Definition
 
-## Simple
+### Simple
 
 The following code will setup a websocket with a `$connect` route key:
 
@@ -30,7 +30,7 @@ functions:
       - websocket: $connect
 ```
 
-## Extended
+### Extended
 
 This code will setup a websocket with a `$disconnect` route key:
 
