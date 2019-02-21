@@ -16,6 +16,32 @@ layout: Doc
 
 The Serverless Framework makes it possible to setup an [API Gateway powered](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html) Websocket backend with the help of the `websocket` event.
 
+## Event Definition
+
+## Simple
+
+The following code will setup a websocket with a `$connect` route key:
+
+```yml
+functions:
+  connectHandler:
+    handler: handler.connectHandler
+    events:
+      - websocket: $connect
+```
+
+## Extended
+
+This code will setup a websocket with a `$disconnect` route key:
+
+```yml
+functions:
+  disonnectHandler:
+    handler: handler.disconnectHandler
+    events:
+      - websocket:
+          route: $disconnect
+```
 
 ## Routes
 
