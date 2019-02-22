@@ -33,7 +33,7 @@ layout: Doc
       - [Pass Through Behavior](#pass-through-behavior)
     - [Responses](#responses)
       - [Custom Response Headers](#custom-response-headers)
-    - [Custom Response Templates](#custom-response-templates)
+      - [Custom Response Templates](#custom-response-templates)
     - [Status Codes](#status-codes)
       - [Available Status Codes](#available-status-codes)
       - [Using Status Codes](#using-status-codes)
