@@ -94,10 +94,10 @@ module.exports.connectionHandler = async (event, context) => {
 
   if(event.requestContext.routeKey === '$connect'){
     console.log("NEW CONNECTION INCOMMING");
-    if (event.headers.token !== 'abc') {
+    if (event.queryStringParameters.token !== 'abc') {
       console.log('Connection blocked');
       return {
-        statusCode: 500
+        statusCode: 500 // currently it is not possible to respond with a 4XX
       };
     }
   }
