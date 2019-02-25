@@ -8,4 +8,13 @@ functions:
   hello:
     handler: handler.hello
     events:
-      - sns: ${env:EXISTING_TOPIC_ARN}
+      - sns:
+          arn:
+            Fn::Join:
+              - ':'
+              -
+                - 'arn:aws:sns'
+                - ${env:EXISTING_TOPIC_REGION}
+                - ${env:EXISTING_TOPIC_ACCOUNT}
+                - ${env:EXISTING_TOPIC_NAME}
+          topicName: ${env:EXISTING_TOPIC_NAME}
