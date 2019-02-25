@@ -42,6 +42,15 @@ class FakeLambdaContext
   end
 end
 
+
+def attach_tty
+  unless Gem.win_platform? || $stdin.tty? || !File.exist?("/dev/tty")
+    $stdin.reopen "/dev/tty", "a+"
+  end
+rescue
+  puts "tty unavailable"
+end
+
 if __FILE__ == $0
   unless ARGV[0] && ARGV[1]
     puts "Usage: invoke.rb <handler_path> <handler_name>"
@@ -59,6 +68,8 @@ if __FILE__ == $0
   # my_method or MyModule::MyClass.my_method
   handler_method, handler_class = handler_name.split(".").reverse
   handler_class ||= "Kernel"
+
+  attach_tty
 
   context = FakeLambdaContext.new(**input.fetch('context', {}))
   result = Object.const_get(handler_class).send(handler_method, event: input['event'], context: context)

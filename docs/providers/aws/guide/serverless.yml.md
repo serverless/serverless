@@ -173,6 +173,8 @@ functions:
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
+      - websocket:
+          route: $connect
       - s3:
           bucket: photos
           event: s3:ObjectCreated:*

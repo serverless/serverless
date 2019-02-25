@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudWatch Event
 menuText: CloudWatch Event
-menuOrder: 9
+menuOrder: 10
 description:  Setting up AWS CloudWatch Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
