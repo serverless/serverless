@@ -33,7 +33,7 @@ layout: Doc
       - [Pass Through Behavior](#pass-through-behavior)
     - [Responses](#responses)
       - [Custom Response Headers](#custom-response-headers)
-    - [Custom Response Templates](#custom-response-templates)
+      - [Custom Response Templates](#custom-response-templates)
     - [Status Codes](#status-codes)
       - [Available Status Codes](#available-status-codes)
       - [Using Status Codes](#using-status-codes)
@@ -803,7 +803,7 @@ functions:
 for your header values. Headers are passed to API Gateway exactly like you define them. Passing the `Cache-Control` header
 as `"'max-age=120'"` means API Gateway will receive the value as `'max-age=120'` (enclosed with single quotes).
 
-### Custom Response Templates
+#### Custom Response Templates
 
 Sometimes you'll want to define a custom response template API Gateway should use to transform your lambdas output.
 Here's an example which will transform the return value of your lambda so that the browser renders it as HTML:
@@ -988,7 +988,7 @@ functions:
 ```
 
 
-If your application has many nested paths, you might also want to break them out into smaller services. 
+If your application has many nested paths, you might also want to break them out into smaller services.
 
 ```yml
 service: service-a
@@ -1152,9 +1152,9 @@ functions:
 You can use this method to share your API Gateway across services in same region. Read about this limitation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html).
 
 
-### Manually Configuring shared API Gateway 
+### Manually Configuring shared API Gateway
 
-Use AWS console on browser, navigate to the API Gateway console. Select your already existing API Gateway. 
+Use AWS console on browser, navigate to the API Gateway console. Select your already existing API Gateway.
 Top Navbar should look like this
 
 ```
@@ -1165,7 +1165,7 @@ Here xxxxxxxxx is your restApiId and yyyyyyyyyy the restApiRootResourceId.
 
 #### Note while using authorizers with shared API Gateway
 
-AWS API Gateway allows only 1 Authorizer for 1 ARN, This is okay when you use conventional serverless setup, because each stage and service will create different API Gateway. But this can cause problem when using authorizers with shared API Gateway. If we use the same authorizer directly in different services like this. 
+AWS API Gateway allows only 1 Authorizer for 1 ARN, This is okay when you use conventional serverless setup, because each stage and service will create different API Gateway. But this can cause problem when using authorizers with shared API Gateway. If we use the same authorizer directly in different services like this.
 
 ```yml
 service: service-c
@@ -1183,7 +1183,7 @@ functions:
       - http:
         path: /users/{userId}
         authorizer:
-          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn 
+          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn
 ```
 
 
@@ -1203,16 +1203,16 @@ functions:
       - http:
         path: /project/{projectId}
         authorizer:
-          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn 
+          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn
 ```
 
 we encounter error from cloudformation as reported [here](https://github.com/serverless/serverless/issues/4711).
 
-A proper fix for this is work is using [Share Authorizer](#share-authorizer) or you can add a unique `name` attribute to `authorizer` in each function. This creates different API Gateway authorizer for each function, bound to the same API Gateway. However, there is a limit of 10 authorizers per RestApi, and they are forced to contact AWS to request a limit increase to unblock development. 
+A proper fix for this is work is using [Share Authorizer](#share-authorizer) or you can add a unique `name` attribute to `authorizer` in each function. This creates different API Gateway authorizer for each function, bound to the same API Gateway. However, there is a limit of 10 authorizers per RestApi, and they are forced to contact AWS to request a limit increase to unblock development.
 
 ## Share Authorizer
 
-Auto-created Authorizer is convenient for conventional setup. However, when you need to define your custom Authorizer, or use `COGNITO_USER_POOLS` authorizer with shared API Gateway, it is painful because of AWS limitation. Sharing Authorizer is a better way to do. 
+Auto-created Authorizer is convenient for conventional setup. However, when you need to define your custom Authorizer, or use `COGNITO_USER_POOLS` authorizer with shared API Gateway, it is painful because of AWS limitation. Sharing Authorizer is a better way to do.
 
 ```yml
 functions:
@@ -1225,7 +1225,7 @@ functions:
           authorizer:
             # Provide both type and authorizerId
             type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
-            authorizerId: 
+            authorizerId:
               Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
 
   deleteUser:
@@ -1236,23 +1236,23 @@ functions:
           ...     
           # Provide both type and authorizerId
           type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
-          authorizerId: 
+          authorizerId:
             Ref: ApiGatewayAuthorizer # or hard-code Authorizer ID
 
 resources:
   Resources:
-    ApiGatewayAuthorizer: 
+    ApiGatewayAuthorizer:
       Type: AWS::ApiGateway::Authorizer
-      Properties: 
+      Properties:
         AuthorizerResultTtlInSeconds: 300
         IdentitySource: method.request.header.Authorization
         Name: Cognito
-        RestApiId: 
+        RestApiId:
           Ref: YourApiGatewayName
         Type: COGNITO_USER_POOLS
-        ProviderARNs: 
-          - arn:aws:cognito-idp:${self:provider.region}:xxxxxx:userpool/abcdef 
-          
+        ProviderARNs:
+          - arn:aws:cognito-idp:${self:provider.region}:xxxxxx:userpool/abcdef
+
 ```
 
 ## Resource Policy
