@@ -61,7 +61,8 @@ service: serverless-ws-test
 provider:
   name: aws
   runtime: nodejs8.10
-  websocketApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
+  websocketsApiName: custom-websockets-api-name
+  websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
 
 functions:
   connectionHandler:
@@ -82,31 +83,73 @@ functions:
           route: foo # will trigger if $request.body.action === "foo"
 ```
 
-## Protect your Websocket backend
-To protect your websocket connection use an authorizer function on the `$connect`-route handler. It is only possible to use an authorizer function on this route, as this is the only point in time, where it is possible to prevent the ws-client to connect to our backend at all. As the client is not able to connect, the client can also not use the other websocket routes.
+## Using Authorizers
+You can enable an authorizer for your connect route by specifying the `authorizer` key in the websocket event definition.
 
-It is also possible to return a "500" in the connection handler, to prevent the ws-client from connecting.
+**Note:** AWS only supports authorizers for the `$connect` route.
 
-See this example:
+```yml
+functions:
+  connectHandler:
+    handler: handler.connectHandler
+    events:
+      - websocket:
+          route: $connect
+          authorizer: auth # references the auth function below
+  auth:
+    handler: handler.auth
+```
 
-```js
-module.exports.connectionHandler = async (event, context) => {
+Or, if your authorizer function is not managed by this service, you can provide an arn instead:
 
-  if(event.requestContext.routeKey === '$connect'){
-    console.log("NEW CONNECTION INCOMMING");
-    if (event.queryStringParameters.token !== 'abc') {
-      console.log('Connection blocked');
-      return {
-        statusCode: 500 // currently it is not possible to respond with a 4XX
-      };
-    }
-  }
+```yml
+functions:
+  connectHandler:
+    handler: handler.connectHandler
+    events:
+      - websocket:
+          route: $connect
+          authorizer: arn:aws:lambda:us-east-1:1234567890:function:auth
+```
 
-  console.log('Connection ok');
-  return {
-    statusCode: 200
-  };
-}
+By default, the `identitySource` property is set to `route.request.header.Auth`, meaning that your request must include the auth token in the `Auth` header of the request. You can overwrite this by specifying your own `identitySource` configuration:
+
+
+```yml
+functions:
+  connectHandler:
+    handler: handler.connectHandler
+    events:
+      - websocket:
+          route: $connect
+          authorizer:
+            name: auth
+            identitySource:
+              - 'route.request.header.Auth'
+              - 'route.request.querystring.Auth'
+            
+  auth:
+    handler: handler.auth
+```
+With the above configuration, you can now must pass the auth token in both the `Auth` query string as well as the `Auth` header.
+
+You can also supply an ARN instead of the name when using the object syntax for the authorizer:
+
+```yml
+functions:
+  connectHandler:
+    handler: handler.connectHandler
+    events:
+      - websocket:
+          route: $connect
+          authorizer:
+            arn: arn:aws:lambda:us-east-1:1234567890:function:auth
+            identitySource:
+              - 'route.request.header.Auth'
+              - 'route.request.querystring.Auth'
+            
+  auth:
+    handler: handler.auth
 ```
 
 ## Send a message to a ws-client
