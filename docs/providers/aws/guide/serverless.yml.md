@@ -117,7 +117,8 @@ provider:
   tags: # Optional service wide function tags
     foo: bar
     baz: qux
-  tracingConfig: Active # optional, can be 'Active' or 'PassThrough'
+  tracing:
+    lambda: true # optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
@@ -164,7 +165,7 @@ functions:
       individually: true # Enables individual packaging for specific function. If true you must provide package for each function. Defaults to false
     layers: # An optional list Lambda Layers to use
       - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y # Layer Version ARN
-    tracingConfig: Active # optional, can be 'Active' or 'PassThrough' (overwrites the one defined on the provider level)
+    tracing: Active # optional, can be 'Active' or 'PassThrough' (overwrites the one defined on the provider level)
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint

@@ -28,7 +28,8 @@ provider:
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
-  tracingConfig: Active # optional, enables tracing for all functions (can be 'Active' or 'PassThrough')
+  tracing:
+    lambda: true # optional, enables tracing for all functions (can be true (true equals 'Active') 'Active' or 'PassThrough')
 
 functions:
   hello:
@@ -39,7 +40,7 @@ functions:
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
-    tracingConfig: PassThrough # optional, overwrite, can be 'Active' or 'PassThrough'
+    tracing: PassThrough # optional, overwrite, can be 'Active' or 'PassThrough'
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
@@ -435,7 +436,7 @@ When storing secrets in environment variables, AWS [strongly suggests](http://do
 
 ## AWS X-Ray Tracing
 
-You can enable [AWS X-Ray Tracing](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the optional `tracingConfig` config variable:
+You can enable [AWS X-Ray Tracing](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the optional `tracing` config variable:
 
 ```yml
 service: myService
@@ -443,7 +444,8 @@ service: myService
 provider:
   name: aws
   runtime: nodejs8.10
-  tracingConfig: Active
+  tracing:
+    lambda: true
 ```
 
 You can also set this variable on a per-function basis. This will override the provider level setting if present:
@@ -452,8 +454,8 @@ You can also set this variable on a per-function basis. This will override the p
 functions:
   hello:
     handler: handler.hello
-    tracingConfig: Active
+    tracing: Active
   goodbye:
     handler: handler.goodbye
-    tracingConfig: PassThrough
+    tracing: PassThrough
 ```
