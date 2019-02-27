@@ -48,7 +48,7 @@ To create a service, use the `create` command. You must also pass in a runtime (
 serverless create --template aws-nodejs --path myService
 ```
 
-Here are the available runtimes for AWS Lambda:
+Here are the available templates for AWS Lambda:
 
 * aws-clojurescript-gradle
 * aws-clojure-gradle
@@ -109,6 +109,9 @@ provider:
   deploymentBucket:
     name: com.serverless.${self:provider.region}.deploys # Overwrite the default deployment bucket
     serverSideEncryption: AES256 # when using server-side encryption
+    tags: # Tags that will be added to each of the deployment resources
+      key1: value1
+      key2: value2
   deploymentPrefix: serverless # Overwrite the default S3 prefix under which deployed artifacts should be stored. Default is serverless
   versionFunctions: false # Optional function versioning
   stackTags: # Optional CF stack tags

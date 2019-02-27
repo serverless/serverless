@@ -35,6 +35,7 @@
     "./aws/package/compile/events/schedule/index.js",
     "./aws/package/compile/events/s3/index.js",
     "./aws/package/compile/events/apiGateway/index.js",
+    "./aws/package/compile/events/websockets/index.js",
     "./aws/package/compile/events/sns/index.js",
     "./aws/package/compile/events/stream/index.js",
     "./aws/package/compile/events/alexaSkill/index.js",

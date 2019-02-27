@@ -16,5 +16,6 @@ Welcome to the Hello World example.
 Pick your language of choice:
 
 * [JavaScript](./node)
+* [Python](./python)
 
 [View all examples](https://www.serverless.com/framework/docs/providers/google/examples/)

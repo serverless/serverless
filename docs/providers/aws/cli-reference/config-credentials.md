@@ -54,4 +54,4 @@ serverless config credentials --provider aws --key 1234 --secret 5678 --profile 
 
 This example overwrite `custom-profile` profile with the `aws_access_key_id` of `1234` and the `aws_secret_access_key` of `5678`.
 
-If the profile do not exist, it will be added anyway.
+If the profile does not exist, it will be added anyway.
