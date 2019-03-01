@@ -443,6 +443,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Andrew Griffiths](https://www.andrewgriffithsonline.com/) - Independent consultant specialising in serverless technology
 * [Trek10](https://www.trek10.com/)
 * [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
+* [Geniusee](https://geniusee.com)
 * [SC5 Online](https://sc5.io)
 * [Carrot Creative](https://carrot.is)
 * [microapps](http://microapps.com)
