@@ -30,6 +30,8 @@ provider:
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
   apiName: custom-api-name # Use a custom name for the API Gateway API
+  websocketsApiName: custom-websockets-api-name # Use a custom name for the websockets API
+  websocketsApiRouteSelectionExpression: $request.body.route # custom route selection expression
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
@@ -119,6 +121,7 @@ provider:
     baz: qux
   tracing:
     apiGateway: true
+    lambda: true # optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
@@ -165,6 +168,7 @@ functions:
       individually: true # Enables individual packaging for specific function. If true you must provide package for each function. Defaults to false
     layers: # An optional list Lambda Layers to use
       - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y # Layer Version ARN
+    tracing: Active # optional, can be 'Active' or 'PassThrough' (overwrites the one defined on the provider level)
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
@@ -179,6 +183,12 @@ functions:
             identityValidationExpression: someRegex
       - websocket:
           route: $connect
+          authorizer:
+            # name: auth    NOTE: you can either use "name" or arn" properties
+            arn: arn:aws:lambda:us-east-1:1234567890:function:auth
+            identitySource:
+              - 'route.request.header.Auth'
+              - 'route.request.querystring.Auth'
       - s3:
           bucket: photos
           event: s3:ObjectCreated:*
