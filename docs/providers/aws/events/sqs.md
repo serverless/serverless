@@ -34,6 +34,16 @@ functions:
       - sqs:
           arn:
             Fn::ImportValue: MyExportedQueueArnId
+      - sqs:
+          arn:
+            Fn::Join:
+              - ":"
+              - - arn
+                - aws
+                - sqs
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - MyOtherQueue
 ```
 
 ## Setting the BatchSize
