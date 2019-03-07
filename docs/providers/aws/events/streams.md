@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Kinesis & DynamoDB Streams
 menuText: Kinesis & DynamoDB
-menuOrder: 2
+menuOrder: 3
 description:  Setting up AWS Kinesis Streams and AWS DynamoDB Streams Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
@@ -29,9 +29,7 @@ functions:
       - stream:
           type: dynamodb
           arn:
-            Fn::GetAtt:
-              - MyDynamoDbTable
-              - StreamArn
+            Fn::GetAtt: [ MyDynamoDbTable, StreamArn ]
       - stream:
           type: dynamodb
           arn:

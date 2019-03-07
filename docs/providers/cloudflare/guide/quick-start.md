@@ -80,13 +80,13 @@ serverless invoke --function helloWorld
 Hello world
 ```
 
-Note that for `invoke`, your Function must have the `events` field populated in order for the `serverless` tool to know exactly which route to request. Defining the `headers` field is optional.
+Your Function must have the `events` field populated in order for the `serverless` tool to know exactly which route to request. Defining the `headers` field is optional.
 
 ```yml
 # serverless.yml
 ...
 foo:
-    worker: foo_script
+    name: foo
     script: bar
     events:
       - http:

@@ -19,7 +19,7 @@ service: aws-python3 # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.7
 
 # you can overwrite defaults here
 #  stage: dev
@@ -65,6 +65,7 @@ functions:
 #      - http:
 #          path: users/create
 #          method: get
+#      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic

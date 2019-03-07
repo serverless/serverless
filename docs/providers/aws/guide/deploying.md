@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Guide - Deploying
 menuText: Deploying
-menuOrder: 8
+menuOrder: 9
 description: How to deploy your AWS Lambda functions and their required infrastructure
 layout: Doc
 -->
@@ -66,7 +66,8 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
   ```
 
 * You can specify your own S3 bucket which should be used to store all the deployment artifacts.
-  The `deploymentBucket` config which is nested under `provider` lets you e.g. set the `name` or the `serverSideEncryption` method for this bucket
+  The `deploymentBucket` config which is nested under `provider` lets you e.g. set the `name` or the `serverSideEncryption` method for this bucket. If you don't provide your own bucket, Serverless
+  will create a bucket which uses default AES256 encryption.
 
 * You can specify your own S3 prefix which should be used to store all the deployment artifacts.
   The `deploymentPrefix` config which is nested under `provider` lets you set the prefix under which the deployment artifacts will be stored. If not specified, defaults to `serverless`.
@@ -74,6 +75,9 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 * You can make uploading to S3 faster by adding `--aws-s3-accelerate`
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
+
+
+* For information on multi-region deployments, [checkout this article](https://serverless.com/blog/build-multiregion-multimaster-application-dynamodb-global-tables).
 
 ## Deploy Function
 
@@ -112,3 +116,5 @@ serverless deploy --package path-to-package
 
 - The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
 - The deploy process bypasses the package step and uses the existing package to deploy and update CloudFormation stacks.
+
+
