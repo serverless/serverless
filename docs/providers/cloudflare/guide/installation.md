@@ -55,3 +55,6 @@ serverless --version
 ```
 
 Remember, you need at least version 1.31.0 to use Cloudflare Workers with Serverless.
+
+## Installing the serverless-cloudflare-workers plugin
+Finally, add our `serverless-cloudflare-workers` plugin to your project by running `npm install --save serverless-cloudflare-workers`.

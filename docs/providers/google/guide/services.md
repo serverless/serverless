@@ -50,6 +50,8 @@ serverless create --template google-nodejs --path my-service
 Here are the available runtimes for Google Cloud Functions:
 
 * google-nodejs
+* google-go
+* google-python
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 

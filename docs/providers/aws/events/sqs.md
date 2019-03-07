@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SQS Queues
 menuText: SQS
-menuOrder: 6
+menuOrder: 7
 description:  Setting up AWS SQS Queue Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
@@ -18,6 +18,8 @@ The ARN for the queue can be specified as a string, the reference to the ARN of 
 
 **Note:** The `sqs` event will hook up your existing SQS Queue to a Lambda function. Serverless won't create a new queue for you.
 
+**IMPORTANT:** AWS is [not supporting FIFO queue](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html) to trigger Lambda function so your queue(s) **must be** a standard queue.
+
 ```yml
 functions:
   compute:
@@ -32,6 +34,16 @@ functions:
       - sqs:
           arn:
             Fn::ImportValue: MyExportedQueueArnId
+      - sqs:
+          arn:
+            Fn::Join:
+              - ":"
+              - - arn
+                - aws
+                - sqs
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - MyOtherQueue
 ```
 
 ## Setting the BatchSize

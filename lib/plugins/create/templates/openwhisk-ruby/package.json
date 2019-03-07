@@ -1,0 +1,13 @@
+{
+  "name": "openwhisk-ruby",
+  "version": "1.0.0",
+  "description": "Sample OpenWhisk Ruby serverless framework service.",
+  "main": "handler.js",
+  "keywords": [
+    "serverless",
+    "openwhisk"
+  ],
+  "devDependencies": {
+    "serverless-openwhisk": ">=0.13.0"
+  }
+}

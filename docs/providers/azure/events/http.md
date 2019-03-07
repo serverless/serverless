@@ -42,7 +42,7 @@ functions:
         x-azure-settings:
             name: req #<string>, default - "req", specifies which name it's available on `context.bindings`
             methods: #<array> [GET, POST, PUT, DELETE], default - all
-                - GET
+                - get
             route: example/hello #<string>, default - <function name>
             authLevel: anonymous #<enum - anonymous|function (default)|admin>
 ```

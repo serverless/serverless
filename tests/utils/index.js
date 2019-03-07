@@ -219,4 +219,21 @@ module.exports = {
   removeService() {
     execSync(`${serverlessExec} remove`, { stdio: 'inherit' });
   },
+
+  replaceEnv(values) {
+    const originals = {};
+    for (const key of Object.keys(values)) {
+      if (process.env[key]) {
+        originals[key] = process.env[key];
+      } else {
+        originals[key] = 'undefined';
+      }
+      if (values[key] === 'undefined') {
+        delete process.env[key];
+      } else {
+        process.env[key] = values[key];
+      }
+    }
+    return originals;
+  },
 };
