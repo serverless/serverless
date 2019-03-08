@@ -42,6 +42,7 @@ Most commonly used templates:
 
 - google-nodejs
 - google-go
+- google-python
 
 ## Examples
 

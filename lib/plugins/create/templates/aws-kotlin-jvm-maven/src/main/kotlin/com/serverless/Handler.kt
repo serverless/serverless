@@ -2,13 +2,11 @@ package com.serverless
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
-import org.apache.log4j.BasicConfigurator
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.util.*
 
 class Handler:RequestHandler<Map<String, Any>, ApiGatewayResponse> {
     override fun handleRequest(input:Map<String, Any>, context:Context):ApiGatewayResponse {
-        BasicConfigurator.configure()
         LOG.info("received: " + input.keys.toString())
 
         val responseBody = Response("Go Serverless v1.x! Your Kotlin function executed successfully!", input)
@@ -19,6 +17,6 @@ class Handler:RequestHandler<Map<String, Any>, ApiGatewayResponse> {
         }
     }
     companion object {
-        private val LOG = Logger.getLogger(Handler::class.java)
+        private val LOG = LogManager.getLogger(Handler::class.java)
     }
 }

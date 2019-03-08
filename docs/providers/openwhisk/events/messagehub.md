@@ -40,7 +40,7 @@ functions:
     index:
         handler: users.main
         events:
-            - messagehub: 
+            - message_hub: 
                 package: /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
                 topic: my_kafka_topic
  

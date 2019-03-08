@@ -87,6 +87,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
     <div>
       <ul>
         <li><a href="./events/apigateway.md">API Gateway</a></li>
+        <li><a href="./events/websocket.md">Websocket</a></li>
         <li><a href="./events/streams.md">Streams</a></li>
         <li><a href="./events/s3.md">S3</a></li>
         <li><a href="./events/schedule.md">Schedule</a></li>
