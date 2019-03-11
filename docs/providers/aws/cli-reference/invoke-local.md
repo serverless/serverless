@@ -29,6 +29,8 @@ serverless invoke local --function functionName
 - `--contextPath` or `-x`, The path to a json file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
 - `--context` or `-c`, String data to be passed as a context to your function. Same like with `--data`, context included in `--contextPath` will overwrite the context you passed with `--context` flag.
 * `--env` or `-e` String representing an environment variable to set when invoking your function, in the form `<name>=<value>`. Can be repeated for more than one environment variable.
+* `--docker` Enable docker support for NodeJS/Python/Ruby/Java. Enabled by default for other
+  runtimes.
 
 ## Environment
 
@@ -107,7 +109,11 @@ serverless invoke local -f functionName -e VAR1=value1 -e VAR2=value2
 
 ### Limitations
 
-Currently, `invoke local` only supports the NodeJs, Python, Java, & Ruby runtimes.
+Use of the `--docker` flag and runtimes other than NodeJs, Python, Java, & Ruby depend on having
+[Docker](https://www.docker.com/) installed. On MacOS & Windows, install
+[Docker Desktop](https://www.docker.com/products/docker-desktop); On Linux install
+[Docker engine](https://www.docker.com/products/docker-engine) and ensure your user is in the
+`docker` group so that you can invoke docker without `sudo`.
 
 **Note:** In order to get correct output when using Java runtime, your Response class must implement `toString()` method.
 
