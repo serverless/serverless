@@ -200,12 +200,17 @@ functions:
           description: a description of my scheduled event's purpose
           rate: rate(10 minutes)
           enabled: false
+          # Note, you can use only one of input, inputPath, or inputTransformer
           input:
             key1: value1
             key2: value2
             stageParams:
               stage: dev
           inputPath: '$.stageVariables'
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
