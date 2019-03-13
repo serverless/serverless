@@ -12,7 +12,7 @@ layout: Doc
 
 # AWS - Resources
 
-If you are using AWS as a provider for your Service, all *Resources* are other AWS infrastructure resources which the AWS Lambda functions in your *Service* depend on, like AWS DynamoDB or AWS S3.
+If you are using AWS as a provider for your Service, all [*Resources*](./intro.md#resources) are other AWS infrastructure resources which the AWS Lambda functions in your [*Service*](./intro.md#services) depend on, like AWS DynamoDB or AWS S3.
 
 Using the Serverless Framework, you can define the infrastructure resources you need in `serverless.yml`, and easily deploy them.
 

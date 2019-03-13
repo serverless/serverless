@@ -1,4 +1,5 @@
 import * as Ask from 'ask-sdk';
+import 'source-map-support/register';
 
 export const alexa = Ask.SkillBuilders.custom()
   .addRequestHandlers({
