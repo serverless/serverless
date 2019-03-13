@@ -181,6 +181,7 @@ functions:
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
+            type: token # token or request. Determines input to the authorier function, called with the auth token or the entire request event. Defaults to token
       - websocket:
           route: $connect
           authorizer:
