@@ -89,6 +89,19 @@ functions:
               state:
                 - pending
           inputPath: '$.stageVariables'
+      - cloudwatchEvent:
+          event:
+            source:
+              - "aws.ec2"
+            detail-type:
+              - "EC2 Instance State-change Notification"
+            detail:
+              state:
+                - pending
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
 ```
 
 ## Specifying a Description
