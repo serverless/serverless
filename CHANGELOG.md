@@ -11,7 +11,7 @@
 - [Fix bug when using websocket events with functions with custom roles](https://github.com/serverless/serverless/pull/5880)
 - [Print customized function names correctly in sls info output](https://github.com/serverless/serverless/pull/5883)
 - [Added websockets authorizer support](https://github.com/serverless/serverless/pull/5867)
-- [upport more route characters for websockets](https://github.com/serverless/serverless/pull/5865)
+- [Support more route characters for websockets](https://github.com/serverless/serverless/pull/5865)
 - [kotlin jvm maven updates](https://github.com/serverless/serverless/pull/5872)
 - [Put `Custom Response Headers` into `[Responses]`](https://github.com/serverless/serverless/pull/5862)
 - [Packaging exclude only config file being used](https://github.com/serverless/serverless/pull/5840)
