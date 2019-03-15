@@ -33,6 +33,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 ## Current variable sources:
 
+- [Serverless Core variables](#referencing-serverless-core-variables)
 - [Environment variables](#referencing-environment-variables)
 - [CLI options](#referencing-cli-options)
 - [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
@@ -102,6 +103,27 @@ resources:
 ```
 
 In the above example you're setting a global schedule for all functions by referencing the `globalSchedule` property in the same `serverless.yml` file. This way, you can easily change the schedule for all functions whenever you like.
+
+## Referencing Serverless Core Variables
+Serverless initializes core variables which are used internally by the Framework itself. Those values are exposed via the Serverless Variables system and can be re-used with the `{sls:}` variable prefix.
+
+The following variables are available:
+
+**instanceId**
+
+A random id which will be generated whenever the Serverless CLI is run. This value can be used when predictable random variables are required.
+
+```yml
+service: new-service
+provider: aws
+
+functions:
+  func1:
+    name: function-1
+    handler: handler.func1
+    environment:
+      APIG_DEPLOYMENT_ID: ApiGatewayDeployment${sls:instanceId}
+```
 
 ## Referencing Environment Variables
 To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.  It is valid to use the empty string in place of `SOME_VAR`.  This looks like "`${env:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `process.env` object (i.e. all the variables defined in your environment).
@@ -296,7 +318,7 @@ functions:
     name: hello
     handler: handler.hello
 custom:
-  supersecret: 
+  supersecret:
     num: 1
     str: secret
     arr:
