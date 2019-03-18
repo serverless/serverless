@@ -11,7 +11,7 @@ plugins:
   - serverless-cloudflare-workers
 
 functions:
-  helloWorld:
+  hello:
     name: hello
     script: helloWorld
     events:
@@ -23,7 +23,7 @@ functions:
             x-client-data: value
 
   foo:
-    name: foo_script
+    name: foo
     script: bar
     events:
       - http:

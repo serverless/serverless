@@ -70,11 +70,17 @@ For example....
 ibmcloud login -a api.ng.bluemix.net -o user@email_host.com -s dev
 ```
 
-#### regions
+After logging into the CLI, run the following command to populate the `~/.wskprops` file with credentials needed to run `serverless` commands:
+
+```
+ibmcloud wsk property get --auth
+```
+
+#### Regions
 
 Cloud Functions is available with the following regions US-South (`api.ng.bluemix.net`), London (`api.eu-gb.bluemix.net`), Frankfurt (` api.eu-de.bluemix.net`). Use the appropriate [API endpoint](https://console.bluemix.net/docs/overview/ibm-cloud.html#ov_intro_reg) to target Cloud Functions in that region.
 
-#### organisations and spaces
+#### Organisations and Spaces
 
 Organisations and spaces for your account can be viewed on this page: [https://console.bluemix.net/account/organizations](https://console.bluemix.net/account/organizations)
 
@@ -133,7 +139,13 @@ You can configure the Serverless Framework to use your OpenWhisk credentials in 
 
 #### IBM Cloud Functions
 
-Provided you have logged into the IBM Cloud CLI, authenticated credentials will be already stored in the `~/.wskprops` file. If this file is available, the provider plugin will automatically read those credentials and you don't need to do anything else!
+After logging into the CLI, run the following command to populate the `~/.wskprops` file with credentials needed to run `serverless` commands:
+
+```
+ibmcloud wsk property get --auth
+```
+
+With this file available, the provider plugin will automatically read those credentials and you don't need to do anything else!
 
 #### Environment Variables Setup
 

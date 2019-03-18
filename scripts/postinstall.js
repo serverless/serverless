@@ -29,10 +29,12 @@ function setupAutocomplete() {
     try {
       execSync(`node "${tabtabCliPath}" install --name serverless --auto`);
       execSync(`node "${tabtabCliPath}" install --name sls --auto`);
+      execSync(`node "${tabtabCliPath}" install --name slss --auto`);
       return resolve();
     } catch (error) {
       execSync(`node "${tabtabCliPath}" install --name serverless --stdout`);
       execSync(`node "${tabtabCliPath}" install --name sls --stdout`);
+      execSync(`node "${tabtabCliPath}" install --name slss --stdout`);
       console.log('Could not auto-install serverless autocomplete script.');
       console.log('Please copy / paste the script above into your shell.');
       return reject(error);

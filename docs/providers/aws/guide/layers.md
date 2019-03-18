@@ -38,7 +38,7 @@ layers:
       - '*'
 ```
 
-You can add as many layers as you want within this property.
+You can add up to 5 layers as you want within this property.
 
 ```yml
 # serverless.yml
@@ -58,7 +58,7 @@ layers:
     path: layerThree
 ```
 
-Your functions can either inherit their packaging settings from the global `package` property.
+Your layers can either inherit their packaging settings from the global `package` property.
 
 ```yml
 # serverless.yml

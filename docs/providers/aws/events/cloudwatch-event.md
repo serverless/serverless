@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudWatch Event
 menuText: CloudWatch Event
-menuOrder: 9
+menuOrder: 10
 description:  Setting up AWS CloudWatch Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
@@ -89,6 +89,19 @@ functions:
               state:
                 - pending
           inputPath: '$.stageVariables'
+      - cloudwatchEvent:
+          event:
+            source:
+              - "aws.ec2"
+            detail-type:
+              - "EC2 Instance State-change Notification"
+            detail:
+              state:
+                - pending
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
 ```
 
 ## Specifying a Description
