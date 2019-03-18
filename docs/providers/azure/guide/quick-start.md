@@ -20,7 +20,7 @@ layout: Doc
 ## Create a new service
 
 Create a new service using the Node.js template, specifying a unique name and an
-optional path for your service.
+optional path for your service. Make sure you enter a globally unique name for the `--name` argument.
 
 ```bash
 $ serverless create --template azure-nodejs --path my-service --name my-unique-name

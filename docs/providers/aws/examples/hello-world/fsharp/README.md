@@ -5,33 +5,75 @@ description: Create a F# Hello World Lambda function
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/fsharp/)
+<!-- DOCS-SITE-LINK:END -->
+
 # Hello World F# Example
 
-## Prerequisites
+Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
 
-* Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
-* [.Net Core 1.0.1 SDK](https://www.microsoft.com/net/download/core)
-    * 1.1 isn't currently supported by AWS Lambda 
-* [NodeJS v4 or higher](https://nodejs.org/en/)
-* An AWS Account
-
-## Build and Package 
-
-From the root of this directory, run `build.cmd`, or `build.sh` if on Linux / Mac.
-
-This will produce your deployment package at `bin/release/netcoreapp1.0/deploy-package.zip`.
-
-## Deployment and Invocation
-
-Once packaged, you can follow [these instructions](https://github.com/serverless/serverless#quick-start) to deploy and remotely invoke the function on AWS Lambda.
-
-In short the commands you will need to run are (from the root of this directory):
+Once installed the Serverless CLI can be called with `serverless` or the shorthand `sls` command.
 
 ```
-serverless config credentials --provider aws --key {YourAwsAccessKey} --secret {YourAwsSecret}
-serverless deploy -v
-serverless invoke -f hello -l
-serverless remove
+$ sls
+
+Commands
+* You can run commands with "serverless" or the shortcut "sls"
+* Pass "--verbose" to this command to get in-depth plugin info
+* Pass "--no-color" to disable CLI colors
+* Pass "--help" after any <command> for contextual help
 ```
 
-By default this template deploys to us-east-1, you can change that in "serverless.yml" under the `region: us-east-1` key.
+## 1. Create a service
+
+```
+sls create --template aws-fsharp --path myService
+```
+
+Using the `create` command we can specify one of the available [templates](https://serverless.com/framework/docs/providers/aws/cli-reference/create#available-templates). For this example use aws-fsharp with the `--template` or shorthand `-t` flag.
+
+The `--path` or shorthand `-p` is the location to be created with the template service files. Change directories into this new folder.
+
+## 2. Build using .NET Core 2.X CLI tools and create zip package
+
+```
+# Linux or Mac OS
+./build.sh
+```
+
+```
+# Windows PowerShell
+./build.cmd
+```
+
+## 3. Deploy
+
+```
+sls deploy
+```
+
+This will deploy your function to AWS Lambda based on the settings in `serverless.yml`.
+
+## 4. Invoke deployed function
+
+```
+sls invoke -f hello
+```
+
+Invoke deployed function with command `invoke` and `--function` or shorthand `-f`.
+
+In your terminal window you should see the response from AWS Lambda.
+
+```bash
+{
+    "Message": "Go Serverless v1.0! Your function executed successfully!",
+    "Request": {
+        "Key1": null,
+        "Key2": null,
+        "Key3": null
+    }
+}
+```
+
+Congrats you have deployed and ran your Hello World function!

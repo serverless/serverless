@@ -14,7 +14,16 @@ layout: Doc
 2. Serverless CLI `v1.9.0` or later. You can run 
 `npm install -g serverless` to install it.
 3. An AWS account. If you don't already have one, you can sign up for a [free trial](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) that includes 1 million free Lambda requests per month.
-4. **Set-up your [Provider Credentials](./credentials.md)**. [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
+4. **Set-up your [Provider Credentials](./credentials.md)** -> [Watch the video on setting up credentials](https://www.youtube.com/watch?v=KngM5bfpttA)
+
+## Tutorials
+
+Check out the following links for tutorial walkthroughs:
+
+- [Build a Node.js REST API](/blog/serverless-express-rest-api/)
+- [Deploy a GraphQL endpoint](/blog/make-serverless-graphql-api-using-lambda-dynamodb/)
+
+Or follow the steps below for creating & deploying a simple service and learning some simple Serverless commands.
 
 ## Create a new service
 
@@ -55,7 +64,7 @@ $ cd my-service
 
 4. **Fetch the Function Logs**
 
-  Open up a separate tab in your console and stream all logs for a specific Function using this command.
+  Open up a separate tab in your console, set your [Provider Credentials](./credentials.md) and stream all logs for a specific Function using this command.
   ```bash
   serverless logs -f hello -t
   ```
@@ -67,5 +76,3 @@ If at any point, you no longer need your service, you can run the following comm
 ```bash
 serverless remove
 ```
-
-Check out the [Serverless Framework Guide](./README.md) for more information.

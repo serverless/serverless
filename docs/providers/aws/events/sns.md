@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SNS
 menuText: SNS
-menuOrder: 5
+menuOrder: 6
 description:  Setting up AWS SNS Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
@@ -69,16 +69,15 @@ functions:
       - sns:
           arn:
             Fn::Join:
-              - ""
-              - - "arn:aws:sns:"
+              - ":"
+              - - "arn:aws:sns"
                 - Ref: "AWS::Region"
-                - ":"
                 - Ref: "AWS::AccountId"
-                - ":MyCustomTopic"
+                - "MyCustomTopic"
           topicName: MyCustomTopic
 ```
 
-**Note:** It is important to know that `topicArn` must contain the value given in the `topicName` property.
+**Note:** If an `arn` string is specified but not a `topicName`, the last substring starting with `:` will be extracted as the `topicName`. If an `arn` object is specified, `topicName` must be specified as a string, used only to name the underlying Cloudformation mapping resources.
 
 ## Setting a display name
 
@@ -94,4 +93,21 @@ functions:
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
+```
+
+## Setting a filter policy
+
+This event definition creates an SNS topic which subscription uses a filter policy. The filter policy filters out messages that don't have attribute key `pet` with value `dog` or `cat`.
+
+```yml
+functions:
+  pets:
+    handler: pets.handler
+    events:
+      - sns:
+          topicName: pets
+          filterPolicy:
+            pet:
+              - dog
+              - cat
 ```

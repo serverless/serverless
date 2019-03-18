@@ -1,0 +1,23 @@
+service:
+    name: hello-world
+
+provider:
+  name: cloudflare
+  config:
+    accountId: CLOUDFLARE_ACCOUNT_ID
+    zoneId: CLOUDFLARE_ZONE_ID
+
+plugins:
+  - serverless-cloudflare-workers
+
+functions:
+  hello:
+    name: hello
+    script: helloWorld  # there must be a file called helloWorld.js
+    events:
+      - http:
+          url: example.com/hello/*
+          method: GET
+          headers:
+            foo: bar
+            x-client-data: value

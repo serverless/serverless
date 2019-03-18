@@ -25,8 +25,7 @@ functions:
 Functions with this annotation can be invoked through a URL template with the following parameters.
 
 ```
-https://{APIHOST}/api/v1/experimental/web/{USER_NAMESPACE}/{PACKAGE}/{ACTION_NAME}.{TYPE}
-
+https://{APIHOST}/api/v1/web/{USER_NAMESPACE}/{PACKAGE}/{ACTION_NAME}.{TYPE}
 ```
 
 - *APIHOST* - platform endpoint e.g. *openwhisk.ng.bluemix.net.*
@@ -67,10 +66,10 @@ function main() {
 
 Functions can access request parameters using the following environment variables.
 
-1. `**__ow_meta_verb:**` the HTTP method of the request.
-2. `**__ow_meta_headers:**` the request headers.
-3. `**__ow_meta_path:**` the unmatched path of the request.
+1. `__ow_method` - HTTP method of the request.
+2. `__ow_headers` - HTTP request headers.
+3. `__ow_path` - Unmatched URL path of the request.
+4. `__ow_body` - Body entity from request.
+5. `__ow_query` - Query parameters from the request.
 
-Full details on this new feature are available in this [blog post](https://medium.com/openwhisk/serverless-http-handlers-with-openwhisk-90a986cc7cdd#.2x09176m8).
-
-**\*IMPORTANT: [Web Actions](http://bit.ly/2xSRbOQ) is currently experimental and may be subject to breaking changes.***
+**Full details on this feature are available in this [here](https://github.com/apache/incubator-openwhisk/blob/master/docs/webactions.md).**

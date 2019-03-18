@@ -15,8 +15,9 @@ service: spotinst-python # NOTE: update this with your service name
 
 provider:
   name: spotinst
+  #stage: <Stage Name>  #Optional. Defaults to 'dev', see https://help.spotinst.com/hc/en-us/articles/115005893409
   spotinst:
-    #environment: <env-XXXX> # NOTE: Remember to add the environment ID
+    environment: #<env-XXXX> Required.
 
 functions:
   hello:
@@ -24,6 +25,22 @@ functions:
     handler: handler.main
     memory: 128
     timeout: 30
+    access: private
+#    iamRoleConfig:
+#      roleId: # role-id
+#    activeVersions:
+#        - "version": "$LATEST"
+#          "percentage": 100.0
+#    cors:
+#        enabled: # false by default
+#        origin:  # '*' by default
+#        headers: # 'Content-Type,Authorization' by default
+#        methods: # 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT' by default
+#    cron:  # Setup scheduled trigger with cron expression
+#      active: true
+#      value: '* * * * *'
+#    environmentVariables:
+#      key: Value
 
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins

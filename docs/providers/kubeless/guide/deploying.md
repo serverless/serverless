@@ -76,7 +76,7 @@ Kubeless will create a [Kubernetes Deployment](https://kubernetes.io/docs/concep
 
 ## Deploy Function
 
-This deployment method updates a single function. It performs the platform API call to deploy your package without the other resources. It is much faster than redeploying your whole service each time.
+This deployment method updates or deploys a single function. It performs the platform API call to deploy your package without the other resources. It is much faster than redeploying your whole service each time.
 
 ```bash
 serverless deploy function --function myFunction

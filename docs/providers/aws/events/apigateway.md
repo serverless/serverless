@@ -12,6 +12,48 @@ layout: Doc
 
 # API Gateway
 
+- [API Gateway](#api-gateway)
+  - [Lambda Proxy Integration](#lambda-proxy-integration)
+    - [Simple HTTP Endpoint](#simple-http-endpoint)
+    - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
+    - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
+    - [Enabling CORS](#enabling-cors)
+    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws_iam-authorizers)
+    - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
+    - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
+    - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
+    - [Configuring endpoint types](#configuring-endpoint-types)
+    - [Request Parameters](#request-parameters)
+    - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
+  - [Lambda Integration](#lambda-integration)
+    - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
+    - [Request templates](#request-templates)
+      - [Default Request Templates](#default-request-templates)
+      - [Custom Request Templates](#custom-request-templates)
+      - [Pass Through Behavior](#pass-through-behavior)
+    - [Responses](#responses)
+      - [Custom Response Headers](#custom-response-headers)
+      - [Custom Response Templates](#custom-response-templates)
+    - [Status Codes](#status-codes)
+      - [Available Status Codes](#available-status-codes)
+      - [Using Status Codes](#using-status-codes)
+      - [Custom Status Codes](#custom-status-codes)
+  - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+  - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
+    - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
+    - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
+      - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
+  - [Share Authorizer](#share-authorizer)
+  - [Resource Policy](#resource-policy)
+  - [Compression](#compression)
+
+_Are you looking for tutorials on using API Gateway? Check out the following resources:_
+
+> - [Add a custom domain for your API Gateway](https://serverless.com/blog/serverless-api-gateway-domain/)
+> - [Deploy multiple micro-services under the same domain](https://serverless.com/blog/api-gateway-multiple-services/)
+> - [Create a Node REST API with Express.js](https://serverless.com/blog/serverless-express-rest-api/)
+> - [Make a Serverless GraphQL API](https://serverless.com/blog/make-serverless-graphql-api-using-lambda-dynamodb/)
+
 To create HTTP endpoints as Event sources for your AWS Lambda Functions, use the Serverless Framework's easy AWS API Gateway Events syntax.
 
 There are five ways you can configure your HTTP endpoints to integrate with your AWS Lambda Functions:
@@ -189,7 +231,78 @@ functions:
             allowCredentials: false
 ```
 
+To allow multipe origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origins:
+              - http://example.com
+              - http://example2.com
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+```
+
+Please note that since you can't send multiple values for [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), this configuration uses a response template to check if the request origin matches one of your provided `origins` and overrides the header with the following code:
+
+```
+#set($origin = $input.params("Origin")
+#if($origin == "http://example.com" || $origin == "http://*.amazonaws.com") #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end
+```
+
 Configuring the `cors` property sets  [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
+
+To enable the `Access-Control-Max-Age` preflight response header, set the `maxAge` property in the `cors` object:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origin: '*'
+            maxAge: 86400
+```
+
+If you are using CloudFront or another CDN for your API Gateway, you may want to setup a `Cache-Control` header to allow for OPTIONS request to be cached to avoid the additional hop.  
+
+To enable the `Cache-Control` header on preflight response, set the `cacheControl` property in the `cors` object:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+```
 
 If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:
 
@@ -277,6 +390,7 @@ functions:
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
+            type: token
   authorizerFunc:
     handler: handler.authorizerFunc
 ```
@@ -313,6 +427,24 @@ functions:
             identityValidationExpression: someRegex
 ```
 
+You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for your policy cache. The default `type` is 'token'.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            arn: xxx:xxx:Lambda-Name
+            resultTtlInSeconds: 0
+            identitySource: method.request.header.Authorization, context.identity.sourceIp
+            identityValidationExpression: someRegex
+            type: request
+```
+
 You can also configure an existing Cognito User Pool as the authorizer, as shown
 in the following example:
 
@@ -331,7 +463,7 @@ functions:
 If you are using the default `lambda-proxy` integration, your attributes will be
 exposed at `event.requestContext.authorizer.claims`.
 
-If you want control more control over which attributes are exposed as claims you
+If you want more control over which attributes are exposed as claims you
 can switch to `integration: lambda` and add the following configuration. The
 claims will be exposed at `events.cognitoPoolClaims`.
 
@@ -391,9 +523,30 @@ functions:
           private: true
 ```
 
-Please note that those are the API keys names, not the actual values. Once you deploy your service, the value of those API keys will be auto generated by AWS and printed on the screen for you to use.
+Please note that those are the API keys names, not the actual values. Once you deploy your service, the value of those API keys will be auto generated by AWS and printed on the screen for you to use. The values can be concealed from the output with the `--conceal` deploy option.
 
 Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
+
+### Configuring endpoint types
+
+API Gateway [supports regional endpoints](https://aws.amazon.com/about-aws/whats-new/2017/11/amazon-api-gateway-supports-regional-api-endpoints/) for associating your API Gateway REST APIs with a particular region. This can reduce latency if your requests originate from the same region as your REST API and can be helpful in building multi-region applications.
+
+By default, the Serverless Framework deploys your REST API using the EDGE endpoint configuration. If you would like to use the REGIONAL or PRIVATE configuration, set the `endpointType` parameter in your `provider` block.
+
+Here's an example configuration for setting the endpoint configuration for your service Rest API:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  endpointType: REGIONAL
+functions:
+  hello:
+    events:
+      - http:
+          path: user/create
+          method: get
+```
 
 ### Request Parameters
 
@@ -433,6 +586,40 @@ functions:
                 id: true
 ```
 
+### Setting source of API key for metering requests
+
+API Gateway provide a feature for metering your API's requests and you can choice [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  apiGateway:
+    apiKeySourceType: HEADER
+functions:
+  hello:
+    events:
+      - http:
+          path: hello
+          method: get
+```
+
+Another option is AUTHORIZER. If you set this, API Gateway will acquire that key from UsageIdentifierKey which is provided by custom authorizer.
+
+```yml
+service: my-service
+provider:
+  name: aws
+  apiGateway:
+    apiKeySourceType: AUTHORIZER
+functions:
+  hello:
+    events:
+      - http:
+          path: hello
+          method: get
+```
+
 ## Lambda Integration
 
 This method is more complicated and involves a lot more configuration of the `http` event syntax.
@@ -450,6 +637,7 @@ This method is more complicated and involves a lot more configuration of the `ht
     "cognitoPoolClaims": {
         "sub": ""
     },
+    "enhancedAuthContext": {},
     "headers": {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate, br",
@@ -506,7 +694,7 @@ Both templates give you access to the following properties you can access with t
 - principalId
 - stage
 - headers
-- query
+- queryStringParameters
 - path
 - identity
 - stageVariables
@@ -581,7 +769,7 @@ There are 3 available options:
 |WHEN_NO_MATCH     |  Content-Type does not match defined template | Never                                                                   |
 |WHEN_NO_TEMPLATES |  No templates were defined                    | One or more templates defined, but Content-Type does not match          |
 
-See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html#integration-passthrough-behaviors) for detailed descriptions of these options.
+See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/integration-passthrough-behaviors.html) for detailed descriptions of these options.
 
 **Notes:**
 
@@ -615,7 +803,7 @@ functions:
 for your header values. Headers are passed to API Gateway exactly like you define them. Passing the `Cache-Control` header
 as `"'max-age=120'"` means API Gateway will receive the value as `'max-age=120'` (enclosed with single quotes).
 
-### Custom Response Templates
+#### Custom Response Templates
 
 Sometimes you'll want to define a custom response template API Gateway should use to transform your lambdas output.
 Here's an example which will transform the return value of your lambda so that the browser renders it as HTML:
@@ -638,10 +826,18 @@ functions:
 **Note:** The template is defined as plain text here. However you can also reference an external file with the help of
 the `${file(templatefile)}` syntax.
 
-### Status codes
+### Status Codes
 
 Serverless ships with default status codes you can use to e.g. signal that a resource could not be found (404) or that
 the user is not authorized to perform the action (401). Those status codes are regex definitions that will be added to your API Gateway configuration.
+
+***Note:*** Status codes as documented in this chapter relate to `lambda` integration method (as documented at the top of this page). If using default integration method `lambda-proxy` object with status code and message should be returned as in the example below:
+
+```javascript
+module.exports.hello = (event, context, callback) => {
+  callback(null, { statusCode: 404, body: "Not found", headers: { "Content-Type": "text/plain" } });
+}
+```
 
 #### Available Status Codes
 
@@ -773,3 +969,327 @@ endpoint of your proxy, and the URI you want to set a proxy to.
 
 Now that you have these two CloudFormation templates defined in your `serverless.yml` file, you can simply run
 `serverless deploy` and that will deploy these custom resources for you along with your service and set up a proxy on your Rest API.
+
+## Share API Gateway and API Resources
+
+As your application grows, you will likely need to break it out into multiple, smaller services. By default, each Serverless project generates a new API Gateway. However, you can share the same API Gateway between multiple projects by referencing its REST API ID and Root Resource ID in `serverless.yml` as follows:
+
+```yml
+service: service-name
+provider:
+  name: aws
+  apiGateway:
+    restApiId: xxxxxxxxxx # REST API resource ID. Default is generated by the framework
+    restApiRootResourceId: xxxxxxxxxx # Root resource, represent as / path
+    description: Some Description # optional - description of deployment history
+
+functions:
+  ...
+
+```
+
+
+If your application has many nested paths, you might also want to break them out into smaller services.
+
+```yml
+service: service-a
+provider:
+  apiGateway:
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
+    description: Some Description
+
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: post
+          path: /posts
+```
+
+```yml
+service: service-b
+provider:
+  apiGateway:
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
+    description: Some Description
+
+functions:
+  create:
+    handler: posts.createComment
+    events:
+      - http:
+          method: post
+          path: /posts/{id}/comments
+```
+
+The above example services both reference the same parent path `/posts`. However, Cloudformation will throw an error if we try to generate an existing path resource. To avoid that, we reference the resource ID of `/posts`:
+
+```yml
+service: service-a
+provider:
+  apiGateway:
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
+    description: Some Description
+    restApiResources:
+      /posts: xxxxxxxxxx
+
+functions:
+  ...
+
+```
+
+```yml
+service: service-b
+provider:
+  apiGateway:
+    restApiId: xxxxxxxxxx
+    restApiRootResourceId: xxxxxxxxxx
+    description: Some Description
+    restApiResources:
+      /posts: xxxxxxxxxx
+
+functions:
+  ...
+
+```
+
+You can define more than one path resource, but by default, Serverless will generate them from the root resource.
+`restApiRootResourceId` is optional if a path resource isn't required for the root (`/`).
+
+```yml
+service: service-a
+provider:
+  apiGateway:
+    restApiId: xxxxxxxxxx
+    # restApiRootResourceId: xxxxxxxxxx # Optional
+    description: Some Description
+    restApiResources:
+      /posts: xxxxxxxxxx
+      /categories: xxxxxxxxx
+
+
+functions:
+  listPosts:
+    handler: posts.list
+    events:
+      - http:
+          method: get
+          path: /posts
+
+  listCategories:
+    handler: categories.list
+    events:
+      - http:
+          method: get
+          path: /categories
+
+```
+
+### Easiest and CI/CD friendly example of using shared API Gateway and API Resources.
+
+You can define your API Gateway resource in its own service and export the `restApiId` and `restApiRootResourceId` using cloudformation cross-stack references.
+
+```yml
+service: my-api
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: eu-west-2
+
+resources:
+  Resources:
+    MyApiGW:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: MyApiGW
+
+  Outputs:
+    apiGatewayRestApiId:
+      Value:
+        Ref: MyApiGW
+      Export:
+        Name: MyApiGateway-restApiId
+
+    apiGatewayRestApiRootResourceId:
+      Value:
+        Fn::GetAtt:
+          - MyApiGW
+          - RootResourceId
+      Export:
+        Name: MyApiGateway-rootResourceId
+```
+
+This creates API gateway and then exports the `restApiId` and `rootResourceId` values using cloudformation cross stack output.
+We will import this and reference in future services.
+
+```yml
+service: service-a
+
+provider:
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': MyApiGateway-restApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': MyApiGateway-rootResourceId
+
+functions:
+  service-a-functions
+```
+```yml
+service: service-b
+
+provider:
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': MyApiGateway-restApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': MyApiGateway-rootResourceId
+
+functions:
+  service-b-functions
+```
+
+You can use this method to share your API Gateway across services in same region. Read about this limitation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html).
+
+
+### Manually Configuring shared API Gateway
+
+Use AWS console on browser, navigate to the API Gateway console. Select your already existing API Gateway.
+Top Navbar should look like this
+
+```
+    APIs>apigateway-Name (xxxxxxxxxx)>Resources>/ (yyyyyyyyyy)
+```
+
+Here xxxxxxxxx is your restApiId and yyyyyyyyyy the restApiRootResourceId.
+
+#### Note while using authorizers with shared API Gateway
+
+AWS API Gateway allows only 1 Authorizer for 1 ARN, This is okay when you use conventional serverless setup, because each stage and service will create different API Gateway. But this can cause problem when using authorizers with shared API Gateway. If we use the same authorizer directly in different services like this.
+
+```yml
+service: service-c
+
+provider:
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': apiGateway-restApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': apiGateway-rootResourceId
+
+functions:
+  deleteUser:
+    events:
+      - http:
+        path: /users/{userId}
+        authorizer:
+          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn
+```
+
+
+```yml
+service: service-d
+
+provider:
+  apiGateway:
+    restApiId:
+      'Fn::ImportValue': apiGateway-restApiId
+    restApiRootResourceId:
+      'Fn::ImportValue': apiGateway-rootResourceId
+
+functions:
+  deleteProject:
+    events:
+      - http:
+        path: /project/{projectId}
+        authorizer:
+          arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn
+```
+
+we encounter error from cloudformation as reported [here](https://github.com/serverless/serverless/issues/4711).
+
+A proper fix for this is work is using [Share Authorizer](#share-authorizer) or you can add a unique `name` attribute to `authorizer` in each function. This creates different API Gateway authorizer for each function, bound to the same API Gateway. However, there is a limit of 10 authorizers per RestApi, and they are forced to contact AWS to request a limit increase to unblock development.
+
+## Share Authorizer
+
+Auto-created Authorizer is convenient for conventional setup. However, when you need to define your custom Authorizer, or use `COGNITO_USER_POOLS` authorizer with shared API Gateway, it is painful because of AWS limitation. Sharing Authorizer is a better way to do.
+
+```yml
+functions:
+  createUser:
+     ...
+    events:
+      - http:
+          path: /users
+          ...     
+          authorizer:
+            # Provide both type and authorizerId
+            type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
+            authorizerId:
+              Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
+
+  deleteUser:
+     ...
+    events:
+      - http:
+          path: /users/{userId}
+          ...     
+          # Provide both type and authorizerId
+          type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
+          authorizerId:
+            Ref: ApiGatewayAuthorizer # or hard-code Authorizer ID
+
+resources:
+  Resources:
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        AuthorizerResultTtlInSeconds: 300
+        IdentitySource: method.request.header.Authorization
+        Name: Cognito
+        RestApiId:
+          Ref: YourApiGatewayName
+        Type: COGNITO_USER_POOLS
+        ProviderARNs:
+          - arn:aws:cognito-idp:${self:provider.region}:xxxxxx:userpool/abcdef
+
+```
+
+## Resource Policy
+
+Resource policies are policy documents that are used to control the invocation of the API. Find more use cases from the [Apigateway Resource Policies](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-resource-policies.html) documentation.
+
+```yml
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+  resourcePolicy:
+    - Effect: Allow
+      Principal: "*"
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
+      Condition:
+        IpAddress:
+          aws:SourceIp:
+            - "123.123.123.123"
+
+```
+
+## Compression
+
+API Gateway allows for clients to receive [compressed payloads](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-gzip-compression-decompression.html), and supports various [content encodings](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-enable-compression.html#api-gateway-supported-content-encodings).
+
+```yml
+provider:
+  name: aws
+  apiGateway:
+    minimumCompressionSize: 1024
+```

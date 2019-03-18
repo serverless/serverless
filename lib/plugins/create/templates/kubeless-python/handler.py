@@ -1,10 +1,10 @@
 import json
 
 
-def hello(request):
+def hello(event, context):
     body = {
         "message": "Go Serverless v1.0! Your function executed successfully!",
-        "input": request.json
+        "input": event['data']
     }
 
     response = {

@@ -17,11 +17,11 @@ layout: Doc
 
 ## Create a new service
 
-Create a new service using the Python template, specifying a unique name and an optional path for your service.
+Create a new service using the NodeJS template, specifying a unique name and an optional path for your service.
 
 ```bash
 # Create a new Serverless Service/Project
-$ serverless create --template kubeless-python --path new-project
+$ serverless create --template kubeless-nodejs --path new-project
 # Change into the newly created directory
 $ cd new-project
 # Install npm dependencies
@@ -43,7 +43,7 @@ $ npm install
   Use this to quickly upload and overwrite your function code, allowing you to develop faster.
 
   ```bash
-  serverless deploy function -f hello
+  serverless deploy function -f capitalize
   ```
 
 3. **Invoke the Function**
@@ -51,17 +51,16 @@ $ npm install
   Invokes the Function and returns results.
 
   ```bash
-  $ serverless invoke --function hello --data '{"Kubeless": "Welcome!"}' -l
+  $ serverless invoke --function capitalize --data '"WELCOME TO KUBELESS!"' -l
   # results
-{ body: '{"input": {"Kubeless": "Welcome!"}, "message": "Go Serverless v1.0! Your function executed successfully!"}',
-  statusCode: 200 }
+"Welcome To Kubeless!"
    ```
 
 4. **Fetch the Function Logs**
 
   Open up a separate tab in your console and stream all logs for a specific Function using this command.
   ```bash
-  serverless logs -f hello -t
+  serverless logs -f capitalize -t
   ```
 
 ## Cleanup

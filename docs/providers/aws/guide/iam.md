@@ -2,7 +2,7 @@
 title: Serverless Framework - AWS Lambda Guide - IAM
 description: How to manage your AWS Lambda functions and their AWS infrastructure resources easily with the Serverless Framework.
 menuText: IAM
-menuOrder: 12
+menuOrder: 13
 layout: Doc
 -->
 
@@ -44,6 +44,17 @@ provider:
              - Ref: ServerlessDeploymentBucket
              - "/*"
 
+```
+Alongside `provider.iamRoleStatements` managed policies can also be added to this service-wide Role, define managed policies in `provider.iamManagedPolicies`. These will also be merged into the generated IAM Role so you can use `Join`, `Ref` or any other CloudFormation method or feature here too.
+```yml
+service: new-service
+
+provider:
+  name: aws
+  iamManagedPolicies:
+    - 'some:aws:arn:xxx:*:*'
+    - 'someOther:aws:arn:xxx:*:*'
+    - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWSAccountId' }, 'some/path']] }
 ```
 
 ## Custom IAM Roles
@@ -87,7 +98,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /my/default/path/
-        RoleName: MyDefaultRole
+        RoleName: MyDefaultRole # required if you want to use 'serverless deploy --function' later on
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -320,4 +331,5 @@ resources:
                     - ec2:DetachNetworkInterface
                     - ec2:DeleteNetworkInterface
                   Resource: "*"
+                 
 ```

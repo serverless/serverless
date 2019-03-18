@@ -2,7 +2,8 @@ package com.serverless
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.nio.charset.StandardCharsets
 import java.util.*
 
@@ -24,7 +25,7 @@ class ApiGatewayResponse(
     }
 
     class Builder {
-        var LOG: Logger = Logger.getLogger(ApiGatewayResponse.Builder::class.java)
+        var LOG: Logger = LogManager.getLogger(ApiGatewayResponse.Builder::class.java)
         var objectMapper: ObjectMapper = ObjectMapper()
 
         var statusCode: Int = 200

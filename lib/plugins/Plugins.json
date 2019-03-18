@@ -1,6 +1,5 @@
 {
   "plugins": [
-    "./run/index.js",
     "./config/config.js",
     "./create/create.js",
     "./install/install.js",
@@ -9,9 +8,8 @@
     "./invoke/invoke.js",
     "./info/info.js",
     "./logs/logs.js",
-    "./login/login.js",
-    "./logout/logout.js",
     "./metrics/metrics.js",
+    "./print/print.js",
     "./remove/remove.js",
     "./rollback/index.js",
     "./slstats/slstats.js",
@@ -20,7 +18,6 @@
     "./plugin/uninstall/uninstall.js",
     "./plugin/list/list.js",
     "./plugin/search/search.js",
-    "./emit/index.js",
     "./aws/configCredentials/awsConfigCredentials.js",
     "./aws/provider/awsProvider.js",
     "./aws/common/index.js",
@@ -33,20 +30,23 @@
     "./aws/remove/index.js",
     "./aws/rollback/index.js",
     "./aws/rollbackFunction/index.js",
+    "./aws/package/compile/layers/index.js",
     "./aws/package/compile/functions/index.js",
     "./aws/package/compile/events/schedule/index.js",
     "./aws/package/compile/events/s3/index.js",
     "./aws/package/compile/events/apiGateway/index.js",
+    "./aws/package/compile/events/websockets/index.js",
     "./aws/package/compile/events/sns/index.js",
     "./aws/package/compile/events/stream/index.js",
     "./aws/package/compile/events/alexaSkill/index.js",
+    "./aws/package/compile/events/alexaSmartHome/index.js",
     "./aws/package/compile/events/iot/index.js",
     "./aws/package/compile/events/cloudWatchEvent/index.js",
     "./aws/package/compile/events/cloudWatchLog/index.js",
     "./aws/package/compile/events/cognitoUserPool/index.js",
+    "./aws/package/compile/events/sqs/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
-    "./aws/invokeLocal/index.js",
-    "./platform/platform.js"
+    "./aws/invokeLocal/index.js"
   ]
 }

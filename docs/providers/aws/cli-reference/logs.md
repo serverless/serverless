@@ -21,6 +21,8 @@ serverless logs -f hello
 serverless logs -f hello -t
 ```
 
+This command returns as many log events as can fit in 1MB (up to 10,000 log events). You can use the `--filter` option to ensure the logs you're looking for are included.
+
 ## Options
 
 - `--function` or `-f` The function you want to fetch the logs for. **Required**
@@ -61,6 +63,11 @@ serverless logs -f hello -t
 **Note:** There's a small lag between invoking the function and actually having the log event registered in CloudWatch. So it takes a few seconds for the logs to show up right after invoking the function.
 
 ```bash
+serverless logs -f hello
+```
+This will fetch the logs from last 10 minutes as startTime was not given.
+
+```bash
 serverless logs -f hello --startTime 5h
 ```
 This will fetch the logs that happened in the past 5 hours.
@@ -74,7 +81,7 @@ This will fetch the logs that happened starting at epoch `1469694264`.
 serverless logs -f hello -t
 ```
 
-Serverless will tail the CloudWatch log output and print new log messages coming in.
+Serverless will tail the CloudWatch log output and print new log messages coming in starting from 10 seconds ago.
 
 ```bash
 serverless logs -f hello --filter serverless

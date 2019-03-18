@@ -18,6 +18,7 @@ Pick your language of choice:
 * [JavaScript](./node)
 * [PHP](./php)
 * [Python](./python)
+* [Ruby](./ruby)
 * [Swift](./swift)
 
 [View all examples](https://www.serverless.com/framework/docs/providers/openwhisk/examples/)

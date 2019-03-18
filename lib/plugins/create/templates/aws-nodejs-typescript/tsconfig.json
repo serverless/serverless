@@ -1,5 +1,16 @@
 {
   "compilerOptions": {
-    "sourceMap": true
-  }
+    "lib": [
+      "es2017"
+    ],
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "sourceMap": true,
+    "target": "es2017",
+    "outDir": "lib"
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

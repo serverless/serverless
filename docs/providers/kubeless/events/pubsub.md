@@ -49,4 +49,4 @@ serverless logs -f hello
 hello world!
 ```
 
-You can install the Kubeless CLI tool following the [../guide/installation](installation guide).
+You can install the Kubeless CLI tool following the [installation guide](../guide/installation.md).

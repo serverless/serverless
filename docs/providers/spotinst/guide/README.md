@@ -2,6 +2,7 @@
 title: Serverless - Spotinst Functions Guide
 menuText: User Guide
 layout: Doc
+menuOrder: 1
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->

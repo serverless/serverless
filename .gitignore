@@ -30,6 +30,7 @@ node_modules
 
 # IDE stuff
 **/.idea
+**/.vs
 
 # OS stuff
 .DS_Store
@@ -49,3 +50,11 @@ tracking-config.json
 
 # Misc
 jest
+
+# VIM
+*.swp
+
+# DotNet
+obj/
+[Bb]in/
+[Oo]bj/

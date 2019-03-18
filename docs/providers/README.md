@@ -73,6 +73,27 @@ Under the hood, the serverless framework is deploying your code to a cloud provi
       <a href="./spotinst/">Spotinst Docs</a>
     </div>
   </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./fn/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="./fn/">Fn Docs</a>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./cloudflare/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="./cloudflare/">Cloudflare Workers Docs</a>
+    </div>
+  </div>
+
 </div>
 <br/>
 <br/>

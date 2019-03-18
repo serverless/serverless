@@ -20,8 +20,8 @@ Let's imagine that we have deployed the following Python code as a Kubeless func
 import urllib2
 import json
 
-def find(request):
-    term = request.json["term"]
+def find(event, context):
+    term = event['data']['term']
     url = "https://feeds.capitalbikeshare.com/stations/stations.json"    
     response = urllib2.urlopen(url)
     stations = json.loads(response.read())
@@ -126,7 +126,7 @@ Traceback (most recent call last):
   File "/kubeless.py", line 35, in handler
     return func(bottle.request)
   File "/kubeless/handler.py", line 5, in find
-    term = request.json["term"]
+    term = event['data']['term']
 KeyError: 'term'
 172.17.0.1 - - [25/Aug/2017:08:46:16 +0000] "POST / HTTP/1.1" 500 746 "" "" 0/6703
 172.17.0.1 - - [25/Aug/2017:08:46:34 +0000] "GET /healthz HTTP/1.1" 200 2 "" "Go-http-client/1.1" 0/122
@@ -145,7 +145,7 @@ Traceback (most recent call last):
   File "/kubeless.py", line 35, in handler
     return func(bottle.request)
   File "/kubeless/handler.py", line 5, in find
-    term = request.json["term"]
+    term = event['data']['term']
 KeyError: 'term'
 ```
 
