@@ -1230,7 +1230,7 @@ functions:
           ...     
           authorizer:
             # Provide both type and authorizerId
-            type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
+            type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
             authorizerId:
               Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
 
@@ -1241,7 +1241,7 @@ functions:
           path: /users/{userId}
           ...     
           # Provide both type and authorizerId
-          type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
+          type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
           authorizerId:
             Ref: ApiGatewayAuthorizer # or hard-code Authorizer ID
 
