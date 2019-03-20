@@ -1,3 +1,11 @@
+# 1.39.1 (2019-03-18)
+
+- [Revert "Fixed #4188 - Package generating incorrect package artifact path in serverless-state.json"](https://github.com/serverless/serverless/pull/5936)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.39.0...v1.39.1)
+
+
 # 1.39.0 (2019-03-15)
 
 - [Add support for invoke local with docker](https://github.com/serverless/serverless/pull/5863)
