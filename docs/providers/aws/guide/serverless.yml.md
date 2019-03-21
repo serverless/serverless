@@ -30,6 +30,8 @@ provider:
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
   apiName: custom-api-name # Use a custom name for the API Gateway API
+  websocketsApiName: custom-websockets-api-name # Use a custom name for the websockets API
+  websocketsApiRouteSelectionExpression: $request.body.route # custom route selection expression
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
@@ -59,7 +61,7 @@ provider:
       '/users/create': xxxxxxxxxx
     apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
     minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
-
+    description: Some Description # optional description for the API Gateway stage deployment
   usagePlan: # Optional usage plan configuration
     quota:
       limit: 5000
@@ -118,6 +120,8 @@ provider:
   tags: # Optional service wide function tags
     foo: bar
     baz: qux
+  tracing:
+    lambda: true # optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
@@ -164,6 +168,7 @@ functions:
       individually: true # Enables individual packaging for specific function. If true you must provide package for each function. Defaults to false
     layers: # An optional list Lambda Layers to use
       - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y # Layer Version ARN
+    tracing: Active # optional, can be 'Active' or 'PassThrough' (overwrites the one defined on the provider level)
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
@@ -176,8 +181,15 @@ functions:
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
+            type: token # token or request. Determines input to the authorier function, called with the auth token or the entire request event. Defaults to token
       - websocket:
           route: $connect
+          authorizer:
+            # name: auth    NOTE: you can either use "name" or arn" properties
+            arn: arn:aws:lambda:us-east-1:1234567890:function:auth
+            identitySource:
+              - 'route.request.header.Auth'
+              - 'route.request.querystring.Auth'
       - s3:
           bucket: photos
           event: s3:ObjectCreated:*
@@ -189,12 +201,17 @@ functions:
           description: a description of my scheduled event's purpose
           rate: rate(10 minutes)
           enabled: false
+          # Note, you can use only one of input, inputPath, or inputTransformer
           input:
             key1: value1
             key2: value2
             stageParams:
               stage: dev
           inputPath: '$.stageVariables'
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
@@ -227,13 +244,17 @@ functions:
             detail:
               state:
                 - pending
-          # Note: you can either use "input" or "inputPath"
+          # Note, you can use only one of input, inputPath, or inputTransformer
           input:
             key1: value1
             key2: value2
             stageParams:
               stage: dev
           inputPath: '$.stageVariables'
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
       - cloudwatchLog:
           logGroup: '/aws/lambda/hello'
           filter: '{$.userIdentity.type = Root}'
