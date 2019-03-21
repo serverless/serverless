@@ -483,6 +483,21 @@ functions:
               - nickname
 ```
 
+### Using asyncronous integration
+
+Use `async: true` when integrating a lambda function using event invocation. This lets API Gateway to return immediately while the lambda continues running. If not othewise speficied integration type will be `AWS`.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          async: true  # default is false
+```
+
 ### Catching Exceptions In Your Lambda Function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
