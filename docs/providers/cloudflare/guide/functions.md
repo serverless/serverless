@@ -23,30 +23,26 @@ All of the Cloudflare Workers in your serverless service can be found in `server
  
 service:
     name: hello-world
-    config:
-      accountId: CLOUDFLARE_ACCOUNT_ID 
-      zoneId: CLOUDFLARE_ZONE_ID 
-      workers:
-        hello:
-          routes:
-            - example.com/hello/*
 
 provider:
   name: cloudflare
+  config:
+    accountId: CLOUDFLARE_ACCOUNT_ID 
+    zoneId: CLOUDFLARE_ZONE_ID 
 
 plugins:
   - serverless-cloudflare-workers
 
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    worker: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are only relevant to the `serverless invoke` command and don’t affect deployment in any way
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           method: GET
           headers:
             someKey: someValue
@@ -73,33 +69,26 @@ If you have an Enterprise Cloudflare account, you can add multiple Cloudflare Wo
  
 service:
     name: hello-world
-    config:
-      accountId: CLOUDFLARE_ACCOUNT_ID 
-      zoneId: CLOUDFLARE_ZONE_ID 
-      workers:
-        hello:
-          routes:
-            - example.com/hello/*
-        foo_script:
-          routes:
-            - example.com/foo/*
 
 provider:
   name: cloudflare
+  config:
+    accountId: CLOUDFLARE_ACCOUNT_ID 
+    zoneId: CLOUDFLARE_ZONE_ID 
 
 plugins:
   - serverless-cloudflare-workers
 
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    worker: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are only relevant to the `serverless invoke` command and don’t affect deployment in any way
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           method: GET
           headers:
             someKey: someValue
@@ -107,13 +96,12 @@ functions:
 
   # Only Enterprise accounts would be allowed to add this second function and its corresponding route above
   foo:
-    worker: foo_script
+    name: foo
     script: bar
     events:
       - http:
-          url: example.com/foo/bar
+          url: example.com/foo/*
           method: GET
 ```
 The `script` property is what the Cloudflare Worker will be called on Cloudflare’s data centers.
  
-The `events` property is optional and is only relevant for using the `serverless invoke` command. Check out the [`events`](./events.md) guide for more information.

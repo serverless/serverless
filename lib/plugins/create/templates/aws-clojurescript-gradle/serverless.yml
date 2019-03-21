@@ -75,6 +75,7 @@ functions:
 #      - http:
 #          path: users/create
 #          method: get
+#      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic

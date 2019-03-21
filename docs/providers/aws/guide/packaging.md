@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Guide - AWS Lambda Guide - Packaging
 menuText: Packaging
-menuOrder: 11
+menuOrder: 12
 description: How the Serverless Framework packages your AWS Lambda functions and other available options
 layout: Doc
 -->
@@ -42,6 +42,17 @@ Serverless will run the glob patterns in order.
 
 At first it will apply the globs defined in `exclude`. After that it'll add all the globs from `include`. This way you can always re-include
 previously excluded files and directories.
+
+By default, serverless will exclude the following patterns:
+
+- .git/**
+- .gitignore
+- .DS_Store
+- npm-debug.log
+- .serverless/**
+- .serverless_plugins/**
+
+and the serverless configuration file being used (i.e. `serverless.yml`)
 
 ### Examples
 

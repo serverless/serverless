@@ -28,6 +28,8 @@ provider:
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
+  tracing:
+    lambda: true # optional, enables tracing for all functions (can be true (true equals 'Active') 'Active' or 'PassThrough')
 
 functions:
   hello:
@@ -38,6 +40,7 @@ functions:
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
+    tracing: PassThrough # optional, overwrite, can be 'Active' or 'PassThrough'
 ```
 
 The `handler` property points to the file and module containing the code you want to run in your function.
@@ -334,6 +337,24 @@ Real-world use cases where tagging your functions is helpful include:
 - Keeping track of legacy code (e.g. tag functions which use outdated runtimes: `runtime: nodejs0.10`)
 - ...
 
+## Layers
+
+Using the `layers` configuration makes it possible for your function to use
+[Lambda Layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/)
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    layers:
+      - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y
+```
+
+Layers can be used in combination with `runtime: provided` to implement your own custom runtime on
+AWS Lambda.
+
+To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
+
 ## Log Group Resources
 
 By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
@@ -374,7 +395,7 @@ provider:
 functions:
   hello:
     handler: handler.hello
-    onError: arn:aws:sns:us-east-1:XXXXXX:test # Ref and Fn::ImportValue are supported as well
+    onError: arn:aws:sns:us-east-1:XXXXXX:test # Ref, Fn::GetAtt and Fn::ImportValue are supported as well
 ```
 
 ### DLQ with SQS
@@ -412,3 +433,29 @@ functions:
 ### Secrets using environment variables and KMS
 
 When storing secrets in environment variables, AWS [strongly suggests](http://docs.aws.amazon.com/lambda/latest/dg/env_variables.html#env-storing-sensitive-data) encrypting sensitive information. AWS provides a [tutorial](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-env_console.html) on using KMS for this purpose.
+
+## AWS X-Ray Tracing
+
+You can enable [AWS X-Ray Tracing](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) on your Lambda functions through the optional `tracing` config variable:
+
+```yml
+service: myService
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  tracing:
+    lambda: true
+```
+
+You can also set this variable on a per-function basis. This will override the provider level setting if present:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    tracing: Active
+  goodbye:
+    handler: handler.goodbye
+    tracing: PassThrough
+```

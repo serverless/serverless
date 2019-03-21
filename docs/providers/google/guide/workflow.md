@@ -47,7 +47,7 @@ cd my-service
 npm install
 ```
 
-3. Update `serverlesss.yml`
+3. Update `serverless.yml`
 
 Update the `project` and `credentials` in your projects `serverless.yml`
 

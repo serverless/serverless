@@ -42,13 +42,6 @@ service:
     config:
       accountId: CLOUDFLARE_ACCOUNT_ID 
       zoneId: CLOUDFLARE_ZONE_ID 
-      workers:
-        hello:
-          routes:
-            - example.com/hello/*
-        foo_script:
-          routes:
-            - example.com/foo/*
 
 provider:
   name: cloudflare
@@ -58,14 +51,14 @@ plugins:
 
 functions:
   helloWorld:
-    # What the script will be called on Cloudflare
-    worker: hello
+    # What the script will be called on Cloudflare (this property value must match the function name one line above)
+    name: helloWorld
     # The name of the script on your machine, omitting the .js file extension
     script: helloWorld
     # Events are only relevant to the `serverless invoke` command and don’t affect deployment in any way
     events:
       - http:
-          url: example.com/hello/user
+          url: example.com/hello/*
           # Defines the method used by serverless when the `invoke` command is used. Cloudflare Workers only support GET requests for now
           method: GET
           headers:
@@ -74,11 +67,11 @@ functions:
 
   # Only Enterprise accounts would be allowed to add this second function and its corresponding route above
   foo:
-    worker: foo_script
+    name: foo
     script: bar
     events:
       - http:
-          url: example.com/foo/bar
+          url: example.com/foo/*
           method: GET
 ```
 
@@ -107,3 +100,19 @@ You’ll need to redefine your environmental variables after each time you close
 If you’re not an enterprise customer and you want to execute different code on multiple routes with only one funciton, we recommend writing code based off of our [conditional routing](https://developers.cloudflare.com/workers/recipes/conditional-routing/) template to check your route and execute different code accordingly. You can also write workers in separate files and compile it into one worker with [webpack](https://developers.cloudflare.com/workers/writing-workers/using-npm-modules/).
 
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
+
+### Plugins
+
+You can overwrite or extend the functionality of the Framework using **Plugins**.
+Every `serverless.yml` can contain a `plugins:` property, which features multiple
+plugins.
+
+```yml
+# serverless.yml
+
+plugins:
+  - serverless-cloudflare-workers
+  - serverless-another-plugin
+```
+
+You can add our `serverless-cloudflare-workers` plugin to your project by running `npm install --save serverless-cloudflare-workers`.

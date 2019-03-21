@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SQS Queues
 menuText: SQS
-menuOrder: 6
+menuOrder: 7
 description:  Setting up AWS SQS Queue Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
@@ -34,6 +34,16 @@ functions:
       - sqs:
           arn:
             Fn::ImportValue: MyExportedQueueArnId
+      - sqs:
+          arn:
+            Fn::Join:
+              - ":"
+              - - arn
+                - aws
+                - sqs
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - MyOtherQueue
 ```
 
 ## Setting the BatchSize

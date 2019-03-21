@@ -36,6 +36,7 @@ milestone if still open
 ## Releasing
 
 - [ ] Publish the GitHub release draft (Travis CI will automatically publish the new release to `npm`)
+- [ ] Update the branch ref in the site repo so docs are updated: https://github.com/serverless/site/blob/master/scripts/docs/config.js#L8
 
 ## Validate Release
 
