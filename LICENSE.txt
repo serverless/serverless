@@ -1,4 +1,4 @@
-Copyright (c) 2018 Serverless, Inc. http://www.serverless.com
+Copyright (c) 2019 Serverless, Inc. http://www.serverless.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -1,3 +1,148 @@
+# 1.39.1 (2019-03-18)
+
+- [Revert "Fixed #4188 - Package generating incorrect package artifact path in serverless-state.json"](https://github.com/serverless/serverless/pull/5936)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.39.0...v1.39.1)
+
+
+# 1.39.0 (2019-03-15)
+
+- [Add support for invoke local with docker](https://github.com/serverless/serverless/pull/5863)
+- [fix regression with golang check on windows ](https://github.com/serverless/serverless/pull/5899)
+- [Support for Cloudwatch Event InputTransformer](https://github.com/serverless/serverless/pull/5912)
+- [Allow individual packaging with TypeScript source maps](https://github.com/serverless/serverless/pull/5743)
+- [Support API Gateway stage deployment description](https://github.com/serverless/serverless/pull/5509)
+- [Allow Fn::Join in SQS arn builder](https://github.com/serverless/serverless/pull/5351)
+- [Add AWS x-ray support for Lambda](https://github.com/serverless/serverless/pull/5860)
+- [Fix CloudFormation template normalization](https://github.com/serverless/serverless/pull/5885)
+- [Fix bug when using websocket events with functions with custom roles](https://github.com/serverless/serverless/pull/5880)
+- [Print customized function names correctly in sls info output](https://github.com/serverless/serverless/pull/5883)
+- [Added websockets authorizer support](https://github.com/serverless/serverless/pull/5867)
+- [Support more route characters for websockets](https://github.com/serverless/serverless/pull/5865)
+- [kotlin jvm maven updates](https://github.com/serverless/serverless/pull/5872)
+- [Put `Custom Response Headers` into `[Responses]`](https://github.com/serverless/serverless/pull/5862)
+- [Packaging exclude only config file being used](https://github.com/serverless/serverless/pull/5840)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.38.0...v1.39.0)
+
+
+# 1.38.0 (2019-02-20)
+
+ - [Set timout & others on context in python invoke local](https://github.com/serverless/serverless/pull/5796)
+ - [Append in Custom Syntax](https://github.com/serverless/serverless/pull/5799)
+ - [Don't load config for `config`](https://github.com/serverless/serverless/pull/5798)
+ - [Replace blocking fs.readFileSync with non blocking fs.readFile in checkForChanges.js](https://github.com/serverless/serverless/pull/5791)
+ - [Added layer option for deploy function update-config](https://github.com/serverless/serverless/pull/5787)
+ - [fix makeDeepVariable replacement](https://github.com/serverless/serverless/pull/5809)
+ - [Make local ruby pry work](https://github.com/serverless/serverless/pull/5718)
+ - [Replace \ with / in paths on windows before passing to nanomatch](https://github.com/serverless/serverless/pull/5808)
+ - [Support deploying GoLang to AWS from Windows!](https://github.com/serverless/serverless/pull/5813)
+ - [Fix windows go rework](https://github.com/serverless/serverless/pull/5816)
+ - [Make use of join operator first argument in sns docs](https://github.com/serverless/serverless/pull/5826)
+ - [add support for command type='container'](https://github.com/serverless/serverless/pull/5821)
+ - [Add Google Python function template](https://github.com/serverless/serverless/pull/5819)
+ - [Update config-credentials.md](https://github.com/serverless/serverless/pull/5827)
+ - [Update bucket conf to default AES256 encryption.](https://github.com/serverless/serverless/pull/5800)
+ - [Fix: override wildcard glob pattern (**) in resolveFilePathsFromPatterns](https://github.com/serverless/serverless/pull/5825)
+ - [Indicate unused context in aws-nodejs-typescipt](https://github.com/serverless/serverless/pull/5832)
+ - [Add stack trace to aws/invokeLocal errors](https://github.com/serverless/serverless/pull/5835)
+ - [Missing underscore](https://github.com/serverless/serverless/pull/5836)
+ - [Updating cloudformation resource reference url](https://github.com/serverless/serverless/pull/5690)
+ - [Docs: Replacing "runtimes" with "templates"](https://github.com/serverless/serverless/pull/5843)
+ - [Add support for websockets event](https://github.com/serverless/serverless/pull/5824)
+ - [AWS: ${ssm} resolve vairbale as JSON if it is stored as JSON in Secrets Manager](https://github.com/serverless/serverless/pull/5842)
+ - [Fix service name in template install message](https://github.com/serverless/serverless/pull/5839)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.37.1...v1.38.0)
+
+
+# 1.37.0 (2019-02-06)
+
+- [Fixes for AWS cors config issues](https://github.com/serverless/serverless/pull/5785)
+- [Preserve whitespaces in single-quote literal fallback](https://github.com/serverless/serverless/pull/5775)
+- [AWS: Add fallback support in ${cf} and ${s3}](https://github.com/serverless/serverless/pull/5758)
+- [Throw an error if plugin is executed outside of a serverless directory](https://github.com/serverless/serverless/pull/5636)
+- [Require provider.credentials vars to be resolved before s3/ssm/cf vars](https://github.com/serverless/serverless/pull/5763)
+- [Provide multi origin cors values](https://github.com/serverless/serverless/pull/5740)
+- [handle layers paths with trailing slash and leading ./ or just .](https://github.com/serverless/serverless/pull/5656)
+- [Resolve profile before performing aws-sdk dependent actions](https://github.com/serverless/serverless/pull/5744)
+- [Fix assuming a role with an AWS profile](https://github.com/serverless/serverless/pull/5739)
+- [Allows Fn::GetAtt with Lambda DLQ-onError](https://github.com/serverless/serverless/pull/5139)
+- [Fix #5664 - Rollback fails due to a timestamp parsing error](https://github.com/serverless/serverless/pull/5710)
+- [AWS: Tell S3 bucket name and how to recover if deployment bucket does not exist](https://github.com/serverless/serverless/pull/5714)
+- [Do not print logs if print command is used.](https://github.com/serverless/serverless/pull/5728)
+- [Default to error code if message is non-existent](https://github.com/serverless/serverless/pull/4794)
+- [Add resource count and warning to info display](https://github.com/serverless/serverless/pull/4822)
+- [Add uploaded file name to log while AWS deploy](https://github.com/serverless/serverless/pull/5495)
+- [Enable tab completion for slss shortcut](https://github.com/serverless/serverless/pull/4712)
+- [Upgrade google-cloudfunctions to v2 and set defaults to node8 etc](https://github.com/serverless/serverless/pull/5311)
+- [Convert reservedConcurrency to integer to allow use env var](https://github.com/serverless/serverless/pull/5705)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.3...v1.37.0)
+
+
+# 1.36.3 (2019-01-23)
+ - [AWS: Consolidates Lambda::Permission objects for cloudwatchLog events](https://github.com/serverless/serverless/pull/5531)
+ - [Suppress confusing warning "A valid undefined..." ](https://github.com/serverless/serverless/pull/5723)
+ - [Add google go template](https://github.com/serverless/serverless/pull/5726)
+ - [Provide AWS_PROFILE from configuration for invoke local](https://github.com/serverless/serverless/pull/5662)
+ - [Test that CLI does not convert numeric option to number](https://github.com/serverless/serverless/pull/5727)
+ - [Remove duplicate-handler warnings based on community feedback.](https://github.com/serverless/serverless/pull/5733)
+ - [Enable download template from a private github repo using personal access token](https://github.com/serverless/serverless/pull/5715)
+ - [Fix sls plugin install -n @scoped/package](https://github.com/serverless/serverless/pull/5736)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.2...v1.36.3)
+
+# 1.36.2 (2019-01-21)
+ - [AWS: Request cache should add region as key to prevent cross-region cache collision](https://github.com/serverless/serverless/pull/5694)
+ - [Fixed a link](https://github.com/serverless/serverless/pull/5707)
+ - [Clarify docs for the http key for GCF](https://github.com/serverless/serverless/pull/5680)
+ - [Fix awsProvider.js : "Cannot use 'in' operator to search for '0'](https://github.com/serverless/serverless/pull/5688)
+ - [Fix array notation in stream ARN](https://github.com/serverless/serverless/pull/5702)
+ - [Remove platform code](https://github.com/serverless/serverless/pull/5687)
+ - [Increase @types/aws-lambda version in aws-nodejs-typescript template](https://github.com/serverless/serverless/pull/5695)
+ - [Update aws-scala-sbt template](https://github.com/serverless/serverless/pull/5725)
+ - [docs: Kubeless secrets](https://github.com/serverless/serverless/pull/5130)
+ - [docs menu sidebar - added [Getting Started] above [Providers]](https://github.com/serverless/serverless/pull/5721)
+ - [Fix layer doc reference to functions (should be layers)](https://github.com/serverless/serverless/pull/5697)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.1...v1.36.2)
+
+
+# 1.36.1 (2019-01-14)
+ - [Update layers.md](https://github.com/serverless/serverless/pull/5678)
+ - [AWS: Fix stage name validation timing and allow hyphen](https://github.com/serverless/serverless/pull/5686)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.36.0...v1.36.1)
+
+# 1.36.0 (2019-01-10)
+ - [Log AWS SDK calls in debug mode](https://github.com/serverless/serverless/pull/5604)
+ - [Added currently supported regions for GCP functions](https://github.com/serverless/serverless/pull/5601)
+ - [Update Cloudflare Templates](https://github.com/serverless/serverless/pull/5620)
+ - [AWS: Validate rate/cron syntax before Deploy](https://github.com/serverless/serverless/pull/5635)
+ - [Fix error log output](https://github.com/serverless/serverless/pull/5378)
+ - [Support for native async/await in AWS Lambda for aws-nodejs-typescript template ](https://github.com/serverless/serverless/pull/5607)
+ - [aws-csharp create template uses handler-specific artifact](https://github.com/serverless/serverless/pull/5411)
+ - [change behaviour on initial stack create failed](https://github.com/serverless/serverless/pull/5631)
+ - [Add warning for multiple functions having same handler](https://github.com/serverless/serverless/pull/5638)
+ - [AWS: Add API Gateway stage name validation.](https://github.com/serverless/serverless/pull/5639)
+ - [fix Cloudflare template config](https://github.com/serverless/serverless/pull/5651)
+ - [AWS: Fix ${cf.REGION} syntax causes deployment in wrong region](https://github.com/serverless/serverless/pull/5650)
+ - [support for @ symbol in ${file()} variables paths](https://github.com/serverless/serverless/pull/5312)
+ - [Fix ResourceLimitExceeded for cloudwatchLog event](https://github.com/serverless/serverless/pull/5554)
+ - various documentation updates (#5625, #5613, #5628, #5659, #5618, #5437, #5623, #5627, #5665)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.35.1...v1.36.0)
+
+
 # 1.35.1 (2018-12-18)
  - [fixed regression preventing including files outside working dir](https://github.com/serverless/serverless/pull/5602)
  - [Update ruby template gitignore](https://github.com/serverless/serverless/pull/5599)

@@ -33,15 +33,16 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 
 ## Current variable sources:
 
-- [environment variables](#referencing-environment-variables)
+- [Environment variables](#referencing-environment-variables)
 - [CLI options](#referencing-cli-options)
-- [other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
-- [external YAML/JSON files](#reference-variables-in-other-files)
-- [variables from S3](#referencing-s3-objects)
-- [variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
+- [Other properties defined in `serverless.yml`](#reference-properties-in-serverlessyml)
+- [External YAML/JSON files](#reference-variables-in-other-files)
+- [Variables from S3](#referencing-s3-objects)
+- [Variables from AWS SSM Parameter Store](#reference-variables-using-the-ssm-parameter-store)
+- [Variables from AWS Secrets Manager](#reference-variables-using-aws-secrets-manager)
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
-- [properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
-- [Pseudo Parameters Reference](#referencing-Pseudo-Parameters-Reference)
+- [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
+- [Pseudo Parameters Reference](#pseudo-parameters-reference)
 
 ## Recursively reference properties
 
@@ -256,6 +257,54 @@ custom:
 
 In this example, the serverless variable will contain the decrypted value of the SecureString.
 
+## Reference Variables using AWS Secrets Manager
+Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html). Use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager~true` syntax(note `~true` as secrets are always encrypted). For example:
+
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: ${ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager~true}
+```
+
+In this example, the serverless variable will contain the decrypted value of the secret.
+
+Variables can also be object, since AWS Secrets Manager can store secrets not only in plain text but also in JSON.
+
+If the above secret `secret_ID_in_Secrets_Manager` is something like below,
+
+```json
+{
+  "num": 1,
+  "str": "secret",
+  "arr": [true, false]
+}
+```
+
+variables will be resolved like
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  supersecret: 
+    num: 1
+    str: secret
+    arr:
+      - true
+      - false
+```
+
+
 ## Reference Variables in Other Files
 You can reference variables in other YAML or JSON files.  To reference variables in other YAML files use the `${file(./myFile.yml):someProperty}` syntax in your `serverless.yml` configuration file. To reference variables in other JSON files use the `${file(./myFile.json):someProperty}` syntax. It is important that the file you are referencing has the correct suffix, or file extension, for its file type (`.yml` for YAML or `.json` for JSON) in order for it to be interpreted correctly. Here's an example:
 
@@ -438,7 +487,7 @@ resources:
 Each of your cloudformation files has to start with a `Resources` entity
 
 ```yml
-Resource:
+Resources:
   Type: 'AWS::S3::Bucket'
   Properties:
     BucketName: some-bucket-name

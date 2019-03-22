@@ -10,7 +10,10 @@ describe('AWS - SNS: Existing topic with single function', () => {
 
   beforeAll(() => Utils.createSnsTopic(snsTopic)
     .then((result) => {
-      process.env.EXISTING_TOPIC_ARN = result.TopicArn;
+      const splitTopicArn = result.topicArn.split(':');
+      process.env.EXISTING_TOPIC_REGION = splitTopicArn[3];
+      process.env.EXISTING_TOPIC_ACCOUNT = splitTopicArn[4];
+      process.env.EXISTING_TOPIC_NAME = splitTopicArn[5];
     })
     .then(() => {
       Utils.createTestService('aws-nodejs', path.join(__dirname, 'service'));

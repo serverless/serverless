@@ -16,7 +16,7 @@ The Framework uses new event-driven compute services, like AWS Lambda, Google Cl
 
 Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
-<a href="https://serverless.com/framework/" target="_blank">Watch the video guide here.</a>
+<a href="https://www.youtube.com/watch?v=bFHmgqbAh4M" target="_blank">Watch the video guide here.</a>
 
 <a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
 
@@ -133,7 +133,7 @@ The following are services you can instantly install and use by running `serverl
 
 ## <a name="features"></a>Features
 
-* Supports Node.js, Python, Java, Scala, C#, F#, Go, Groovy, Kotlin, PHP & Swift, Ruby.
+* Supports Node.js, Python, Java, Go, C#, Ruby, Swift, Kotlin, PHP, Scala, & F#
 * Manages the lifecycle of your serverless architecture (build, deploy, update, delete).
 * Safely deploy functions, events and their required resources together via provider resource managers (e.g., AWS CloudFormation).
 * Functions can be grouped ("serverless services") for easy management of code, resources & processes, across large projects & teams.
@@ -443,6 +443,7 @@ These consultants use the Serverless Framework and can help you build your serve
 * [Andrew Griffiths](https://www.andrewgriffithsonline.com/) - Independent consultant specialising in serverless technology
 * [Trek10](https://www.trek10.com/)
 * [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
+* [Geniusee](https://geniusee.com)
 * [SC5 Online](https://sc5.io)
 * [Carrot Creative](https://carrot.is)
 * [microapps](http://microapps.com)
