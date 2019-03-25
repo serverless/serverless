@@ -52,12 +52,12 @@ You can overwrite/attach any kind of resource to your CloudFormation stack. You 
 
 To have consistent naming in the CloudFormation Templates that get deployed we use a standard pattern:
 
-`{Function Name}{Cloud Formation Resource Type}{Resource Name}{SequentialID or Random String}`
+`{Function Name}{Cloud Formation Resource Type}{Resource Name}{SequentialID, instanceId or Random String}`
 
 * `Function Name` - This is optional for Resources that should be recreated when the function name gets changed. Those resources are also called *function bound*
 * `Cloud Formation Resource Type` - E.g., S3Bucket
 * `Resource Name` - An identifier for the specific resource, e.g. for an S3 Bucket the configured bucket name.
-* `SequentialID or Random String` - For a few resources we need to add an optional sequential id or random string to identify them
+* `SequentialID, instanceId or Random String` - For a few resources we need to add an optional sequential id, the Serverless instanceId (accessible via `${sls:instanceId}`) or a random string to identify them
 
 All resource names that are deployed by Serverless have to follow this naming scheme. The only exception (for backwards compatibility reasons) is the S3 Bucket that is used to upload artifacts so they can be deployed to your function.
 
@@ -81,7 +81,7 @@ If you are unsure how a resource is named, that you want to reference from your 
 |ApiGateway::Resource   | ApiGatewayResource{normalizedPath}                      | ApiGatewayResourceUsers       |
 |ApiGateway::Method     | ApiGatewayMethod{normalizedPath}{normalizedMethod}      | ApiGatewayMethodUsersGet      |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
-|ApiGateway::Deployment | ApiGatewayDeployment{randomNumber}                      | ApiGatewayDeployment12356789  |
+|ApiGateway::Deployment | ApiGatewayDeployment{instanceId}                      | ApiGatewayDeployment12356789  |
 |ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
 |ApiGateway::UsagePlan  | ApiGatewayUsagePlan                          | ApiGatewayUsagePlan             |
 |ApiGateway::UsagePlanKey     | ApiGatewayUsagePlanKey{SequentialID}                          | ApiGatewayUsagePlanKey1             |
