@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -33,7 +35,16 @@ public class InvokeBridge {
 
       this.instance = this.getInstance();
 
-      System.out.println(this.invoke(eventMap, this.getContext(parsedInput)).toString());
+      Object output = this.invoke(eventMap, this.getContext(parsedInput));
+      String string = null;
+      if(output != null) {
+        if(output.getClass().isAssignableFrom(ByteArrayOutputStream.class)){
+          string = new String(((ByteArrayOutputStream)output).toByteArray());
+        }else {
+          string = output.toString();
+        }
+      }
+      System.out.println(string);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -64,7 +75,8 @@ public class InvokeBridge {
     Class requestClass = method.getParameterTypes()[0];
 
     Object request = event;
-    if (!requestClass.isAssignableFrom(event.getClass())) {
+    if (!requestClass.isAssignableFrom(event.getClass())
+        && !requestClass.isAssignableFrom(InputStream.class)) {
       request = requestClass.newInstance();
       PropertyDescriptor[] properties = Introspector.getBeanInfo(requestClass).getPropertyDescriptors();
       for(int i=0; i < properties.length; i++) {
@@ -80,8 +92,12 @@ public class InvokeBridge {
       return method.invoke(this.instance, request);
     } else if (method.getParameterCount() == 2) {
       return method.invoke(this.instance, request, context);
+    } else if (method.getParameterCount() == 3 && requestClass.isAssignableFrom(InputStream.class)) {
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      method.invoke(this.instance, System.in, outputStream, context);
+      return outputStream;
     } else {
-      throw new NoSuchMethodException("Handler should take 1 or 2 arguments: " + method);
+      throw new NoSuchMethodException("Handler should take 1, 2, or 3 (com.amazonaws.services.lambda.runtime.RequestStreamHandler compatible handlers) arguments: " + method);
     }
   }
 
@@ -110,7 +126,7 @@ public class InvokeBridge {
 
   private HashMap<String, Object> parseInput(String input) throws IOException {
     TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     JsonNode jsonNode = mapper.readTree(input);
 
@@ -118,6 +134,7 @@ public class InvokeBridge {
   }
 
   private String getInput() throws IOException {
+    System.in.mark(Integer.MAX_VALUE);
     BufferedReader streamReader = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
     StringBuilder inputStringBuilder = new StringBuilder();
     String inputStr;
@@ -125,7 +142,7 @@ public class InvokeBridge {
     while ((inputStr = streamReader.readLine()) != null) {
       inputStringBuilder.append(inputStr);
     }
-
+    System.in.reset();
     return inputStringBuilder.toString();
   }
 
