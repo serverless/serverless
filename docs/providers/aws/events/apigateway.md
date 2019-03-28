@@ -543,6 +543,45 @@ Please note that those are the API keys names, not the actual values. Once you d
 
 Clients connecting to this Rest API will then need to set any of these API keys values in the `x-api-key` header of their request. This is only necessary for functions where the `private` property is set to true.
 
+You can also setup multiple usage plans for your API. In this case you need to map your usage plans to your api keys. Here's an example how this might look like:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  apiKeys:
+    - free:
+      - myFreeKey
+      - ${opt:stage}-myFreeKey
+    - paid:
+      - myPaidKey
+      - ${opt:stage}-myPaidKey
+  usagePlan:
+    - free:
+        quota:
+          limit: 5000
+          offset: 2
+          period: MONTH
+        throttle:
+          burstLimit: 200
+          rateLimit: 100
+    - paid:
+        quota:
+          limit: 50000
+          offset: 1
+          period: MONTH
+        throttle:
+          burstLimit: 2000
+          rateLimit: 1000
+functions:
+  hello:
+    events:
+      - http:
+          path: user/create
+          method: get
+          private: true
+```
+
 ### Configuring endpoint types
 
 API Gateway [supports regional endpoints](https://aws.amazon.com/about-aws/whats-new/2017/11/amazon-api-gateway-supports-regional-api-endpoints/) for associating your API Gateway REST APIs with a particular region. This can reduce latency if your requests originate from the same region as your REST API and can be helpful in building multi-region applications.
