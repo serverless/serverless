@@ -52,6 +52,7 @@ These are the current available templates for Cloudflare Workers:
  
 - cloudflare-workers
 - cloudflare-workers-enterprise
+- cloudflare-workers-rust
 
 ## Examples
 ### Creating a new service
