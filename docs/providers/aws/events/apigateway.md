@@ -279,7 +279,7 @@ functions:
             maxAge: 86400
 ```
 
-If you are using CloudFront or another CDN for your API Gateway, you may want to setup a `Cache-Control` header to allow for OPTIONS request to be cached to avoid the additional hop.  
+If you are using CloudFront or another CDN for your API Gateway, you may want to setup a `Cache-Control` header to allow for OPTIONS request to be cached to avoid the additional hop.
 
 To enable the `Cache-Control` header on preflight response, set the `cacheControl` property in the `cors` object:
 
@@ -446,7 +446,7 @@ functions:
 ```
 
 You can also configure an existing Cognito User Pool as the authorizer, as shown
-in the following example:
+in the following example with optional access token allowed scopes:
 
 ```yml
 functions:
@@ -458,6 +458,8 @@ functions:
           method: post
           authorizer:
             arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
+            scopes:
+              - my-app/read
 ```
 
 If you are using the default `lambda-proxy` integration, your attributes will be
@@ -1242,7 +1244,7 @@ functions:
     events:
       - http:
           path: /users
-          ...     
+          ...
           authorizer:
             # Provide both type and authorizerId
             type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
@@ -1254,7 +1256,7 @@ functions:
     events:
       - http:
           path: /users/{userId}
-          ...     
+          ...
           # Provide both type and authorizerId
           type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
           authorizerId:
