@@ -2,6 +2,10 @@
 
 'use strict';
 
+const path = require('path');
+const Utils = require('../lib/classes/utils');
+const { deploy, remove } = require('../lib/app');
+
 const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
@@ -26,6 +30,19 @@ const invocationId = uuid.v4();
 
 // boot up error reporting via sentry before anything
 (() => initializeErrorReporter(invocationId).then(() => {
+  const serverlessFilePath = path.join(process.cwd(), 'serverless.yml');
+  const utils = new Utils()
+
+  if (!utils.fileExistsSync(serverlessFilePath)) {
+    if (!process.argv[2] || process.argv[2] === 'deploy') {
+      return deploy();
+    } else if (process.argv[2] === 'remove') {
+      return remove();
+    } else {
+      return
+    }
+  }
+
   if (process.argv[2] === 'completion') {
     return autocomplete();
   }
