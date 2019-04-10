@@ -36,7 +36,7 @@ This code will setup a websocket with a `$disconnect` route key:
 
 ```yml
 functions:
-  disonnectHandler:
+  disconnectHandler:
     handler: handler.disconnectHandler
     events:
       - websocket:

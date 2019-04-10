@@ -1,3 +1,51 @@
+# 1.40.0 (2019-03-28)
+ - [Align error logging](https://github.com/serverless/serverless/pull/5937)
+ - [Fixing minor typo](https://github.com/serverless/serverless/pull/5943)
+ - [Documentation tweak around shared authorizers](https://github.com/serverless/serverless/pull/5944)
+ - [Support for asynchronous lambda invocation with integration type AWS](https://github.com/serverless/serverless/pull/5898)
+ - [Add unit tests for getLocalAccessKey function](https://github.com/serverless/serverless/pull/5948)
+ - [Document changes from #4951](https://github.com/serverless/serverless/pull/5949)
+ - [Added ability to create custom stack names and API names](https://github.com/serverless/serverless/pull/4951)
+ - [Fixes #5188 "Failed to fetch the event types list due the error: API …](https://github.com/serverless/serverless/pull/5335)
+ - [Allow * in variable string literal defaults](https://github.com/serverless/serverless/pull/5640)
+ - [Add Serverless instanceId concept](https://github.com/serverless/serverless/pull/5926)
+ - [Doc: Include that APIGateway status code of async events](https://github.com/serverless/serverless/pull/5957)
+ - [Update npm dependencies](https://github.com/serverless/serverless/pull/5968)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.39.1...v1.40.0)
+
+
+# 1.39.1 (2019-03-18)
+
+- [Revert "Fixed #4188 - Package generating incorrect package artifact path in serverless-state.json"](https://github.com/serverless/serverless/pull/5936)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.39.0...v1.39.1)
+
+
+# 1.39.0 (2019-03-15)
+
+- [Add support for invoke local with docker](https://github.com/serverless/serverless/pull/5863)
+- [fix regression with golang check on windows ](https://github.com/serverless/serverless/pull/5899)
+- [Support for Cloudwatch Event InputTransformer](https://github.com/serverless/serverless/pull/5912)
+- [Allow individual packaging with TypeScript source maps](https://github.com/serverless/serverless/pull/5743)
+- [Support API Gateway stage deployment description](https://github.com/serverless/serverless/pull/5509)
+- [Allow Fn::Join in SQS arn builder](https://github.com/serverless/serverless/pull/5351)
+- [Add AWS x-ray support for Lambda](https://github.com/serverless/serverless/pull/5860)
+- [Fix CloudFormation template normalization](https://github.com/serverless/serverless/pull/5885)
+- [Fix bug when using websocket events with functions with custom roles](https://github.com/serverless/serverless/pull/5880)
+- [Print customized function names correctly in sls info output](https://github.com/serverless/serverless/pull/5883)
+- [Added websockets authorizer support](https://github.com/serverless/serverless/pull/5867)
+- [Support more route characters for websockets](https://github.com/serverless/serverless/pull/5865)
+- [kotlin jvm maven updates](https://github.com/serverless/serverless/pull/5872)
+- [Put `Custom Response Headers` into `[Responses]`](https://github.com/serverless/serverless/pull/5862)
+- [Packaging exclude only config file being used](https://github.com/serverless/serverless/pull/5840)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.38.0...v1.39.0)
+
+
 # 1.38.0 (2019-02-20)
 
  - [Set timout & others on context in python invoke local](https://github.com/serverless/serverless/pull/5796)

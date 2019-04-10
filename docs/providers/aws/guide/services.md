@@ -104,6 +104,8 @@ provider:
   runtime: nodejs6.10
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
+  stackName: my-custom-stack-name-${self:provider.stage} # Overwrite default CloudFormation stack name. Default is ${self:service}-${self:provider.stage}
+  apiName: my-custom-api-gateway-name-${self:provider.stage} # Overwrite default API Gateway name. Default is ${self:provider.stage}-${self:service}
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
   deploymentBucket:

@@ -484,6 +484,21 @@ functions:
               - nickname
 ```
 
+### Using asyncronous integration
+
+Use `async: true` when integrating a lambda function using [event invocation](https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html#SSS-Invoke-request-InvocationType). This lets API Gateway to return immediately with a 200 status code while the lambda continues running. If not othewise speficied integration type will be `AWS`.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          async: true  # default is false
+```
+
 ### Catching Exceptions In Your Lambda Function
 
 In case an exception is thrown in your lambda function AWS will send an error message with `Process exited before completing request`. This will be caught by the regular expression for the 500 HTTP status and the 500 status will be returned.
@@ -1231,7 +1246,7 @@ functions:
           ...     
           authorizer:
             # Provide both type and authorizerId
-            type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
+            type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
             authorizerId:
               Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
 
@@ -1242,7 +1257,7 @@ functions:
           path: /users/{userId}
           ...     
           # Provide both type and authorizerId
-          type: COGNITO_USER_POOLS # TOKEN or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
+          type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
           authorizerId:
             Ref: ApiGatewayAuthorizer # or hard-code Authorizer ID
 

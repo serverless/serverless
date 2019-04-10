@@ -47,6 +47,13 @@ functions:
           rate: cron(0 12 * * ? *)
           enabled: false
           inputPath: '$.stageVariables'
+      - schedule:
+          rate: rate(2 hours)
+          enabled: true
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
 ```
 
 ## Specify Name and Description
