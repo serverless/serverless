@@ -1312,6 +1312,8 @@ provider:
 
 ## AWS X-Ray Tracing
 
+**IMPORTANT:** Due to CloudFormation limitations it's not possible to enable AWS X-Ray Tracing on existing deployments. Please remove your old API Gateway and re-deploy it with enabled tracing if you want to use AWS X-Ray Tracing for API Gateway. Once tracing is enabled you can re-deploy your service anytime without issues.
+
 API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless
 application's API Gateway add the following to your `serverless.yml`
 
