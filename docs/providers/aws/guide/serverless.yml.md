@@ -262,6 +262,18 @@ functions:
           pool: MyUserPool
           trigger: PreSignUp
 
+layers:
+  hello: # A Lambda layer
+    path: layer-dir # required, path to layer contents on disk
+    name: ${self:provider.stage}-layerName # optional, Deployed Lambda layer name
+    description: Description of what the lambda layer does # optional, Description to publish to AWS
+    compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
+      - python3.7
+    licenseInfo: GPLv3 # optional, a string specifying license information
+    allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
+      - '*'
+    retain: false # optional, false by default. If true, layer versions are not deleted as new ones are created
+
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
   Resources:
