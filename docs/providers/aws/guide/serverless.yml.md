@@ -121,6 +121,7 @@ provider:
     foo: bar
     baz: qux
   tracing:
+    apiGateway: true
     lambda: true # optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
 
 package: # Optional deployment packaging configuration
