@@ -18,9 +18,9 @@ You can enable CORS for cross-domain HTTP requests with Spotinst Functions. Add 
 ```yml
     cors:
         - enabled: true
-          origin: "http://foo.example"
-          headers: "Content-Type,X-PINGOTHER"
-          methods: "PUT,POST"
+        - origin: "http://foo.example"
+        - headers: "Content-Type,X-PINGOTHER"
+        - methods: "PUT,POST"
 ```
 
 ### Parameters:
