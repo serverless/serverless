@@ -1,0 +1,37 @@
+{
+  "context": {},
+  "event": {
+    "body": "{\"test\":\"data\"}",
+    "headers": {
+      "Accept": "*/*",
+      "Accept-Encoding": "gzip, deflate",
+      "cache-control": "no-cache",
+      "CloudFront-Forwarded-Proto": "https",
+      "CloudFront-Is-Desktop-Viewer": "true",
+      "CloudFront-Is-Mobile-Viewer": "false",
+      "CloudFront-Is-SmartTV-Viewer": "false",
+      "CloudFront-Is-Tablet-Viewer": "false",
+      "CloudFront-Viewer-Country": "KR",
+      "Host": "rr4lbbmtfb.execute-api.us-east-1.amazonaws.com",
+      "Postman-Token": "60d4d786-60bf-4ba5-bcde-5a00ac688041",
+      "User-Agent": "PostmanRuntime/7.3.0",
+      "Via": "1.1 17b1095550a8ffe13061114dbfceeb81.cloudfront.net (CloudFront)",
+      "X-Amz-Cf-Id": "QK3FgYHC89HWK03RsV7L8lJv34WzlFDyHmS0pbbCYtz9WyUCiw7JCQ==",
+      "X-Amzn-Trace-Id": "Root=1-5c93c7ca-1f19d2028476793a98d5e844",
+      "X-Forwarded-For": "211.229.207.20, 52.46.53.147",
+      "X-Forwarded-Port": "443",
+      "X-Forwarded-Proto": "https"
+    },
+    "httpMethod": "GET",
+    "base64Encoded": false,
+    "path": "/version/12345",
+    "pathParameters": {
+      "incomingClientVersion": "12345"
+    },
+    "queryStringParameters": {
+      "asdasd": "123123"
+    },
+    "stageVariables": null,
+    "resource": "/version/{incomingClientVersion}"
+  }
+}

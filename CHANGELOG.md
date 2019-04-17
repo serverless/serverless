@@ -1,3 +1,21 @@
+# 1.40.0 (2019-03-28)
+ - [Align error logging](https://github.com/serverless/serverless/pull/5937)
+ - [Fixing minor typo](https://github.com/serverless/serverless/pull/5943)
+ - [Documentation tweak around shared authorizers](https://github.com/serverless/serverless/pull/5944)
+ - [Support for asynchronous lambda invocation with integration type AWS](https://github.com/serverless/serverless/pull/5898)
+ - [Add unit tests for getLocalAccessKey function](https://github.com/serverless/serverless/pull/5948)
+ - [Document changes from #4951](https://github.com/serverless/serverless/pull/5949)
+ - [Added ability to create custom stack names and API names](https://github.com/serverless/serverless/pull/4951)
+ - [Fixes #5188 "Failed to fetch the event types list due the error: API …](https://github.com/serverless/serverless/pull/5335)
+ - [Allow * in variable string literal defaults](https://github.com/serverless/serverless/pull/5640)
+ - [Add Serverless instanceId concept](https://github.com/serverless/serverless/pull/5926)
+ - [Doc: Include that APIGateway status code of async events](https://github.com/serverless/serverless/pull/5957)
+ - [Update npm dependencies](https://github.com/serverless/serverless/pull/5968)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.39.1...v1.40.0)
+
+
 # 1.39.1 (2019-03-18)
 
 - [Revert "Fixed #4188 - Package generating incorrect package artifact path in serverless-state.json"](https://github.com/serverless/serverless/pull/5936)

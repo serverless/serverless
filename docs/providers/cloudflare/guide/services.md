@@ -51,6 +51,7 @@ Here are the available runtimes for Cloudflare Workers:
  
 * cloudflare-workers
 * cloudflare-workers-enterprise
+* cloudflare-workers-rust
  
 Check out the [create command docs](../cli-reference/create) for all the details and options.
  

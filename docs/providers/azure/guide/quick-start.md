@@ -10,7 +10,7 @@ layout: Doc
 
 ## Pre-requisites
 
-1. Node.js `v6.5.0` or later. *(this is the runtime version supported by Azure Functions)*
+1. Node.js `v6.5.0` or later. *(v6.5.0 is the minimum runtime version supported by Azure Functions)*
 2. Serverless CLI `v1.9.0` or later. You can run
 `npm install -g serverless` to install it.
 3. Azure plugin that allows you to work with Azure Functions `npm install -g serverless-azure-functions`
