@@ -280,7 +280,7 @@ functions:
             maxAge: 86400
 ```
 
-If you are using CloudFront or another CDN for your API Gateway, you may want to setup a `Cache-Control` header to allow for OPTIONS request to be cached to avoid the additional hop.  
+If you are using CloudFront or another CDN for your API Gateway, you may want to setup a `Cache-Control` header to allow for OPTIONS request to be cached to avoid the additional hop.
 
 To enable the `Cache-Control` header on preflight response, set the `cacheControl` property in the `cors` object:
 
@@ -1282,7 +1282,7 @@ functions:
     events:
       - http:
           path: /users
-          ...     
+          ...
           authorizer:
             # Provide both type and authorizerId
             type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
@@ -1294,7 +1294,7 @@ functions:
     events:
       - http:
           path: /users/{userId}
-          ...     
+          ...
           # Provide both type and authorizerId
           type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
           authorizerId:
@@ -1349,11 +1349,13 @@ provider:
     minimumCompressionSize: 1024
 ```
 
-## AWS X-Ray Tracing
+## Stage specific setups
 
-**IMPORTANT:** Due to CloudFormation limitations it's not possible to enable AWS X-Ray Tracing on existing deployments. Please remove your old API Gateway and re-deploy it with enabled tracing if you want to use AWS X-Ray Tracing for API Gateway. Once tracing is enabled you can re-deploy your service anytime without issues.
+**IMPORTANT:** Due to CloudFormation limitations it's not possible to enable API Gateway stage settings on existing deployments. Please remove your old API Gateway and re-deploy with your new stage configuration. Once done, subsequent deployments should work without any issues.
 
-Disabling tracing might result in unexpected behavior. We recommend to remove and re-deploy your service if you want to disable tracing.
+Disabling settings might result in unexpected behavior. We recommend to remove and re-deploy your service without such stage settings.
+
+### AWS X-Ray Tracing
 
 API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless
 application's API Gateway add the following to your `serverless.yml`
@@ -1365,4 +1367,19 @@ provider:
   name: aws
   tracing:
     apiGateway: true
+```
+
+### Tags / Stack Tags
+
+API Gateway stages will be tagged with the `tags` and `stackTags` values defined at the `provider` level:
+
+```yml
+# serverless.yml
+
+provider:
+  name: aws
+  stackTags:
+    stackTagKey: stackTagValue
+  tags:
+    tagKey: tagValue
 ```
