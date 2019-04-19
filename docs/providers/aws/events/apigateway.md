@@ -683,6 +683,9 @@ A sample schema contained in `create_request.json` might look something like thi
 }
 ```
 
+**NOTE:** schema validators are only applied to content types you specify. Other content types are
+not blocked.
+
 ### Setting source of API key for metering requests
 
 API Gateway provide a feature for metering your API's requests and you can choice [the source of key](https://docs.aws.amazon.com/apigateway/api-reference/resource/rest-api/#apiKeySource) which is used for metering. If you want to acquire that key from the request's X-API-Key header, set option like this:
