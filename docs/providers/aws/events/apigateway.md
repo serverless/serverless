@@ -512,6 +512,10 @@ want to set as private. API Keys are created globally, so if you want to deploy 
 your API key contains a stage variable as defined below. When using API keys, you can optionally define usage plan quota
 and throttle, using `usagePlan` object.
 
+When setting the value, you need to be aware that changing value will require replacement and CloudFormation doesn't allow
+two API keys with the same name. It means that you need to change the name also when changing the value. If you don't care
+about the name of the key, it is recommended only to set the value and let CloudFormation name the key.
+
 Here's an example configuration for setting API keys for your service Rest API:
 
 ```yml
@@ -522,6 +526,10 @@ provider:
     - myFirstKey
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
+    - name: myThirdKey
+      value: myThirdKeyValue
+    - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
+      description: Api key description # Optional
   usagePlan:
     quota:
       limit: 5000
