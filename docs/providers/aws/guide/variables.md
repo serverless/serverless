@@ -125,6 +125,14 @@ functions:
       APIG_DEPLOYMENT_ID: ApiGatewayDeployment${sls:instanceId}
 ```
 
+**region**
+
+The region used by the Serverless CLI. The `${sls:region}` variable is a shortcut for `${opt:region, self:provider.region}`
+
+**stage**
+
+The stage used by the Serverless CLI. The `${sls:stage}` variable is a shortcut for `${opt:stage, self:provider.stage}`
+
 ## Referencing Environment Variables
 To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file.  It is valid to use the empty string in place of `SOME_VAR`.  This looks like "`${env:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `process.env` object (i.e. all the variables defined in your environment).
 
