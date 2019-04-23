@@ -24,6 +24,7 @@ layout: Doc
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
     - [Configuring endpoint types](#configuring-endpoint-types)
     - [Request Parameters](#request-parameters)
+    - [Request Schema Validation](#request-schema-validation)
     - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
   - [Lambda Integration](#lambda-integration)
     - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
@@ -648,6 +649,50 @@ functions:
               paths:
                 id: true
 ```
+
+### Request Schema Validators
+
+To use request schema validation with API gateway, add the [JSON Schema](https://json-schema.org/)
+for your content type. Since JSON Schema is represented in JSON, it's easier to include it from a
+file.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schema:
+              application/json: ${file(create_request.json)}
+```
+
+A sample schema contained in `create_request.json` might look something like this:
+
+```json
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "username"
+  ],
+  "properties": {
+    "username": {
+      "type": "string",
+      "title": "The Foo Schema",
+      "default": "",
+      "pattern": "^[a-zA-Z0-9]+$"
+    }
+  }
+}
+```
+
+**NOTE:** schema validators are only applied to content types you specify. Other content types are
+not blocked.
 
 ### Setting source of API key for metering requests
 
