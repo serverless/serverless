@@ -1,3 +1,11 @@
+# 1.41.1 (2019-04-23)
+
+- [Remove safeguards when using API Gateway Stage resource settings](https://github.com/serverless/serverless/pull/6040)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.41.0...v1.41.1)
+
 # 1.41.0 (2019-04-18)
 
 - [Add error message when provider does not exist](https://github.com/serverless/serverless/pull/5964)
