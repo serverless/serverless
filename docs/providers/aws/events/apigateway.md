@@ -448,7 +448,7 @@ functions:
 ```
 
 You can also configure an existing Cognito User Pool as the authorizer, as shown
-in the following example:
+in the following example with optional access token allowed scopes:
 
 ```yml
 functions:
@@ -460,6 +460,8 @@ functions:
           method: post
           authorizer:
             arn: arn:aws:cognito-idp:us-east-1:xxx:userpool/us-east-1_ZZZ
+            scopes:
+              - my-app/read
 ```
 
 If you are using the default `lambda-proxy` integration, your attributes will be
