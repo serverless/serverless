@@ -257,6 +257,16 @@ functions:
             allowCredentials: false
 ```
 
+Wildcards are accepted, so 
+
+```yml
+    cors:
+      origins:
+        - http://*.example.com
+        - http://example2.com
+```
+will match all sub-domains of example.com, over http
+
 Please note that since you can't send multiple values for [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), this configuration uses a response template to check if the request origin matches one of your provided `origins` and overrides the header with the following code:
 
 ```
