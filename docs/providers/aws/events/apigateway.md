@@ -1094,6 +1094,25 @@ endpoint of your proxy, and the URI you want to set a proxy to.
 Now that you have these two CloudFormation templates defined in your `serverless.yml` file, you can simply run
 `serverless deploy` and that will deploy these custom resources for you along with your service and set up a proxy on your Rest API.
 
+## Accessing private resources using VPC Link
+
+If you have an Edge Optimized or Regional API Gateway, you can access the internal VPC resources using VPC Link. Please refer [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-private-integration.html) to know more about API Gateway private integration.
+
+We can use following configuration to have an http-proxy vpc-link integration.
+
+```yml
+- http:
+    path: v1/repository
+    method: get
+    integration: http-proxy
+    connectionType: vpc-link
+    connectionId: '{your-vpc-link-id}'
+    cors: true
+    request:
+      uri: http://www.github.com/v1/repository
+      method: get
+```
+
 ## Share API Gateway and API Resources
 
 As your application grows, you will likely need to break it out into multiple, smaller services. By default, each Serverless project generates a new API Gateway. However, you can share the same API Gateway between multiple projects by referencing its REST API ID and Root Resource ID in `serverless.yml` as follows:
