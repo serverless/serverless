@@ -54,7 +54,7 @@ functions:
                 - kinesis
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
-                - MyOtherKinesisStream
+                - stream/MyOtherKinesisStream
 ```
 
 ## Setting the BatchSize and StartingPosition
