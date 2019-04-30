@@ -18,7 +18,7 @@ Account credentials for OpenWhisk can be provided through a configuration file o
 **Do you want to use environment variables for credentials?** Use the following environment variables to be pass in account credentials. These values override anything extracted from the configuration file.
 
 - *OW_APIHOST* - Platform endpoint, e.g. `openwhisk.ng.bluemix.net`
-- *OW_AUTH* - Authentication key, e.g. `xxxxxx:yyyyy
+- *OW_AUTH* - Authentication key, e.g. `xxxxxx:yyyyy`
 
 ### Have you installed the provider plugin?
 
