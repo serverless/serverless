@@ -269,6 +269,11 @@ functions:
       - cognitoUserPool:
           pool: MyUserPool
           trigger: PreSignUp
+      - alb:
+          loadBalancerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:loadbalancer/app/my-load-balancer/50dc6c495c0c9188
+          certificateArn: arn:aws:iam::XXXXXX:server-certificate/ProdServerCert # only required when HTTPS is used
+          name: alb-handler-https
+          listener: HTTPS:443
 
 layers:
   hello: # A Lambda layer
