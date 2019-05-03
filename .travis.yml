@@ -9,12 +9,6 @@ matrix:
   include:
     # Linux tests
     - os: linux
-      node_js: "4.4"
-      env: SLS_IGNORE_WARNING=*
-    - os: linux
-      node_js: "5.11"
-      env: SLS_IGNORE_WARNING=*
-    - os: linux
       node_js: "6.2"
       env: SLS_IGNORE_WARNING=*
     - os: linux
