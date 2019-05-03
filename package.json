@@ -92,7 +92,7 @@
     "sinon-chai": "^2.9.0"
   },
   "dependencies": {
-    "@serverless/enterprise-plugin": "latest",
+    "@serverless/enterprise-plugin": "next",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.430.0",
