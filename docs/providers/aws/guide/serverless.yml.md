@@ -63,7 +63,6 @@ provider:
     apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
     minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
     description: Some Description # Optional description for the API Gateway stage deployment
-    logs: true # Optional configuration which specifies if API Gateway logs are used
     binaryMediaTypes: # Optional binary media types the API might return
       - '*/*'
   usagePlan: # Optional usage plan configuration
@@ -126,7 +125,9 @@ provider:
     baz: qux
   tracing:
     apiGateway: true
-    lambda: true # optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
+    lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
+  logs:
+    restApi: true # Optional configuration which specifies if API Gateway logs are used
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
