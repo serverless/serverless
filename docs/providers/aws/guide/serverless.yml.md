@@ -34,6 +34,7 @@ provider:
   websocketsApiRouteSelectionExpression: $request.body.route # custom route selection expression
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
+  reservedConcurrency: 5 # optional, Overwrite the default reserved concurrency limit. By default, AWS uses account concurrency limit
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
   logRetentionInDays: 14 # Set the default RetentionInDays for a CloudWatch LogGroup
   deploymentBucket:
@@ -143,6 +144,7 @@ functions:
     name: ${self:provider.stage}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
+    reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
     runtime: nodejs6.10 # Runtime for this specific function. Overrides the default which is set on the provider level
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
