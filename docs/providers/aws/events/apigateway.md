@@ -47,7 +47,10 @@ layout: Doc
   - [Share Authorizer](#share-authorizer)
   - [Resource Policy](#resource-policy)
   - [Compression](#compression)
-  - [AWS X-Ray Tracing](#aws-x-ray-tracing)
+  - [Stage specific setups](#stage-specific-setups)
+    - [AWS X-Ray Tracing](#aws-x-ray-tracing)
+    - [Tags / Stack Tags](#tags--stack-tags)
+    - [Logs](#logs)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -1421,8 +1424,7 @@ Disabling settings might result in unexpected behavior. We recommend to remove a
 
 ### AWS X-Ray Tracing
 
-API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless
-application's API Gateway add the following to your `serverless.yml`
+API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless application's API Gateway add the following to your `serverless.yml`
 
 ```yml
 # serverless.yml
@@ -1447,3 +1449,17 @@ provider:
   tags:
     tagKey: tagValue
 ```
+
+### Logs
+
+Use the following configuration to enable API Gateway logs:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  apiGateway:
+    logs: true
+```
+
+The log streams will be generated in a dedicated log group which follows the naming schema `/aws/api-gateway/{service}-{stage}`.

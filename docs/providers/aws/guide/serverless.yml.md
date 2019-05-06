@@ -62,6 +62,7 @@ provider:
     apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
     minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
     description: Some Description # optional description for the API Gateway stage deployment
+    logs: true # Optional configuration which specifies if API Gateway logs are used
   usagePlan: # Optional usage plan configuration
     quota:
       limit: 5000
