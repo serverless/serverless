@@ -128,6 +128,7 @@ provider:
     lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
   logs:
     restApi: true # Optional configuration which specifies if API Gateway logs are used
+    websocket: true # Optional configuration which specifies if Websockets logs are used
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
