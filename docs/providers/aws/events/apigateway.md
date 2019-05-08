@@ -47,6 +47,7 @@ layout: Doc
   - [Share Authorizer](#share-authorizer)
   - [Resource Policy](#resource-policy)
   - [Compression](#compression)
+  - [Binary Media Types](#binary-media-types)
   - [Stage specific setups](#stage-specific-setups)
     - [AWS X-Ray Tracing](#aws-x-ray-tracing)
     - [Tags / Stack Tags](#tags--stack-tags)
@@ -1415,6 +1416,21 @@ provider:
   apiGateway:
     minimumCompressionSize: 1024
 ```
+
+## Binary Media Types
+
+API Gateway makes it possible to return binary media such as images or files as responses.
+
+Configuring API Gateway to return binary media can be done via the `binaryMediaTypes` config:
+
+```yml
+provider:
+  apiGateway:
+    binaryMediaTypes:
+      - '*/*'
+```
+
+In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
 
 ## Stage specific setups
 
