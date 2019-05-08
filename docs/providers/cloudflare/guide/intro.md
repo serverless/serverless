@@ -97,7 +97,7 @@ set CLOUDFLARE_AUTH_EMAIL=YOUR_CLOUDFLARE_EMAIL
 
 You’ll need to redefine your environmental variables after each time you close your terminal.
 
-If you’re not an enterprise customer and you want to execute different code on multiple routes with only one funciton, we recommend writing code based off of our [conditional routing](https://developers.cloudflare.com/workers/recipes/conditional-routing/) template to check your route and execute different code accordingly. You can also write workers in separate files and compile it into one worker with [webpack](https://developers.cloudflare.com/workers/writing-workers/using-npm-modules/).
+If you’re not an enterprise customer and you want to execute different code on multiple routes with only one function, we recommend writing code based off of our [conditional routing](https://developers.cloudflare.com/workers/recipes/conditional-routing/) template to check your route and execute different code accordingly. You can also write workers in separate files and compile it into one worker with [webpack](https://developers.cloudflare.com/workers/writing-workers/using-npm-modules/).
 
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
 
