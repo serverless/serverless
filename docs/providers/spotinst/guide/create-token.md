@@ -12,7 +12,7 @@ layout: Doc
 
 # Spotinst Functions - Create Token
 
-The Serverless Framework needs access to your Spotinst account so that it can create and manage resources on your behalf. To do this you will need either a permanent or tempary token that is linked to your account
+The Serverless Framework needs access to your Spotinst account so that it can create and manage resources on your behalf. To do this you will need either a permanent or temporary token that is linked to your account
 
 ## Create a Permanent Token
 
