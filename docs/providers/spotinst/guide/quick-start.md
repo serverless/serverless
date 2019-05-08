@@ -76,7 +76,7 @@ npm install
 ## Deploying and Updating the Function
   Deploying a project is how you launch the project into production. Once it has been deployed, you will be able to see and edit it in the Spotinst Console. 
 
-  Before you deploy you will need to add in the environement ID into the `serverless.yml` file. The environment ID can be found on the Spotinst console under Functions. In this menu you will be able to add applications, environments and functions. An application is able to hold many environments and enivronments can hold many functions. They are mostly used for organization purposes and are at your descretion to manipulate as you like. To deploy your function you will need to select an application and environment and copy/paste the environment ID into the `serverless.yml` file under the environement tag.
+  Before you deploy you will need to add in the environment ID into the `serverless.yml` file. The environment ID can be found on the Spotinst console under Functions. In this menu you will be able to add applications, environments and functions. An application is able to hold many environments and environments can hold many functions. They are mostly used for organization purposes and are at your descretion to manipulate as you like. To deploy your function you will need to select an application and environment and copy/paste the environment ID into the `serverless.yml` file under the environment tag.
   
 1. **Deploying the Service**
 

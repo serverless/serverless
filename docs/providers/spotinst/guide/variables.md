@@ -18,7 +18,7 @@ There are a few ways to introduce external variables to your serverless function
 
 Environment variables allow you to pass static information into your function so you wont have to upload sensitive or protected information in your production code. It also allows you to easily change these variables from the outside so you do not have to upload your code multiple times with different variables. 
 
-To enter your environment variables you will need to go into the Spotinst console find the function you want to add environment variables to. Then under the Configuration tab you will find the Environment Variables heading. Here you can enter as many variables you need all with an assoiated key.
+To enter your environment variables you will need to go into the Spotinst console find the function you want to add environment variables to. Then under the Configuration tab you will find the Environment Variables heading. Here you can enter as many variables you need all with an associated key.
 
 Also you are able to enter in environment variables in the serverless.yml file. As a parameter under any function you can add:
 
