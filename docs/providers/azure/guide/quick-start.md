@@ -108,3 +108,7 @@ $env:azureServicePrincipalTenantId='<tenantId>'
 $env:azureServicePrincipalClientId='<servicePrincipalName>'
 $env:azureServicePrincipalPassword='<password>'
 ```
+
+**Local Development**
+
+We recommend using [VS Code](https://code.visualstudio.com/) to simplify the development of Azure Functions. [Install](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) the **Azure Functions Core Tools** to [run the function locally](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local#start). The template contains the necessary files for the core tools to start up the function.
