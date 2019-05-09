@@ -111,11 +111,15 @@ $env:azureServicePrincipalPassword='<password>'
 
 **Run the Function Locally**
 
-In order to run & test your Azure Function locally, run 
+In order to run & test your Azure Function locally, run a one-time install of the Azure Functions Core Tools:
 
 ```bash
-# One time install
-npm install
+npm install azure-functions-core-tools -g
+```
+
+From there, run the start script:
+
+```bash
 # Start Function app
 npm start
 ```

@@ -12,7 +12,6 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "serverless-azure-functions": ">=0.7.0",
-    "azure-functions-core-tools": ">=2.7.1158"
+    "serverless-azure-functions": ">=0.7.0"
   }
 }
