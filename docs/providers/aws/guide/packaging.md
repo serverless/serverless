@@ -98,6 +98,26 @@ package:
   artifact: path/to/my-artifact.zip
 ```
 
+You can also use this to package functions individually.
+
+### Example
+```yml
+service: my-service
+
+package:
+  individually: true
+
+functions:
+  hello:
+    handler: com.serverless.Handler
+  package:
+    artifact: hello.jar
+  events:
+    - http:
+        path: hello
+        method: get
+```
+
 ### Packaging functions separately
 
 If you want even more controls over your functions for deployment you can configure them to be packaged independently. This allows you more control for optimizing your deployment. To enable individual packaging set `individually` to true in the service or function wide packaging settings.
