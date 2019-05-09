@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Azure Functions sample for the Serverless framework",
   "scripts": {
-    "test": "echo \"No tests yet...\""
+    "test": "echo \"No tests yet...\"",
+    "start": "func host start"
   },
   "keywords": [
     "azure",
@@ -11,6 +12,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "serverless-azure-functions": ">=0.7.0"
+    "serverless-azure-functions": ">=0.7.0",
+    "azure-functions-core-tools": ">=2.7.1158"
   }
 }
