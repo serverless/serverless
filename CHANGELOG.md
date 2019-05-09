@@ -1,3 +1,6 @@
+# 1.42.1 (2019-05-09)
+- [Fix bug with `cors: true`](https://github.com/serverless/serverless/pull/6104)
+
 # 1.42.0 (2019-05-09)
 
 - [Update cors.md](https://github.com/serverless/serverless/pull/6027)
