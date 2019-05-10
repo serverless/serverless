@@ -1,5 +1,18 @@
+# 1.42.2 (2019-05-10)
+
+- [Fix restApiId resolution in post CF deployment phase](https://github.com/serverless/serverless/pull/6111)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.1...v1.42.2)
+
 # 1.42.1 (2019-05-09)
+
 - [Fix bug with `cors: true`](https://github.com/serverless/serverless/pull/6104)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.0...v1.42.1)
 
 # 1.42.0 (2019-05-09)
 
