@@ -19,7 +19,7 @@ service: azure-nodejs # NOTE: update this with your service name
 
 provider:
   name: azure
-  location: West US
+  location: West US 2
 
 plugins:
   - serverless-azure-functions
