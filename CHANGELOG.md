@@ -1,4 +1,4 @@
-# 1.42.2 (2019-05-09)
+# 1.42.2 (2019-05-10)
 
 - [Fix restApiId resolution in post CF deployment phase](https://github.com/serverless/serverless/pull/6111)
 
