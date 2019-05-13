@@ -64,7 +64,7 @@ describe('simple packaging', () => {
     execSync(`${serverlessExec} package`, { cwd });
     return testUtils.listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))
       .then(zipfiles => {
-        const nodeModules = new Set(i
+        const nodeModules = new Set(
           zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1]));
         const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
         expect(nodeModules).toEqual(new Set(['lodash']));
