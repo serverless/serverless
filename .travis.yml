@@ -44,7 +44,7 @@ sudo: false
 install:
 - travis_retry npm install
 script:
-- if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
+- if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test && npm local-integration-test; fi
 - if [[ ! -z "$DISABLE_TESTS" && ! -z "$LINTING" && -z "$INTEGRATION_TEST" ]]; then
   npm run lint; fi
 - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$INTEGRATION_TEST_SUITE"

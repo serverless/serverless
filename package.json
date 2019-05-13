@@ -56,6 +56,7 @@
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
     "integration-test-cleanup": "node scripts/integration-test-cleanup.js",
+    "local-integration-test": "jest --maxWorkers=5 local-suite",
     "simple-integration-test": "jest --maxWorkers=5 simple-suite",
     "complex-integration-test": "jest --maxWorkers=5 integration",
     "postinstall": "node ./scripts/postinstall.js"
