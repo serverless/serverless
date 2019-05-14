@@ -86,7 +86,8 @@ describe('cloudformation packaging', () => {
     execSync(`${serverlessExec} package`, { cwd });
     const cfnTemplate = JSON.parse(fs.readFileSync(path.join(
       cwd, '.serverless/cloudformation-template-update-stack.json')));
-    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/aws-nodejs.zip/);
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key)
+      .toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/aws-nodejs.zip/);
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
     expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
       Type: 'AWS::Lambda::Function',
