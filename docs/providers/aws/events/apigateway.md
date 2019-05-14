@@ -236,7 +236,7 @@ functions:
             allowCredentials: false
 ```
 
-To allow multipe origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
+To allow multiple origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
 
 ```yml
 functions:
