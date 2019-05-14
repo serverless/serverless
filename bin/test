@@ -10,9 +10,6 @@ if (process.argv.length <= 2) {
   process.argv.push(
     '!(node_modules)/**/*.test.js',
     '--require=sinon-bluebird',
-    '-R',
-    'spec',
-    '--recursive',
   );
 }
 
