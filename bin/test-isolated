@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+
+// Basic isolated tests runner
+// Ensures each test file is run in distinct process and does not interfere with other test runs.
+// To be used to confirm test files do not introduce and work by chance of side effects
+// Temporary solution until we migrate to runner which provides that (reliably) on its own
+
+'use strict';
+
+process.on('unhandledRejection', err => {
+  throw err;
+});
+
+const cpus = require('os').cpus();
+const globby = require('globby');
+const spawn = require('child-process-ext/spawn');
+const cliFooter = require('cli-progress-footer')();
+const pLimit = require('p-limit');
+
+cliFooter.shouldAddProgressAnimationPrefix = true;
+const processesCount = Math.max(cpus.length - 1, 1);
+
+const patterns = process.argv.length <= 2 ? ['**/*.test.js'] : process.argv.slice(2);
+patterns.push('!node_modules/**');
+
+const ongoing = new Set();
+const run = path => {
+  ongoing.add(path);
+  cliFooter.updateProgress(Array.from(ongoing));
+  const onFinally = ({ stdoutBuffer, stderrBuffer }) => {
+    ongoing.delete(path);
+    cliFooter.updateProgress(Array.from(ongoing));
+    process.stdout.write(String(stdoutBuffer));
+    process.stderr.write(String(stderrBuffer));
+  };
+  return spawn('./bin/test', ['--require=sinon-bluebird', path], {
+    env: Object.assign({ FORCE_COLOR: '1' }, process.env),
+  }).then(onFinally, error => {
+    onFinally(error);
+    throw error;
+  });
+};
+
+globby(patterns).then(paths => {
+  const limit = pLimit(processesCount);
+
+  return Promise.all(paths.map(path => limit(() => run(path))));
+});
