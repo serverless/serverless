@@ -1,3 +1,65 @@
+# 1.42.3 (2019-05-14)
+
+- [Update deploy.md](https://github.com/serverless/serverless/pull/6110)
+- [Adding a more specific example of how to package individually](https://github.com/serverless/serverless/pull/6108)
+- [Update Azure Functions Template](https://github.com/serverless/serverless/pull/6106)
+- [Update cloudflare documentation](https://github.com/serverless/serverless/pull/6105)
+- [Azure template update](https://github.com/serverless/serverless/pull/6122)
+- [Remove not used module](https://github.com/serverless/serverless/pull/6095)
+- [Support color output in tests](https://github.com/serverless/serverless/pull/6119)
+- [Fix validation after API Gateway deployment](https://github.com/serverless/serverless/pull/6128)
+- [Improve handling of custom API Gateway options](https://github.com/serverless/serverless/pull/6129)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.2...v1.42.3)
+
+# 1.42.2 (2019-05-10)
+
+- [Fix restApiId resolution in post CF deployment phase](https://github.com/serverless/serverless/pull/6111)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.1...v1.42.2)
+
+# 1.42.1 (2019-05-09)
+
+- [Fix bug with `cors: true`](https://github.com/serverless/serverless/pull/6104)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.0...v1.42.1)
+
+# 1.42.0 (2019-05-09)
+
+- [Update cors.md](https://github.com/serverless/serverless/pull/6027)
+- [Add tags to AWS APIGateway Stage](https://github.com/serverless/serverless/pull/5851)
+- [Remove safeguards when using API Gateway Stage resource settings](https://github.com/serverless/serverless/pull/6040)
+- [Enable Setting Amazon API Gateway API Key Value](https://github.com/serverless/serverless/pull/5982)
+- [Add more specific sub command error handling](https://github.com/serverless/serverless/pull/6038)
+- [Use region pseudo parameter](https://github.com/serverless/serverless/pull/6026)
+- [Add authorization scopes support for cognito user pool integration](https://github.com/serverless/serverless/pull/6000)
+- [Merging v1.41.1 changes back into master](https://github.com/serverless/serverless/pull/6042)
+- [Support wildcard in API Gateway cors domains](https://github.com/serverless/serverless/pull/6043)
+- [Support setting both proxy and ca file for awsprovider AWS config agent](https://github.com/serverless/serverless/pull/5952)
+- [Fix doc: How to update serverless](https://github.com/serverless/serverless/pull/6052)
+- [Update event.md](https://github.com/serverless/serverless/pull/6061)
+- [Allow Fn::Join in stream event arns](https://github.com/serverless/serverless/pull/6064)
+- [Fix markup error with Authe1.42.0 (2019-05-09)ntication value](https://github.com/serverless/serverless/pull/6068)
+- [Drop duplicate paragraph in aws/guide/credentials](https://github.com/serverless/serverless/pull/6075)
+- [Improve integration test of aws-scala-sbt](https://github.com/serverless/serverless/pull/6079)
+- [Highlight skipping of deployments](https://github.com/serverless/serverless/pull/6070)
+- [Add support for API Gateway REST API Logs](https://github.com/serverless/serverless/pull/6057)
+- [Implement logging with Log4j2 for aws-scala-sbt](https://github.com/serverless/serverless/pull/6078)
+- [Update serverless.yml.md](https://github.com/serverless/serverless/pull/6085)
+- [Fixed three small typos in doc](https://github.com/serverless/serverless/pull/6092)
+- [fixed small errors in spotinst docs](https://github.com/serverless/serverless/pull/6093)
+- [Add support for API Gateway Binary Media Types](https://github.com/serverless/serverless/pull/6063)
+- [SDK based API Gateway Stage updates](https://github.com/serverless/serverless/pull/6084)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.41.1...v1.42.0)
+
 # 1.41.1 (2019-04-23)
 
 - [Remove safeguards when using API Gateway Stage resource settings](https://github.com/serverless/serverless/pull/6040)

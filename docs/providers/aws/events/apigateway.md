@@ -47,7 +47,10 @@ layout: Doc
   - [Share Authorizer](#share-authorizer)
   - [Resource Policy](#resource-policy)
   - [Compression](#compression)
+  - [Binary Media Types](#binary-media-types)
   - [AWS X-Ray Tracing](#aws-x-ray-tracing)
+  - [Tags / Stack Tags](#tags--stack-tags)
+  - [Logs](#logs)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -233,7 +236,7 @@ functions:
             allowCredentials: false
 ```
 
-To allow multipe origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
+To allow multiple origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
 
 ```yml
 functions:
@@ -1413,16 +1416,24 @@ provider:
     minimumCompressionSize: 1024
 ```
 
-## Stage specific setups
+## Binary Media Types
 
-**IMPORTANT:** Due to CloudFormation limitations it's not possible to enable API Gateway stage settings on existing deployments. Please remove your old API Gateway and re-deploy with your new stage configuration. Once done, subsequent deployments should work without any issues.
+API Gateway makes it possible to return binary media such as images or files as responses.
 
-Disabling settings might result in unexpected behavior. We recommend to remove and re-deploy your service without such stage settings.
+Configuring API Gateway to return binary media can be done via the `binaryMediaTypes` config:
 
-### AWS X-Ray Tracing
+```yml
+provider:
+  apiGateway:
+    binaryMediaTypes:
+      - '*/*'
+```
 
-API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless
-application's API Gateway add the following to your `serverless.yml`
+In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
+
+## AWS X-Ray Tracing
+
+API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless application's API Gateway add the following to your `serverless.yml`
 
 ```yml
 # serverless.yml
@@ -1433,7 +1444,7 @@ provider:
     apiGateway: true
 ```
 
-### Tags / Stack Tags
+## Tags / Stack Tags
 
 API Gateway stages will be tagged with the `tags` and `stackTags` values defined at the `provider` level:
 
@@ -1447,3 +1458,17 @@ provider:
   tags:
     tagKey: tagValue
 ```
+
+## Logs
+
+Use the following configuration to enable API Gateway logs:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi: true
+```
+
+The log streams will be generated in a dedicated log group which follows the naming schema `/aws/api-gateway/{service}-{stage}`.

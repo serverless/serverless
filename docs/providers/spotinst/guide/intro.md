@@ -15,11 +15,11 @@ layout: Doc
 Spotinst Functions is a Multi-Cloud Functions as a Service (FaaS) platform that utilizes affordable compute and network infrastracture.
 Spotinst will take care of everything required to run and scale your code with high availability, advanced analytics and monitoring, and in low execution prices by finding the best available compute possible based on **Spot Pricing** across all cloud providers (Amazon Web Services, Microsoft Azure, Google Cloud, IBM Cloud, Oracle and even Bare-metal servers on Equinix).
 
-When creating a `Function`, you can specify your desired `Cloud providers`, as well as the `geographical location` (for example `US East` or `Europe`). In addtion you can defines triggers to execute the functions.
+When creating a `Function`, you can specify your desired `Cloud providers`, as well as the `geographical location` (for example `US East` or `Europe`). In addition you can defines triggers to execute the functions.
 
 Using the Serverless Framework you can develop and deploy your Spotinst Functions easily through a CLI that offers structure, automation, and best practices out-of-the-box. This allows you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
 
-## Core Benfits of `Spotinst Functions`
+## Core Benefits of `Spotinst Functions`
 
  1. Multi-Cloud Deployments `(50+ Locations!)`
  2. 50-80% Cost Reduction `(via Cloud Spot Prices)`
