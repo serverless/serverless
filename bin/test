@@ -13,7 +13,6 @@ if (process.argv.length <= 2) {
     '-R',
     'spec',
     '--recursive',
-    '--no-exit'
   );
 }
 
