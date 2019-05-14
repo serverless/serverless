@@ -8,8 +8,8 @@ process.on('unhandledRejection', err => {
 
 if (process.argv.length <= 2) {
   process.argv.push(
-    '!(node_modules)/**/*.test.js',
     '--require=sinon-bluebird',
+    '!(node_modules)/**/*.test.js',
   );
 }
 
