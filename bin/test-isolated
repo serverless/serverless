@@ -15,6 +15,7 @@ const cpus = require('os').cpus();
 const globby = require('globby');
 const spawn = require('child-process-ext/spawn');
 const cliFooter = require('cli-progress-footer')();
+const chalk = require('chalk')
 const pLimit = require('p-limit');
 
 cliFooter.shouldAddProgressAnimationPrefix = true;
@@ -36,7 +37,10 @@ const run = path => {
   return spawn('./bin/test', ['--require=sinon-bluebird', path], {
     env: Object.assign({ FORCE_COLOR: '1' }, process.env),
   }).then(onFinally, error => {
+    ongoing.clear();
     onFinally(error);
+    process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
+    if (error.code === 2) process.exit(2);
     throw error;
   });
 };
