@@ -47,7 +47,7 @@ serverless deploy
 ```
 
 ##### Deploy Function
-Use this to quickly overwrite your Fn Functinos, allowing you to develop faster.
+Use this to quickly overwrite your Fn Functions, allowing you to develop faster.
 ```
 serverless deploy -f [FUNCTION NAME]
 ```

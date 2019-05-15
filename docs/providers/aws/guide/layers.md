@@ -36,6 +36,7 @@ layers:
     licenseInfo: GPLv3 # optional, a string specifying license information
     allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
       - '*'
+    retain: false # optional, false by default. If true, layer versions are not deleted as new ones are created
 ```
 
 You can add up to 5 layers as you want within this property.

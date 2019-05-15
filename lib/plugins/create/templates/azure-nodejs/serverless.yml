@@ -19,7 +19,7 @@ service: azure-nodejs # NOTE: update this with your service name
 
 provider:
   name: azure
-  location: West US
+  location: West US 2
 
 plugins:
   - serverless-azure-functions
@@ -35,7 +35,17 @@ plugins:
 
 functions:
   hello:
-    handler: handler.hello
+    handler: hello/index.handler
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel : anonymous
+      - http: true
+        x-azure-settings:
+          direction: out
+          name: res
+  goodbye:
+    handler: goodbye/index.handler
     events:
       - http: true
         x-azure-settings:

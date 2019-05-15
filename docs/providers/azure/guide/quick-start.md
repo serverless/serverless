@@ -6,11 +6,11 @@ description: Getting started with the Serverless Framework on Azure Functions
 layout: Doc
 -->
 
-# Azure - Quick Start
+# Azure Functions - Quick Start
 
 ## Pre-requisites
 
-1. Node.js `v6.5.0` or later. *(this is the runtime version supported by Azure Functions)*
+1. Node.js `v6.5.0` or later. *(v6.5.0 is the minimum runtime version supported by Azure Functions)*
 2. Serverless CLI `v1.9.0` or later. You can run
 `npm install -g serverless` to install it.
 3. Azure plugin that allows you to work with Azure Functions `npm install -g serverless-azure-functions`
@@ -27,6 +27,29 @@ $ serverless create --template azure-nodejs --path my-service --name my-unique-n
 $ cd my-service
 $ npm install
 ```
+
+Note: This template contains **two** Azure functions to demonstrate how that would be configured within `serverless.yml`.
+
+Note: The `serverless.yml` file supports **inbound** and **outbound** function bindings by specifying the `direction` property.
+
+## Running Locally
+
+In order to run & test your Azure Function(s) locally, run a one-time install of the Azure Functions Core Tools:
+
+```bash
+npm install azure-functions-core-tools -g
+```
+
+From there, run the start script:
+
+```bash
+# Start Function app
+npm start
+```
+
+You will be provided with local URLs for each function for testing.
+
+Note: The file `{function name}/function.json` is included in the template for the quickstart, but this will be replaced by a generated file from the `serverless-azure-functions` plugin at deployment. There will soon be an option in the plugin for generating this file before deployment for local testing, but that scenario is not currently supported. If you want to test different function bindings locally before deploying, make the changes manually in `function.json` and update the `serverless.yml` to reflect the same.
 
 ## Deploy and test
 

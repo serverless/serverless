@@ -82,9 +82,10 @@ If you are unsure how a resource is named, that you want to reference from your 
 |ApiGateway::Method     | ApiGatewayMethod{normalizedPath}{normalizedMethod}      | ApiGatewayMethodUsersGet      |
 |ApiGateway::Authorizer | {normalizedFunctionName}ApiGatewayAuthorizer            | HelloApiGatewayAuthorizer     |
 |ApiGateway::Deployment | ApiGatewayDeployment{instanceId}                      | ApiGatewayDeployment12356789  |
-|ApiGateway::ApiKey     | ApiGatewayApiKey{SequentialID}                          | ApiGatewayApiKey1             |
-|ApiGateway::UsagePlan  | ApiGatewayUsagePlan                          | ApiGatewayUsagePlan             |
-|ApiGateway::UsagePlanKey     | ApiGatewayUsagePlanKey{SequentialID}                          | ApiGatewayUsagePlanKey1             |
+|ApiGateway::ApiKey     | ApiGatewayApiKey{OptionalNormalizedName}{SequentialID}  | ApiGatewayApiKeyFree1       |
+|ApiGateway::UsagePlan  | ApiGatewayUsagePlan{OptionalNormalizedName}             | ApiGatewayUsagePlanFree             |
+|ApiGateway::UsagePlanKey | ApiGatewayUsagePlanKey{OptionalNormalizedName}{SequentialID} | ApiGatewayUsagePlanKeyFree1  |
+|ApiGateway::Stage     | ApiGatewayStage                          | ApiGatewayStage             |
 |SNS::Topic             | SNSTopic{normalizedTopicName}                           | SNSTopicSometopic             |
 |SNS::Subscription      | {normalizedFunctionName}SnsSubscription{normalizedTopicName}   | HelloSnsSubscriptionSomeTopic             |
 |AWS::Lambda::EventSourceMapping | <ul><li>**DynamoDB:** {normalizedFunctionName}EventSourceMappingDynamodb{tableName}</li><li>**Kinesis:** {normalizedFunctionName}EventSourceMappingKinesis{streamName}</li></ul> | <ul><li>**DynamoDB:** HelloLambdaEventSourceMappingDynamodbUsers</li><li>**Kinesis:** HelloLambdaEventSourceMappingKinesisMystream</li></ul> |

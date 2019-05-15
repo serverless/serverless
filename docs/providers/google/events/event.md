@@ -27,7 +27,7 @@ functions:
     events:
       - event:
           eventType: providers/cloud.pubsub/eventTypes/topic.publish
-          resource: projects/*/topics/my-topic
+          resource: 'projects/${self:provider.project, ""}/topics/my-topic'
 ```
 
 ```javascript

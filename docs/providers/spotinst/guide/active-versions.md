@@ -12,7 +12,7 @@ layout: Doc
 
 # Spotinst Functions - Active Versions
 
-Every time you update your function, a new version is being created by default. Version numbers have a unique ID that starts at 0 and incrementes by one each update. Each function version is immutable and cannot be changed. 
+Every time you update your function, a new version is being created by default. Version numbers have a unique ID that starts at 0 and increments by one each update. Each function version is immutable and cannot be changed. 
 
 ## Latest Version
 The 'Latest' version refers to the most recent version created by the last update. Unless otherwise specified, all incoming traffic is routed to the latest version. 

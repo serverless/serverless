@@ -44,6 +44,17 @@ functions:
           type: kinesis
           arn:
             Fn::ImportValue: MyExportedKinesisStreamArnId
+      - stream
+          type: kinesis
+          arn:
+            Fn::Join:
+              - ":"
+              - - arn
+                - aws
+                - kinesis
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - stream/MyOtherKinesisStream
 ```
 
 ## Setting the BatchSize and StartingPosition
