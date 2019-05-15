@@ -15,7 +15,7 @@ const cpus = require('os').cpus();
 const globby = require('globby');
 const spawn = require('child-process-ext/spawn');
 const cliFooter = require('cli-progress-footer')();
-const chalk = require('chalk')
+const chalk = require('chalk');
 const pLimit = require('p-limit');
 
 cliFooter.shouldAddProgressAnimationPrefix = true;
