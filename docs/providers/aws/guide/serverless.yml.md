@@ -25,7 +25,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
@@ -148,7 +148,7 @@ functions:
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
-    runtime: nodejs6.10 # Runtime for this specific function. Overrides the default which is set on the provider level
+    runtime: nodejs10.x # Runtime for this specific function. Overrides the default which is set on the provider level
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
     onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic / SQS arn (Ref, Fn::GetAtt and Fn::ImportValue are supported as well) which will be used for the DeadLetterConfig

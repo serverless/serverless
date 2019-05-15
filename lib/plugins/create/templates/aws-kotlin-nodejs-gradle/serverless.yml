@@ -19,7 +19,7 @@ service: aws-kotlin-nodejs-gradle # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
 
 # you can overwrite defaults here
 #  stage: dev
