@@ -31,8 +31,8 @@ const run = path => {
   const onFinally = ({ stdoutBuffer, stderrBuffer }) => {
     ongoing.delete(path);
     cliFooter.updateProgress(Array.from(ongoing));
-    process.stdout.write(String(stdoutBuffer));
-    process.stderr.write(String(stderrBuffer));
+    process.stdout.write(stdoutBuffer);
+    process.stderr.write(stderrBuffer);
   };
   return spawn('./bin/test', ['--require=sinon-bluebird', path], {
     env: { FORCE_COLOR: '1', PATH: process.env.PATH },
