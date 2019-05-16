@@ -11,18 +11,12 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
-const cpus = require('os').cpus();
 const globby = require('globby');
 const spawn = require('child-process-ext/spawn');
-const cliFooter = require('cli-progress-footer')();
 const chalk = require('chalk');
-const pLimit = require('p-limit');
-
-cliFooter.shouldAddProgressAnimationPrefix = true;
 
 const patterns = process.argv.length <= 2 ? ['**/*.test.js'] : process.argv.slice(2);
 patterns.push('!node_modules/**');
-const ongoing = new Set();
 
 const resolveGitStatus = () =>
   spawn('git', ['status', '--porcelain']).then(
@@ -37,32 +31,24 @@ const resolveGitStatus = () =>
 const initGitStatusDeferred = resolveGitStatus();
 
 const run = path => {
-  ongoing.add(path);
-  cliFooter.updateProgress(Array.from(ongoing));
-  const onFinally = ({ stdoutBuffer, stderrBuffer }) => {
-    ongoing.delete(path);
-    cliFooter.updateProgress(Array.from(ongoing));
-    process.stdout.write(stdoutBuffer);
-    process.stderr.write(stderrBuffer);
-    return Promise.all([initGitStatusDeferred, resolveGitStatus()]).then(
-      ([initStatus, currentStatus]) => {
-        if (initStatus !== currentStatus) {
-          process.stderr.write(chalk.red.bold(`${path} didn't clean creted temporary files\n\n`));
-          process.exit(1);
-        }
+  const onFinally = () =>
+    Promise.all([initGitStatusDeferred, resolveGitStatus()]).then(([initStatus, currentStatus]) => {
+      if (initStatus !== currentStatus) {
+        process.stderr.write(chalk.red.bold(`${path} didn't clean creted temporary files\n\n`));
+        process.exit(1);
       }
-    );
-  };
+    });
+
   return spawn('./bin/test', ['--require=sinon-bluebird', path], {
+    stdio: 'inherit',
     env: { FORCE_COLOR: '1', PATH: process.env.PATH },
-  }).then(onFinally, error => {
-    ongoing.clear();
-    return onFinally(error).then(() => {
+  }).then(onFinally, error =>
+    onFinally(error).then(() => {
       process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
       if (error.code === 2) process.exit(2);
       throw error;
-    });
-  });
+    })
+  );
 };
 
 globby(patterns).then(paths => {
@@ -70,16 +56,9 @@ globby(patterns).then(paths => {
     process.stderr.write(chalk.red.bold('No test files matched\n\n'));
     process.exit(1);
   }
-  if (paths.length === 1) {
-    const spawnDeferred = spawn('./bin/test', ['--require=sinon-bluebird', paths[0]], {
-      env: { FORCE_COLOR: '1', PATH: process.env.PATH },
-    });
-    spawnDeferred.stdout.pipe(process.stdout);
-    spawnDeferred.stderr.pipe(process.stderr);
-    return spawnDeferred;
-  }
-
-  const limit = pLimit(1);
-
-  return initGitStatusDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));
+  return initGitStatusDeferred.then(function self() {
+    const path = paths.shift();
+    if (path) return run(path).then(self);
+    return null;
+  });
 });
