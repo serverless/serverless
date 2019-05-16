@@ -46,6 +46,11 @@ const run = path => {
 };
 
 globby(patterns).then(paths => {
+  if (!paths.length) {
+    process.stderr.write(chalk.red.bold('No test files matched\n\n'));
+    process.exit(1);
+  }
+
   const limit = pLimit(processesCount);
 
   return Promise.all(paths.map(path => limit(() => run(path))));
