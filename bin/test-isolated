@@ -28,16 +28,18 @@ const resolveGitStatus = () =>
     }
   );
 
-const initGitStatusDeferred = resolveGitStatus();
+const initialGitStatusDeferred = resolveGitStatus();
 
 const run = path => {
   const onFinally = () =>
-    Promise.all([initGitStatusDeferred, resolveGitStatus()]).then(([initStatus, currentStatus]) => {
-      if (initStatus !== currentStatus) {
-        process.stderr.write(chalk.red.bold(`${path} didn't clean creted temporary files\n\n`));
-        process.exit(1);
+    Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
+      ([initialStatus, currentStatus]) => {
+        if (initialStatus !== currentStatus) {
+          process.stderr.write(chalk.red.bold(`${path} didn't clean creted temporary files\n\n`));
+          process.exit(1);
+        }
       }
-    });
+    );
 
   return spawn('./bin/test', ['--require=sinon-bluebird', path], {
     stdio: 'inherit',
@@ -56,7 +58,7 @@ globby(patterns).then(paths => {
     process.stderr.write(chalk.red.bold('No test files matched\n\n'));
     process.exit(1);
   }
-  return initGitStatusDeferred.then(function self() {
+  return initialGitStatusDeferred.then(function self() {
     const path = paths.shift();
     if (path) return run(path).then(self);
     return null;
