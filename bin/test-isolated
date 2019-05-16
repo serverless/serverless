@@ -19,12 +19,23 @@ const chalk = require('chalk');
 const pLimit = require('p-limit');
 
 cliFooter.shouldAddProgressAnimationPrefix = true;
-const processesCount = Math.max(cpus.length - 1, 1);
 
 const patterns = process.argv.length <= 2 ? ['**/*.test.js'] : process.argv.slice(2);
 patterns.push('!node_modules/**');
-
 const ongoing = new Set();
+
+const resolveGitStatus = () =>
+  spawn('git', ['status', '--porcelain']).then(
+    ({ stdoutBuffer }) => String(stdoutBuffer),
+    error => {
+      process.stdout.write(error.stdoutBuffer);
+      process.stderr.write(error.stderrBuffer);
+      throw error;
+    }
+  );
+
+const initGitStatusDeferred = resolveGitStatus();
+
 const run = path => {
   ongoing.add(path);
   cliFooter.updateProgress(Array.from(ongoing));
@@ -33,15 +44,24 @@ const run = path => {
     cliFooter.updateProgress(Array.from(ongoing));
     process.stdout.write(stdoutBuffer);
     process.stderr.write(stderrBuffer);
+    return Promise.all([initGitStatusDeferred, resolveGitStatus()]).then(
+      ([initStatus, currentStatus]) => {
+        if (initStatus !== currentStatus) {
+          process.stderr.write(chalk.red.bold(`${path} didn't clean creted temporary files\n\n`));
+          process.exit(1);
+        }
+      }
+    );
   };
   return spawn('./bin/test', ['--require=sinon-bluebird', path], {
     env: { FORCE_COLOR: '1', PATH: process.env.PATH },
   }).then(onFinally, error => {
     ongoing.clear();
-    onFinally(error);
-    process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
-    if (error.code === 2) process.exit(2);
-    throw error;
+    return onFinally(error).then(() => {
+      process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
+      if (error.code === 2) process.exit(2);
+      throw error;
+    });
   });
 };
 
@@ -59,7 +79,7 @@ globby(patterns).then(paths => {
     return spawnDeferred;
   }
 
-  const limit = pLimit(processesCount);
+  const limit = pLimit(1);
 
-  return Promise.all(paths.map(path => limit(() => run(path))));
+  return initGitStatusDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));
 });
