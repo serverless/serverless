@@ -50,6 +50,14 @@ globby(patterns).then(paths => {
     process.stderr.write(chalk.red.bold('No test files matched\n\n'));
     process.exit(1);
   }
+  if (paths.length === 1) {
+    const spawnDeferred = spawn('./bin/test', ['--require=sinon-bluebird', paths[0]], {
+      env: { FORCE_COLOR: '1', PATH: process.env.PATH },
+    });
+    spawnDeferred.stdout.pipe(process.stdout);
+    spawnDeferred.stderr.pipe(process.stderr);
+    return spawnDeferred;
+  }
 
   const limit = pLimit(processesCount);
 
