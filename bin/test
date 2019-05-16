@@ -2,6 +2,16 @@
 
 'use strict';
 
+// Workaround Mocha v5 issue: https://github.com/mochajs/mocha/issues/3226
+// Fixed in v6, but not really: https://github.com/mochajs/mocha/issues/3917
+process.on('uncaughtException', err => {
+  if (!process.listenerCount('exit')) return;
+  // Mocha done it's report, and registered process.exit listener which silences any further
+  // eventual crashes. Recover by unregistering the listener
+  process.removeAllListeners('exit');
+  throw err;
+});
+
 process.on('unhandledRejection', err => {
   throw err;
 });
