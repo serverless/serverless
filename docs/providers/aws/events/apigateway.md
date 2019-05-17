@@ -1355,6 +1355,8 @@ functions:
             type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
             authorizerId:
               Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
+              scopes: # Optional - List of Oauth2 scopes when type is COGNITO_USER_POOLS
+                - myapp/myscope
 
   deleteUser:
      ...
