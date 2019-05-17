@@ -3,7 +3,7 @@ service: hello-world # Service Name
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
 
 functions:
   helloWorld:
