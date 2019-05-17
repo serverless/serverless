@@ -499,7 +499,7 @@ functions:
               - nickname
 ```
 
-### Using asyncronous integration
+### Using asynchronous integration
 
 Use `async: true` when integrating a lambda function using [event invocation](https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html#SSS-Invoke-request-InvocationType). This lets API Gateway to return immediately with a 200 status code while the lambda continues running. If not othewise speficied integration type will be `AWS`.
 
