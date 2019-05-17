@@ -501,7 +501,7 @@ functions:
 
 ### Using asynchronous integration
 
-Use `async: true` when integrating a lambda function using [event invocation](https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html#SSS-Invoke-request-InvocationType). This lets API Gateway to return immediately with a 200 status code while the lambda continues running. If not othewise speficied integration type will be `AWS`.
+Use `async: true` when integrating a lambda function using [event invocation](https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html#SSS-Invoke-request-InvocationType). This lets API Gateway to return immediately with a 200 status code while the lambda continues running. If not otherwise specified integration type will be `AWS`.
 
 ```yml
 functions:
@@ -868,7 +868,7 @@ If you want to spread a string into multiple lines, you can use the `>` or `|` s
 #### Pass Through Behavior
 API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates.  When this happens, the request payload will either be passed through the integration request *without transformation* or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
 
-You can define this behavior as follows (if not specified, a value of **NEVER** will be used):
+You can define this behaviour as follows (if not specified, a value of **NEVER** will be used):
 
 ```yml
 functions:
