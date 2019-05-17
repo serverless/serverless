@@ -17,7 +17,12 @@ process.on('unhandledRejection', err => {
 });
 
 if (process.argv.length <= 2) {
-  process.argv.push('--require=sinon-bluebird', '!(node_modules)/**/*.test.js');
+  process.argv.push(
+    '--require=sinon-bluebird',
+    '-R',
+    'tests/mocha-reporter',
+    '!(node_modules)/**/*.test.js'
+  );
 }
 
 require('mocha/bin/_mocha');
