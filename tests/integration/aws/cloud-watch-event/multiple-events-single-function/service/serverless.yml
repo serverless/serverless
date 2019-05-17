@@ -2,7 +2,7 @@ service: aws-nodejs
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
 
 functions:
   cwe1:
