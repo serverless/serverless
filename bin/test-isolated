@@ -35,7 +35,7 @@ const run = path => {
     Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
       ([initialStatus, currentStatus]) => {
         if (initialStatus !== currentStatus) {
-          process.stderr.write(chalk.red.bold(`${path} didn't clean creted temporary files\n\n`));
+          process.stderr.write(chalk.red.bold(`${path} didn't clean created temporary files\n\n`));
           process.exit(1);
         }
       }
