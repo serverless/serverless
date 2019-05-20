@@ -1,6 +1,6 @@
 'use strict';
 
-// Unahdled rejections are not exposed in Mocha, we need to force it
+// Unahdled rejections are not exposed in Mocha, enforce it
 // https://github.com/mochajs/mocha/issues/2640
 process.on('unhandledRejection', err => {
   throw err;
