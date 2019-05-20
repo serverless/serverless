@@ -41,7 +41,7 @@ const run = path => {
       }
     );
 
-  return spawn('./bin/test', ['--require=sinon-bluebird', '-R', 'tests/mocha-reporter', path], {
+  return spawn('./bin/test', [path], {
     stdio: 'inherit',
     env: { FORCE_COLOR: '1', PATH: process.env.PATH },
   }).then(onFinally, error =>
