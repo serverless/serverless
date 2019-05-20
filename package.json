@@ -52,6 +52,7 @@
   },
   "scripts": {
     "test-bare": "node bin/test",
+    "test-isolated": "node bin/test-isolated",
     "test": "istanbul cover -x \"**/*.test.js\" bin/test",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
@@ -70,6 +71,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
+    "child-process-ext": "^2.0.0",
     "coveralls": "^3.0.3",
     "eslint": "^3.3.1",
     "eslint-config-airbnb": "^10.0.1",
