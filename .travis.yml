@@ -38,7 +38,6 @@ matrix:
     - LINTING=true
 sudo: false
 install:
-- travis_retry npm install -g npm
 - travis_retry npm install
 script:
 - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
