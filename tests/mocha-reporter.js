@@ -24,4 +24,16 @@ const Runner = require('mocha/lib/runner');
 // Reported to Mocha with: https://github.com/mochajs/mocha/issues/3920
 Runner.immediately = process.nextTick;
 
-module.exports = Spec;
+module.exports = class ServerlessSpec extends Spec {
+  constructor(runner) {
+    super(runner);
+    runner.on('end', () =>
+      setTimeout(() => {
+        // If tests end with any orphaned async call then this callback will be invoked
+        // It's a signal there's some misconfiguration in promises
+        // or in general in async flow handling
+        throw new Error('Test ended with unfinished async jobs');
+      }).unref()
+    );
+  }
+};
