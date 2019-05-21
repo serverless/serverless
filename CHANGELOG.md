@@ -1,3 +1,29 @@
+# 1.43.0 (2019-05-20)
+
+- [Update services.md](https://github.com/serverless/serverless/pull/6138)
+- [Azure: exclude development dependency files when packaging functions](https://github.com/serverless/serverless/pull/6137)
+- [Update release process docs and toolings](https://github.com/serverless/serverless/pull/6113)
+- [Update AWS Node.js runtime to version 10](https://github.com/serverless/serverless/pull/6142)
+- [Fix tests setup issues](https://github.com/serverless/serverless/pull/6147)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.3...v1.43.0)
+
+# 1.42.3 (2019-05-14)
+
+- [Update deploy.md](https://github.com/serverless/serverless/pull/6110)
+- [Adding a more specific example of how to package individually](https://github.com/serverless/serverless/pull/6108)
+- [Update Azure Functions Template](https://github.com/serverless/serverless/pull/6106)
+- [Update cloudflare documentation](https://github.com/serverless/serverless/pull/6105)
+- [Azure template update](https://github.com/serverless/serverless/pull/6122)
+- [Remove not used module](https://github.com/serverless/serverless/pull/6095)
+- [Support color output in tests](https://github.com/serverless/serverless/pull/6119)
+- [Fix validation after API Gateway deployment](https://github.com/serverless/serverless/pull/6128)
+- [Improve handling of custom API Gateway options](https://github.com/serverless/serverless/pull/6129)
+
+## Meta
+ - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.2...v1.42.3)
+
 # 1.42.2 (2019-05-10)
 
 - [Fix restApiId resolution in post CF deployment phase](https://github.com/serverless/serverless/pull/6111)
