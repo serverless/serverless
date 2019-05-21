@@ -39,6 +39,8 @@ matrix:
 sudo: false
 install:
 - travis_retry npm install
+  # needed for consistency in output during packaging tests. old versions don't create a lock file
+- travis_retry npm install -g npm
 script:
 - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test && npm run packaging-integration-test; fi
 - if [[ ! -z "$DISABLE_TESTS" && ! -z "$LINTING" && -z "$INTEGRATION_TEST" ]]; then
