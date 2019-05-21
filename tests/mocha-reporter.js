@@ -30,8 +30,7 @@ module.exports = class ServerlessSpec extends Spec {
     runner.on('end', () =>
       setTimeout(() => {
         // If tests end with any orphaned async call then this callback will be invoked
-        // It's a signal there's some misconfiguration in promises
-        // or in general in async flow handling
+        // It's a signal there's some promise chain (or in general async flow) miconfiguration
         throw new Error('Test ended with unfinished async jobs');
       }).unref()
     );
