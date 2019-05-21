@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
 const execSync = require('child_process').execSync;
@@ -6,14 +8,14 @@ const testUtils = require('../utils/index');
 
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
 
-describe('simple packaging', () => {
+describe('Integration test - Packaging', () => {
   let cwd;
   beforeEach(() => {
     cwd = testUtils.getTmpDirPath();
     fse.mkdirsSync(cwd);
   });
 
-  it('packages the default aws template correctly', () => {
+  it('packages the default aws template correctly in the zip', () => {
     const templateName = 'aws-nodejs';
     execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
     execSync(`${serverlessExec} package`, { cwd });
@@ -23,7 +25,7 @@ describe('simple packaging', () => {
       });
   });
 
-  it('packages the default aws template with an npm dep correctly', () => {
+  it('packages the default aws template with an npm dep correctly in the zip', () => {
     const templateName = 'aws-nodejs';
     execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
     execSync('npm init --yes', { cwd });
@@ -39,7 +41,7 @@ describe('simple packaging', () => {
       });
   });
 
-  it('doesn\'t package a dev dependency', () => {
+  it('doesn\'t package a dev dependency in the zip', () => {
     const templateName = 'aws-nodejs';
     execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
     execSync('npm init --yes', { cwd });
@@ -55,7 +57,7 @@ describe('simple packaging', () => {
       });
   });
 
-  it('ignores package json files per ignore directive', () => {
+  it('ignores package json files per ignore directive in the zip', () => {
     const templateName = 'aws-nodejs';
     execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
     execSync('npm init --yes', { cwd });
@@ -73,14 +75,14 @@ describe('simple packaging', () => {
   });
 });
 
-describe('cloudformation packaging', () => {
+describe('Integration test - Packaging', () => {
   let cwd;
   beforeEach(() => {
     cwd = testUtils.getTmpDirPath();
     fse.mkdirsSync(cwd);
   });
 
-  it('creates the correct default function resource', () => {
+  it('creates the correct default function resource in cfn template', () => {
     const templateName = 'aws-nodejs';
     execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
     execSync(`${serverlessExec} package`, { cwd });
