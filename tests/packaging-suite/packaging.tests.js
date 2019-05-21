@@ -108,7 +108,7 @@ describe('Integration test - Packaging', () => {
             'Arn',
           ],
         },
-        Runtime: 'nodejs8.10',
+        Runtime: 'nodejs10.x',
         Timeout: 6,
       },
       DependsOn: [
