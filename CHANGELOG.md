@@ -1,3 +1,14 @@
+# 1.43.0 (2019-05-20)
+
+- [Update services.md](https://github.com/serverless/serverless/pull/6138)
+- [Azure: exclude development dependency files when packaging functions](https://github.com/serverless/serverless/pull/6137)
+- [Update release process docs and toolings](https://github.com/serverless/serverless/pull/6113)
+- [Update AWS Node.js runtime to version 10](https://github.com/serverless/serverless/pull/6142)
+- [Fix tests setup issues](https://github.com/serverless/serverless/pull/6147)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.3...v1.43.0)
+
 # 1.42.3 (2019-05-14)
 
 - [Update deploy.md](https://github.com/serverless/serverless/pull/6110)
