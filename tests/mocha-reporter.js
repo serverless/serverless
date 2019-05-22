@@ -24,7 +24,7 @@ const Runner = require('mocha/lib/runner');
 // Reported to Mocha with: https://github.com/mochajs/mocha/issues/3920
 Runner.immediately = process.nextTick;
 
-// Speedup Bluebird's unhandled rejection notifications
+// Speed up Bluebird's unhandled rejection notifications
 // So they do not interfere with an async leaks detector (configured below)
 const BbPromise = require('bluebird');
 /* eslint-disable no-underscore-dangle */
