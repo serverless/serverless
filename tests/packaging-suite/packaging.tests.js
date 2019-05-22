@@ -17,7 +17,8 @@ describe('Integration test - Packaging', () => {
 
   it('packages the default aws template correctly in the zip', () => {
     const templateName = 'aws-nodejs';
-    execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
+    fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
+    fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync(`${serverlessExec} package`, { cwd });
     return testUtils.listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))
       .then(zipfiles => {
@@ -27,7 +28,8 @@ describe('Integration test - Packaging', () => {
 
   it('packages the default aws template with an npm dep correctly in the zip', () => {
     const templateName = 'aws-nodejs';
-    execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
+    fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
+    fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync('npm init --yes', { cwd });
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
@@ -43,7 +45,8 @@ describe('Integration test - Packaging', () => {
 
   it('doesn\'t package a dev dependency in the zip', () => {
     const templateName = 'aws-nodejs';
-    execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
+    fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
+    fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync('npm init --yes', { cwd });
     execSync('npm i --save-dev lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
@@ -59,7 +62,8 @@ describe('Integration test - Packaging', () => {
 
   it('ignores package json files per ignore directive in the zip', () => {
     const templateName = 'aws-nodejs';
-    execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
+    fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
+    fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync('npm init --yes', { cwd });
     execSync('echo \'package: {exclude: ["package*.json"]}\' >> serverless.yml', { cwd });
     execSync('npm i lodash', { cwd });
@@ -84,7 +88,8 @@ describe('Integration test - Packaging', () => {
 
   it('creates the correct default function resource in cfn template', () => {
     const templateName = 'aws-nodejs';
-    execSync(`${serverlessExec} create --template ${templateName}`, { cwd });
+    fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
+    fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync(`${serverlessExec} package`, { cwd });
     const cfnTemplate = JSON.parse(fs.readFileSync(path.join(
       cwd, '.serverless/cloudformation-template-update-stack.json')));
