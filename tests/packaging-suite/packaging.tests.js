@@ -16,7 +16,6 @@ describe('Integration test - Packaging', () => {
   });
 
   it('packages the default aws template correctly in the zip', () => {
-    const templateName = 'aws-nodejs';
     fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
     fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync(`${serverlessExec} package`, { cwd });
@@ -27,7 +26,6 @@ describe('Integration test - Packaging', () => {
   });
 
   it('packages the default aws template with an npm dep correctly in the zip', () => {
-    const templateName = 'aws-nodejs';
     fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
     fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync('npm init --yes', { cwd });
@@ -44,7 +42,6 @@ describe('Integration test - Packaging', () => {
   });
 
   it('doesn\'t package a dev dependency in the zip', () => {
-    const templateName = 'aws-nodejs';
     fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
     fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync('npm init --yes', { cwd });
@@ -87,7 +84,6 @@ describe('Integration test - Packaging', () => {
   });
 
   it('creates the correct default function resource in cfn template', () => {
-    const templateName = 'aws-nodejs';
     fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
     fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
     execSync(`${serverlessExec} package`, { cwd });
