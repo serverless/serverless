@@ -73,14 +73,7 @@ describe('Integration test - Packaging', () => {
         expect(nonNodeModulesFiles).toEqual(['handler.js']);
       });
   });
-});
 
-describe('Integration test - Packaging', () => {
-  let cwd;
-  beforeEach(() => {
-    cwd = testUtils.getTmpDirPath();
-    fse.mkdirsSync(cwd);
-  });
   it('package artifact directive works', () => {
     fs.copyFileSync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'))
     fs.copyFileSync(path.join(__dirname, 'artifact.zip'), path.join(cwd, 'artifact.zip'))
@@ -156,5 +149,48 @@ describe('Integration test - Packaging', () => {
       .then(zipfiles => {
         expect(zipfiles).toEqual(['handler.js']);
       });
+  });
+
+  it('handles package individually with include/excludes correctly', () => {
+    fs.copyFileSync(path.join(__dirname, 'individually.yml'), path.join(cwd, 'serverless.yml'))
+    fs.copyFileSync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'))
+    fs.copyFileSync(path.join(__dirname, 'handler2.js'), path.join(cwd, 'handler2.js'))
+    execSync(`${serverlessExec} package`, { cwd });
+    const cfnTemplate = JSON.parse(fs.readFileSync(path.join(
+      cwd, '.serverless/cloudformation-template-update-stack.json')));
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key)
+      .toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/hello.zip/);
+    expect(cfnTemplate.Resources.Hello2LambdaFunction.Properties.Code.S3Key)
+      .toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/hello2.zip/);
+    delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
+    expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
+      Type: 'AWS::Lambda::Function',
+      Properties: {
+        Code: {
+          S3Bucket: {
+            Ref: 'ServerlessDeploymentBucket',
+          },
+        },
+        FunctionName: 'aws-nodejs-dev-hello',
+        Handler: 'handler.hello',
+        MemorySize: 1024,
+        Role: {
+          'Fn::GetAtt': [
+            'IamRoleLambdaExecution',
+            'Arn',
+          ],
+        },
+        Runtime: 'nodejs10.x',
+        Timeout: 6,
+      },
+      DependsOn: [
+        'HelloLogGroup',
+        'IamRoleLambdaExecution',
+      ],
+    });
+    return testUtils.listZipFiles(path.join(cwd, '.serverless/hello.zip'))
+      .then(zipfiles => expect(zipfiles).toEqual(['handler.js']))
+      .then(() => testUtils.listZipFiles(path.join(cwd, '.serverless/hello2.zip')))
+      .then(zipfiles => expect(zipfiles).toEqual(['handler2.js']));
   });
 });
