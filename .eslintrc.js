@@ -4,7 +4,7 @@ module.exports = {
   "plugins": [],
   "rules": {
     "func-names": "off",
-    "global-require": "off", // Interferes with optional and eventual circular references
+    "global-require": "off", // Interfers with optional and eventual circular references
 
     // doesn't work in node v4 :(
     "strict": "off",
