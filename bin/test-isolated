@@ -1,0 +1,66 @@
+#!/usr/bin/env node
+
+// Basic isolated tests runner
+// Ensures each test file is run in distinct process and does not interfere with other test runs.
+// To be used to confirm test files do not introduce and work by chance of side effects
+// Temporary solution until we migrate to runner which provides that (reliably) on its own
+
+'use strict';
+
+process.on('unhandledRejection', err => {
+  throw err;
+});
+
+const globby = require('globby');
+const spawn = require('child-process-ext/spawn');
+const chalk = require('chalk');
+
+const patterns = process.argv.length <= 2 ? ['**/*.test.js'] : process.argv.slice(2);
+patterns.push('!node_modules/**');
+
+const resolveGitStatus = () =>
+  spawn('git', ['status', '--porcelain']).then(
+    ({ stdoutBuffer }) => String(stdoutBuffer),
+    error => {
+      process.stdout.write(error.stdoutBuffer);
+      process.stderr.write(error.stderrBuffer);
+      throw error;
+    }
+  );
+
+const initialGitStatusDeferred = resolveGitStatus();
+
+const run = path => {
+  const onFinally = () =>
+    Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
+      ([initialStatus, currentStatus]) => {
+        if (initialStatus !== currentStatus) {
+          process.stderr.write(chalk.red.bold(`${path} didn't clean created temporary files\n\n`));
+          process.exit(1);
+        }
+      }
+    );
+
+  return spawn('./bin/test', ['--require=sinon-bluebird', path], {
+    stdio: 'inherit',
+    env: { FORCE_COLOR: '1', PATH: process.env.PATH },
+  }).then(onFinally, error =>
+    onFinally(error).then(() => {
+      process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
+      if (error.code === 2) process.exit(2);
+      throw error;
+    })
+  );
+};
+
+globby(patterns).then(paths => {
+  if (!paths.length) {
+    process.stderr.write(chalk.red.bold('No test files matched\n\n'));
+    process.exit(1);
+  }
+  return initialGitStatusDeferred.then(function self() {
+    const path = paths.shift();
+    if (path) return run(path).then(self);
+    return null;
+  });
+});

@@ -37,8 +37,6 @@ comments/
 ```
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
-**Note:** Currently, every service will create a separate REST API on AWS API Gateway.  Due to a limitation with AWS API Gateway, you can only have a custom domain per one REST API.  If you plan on making a large REST API, please make note of this limitation.  Also, [a fix is in the works](https://github.com/serverless/serverless/issues/3078) and is a top priority.
-
 ## Creation
 
 To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
@@ -101,7 +99,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   stackName: my-custom-stack-name-${self:provider.stage} # Overwrite default CloudFormation stack name. Default is ${self:service}-${self:provider.stage}
@@ -231,7 +229,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   memorySize: 512
 
 …
@@ -248,7 +246,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   memorySize: 512
 
 …

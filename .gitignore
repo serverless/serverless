@@ -57,5 +57,4 @@ jest
 
 # DotNet
 obj/
-[Bb]in/
 [Oo]bj/

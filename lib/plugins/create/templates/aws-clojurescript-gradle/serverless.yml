@@ -21,7 +21,7 @@ service: aws-clojurescript-gradle
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
 
 # you can overwrite defaults here
 #  stage: dev

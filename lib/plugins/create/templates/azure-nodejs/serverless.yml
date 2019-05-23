@@ -25,13 +25,15 @@ plugins:
   - serverless-azure-functions
 
 # you can add packaging information here
-#package:
+package:
 #  include:
 #    - include-me.js
 #    - include-me-dir/**
-#  exclude:
+  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**
+    - local.settings.json
+    - .vscode/**
 
 functions:
   hello:
