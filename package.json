@@ -87,6 +87,7 @@
     "mocha": "^5.2.0",
     "mocha-lcov-reporter": "^1.2.0",
     "mock-require": "^1.3.0",
+    "p-limit": "^2.2.0",
     "parse-github-url": "^1.0.1",
     "proxyquire": "^1.7.10",
     "sinon": "^1.17.5",

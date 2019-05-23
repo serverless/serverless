@@ -14,6 +14,7 @@ process.on('unhandledRejection', err => {
 const globby = require('globby');
 const spawn = require('child-process-ext/spawn');
 const chalk = require('chalk');
+const pLimit = require('p-limit');
 
 const patterns = process.argv.length <= 2 ? ['**/*.test.js'] : process.argv.slice(2);
 patterns.push('!node_modules/**');
@@ -58,9 +59,8 @@ globby(patterns).then(paths => {
     process.stderr.write(chalk.red.bold('No test files matched\n\n'));
     process.exit(1);
   }
-  return initialGitStatusDeferred.then(function self() {
-    const path = paths.shift();
-    if (path) return run(path).then(self);
-    return null;
-  });
+
+  const limit = pLimit(1);
+  return initialGitStatusDeferred.then(() =>
+    Promise.all(paths.map(path => limit(() => run(path)))));
 });
