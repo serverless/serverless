@@ -7,20 +7,6 @@ const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
-const semver = require('semver');
-const packageJson = require('../package.json');
-
-function checkNodeVersion(serverless) {
-  const requiredVersion = packageJson.engines.node;
-  const nodeVersion = process.version;
-  if (!semver.satisfies(nodeVersion, requiredVersion)) {
-    const msg = [
-      `Serverless Framework requires Node.js version ${requiredVersion}. `,
-      `You're running version ${nodeVersion}.`,
-    ].join('');
-    serverless.cli.log(msg);
-  }
-}
 
 Error.stackTraceLimit = Infinity;
 
@@ -54,7 +40,6 @@ const invocationId = uuid.v4();
   serverless.invocationId = invocationId;
 
   return serverless.init()
-    .then(() => checkNodeVersion(serverless))
     .then(() => serverless.run())
     .then(() => process.exit(0))
     .catch((err) => {

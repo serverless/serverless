@@ -4,6 +4,7 @@
   "engines": {
     "node": ">=6.0"
   },
+  "engineStrict": true,
   "preferGlobal": true,
   "homepage": "https://github.com/serverless/serverless#readme",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
