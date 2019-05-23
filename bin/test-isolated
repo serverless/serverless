@@ -39,31 +39,55 @@ globby(patterns).then(paths => {
     process.exit(1);
   }
 
+  const processesCount = 1;
+  const isMultiProcessRun = processesCount > 1;
+
+  const { ongoing, cliFooter } = (() => {
+    if (!isMultiProcessRun) return {};
+    return { ongoing: new Set(), cliFooter: require('cli-progress-footer')() };
+  })();
+
   const run = path => {
-    const onFinally = () =>
-      Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
-        ([initialStatus, currentStatus]) => {
-          if (initialStatus !== currentStatus) {
-            process.stderr.write(
-              chalk.red.bold(`${path} didn't clean created temporary files\n\n`)
-            );
-            process.exit(1);
+    if (isMultiProcessRun) {
+      ongoing.add(path);
+      cliFooter.updateProgress(Array.from(ongoing));
+    }
+
+    const onFinally = (() => {
+      if (isMultiProcessRun) {
+        return ({ stdoutBuffer, stderrBuffer }) => {
+          ongoing.delete(path);
+          cliFooter.updateProgress(Array.from(ongoing));
+          process.stdout.write(stdoutBuffer);
+          process.stderr.write(stderrBuffer);
+        };
+      }
+      return () =>
+        Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
+          ([initialStatus, currentStatus]) => {
+            if (initialStatus !== currentStatus) {
+              process.stderr.write(
+                chalk.red.bold(`${path} didn't clean created temporary files\n\n`)
+              );
+              process.exit(1);
+            }
           }
-        }
-      );
+        );
+    })();
 
     return spawn('./bin/test', [path], {
-      stdio: 'inherit',
+      stdio: isMultiProcessRun ? null : 'inherit',
       env: { FORCE_COLOR: '1', PATH: process.env.PATH },
-    }).then(onFinally, error =>
-      onFinally(error).then(() => {
+    }).then(onFinally, error => {
+      if (isMultiProcessRun) ongoing.clear();
+      return onFinally(error).then(() => {
         process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
         if (error.code === 2) process.exit(2);
         throw error;
-      })
-    );
+      });
+    });
   };
 
-  const limit = pLimit(1);
+  const limit = pLimit(processesCount);
   return initialSetupDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));
 });
