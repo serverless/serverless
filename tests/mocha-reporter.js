@@ -25,7 +25,7 @@ const Runner = require('mocha/lib/runner');
 Runner.immediately = process.nextTick;
 
 // Speed up Bluebird's unhandled rejection notifications so it's on par with timing
-// observable in native promises, and they do not interfere with an async leaks detector
+// we observe with native promises, and so they do not interfere with an async leaks detector
 const BbPromise = require('bluebird');
 /* eslint-disable no-underscore-dangle */
 BbPromise.prototype._ensurePossibleRejectionHandled = function () {
