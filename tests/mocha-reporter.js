@@ -43,9 +43,10 @@ module.exports = class ServerlessSpec extends Spec {
         // If tests end with any orphaned async call then this callback will be invoked
         // It's a signal there's some promise chain (or in general async flow) miconfiguration
         throw new Error('Test ended with unfinished async jobs');
-        // Timeout '2' to ensure no false positives, with '1' there are observable rare scenarios
+        // Timeout '5' to ensure no false positives, with '1' there are observable rare scenarios
         // of possibly a garbage collector delaying process exit being picked up
-      }, 2).unref()
+        // On Node.js v8+ '2' seems safe, while v6 needs '5'
+      }, 5).unref()
     );
   }
 };
