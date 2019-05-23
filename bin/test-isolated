@@ -16,6 +16,13 @@ const spawn = require('child-process-ext/spawn');
 const chalk = require('chalk');
 const pLimit = require('p-limit');
 
+const shouldApplyFsCleanupCheck = (() => {
+  const argIndex = process.argv.findIndex(arg => arg === '--skip-fs-cleanup-check');
+  if (argIndex === -1) return true;
+  process.argv.splice(argIndex, 1);
+  return false;
+})();
+
 const patterns = process.argv.length <= 2 ? ['**/*.test.js'] : process.argv.slice(2);
 patterns.push('!node_modules/**');
 
@@ -29,9 +36,11 @@ const resolveGitStatus = () =>
     }
   );
 
-const initialGitStatusDeferred = resolveGitStatus();
+const initialGitStatusDeferred = shouldApplyFsCleanupCheck ? resolveGitStatus() : null;
 
-const initialSetupDeferred = initialGitStatusDeferred;
+const initialSetupDeferred = shouldApplyFsCleanupCheck
+  ? initialGitStatusDeferred
+  : Promise.resolve();
 
 globby(patterns).then(paths => {
   if (!paths.length) {
@@ -39,7 +48,10 @@ globby(patterns).then(paths => {
     process.exit(1);
   }
 
-  const processesCount = 1;
+  const processesCount = shouldApplyFsCleanupCheck
+    ? 1
+    : Math.max(require('os').cpus().length - 1, 1);
+
   const isMultiProcessRun = processesCount > 1;
 
   const { ongoing, cliFooter } = (() => {
@@ -62,6 +74,7 @@ globby(patterns).then(paths => {
           process.stderr.write(stderrBuffer);
         };
       }
+      if (!shouldApplyFsCleanupCheck) return () => {};
       return () =>
         Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
           ([initialStatus, currentStatus]) => {
