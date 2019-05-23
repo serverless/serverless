@@ -72,9 +72,10 @@ globby(patterns).then(paths => {
           cliFooter.updateProgress(Array.from(ongoing));
           process.stdout.write(stdoutBuffer);
           process.stderr.write(stderrBuffer);
+          return Promise.resolve();
         };
       }
-      if (!shouldApplyFsCleanupCheck) return () => {};
+      if (!shouldApplyFsCleanupCheck) return () => Promise.resolve();
       return () =>
         Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
           ([initialStatus, currentStatus]) => {
