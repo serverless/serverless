@@ -17,7 +17,7 @@ const chalk = require('chalk');
 const pLimit = require('p-limit');
 
 const shouldApplyFsCleanupCheck = (() => {
-  const argIndex = process.argv.findIndex(arg => arg === '--skip-fs-cleanup-check');
+  const argIndex = process.argv.indexOf('--skip-fs-cleanup-check');
   if (argIndex === -1) return true;
   process.argv.splice(argIndex, 1);
   return false;
