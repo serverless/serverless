@@ -37,7 +37,7 @@ matrix:
 sudo: false
 install:
   - travis_retry npm install
-  - [ $TRAVIS_OS_NAME = windows ] || travis_retry npm install -g npm
+  - "[ $TRAVIS_OS_NAME = windows ] || travis_retry npm install -g npm"
   # ensure that Python 2 and Ruby are installed
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install python ruby; else choco install python2 ruby; fi
   - if [ $TRAVIS_OS_NAME = windows ]; then export PATH="/c/Python27:/c/Python27/Scripts:$PATH"; fi
