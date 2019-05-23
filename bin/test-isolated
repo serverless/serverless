@@ -31,6 +31,8 @@ const resolveGitStatus = () =>
 
 const initialGitStatusDeferred = resolveGitStatus();
 
+const initialSetupDeferred = initialGitStatusDeferred;
+
 globby(patterns).then(paths => {
   if (!paths.length) {
     process.stderr.write(chalk.red.bold('No test files matched\n\n'));
@@ -63,7 +65,5 @@ globby(patterns).then(paths => {
   };
 
   const limit = pLimit(1);
-  return initialGitStatusDeferred.then(() =>
-    Promise.all(paths.map(path => limit(() => run(path))))
-  );
+  return initialSetupDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));
 });
