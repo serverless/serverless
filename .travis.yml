@@ -33,8 +33,6 @@ matrix:
       node_js: "10.7"
       env: SLS_IGNORE_WARNING=*
 
-sudo: false
-
 install:
   - travis_retry npm install
   # ensure that Python 2 and Ruby are installed
