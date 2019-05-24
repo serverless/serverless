@@ -2,12 +2,10 @@
 
 'use strict';
 
-process.on('unhandledRejection', err => {
-  throw err;
-});
-
-if (process.argv.length <= 2) {
-  process.argv.push('--require=sinon-bluebird', '!(node_modules)/**/*.test.js');
+if (process.argv.length <= 2) process.argv.push('!(node_modules)/**/*.test.js');
+if (!process.argv.includes('-R')) process.argv.splice(2, 0, '-R', 'tests/mocha-reporter');
+if (!process.argv.includes('--require=sinon-bluebird')) {
+  process.argv.splice(2, 0, '--require=sinon-bluebird');
 }
 
 require('mocha/bin/_mocha');
