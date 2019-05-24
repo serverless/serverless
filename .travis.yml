@@ -36,7 +36,6 @@ matrix:
       env: SLS_IGNORE_WARNING=*
 sudo: false
 install:
-  - "[ $TRAVIS_OS_NAME = windows ] || travis_retry npm install -g npm"
   - travis_retry npm install
   # ensure that Python 2 and Ruby are installed
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install python ruby; else choco install python2 ruby; fi
