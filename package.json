@@ -53,7 +53,7 @@
   },
   "scripts": {
     "test-bare": "mocha '!(node_modules)/**/*.test.js'",
-    "test-isolated": "node bin/test-isolated",
+    "test-isolated": "node scripts/test-isolated.js",
     "test": "nyc --reporter=lcov --reporter=html --reporter=text-summary npm run test-bare",
     "lint": "eslint . --cache",
     "docs": "node scripts/generate-readme.js",
