@@ -6,8 +6,9 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
-// Workaround Mocha v5 issue: https://github.com/mochajs/mocha/issues/3226
-// Fixed in v6, but not really: https://github.com/mochajs/mocha/issues/3917
+// If there's an uncaught exception after rest runner wraps up
+// Mocha reports it with success exit code: https://github.com/mochajs/mocha/issues/3917
+// Workaround that (otherwise we may end with green CI for failed builds):
 process.on('uncaughtException', err => {
   if (!process.listenerCount('exit')) return;
   // Mocha done it's report, and registered process.exit listener which silences any further

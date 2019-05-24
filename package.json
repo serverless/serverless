@@ -86,7 +86,7 @@
     "markdown-link": "^0.1.1",
     "markdown-magic": "^0.1.25",
     "markdown-table": "^1.1.1",
-    "mocha": "^5.2.0",
+    "mocha": "^6.1.4",
     "mocha-lcov-reporter": "^1.2.0",
     "mock-require": "^1.3.0",
     "p-limit": "^2.2.0",
