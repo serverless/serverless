@@ -1,4 +1,6 @@
 language: node_js
+git:
+  depth: 1 # no need for commits history
 matrix:
   exclude:
     - os: linux
