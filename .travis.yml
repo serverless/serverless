@@ -4,16 +4,12 @@ git:
   depth: 1 # no need for commits history
 
 before_script:
-  # ensure that Python 2 and Ruby are installed
-  - |
-    if [ $TRAVIS_OS_NAME = linux ]
-    then
-      sudo apt-get install python ruby
-    fi
+  # Ensure Python 2 in Windows enviroment
+  # (Ruby is already preinstalled, and on Linux both are preinstalled)
   - |
     if [ $TRAVIS_OS_NAME = windows ]
     then
-      choco install python2 ruby &&
+      choco install python2 &&
       export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
     fi
 
