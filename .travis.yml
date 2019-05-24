@@ -1,6 +1,8 @@
 language: node_js
+
 git:
   depth: 1 # no need for commits history
+
 matrix:
   include:
     # Linux tests
@@ -30,20 +32,25 @@ matrix:
     - os: windows
       node_js: "10.7"
       env: SLS_IGNORE_WARNING=*
+
 sudo: false
+
 install:
   - travis_retry npm install
   # ensure that Python 2 and Ruby are installed
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install python ruby; else choco install python2 ruby; fi
   - if [ $TRAVIS_OS_NAME = windows ]; then export PATH="/c/Python27:/c/Python27/Scripts:$PATH"; fi
+
 script:
   - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
   - if [[ ! -z "$DISABLE_TESTS" && ! -z "$LINTING" && -z "$INTEGRATION_TEST" ]]; then
     npm run lint; fi
   - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$INTEGRATION_TEST_SUITE"
     == "simple" ]]; then npm run simple-integration-test; fi
+
 after_success:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+
 deploy:
   provider: npm
   email: services@serverless.com
