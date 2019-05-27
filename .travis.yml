@@ -5,8 +5,6 @@ git:
 
 env: SLS_IGNORE_WARNING=* # Default env
 
-script: npm run test-bare # Run bare tests (with no coverage) by default
-
 stages:
   - name: test
   - name: deploy
@@ -42,7 +40,7 @@ jobs:
       script: npm run test-isolated
     - name: "Unit Tests & Coverage, Linux, Node.js v8"
       node_js: 8
-      script: npm test
+      script: npm run coverage
       after_success: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
     - name: "Unit Tests, Linux, Node.js v6"
       node_js: 6
