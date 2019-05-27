@@ -16,7 +16,7 @@ jobs:
     - name: "Lint, Unit Tests, Simple Integration tests - Linux - Node.js v12"
       node_js: 12
       # Combine with '&&' to abort if any crashes
-      script: npm run lint && npm run test-bare && npm run simple-integration-test
+      script: npm run lint && npm test && npm run simple-integration-test
       env:
         - SLS_IGNORE_WARNING=*
         - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
