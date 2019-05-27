@@ -3,6 +3,8 @@ language: node_js
 git:
   depth: 1 # no need for commits history
 
+env: SLS_IGNORE_WARNING=* # Default env
+
 before_script:
   # Ensure Python 2 in Windows enviroment
   # (Ruby is already preinstalled, and on Linux both are preinstalled)
@@ -18,10 +20,8 @@ matrix:
     # Linux tests
     - os: linux
       node_js: "8.9"
-      env: SLS_IGNORE_WARNING=*
     - os: linux
       node_js: "10.7"
-      env: SLS_IGNORE_WARNING=*
     - os: linux
       node_js: "10.7"
       env:
@@ -40,7 +40,6 @@ matrix:
     # Windows tests
     - os: windows
       node_js: "10.7"
-      env: SLS_IGNORE_WARNING=*
 
 script:
   - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
