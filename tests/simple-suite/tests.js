@@ -7,11 +7,11 @@ const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const execSync = require('child_process').execSync;
 const AWS = require('aws-sdk');
-const testUtils = require('../utils/index');
+const { getTmpDirPath, replaceTextInFile } = require('../utils/index');
 
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
 
-const tmpDir = testUtils.getTmpDirPath();
+const tmpDir = getTmpDirPath();
 fse.mkdirsSync(tmpDir);
 process.chdir(tmpDir);
 
@@ -25,7 +25,7 @@ BbPromise.promisifyAll(CF, { suffix: 'Promised' });
 describe('Service Lifecyle Integration Test', () => {
   it('should create service in tmp directory', () => {
     execSync(`${serverlessExec} create --template ${templateName}`, { stdio: 'inherit' });
-    testUtils.replaceTextInFile('serverless.yml', templateName, newServiceName);
+    replaceTextInFile('serverless.yml', templateName, newServiceName);
     expect(fs.existsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(fs.existsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
