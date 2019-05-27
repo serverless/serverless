@@ -5,9 +5,8 @@ const expect = require('chai').expect;
 const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
-const execSync = require('child_process').execSync;
 const AWS = require('aws-sdk');
-const { getTmpDirPath, replaceTextInFile } = require('../utils/index');
+const { execSync, getTmpDirPath, replaceTextInFile } = require('../utils/index');
 
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
 
