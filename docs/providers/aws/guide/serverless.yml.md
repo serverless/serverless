@@ -270,10 +270,11 @@ functions:
           pool: MyUserPool
           trigger: PreSignUp
       - alb:
-          loadBalancerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:loadbalancer/app/my-load-balancer/50dc6c495c0c9188
-          certificateArn: arn:aws:iam::XXXXXX:server-certificate/ProdServerCert # only required when HTTPS is used
-          name: alb-handler-https
-          listener: HTTPS:443
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            host: example.com
+            path: /hello
 
 layers:
   hello: # A Lambda layer

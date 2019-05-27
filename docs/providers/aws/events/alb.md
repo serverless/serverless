@@ -18,30 +18,15 @@ The Serverless Framework makes it possible to setup the connection between Appli
 
 ## Event definition
 
-The following code will setup an alb using a HTTPS-based listener.
-
 ```yml
 functions:
   albEventConsumer:
     handler: handler.hello
     events:
       - alb:
-          loadBalancerArn: arn:aws:elasticloadbalancing:us-east-1:123456:loadbalancer/app/my-load-balancer/50dc6c495c0c9188
-          certificateArn: arn:aws:iam::123456:server-certificate/ProdServerCert
-          name: alb-handler-https
-          listener: HTTPS:443
-```
-
-The Application Load Balancer `arn` can also be referenced via `Ref`. HTTP listeners don't require the `certificateArn` property to be set.
-
-```yml
-functions:
-  albEventConsumer:
-    handler: handler.hello
-    events:
-      - alb:
-          loadBalancerArn:
-            Ref: MyApplicationLoadBalancer
-          name: alb-handler-http
-          listener: HTTP:80
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            host: example.com
+            path: /hello
 ```

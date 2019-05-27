@@ -91,10 +91,11 @@ functions:
 #          pool: MyUserPool
 #          trigger: PreSignUp
 #      - alb:
-#          loadBalancerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:loadbalancer/app/my-load-balancer/50dc6c495c0c9188
-#          certificateArn: arn:aws:iam::XXXXXX:server-certificate/ProdServerCert
-#          name: alb-handler-https
-#          listener: HTTPS:443
+#          listenerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:listener/app/my-load-balancer/50dc6c495c0c9188/
+#          priority: 1
+#          conditions:
+#            host: example.com
+#            path: /hello
 
 #    Define function environment variables here
 #    environment:
