@@ -5,58 +5,51 @@ git:
 
 env: SLS_IGNORE_WARNING=* # Default env
 
-before_script:
-  # Ensure Python 2 in Windows enviroment
-  # (Ruby is already preinstalled, and on Linux both are preinstalled)
-  - |
-    if [ $TRAVIS_OS_NAME = windows ]
-    then
-      choco install python2 &&
-      export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
-    fi
+script: npm run test-bare # Run bare tests (with no coverage) by default
 
-matrix:
+stages:
+  - name: test
+  - name: deploy
+    if: tag =~ ^v\d+\.\d+\.\d+$
+
+jobs:
   include:
-    # Linux tests
-    - os: linux
-      node_js: "8.9"
-    - os: linux
-      node_js: "10.7"
-    - os: linux
-      node_js: "10.7"
+    # To speed up Travis build, use one job per Platform + Node.js version combination
+    - name: "Lint & Unit Tests & Simple Integration tests, Linux, Node.js v12"
+      node_js: 12
+      # Combine with '&&' to abort if any crashes
+      script: npm run lint && npm run test-bare && npm run simple-integration-test
       env:
-        - INTEGRATION_TEST=true
-        - INTEGRATION_TEST_SUITE=simple
         - SLS_IGNORE_WARNING=*
+        - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
         # AWS_ACCESS_KEY_ID
         - secure: Ia2nYzOeYvTE6qOP7DBKX3BO7s/U7TXdsvB2nlc3kOPFi//IbTVD0/cLKCAE5XqTzrrliHINSVsFcJNSfjCwmDSRmgoIGrHj5CJkWpkI6FEPageo3mdqFQYEc8CZeAjsPBNaHe6Ewzg0Ev/sjTByLSJYVqokzDCF1QostSxx1Ss6SGt1zjxeP/Hp4yOJn52VAm9IHAKYn7Y62nMAFTaaTPUQHvW0mJj6m2Z8TWyPU+2Bx6mliO65gTPFGs+PdHGwHtmSF/4IcUO504x+HjDuwzW2itomLXZmIOFfGDcFYadKWzVMAfJzoRWOcVKF4jXdMoSCOviWpHGtK35E7K956MTXkroVoWCS7V0knQDovbRZj8c8td8mS4tdprUA+TzgZoHet2atWNtMuTh79rdmwoAO+IAWJegYj62Tdfy3ycESzY+KxSaV8kysG9sR3PRFoWjZerA7MhLZEzQMORXDGjJlgwLaZfYVqjlsGe5p5etFBUTd0WbFgSwOKLoA2U/fm7WzqItkjs3UWaHuvFVvwYixGxjEVmVczS6wa2cdGpHtVD9H7km4fPEzljHqQ26v0P5e8eylgqLF2IB6mL7UqGFrAtrMvAgN/M3gnq4dTs/wq1AJIOxEP7YW7kc0NAldk8vUz6t5GzCPNcuukxAku91Awnh0twxgUywatgJLZPY=
         # AWS_SECRET_ACCESS_KEY
         - secure: Dgaa5XIsA5Vbw/CYQLUAuVVsDX26C8+f1XYGwsbNmFQKbKvM8iy9lGrHlfrT3jftJkJH6re8tP1RjyZjjzLe25KPk4Tps7grNteCyiIIEDsC2aHhiXHD6zNHsItpxYusaFfyQinFWnK4CAYKWb9ZNIwHIDUIB4vq807QGAhYsnoj1Lg/ajWvtEKBwYjEzDz9OjB91lw7lpCnHtmKKw5A+TNIVGpDDZ/jRBqETsPaePtiXC9UTHZQyM3gFoeVXiJw9KSU/gjIx9REihCaWWPbnuQSeIONGGlVWY9V4DTZIsJr9/uwDcbioeXDD3G1ezGtNPPRSNTtq08QlUtE4mEtKea/+ObpllKZCeZGn6AJhMn+uqMIP95FFlqBB55YzRcLZY+Igi/qm/9LJ9RinAhxRVXiwzeQ+BdVA6jshAAzr+7wklux6lZAa0xGw9pgTv7MI4RP2LJ/LMP1ppFsnv9n/qt93Ax1VEwEu3xHZe3VTYL9tbXOPTZutf6fKjUrW7wSSuy637queESjYnnPKSb1vZcPxjSFlyh+GJvxu/3PurF9aqfiBdiorIBre+pQS4lakLtoft5nsbA+4iYUwrXR58qUPVUqQ7a0A0hedOWlp6g9ixLa6nugUP5aobJzR71T8l/IjqpnY2EEd/iINEb0XfUiZtB5zHaqFWejBtmWwCI=
-    - os: linux
-      node_js: "10.7"
-      env:
-        - DISABLE_TESTS=true
-        - LINTING=true
-    # Windows tests
-    - os: windows
-      node_js: "10.7"
-
-script:
-  - if [[ -z "$INTEGRATION_TEST" && -z "$DISABLE_TESTS" ]]; then npm test; fi
-  - if [[ ! -z "$DISABLE_TESTS" && ! -z "$LINTING" && -z "$INTEGRATION_TEST" ]]; then
-    npm run lint; fi
-  - if [[ ! -z "$INTEGRATION_TEST" && ! -z ${AWS_ACCESS_KEY_ID+x} && "$INTEGRATION_TEST_SUITE"
-    == "simple" ]]; then npm run simple-integration-test; fi
-
-after_success:
-  - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
-
-deploy:
-  provider: npm
-  email: services@serverless.com
-  skip_cleanup: true
-  on:
-    tags: true
-    node: 10.7
-  api_key:
-    secure: EgoetjrRlGfvGnmVp8A0btr1CzB0hl7owVIpbfk4zXJzhGEbHoVu0CG0IdmyLN+JlaZa7EDJTjkDCd6g3fVAh9TT7ZCeaq8YwbZDrql7mAJj7xYQAyM4eSkc95BRzcFJBx7Mxr6H90IDLxKr6ZtB+HEdiHN+59XbepKYYJeb1jHfnKn5xzOqk4BdnZo6pKfudfeO+7/BwJJ0FwlFA40bY2HS/Lp+NG/2IedNR7k3m/5W83/XH5qlWP8jhBKlxrAzks27aNo+42xHkRCVyPViJKq0mfz1hl2bfswChWHgaCuajp+0amNL39pgIX9eXxFc3bNX9Iftox5t31elEhsw06vvuAaVkKEd+VEMaDySbQ9M+irKZeREg+NFYZLnc2WiEE3Sexo6hm9eM2q2KEZ7bleN9B0CQAut1XXLRQEts80rzss4Z2Q7AZb9cOYBQlj9Wf1X0Y74UqvnDn83a4Y38a+lhx7J2q691ZeM1UFSCdO0QfeJRkB55bSyHqUqrLAqUN7eNsKGdBH0kvYIGFREgGgReEpBRAuNqWuJ/5qexp63Kbf+09raG5IvfxSIM5fJ5KE5VxSduBdRnSH0GNKfjuq296/Rg4fmm/bygZ3Yk5L6Wd41SUU8uHzlZFBwtcvxAKDTQe6s+5JU24ilqxOx6J4Ut34X3dIbLLAmoB1ogdM=
+    - name: "Unit Tests, Windows, Node.js v12"
+      os: windows
+      node_js: 12
+      before_script:
+        # Ensure Python 2 in Windows enviroment (Ruby is already preinstalled)
+        - |
+          if [ $TRAVIS_OS_NAME = windows ]
+          then
+            choco install python2 &&
+            export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
+          fi
+    - name: "Isolated Unit Tests, Linux, Node.js v10"
+      node_js: 10
+      script: npm run test-isolated
+    - name: "Unit Tests & Coverage, Linux, Node.js v8"
+      node_js: 8
+      script: npm test
+      after_success: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+    - name: "Unit Tests, Linux, Node.js v6"
+      node_js: 6
+    - stage: deploy
+      script: skip
+      deploy:
+        provider: npm
+        email: services@serverless.com
+        api_key:
+          secure: EgoetjrRlGfvGnmVp8A0btr1CzB0hl7owVIpbfk4zXJzhGEbHoVu0CG0IdmyLN+JlaZa7EDJTjkDCd6g3fVAh9TT7ZCeaq8YwbZDrql7mAJj7xYQAyM4eSkc95BRzcFJBx7Mxr6H90IDLxKr6ZtB+HEdiHN+59XbepKYYJeb1jHfnKn5xzOqk4BdnZo6pKfudfeO+7/BwJJ0FwlFA40bY2HS/Lp+NG/2IedNR7k3m/5W83/XH5qlWP8jhBKlxrAzks27aNo+42xHkRCVyPViJKq0mfz1hl2bfswChWHgaCuajp+0amNL39pgIX9eXxFc3bNX9Iftox5t31elEhsw06vvuAaVkKEd+VEMaDySbQ9M+irKZeREg+NFYZLnc2WiEE3Sexo6hm9eM2q2KEZ7bleN9B0CQAut1XXLRQEts80rzss4Z2Q7AZb9cOYBQlj9Wf1X0Y74UqvnDn83a4Y38a+lhx7J2q691ZeM1UFSCdO0QfeJRkB55bSyHqUqrLAqUN7eNsKGdBH0kvYIGFREgGgReEpBRAuNqWuJ/5qexp63Kbf+09raG5IvfxSIM5fJ5KE5VxSduBdRnSH0GNKfjuq296/Rg4fmm/bygZ3Yk5L6Wd41SUU8uHzlZFBwtcvxAKDTQe6s+5JU24ilqxOx6J4Ut34X3dIbLLAmoB1ogdM=
