@@ -89,7 +89,7 @@ globby(patterns).then(paths => {
         );
     })();
 
-    return spawn('./bin/test', [path], {
+    return spawn('npx', ['mocha', path], {
       stdio: isMultiProcessRun ? null : 'inherit',
       env: { FORCE_COLOR: '1', PATH: process.env.PATH },
     }).then(onFinally, error => {
