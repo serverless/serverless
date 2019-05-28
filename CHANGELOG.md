@@ -1,3 +1,10 @@
+# 1.44.1 (2019-05-28)
+- [Fix enterprise plugin lookup in global yarn installs](https://github.com/serverless/serverless/pull/TBD)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.0...v1.44.1)
+
+
 # 1.44.0 (2019-05-28)
 
 - [Built in integration of Serverless Enterprise](https://github.com/serverless/serverless/pull/6074)
