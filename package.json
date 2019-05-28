@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.43.0",
+  "version": "1.44.0",
   "engines": {
     "node": ">=6.0"
   },
@@ -102,6 +102,7 @@
     "strip-ansi": "^5.2.0"
   },
   "dependencies": {
+    "@serverless/enterprise-plugin": "^1.0.3",
     "archiver": "^1.1.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.430.0",
