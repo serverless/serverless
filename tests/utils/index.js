@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const JSZip = require('jszip');
 const BbPromise = require('bluebird');
 const fse = require('fs-extra');
 const execSync = require('child_process').execSync;
@@ -34,12 +35,16 @@ const replaceTextInFile = (filePath, subString, newSubString) => {
   fs.writeFileSync(filePath, fileContent.replace(subString, newSubString));
 };
 
+const listZipFiles = filename => new JSZip().loadAsync(fs.readFileSync(filename))
+  .then(zip => Object.keys(zip.files));
+
 module.exports = {
   serverlessExec,
   getTmpDirPath,
   getTmpFilePath,
   replaceTextInFile,
   ServerlessPlugin,
+  listZipFiles,
 
   createTestService: (templateName, testServiceDir) => {
     const hrtime = process.hrtime();
