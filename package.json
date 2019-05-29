@@ -95,6 +95,7 @@
     "nyc": "^14.1.1",
     "p-limit": "^2.2.0",
     "parse-github-url": "^1.0.1",
+    "process-utils": "^2.3.0",
     "proxyquire": "^1.7.10",
     "sinon": "^1.17.5",
     "sinon-bluebird": "^3.1.0",
