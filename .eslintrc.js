@@ -5,12 +5,12 @@ module.exports = {
   "rules": {
     "func-names": "off",
     "global-require": "off", // Interfers with optional and eventual circular references
-
-    // doesn't work in node v4 :(
-    "strict": "off",
-    "prefer-rest-params": "off",
-    "react/require-extension": "off",
-    "import/no-extraneous-dependencies": "off"
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*.test.js",  "**/scripts/**", "**/tests/**"]}],
+    "react/require-extension": "off", // Forced by airbnb, not applicable (also deprecated)
+    "strict": ["error", "safe"], // airbnb implies we're transpiling with babel, we're not
+  },
+  "parserOptions": {
+    "sourceType": "script", // airbnb assumes ESM, while we're CJS
   },
   "env": {
     "mocha": true,
