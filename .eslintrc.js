@@ -12,7 +12,7 @@ module.exports = {
     "import/no-extraneous-dependencies": "off"
   },
   "parserOptions": {
-    "sourceType": "script", // Override ESM implied by airbnb
+    "sourceType": "script", // airbnb assumes ESM, while we're CJS
   },
   "env": {
     "mocha": true,
