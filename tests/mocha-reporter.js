@@ -47,7 +47,7 @@ module.exports = class ServerlessSpec extends Spec {
         // Timeout '5' to ensure no false positives, with '1' there are observable rare scenarios
         // of possibly a garbage collector delaying process exit being picked up
         // On Node.js v8+ '2' seems safe, while v6 needs '5'
-      }, 5).unref()
+      }, 6).unref()
     );
   }
 };
