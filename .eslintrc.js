@@ -12,6 +12,9 @@ module.exports = {
     "react/require-extension": "off",
     "import/no-extraneous-dependencies": "off"
   },
+  "parserOptions": {
+    "sourceType": "script", // Override ESM implied by airbnb
+  },
   "env": {
     "mocha": true,
     "jest": true
