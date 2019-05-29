@@ -5,10 +5,9 @@ module.exports = {
   "rules": {
     "func-names": "off",
     "global-require": "off", // Interfers with optional and eventual circular references
-    "strict": ["error", "safe"],
+    "strict": ["error", "safe"], // airbnb implies we're transpiling with babel, we're not
 
     // doesn't work in node v4 :(
-    "prefer-rest-params": "off",
     "react/require-extension": "off",
     "import/no-extraneous-dependencies": "off"
   },
