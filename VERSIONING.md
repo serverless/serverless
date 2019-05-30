@@ -2,9 +2,9 @@
 
 For the framework we _do not follow_ Semantic Versioning per se (as defined on [http://semver.org/](http://semver.org)).
 
-However we ensure no breaking changes to be introduced with PATH releases.
+However we ensure no breaking changes to be introduced with PATCH releases.
 
-In `package.json` it is advised to reference a `serverless` dependency prefixed with a `~`, as e.g. `~1.44.1`. It allows PATCH updates but disallows MINOR updates which _may_ be breaking and MAJOR which are breaking.
+In `package.json` it is advised to reference a `serverless` dependency prefixed with a `~`, as e.g. `~1.44.1`. It allows PATCH updates but disallows MINOR updates which _may_ be breaking and MAJOR updates which are breaking.
 
 ## Intepretation of the version changes for the Framework
 
@@ -18,9 +18,9 @@ In version 1.2.0 we deployed a new version for every function. In 1.3.0 we stopp
 
 ### MINOR
 
-Release containing new functionality in a backwards-compatible manner, backwards-compatible bug fixes. So whenever a new CLI option is added, a new property exposed in the serverless object passed to plugins this counts as new functionality.
+Release containing new functionality in a backwards-compatible manner, backwards-compatible bug fixes. So whenever a new CLI option is added, a new property exposed in the serverless object is passed to plugins this counts as new functionality.
 
-Release may also contain a design improvements to existing features, which may not be backwards-compatible. In such case release notes will contain precise info on breaking changes and explain migration steps.
+A MINOR release may also contain design improvements to existing features, which may not be backwards-compatible. In such case release notes will contain precise information on breaking changes and explain migration steps.
 
 #### Example of a new Feature
 
@@ -39,7 +39,7 @@ If we remove a helper function from the serverless object passed down to a plugi
 - Any structural change in the CLI output
 - Any object, property or function that is removed from the serverless object passed to plugins
 - Remove an event from the list of lifecycle events of core commands
-- Drop of supoprt for some major Node.js  version
+- Drop of supoprt for no longer maintained major Node.js version (see [Node.js release schedule](https://github.com/nodejs/Release/blob/master/README.md))
 
 ##### What is considered a breaking change?
 
@@ -57,7 +57,7 @@ If we remove a helper function from the serverless object passed down to a plugi
 
 ### MAJOR
 
-Realease containing a significant framwork upgrade that changes most of it's functionalities or even drastictly changes fremework design.
+Release containing a significant framwork upgrade that changes most of its functionalities or even drastically changes the framework design.
 
 Breaking for all users of the framework.
 
@@ -71,9 +71,9 @@ The Serverless Framework supports the major cloud providers Node.js runtime vers
 
 Yes, a breaking change to individual features may happen with a MINOR release
 
-2. Can we change everything in a major version bump?
+1. Can we change everything in a major version bump?
 
-Yes, a new major will most likely announce a completely new (or significantly changed) shape of the framework
+Yes, a new major will most likely announce a completely new (or significantly changed) framework architecture
 
 1. Can we do a major version bump without a breaking change?
 
