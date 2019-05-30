@@ -96,7 +96,7 @@ globby(patterns).then(paths => {
       if (isMultiProcessRun) ongoing.clear();
       return onFinally(error).then(() => {
         process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
-        if (error.code === 2) process.exit(2);
+        if (error.code <= 2) process.exit(error.code);
         throw error;
       });
     });
