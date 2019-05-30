@@ -39,7 +39,7 @@ If we remove a helper function from the serverless object passed down to a plugi
 - Any structural change in the CLI output
 - Any object, property or function that is removed from the serverless object passed to plugins
 - Remove an event from the list of lifecycle events of core commands
-- Drop of supoprt for no longer maintained major Node.js version (see [Node.js release schedule](https://github.com/nodejs/Release/blob/master/README.md))
+- Drop of support for no longer maintained major Node.js version (see [Node.js release schedule](https://github.com/nodejs/Release/blob/master/README.md))
 
 ##### What is considered a breaking change?
 
