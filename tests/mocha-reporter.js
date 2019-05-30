@@ -20,8 +20,11 @@ process.on('uncaughtException', err => {
   throw err;
 });
 
+const { join } = require('path');
+const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
+const { tmpDirCommonPath } = require('../tests/utils')
 
 // Ensure faster tests propagation
 // It's to expose errors otherwise hidden by race conditions
@@ -38,6 +41,13 @@ BbPromise.prototype._ensurePossibleRejectionHandled = function () {
   process.nextTick(() => this._notifyUnhandledRejection());
 };
 /* eslint-enable */
+
+// Ensure to not mess with real homedir
+// Tests do not mock config handling, which generates and edits user's serverlessrc
+// By overriding homedir resolution the file, we prevent updates to real ~/.serverlessrc
+os.homedir = () => tmpDirCommonPath;
+if (process.env.USERPROFILE) process.env.USERPROFILE = tmpDirCommonPath;
+if (process.env.HOME) process.env.HOME = tmpDirCommonPath;
 
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
