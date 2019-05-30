@@ -39,13 +39,12 @@ BbPromise.prototype._ensurePossibleRejectionHandled = function () {
 };
 /* eslint-enable */
 
-const startCwd = process.cwd();
-
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
 
     // Check for not cleaned current directory change
+    const startCwd = process.cwd();
     runner.on('suite end', suite => {
       if (!suite.parent || !suite.parent.root) return; // Apply just on top level suites
       if (process.cwd() !== startCwd) {
