@@ -1,8 +1,12 @@
 # Versioning
 
-For the framework we follow Semantic Versioning as defined on [http://semver.org/](http://semver.org).
+For the framework we _do not follow_ Semantic Versioning per se (as defined on [http://semver.org/](http://semver.org)).
 
-## Intepretation of SemVer for the Framework
+However we ensure no breaking changes to be introduced with PATH releases.
+
+In `package.json` it is advised to reference a `serverless` dependency prefixed with a `~`, as e.g. `~1.44.1`. It allows PATCH updates but disallows MINOR updates which _may_ be breaking and MAJOR which are breaking.
+
+## Intepretation of the version changes for the Framework
 
 ### PATCH
 
@@ -14,15 +18,19 @@ In version 1.2.0 we deployed a new version for every function. In 1.3.0 we stopp
 
 ### MINOR
 
-If a release adds functionality in a backwards-compatible manner and contains backwards-compatible bug fixes. So whenever a new CLI option is added, a new property exposed in the serverless object passed to plugins this counts as new functionality.
+Release containing new functionality in a backwards-compatible manner, backwards-compatible bug fixes. So whenever a new CLI option is added, a new property exposed in the serverless object passed to plugins this counts as new functionality.
+
+Release may also contain a design improvements to existing features, which may not be backwards-compatible. In such case release notes will contain precise info on breaking changes and explain migration steps.
 
 #### Example of a new Feature
 
 In version 1.2.0 no profile option for the CLI existed and it should be introduced in the next release. Then the next version will be 1.3.0.
 
-### MAJOR
+#### Example of a Breaking Change
 
-Any non-backward compatible changes leads to a major version bump. This includes:
+If we remove a helper function from the serverless object passed down to a plugin then this is a breaking change since some people might rely on it in custom made plugins.
+
+##### Other cases of breaking changes that may be released with MINOR
 
 - Any change to the CloudFormation output that changes the behaviour of existing infrastructure
 - Any change to the CloudFormation output that prevents you to deploy over an existing stack
@@ -31,8 +39,9 @@ Any non-backward compatible changes leads to a major version bump. This includes
 - Any structural change in the CLI output
 - Any object, property or function that is removed from the serverless object passed to plugins
 - Remove an event from the list of lifecycle events of core commands
+- Drop of supoprt for some major Node.js  version
 
-#### What is considered a breaking change?
+##### What is considered a breaking change?
 
 - Everything which touches the public facing API
   + CLI commands
@@ -45,9 +54,12 @@ Any non-backward compatible changes leads to a major version bump. This includes
   + Formatted CLI outputs (e.g. via `--json`) **NOT:** standard outputs
   + ...
 
-#### Example of a Breaking Change
 
-If we remove a helper function from the serverless object passed down to a plugin then this is a breaking change since some people might rely on it in custom made plugins.
+### MAJOR
+
+Realease containing a significant framwork upgrade that changes most of it's functionalities or even drastictly changes fremework design.
+
+Breaking for all users of the framework.
 
 ### Node.js versions
 
@@ -57,16 +69,16 @@ The Serverless Framework supports the major cloud providers Node.js runtime vers
 
 1. Is it okay to mark a feature as deprecated in version 1.4.0 and then remove it in 1.8.0
 
-No, since this is a breaking change it should trigger a major version bump to 2.0.0
+Yes, a breaking change to individual features may happen with a MINOR release
 
 2. Can we change everything in a major version bump?
 
-Yes, this is the purpose of major version bumps. Ideally every breaking change has a clear and well documented migration path. In best case the features were already introduced earlier and upgrading is not a dealbreaker.
+Yes, a new major will most likely announce a completely new (or significantly changed) shape of the framework
 
-3. Can we do a major version bump without a breaking change?
+1. Can we do a major version bump without a breaking change?
 
-No, as we strictly follow Semantic Versioning. The suggested strategy is to add features with minor releases and only do major version bumps when we take out deperecated features. Sometimes this is not possible, but as suggested above then a well documented migration path should come with the release.
+No, it won't happen
 
-4. Why is CLI output a breaking change?
+1. Why is CLI output a breaking change?
 
 Right now we don't provide an option to output a well formated datastructure for a CLI command. Once we have such an option the default CLI output will not be part of the breaking changes list, but rather the datastructure. Also to note here if we add to that datastructure it will not be a breaking change. If we remove or change something from that datastructure it is a breaking change.
