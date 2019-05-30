@@ -20,9 +20,11 @@ process.on('uncaughtException', err => {
   throw err;
 });
 
+const { join } = require('path');
 const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
+const { removeSync } = require('fs-extra');
 const { tmpDirCommonPath } = require('../tests/utils');
 
 // Ensure faster tests propagation
@@ -52,10 +54,18 @@ module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
 
-    // Check for not cleaned current directory change
+    // After tests for given files finalize:
+    // - Enforce eventual current directory change was reverted
+    // - Ensure to reset of eventually created user config file
     const startCwd = process.cwd();
+    const userConfig = join(tmpDirCommonPath, '.serverlessrc');
     runner.on('suite end', suite => {
       if (!suite.parent || !suite.parent.root) return; // Apply just on top level suites
+      try {
+        removeSync(userConfig);
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
       if (process.cwd() !== startCwd) {
         runner._abort = true; // eslint-disable-line no-underscore-dangle,no-param-reassign
         throw new Error(
