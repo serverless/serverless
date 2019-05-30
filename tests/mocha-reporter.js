@@ -36,6 +36,12 @@ BbPromise.prototype._ensurePossibleRejectionHandled = function () {
 };
 /* eslint-enable */
 
+if (process.version[1] < 8) {
+  // Async leaks detector is not reliable in Node.js v6
+  module.exports = Spec;
+  return;
+}
+
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
@@ -44,10 +50,10 @@ module.exports = class ServerlessSpec extends Spec {
         // If tests end with any orphaned async call then this callback will be invoked
         // It's a signal there's some promise chain (or in general async flow) miconfiguration
         throw new Error('Test ended with unfinished async jobs');
-        // Timeout '5' to ensure no false positives, with '1' there are observable rare scenarios
+        // Timeout '2' to ensure no false positives, with '1' there are observable rare scenarios
         // of possibly a garbage collector delaying process exit being picked up
-        // On Node.js v8+ '2' seems safe, while v6 needs '5'
-      }, 5).unref()
+      }, 2).unref()
     );
   }
 };
+

@@ -65,7 +65,7 @@
   },
   "mocha": {
     "require": "sinon-bluebird",
-    "-R": "tests/mocha-reporter"
+    "R": "tests/mocha-reporter"
   },
   "jest": {
     "testRegex": "(\\.|/)(tests)\\.js$",
