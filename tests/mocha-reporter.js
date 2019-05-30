@@ -10,7 +10,10 @@ process.on('unhandledRejection', err => {
 // Mocha reports it with success exit code: https://github.com/mochajs/mocha/issues/3917
 // Workaround that (otherwise we may end with green CI for failed builds):
 process.on('uncaughtException', err => {
-  if (!process.listenerCount('exit')) return;
+  if (!process.listenerCount('exit')) {
+    if (process.listenerCount('uncaughtException') === 1) throw err;
+    return;
+  }
   // Mocha done it's report, and registered process.exit listener which silences any further
   // eventual crashes. Recover by unregistering the listener
   process.removeAllListeners('exit');
