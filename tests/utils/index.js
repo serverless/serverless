@@ -25,8 +25,9 @@ class ServerlessPlugin {
 
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
 
-const getTmpDirPath = () => path.join(os.tmpdir(),
-  'tmpdirs-serverless', 'serverless', crypto.randomBytes(8).toString('hex'));
+const tmpDirCommonPath = path.join(os.tmpdir(), 'tmpdirs-serverless', 'serverless');
+
+const getTmpDirPath = () => path.join(tmpDirCommonPath, crypto.randomBytes(8).toString('hex'));
 
 const getTmpFilePath = (fileName) => path.join(getTmpDirPath(), fileName);
 
@@ -40,6 +41,7 @@ const listZipFiles = filename => new JSZip().loadAsync(fs.readFileSync(filename)
 
 module.exports = {
   serverlessExec,
+  tmpDirCommonPath,
   getTmpDirPath,
   getTmpFilePath,
   replaceTextInFile,
