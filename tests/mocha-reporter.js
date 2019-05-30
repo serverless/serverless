@@ -36,15 +36,27 @@ BbPromise.prototype._ensurePossibleRejectionHandled = function () {
 };
 /* eslint-enable */
 
-if (process.version[1] < 8) {
-  // Async leaks detector is not reliable in Node.js v6
-  module.exports = Spec;
-  return;
-}
+const startCwd = process.cwd();
 
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
+
+    // Check for not cleaned current directory change
+    runner.on('suite end', suite => {
+      if (!suite.parent || !suite.parent.root) return; // Apply just on top level suites
+      if (process.cwd() !== startCwd) {
+        runner._abort = true;
+        throw new Error(
+          `Tests in ${suite.file.slice(startCwd.length + 1)} didn't revert ` +
+            'current directory change. This may affect resuls of upcoming tests.'
+        );
+      }
+    });
+
+    if (process.version[1] < 8) return; // Async leaks detector is not reliable in Node.js v6
+
+    // Async leaks detection
     runner.on('end', () =>
       setTimeout(() => {
         // If tests end with any orphaned async call then this callback will be invoked
