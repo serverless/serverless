@@ -56,4 +56,3 @@ module.exports = class ServerlessSpec extends Spec {
     );
   }
 };
-
