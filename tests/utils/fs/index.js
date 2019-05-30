@@ -3,6 +3,7 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const fse = require('fs-extra');
 const crypto = require('crypto');
 const YAML = require('js-yaml');
 const JSZip = require('jszip');
@@ -16,6 +17,12 @@ function getTmpDirPath() {
 
 function getTmpFilePath(fileName) {
   return path.join(getTmpDirPath(), fileName);
+}
+
+function createTmpFile(name) {
+  const filePath = getTmpFilePath(name);
+  fse.ensureFileSync(filePath);
+  return filePath;
 }
 
 function replaceTextInFile(filePath, subString, newSubString) {
@@ -43,6 +50,7 @@ module.exports = {
   tmpDirCommonPath,
   getTmpDirPath,
   getTmpFilePath,
+  createTmpFile,
   replaceTextInFile,
   readYamlFile,
   writeYamlFile,
