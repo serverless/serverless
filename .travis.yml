@@ -15,7 +15,7 @@ stages:
 jobs:
   include:
     # To speed up Travis build, use one job per Platform + Node.js version combination
-    - name: "Lint, Unit Tests, Basic Integration tests - Linux - Node.js v12"
+    - name: "Lint, Unit Tests, Basic Integration Tests - Linux - Node.js v12"
       node_js: 12
       # Combine with '&&' to abort early if any crashes
       env:
