@@ -44,8 +44,8 @@ BbPromise.prototype._ensurePossibleRejectionHandled = function () {
 /* eslint-enable */
 
 // Ensure to not mess with real homedir
-// Tests do not mock config handling, which generates and edits user's serverlessrc
-// By overriding homedir resolution the file, we prevent updates to real ~/.serverlessrc
+// Tests do not mock config handling, which during tests generates and edits user's serverlessrc
+// By overriding homedir resolution we prevent updates to real ~/.serverlessrc
 os.homedir = () => tmpDirCommonPath;
 if (process.env.USERPROFILE) process.env.USERPROFILE = tmpDirCommonPath;
 if (process.env.HOME) process.env.HOME = tmpDirCommonPath;
