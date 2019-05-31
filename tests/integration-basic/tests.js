@@ -5,6 +5,7 @@ const fs = require('fs');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const AWS = require('aws-sdk');
+const stripAnsi = require('strip-ansi');
 const { expect } = require('chai');
 const { execSync } = require('../utils/child-process');
 const { getTmpDirPath, replaceTextInFile } = require('../utils/fs');
@@ -78,7 +79,7 @@ describe('Service Lifecyle Integration Test', () => {
   it('should list existing deployments and roll back to first deployment', () => {
     let timestamp;
     const listDeploys = execSync(`${serverlessExec} deploy list`);
-    const output = listDeploys.toString();
+    const output = stripAnsi(listDeploys.toString());
     const match = output.match(new RegExp('Datetime: (.+)'));
     if (match) {
       timestamp = match[1];
