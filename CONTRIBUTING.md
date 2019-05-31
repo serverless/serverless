@@ -65,7 +65,7 @@ If you add a new template or want to test a template after changing it you can r
 To run all integration tests run:
 
 ```
-./tests/templates/test_all_templates
+./tests/templates/test-all-templates
 ```
 
 To run only a specific integration test run:
@@ -80,7 +80,7 @@ so for example:
 tests/templates/integration-test-template aws-java-maven mvn package
 ```
 
-If you add a new template make sure to add it to the `test_all_templates` file and configure the `docker-compose.yml` file for your template.
+If you add a new template make sure to add it to the `test-all-templates` file and configure the `docker-compose.yml` file for your template.
 
 # Our Code of Conduct
 

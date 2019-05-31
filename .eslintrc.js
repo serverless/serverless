@@ -3,6 +3,7 @@ module.exports = {
   "extends": "airbnb",
   "plugins": [],
   "rules": {
+    "arrow-body-style": "off",
     "func-names": "off",
     "global-require": "off", // Interfers with optional and eventual circular references
     "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*.test.js",  "**/scripts/**", "**/tests/**"]}],

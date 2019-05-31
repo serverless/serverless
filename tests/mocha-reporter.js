@@ -25,7 +25,7 @@ const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
 const { removeSync } = require('fs-extra');
-const { tmpDirCommonPath } = require('../tests/utils');
+const { tmpDirCommonPath } = require('../tests/utils/fs');
 
 // Ensure faster tests propagation
 // It's to expose errors otherwise hidden by race conditions
