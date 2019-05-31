@@ -91,7 +91,12 @@ globby(patterns).then(paths => {
 
     return spawn('npx', ['mocha', path], {
       stdio: isMultiProcessRun ? null : 'inherit',
-      env: { FORCE_COLOR: '1', PATH: process.env.PATH },
+      env: {
+        FORCE_COLOR: '1',
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+        USERPROFILE: process.env.USERPROFILE,
+      },
     }).then(onFinally, error => {
       if (isMultiProcessRun) ongoing.clear();
       return onFinally(error).then(() => {
