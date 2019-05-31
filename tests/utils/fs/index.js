@@ -7,9 +7,10 @@ const crypto = require('crypto');
 const YAML = require('js-yaml');
 const JSZip = require('jszip');
 
+const tmpDirCommonPath = path.join(os.tmpdir(), 'tmpdirs-serverless');
+
 function getTmpDirPath() {
-  return path.join(os.tmpdir(),
-      'tmpdirs-serverless', crypto.randomBytes(8).toString('hex'));
+  return path.join(tmpDirCommonPath, crypto.randomBytes(8).toString('hex'));
 }
 
 function getTmpFilePath(fileName) {
@@ -38,6 +39,7 @@ function listZipFiles(filename) {
 }
 
 module.exports = {
+  tmpDirCommonPath,
   getTmpDirPath,
   getTmpFilePath,
   replaceTextInFile,
