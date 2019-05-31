@@ -6,7 +6,7 @@ const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const AWS = require('aws-sdk');
 const { expect } = require('chai');
-const { execSync } = require('child_process');
+const { execSync } = require('../utils/child-process');
 const { getTmpDirPath, replaceTextInFile } = require('../utils/fs');
 const { region, getServiceName } = require('../utils/misc');
 
