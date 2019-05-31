@@ -54,7 +54,7 @@ module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
 
-    // After tests for given files finalize:
+    // After test run for given file finalizes:
     // - Enforce eventual current directory change was reverted
     // - Ensure to reset of eventually created user config file
     const startCwd = process.cwd();
