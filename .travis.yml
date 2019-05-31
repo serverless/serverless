@@ -3,6 +3,9 @@ language: node_js
 git:
   depth: 1 # no need for commits history
 
+branches:
+  only: master # Do not build PR branches
+
 env: SLS_IGNORE_WARNING=* # Default env
 
 stages:
