@@ -1,3 +1,26 @@
+# 1.44.1 (2019-05-28)
+- [Fix enterprise plugin lookup in global yarn installs](https://github.com/serverless/serverless/pull/6183)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.0...v1.44.1)
+
+
+# 1.44.0 (2019-05-28)
+
+- [Built in integration of Serverless Enterprise](https://github.com/serverless/serverless/pull/6074)
+- [Setup Travis Windows support / Remove AppVeyor](https://github.com/serverless/serverless/pull/6132)
+- [Update required Node.js version / Add version check](https://github.com/serverless/serverless/pull/6077)
+- [Add scopes for cognito type APIGW referenced authorizer ](https://github.com/serverless/serverless/pull/6150)
+- [Do not throw error if authorizer has empty claims](https://github.com/serverless/serverless/pull/6121)
+- [Tests: Patch mocha bugs and fix broken async flow cases](https://github.com/serverless/serverless/pull/6157)
+- [Fix tagging API Gateway stage fails if tag contains special characters like space](https://github.com/serverless/serverless/pull/6139)
+- [Solve the problem of principal format in China region](https://github.com/serverless/serverless/pull/6127)
+- [Upgrade mocha, switch from istanbul to nyc, improve tests configuration](https://github.com/serverless/serverless/pull/6169)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.43.0...v1.44.0)
+
+
 # 1.43.0 (2019-05-20)
 
 - [Update services.md](https://github.com/serverless/serverless/pull/6138)

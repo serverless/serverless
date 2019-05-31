@@ -1,5 +1,7 @@
 service:
   name: aws-alexa-typescript
+#app: your-app-name
+#tenant: your-tenant-name
 
 plugins:
   - serverless-webpack
