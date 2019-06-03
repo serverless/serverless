@@ -25,17 +25,29 @@ plugins:
   - serverless-azure-functions
 
 # you can add packaging information here
-#package:
+package:
 #  include:
 #    - include-me.js
 #    - include-me-dir/**
-#  exclude:
+  exclude:
 #    - exclude-me.js
 #    - exclude-me-dir/**
+    - local.settings.json
+    - .vscode/**
 
 functions:
   hello:
-    handler: handler.hello
+    handler: hello/index.handler
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel : anonymous
+      - http: true
+        x-azure-settings:
+          direction: out
+          name: res
+  goodbye:
+    handler: goodbye/index.handler
     events:
       - http: true
         x-azure-settings:

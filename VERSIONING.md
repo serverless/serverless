@@ -49,6 +49,10 @@ Any non-backward compatible changes leads to a major version bump. This includes
 
 If we remove a helper function from the serverless object passed down to a plugin then this is a breaking change since some people might rely on it in custom made plugins.
 
+### Node.js versions
+
+The Serverless Framework supports the major cloud providers Node.js runtime versions. Support for old Node.js versions will be removed once Cloud providers announce that such runtimes are not supported anymore.
+
 ### FAQ
 
 1. Is it okay to mark a feature as deprecated in version 1.4.0 and then remove it in 1.8.0

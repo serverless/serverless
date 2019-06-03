@@ -12,6 +12,8 @@
 # Happy Coding!
 
 service: aws-kotlin-nodejs-gradle # NOTE: update this with your service name
+#app: your-app-name
+#tenant: your-tenant-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -19,7 +21,7 @@ service: aws-kotlin-nodejs-gradle # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
 
 # you can overwrite defaults here
 #  stage: dev

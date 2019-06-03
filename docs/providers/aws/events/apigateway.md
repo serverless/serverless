@@ -236,7 +236,7 @@ functions:
             allowCredentials: false
 ```
 
-To allow multipe origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
+To allow multiple origins, you can use the following configuration and provide an array in the `origins` or use comma separated `origin` field:
 
 ```yml
 functions:
@@ -499,9 +499,9 @@ functions:
               - nickname
 ```
 
-### Using asyncronous integration
+### Using asynchronous integration
 
-Use `async: true` when integrating a lambda function using [event invocation](https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html#SSS-Invoke-request-InvocationType). This lets API Gateway to return immediately with a 200 status code while the lambda continues running. If not othewise speficied integration type will be `AWS`.
+Use `async: true` when integrating a lambda function using [event invocation](https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html#SSS-Invoke-request-InvocationType). This lets API Gateway to return immediately with a 200 status code while the lambda continues running. If not otherwise specified integration type will be `AWS`.
 
 ```yml
 functions:
@@ -868,7 +868,7 @@ If you want to spread a string into multiple lines, you can use the `>` or `|` s
 #### Pass Through Behavior
 API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates.  When this happens, the request payload will either be passed through the integration request *without transformation* or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
 
-You can define this behavior as follows (if not specified, a value of **NEVER** will be used):
+You can define this behaviour as follows (if not specified, a value of **NEVER** will be used):
 
 ```yml
 functions:
@@ -1220,7 +1220,7 @@ service: my-api
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   stage: dev
   region: eu-west-2
 
@@ -1355,6 +1355,8 @@ functions:
             type: COGNITO_USER_POOLS # TOKEN or REQUEST or COGNITO_USER_POOLS, same as AWS Cloudformation documentation
             authorizerId:
               Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
+              scopes: # Optional - List of Oauth2 scopes when type is COGNITO_USER_POOLS
+                - myapp/myscope
 
   deleteUser:
      ...
@@ -1390,7 +1392,7 @@ Resource policies are policy documents that are used to control the invocation o
 ```yml
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
 
   resourcePolicy:
     - Effect: Allow
