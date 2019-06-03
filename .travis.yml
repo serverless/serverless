@@ -55,6 +55,7 @@ jobs:
       node_js: 12
       env:
         - SLS_IGNORE_WARNING=*
+        - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
         # AWS_ACCESS_KEY_ID
         - secure: Ia2nYzOeYvTE6qOP7DBKX3BO7s/U7TXdsvB2nlc3kOPFi//IbTVD0/cLKCAE5XqTzrrliHINSVsFcJNSfjCwmDSRmgoIGrHj5CJkWpkI6FEPageo3mdqFQYEc8CZeAjsPBNaHe6Ewzg0Ev/sjTByLSJYVqokzDCF1QostSxx1Ss6SGt1zjxeP/Hp4yOJn52VAm9IHAKYn7Y62nMAFTaaTPUQHvW0mJj6m2Z8TWyPU+2Bx6mliO65gTPFGs+PdHGwHtmSF/4IcUO504x+HjDuwzW2itomLXZmIOFfGDcFYadKWzVMAfJzoRWOcVKF4jXdMoSCOviWpHGtK35E7K956MTXkroVoWCS7V0knQDovbRZj8c8td8mS4tdprUA+TzgZoHet2atWNtMuTh79rdmwoAO+IAWJegYj62Tdfy3ycESzY+KxSaV8kysG9sR3PRFoWjZerA7MhLZEzQMORXDGjJlgwLaZfYVqjlsGe5p5etFBUTd0WbFgSwOKLoA2U/fm7WzqItkjs3UWaHuvFVvwYixGxjEVmVczS6wa2cdGpHtVD9H7km4fPEzljHqQ26v0P5e8eylgqLF2IB6mL7UqGFrAtrMvAgN/M3gnq4dTs/wq1AJIOxEP7YW7kc0NAldk8vUz6t5GzCPNcuukxAku91Awnh0twxgUywatgJLZPY=
         # AWS_SECRET_ACCESS_KEY
