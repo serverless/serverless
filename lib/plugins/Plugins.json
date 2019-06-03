@@ -38,6 +38,7 @@
     "./aws/package/compile/events/websockets/index.js",
     "./aws/package/compile/events/sns/index.js",
     "./aws/package/compile/events/stream/index.js",
+    "./aws/package/compile/events/alb/index.js",
     "./aws/package/compile/events/alexaSkill/index.js",
     "./aws/package/compile/events/alexaSmartHome/index.js",
     "./aws/package/compile/events/iot/index.js",

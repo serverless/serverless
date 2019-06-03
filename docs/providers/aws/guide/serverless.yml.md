@@ -269,6 +269,12 @@ functions:
       - cognitoUserPool:
           pool: MyUserPool
           trigger: PreSignUp
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            host: example.com
+            path: /hello
 
 layers:
   hello: # A Lambda layer
