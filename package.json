@@ -99,7 +99,7 @@
     "parse-github-url": "^1.0.1",
     "process-utils": "^2.3.1",
     "proxyquire": "^1.7.10",
-    "sinon": "^3.3.0",
+    "sinon": "^4.5.0",
     "sinon-chai": "^2.9.0",
     "strip-ansi": "^5.2.0"
   },
