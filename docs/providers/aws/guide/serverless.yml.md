@@ -128,6 +128,7 @@ provider:
     lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
   logs:
     restApi: true # Optional configuration which specifies if API Gateway logs are used
+    websocket: true # Optional configuration which specifies if Websockets logs are used
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
@@ -268,6 +269,12 @@ functions:
       - cognitoUserPool:
           pool: MyUserPool
           trigger: PreSignUp
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            host: example.com
+            path: /hello
 
 layers:
   hello: # A Lambda layer

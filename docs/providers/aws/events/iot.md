@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - IoT
 menuText: IoT
-menuOrder: 9
+menuOrder: 11
 description:  Setting up AWS IoT Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->

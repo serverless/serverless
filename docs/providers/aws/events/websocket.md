@@ -186,3 +186,17 @@ module.exports.defaultHandler = async (event, context) => {
   };
 }
 ```
+
+## Logs
+
+Use the following configuration to enable Websocket logs:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket: true
+```
+
+The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.
