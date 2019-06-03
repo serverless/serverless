@@ -52,10 +52,11 @@
     "sls": "./bin/serverless"
   },
   "scripts": {
-    "test-bare": "mocha \"!(node_modules)/**/*.test.js\"",
+    "test": "mocha \"!(node_modules)/**/*.test.js\"",
     "test-isolated": "node scripts/test-isolated.js",
-    "test": "nyc --reporter=lcov --reporter=html --reporter=text-summary npm run test-bare",
+    "coverage": "nyc --reporter=lcov --reporter=html --reporter=text-summary npm test",
     "lint": "eslint . --cache",
+    "lint-updated": "pipe-git-updated --ext=js -- eslint --cache",
     "docs": "node scripts/generate-readme.js",
     "integration-test-run-package": "jest --maxWorkers=5 integration-package",
     "integration-test-run-basic": "jest --maxWorkers=5 integration-basic",
@@ -87,6 +88,7 @@
     "eslint-plugin-import": "^1.13.0",
     "eslint-plugin-jsx-a11y": "^2.1.0",
     "eslint-plugin-react": "^6.1.1",
+    "git-list-updated": "^1.1.2",
     "jest-circus": "^24.8.0",
     "jest-cli": "^24.5.0",
     "markdown-link": "^0.1.1",
