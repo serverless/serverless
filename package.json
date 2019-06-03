@@ -76,7 +76,7 @@
     "testRunner": "jest-circus/runner"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.2.0",
     "chai-as-promised": "^6.0.0",
     "child-process-ext": "^2.0.0",
     "cli-progress-footer": "^1.1.1",
