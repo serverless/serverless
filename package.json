@@ -65,7 +65,6 @@
     "postinstall": "node ./scripts/postinstall.js"
   },
   "mocha": {
-    "require": "sinon-bluebird",
     "R": "tests/mocha-reporter"
   },
   "jest": {
@@ -102,8 +101,7 @@
     "parse-github-url": "^1.0.1",
     "process-utils": "^2.3.1",
     "proxyquire": "^1.7.10",
-    "sinon": "^1.17.5",
-    "sinon-bluebird": "^3.1.0",
+    "sinon": "^7.3.2",
     "sinon-chai": "^2.9.0",
     "strip-ansi": "^5.2.0"
   },

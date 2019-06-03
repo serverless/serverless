@@ -9,10 +9,10 @@ branches:
 env: SLS_IGNORE_WARNING=* # Default env
 
 stages:
-  - name: test
-  - name: integration-test
+  - name: Test
+  - name: Integration Test
     if: branch = master AND type = push
-  - name: deploy
+  - name: Deploy
     if: tag =~ ^v\d+\.\d+\.\d+$
 
 jobs:
@@ -56,7 +56,7 @@ jobs:
     - name: "Unit Tests - Linux - Node.js v6"
       node_js: 6
 
-    - stage: integration-test
+    - stage: Integration Test
       name: "Integration Tests - Linux - Node.js v12"
       node_js: 12
       env:
@@ -69,7 +69,7 @@ jobs:
         - npm run integration-test-run-all
         - npm run integration-test-cleanup
 
-    - stage: deploy
+    - stage: Deploy
       script: skip
       deploy:
         provider: npm
