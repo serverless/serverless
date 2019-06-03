@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Alexa Smart Home
 menuText: Alexa Smart Home
-menuOrder: 13
+menuOrder: 10
 description:  Setting up AWS Alexa Smart Home Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
