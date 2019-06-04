@@ -6,20 +6,6 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
-// If there's an uncaught exception after rest runner wraps up
-// Mocha reports it with success exit code: https://github.com/mochajs/mocha/issues/3917
-// Workaround that (otherwise we may end with green CI for failed builds):
-process.on('uncaughtException', err => {
-  if (!process.listenerCount('exit')) {
-    if (process.listenerCount('uncaughtException') === 1) throw err;
-    return;
-  }
-  // Mocha done it's report, and registered process.exit listener which silences any further
-  // eventual crashes. Recover by unregistering the listener
-  process.removeAllListeners('exit');
-  throw err;
-});
-
 const { join } = require('path');
 const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
@@ -55,6 +41,24 @@ ensureDirSync(tmpDirCommonPath); // Ensure temporary homedir exists
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
+
+    process.on('uncaughtException', err => {
+      if (!process.listenerCount('exit')) {
+        if (process.listenerCount('uncaughtException') === 1) {
+          // Mocha didn't setup listeners yet, ensure error is exposed
+          throw err;
+        }
+
+        // Mocha ignores uncaught exceptions if they happen in conext of skipped test, expose them
+        if (runner.currentRunnable.isPending()) throw err;
+        return;
+      }
+      // If there's an uncaught exception after rest runner wraps up
+      // Mocha reports it with success exit code: https://github.com/mochajs/mocha/issues/3917
+      // Workaround that (otherwise we may end with green CI for failed builds):
+      process.removeAllListeners('exit');
+      throw err;
+    });
 
     // After test run for given file finalizes:
     // - Enforce eventual current directory change was reverted
