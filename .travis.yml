@@ -28,6 +28,9 @@ jobs:
     - name: "Unit Tests - Windows - Node.js v12"
       os: windows
       node_js: 12
+      env:
+        - SLS_IGNORE_WARNING=*
+        - FORCE_COLOR=1 # For some reason on Windows colors support is not detected
       before_script:
         # Ensure Python 2 in Windows enviroment (Ruby is already preinstalled)
         - |
