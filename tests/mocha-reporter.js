@@ -75,9 +75,7 @@ module.exports = class ServerlessSpec extends Spec {
       try {
         removeSync(tmpDirCommonPath);
       } catch (error) {
-        if (error.code !== 'ENOENT' && (error.code !== 'EPERM' || process.platform !== 'win32')) {
-          throw error;
-        }
+        // Safe to ignore
       }
 
       if (process.version[1] < 8) return; // Async leaks detector is not reliable in Node.js v6
