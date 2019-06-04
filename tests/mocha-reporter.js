@@ -61,11 +61,6 @@ module.exports = class ServerlessSpec extends Spec {
     const startCwd = process.cwd();
     runner.on('suite end', suite => {
       if (!suite.parent || !suite.parent.root) return; // Apply just on top level suites
-      try {
-        removeSync(tmpDirCommonPath);
-      } catch (error) {
-        if (error.code !== 'ENOENT') throw error;
-      }
       if (process.cwd() !== startCwd) {
         runner._abort = true; // eslint-disable-line no-underscore-dangle,no-param-reassign
         throw new Error(
@@ -75,17 +70,24 @@ module.exports = class ServerlessSpec extends Spec {
       }
     });
 
-    if (process.version[1] < 8) return; // Async leaks detector is not reliable in Node.js v6
+    runner.on('end', () => {
+      // Cleanup temporary homedir
+      try {
+        removeSync(tmpDirCommonPath);
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
 
-    // Async leaks detection
-    runner.on('end', () =>
+      if (process.version[1] < 8) return; // Async leaks detector is not reliable in Node.js v6
+
+      // Async leaks detection
       setTimeout(() => {
         // If tests end with any orphaned async call then this callback will be invoked
         // It's a signal there's some promise chain (or in general async flow) miconfiguration
         throw new Error('Test ended with unfinished async jobs');
         // Timeout '2' to ensure no false positives, with '1' there are observable rare scenarios
         // of possibly a garbage collector delaying process exit being picked up
-      }, 2).unref()
-    );
+      }, 2).unref();
+    });
   }
 };
