@@ -75,7 +75,7 @@ module.exports = class ServerlessSpec extends Spec {
       try {
         removeSync(tmpDirCommonPath);
       } catch (error) {
-        if (error.code !== 'ENOENT' || (error.code !== 'EPERM' || process.platform !== 'win32')) {
+        if (error.code !== 'ENOENT' && (error.code !== 'EPERM' || process.platform !== 'win32')) {
           throw error;
         }
       }
