@@ -24,7 +24,7 @@ const { join } = require('path');
 const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
-const { removeSync } = require('fs-extra');
+const { mkdirsSync, removeSync } = require('fs-extra');
 const { tmpDirCommonPath } = require('../tests/utils/fs');
 
 // Ensure faster tests propagation
@@ -50,6 +50,8 @@ os.homedir = () => tmpDirCommonPath;
 if (process.env.USERPROFILE) process.env.USERPROFILE = tmpDirCommonPath;
 if (process.env.HOME) process.env.HOME = tmpDirCommonPath;
 
+mkdirsSync(tmpDirCommonPath); // Ensure homedir exists
+
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
@@ -62,7 +64,7 @@ module.exports = class ServerlessSpec extends Spec {
     runner.on('suite end', suite => {
       if (!suite.parent || !suite.parent.root) return; // Apply just on top level suites
       try {
-        removeSync(userConfig);
+        removeSync(tmpDirCommonPath);
       } catch (error) {
         if (error.code !== 'ENOENT') throw error;
       }
