@@ -49,7 +49,7 @@ os.homedir = () => tmpDirCommonPath;
 if (process.env.USERPROFILE) process.env.USERPROFILE = tmpDirCommonPath;
 if (process.env.HOME) process.env.HOME = tmpDirCommonPath;
 
-mkdirsSync(tmpDirCommonPath); // Ensure homedir exists
+mkdirsSync(tmpDirCommonPath); // Ensure temporary homedir exists
 
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
