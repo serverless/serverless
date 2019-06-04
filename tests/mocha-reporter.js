@@ -20,7 +20,6 @@ process.on('uncaughtException', err => {
   throw err;
 });
 
-const { join } = require('path');
 const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
