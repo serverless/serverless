@@ -60,7 +60,6 @@ module.exports = class ServerlessSpec extends Spec {
     // - Enforce eventual current directory change was reverted
     // - Ensure to reset of eventually created user config file
     const startCwd = process.cwd();
-    const userConfig = join(tmpDirCommonPath, '.serverlessrc');
     runner.on('suite end', suite => {
       if (!suite.parent || !suite.parent.root) return; // Apply just on top level suites
       try {
