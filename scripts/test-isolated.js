@@ -93,8 +93,8 @@ globby(patterns).then(paths => {
       stdio: isMultiProcessRun ? null : 'inherit',
       env: {
         FORCE_COLOR: '1',
-        PATH: process.env.PATH,
         HOME: process.env.HOME,
+        PATH: process.env.PATH,
         USERPROFILE: process.env.USERPROFILE,
       },
     }).then(onFinally, error => {
