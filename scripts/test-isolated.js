@@ -95,6 +95,7 @@ globby(patterns).then(paths => {
         FORCE_COLOR: '1',
         HOME: process.env.HOME,
         PATH: process.env.PATH,
+        TMPDIR: process.env.TMPDIR,
         USERPROFILE: process.env.USERPROFILE,
       },
     }).then(onFinally, error => {
