@@ -50,6 +50,7 @@ module.exports = class ServerlessSpec extends Spec {
         }
 
         // Mocha ignores uncaught exceptions if they happen in conext of skipped test, expose them
+        // https://github.com/mochajs/mocha/issues/3938
         if (runner.currentRunnable.isPending()) throw err;
         return;
       }
