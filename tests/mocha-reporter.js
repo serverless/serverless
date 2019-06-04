@@ -20,6 +20,7 @@ process.on('uncaughtException', err => {
   throw err;
 });
 
+const { join } = require('path');
 const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
@@ -57,10 +58,16 @@ module.exports = class ServerlessSpec extends Spec {
 
     // After test run for given file finalizes:
     // - Enforce eventual current directory change was reverted
-    // - Ensure to reset of eventually created user config file
+    // - Ensure to reset eventually created user config file
     const startCwd = process.cwd();
+    const userConfig = join(tmpDirCommonPath, '.serverlessrc');
     runner.on('suite end', suite => {
       if (!suite.parent || !suite.parent.root) return; // Apply just on top level suites
+      try {
+        removeSync(userConfig);
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
       if (process.cwd() !== startCwd) {
         runner._abort = true; // eslint-disable-line no-underscore-dangle,no-param-reassign
         throw new Error(
