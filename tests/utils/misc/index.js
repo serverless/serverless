@@ -105,10 +105,19 @@ function persistentRequest(...args) {
 
 const skippedWithNotice = [];
 
-function skipWithNotice(context, reason) {
+function skipWithNotice(context, reason, afterCallback) {
   if (process.env.CI) return; // Do not tolerate skips in CI environment
   skippedWithNotice.push({ context, reason });
   process.stdout.write(chalk.yellow(`\n Skipped due to: ${chalk.red(reason)}\n\n`));
+  if (afterCallback) {
+    try {
+      // Ensure teardown is called
+      // (Mocha fails to do it -> https://github.com/mochajs/mocha/issues/3740)
+      afterCallback();
+    } catch (error) {
+      process.stdout.write(chalk.error(`after callback crashed with: ${error.stack}\n`));
+    }
+  }
   context.skip();
 }
 
