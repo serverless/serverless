@@ -60,7 +60,7 @@ service: serverless-ws-test
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   websocketsApiName: custom-websockets-api-name
   websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
 
@@ -127,7 +127,7 @@ functions:
             identitySource:
               - 'route.request.header.Auth'
               - 'route.request.querystring.Auth'
-            
+
   auth:
     handler: handler.auth
 ```
@@ -147,7 +147,7 @@ functions:
             identitySource:
               - 'route.request.header.Auth'
               - 'route.request.querystring.Auth'
-            
+
   auth:
     handler: handler.auth
 ```
@@ -177,7 +177,7 @@ const sendMessageToClient = (url, connectionId, payload) => new Promise((resolve
 module.exports.defaultHandler = async (event, context) => {
   const domain = event.requestContext.domainName;
   const stage = event.requestContext.stage;
-  const connectionId = event.requestContext.connectionId; 
+  const connectionId = event.requestContext.connectionId;
   const callbackUrlForAWS = util.format(util.format('https://%s/%s', domain, stage)); //construct the needed url
   await sendMessageToClient(callbackUrlForAWS, connectionId, event);
 
@@ -186,3 +186,17 @@ module.exports.defaultHandler = async (event, context) => {
   };
 }
 ```
+
+## Logs
+
+Use the following configuration to enable Websocket logs:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket: true
+```
+
+The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.

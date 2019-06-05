@@ -59,9 +59,6 @@ As you add additional functions and services, your permission needs will change.
 
 3. View and copy the **API Key** & **Secret** to a temporary place. You'll need it in the next step.
 
-
-**Note:** In a production environment, we recommend reducing the permissions to the IAM User which the Framework uses.  Unfortunately, the Framework's functionality is growing so fast, we can't yet offer you a finite set of permissions it needs (we're working on this).  Consider using a separate AWS account in the interim, if you cannot get permission to your organization's primary AWS accounts.
-
 ### Using AWS Access Keys
 
 You can configure the Serverless Framework to use your AWS **API Key** & **Secret** in two ways:
@@ -134,7 +131,7 @@ You can even set up different profiles for different accounts, which can be used
 service: new-service
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   stage: dev
   profile: devProfile
 ```
@@ -179,7 +176,7 @@ This example `serverless.yml` snippet will load the profile depending upon the s
 service: new-service
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.profiles.${self:provider.stage}}
 custom:

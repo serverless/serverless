@@ -25,7 +25,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
@@ -34,6 +34,7 @@ provider:
   websocketsApiRouteSelectionExpression: $request.body.route # custom route selection expression
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
+  reservedConcurrency: 5 # optional, Overwrite the default reserved concurrency limit. By default, AWS uses account concurrency limit
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
   logRetentionInDays: 14 # Set the default RetentionInDays for a CloudWatch LogGroup
   deploymentBucket:
@@ -61,7 +62,9 @@ provider:
       '/users/create': xxxxxxxxxx
     apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
     minimumCompressionSize: 1024 # Compress response when larger than specified size in bytes (must be between 0 and 10485760)
-    description: Some Description # optional description for the API Gateway stage deployment
+    description: Some Description # Optional description for the API Gateway stage deployment
+    binaryMediaTypes: # Optional binary media types the API might return
+      - '*/*'
   usagePlan: # Optional usage plan configuration
     quota:
       limit: 5000
@@ -121,7 +124,11 @@ provider:
     foo: bar
     baz: qux
   tracing:
-    lambda: true # optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
+    apiGateway: true
+    lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
+  logs:
+    restApi: true # Optional configuration which specifies if API Gateway logs are used
+    websocket: true # Optional configuration which specifies if Websockets logs are used
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
@@ -141,7 +148,8 @@ functions:
     name: ${self:provider.stage}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
-    runtime: nodejs6.10 # Runtime for this specific function. Overrides the default which is set on the provider level
+    reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
+    runtime: nodejs10.x # Runtime for this specific function. Overrides the default which is set on the provider level
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
     onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic / SQS arn (Ref, Fn::GetAtt and Fn::ImportValue are supported as well) which will be used for the DeadLetterConfig
@@ -261,6 +269,24 @@ functions:
       - cognitoUserPool:
           pool: MyUserPool
           trigger: PreSignUp
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            host: example.com
+            path: /hello
+
+layers:
+  hello: # A Lambda layer
+    path: layer-dir # required, path to layer contents on disk
+    name: ${self:provider.stage}-layerName # optional, Deployed Lambda layer name
+    description: Description of what the lambda layer does # optional, Description to publish to AWS
+    compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
+      - python3.7
+    licenseInfo: GPLv3 # optional, a string specifying license information
+    allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
+      - '*'
+    retain: false # optional, false by default. If true, layer versions are not deleted as new ones are created
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
