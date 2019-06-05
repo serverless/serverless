@@ -106,6 +106,9 @@ function persistentRequest(...args) {
 const skippedWithNotice = [];
 
 function skipWithNotice(context, reason, afterCallback) {
+  if (!context || typeof context.skip !== 'function') {
+    throw new TypeError('Passed context is not a valid mocha suite');
+  }
   if (process.env.CI) return; // Do not tolerate skips in CI environment
   skippedWithNotice.push({ context, reason });
   process.stdout.write(chalk.yellow(`\n Skipped due to: ${chalk.red(reason)}\n\n`));
