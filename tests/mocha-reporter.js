@@ -6,26 +6,14 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
-// If there's an uncaught exception after rest runner wraps up
-// Mocha reports it with success exit code: https://github.com/mochajs/mocha/issues/3917
-// Workaround that (otherwise we may end with green CI for failed builds):
-process.on('uncaughtException', err => {
-  if (!process.listenerCount('exit')) {
-    if (process.listenerCount('uncaughtException') === 1) throw err;
-    return;
-  }
-  // Mocha done it's report, and registered process.exit listener which silences any further
-  // eventual crashes. Recover by unregistering the listener
-  process.removeAllListeners('exit');
-  throw err;
-});
-
 const { join } = require('path');
 const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
-const { removeSync } = require('fs-extra');
+const { ensureDirSync, removeSync } = require('fs-extra');
+const chalk = require('chalk');
 const { tmpDirCommonPath } = require('../tests/utils/fs');
+const { skippedWithNotice } = require('../tests/utils/misc');
 
 // Ensure faster tests propagation
 // It's to expose errors otherwise hidden by race conditions
@@ -50,13 +38,34 @@ os.homedir = () => tmpDirCommonPath;
 if (process.env.USERPROFILE) process.env.USERPROFILE = tmpDirCommonPath;
 if (process.env.HOME) process.env.HOME = tmpDirCommonPath;
 
+ensureDirSync(tmpDirCommonPath); // Ensure temporary homedir exists
+
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
 
+    process.on('uncaughtException', err => {
+      if (!process.listenerCount('exit')) {
+        if (process.listenerCount('uncaughtException') === 1) {
+          // Mocha didn't setup listeners yet, ensure error is exposed
+          throw err;
+        }
+
+        // Mocha ignores uncaught exceptions if they happen in conext of skipped test, expose them
+        // https://github.com/mochajs/mocha/issues/3938
+        if (runner.currentRunnable.isPending()) throw err;
+        return;
+      }
+      // If there's an uncaught exception after rest runner wraps up
+      // Mocha reports it with success exit code: https://github.com/mochajs/mocha/issues/3917
+      // Workaround that (otherwise we may end with green CI for failed builds):
+      process.removeAllListeners('exit');
+      throw err;
+    });
+
     // After test run for given file finalizes:
     // - Enforce eventual current directory change was reverted
-    // - Ensure to reset of eventually created user config file
+    // - Ensure to reset eventually created user config file
     const startCwd = process.cwd();
     const userConfig = join(tmpDirCommonPath, '.serverlessrc');
     runner.on('suite end', suite => {
@@ -75,17 +84,47 @@ module.exports = class ServerlessSpec extends Spec {
       }
     });
 
-    if (process.version[1] < 8) return; // Async leaks detector is not reliable in Node.js v6
+    runner.on('end', () => {
+      // Output eventual skip notices
+      if (skippedWithNotice.length) {
+        const resolveTestName = test => {
+          const names = [test.title];
+          let parent = test.parent;
+          while (parent) {
+            if (parent.title) names.push(parent.title);
+            parent = parent.parent;
+          }
+          return `${chalk.cyan(names.reverse().join(': '))} (in: ${chalk.grey(
+            test.file.slice(process.cwd().length + 1)
+          )})`;
+        };
+        process.stdout.write(
+          ' Notice: Some tests were skipped due to following environment issues:' +
+            `\n\n - ${skippedWithNotice
+              .map(
+                meta => `${resolveTestName(meta.context.test)}\n\n   ${chalk.red(meta.reason)}\n`
+              )
+              .join('\n - ')}\n\n`
+        );
+      }
 
-    // Async leaks detection
-    runner.on('end', () =>
+      // Cleanup temporary homedir
+      try {
+        removeSync(tmpDirCommonPath);
+      } catch (error) {
+        // Safe to ignore
+      }
+
+      if (process.version[1] < 8) return; // Async leaks detector is not reliable in Node.js v6
+
+      // Async leaks detection
       setTimeout(() => {
         // If tests end with any orphaned async call then this callback will be invoked
         // It's a signal there's some promise chain (or in general async flow) miconfiguration
         throw new Error('Test ended with unfinished async jobs');
         // Timeout '2' to ensure no false positives, with '1' there are observable rare scenarios
         // of possibly a garbage collector delaying process exit being picked up
-      }, 2).unref()
-    );
+      }, 2).unref();
+    });
   }
 };

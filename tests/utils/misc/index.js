@@ -4,6 +4,7 @@ const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const { execSync } = require('child_process');
+const chalk = require('chalk');
 const { replaceTextInFile } = require('../fs');
 
 const logger = console;
@@ -102,6 +103,32 @@ function persistentRequest(...args) {
   });
 }
 
+const skippedWithNotice = [];
+
+function skipWithNotice(context, reason, afterCallback) {
+  if (!context || typeof context.skip !== 'function') {
+    throw new TypeError('Passed context is not a valid mocha suite');
+  }
+  if (process.env.CI) return; // Do not tolerate skips in CI environment
+  skippedWithNotice.push({ context, reason });
+  process.stdout.write(chalk.yellow(`\n Skipped due to: ${chalk.red(reason)}\n\n`));
+  if (afterCallback) {
+    try {
+      // Ensure teardown is called
+      // (Mocha fails to do it -> https://github.com/mochajs/mocha/issues/3740)
+      afterCallback();
+    } catch (error) {
+      process.stdout.write(chalk.error(`after callback crashed with: ${error.stack}\n`));
+    }
+  }
+  context.skip();
+}
+
+function skipOnWindowsDisabledSymlinks(error, context, afterCallback) {
+  if (error.code !== 'EPERM' || process.platform !== 'win32') return;
+  skipWithNotice(context, 'Missing admin rights to create symlinks', afterCallback);
+}
+
 module.exports = {
   logger,
   region,
@@ -115,4 +142,7 @@ module.exports = {
   createTestService,
   getFunctionLogs,
   persistentRequest,
+  skippedWithNotice,
+  skipWithNotice,
+  skipOnWindowsDisabledSymlinks,
 };

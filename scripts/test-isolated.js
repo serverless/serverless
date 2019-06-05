@@ -92,9 +92,11 @@ globby(patterns).then(paths => {
     return spawn('npx', ['mocha', path], {
       stdio: isMultiProcessRun ? null : 'inherit',
       env: {
+        APPDATA: process.env.APPDATA,
         FORCE_COLOR: '1',
-        PATH: process.env.PATH,
         HOME: process.env.HOME,
+        PATH: process.env.PATH,
+        TMPDIR: process.env.TMPDIR,
         USERPROFILE: process.env.USERPROFILE,
       },
     }).then(onFinally, error => {
