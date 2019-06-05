@@ -124,9 +124,9 @@ function skipWithNotice(context, reason, afterCallback) {
   context.skip();
 }
 
-function skipOnWindowsDisabledSymlinks(error, context) {
+function skipOnWindowsDisabledSymlinks(error, context, afterCallback) {
   if (error.code !== 'EPERM' || process.platform !== 'win32') return;
-  skipWithNotice(context, 'Missing admin rights to create symlinks');
+  skipWithNotice(context, 'Missing admin rights to create symlinks', afterCallback);
 }
 
 module.exports = {
