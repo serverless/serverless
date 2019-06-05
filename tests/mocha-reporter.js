@@ -11,7 +11,9 @@ const os = require('os');
 const Spec = require('mocha/lib/reporters/spec');
 const Runner = require('mocha/lib/runner');
 const { ensureDirSync, removeSync } = require('fs-extra');
+const chalk = require('chalk');
 const { tmpDirCommonPath } = require('../tests/utils/fs');
+const { skippedWithNotice } = require('../tests/utils/misc');
 
 // Ensure faster tests propagation
 // It's to expose errors otherwise hidden by race conditions
@@ -83,6 +85,29 @@ module.exports = class ServerlessSpec extends Spec {
     });
 
     runner.on('end', () => {
+      // Output eventual skip notices
+      if (skippedWithNotice.length) {
+        const resolveTestName = test => {
+          const names = [test.title];
+          let parent = test.parent;
+          while (parent) {
+            if (parent.title) names.push(parent.title);
+            parent = parent.parent;
+          }
+          return `${chalk.cyan(names.reverse().join(': '))} (in: ${chalk.grey(
+            test.file.slice(process.cwd().length + 1)
+          )})`;
+        };
+        process.stdout.write(
+          ' Notice: Some tests were skipped due to following environment issues:' +
+            `\n\n - ${skippedWithNotice
+              .map(
+                meta => `${resolveTestName(meta.context.test)}\n\n   ${chalk.red(meta.reason)}\n`
+              )
+              .join('\n - ')}\n\n`
+        );
+      }
+
       // Cleanup temporary homedir
       try {
         removeSync(tmpDirCommonPath);

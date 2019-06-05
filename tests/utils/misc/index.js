@@ -4,6 +4,7 @@ const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const { execSync } = require('child_process');
+const chalk = require('chalk');
 const { replaceTextInFile } = require('../fs');
 
 const logger = console;
@@ -102,6 +103,20 @@ function persistentRequest(...args) {
   });
 }
 
+const skippedWithNotice = [];
+
+function skipWithNotice(context, reason) {
+  if (process.env.CI) return; // Do not tolerate skips in CI environment
+  skippedWithNotice.push({ context, reason });
+  process.stdout.write(chalk.yellow(`\n Skipped due to: ${chalk.red(reason)}\n\n`));
+  context.skip();
+}
+
+function skipOnWindowsDisabledSymlinks(error, context) {
+  if (error.code !== 'EPERM' || process.platform !== 'win32') return;
+  skipWithNotice(context, 'Missing admin rights to create symlinks');
+}
+
 module.exports = {
   logger,
   region,
@@ -115,4 +130,7 @@ module.exports = {
   createTestService,
   getFunctionLogs,
   persistentRequest,
+  skippedWithNotice,
+  skipWithNotice,
+  skipOnWindowsDisabledSymlinks,
 };
