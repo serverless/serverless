@@ -24,6 +24,8 @@ serverless deploy
 
 Use this method when you have updated your Function, Events or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to the Google Cloud.
 
+**Note:** You can specify a different configuration file name with the the `--config` option. 
+
 ### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to a Google Deployment Manager configuration template.

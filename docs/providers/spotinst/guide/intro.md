@@ -73,7 +73,7 @@ module.exports.main = function main (event, context, callback) {
 
 ### Services
 
-A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
+A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file by default entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
 
 ```yml
 
@@ -98,7 +98,7 @@ functions:
 #      key: value
 
 ```
-When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
+When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` (or the file specified with the `--config` option) is deployed at once.
 
 ### Plugins
 

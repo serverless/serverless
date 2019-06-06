@@ -42,7 +42,7 @@ Anything that triggers an Kubeless Event to execute is regarded by the Framework
 
 ### Services
 
-A **Service** is the Serverless Framework's unit of organization (not to be confused with [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/).  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions and the Events that trigger them, all in one file entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
+A **Service** is the Serverless Framework's unit of organization (not to be confused with [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/).  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions and the Events that trigger them, all in one file by default entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
 
 ```yml
 # serverless.yml
@@ -57,4 +57,4 @@ functions: # Your "Functions"
           path: /hello
 ```
 
-When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
+When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` (or the file specified with the `--config` option) is deployed at once.

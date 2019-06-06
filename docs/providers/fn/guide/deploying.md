@@ -24,6 +24,8 @@ serverless deploy
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to your Fn cluster.
 
+**Note:** You can specify a different configuration file name with the the `--config` option. 
+
 ### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to [Fn](https://github.com/fnproject/fn) calls to provision your Functions.
