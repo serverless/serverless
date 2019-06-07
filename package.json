@@ -62,7 +62,8 @@
     "integration-test-run-basic": "jest --maxWorkers=5 integration-basic",
     "integration-test-run-all": "jest --maxWorkers=5 integration-all",
     "integration-test-cleanup": "node tests/utils/aws-cleanup.js",
-    "postinstall": "node ./scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.js",
+    "pretest": "npm run lint"
   },
   "mocha": {
     "R": "tests/mocha-reporter",
