@@ -38,7 +38,19 @@ You can do that by replying to [issues on Github](https://github.com/serverless/
 
 # Code Style
 
-We aim for clean, consistent code style. We're using ESlint to check for codestyle issues using the Airbnb preset (you can run `npm run lint` to lint your code).
+We aim for clean, consistent code style. We're using ESlint to check for codestyle issues using the Airbnb preset.
+
+## Verifying linting style
+
+```
+npm run lint
+```
+
+## Fixing lint issues
+
+```
+npm run lint:fix
+```
 
 To help reduce the effort of creating contributions with this style, an [.editorconfig file](http://editorconfig.org/) is provided that your editor may use to override any conflicting global defaults and automate a subset of the style settings.
 

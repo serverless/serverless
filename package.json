@@ -56,6 +56,7 @@
     "test-isolated": "node scripts/test-isolated.js",
     "coverage": "nyc --reporter=lcov --reporter=html --reporter=text-summary npm test",
     "lint": "eslint . --cache",
+    "lint:fix": "npm run lint -- --fix",
     "lint-updated": "pipe-git-updated --ext=js -- eslint --cache",
     "integration-test-run-package": "jest --maxWorkers=5 integration-package",
     "integration-test-run-basic": "jest --maxWorkers=5 integration-basic",
