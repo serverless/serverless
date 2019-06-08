@@ -51,7 +51,7 @@ provider:
 # Make sure to run "sbt assembly" to create a jar file
 # with all your dependencies and put that jar file name here.
 package:
-  artifact: target/scala-2.12/hello.jar
+  artifact: target/scala-2.13/hello.jar
 
 functions:
   hello:
