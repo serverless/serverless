@@ -3,7 +3,7 @@ package hello
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.logging.log4j.{LogManager, Logger}
 
-import scala.collection.JavaConverters
+import scala.jdk.CollectionConverters._
 
 class Handler extends RequestHandler[Request, Response] {
 
@@ -20,7 +20,7 @@ class ApiGatewayHandler extends RequestHandler[Request, ApiGatewayResponse] {
   def handleRequest(input: Request, context: Context): ApiGatewayResponse = {
     val headers = Map("x-custom-response-header" -> "my custom response header value")
     ApiGatewayResponse(200, "Go Serverless v1.0! Your function executed successfully!",
-      JavaConverters.mapAsJavaMap[String, Object](headers),
+      headers.asJava,
       true)
   }
 }
