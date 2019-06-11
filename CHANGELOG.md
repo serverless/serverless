@@ -1,4 +1,5 @@
 # 1.44.1 (2019-05-28)
+
 - [Fix enterprise plugin lookup in global yarn installs](https://github.com/serverless/serverless/pull/6183)
 
 ## Meta
