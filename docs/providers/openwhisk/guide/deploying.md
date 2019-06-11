@@ -24,6 +24,8 @@ serverless deploy
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Apache OpenWhisk.
 
+**Note:** You can specify a different configuration file name with the the `--config` option. 
+
 ### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to [platform API](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/openwhisk/openwhisk/master/core/controller/src/main/resources/whiskswagger.json) calls to provision your Actions, Triggers, Rules and APIs.

@@ -45,7 +45,9 @@ serverless deploy
 ```
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to your Cloudflare Worker. If you've made changes to any of your routes since last deploying, the Serverless Framework will update them on the server for you.
- 
+
+**Note:** You can specify a different configuration file name with the the `--config` option. 
+
 ### How It Works
 The Serverless Framework reads in `serverless.yml` and uses it to provision your Functions.
  
