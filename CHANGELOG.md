@@ -1,5 +1,6 @@
 # 1.45.0 (2019-06-12)
 
+- [Add `--config` option](https://github.com/serverless/serverless/pull/6216)
 - [Fix and improve ESlint config](https://github.com/serverless/serverless/pull/6188)
 - [Tests: Fix mocha config](https://github.com/serverless/serverless/pull/6187)
 - [Thorough integration testing](https://github.com/serverless/serverless/pull/6148)
