@@ -1,3 +1,27 @@
+# 1.45.0 (2019-06-12)
+
+- [Fix and improve ESlint config](https://github.com/serverless/serverless/pull/6188)
+- [Tests: Fix mocha config](https://github.com/serverless/serverless/pull/6187)
+- [Thorough integration testing](https://github.com/serverless/serverless/pull/6148)
+- [Tests: Isolation improvements](https://github.com/serverless/serverless/pull/6186)
+- [Add support for Websocket Logs](https://github.com/serverless/serverless/pull/6088)
+- [Cleanup and improve Travis CI configuration](https://github.com/serverless/serverless/pull/6178)
+- [Tests: Fix stub configuration](https://github.com/serverless/serverless/pull/6205)
+- [Tests: Upgrade Sinon](https://github.com/serverless/serverless/pull/6206)
+- [Add Application Load Balancer event source](https://github.com/serverless/serverless/pull/6073)
+- [Do not run integration tests for PR's](https://github.com/serverless/serverless/pull/6207)
+- [Adding a validation to validation.js script](https://github.com/serverless/serverless/pull/6192)
+- [Tests: Upgrade dependencies, improve isolation and experience on Windows](https://github.com/serverless/serverless/pull/6208)
+- [Add support for S3 hosted package artifacts](https://github.com/serverless/serverless/pull/6196)
+- [Remove root README generator](https://github.com/serverless/serverless/pull/6215)
+- [Myho/npm lint fix](https://github.com/serverless/serverless/pull/6217)
+- [Use common prefix for log groups permissions at Lambdas' execution roles](https://github.com/serverless/serverless/pull/6212)
+- [Update Scala version to 2.13.0 for aws-scala-sbt template](https://github.com/serverless/serverless/pull/6222)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.1...v1.45.0)
+
+
 # 1.44.1 (2019-05-28)
 
 - [Fix enterprise plugin lookup in global yarn installs](https://github.com/serverless/serverless/pull/6183)
