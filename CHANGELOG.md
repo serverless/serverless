@@ -1,3 +1,12 @@
+# 1.45.1 (2019-06-12)
+
+- [Fix IAM policies setup for functions with custom name](https://github.com/serverless/serverless/pull/6240)
+- [Fix Travis CI deploy config](https://github.com/serverless/serverless/pull/6234)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.0...v1.45.1)
+
+
 # 1.45.0 (2019-06-12)
 
 - [Add `--config` option](https://github.com/serverless/serverless/pull/6216)
