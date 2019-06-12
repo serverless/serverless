@@ -65,7 +65,7 @@
     "postinstall": "node ./scripts/postinstall.js"
   },
   "mocha": {
-    "R": "tests/mocha-reporter",
+    "reporter": "tests/mocha-reporter",
     "timeout": 5000
   },
   "jest": {

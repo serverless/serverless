@@ -4,7 +4,9 @@ git:
   depth: 1 # No need for commits history
 
 branches:
-  only: master # Do not build PR branches
+  only:
+    - master # Do not build PR branches
+    - /^v\d+\.\d+\.\d+$/ # Ensure to build release tags
 
 env: SLS_IGNORE_WARNING=* # Default env
 
@@ -68,6 +70,7 @@ jobs:
         - npm run integration-test-cleanup
 
     - stage: Deploy
+      node_js: 12
       script: skip
       deploy:
         provider: npm
