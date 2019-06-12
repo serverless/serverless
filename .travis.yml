@@ -70,6 +70,7 @@ jobs:
         - npm run integration-test-cleanup
 
     - stage: Deploy
+      node_js: 12
       script: skip
       deploy:
         provider: npm
