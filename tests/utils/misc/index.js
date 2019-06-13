@@ -3,9 +3,9 @@
 const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
-const { execSync } = require('child_process');
 const chalk = require('chalk');
 const { replaceTextInFile } = require('../fs');
+const { execSync } = require('../child-process');
 
 const logger = console;
 
