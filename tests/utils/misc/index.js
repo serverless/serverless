@@ -51,6 +51,7 @@ function createTestService(tmpDir, options = {
   // Either templateName or templateDir have to be provided
   templateName: null, // Template name to use (e.g. 'aws-nodejs')
   templateDir: null, // Path to prepared service template
+  serverlessConfigHook: null, // Eventual hook to furhter customize serverless config
 }) {
   const serviceName = getServiceName();
 
@@ -70,6 +71,7 @@ function createTestService(tmpDir, options = {
   const serverlessFilePath = path.join(tmpDir, 'serverless.yml');
   const serverlessConfig = readYamlFile(serverlessFilePath);
   serverlessConfig.service = serviceName;
+  if (options.serverlessConfigHook) options.serverlessConfigHook(serverlessConfig);
   writeYamlFile(serverlessFilePath, serverlessConfig);
 
   process.env.TOPIC_1 = `${serviceName}-1`;

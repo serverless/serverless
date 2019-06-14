@@ -25,8 +25,12 @@ describe('AWS - API Gateway Integration Test', () => {
   beforeAll(() => {
     tmpDirPath = getTmpDirPath();
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    const serverlessConfig =
-      createTestService(tmpDirPath, { templateDir: path.join(__dirname, 'service') });
+    const serverlessConfig = createTestService(tmpDirPath, {
+      templateDir: path.join(__dirname, 'service'),
+      serverlessConfigHook:
+        // Ensure unique API key name for each test (to avoid collision among concurrent CI runs)
+        config => (config.provider.apiKeys[0].name = `${config.service}-api-key-1`),
+    });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     deployService();
