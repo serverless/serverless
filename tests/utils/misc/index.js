@@ -79,8 +79,7 @@ function createTestService(tmpDir, options = {
   process.env.COGNITO_USER_POOL_1 = `${serviceName}-1`;
   process.env.COGNITO_USER_POOL_2 = `${serviceName}-2`;
 
-  // return the name of the CloudFormation stack
-  return serviceName;
+  return serverlessConfig;
 }
 
 function getFunctionLogs(functionName) {

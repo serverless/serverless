@@ -25,7 +25,9 @@ describe('AWS - API Gateway Integration Test', () => {
   beforeAll(() => {
     tmpDirPath = getTmpDirPath();
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    serviceName = createTestService(tmpDirPath, { templateDir: path.join(__dirname, 'service') });
+    const serverlessConfig =
+      createTestService(tmpDirPath, { templateDir: path.join(__dirname, 'service') });
+    serviceName = serverlessConfig.service;
     StackName = `${serviceName}-${stage}`;
     deployService();
     // create an external REST API
