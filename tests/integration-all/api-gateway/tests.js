@@ -20,6 +20,7 @@ describe('AWS - API Gateway Integration Test', () => {
   let serverlessFilePath;
   let restApiId;
   let restApiRootResourceId;
+  let apiKey;
   const stage = 'dev';
 
   beforeAll(() => {
@@ -28,8 +29,11 @@ describe('AWS - API Gateway Integration Test', () => {
     const serverlessConfig = createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       serverlessConfigHook:
-        // Ensure unique API key name for each test (to avoid collision among concurrent CI runs)
-        config => (config.provider.apiKeys[0].name = `${config.service}-api-key-1`),
+        // Ensure unique API key for each test (to avoid collision among concurrent CI runs)
+        config => {
+          apiKey = `${config.service}-api-key-1`;
+          config.provider.apiKeys[0] = { name: apiKey, value: apiKey };
+        },
     });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
@@ -196,8 +200,6 @@ describe('AWS - API Gateway Integration Test', () => {
     });
 
     it('should succeed if correct API key is given', () => {
-      const apiKey = '0p3ns3s4m3-0p3ns3s4m3-0p3ns3s4m3';
-
       return fetch(testEndpoint, { headers: { 'X-API-Key': apiKey } })
         .then(response => response.json())
         .then((json) => {
