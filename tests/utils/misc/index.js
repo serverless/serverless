@@ -51,7 +51,7 @@ function createTestService(tmpDir, options = {
   // Either templateName or templateDir have to be provided
   templateName: null, // Generic template to use (e.g. 'aws-nodejs')
   templateDir: null, // Path to custom pre-prepared service template
-  serverlessConfigHook: null, // Eventual hook that allows serverless config customization
+  serverlessConfigHook: null, // Eventual hook that allows to customize serverless config
 }) {
   const serviceName = getServiceName();
 
