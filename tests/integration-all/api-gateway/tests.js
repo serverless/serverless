@@ -15,7 +15,7 @@ const CF = new AWS.CloudFormation({ region });
 describe('AWS - API Gateway Integration Test', () => {
   let serviceName;
   let endpoint;
-  let StackName;
+  let stackName;
   let tmpDirPath;
   let serverlessFilePath;
   let restApiId;
@@ -28,7 +28,7 @@ describe('AWS - API Gateway Integration Test', () => {
     const serverlessConfig =
       createTestService(tmpDirPath, { templateDir: path.join(__dirname, 'service') });
     serviceName = serverlessConfig.service;
-    StackName = `${serviceName}-${stage}`;
+    stackName = `${serviceName}-${stage}`;
     deployService();
     // create an external REST API
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;
@@ -55,7 +55,7 @@ describe('AWS - API Gateway Integration Test', () => {
   });
 
   beforeEach(() => {
-    return CF.describeStacks({ StackName }).promise()
+    return CF.describeStacks({ StackName: stackName }).promise()
       .then((result) => _.find(result.Stacks[0].Outputs,
         { OutputKey: 'ServiceEndpoint' }).OutputValue)
       .then((endpointOutput) => {
