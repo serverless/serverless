@@ -49,9 +49,9 @@ function replaceEnv(values) {
 
 function createTestService(tmpDir, options = {
   // Either templateName or templateDir have to be provided
-  templateName: null, // Template name to use (e.g. 'aws-nodejs')
-  templateDir: null, // Path to prepared service template
-  serverlessConfigHook: null, // Eventual hook to furhter customize serverless config
+  templateName: null, // Generic template to use (e.g. 'aws-nodejs')
+  templateDir: null, // Path to custom pre-prepared service template
+  serverlessConfigHook: null, // Eventual hook that allows serverless config customization
 }) {
   const serviceName = getServiceName();
 
