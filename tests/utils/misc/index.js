@@ -67,9 +67,9 @@ function createTestService(tmpDir, options = {
     throw new Error("Either 'templateName' or 'templateDir' options have to be provided");
   }
 
-  // Ensure unique service name
   const serverlessFilePath = path.join(tmpDir, 'serverless.yml');
   const serverlessConfig = readYamlFile(serverlessFilePath);
+  // Ensure unique service name
   serverlessConfig.service = serviceName;
   if (options.serverlessConfigHook) options.serverlessConfigHook(serverlessConfig);
   writeYamlFile(serverlessFilePath, serverlessConfig);
