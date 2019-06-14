@@ -74,7 +74,8 @@
     ],
     "testEnvironment": "node",
     "testRegex": "(\\.|/)(tests)\\.js$",
-    "testRunner": "jest-circus/runner"
+    "testRunner": "jest-circus/runner",
+    "useStderr": true
   },
   "devDependencies": {
     "chai": "^4.2.0",
