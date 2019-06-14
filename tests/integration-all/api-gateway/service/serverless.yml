@@ -1,12 +1,12 @@
-service: aws-nodejs # NOTE: update this with your service name
+service: CHANGE_TO_UNIQUE_PER_RUN
 
 provider:
   name: aws
   runtime: nodejs10.x
   versionFunctions: false
   apiKeys:
-    - name: api-key-1
-      value: 0p3ns3s4m3-0p3ns3s4m3-0p3ns3s4m3
+    - name: CHANGE_TO_UNIQUE_PER_RUN
+      value: CHANGE_TO_UNIQUE_PER_RUN
 
 functions:
   # core functions
