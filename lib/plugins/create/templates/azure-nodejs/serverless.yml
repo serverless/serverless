@@ -37,7 +37,7 @@ package:
 
 functions:
   hello:
-    handler: hello/index.handler
+    handler: hello.handler
     events:
       - http: true
         x-azure-settings:
@@ -47,7 +47,7 @@ functions:
           direction: out
           name: res
   goodbye:
-    handler: goodbye/index.handler
+    handler: goodbye.handler
     events:
       - http: true
         x-azure-settings:
