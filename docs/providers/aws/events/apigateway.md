@@ -1279,6 +1279,8 @@ functions:
 
 You can use this method to share your API Gateway across services in same region. Read about this limitation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html).
 
+**Note:** We've noticed you can't use provider.tags together with `Fn::ImportValue` for `restApiId` and `restApiRootResourceId`. Doing so won't resolve the imported value, and therefore returns an error.
+
 
 ### Manually Configuring shared API Gateway
 

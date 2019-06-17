@@ -21,7 +21,7 @@ The Serverless Framework is different than other application frameworks because:
 
 # Serverless.yml
 
-The `serverless.yml` file is what molds the Worker(s) of your project. Using the [Serverless Cloudflare Workers plugin](https://github.com/cloudflare/serverless-cloudflare-workers, a `serverless.yml` will look like: 
+The `serverless.yml` file is what molds the Worker(s) of your project. Using the [Serverless Cloudflare Workers plugin](https://github.com/cloudflare/serverless-cloudflare-workers), a `serverless.yml` will look like: 
 
 ```yml
 # serverless.yml

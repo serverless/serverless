@@ -15,20 +15,30 @@ const CF = new AWS.CloudFormation({ region });
 describe('AWS - API Gateway Integration Test', () => {
   let serviceName;
   let endpoint;
-  let StackName;
+  let stackName;
   let tmpDirPath;
   let serverlessFilePath;
   let restApiId;
   let restApiRootResourceId;
+  let apiKey;
   const stage = 'dev';
 
   beforeAll(() => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    serviceName = createTestService('aws-nodejs', tmpDirPath, path.join(__dirname, 'service'));
-    StackName = `${serviceName}-${stage}`;
-    console.info(`Deploying "${StackName}" service...`);
+    const serverlessConfig = createTestService(tmpDirPath, {
+      templateDir: path.join(__dirname, 'service'),
+      serverlessConfigHook:
+        // Ensure unique API key for each test (to avoid collision among concurrent CI runs)
+        config => {
+          apiKey = `${config.service}-api-key-1`;
+          config.provider.apiKeys[0] = { name: apiKey, value: apiKey };
+        },
+    });
+    serviceName = serverlessConfig.service;
+    stackName = `${serviceName}-${stage}`;
+    console.info(`Deploying "${stackName}" service...`);
     deployService();
     // create an external REST API
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;
@@ -60,7 +70,7 @@ describe('AWS - API Gateway Integration Test', () => {
   });
 
   beforeEach(() => {
-    return CF.describeStacks({ StackName }).promise()
+    return CF.describeStacks({ StackName: stackName }).promise()
       .then((result) => _.find(result.Stacks[0].Outputs,
         { OutputKey: 'ServiceEndpoint' }).OutputValue)
       .then((endpointOutput) => {
@@ -197,8 +207,6 @@ describe('AWS - API Gateway Integration Test', () => {
     });
 
     it('should succeed if correct API key is given', () => {
-      const apiKey = '0p3ns3s4m3-0p3ns3s4m3-0p3ns3s4m3';
-
       return fetch(testEndpoint, { headers: { 'X-API-Key': apiKey } })
         .then(response => response.json())
         .then((json) => {
