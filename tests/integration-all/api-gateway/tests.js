@@ -264,4 +264,10 @@ describe('AWS - API Gateway Integration Test', () => {
         .then((json) => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
     });
   });
+
+  describe('Integration Lambda Timeout', () => {
+    it('should result with 504 status code',
+      () => fetch(`${endpoint}/integration-lambda-timeout`)
+        .then(response => expect(response.status).to.equal(504)));
+  });
 });
