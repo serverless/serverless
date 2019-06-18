@@ -26,7 +26,15 @@ jobs:
         - SLS_IGNORE_WARNING=*
         - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
       # Combine with '&&' to not continue on fail
-      script: npm run lint-updated && npm test
+      script:
+        - |
+          if [ $TRAVIS_PULL_REQUEST = false ]
+          then
+            npm run lint
+          else
+            npm run lint-updated
+          fi &&
+          npm test
     - name: "Unit Tests - Windows - Node.js v12"
       os: windows
       node_js: 12
