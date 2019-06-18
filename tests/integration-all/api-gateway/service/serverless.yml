@@ -57,6 +57,14 @@ functions:
           path: api-keys
           method: GET
           private: true
+  timeout:
+    handler: core.timeout
+    timeout: 1
+    events:
+      - http:
+          method: GET
+          integration: lambda
+          path: integration-lambda-timeout
   # helper functions
   authorizer:
     handler: helper.auth
