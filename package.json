@@ -69,12 +69,13 @@
     "timeout": 5000
   },
   "jest": {
-    "testRegex": "(\\.|/)(tests)\\.js$",
-    "testEnvironment": "node",
     "setupFilesAfterEnv": [
       "<rootDir>/tests/setup-tests.js"
     ],
-    "testRunner": "jest-circus/runner"
+    "testEnvironment": "node",
+    "testRegex": "(\\.|/)(tests)\\.js$",
+    "testRunner": "jest-circus/runner",
+    "useStderr": true
   },
   "devDependencies": {
     "chai": "^4.2.0",

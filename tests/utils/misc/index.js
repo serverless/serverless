@@ -3,8 +3,8 @@
 const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
-const { execSync } = require('child_process');
 const chalk = require('chalk');
+const { execSync } = require('../child-process');
 const { readYamlFile, writeYamlFile } = require('../fs');
 
 const logger = console;

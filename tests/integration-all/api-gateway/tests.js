@@ -25,6 +25,7 @@ describe('AWS - API Gateway Integration Test', () => {
 
   beforeAll(() => {
     tmpDirPath = getTmpDirPath();
+    console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
     const serverlessConfig = createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
@@ -37,6 +38,7 @@ describe('AWS - API Gateway Integration Test', () => {
     });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
+    console.info(`Deploying "${stackName}" service...`);
     deployService();
     // create an external REST API
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;
@@ -47,6 +49,8 @@ describe('AWS - API Gateway Integration Test', () => {
       })
       .then((resources) => {
         restApiRootResourceId = resources[0].id;
+        console.info('Created external rest API ' +
+          `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`);
       });
   });
 
@@ -57,8 +61,11 @@ describe('AWS - API Gateway Integration Test', () => {
     delete serverless.provider.apiGateway.restApiRootResourceId;
     writeYamlFile(serverlessFilePath, serverless);
     // NOTE: deploying once again to get the stack into the original state
+    console.info('Redeploying service...');
     deployService();
+    console.info('Removing service...');
     removeService();
+    console.info('Deleting external rest API...');
     return deleteRestApi(restApiId);
   });
 
