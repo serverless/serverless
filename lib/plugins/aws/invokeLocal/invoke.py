@@ -77,10 +77,10 @@ if __name__ == '__main__':
         try:
             if sys.platform != 'darwin':
                 subprocess.check_call('tty', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            sys.stdin = open('/dev/tty')
         except (OSError, subprocess.CalledProcessError):
             pass
-        else:
-            sys.stdin = open('/dev/tty')
 
     context = FakeLambdaContext(**input.get('context', {}))
     result = handler(input['event'], context)
