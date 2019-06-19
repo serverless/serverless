@@ -119,7 +119,7 @@ functions:
         method: get
 ```
 
-#### Artifacst hosted on S3
+#### Artifacts hosted on S3
 
 Artifacts can also be fetched from a remote S3 bucket. In this case you just need to provide the S3 object URL as the artifact value. This applies to both, service-wide and function-level artifact setups.
 
