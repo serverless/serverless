@@ -19,6 +19,12 @@ function getTmpFilePath(fileName) {
   return path.join(getTmpDirPath(), fileName);
 }
 
+function createTmpDir() {
+  const dirPath = getTmpDirPath();
+  fse.ensureDirSync(dirPath);
+  return dirPath;
+}
+
 function createTmpFile(name) {
   const filePath = getTmpFilePath(name);
   fse.ensureFileSync(filePath);
@@ -50,6 +56,7 @@ module.exports = {
   tmpDirCommonPath,
   getTmpDirPath,
   getTmpFilePath,
+  createTmpDir,
   createTmpFile,
   replaceTextInFile,
   readYamlFile,
