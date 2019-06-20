@@ -20,15 +20,14 @@ milestone if still open
 ## Prepare Package
 
 - [ ] Install the latest `npm` version or Docker container with latest `node` and `npm` (Ensure to work with an `npm` version which is distributed with latest `node` version)
-- [ ] Remove the `node_modules` folder and the `package-lock.json` file and run `npm install` (Removing both ensures that `package-lock.json` is updated with the latest versions of dependencies)
 - [ ] Update `CHANGELOG.md` with the content from your clipboard
 - [ ] Make sure all files that need to be pushed are included in `package.json -> files`
-- [ ] Commit your changes (make sure that `package.json`, `package-lock.json` and `CHANGELOG.md` are updated)
+- [ ] Commit your changes (make sure that `package.json` and `CHANGELOG.md` are updated)
 - [ ] Push your branch and open up a new PR
 - [ ] Await approval and merge the PR into `master`
 - [ ] Go back to the branch you want to release from (e.g. `master`) and pull the changes from GitHub
 - [ ] Make sure there are no local changes to your repository (or reset with `git reset --hard HEAD`)
-- [ ] Check `package.json` and `package-lock.json` version config to make sure it fits what we want to release
+- [ ] Check `package.json` version config to make sure it fits what we want to release
 
 ## Releasing
 

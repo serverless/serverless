@@ -40,7 +40,6 @@
     "scripts/preuninstall.js",
     "scripts/pre-release.js",
     "package.json",
-    "package-lock.json",
     "README.md",
     "LICENSE.txt",
     "CHANGELOG.md"
