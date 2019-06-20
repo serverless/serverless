@@ -86,7 +86,7 @@ plugins:
   # This plugin will be loaded from the `.serverless_plugins/` or `node_modules/` directories
   - custom-serverless-plugin
   # This plugin will be loaded from the `sub/directory/` directory
-  - sub/directory/another-custom-plugin
+  - ./sub/directory/another-custom-plugin
 ```
 
 ### Load Order
