@@ -26,7 +26,7 @@ Also you are able to enter in environment variables in the serverless.yml file. 
 functions:
   test:
     handler: handler.main
-    environmentVariables:
+    environments:
       key: value
 ```
 
