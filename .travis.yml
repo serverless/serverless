@@ -26,14 +26,14 @@ jobs:
     # (job boot & setup takes ca 1 minute, one task run usually lasts seconds)
 
     # PR's
-    - name: ' Lint updated, Unit Tests - Linux - Node.js v12'
+    - name: 'Prettier check updated, Lint updated, Unit Tests - Linux - Node.js v12'
       if: type = pull_request
       node_js: 12
       env:
         - SLS_IGNORE_WARNING=*
         - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
       # Combine with '&&' to not continue on fail
-      script: npm run lint-updated && npm test
+      script: npm run prettier-check-updated && npm run lint-updated && npm test
 
     # master branch and version tags
     - name: 'Lint, Unit Tests - Linux - Node.js v12'
