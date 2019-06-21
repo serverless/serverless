@@ -94,6 +94,20 @@ function getFunctionLogs(functionName) {
   return logsString;
 }
 
+function waitForFunctionLogs(functionName, startMarker, endMarker) {
+  let logs;
+  return new BbPromise(resolve => {
+    const interval = setInterval(() => {
+      logs = getFunctionLogs(functionName);
+      if (logs && logs.includes(startMarker) && logs.includes(endMarker)) {
+        clearInterval(interval);
+        return resolve(logs);
+      }
+      return null;
+    }, 2000);
+  });
+}
+
 function persistentRequest(...args) {
   const func = args[0];
   const funcArgs = args.slice(1);
@@ -159,6 +173,7 @@ module.exports = {
   replaceEnv,
   createTestService,
   getFunctionLogs,
+  waitForFunctionLogs,
   persistentRequest,
   skippedWithNotice,
   skipWithNotice,
