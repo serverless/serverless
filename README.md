@@ -29,7 +29,6 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 * [Services](#services)
 * [Features](#features)
 * [Plugins](https://github.com/serverless/plugins)
-* [Examples](https://github.com/serverless/examples)
 * [Contributing](#contributing)
 * [Community](#community)
 * [Consultants](#consultants)
