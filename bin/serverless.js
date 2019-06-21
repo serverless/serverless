@@ -42,7 +42,6 @@ const invocationId = uuid.v4();
       return serverless
         .init()
         .then(() => serverless.run())
-        .then(() => process.exit(0))
         .catch(err => {
           // If Enterprise Plugin, capture error
           let enterpriseErrorHandler = null;
@@ -63,7 +62,10 @@ const invocationId = uuid.v4();
             });
         });
     })
-    .catch(e => {
-      process.exitCode = 1;
-      logError(e);
-    }))();
+    .then(
+      () => process.exit(0),
+      e => {
+        process.exitCode = 1;
+        logError(e);
+      }
+    ))();
