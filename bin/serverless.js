@@ -53,7 +53,7 @@ const invocationId = uuid.v4();
       if (!enterpriseErrorHandler) { throw err; }
       return enterpriseErrorHandler(err, invocationId)
       .catch((error) => {
-          console.log(error)
+        process.stdout.write(`${error.stack}\n`)
       })
       .then(() => {
         throw err
