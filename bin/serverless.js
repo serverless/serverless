@@ -35,9 +35,7 @@ const invocationId = uuid.v4();
       // during require, it will be caught.
       const Serverless = require('../lib/Serverless');
 
-      const serverless = new Serverless({
-        interactive: typeof process.env.CI === 'undefined',
-      });
+      const serverless = new Serverless();
 
       serverless.invocationId = invocationId;
 
