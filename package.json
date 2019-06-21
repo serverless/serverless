@@ -52,6 +52,7 @@
   },
   "scripts": {
     "test": "mocha \"!(node_modules)/**/*.test.js\"",
+    "test-ci": "npm run prettier-check-updated && npm run lint-updated && npm run test-isolated",
     "test-isolated": "node scripts/test-isolated.js",
     "coverage": "nyc --reporter=lcov --reporter=html --reporter=text-summary npm test",
     "lint": "eslint . --cache",
