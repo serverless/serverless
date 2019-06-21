@@ -33,7 +33,7 @@ const invocationId = uuid.v4();
       }
       // requiring here so that if anything went wrong,
       // during require, it will be caught.
-      const Serverless = require('../lib/Serverless'); // eslint-disable-line global-require
+      const Serverless = require('../lib/Serverless');
 
       const serverless = new Serverless({
         interactive: typeof process.env.CI === 'undefined',
