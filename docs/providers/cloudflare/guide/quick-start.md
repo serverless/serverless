@@ -19,7 +19,7 @@ This guide is a walk through of using the Serverless Plugin to deploy Cloudflare
 *Note:`workers.dev` domains are not currently supported using Serverless, but you can track our progress on [this Github issue](https://github.com/cloudflare/serverless-cloudflare-workers/issues/36).*
 
 ## Pre-requisites
-Node.js `v6.5.0` or later.
+Node.js `v10.X` or later.
 Serverless CLI `v1.31.0` or later. You can run `npm install -g serverless` to install it. you also need our `serverless-cloudflare-workers` plugin. You can install it in your project with `npm install --save serverless-cloudflare-workers`.
 
 ## Create a new service
