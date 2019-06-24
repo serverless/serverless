@@ -24,6 +24,13 @@ process.noDeprecation = true;
 
 const invocationId = uuid.v4();
 
+const isInteractiveCreate = serverless => {
+  if (process.argv[2]) return false; // Arguments after 'serverless'
+  if (!process.stdin.isTTY) return false; // No interactivity with user is possible
+  if (serverless.config.servicePath) return false; // Invoked in existing project
+  return true;
+};
+
 // boot up error reporting via sentry before anything
 (() =>
   initializeErrorReporter(invocationId)
@@ -38,6 +45,11 @@ const invocationId = uuid.v4();
       const serverless = new Serverless();
 
       serverless.invocationId = invocationId;
+
+      if (isInteractiveCreate(serverless)) {
+        const interactiveCreate = require('../lib/utils/interactiveCreate');
+        return interactiveCreate(process.cwd());
+      }
 
       return serverless
         .init()

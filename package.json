@@ -129,6 +129,7 @@
     "globby": "^6.1.0",
     "graceful-fs": "^4.1.15",
     "https-proxy-agent": "^2.2.1",
+    "inquirer": "^6.4.1",
     "is-docker": "^1.1.0",
     "js-yaml": "^3.13.1",
     "json-cycle": "^1.3.0",
