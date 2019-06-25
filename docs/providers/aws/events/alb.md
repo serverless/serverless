@@ -27,6 +27,35 @@ functions:
           listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
           priority: 1
           conditions:
+            path: /hello
+```
+
+## Using different conditions
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.hello
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
             host: example.com
             path: /hello
+            method:
+              - POST
+              - PATCH
+            host:
+              - example.com
+              - example2.com
+            header:
+              name: foo
+              values:
+                - bar
+            query:
+              bar: true
+            ip:
+              - fe80:0000:0000:0000:0204:61ff:fe9d:f156/6
+              - 192.168.0.1/0
 ```
