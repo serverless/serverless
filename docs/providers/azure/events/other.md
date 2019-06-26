@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/events/other)
+
 <!-- DOCS-SITE-LINK:END -->
 
 ## Other Bindings
@@ -33,16 +35,16 @@ functions:
     events:
       - queue: hello
         x-azure-settings:
-            name: item #<string>, default - "myQueueItem", specifies which name it's available on `context.bindings`
-            connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", environment variable which contains Storage Account Connection String
+          name: item #<string>, default - "myQueueItem", specifies which name it's available on `context.bindings`
+          connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", environment variable which contains Storage Account Connection String
       - documentDB:
         x-azure-settings:
-            name: record # Name of input parameter in function signature>",
-            databaseName: myDocs # "<Name of the DocumentDB database>",
-            collectionName: todo # "<Name of the DocumentDB collection>",
-            createIfNotExists: true
-            connection: docDBAppSetting # "<Name of app setting with connection string - see below>",
-            direction: out
+          name: record # Name of input parameter in function signature>",
+          databaseName: myDocs # "<Name of the DocumentDB database>",
+          collectionName: todo # "<Name of the DocumentDB collection>",
+          createIfNotExists: true
+          connection: docDBAppSetting # "<Name of app setting with connection string - see below>",
+          direction: out
 ```
 
 ```javascript
@@ -51,10 +53,10 @@ functions:
 'use strict';
 
 module.exports.hello = function(context, item) {
-  context.log("Received item: ${item}");
+  context.log('Received item: ${item}');
   context.bindings.record = {
-      hello: "world"
-  }
+    hello: 'world',
+  };
   context.done();
 };
 ```

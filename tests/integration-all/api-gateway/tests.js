@@ -43,14 +43,16 @@ describe('AWS - API Gateway Integration Test', () => {
     // create an external REST API
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;
     return createRestApi(externalRestApiName)
-      .then((restApiMeta) => {
+      .then(restApiMeta => {
         restApiId = restApiMeta.id;
         return getResources(restApiId);
       })
-      .then((resources) => {
+      .then(resources => {
         restApiRootResourceId = resources[0].id;
-        console.info('Created external rest API ' +
-          `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`);
+        console.info(
+          'Created external rest API ' +
+            `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
+        );
       });
   });
 
@@ -70,10 +72,12 @@ describe('AWS - API Gateway Integration Test', () => {
   });
 
   beforeEach(() => {
-    return CF.describeStacks({ StackName: stackName }).promise()
-      .then((result) => _.find(result.Stacks[0].Outputs,
-        { OutputKey: 'ServiceEndpoint' }).OutputValue)
-      .then((endpointOutput) => {
+    return CF.describeStacks({ StackName: stackName })
+      .promise()
+      .then(
+        result => _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' }).OutputValue
+      )
+      .then(endpointOutput => {
         endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
         endpoint = `${endpoint}`;
       });
@@ -87,7 +91,7 @@ describe('AWS - API Gateway Integration Test', () => {
 
       return fetch(testEndpoint, { method: 'GET' })
         .then(response => response.json())
-        .then((json) => expect(json.message).to.equal(expectedMessage));
+        .then(json => expect(json.message).to.equal(expectedMessage));
     });
 
     it('should expose an accessible POST HTTP endpoint', () => {
@@ -95,7 +99,7 @@ describe('AWS - API Gateway Integration Test', () => {
 
       return fetch(testEndpoint, { method: 'POST' })
         .then(response => response.json())
-        .then((json) => expect(json.message).to.equal(expectedMessage));
+        .then(json => expect(json.message).to.equal(expectedMessage));
     });
 
     it('should expose an accessible PUT HTTP endpoint', () => {
@@ -103,7 +107,7 @@ describe('AWS - API Gateway Integration Test', () => {
 
       return fetch(testEndpoint, { method: 'PUT' })
         .then(response => response.json())
-        .then((json) => expect(json.message).to.equal(expectedMessage));
+        .then(json => expect(json.message).to.equal(expectedMessage));
     });
 
     it('should expose an accessible DELETE HTTP endpoint', () => {
@@ -111,7 +115,7 @@ describe('AWS - API Gateway Integration Test', () => {
 
       return fetch(testEndpoint, { method: 'DELETE' })
         .then(response => response.json())
-        .then((json) => expect(json.message).to.equal(expectedMessage));
+        .then(json => expect(json.message).to.equal(expectedMessage));
     });
   });
 
@@ -119,44 +123,42 @@ describe('AWS - API Gateway Integration Test', () => {
     it('should setup simple CORS support via cors: true config', () => {
       const testEndpoint = `${endpoint}/simple-cors`;
 
-      return fetch(testEndpoint, { method: 'OPTIONS' })
-        .then((response) => {
-          const headers = response.headers;
-          const allowHeaders = [
-            'Content-Type',
-            'X-Amz-Date',
-            'Authorization',
-            'X-Api-Key',
-            'X-Amz-Security-Token',
-            'X-Amz-User-Agent',
-          ].join(',');
-          expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
-          expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
-          expect(headers.get('access-control-allow-credentials')).to.equal('false');
-          // TODO: for some reason this test fails for now...
-          // expect(headers.get('access-control-allow-origin')).to.equal('*');
-        });
+      return fetch(testEndpoint, { method: 'OPTIONS' }).then(response => {
+        const headers = response.headers;
+        const allowHeaders = [
+          'Content-Type',
+          'X-Amz-Date',
+          'Authorization',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+          'X-Amz-User-Agent',
+        ].join(',');
+        expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
+        expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
+        expect(headers.get('access-control-allow-credentials')).to.equal('false');
+        // TODO: for some reason this test fails for now...
+        // expect(headers.get('access-control-allow-origin')).to.equal('*');
+      });
     });
 
     it('should setup CORS support with complex object config', () => {
       const testEndpoint = `${endpoint}/complex-cors`;
 
-      return fetch(testEndpoint, { method: 'OPTIONS' })
-        .then((response) => {
-          const headers = response.headers;
-          const allowHeaders = [
-            'Content-Type',
-            'X-Amz-Date',
-            'Authorization',
-            'X-Api-Key',
-            'X-Amz-Security-Token',
-            'X-Amz-User-Agent',
-          ].join(',');
-          expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
-          expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
-          expect(headers.get('access-control-allow-credentials')).to.equal('true');
-          expect(headers.get('access-control-allow-origin')).to.equal('*');
-        });
+      return fetch(testEndpoint, { method: 'OPTIONS' }).then(response => {
+        const headers = response.headers;
+        const allowHeaders = [
+          'Content-Type',
+          'X-Amz-Date',
+          'Authorization',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+          'X-Amz-User-Agent',
+        ].join(',');
+        expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
+        expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
+        expect(headers.get('access-control-allow-credentials')).to.equal('true');
+        expect(headers.get('access-control-allow-origin')).to.equal('*');
+      });
     });
   });
 
@@ -168,23 +170,23 @@ describe('AWS - API Gateway Integration Test', () => {
     });
 
     it('should reject requests without authorization', () => {
-      return fetch(testEndpoint)
-        .then((response) => {
-          expect(response.status).to.equal(401);
-        });
+      return fetch(testEndpoint).then(response => {
+        expect(response.status).to.equal(401);
+      });
     });
 
     it('should reject requests with wrong authorization', () => {
-      return fetch(testEndpoint, { headers: { Authorization: 'Bearer ShouldNotBeAuthorized' } })
-        .then((response) => {
-          expect(response.status).to.equal(401);
-        });
+      return fetch(testEndpoint, {
+        headers: { Authorization: 'Bearer ShouldNotBeAuthorized' },
+      }).then(response => {
+        expect(response.status).to.equal(401);
+      });
     });
 
     it('should authorize requests with correct authorization', () => {
       return fetch(testEndpoint, { headers: { Authorization: 'Bearer ShouldBeAuthorized' } })
         .then(response => response.json())
-        .then((json) => {
+        .then(json => {
           expect(json.message).to.equal('Hello from API Gateway! - (customAuthorizers)');
           expect(json.event.requestContext.authorizer.principalId).to.equal('SomeRandomId');
           expect(json.event.headers.Authorization).to.equal('Bearer ShouldBeAuthorized');
@@ -200,16 +202,15 @@ describe('AWS - API Gateway Integration Test', () => {
     });
 
     it('should reject a request with an invalid API Key', () => {
-      return fetch(testEndpoint)
-        .then((response) => {
-          expect(response.status).to.equal(403);
-        });
+      return fetch(testEndpoint).then(response => {
+        expect(response.status).to.equal(403);
+      });
     });
 
     it('should succeed if correct API key is given', () => {
       return fetch(testEndpoint, { headers: { 'X-API-Key': apiKey } })
         .then(response => response.json())
-        .then((json) => {
+        .then(json => {
           expect(json.message).to.equal('Hello from API Gateway! - (apiKeys)');
         });
     });
@@ -241,7 +242,7 @@ describe('AWS - API Gateway Integration Test', () => {
 
       return fetch(testEndpoint, { method: 'GET' })
         .then(response => response.json())
-        .then((json) => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
+        .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
     });
   });
 
@@ -276,13 +277,14 @@ describe('AWS - API Gateway Integration Test', () => {
 
       return fetch(testEndpoint, { method: 'POST' })
         .then(response => response.json())
-        .then((json) => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
+        .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
     });
   });
 
   describe('Integration Lambda Timeout', () => {
-    it('should result with 504 status code',
-      () => fetch(`${endpoint}/integration-lambda-timeout`)
-        .then(response => expect(response.status).to.equal(504)));
+    it('should result with 504 status code', () =>
+      fetch(`${endpoint}/integration-lambda-timeout`).then(response =>
+        expect(response.status).to.equal(504)
+      ));
   });
 });

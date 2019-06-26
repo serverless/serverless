@@ -7,13 +7,15 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/services)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Services
 
-A `service` is like a project.  It's where you define your Azure Functions, the
-`events` that trigger them and any  `resources` they require, all in a file
+A `service` is like a project. It's where you define your Azure Functions, the
+`events` that trigger them and any `resources` they require, all in a file
 called `serverless.yml`.
 
 To get started building your first Serverless Framework project, create a
@@ -22,7 +24,7 @@ To get started building your first Serverless Framework project, create a
 ## Organization
 
 In the beginning of an application, many people use a single Service to define
-all of the Functions, Events and Resources for that project.  This is what we
+all of the Functions, Events and Resources for that project. This is what we
 recommend in the beginning.
 
 ```bash
@@ -60,6 +62,7 @@ serverless create -t azure-nodejs --path <my-app>
 ## Contents
 
 You'll see the following files in your working directory:
+
 - `serverless.yml`
 - `handler.js`
 
@@ -69,11 +72,11 @@ Each `service` configuration is managed in the `serverless.yml` file. The main r
 
 - Declare a Serverless service
 - Define one or more functions in the service
-    - Define the provider the service will be deployed to (and the runtime if provided)
-    - Define any custom plugins to be used
-    - Define events that trigger each function to execute (e.g. HTTP requests)
-    - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
-    - Allow flexible configuration using Serverless Variables
+  - Define the provider the service will be deployed to (and the runtime if provided)
+  - Define any custom plugins to be used
+  - Define events that trigger each function to execute (e.g. HTTP requests)
+  - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
+  - Allow flexible configuration using Serverless Variables
 
 You can see the name of the service, the provider configuration and the first function inside the `functions` definition which points to the `handler.js` file. Any further service configuration will be done in this file.
 
@@ -91,11 +94,11 @@ plugins:
 
 functions:
   hello:
-     handler: handler.hello
-     events:
-       - http: true
-         x-azure-settings:
-           authLevel : anonymous
+    handler: handler.hello
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel: anonymous
 ```
 
 ### handler.js
@@ -128,7 +131,7 @@ serverless deploy
 ```
 
 Check out the [deployment guide](https://serverless.com/framework/docs/providers/azure/guide/deploying/)
-to learn more about deployments and how they work.  Or, check out the
+to learn more about deployments and how they work. Or, check out the
 [deploy command docs](../cli-reference/deploy) for all the details and options.
 
 ## Removal
@@ -150,8 +153,7 @@ on.
 
 ## Version Pinning
 
-The Serverless framework is usually installed globally via `npm install -g
-serverless`. This way you have the Serverless CLI available for all your
+The Serverless framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your
 services.
 
 Installing tools globally has the downside that the version can't be pinned
@@ -192,7 +194,6 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 …
 ```
 
-
 ## Installing Serverless in an existing service
 
 If you already have a Serverless service, and would prefer to lock down the
@@ -210,6 +211,7 @@ To execute the locally installed Serverless executable you have to reference the
 binary out of the node modules directory.
 
 Example:
+
 ```
 node ./node_modules/serverless/bin/serverless deploy
 ```

@@ -10,6 +10,6 @@ functions:
     events:
       - http: GET hello
 
-# remember to run npm install to download the provider plugin.        
+# remember to run npm install to download the provider plugin.
 plugins:
-    - serverless-openwhisk
+  - serverless-openwhisk

@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/events/http)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # HTTP Trigger
@@ -40,11 +42,11 @@ functions:
     events:
       - http: true
         x-azure-settings:
-            name: req #<string>, default - "req", specifies which name it's available on `context.bindings`
-            methods: #<array> [GET, POST, PUT, DELETE], default - all
-                - get
-            route: example/hello #<string>, default - <function name>
-            authLevel: anonymous #<enum - anonymous|function (default)|admin>
+          name: req #<string>, default - "req", specifies which name it's available on `context.bindings`
+          methods: #<array> [GET, POST, PUT, DELETE], default - all
+            - get
+          route: example/hello #<string>, default - <function name>
+          authLevel: anonymous #<enum - anonymous|function (default)|admin>
 ```
 
 URL paths for the serverless functions are prefixed with "api" by default, e.g.
@@ -58,8 +60,8 @@ URL paths for the serverless functions are prefixed with "api" by default, e.g.
 
 module.exports.hello = function(context, req) {
   context.res = {
-      body: "Hello world!"
-  }
+    body: 'Hello world!',
+  };
   context.done();
 };
 ```
@@ -87,13 +89,13 @@ module.exports.hello = function(context, req) {
   const rawBody = req.rawBody; // unparsed body
 
   context.res = {
-      headers:{
-          "content-type":"application/json"
-      },
-      body: {
-          "hello":"world"
-      }
-  }
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: {
+      hello: 'world',
+    },
+  };
   context.done();
 };
 ```

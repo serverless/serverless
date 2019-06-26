@@ -7,13 +7,9 @@
         {
           "Effect": "Allow",
           "Principal": {
-            "Service": [
-              "lambda.amazonaws.com"
-            ]
+            "Service": ["lambda.amazonaws.com"]
           },
-          "Action": [
-            "sts:AssumeRole"
-          ]
+          "Action": ["sts:AssumeRole"]
         }
       ]
     },
@@ -25,16 +21,12 @@
           "Statement": [
             {
               "Effect": "Allow",
-              "Action": [
-                "logs:CreateLogStream"
-              ],
+              "Action": ["logs:CreateLogStream"],
               "Resource": []
             },
             {
               "Effect": "Allow",
-              "Action": [
-                "logs:PutLogEvents"
-              ],
+              "Action": ["logs:PutLogEvents"],
               "Resource": []
             }
           ]

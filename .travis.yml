@@ -1,7 +1,10 @@
 language: node_js
 
 git:
-  depth: 1 # No need for commits history
+  # Do not take whole history, but ensure to not break things:
+  # - Merging multiple PR's around same time may introduce a case where it's not
+  #   the last merge commit that is to be tested
+  depth: 10
 
 branches:
   only:
@@ -19,23 +22,30 @@ stages:
 
 jobs:
   include:
-    # To speed up Travis build, use one job per Platform + Node.js version combination
-    - name: "Lint, Unit Tests - Linux - Node.js v12"
+    # In most cases it's best to configure one job per Platform & Node.js version combination
+    # (job boot & setup takes ca 1 minute, one task run usually lasts seconds)
+
+    # PR's
+    - name: 'Prettier check updated, Lint updated, Unit Tests - Linux - Node.js v12'
+      if: type = pull_request
       node_js: 12
       env:
         - SLS_IGNORE_WARNING=*
         - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
       # Combine with '&&' to not continue on fail
-      script:
-        - |
-          if [ $TRAVIS_PULL_REQUEST = false ]
-          then
-            npm run lint
-          else
-            npm run lint-updated
-          fi &&
-          npm test
-    - name: "Unit Tests - Windows - Node.js v12"
+      script: npm run prettier-check-updated && npm run lint-updated && npm test
+
+    # master branch and version tags
+    - name: 'Lint, Unit Tests - Linux - Node.js v12'
+      if: type != pull_request
+      node_js: 12
+      env:
+        - SLS_IGNORE_WARNING=*
+        - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
+      # Combine with '&&' to not continue on fail
+      script: npm run lint && npm test
+
+    - name: 'Unit Tests - Windows - Node.js v12'
       os: windows
       node_js: 12
       env:
@@ -49,22 +59,24 @@ jobs:
             choco install python2 &&
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
-    - name: "Isolated Unit Tests, Package Integration Tests - Linux - Node.js v10"
+
+    - name: 'Isolated Unit Tests, Package Integration Tests - Linux - Node.js v10'
       node_js: 10
       env:
         - SLS_IGNORE_WARNING=*
         - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
       # Combine with '&&' to not continue on fail
       script: npm run test-isolated && npm run integration-test-run-package
-    - name: "Unit Tests, Coverage - Linux - Node.js v8"
+
+    - name: 'Unit Tests, Coverage - Linux - Node.js v8'
       node_js: 8
       script: npm run coverage
       after_success: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
-    - name: "Unit Tests - Linux - Node.js v6"
+    - name: 'Unit Tests - Linux - Node.js v6'
       node_js: 6
 
     - stage: Integration Test
-      name: "Integration Tests - Linux - Node.js v12"
+      name: 'Integration Tests - Linux - Node.js v12'
       node_js: 12
       env:
         - SLS_IGNORE_WARNING=*

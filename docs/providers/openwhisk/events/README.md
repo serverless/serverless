@@ -1,11 +1,13 @@
 <!--
 title: Serverless - Apache OpenWhisk - Events
-menuText: OpenWhisk Events 
+menuText: OpenWhisk Events
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Apache OpenWhisk Events

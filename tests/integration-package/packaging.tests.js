@@ -18,10 +18,9 @@ describe('Integration test - Packaging', () => {
     fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
     fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))
-      .then(zipfiles => {
-        expect(zipfiles).toEqual(['handler.js']);
-      });
+    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then(zipfiles => {
+      expect(zipfiles).toEqual(['handler.js']);
+    });
   });
 
   it('packages the default aws template with an npm dep correctly in the zip', () => {
@@ -30,30 +29,30 @@ describe('Integration test - Packaging', () => {
     execSync('npm init --yes', { cwd });
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))
-      .then(zipfiles => {
-        const nodeModules = new Set(
-          zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1]));
-        const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
-        expect(nodeModules).toEqual(new Set(['lodash']));
-        expect(nonNodeModulesFiles).toEqual(['handler.js', 'package-lock.json', 'package.json']);
-      });
+    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then(zipfiles => {
+      const nodeModules = new Set(
+        zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1])
+      );
+      const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
+      expect(nodeModules).toEqual(new Set(['lodash']));
+      expect(nonNodeModulesFiles).toEqual(['handler.js', 'package-lock.json', 'package.json']);
+    });
   });
 
-  it('doesn\'t package a dev dependency in the zip', () => {
+  it("doesn't package a dev dependency in the zip", () => {
     fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
     fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
     execSync('npm init --yes', { cwd });
     execSync('npm i --save-dev lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))
-      .then(zipfiles => {
-        const nodeModules = new Set(
-          zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1]));
-        const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
-        expect(nodeModules).toEqual(new Set([]));
-        expect(nonNodeModulesFiles).toEqual(['handler.js', 'package-lock.json', 'package.json']);
-      });
+    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then(zipfiles => {
+      const nodeModules = new Set(
+        zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1])
+      );
+      const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
+      expect(nodeModules).toEqual(new Set([]));
+      expect(nonNodeModulesFiles).toEqual(['handler.js', 'package-lock.json', 'package.json']);
+    });
   });
 
   it('ignores package json files per ignore directive in the zip', () => {
@@ -63,25 +62,27 @@ describe('Integration test - Packaging', () => {
     execSync('echo \'package: {exclude: ["package*.json"]}\' >> serverless.yml', { cwd });
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))
-      .then(zipfiles => {
-        const nodeModules = new Set(
-          zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1]));
-        const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
-        expect(nodeModules).toEqual(new Set(['lodash']));
-        expect(nonNodeModulesFiles).toEqual(['handler.js']);
-      });
+    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then(zipfiles => {
+      const nodeModules = new Set(
+        zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1])
+      );
+      const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
+      expect(nodeModules).toEqual(new Set(['lodash']));
+      expect(nonNodeModulesFiles).toEqual(['handler.js']);
+    });
   });
 
   it('package artifact directive works', () => {
     fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
     fse.copySync(path.join(__dirname, 'artifact.zip'), path.join(cwd, 'artifact.zip'));
-    execSync('echo \'package: {artifact: artifact.zip}\' >> serverless.yml', { cwd });
+    execSync("echo 'package: {artifact: artifact.zip}' >> serverless.yml", { cwd });
     execSync(`${serverlessExec} package`, { cwd });
-    const cfnTemplate = JSON.parse(fs.readFileSync(path.join(
-      cwd, '.serverless/cloudformation-template-update-stack.json')));
-    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key)
-      .toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/artifact.zip/);
+    const cfnTemplate = JSON.parse(
+      fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
+    );
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).toMatch(
+      /serverless\/aws-nodejs\/dev\/[^]*\/artifact.zip/
+    );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
     expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
       Type: 'AWS::Lambda::Function',
@@ -95,18 +96,12 @@ describe('Integration test - Packaging', () => {
         Handler: 'handler.hello',
         MemorySize: 1024,
         Role: {
-          'Fn::GetAtt': [
-            'IamRoleLambdaExecution',
-            'Arn',
-          ],
+          'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
         Runtime: 'nodejs10.x',
         Timeout: 6,
       },
-      DependsOn: [
-        'HelloLogGroup',
-        'IamRoleLambdaExecution',
-      ],
+      DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
     });
   });
 
@@ -114,10 +109,12 @@ describe('Integration test - Packaging', () => {
     fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
     fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
     execSync(`${serverlessExec} package`, { cwd });
-    const cfnTemplate = JSON.parse(fs.readFileSync(path.join(
-      cwd, '.serverless/cloudformation-template-update-stack.json')));
-    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key)
-      .toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/aws-nodejs.zip/);
+    const cfnTemplate = JSON.parse(
+      fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
+    );
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).toMatch(
+      /serverless\/aws-nodejs\/dev\/[^]*\/aws-nodejs.zip/
+    );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
     expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
       Type: 'AWS::Lambda::Function',
@@ -131,23 +128,16 @@ describe('Integration test - Packaging', () => {
         Handler: 'handler.hello',
         MemorySize: 1024,
         Role: {
-          'Fn::GetAtt': [
-            'IamRoleLambdaExecution',
-            'Arn',
-          ],
+          'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
         Runtime: 'nodejs10.x',
         Timeout: 6,
       },
-      DependsOn: [
-        'HelloLogGroup',
-        'IamRoleLambdaExecution',
-      ],
+      DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
     });
-    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip'))
-      .then(zipfiles => {
-        expect(zipfiles).toEqual(['handler.js']);
-      });
+    return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then(zipfiles => {
+      expect(zipfiles).toEqual(['handler.js']);
+    });
   });
 
   it('handles package individually with include/excludes correctly', () => {
@@ -155,12 +145,15 @@ describe('Integration test - Packaging', () => {
     fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
     fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler2.js'));
     execSync(`${serverlessExec} package`, { cwd });
-    const cfnTemplate = JSON.parse(fs.readFileSync(path.join(
-      cwd, '.serverless/cloudformation-template-update-stack.json')));
-    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key)
-      .toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/hello.zip/);
-    expect(cfnTemplate.Resources.Hello2LambdaFunction.Properties.Code.S3Key)
-      .toMatch(/serverless\/aws-nodejs\/dev\/[^]*\/hello2.zip/);
+    const cfnTemplate = JSON.parse(
+      fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
+    );
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).toMatch(
+      /serverless\/aws-nodejs\/dev\/[^]*\/hello.zip/
+    );
+    expect(cfnTemplate.Resources.Hello2LambdaFunction.Properties.Code.S3Key).toMatch(
+      /serverless\/aws-nodejs\/dev\/[^]*\/hello2.zip/
+    );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
     expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
       Type: 'AWS::Lambda::Function',
@@ -174,18 +167,12 @@ describe('Integration test - Packaging', () => {
         Handler: 'handler.hello',
         MemorySize: 1024,
         Role: {
-          'Fn::GetAtt': [
-            'IamRoleLambdaExecution',
-            'Arn',
-          ],
+          'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
         Runtime: 'nodejs10.x',
         Timeout: 6,
       },
-      DependsOn: [
-        'HelloLogGroup',
-        'IamRoleLambdaExecution',
-      ],
+      DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
     });
     return listZipFiles(path.join(cwd, '.serverless/hello.zip'))
       .then(zipfiles => expect(zipfiles).toEqual(['handler.js']))

@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/cloudant)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Cloudant
 
-This event allows you to connect functions to [IBM Cloudant](https://cloudant.com/), a NoSQL database-as-a-service based upon [Apache CouchDB](http://couchdb.apache.org/). Functions are invoked for each database modification that occurs. 
+This event allows you to connect functions to [IBM Cloudant](https://cloudant.com/), a NoSQL database-as-a-service based upon [Apache CouchDB](http://couchdb.apache.org/). Functions are invoked for each database modification that occurs.
 
 This event utilise the trigger feed provided by the [Cloudant package](https://github.com/openwhisk/openwhisk-package-cloudant).
 
@@ -24,7 +26,7 @@ This event utilise the trigger feed provided by the [Cloudant package](https://g
 /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
 ```
 
-## Configuration 
+## Configuration
 
 Users need to pass the database credentials and the database name to listen to changes on when defining the event.
 
@@ -37,13 +39,12 @@ Developers only need to add the database to listen to for each event.
 ```yaml
 # serverless.yaml
 functions:
-    index:
-        handler: users.main
-        events:
-            - cloudant: 
-                package: /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
-                db: db_name
- 
+  index:
+    handler: users.main
+    events:
+      - cloudant:
+          package: /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
+          db: db_name
 ```
 
 The configuration will create a trigger called `${serviceName}_${fnName}_cloudant_${db}` and a rule called `${serviceName}_${fnName}_cloudant_${db}_rule` to bind the function to the database update events.
@@ -57,14 +58,14 @@ Authentication credentials for the Cloudant event source can be defined explicit
 ```yaml
 # serverless.yaml
 functions:
-    index:
-        handler: users.main
-        events:
-            - cloudant: 
-                host: xxx-yyy-zzz-bluemix.cloudant.com
-                username: USERNAME
-                password: PASSWORD
-                db: db_name               
+  index:
+    handler: users.main
+    events:
+      - cloudant:
+          host: xxx-yyy-zzz-bluemix.cloudant.com
+          username: USERNAME
+          password: PASSWORD
+          db: db_name
 ```
 
 ### Adding Optional Parameters
@@ -73,7 +74,7 @@ The following optional feed parameters are also supported:
 
 - `max` - Maximum number of triggers to fire. Defaults to infinite.
 - `filter` - Filter function defined on a design document.
-- `query` - Optional query parameters for the filter function. 
+- `query` - Optional query parameters for the filter function.
 
 ```yaml
 # serverless.yaml
@@ -81,10 +82,10 @@ functions:
     index:
         handler: users.main
         events:
-            - cloudant: 
+            - cloudant:
                 ...
-                max: 10000 
-                query: 
+                max: 10000
+                query:
                    status: new
                 filter: mailbox/by_status
 ```
@@ -99,15 +100,15 @@ functions:
     index:
         handler: users.main
         events:
-            - cloudant: 
+            - cloudant:
                 package: /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
                 db: my_db
                 trigger: db_events
-                rule: connect_index_to_db 
+                rule: connect_index_to_db
      another:
         handler: users.another
         events:
-            - trigger: db_events 
+            - trigger: db_events
 ```
 
 ## Event Details
@@ -122,12 +123,12 @@ The JSON representation of the trigger event is as follows:
 
 ```json
 {
-    "id": "6ca436c44074c4c2aa6a40c9a188b348",
-    "seq": "2-g1AAAAL9aJyV-GJCaEuqx4-BktQkYp_dmIfC",
-    "changes": [
-        {
-            "rev": "2-da3f80848a480379486fb4a2ad98fa16"
-        }
-    ]
+  "id": "6ca436c44074c4c2aa6a40c9a188b348",
+  "seq": "2-g1AAAAL9aJyV-GJCaEuqx4-BktQkYp_dmIfC",
+  "changes": [
+    {
+      "rev": "2-da3f80848a480379486fb4a2ad98fa16"
+    }
+  ]
 }
 ```

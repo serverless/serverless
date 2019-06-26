@@ -7,19 +7,21 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/plugins)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugins
 
-A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework.  The Serverless Framework is merely a group of Plugins that are provided in the core.  If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs.  External Plugins are written exactly the same way as the core Plugins.
+A Plugin is custom Javascript code that creates new or extends existing commands within the Serverless Framework. The Serverless Framework is merely a group of Plugins that are provided in the core. If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs. External Plugins are written exactly the same way as the core Plugins.
 
 - [How to create serverless plugins - Part 1](https://serverless.com/blog/writing-serverless-plugins/)
 - [How to create serverless plugins - Part 2](https://serverless.com/blog/writing-serverless-plugins-2/)
 
 ## Installing Plugins
 
-External Plugins are added on a per service basis and are not applied globally.  Make sure you are in your Service's root directory, then install the corresponding Plugin with the help of NPM:
+External Plugins are added on a per service basis and are not applied globally. Make sure you are in your Service's root directory, then install the corresponding Plugin with the help of NPM:
 
 ```
 npm install --save custom-serverless-plugin
@@ -33,9 +35,11 @@ We need to tell Serverless that we want to use the plugin inside our service. We
 plugins:
   - custom-serverless-plugin
 ```
+
 The `plugins` section supports two formats:
 
 Array object:
+
 ```yml
 plugins:
   - plugin1
@@ -43,6 +47,7 @@ plugins:
 ```
 
 Enhanced plugins object:
+
 ```yml
 plugins:
   localPath: './custom_serverless_plugins'
@@ -64,23 +69,27 @@ custom:
 ## Service local plugin
 
 If you are working on a plugin or have a plugin that is just designed for one project, it can be loaded from the local `.serverless_plugins` folder at the root of your service. Local plugins can be added in the `plugins` array in `serverless.yml`.
+
 ```yml
 plugins:
   - custom-serverless-plugin
 ```
 
 Local plugins folder can be changed by enhancing `plugins` object:
+
 ```yml
 plugins:
   localPath: './custom_serverless_plugins'
   modules:
     - custom-serverless-plugin
 ```
+
 The `custom-serverless-plugin` will be loaded from the `custom_serverless_plugins` directory at the root of your service. If the `localPath` is not provided or empty, the `.serverless_plugins` directory will be used.
 
 The plugin will be loaded based on being named `custom-serverless-plugin.js` or `custom-serverless-plugin\index.js` in the root of `localPath` folder (`.serverless_plugins` by default).
 
 If you want to load a plugin from a specific directory without affecting other plugins, you can also specify a path relative to the root of your service:
+
 ```yaml
 plugins:
   # This plugin will be loaded from the `.serverless_plugins/` or `node_modules/` directories
@@ -109,15 +118,15 @@ In this case `plugin1` is loaded before `plugin2`.
 
 #### Plugin
 
-Code which defines *Commands*, any *Events* within a *Command*, and any *Hooks* assigned to a *Lifecycle Event*.
+Code which defines _Commands_, any _Events_ within a _Command_, and any _Hooks_ assigned to a _Lifecycle Event_.
 
-* Command // CLI configuration, commands, subcommands, options
-  * LifecycleEvent(s) // Events that happen sequentially when the command is run
-    * Hook(s)  // Code that runs when a Lifecycle Event happens during a Command
+- Command // CLI configuration, commands, subcommands, options
+  - LifecycleEvent(s) // Events that happen sequentially when the command is run
+    - Hook(s) // Code that runs when a Lifecycle Event happens during a Command
 
 #### Command
 
-A CLI *Command* that can be called by a user, e.g. `serverless deploy`.  A Command has no logic, but simply defines the CLI configuration (e.g. command, subcommands, parameters) and the *Lifecycle Events* for the command. Every command defines its own lifecycle events.
+A CLI _Command_ that can be called by a user, e.g. `serverless deploy`. A Command has no logic, but simply defines the CLI configuration (e.g. command, subcommands, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
 
 ```javascript
 'use strict';
@@ -126,10 +135,7 @@ class MyPlugin {
   constructor() {
     this.commands = {
       deploy: {
-        lifecycleEvents: [
-          'resources',
-          'functions'
-        ]
+        lifecycleEvents: ['resources', 'functions'],
       },
     };
   }
@@ -140,7 +146,7 @@ module.exports = MyPlugin;
 
 #### Lifecycle Events
 
-Events that fire sequentially during a Command.  The above example lists two Events.  However, for each Event, an additional `before` and `after` event is created.  Therefore, six Events exist in the above example:
+Events that fire sequentially during a Command. The above example lists two Events. However, for each Event, an additional `before` and `after` event is created. Therefore, six Events exist in the above example:
 
 - `before:deploy:resources`
 - `deploy:resources`
@@ -162,17 +168,14 @@ class Deploy {
   constructor() {
     this.commands = {
       deploy: {
-        lifecycleEvents: [
-          'resources',
-          'functions'
-        ]
+        lifecycleEvents: ['resources', 'functions'],
       },
     };
 
     this.hooks = {
       'before:deploy:resources': this.beforeDeployResources,
       'deploy:resources': this.deployResources,
-      'after:deploy:functions': this.afterDeployFunctions
+      'after:deploy:functions': this.afterDeployFunctions,
     };
   }
 
@@ -203,20 +206,14 @@ class MyPlugin {
   constructor() {
     this.commands = {
       deploy: {
-        lifecycleEvents: [
-          'resources',
-          'functions'
-        ],
+        lifecycleEvents: ['resources', 'functions'],
         commands: {
           function: {
-            lifecycleEvents: [
-              'package',
-              'deploy'
-            ],
+            lifecycleEvents: ['package', 'deploy'],
           },
         },
       },
-    }
+    };
   }
 }
 
@@ -233,7 +230,7 @@ Option Shortcuts are passed in with a single dash (`-`) like this: `serverless f
 
 The `options` object will be passed in as the second parameter to the constructor of your plugin.
 
-In it, you can optionally add a `shortcut` property, as well as a `required` property.  The Framework will return an error if a `required` Option is not included. You can also set a `default` property if your option is not required.
+In it, you can optionally add a `shortcut` property, as well as a `required` property. The Framework will return an error if a `required` Option is not included. You can also set a `default` property if your option is not required.
 
 **Note:** At this time, the Serverless Framework does not use parameters.
 
@@ -247,27 +244,25 @@ class Deploy {
 
     this.commands = {
       deploy: {
-        lifecycleEvents: [
-          'functions'
-        ],
+        lifecycleEvents: ['functions'],
         options: {
           function: {
             usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
             shortcut: 'f',
-            required: true
+            required: true,
           },
           stage: {
             usage: 'Specify the stage you want to deploy to. (e.g. "--stage prod")',
             shortcut: 's',
-            default: 'dev'
-          }
-        }
+            default: 'dev',
+          },
+        },
       },
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction.bind(this)
-    }
+      'deploy:functions': this.deployFunction.bind(this),
+    };
   }
 
   deployFunction() {
@@ -299,21 +294,19 @@ class ProviderDeploy {
 
     this.commands = {
       deploy: {
-        lifecycleEvents: [
-          'functions'
-        ],
+        lifecycleEvents: ['functions'],
         options: {
           function: {
             usage: 'Specify the function you want to deploy (e.g. "--function myFunction")',
-            required: true
-          }
-        }
+            required: true,
+          },
+        },
       },
     };
 
     this.hooks = {
-      'deploy:functions': this.deployFunction.bind(this)
-    }
+      'deploy:functions': this.deployFunction.bind(this),
+    };
   }
 
   deployFunction() {
@@ -340,15 +333,13 @@ class MyPlugin {
 
     this.commands = {
       log: {
-        lifecycleEvents: [
-          'serverless'
-        ],
+        lifecycleEvents: ['serverless'],
       },
     };
 
     this.hooks = {
-      'log:serverless': this.logServerless.bind(this)
-    }
+      'log:serverless': this.logServerless.bind(this),
+    };
   }
 
   logServerless() {

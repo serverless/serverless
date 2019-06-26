@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/sqs)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # SQS Queues
@@ -37,7 +39,7 @@ functions:
       - sqs:
           arn:
             Fn::Join:
-              - ":"
+              - ':'
               - - arn
                 - aws
                 - sqs

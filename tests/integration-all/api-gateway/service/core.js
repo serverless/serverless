@@ -24,13 +24,13 @@ async function cors(event) {
 }
 
 async function customAuthorizers(event) {
-  return ({
+  return {
     statusCode: 200,
     body: JSON.stringify({
       message: 'Hello from API Gateway! - (customAuthorizers)',
       event,
     }),
-  });
+  };
 }
 
 async function apiKeys(event) {
@@ -44,13 +44,19 @@ async function apiKeys(event) {
 }
 
 async function timeout(event) {
-  return new Promise(resolve => setTimeout(() => resolve({
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Should not happen (timeout expected)',
-      event,
-    }),
-  }), 2000));
+  return new Promise(resolve =>
+    setTimeout(
+      () =>
+        resolve({
+          statusCode: 200,
+          body: JSON.stringify({
+            message: 'Should not happen (timeout expected)',
+            event,
+          }),
+        }),
+      2000
+    )
+  );
 }
 
 module.exports = {

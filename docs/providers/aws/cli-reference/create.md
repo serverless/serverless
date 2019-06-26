@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/create)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Create
@@ -33,6 +35,7 @@ serverless create --template-url https://github.com/serverless/serverless/tree/m
 ```
 
 ## Options
+
 - `--template` or `-t` The name of one of the available templates. **Required if --template-url and --template-path are not present**.
 - `--template-url` or `-u` The name of one of the available templates. **Required if --template and --template-path are not present**.
 - `--template-path` The local path of your template. **Required if --template and --template-url are not present**.
@@ -40,6 +43,7 @@ serverless create --template-url https://github.com/serverless/serverless/tree/m
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
 ## Provided lifecycle events
+
 - `create:create`
 
 ## Available Templates

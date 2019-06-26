@@ -13,14 +13,16 @@ function findStacks(name, status) {
 
   function recursiveFind(found, token) {
     if (token) params.NextToken = token;
-    return CF.listStacks(params).promise().then(result => {
-      const matches = result.StackSummaries.filter(stack => stack.StackName.match(name));
-      if (matches.length) {
-        found.push(...matches);
-      }
-      if (result.NextToken) return recursiveFind(found, result.NextToken);
-      return found;
-    });
+    return CF.listStacks(params)
+      .promise()
+      .then(result => {
+        const matches = result.StackSummaries.filter(stack => stack.StackName.match(name));
+        if (matches.length) {
+          found.push(...matches);
+        }
+        if (result.NextToken) return recursiveFind(found, result.NextToken);
+        return found;
+      });
   }
 
   return recursiveFind([]);
@@ -45,11 +47,13 @@ function listStackResources(stack) {
 
   function recursiveFind(resources, token) {
     if (token) params.NextToken = token;
-    return CF.listStackResources(params).promise().then(result => {
-      resources.push(...result.StackResourceSummaries);
-      if (result.NextToken) return recursiveFind(resources, result.NextToken);
-      return resources;
-    });
+    return CF.listStackResources(params)
+      .promise()
+      .then(result => {
+        resources.push(...result.StackResourceSummaries);
+        if (result.NextToken) return recursiveFind(resources, result.NextToken);
+        return resources;
+      });
   }
 
   return recursiveFind([]);

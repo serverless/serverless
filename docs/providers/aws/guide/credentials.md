@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/credentials)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Credentials
@@ -28,14 +30,13 @@ If you're new to Amazon Web Services, make sure you put in a credit card.
 
 All AWS users get access to the Free Tier for [AWS Lambda](https://aws.amazon.com/lambda/pricing/). AWS Lambda is part of the non-expiring [AWS Free Tier](https://aws.amazon.com/free/#AWS_FREE_TIER). For additional pricing information for AWS Lambda and Gateway [here](https://aws.amazon.com/lambda/pricing/). If you're using additional AWS services, they could incur additional costs. Please review pricing for you services on AWS [here](https://aws.amazon.com/pricing/).
 
-
 If you don't have a credit card set up, you may not be able to deploy your resources and you may run into this error:
 
 ```
 AWS Access Key Id needs a subscription for the service
 ```
 
-While in the AWS Free Tier, you can build an entire application on AWS Lambda, AWS API Gateway, and more, without getting charged for 1 year...  As long as you don't exceed the resources in the free tier, of course.
+While in the AWS Free Tier, you can build an entire application on AWS Lambda, AWS API Gateway, and more, without getting charged for 1 year... As long as you don't exceed the resources in the free tier, of course.
 
 ### Creating AWS Access Keys
 
@@ -45,17 +46,17 @@ To let the Serverless Framework access your AWS account, we're going to **create
 
 2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-agent`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Create policy**. Select the **JSON** tab, add the following JSON file you'll find in [this gist](https://gist.github.com/ServerlessBot/7618156b8671840a539f405dea2704c8).
 
-When you are finished, select **Review policy**. You can assign this policy a **Name** and **Description**, then choose **Create Policy**. Check everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps.  That is, if you don't use separate AWS accounts for stages/apps, which is most common.
+When you are finished, select **Review policy**. You can assign this policy a **Name** and **Description**, then choose **Create Policy**. Check everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps. That is, if you don't use separate AWS accounts for stages/apps, which is most common.
 
 3. View and copy the **API Key** & **Secret** to a temporary place. You'll need it in the next step.
 
-As you add additional functions and services, your permission needs will change. Though not advised, you can **create an IAM User with Admin access**, which can configure the services in your AWS account.  This IAM User will have its own set of AWS Access Keys.
+As you add additional functions and services, your permission needs will change. Though not advised, you can **create an IAM User with Admin access**, which can configure the services in your AWS account. This IAM User will have its own set of AWS Access Keys.
 
-**Note:** In a production environment, we recommend reducing the permissions to the IAM User which the Framework uses.  Unfortunately, the Framework's functionality is growing so fast, we can't yet offer you a finite set of permissions it needs (we're working on this).  Consider using a separate AWS account in the interim, if you cannot get permission to your organization's primary AWS accounts.
+**Note:** In a production environment, we recommend reducing the permissions to the IAM User which the Framework uses. Unfortunately, the Framework's functionality is growing so fast, we can't yet offer you a finite set of permissions it needs (we're working on this). Consider using a separate AWS account in the interim, if you cannot get permission to your organization's primary AWS accounts.
 
 1. Create or login to your Amazon Web Services Account and go to the Identity & Access Management (IAM) page.
 
-2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-admin`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Attach existing policies directly**. Search for and select **AdministratorAccess** then click **Next: Review**. Check everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps.  That is, if you don't use separate AWS accounts for stages/apps, which is most common.
+2. Click on **Users** and then **Add user**. Enter a name in the first field to remind you this User is the Framework, like `serverless-admin`. Enable **Programmatic access** by clicking the checkbox. Click **Next** to go through to the Permissions page. Click on **Attach existing policies directly**. Search for and select **AdministratorAccess** then click **Next: Review**. Check everything looks good and click **Create user**. Later, you can create different IAM Users for different apps and different stages of those apps. That is, if you don't use separate AWS accounts for stages/apps, which is most common.
 
 3. View and copy the **API Key** & **Secret** to a temporary place. You'll need it in the next step.
 
@@ -76,7 +77,8 @@ serverless deploy
 # 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
 ```
 
-**Please note:** *If you are using a self-signed certificate you'll need to do one of the following:*
+**Please note:** _If you are using a self-signed certificate you'll need to do one of the following:_
+
 ```bash
 # String example:
 # if using the 'ca' variable, your certificate contents should replace the newline character with '\n'
@@ -93,7 +95,6 @@ export cafile="/path/to/cafile1.pem,/path/to/cafile2.pem"
 
 # 'export' command is valid only for unix shells. In Windows - use 'set' instead of 'export'
 ```
-
 
 #### Using AWS Profiles
 
@@ -191,4 +192,4 @@ custom:
 **Be aware!** Due to the way AWS IAM and the local environment works, if you invoke your lambda functions locally using the CLI command `serverless invoke local -f ...` the IAM role/profile could be (and probably is) different from the one set in the `serverless.yml` configuration file.
 Thus, most likely, a different set of permissions will be in place, altering the interaction between your lambda functions and other AWS resources.
 
-*Please, refer to the [`invoke local`](https://serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/#aws---invoke-local) CLI command documentation for more details.*
+_Please, refer to the [`invoke local`](https://serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/#aws---invoke-local) CLI command documentation for more details._

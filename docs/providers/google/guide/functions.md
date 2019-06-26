@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Google - Functions
 
-If you are using Google Cloud Functions as a provider, all *functions* inside the service are Google Cloud Functions.
+If you are using Google Cloud Functions as a provider, all _functions_ inside the service are Google Cloud Functions.
 
 ## Configuration
 
@@ -39,8 +41,7 @@ You can specify an array of functions, which is useful if you separate your func
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}
@@ -54,7 +55,6 @@ deleteFoo:
   handler: handler.foo
 ```
 
-
 ## Handler
 
 The `handler` property should be the function name you've exported in your entrypoint file.
@@ -63,7 +63,7 @@ When you e.g. export a function with the name `http` in `index.js` your `handler
 
 ```javascript
 // index.js
-exports.http = (request, response) => {}
+exports.http = (request, response) => {};
 ```
 
 **A note about index.js and the entrypoint file**

@@ -7,18 +7,21 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/deploy)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Deploy
 
-The `sls deploy` command deploys your entire service via the Apache OpenWhisk platform API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).  Use `serverless deploy function -f myFunction` when you have made code changes and you want to quickly upload your updated code to Apache OpenWhisk.
+The `sls deploy` command deploys your entire service via the Apache OpenWhisk platform API. Run this command when you have made service changes (i.e., you edited `serverless.yml`). Use `serverless deploy function -f myFunction` when you have made code changes and you want to quickly upload your updated code to Apache OpenWhisk.
 
 ```bash
 serverless deploy
 ```
 
 ## Options
+
 - `--config` or `-c` Path to your conifguration file, if other than `serverless.yml|.yaml|.js|.json`.
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
@@ -40,6 +43,7 @@ This is the simplest deployment usage possible. With this command Serverless wil
 OpenWhisk platform endpoints.
 
 ## Provided lifecycle events
+
 - `deploy:cleanup`
 - `deploy:initialize`
 - `deploy:setupProviderConfiguration`

@@ -10,11 +10,12 @@ const execSync = require('child_process').execSync;
 try {
   const serverless = new Serverless();
 
-  (() => serverless.init()
-    .then(() => serverless.utils.logStat(serverless, 'install'))
-    .then(() => setupAutocomplete())
-    .catch(() => Promise.resolve())
-  )();
+  (() =>
+    serverless
+      .init()
+      .then(() => serverless.utils.logStat(serverless, 'install'))
+      .then(() => setupAutocomplete())
+      .catch(() => Promise.resolve()))();
 } catch (error) {
   // fail silently
 }

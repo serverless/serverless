@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/guide/intro)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst - Introduction
@@ -21,10 +23,9 @@ Using the Serverless Framework you can develop and deploy your Spotinst Function
 
 ## Core Benefits of `Spotinst Functions`
 
- 1. Multi-Cloud Deployments `(50+ Locations!)`
- 2. 50-80% Cost Reduction `(via Cloud Spot Prices)`
- 3. Faster Execution time & Advanced Analytics
-
+1.  Multi-Cloud Deployments `(50+ Locations!)`
+2.  50-80% Cost Reduction `(via Cloud Spot Prices)`
+3.  Faster Execution time & Advanced Analytics
 
 ## Core Concepts
 
@@ -41,22 +42,21 @@ The functions underneath the environment share similar characteristics and are m
 
 For example, you can create several environments for your application's Dev and Prod functions of the same Application
 
-![](https://s3.amazonaws.com/spotinst-public/assets/IMG/sQ7iaNHCTXnhxSe_S4LlQpQ+(1).png)
+![](<https://s3.amazonaws.com/spotinst-public/assets/IMG/sQ7iaNHCTXnhxSe_S4LlQpQ+(1).png>)
 
 ### Functions
 
 A Function is an [Spotinst Function](https://help.spotinst.com/hc/en-us/articles/115004143245-Function). It's an independent unit of deployment, like a microservice. It's merely code, deployed in the cloud, that is most often written to perform a specific job.
 
-You can perform multiple jobs in your code, but we don't recommend doing that without good reason.  Separation of concerns is best and the Framework is designed to help you easily develop and deploy Functions, as well as manage lots of them.
-
+You can perform multiple jobs in your code, but we don't recommend doing that without good reason. Separation of concerns is best and the Framework is designed to help you easily develop and deploy Functions, as well as manage lots of them.
 
 ### Events
 
-Anything that triggers an [Spotinst Function](https://help.spotinst.com/hc/en-us/articles/115004143245-Function) to execute is regarded by the Framework as an **Event** (in Spotinst Functions they called Triggers).  Events platform events such as:
+Anything that triggers an [Spotinst Function](https://help.spotinst.com/hc/en-us/articles/115004143245-Function) to execute is regarded by the Framework as an **Event** (in Spotinst Functions they called Triggers). Events platform events such as:
 
-* *An HTTP Trigger (e.g., for a REST API)*
-* *A scheduled Cron event (e.g., run every 5 minutes)*
-* *And more...*
+- _An HTTP Trigger (e.g., for a REST API)_
+- _A scheduled Cron event (e.g., run every 5 minutes)_
+- _And more..._
 
 ### Function Template
 
@@ -64,7 +64,7 @@ Anything that triggers an [Spotinst Function](https://help.spotinst.com/hc/en-us
 # handler.js
 module.exports.main = function main (event, context, callback) {
     callback(null, {
-    statusCode: 200, 
+    statusCode: 200,
     body: '{"hello":"from NodeJS8.3 function"}',
     headers: {"Content-Type": "application/json"}
   });
@@ -73,10 +73,9 @@ module.exports.main = function main (event, context, callback) {
 
 ### Services
 
-A **Service** is the Framework's unit of organization.  You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file by default entitled `serverless.yml` (or `serverless.json` or `serverless.js`).  It looks like this:
+A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file by default entitled `serverless.yml` (or `serverless.json` or `serverless.js`). It looks like this:
 
 ```yml
-
 service: spotinst-nodejs # NOTE: update this with your service name
 
 provider:
@@ -96,17 +95,15 @@ functions:
 #      value: '* * * * *'
 #    environmentVariables:
 #      key: value
-
 ```
+
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` (or the file specified with the `--config` option) is deployed at once.
 
 ### Plugins
 
-You can overwrite or extend the functionality of the Framework using **Plugins**.  Every `serverless.yml` can contain a `plugins:` property, which features multiple plugins. Please include the **serverless-spotinst-functions** as part of your plugins in the serverless.yml file.
+You can overwrite or extend the functionality of the Framework using **Plugins**. Every `serverless.yml` can contain a `plugins:` property, which features multiple plugins. Please include the **serverless-spotinst-functions** as part of your plugins in the serverless.yml file.
 
 ```yml
-
 plugins:
   - serverless-spotinst-functions
-
 ```
