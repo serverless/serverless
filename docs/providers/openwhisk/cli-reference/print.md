@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/print)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Print
@@ -42,13 +44,13 @@ custom:
 
 functions:
   hello:
-      handler: handler.hello
-      events:
-        - schedule: ${self:custom.globalSchedule}
+    handler: handler.hello
+    events:
+      - schedule: ${self:custom.globalSchedule}
   world:
-      handler: handler.world
-      events:
-        - schedule: ${self:custom.globalSchedule}
+    handler: handler.world
+    events:
+      - schedule: ${self:custom.globalSchedule}
 ```
 
 Using `sls print` will resolve the variables in the `schedule` blocks.

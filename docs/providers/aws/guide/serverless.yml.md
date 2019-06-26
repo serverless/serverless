@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/serverless.yml)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless.yml Reference
@@ -21,7 +23,7 @@ service:
   name: myService
   awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption for all functions
 
-frameworkVersion: ">=1.0.0 <2.0.0"
+frameworkVersion: '>=1.0.0 <2.0.0'
 
 provider:
   name: aws
@@ -89,12 +91,12 @@ provider:
             - Ref: ServerlessDeploymentBucket
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
-      Principal: "*"
-      Action: "Update:*"
-      Resource: "*"
+      Principal: '*'
+      Action: 'Update:*'
+      Resource: '*'
     - Effect: Deny
-      Principal: "*"
-      Resource: "*"
+      Principal: '*'
+      Resource: '*'
       Action:
         - Update:Replace
         - Update:Delete
@@ -113,14 +115,14 @@ provider:
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
   resourcePolicy:
     - Effect: Allow
-      Principal: "*"
+      Principal: '*'
       Action: execute-api:Invoke
       Resource:
         - execute-api:/*/*/*
       Condition:
         IpAddress:
           aws:SourceIp:
-            - "123.123.123.123"
+            - '123.123.123.123'
   tags: # Optional service wide function tags
     foo: bar
     baz: qux
@@ -141,7 +143,6 @@ package: # Optional deployment packaging configuration
   excludeDevDependencies: false # Config if Serverless should automatically exclude dev dependencies in the deployment package. Defaults to true
   artifact: path/to/my-artifact.zip # Own package that should be used. You must provide this file.
   individually: true # Enables individual packaging for each function. If true you must provide package for each function. Defaults to false
-
 
 functions:
   usersCreate: # A Function
@@ -186,7 +187,7 @@ functions:
           private: true # Requires clients to add API keys values in the `x-api-key` header of their request
           authorizer: # An AWS API Gateway custom authorizer function
             name: authorizerFunc # The name of the authorizer function (must be in this service)
-            arn:  xxx:xxx:Lambda-Name # Can be used instead of name to reference a function outside of service
+            arn: xxx:xxx:Lambda-Name # Can be used instead of name to reference a function outside of service
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
@@ -247,9 +248,9 @@ functions:
       - cloudwatchEvent:
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending
@@ -310,7 +311,7 @@ resources:
     UsersTableArn:
       Description: The ARN for the User's Table
       Value:
-        "Fn::GetAtt": [ usersTable, Arn ]
+        'Fn::GetAtt': [usersTable, Arn]
       Export:
         Name: ${self:service}:${opt:stage}:UsersTableArn # see Fn::ImportValue to use in other services and http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html for documentation on use.
 ```

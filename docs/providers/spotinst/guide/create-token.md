@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/guide/create-token)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst Functions - Create Token
@@ -21,6 +23,7 @@ You can generate a Permanent Token from the [Spotinst Console](https://console.s
 > `WARNING`: Do not share your personal access token or your application secret with anyone outside your organization. Please contact our support if you’re concerned your token has been compromised.
 
 ## Temporary Access Token
+
 You can also generate a the temporary access token, which is only valid for 2 hours (7200 seconds).
 
 You can generate a temporary token from the [Spotinst Console](https://console.spotinst.com/#/settings/tokens/temporary). Or, using the below command:
@@ -30,12 +33,14 @@ $ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'username
 ```
 
 Replace the following parameters, more info can be found [here](https://console.spotinst.com/#/settings/tokens/temporary)
- - `<USERNAME>`
- - `<PASSWORD>`
- - `<CLIENT_ID>`
- - `<CLIENT_SECRET>`
+
+- `<USERNAME>`
+- `<PASSWORD>`
+- `<CLIENT_ID>`
+- `<CLIENT_SECRET>`
 
 The request will return two tokens:
+
 ```json
 {
   "request": {
@@ -62,11 +67,9 @@ The request will return two tokens:
 }
 ```
 
-* *accessToken* - Use this token when making calls to Spotinst API
-* *refreshToken* - Use this token in order to refresh the temporary token. This will return a new token that is valid for additional 2 hours:
-
+- _accessToken_ - Use this token when making calls to Spotinst API
+- _refreshToken_ - Use this token in order to refresh the temporary token. This will return a new token that is valid for additional 2 hours:
 
 ```bash
 $ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d 'refresh_token=<REFRESH_TOKEN>&grant_type=refresh_token&client_id=<CLIENT_ID>&client_secret=<CLIENT_SECRET>' https://api.spotinst.io/token
 ```
-

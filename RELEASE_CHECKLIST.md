@@ -7,7 +7,7 @@ More info about our release process can be found in the [`RELEASE_PROCESS.md`](.
 ## Pre-Release
 
 - [ ] Look through all open issues and PRs (if any) of that milestone and close them / move them to another
-milestone if still open
+      milestone if still open
 - [ ] Create a new branch for the release
 - [ ] Bump the version number in `package.json`
 - [ ] Run `./scripts/prs-since-last-tag <OLD-TAG>`
@@ -37,4 +37,3 @@ milestone if still open
 ## Validate Release
 
 - [ ] Validate that `npm install` works (`npm install -g serverless@<new-tag>` or `npm install -g serverless` if latest is released)
-

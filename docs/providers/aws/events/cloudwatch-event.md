@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cloudwatch-event)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # CloudWatch Event
@@ -25,9 +27,9 @@ functions:
       - cloudwatchEvent:
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending
@@ -47,9 +49,9 @@ functions:
       - cloudwatchEvent:
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending
@@ -68,9 +70,9 @@ functions:
       - cloudwatchEvent:
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending
@@ -82,9 +84,9 @@ functions:
       - cloudwatchEvent:
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending
@@ -92,9 +94,9 @@ functions:
       - cloudwatchEvent:
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending
@@ -117,9 +119,9 @@ functions:
           description: 'CloudWatch Event triggered on EC2 Instance pending state'
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending
@@ -138,9 +140,9 @@ functions:
           name: 'my-cloudwatch-event-name'
           event:
             source:
-              - "aws.ec2"
+              - 'aws.ec2'
             detail-type:
-              - "EC2 Instance State-change Notification"
+              - 'EC2 Instance State-change Notification'
             detail:
               state:
                 - pending

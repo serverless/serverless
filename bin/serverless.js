@@ -17,7 +17,7 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-process.on('unhandledRejection', (e) => {
+process.on('unhandledRejection', e => {
   logError(e);
 });
 process.noDeprecation = true;
@@ -25,41 +25,47 @@ process.noDeprecation = true;
 const invocationId = uuid.v4();
 
 // boot up error reporting via sentry before anything
-(() => initializeErrorReporter(invocationId).then(() => {
-  if (process.argv[2] === 'completion') {
-    return autocomplete();
-  }
-  // requiring here so that if anything went wrong,
-  // during require, it will be caught.
-  const Serverless = require('../lib/Serverless'); // eslint-disable-line global-require
+(() =>
+  initializeErrorReporter(invocationId)
+    .then(() => {
+      if (process.argv[2] === 'completion') {
+        return autocomplete();
+      }
+      // requiring here so that if anything went wrong,
+      // during require, it will be caught.
+      const Serverless = require('../lib/Serverless'); // eslint-disable-line global-require
 
-  const serverless = new Serverless({
-    interactive: typeof process.env.CI === 'undefined',
-  });
-
-  serverless.invocationId = invocationId;
-
-  return serverless.init()
-    .then(() => serverless.run())
-    .then(() => process.exit(0))
-    .catch((err) => {
-      // If Enterprise Plugin, capture error
-      let enterpriseErrorHandler = null;
-      serverless.pluginManager.plugins.forEach((p) => {
-        if (p.enterprise && p.enterprise.errorHandler) {
-          enterpriseErrorHandler = p.enterprise.errorHandler;
-        }
+      const serverless = new Serverless({
+        interactive: typeof process.env.CI === 'undefined',
       });
-      if (!enterpriseErrorHandler) { throw err; }
-      return enterpriseErrorHandler(err, invocationId)
-      .catch((error) => {
-        process.stdout.write(`${error.stack}\n`)
-      })
-      .then(() => {
-        throw err
-      });
+
+      serverless.invocationId = invocationId;
+
+      return serverless
+        .init()
+        .then(() => serverless.run())
+        .then(() => process.exit(0))
+        .catch(err => {
+          // If Enterprise Plugin, capture error
+          let enterpriseErrorHandler = null;
+          serverless.pluginManager.plugins.forEach(p => {
+            if (p.enterprise && p.enterprise.errorHandler) {
+              enterpriseErrorHandler = p.enterprise.errorHandler;
+            }
+          });
+          if (!enterpriseErrorHandler) {
+            throw err;
+          }
+          return enterpriseErrorHandler(err, invocationId)
+            .catch(error => {
+              process.stdout.write(`${error.stack}\n`);
+            })
+            .then(() => {
+              throw err;
+            });
+        });
     })
-}).catch(e => {
-  process.exitCode = 1;
-  logError(e);
-}))();
+    .catch(e => {
+      process.exitCode = 1;
+      logError(e);
+    }))();

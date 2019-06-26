@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/events/timer)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Timer Trigger
@@ -33,8 +35,8 @@ functions:
     events:
       - timer:
         x-azure-settings:
-            name: timerObj #<string>, default - "myTimer", specifies which name it's available on `context.bindings`
-            schedule: 0 */5 * * * * #<string>, cron expression to run on
+          name: timerObj #<string>, default - "myTimer", specifies which name it's available on `context.bindings`
+          schedule: 0 */5 * * * * #<string>, cron expression to run on
 ```
 
 ```javascript
@@ -43,7 +45,7 @@ functions:
 'use strict';
 
 module.exports.hello = function(context, timerObj) {
-  context.log("Timer ran");
+  context.log('Timer ran');
   context.done();
 };
 ```

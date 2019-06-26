@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/credentials)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Credentials
@@ -26,23 +28,23 @@ Here's how to get started…
 
 - Sign up for a free account @ [IBM Cloud](https://console.bluemix.net/)
 
-IBM Cloud comes with a [lite account](https://console.bluemix.net/registration/) that does not need credit card details to register. Lite accounts provide free access to certain platform services and do not expire after a limited time period. 
+IBM Cloud comes with a [lite account](https://console.bluemix.net/registration/) that does not need credit card details to register. Lite accounts provide free access to certain platform services and do not expire after a limited time period.
 
 **All IBM Cloud users get access to the [Free Tier for IBM Cloud Functions](https://console.ng.bluemix.net/openwhisk/learn/pricing). This includes 400,000 GB-seconds of serverless function compute time per month.**
 
-Additional execution time is charged at $0.000017 per GB-second of execution, rounded to the nearest 100ms.
+Additional execution time is charged at \$0.000017 per GB-second of execution, rounded to the nearest 100ms.
 
 ### Install the IBM Cloud CLI
 
 Following the [instructions on this page](https://console.bluemix.net/docs/cli/index.html#overview) to download and install the IBM Cloud CLI.
 
-*On Linux, you can run this command:*
+_On Linux, you can run this command:_
 
 ```
 curl -fsSL https://clis.ng.bluemix.net/install/linux | sh
 ```
 
-*On OS X, you can run this command:*
+_On OS X, you can run this command:_
 
 ```
 curl -fsSL https://clis.ng.bluemix.net/install/osx | sh
@@ -78,7 +80,7 @@ ibmcloud wsk property get --auth
 
 #### Regions
 
-Cloud Functions is available with the following regions US-South (`api.ng.bluemix.net`), London (`api.eu-gb.bluemix.net`), Frankfurt (` api.eu-de.bluemix.net`). Use the appropriate [API endpoint](https://console.bluemix.net/docs/overview/ibm-cloud.html#ov_intro_reg) to target Cloud Functions in that region.
+Cloud Functions is available with the following regions US-South (`api.ng.bluemix.net`), London (`api.eu-gb.bluemix.net`), Frankfurt (`api.eu-de.bluemix.net`). Use the appropriate [API endpoint](https://console.bluemix.net/docs/overview/ibm-cloud.html#ov_intro_reg) to target Cloud Functions in that region.
 
 #### Organisations and Spaces
 
@@ -86,7 +88,7 @@ Organisations and spaces for your account can be viewed on this page: [https://c
 
 Accounts normally have a default organisation using the account email address. Default space name is usually `dev`.
 
-*After running the login command, authentication credentials will be stored in the `.wskprops` file under your home directory.*
+_After running the login command, authentication credentials will be stored in the `.wskprops` file under your home directory._
 
 ## Register with OpenWhisk platform (Self-Hosted)
 
@@ -108,15 +110,14 @@ cd openwhisk/tools/vagrant
 
 This platform will now be running inside a virtual machine at the following IP address: `192.168.33.13`
 
-**Please note:** *If you are using a self-hosted platform, the `ignore_certs` property in `serverless.yaml` needs to be `true`. This allows the client to be used against local deployments of OpenWhisk with a self-signed certificate.*
+**Please note:** _If you are using a self-hosted platform, the `ignore_certs` property in `serverless.yaml` needs to be `true`. This allows the client to be used against local deployments of OpenWhisk with a self-signed certificate._
 
 ```yaml
 service: testing
 provider:
   name: openwhisk
   ignore_certs: true
-functions:
-  ...
+functions: ...
 ```
 
 ### Access Account Credentials
@@ -177,7 +178,7 @@ Credentials are stored in `~/.wskprops`, which you can edit directly if needed.
 
 ##### Edit file manually
 
-The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST`, `USER_AUTH_KEY` and (optionally) `ACCESS_TOKEN` values will the  credentials from above.
+The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST`, `USER_AUTH_KEY` and (optionally) `ACCESS_TOKEN` values will the credentials from above.
 
 ```
 APIHOST=PLATFORM_API_HOST

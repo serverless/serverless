@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/streams)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Triggers
@@ -30,6 +32,7 @@ functions:
     events:
       - trigger: my_trigger
 ```
+
 This configuration will create a trigger called `servicename-my_trigger` with an active rule binding `my_function` to this event stream.
 
 ## Customising Rules
@@ -42,8 +45,8 @@ functions:
     handler: index.main
     events:
       - trigger:
-        name: "my_trigger"
-        rule: "rule_name"
+        name: 'my_trigger'
+        rule: 'rule_name'
 ```
 
 ## Customising Triggers

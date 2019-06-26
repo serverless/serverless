@@ -8,8 +8,11 @@ const crypto = require('crypto');
 const YAML = require('js-yaml');
 const JSZip = require('jszip');
 
-const tmpDirCommonPath = path.join(os.tmpdir(), 'tmpdirs-serverless',
-  crypto.randomBytes(2).toString('hex'));
+const tmpDirCommonPath = path.join(
+  os.tmpdir(),
+  'tmpdirs-serverless',
+  crypto.randomBytes(2).toString('hex')
+);
 
 function getTmpDirPath() {
   return path.join(tmpDirCommonPath, crypto.randomBytes(8).toString('hex'));
@@ -48,8 +51,7 @@ function writeYamlFile(filePath, content) {
 }
 
 function listZipFiles(filename) {
-  return new JSZip().loadAsync(fs.readFileSync(filename))
-    .then(zip => Object.keys(zip.files));
+  return new JSZip().loadAsync(fs.readFileSync(filename)).then(zip => Object.keys(zip.files));
 }
 
 module.exports = {

@@ -7,30 +7,32 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/guide/intro)
-<!-- DOCS-SITE-LINK:END -->
 
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/guide/intro)
+
+<!-- DOCS-SITE-LINK:END -->
 
 # Cloudflare Workers - Introduction
 
-The Serverless Framework helps you develop and deploy serverless applications using [Cloudflare Workers](https://www.cloudflare.com/products/cloudflare-workers/). It's a CLI that offers structure, automation, and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).  [One config file](#serverlessyml) directs where exactly this Worker will live, so you can modify code and have it re-built and re-deployed in moments. No visits to the browser required.
+The Serverless Framework helps you develop and deploy serverless applications using [Cloudflare Workers](https://www.cloudflare.com/products/cloudflare-workers/). It's a CLI that offers structure, automation, and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events). [One config file](#serverlessyml) directs where exactly this Worker will live, so you can modify code and have it re-built and re-deployed in moments. No visits to the browser required.
 
 The Serverless Framework is different than other application frameworks because:
-* It manages your code as well as your infrastructure
-* It supports multiple languages 
+
+- It manages your code as well as your infrastructure
+- It supports multiple languages
 
 # Serverless.yml
 
-The `serverless.yml` file is what molds the Worker(s) of your project. Using the [Serverless Cloudflare Workers plugin](https://github.com/cloudflare/serverless-cloudflare-workers), a `serverless.yml` will look like: 
+The `serverless.yml` file is what molds the Worker(s) of your project. Using the [Serverless Cloudflare Workers plugin](https://github.com/cloudflare/serverless-cloudflare-workers), a `serverless.yml` will look like:
 
 ```yml
 # serverless.yml
 service:
-    name: hello
-    webpack: true | PATH_TO_CONFIG
-    config:
-      accountId: ${env:CLOUDFLARE_ACCOUNT_ID}
-      zoneId: ${env:CLOUDFLARE_ZONE_ID} 
+  name: hello
+  webpack: true | PATH_TO_CONFIG
+  config:
+    accountId: ${env:CLOUDFLARE_ACCOUNT_ID}
+    zoneId: ${env:CLOUDFLARE_ZONE_ID}
 
 provider:
   name: cloudflare
@@ -43,15 +45,15 @@ functions: ..
 
 #### Services
 
-A **Service** is the Serverless Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions and the routes they will live on, all in one file entitled `serverless.yml`: 
+A **Service** is the Serverless Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions and the routes they will live on, all in one file entitled `serverless.yml`:
 
 ```yml
 # serverless.yml
 service:
-    name: hello
-    config:
-      accountId: ${env:CLOUDFLARE_ACCOUNT_ID}
-      zoneId: ${env:CLOUDFLARE_ZONE_ID}
+  name: hello
+  config:
+    accountId: ${env:CLOUDFLARE_ACCOUNT_ID}
+    zoneId: ${env:CLOUDFLARE_ZONE_ID}
 
 provider:
   name: cloudflare
@@ -66,15 +68,15 @@ functions: ..
 
 `config`:
 
-- `accountId`: the account that *owns* the zone that you wish to deploy Workers too. Note: this may not be the account ID you are signed in as, but will be the account ID you see in the URL once you've selected the zone
+- `accountId`: the account that _owns_ the zone that you wish to deploy Workers too. Note: this may not be the account ID you are signed in as, but will be the account ID you see in the URL once you've selected the zone
 
 - `zoneId`: the zone desired to deploy Workers to
 
   To find your zoneId and accountId, please see [API documentation on resource IDs](https://api.cloudflare.com/#getting-started-resource-ids)
 
-#### Provider 
+#### Provider
 
-A Provider tells the serverless frame what cloud provider you are using, in this case Cloudflare. 
+A Provider tells the serverless frame what cloud provider you are using, in this case Cloudflare.
 
 ```
 provider:
@@ -94,31 +96,31 @@ provider:
 
 A Function is a Cloudflare Worker - a single script including its bindings, routes and other config. It's an independent unit of deployment, like a microservice. It's merely code, deployed on Cloudflare’s 155+ PoPs points of presence, that is most often written to perform a single job as a Worker script.
 
- `serverless.yml`: 
+`serverless.yml`:
 
 ```yml
-  functions:
-      bar:
-          name: scriptName 
-          script: filename
-          webpack: true
-          environment:
-              some_key: <some_value>
-          resources: ...
-          events: ...
+functions:
+  bar:
+    name: scriptName
+    script: filename
+    webpack: true
+    environment:
+      some_key: <some_value>
+    resources: ...
+    events: ...
 ```
 
 `name`: overwrite the default name generated (e.g. replaces [`hello-foo-bar`](#name)) for the Worker script name
 
-`script`: the path to the script from the current directory omitting the extension `.js` 
+`script`: the path to the script from the current directory omitting the extension `.js`
 
-`webpack`(*optional*): specifies what webpack operation to perform on this individual Worker script. See webpack
+`webpack`(_optional_): specifies what webpack operation to perform on this individual Worker script. See webpack
 
-`environment`(*optional*) : any environment variables set as a global inside the script. See more in [Environment](#environment)
+`environment`(_optional_) : any environment variables set as a global inside the script. See more in [Environment](#environment)
 
-`resources`(*optional*) : see Resources below
+`resources`(_optional_) : see Resources below
 
-`events`(*optional*) : Any routing for a Worker is configured here. See Events below
+`events`(_optional_) : Any routing for a Worker is configured here. See Events below
 
 ##### Webpack
 
@@ -140,7 +142,7 @@ To get this working in your worker project, simply add `webpack: true | <config 
 It can accept a boolean or a string. Possible behaviors:
 
 - `boolean`: will automatically bundle the function if set to "true" with the default webpack config. If false or omitted no bundling will occur.
-- `string`:  a function level webpack configuration in addition to a global webpack configuration. This helps you to process bundling different for an individual function than the global webpack config. Note the extension `.js` will be ignored. (e.g. `webpack.config`)
+- `string`: a function level webpack configuration in addition to a global webpack configuration. This helps you to process bundling different for an individual function than the global webpack config. Note the extension `.js` will be ignored. (e.g. `webpack.config`)
 
 ##### Environment
 
@@ -153,7 +155,7 @@ functions:
       MYKEY: value_of_my_key
       ANOTHER_KEY_OF_MINE: sweet_child_o_mine
   myOtherFunc:
-  	name: ${env:ANOTHER_KEY_OF_MINE}
+    name: ${env:ANOTHER_KEY_OF_MINE}
 ```
 
 Then in your script, you can reference `MYKEY` to access the value. Within the `serverless.yml`, you can reference the variables as well `${env: key`.
@@ -162,20 +164,20 @@ To add a variable to every function use `provider`.
 
 ##### Events
 
-Anything that triggers a Cloudflare Worker to execute is regarded by the Framework as an **Event**. 
+Anything that triggers a Cloudflare Worker to execute is regarded by the Framework as an **Event**.
 
 ```
     events:
     	- http:
-          url: example.com/hello/user* #serverless invoke -f? fun1 
+          url: example.com/hello/user* #serverless invoke -f? fun1
           method: GET
 ```
 
 Each event implements two behaviors:
 
- `serverless deploy` will parse out all the `url`(s) from the events in a function and deploy routes all pointing to that specific script. The routes may contain wildcards `*`. You cannot have multiple routes that are identical. The routes must be paths for the the zone specified by `CLOUDFLARE_ZONE_ID`.
+`serverless deploy` will parse out all the `url`(s) from the events in a function and deploy routes all pointing to that specific script. The routes may contain wildcards `*`. You cannot have multiple routes that are identical. The routes must be paths for the the zone specified by `CLOUDFLARE_ZONE_ID`.
 
- `serverless invoke <functionname>` will deploy your worker and run the HTTP request(s) specified by the `url` and `method` against this deployed worker. This is useful for defining specific hooks into your application for testing. To truly test your worker, you can run [`cURL`](https://curl.haxx.se/) against your domain since the Worker will be deployed.
+`serverless invoke <functionname>` will deploy your worker and run the HTTP request(s) specified by the `url` and `method` against this deployed worker. This is useful for defining specific hooks into your application for testing. To truly test your worker, you can run [`cURL`](https://curl.haxx.se/) against your domain since the Worker will be deployed.
 
 ##### name
 
@@ -196,4 +198,4 @@ plugins:
 
 You can add our `serverless-cloudflare-workers` plugin to your project by running `npm install --save serverless-cloudflare-workers`.
 
-* *`workers.dev` domains are not currently supported using Serverless, but you can track our progress on [this Github issue](https://github.com/cloudflare/serverless-cloudflare-workers/issues/36).*
+- _`workers.dev` domains are not currently supported using Serverless, but you can track our progress on [this Github issue](https://github.com/cloudflare/serverless-cloudflare-workers/issues/36)._

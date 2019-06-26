@@ -10,9 +10,11 @@ function getCognitoUserPoolId(userPoolName) {
     MaxResults: 50,
   };
 
-  return cisp.listUserPools(params).promise()
-    .then((data) => data.UserPools.find((userPool) =>
-      RegExp(userPoolName, 'g').test(userPool.Name)).Id
+  return cisp
+    .listUserPools(params)
+    .promise()
+    .then(
+      data => data.UserPools.find(userPool => RegExp(userPoolName, 'g').test(userPool.Name)).Id
     );
 }
 

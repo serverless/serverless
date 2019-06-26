@@ -16,7 +16,7 @@ custom:
     # Step 1: Run `sls alexa auth` to authenticate
     # Step 2: Run `sls alexa create --name "Serverless Alexa Typescript" --locale en-GB --type custom` to create a new skill
     skills:
-        # Step 3: Paste the skill id returned by the create command here:
+      # Step 3: Paste the skill id returned by the create command here:
       - id: amzn1.ask.skill.xxxx-xxxx-xxxx-xxxx-xxxx
         manifest:
           publishingInformation:

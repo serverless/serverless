@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/packaging)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Packaging
@@ -45,12 +47,12 @@ previously excluded files and directories.
 
 By default, serverless will exclude the following patterns:
 
-- .git/**
+- .git/\*\*
 - .gitignore
 - .DS_Store
 - npm-debug.log
-- .serverless/**
-- .serverless_plugins/**
+- .serverless/\*\*
+- .serverless_plugins/\*\*
 
 and the serverless configuration file being used (i.e. `serverless.yml`)
 
@@ -58,7 +60,7 @@ and the serverless configuration file being used (i.e. `serverless.yml`)
 
 Exclude all node_modules but then re-include a specific modules (in this case node-fetch) using `exclude` exclusively
 
-``` yml
+```yml
 package:
   exclude:
     - node_modules/**
@@ -67,7 +69,7 @@ package:
 
 Exclude all files but `handler.js` using `exclude` and `include`
 
-``` yml
+```yml
 package:
   exclude:
     - src/**

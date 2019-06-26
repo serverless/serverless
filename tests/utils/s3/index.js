@@ -12,7 +12,8 @@ function createAndRemoveInBucket(bucketName) {
     Body: 'hello world',
   };
 
-  return S3.putObject(params).promise()
+  return S3.putObject(params)
+    .promise()
     .then(() => {
       delete params.Body;
       return S3.deleteObject(params);
@@ -43,8 +44,7 @@ function emptyBucket(bucket) {
 function deleteBucket(bucket) {
   const S3 = new AWS.S3({ region });
 
-  return emptyBucket(bucket).then(() =>
-    S3.deleteBucket({ Bucket: bucket }).promise());
+  return emptyBucket(bucket).then(() => S3.deleteBucket({ Bucket: bucket }).promise());
 }
 
 module.exports = {

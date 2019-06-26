@@ -16,8 +16,9 @@ about: Suggest an idea for serverless framework
 
 ## Description
 
-* What is the use case that should be solved. The more detail you describe this in the easier it is to understand for us.
-* If there is additional config how would it look
+- What is the use case that should be solved. The more detail you describe this in the easier it is to understand for us.
+- If there is additional config how would it look
 
 Similar or dependent issues:
-* #12345
+
+- #12345

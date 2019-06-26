@@ -1,5 +1,5 @@
 service:
-    name: hello-world
+  name: hello-world
 
 provider:
   name: cloudflare

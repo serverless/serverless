@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/events/http)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Fn HTTP Events
@@ -29,8 +31,8 @@ functions: # Your "Functions"
     version: 0.0.1
     runtime: go
     events:
-        - http:
-            path: /hello
+      - http:
+          path: /hello
 ```
 
 The events section in the yaml above makes it so that the Function hi will be

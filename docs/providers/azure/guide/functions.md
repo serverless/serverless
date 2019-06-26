@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Functions
 
-If you are using Azure Functions as a provider, all *functions* inside the service are Azure Functions.
+If you are using Azure Functions as a provider, all _functions_ inside the service are Azure Functions.
 
 ## Configuration
 
@@ -32,11 +34,11 @@ plugins:
 
 functions:
   hello:
-     handler: templates/handler.hello
-     events:
-       - http: true
-         x-azure-settings:
-           authLevel : anonymous
+    handler: templates/handler.hello
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel: anonymous
 ```
 
 The `handler` property points to the file (default filename: handler.js) and
@@ -44,15 +46,14 @@ module containing the code you want to run in your function.
 
 ```javascript
 // handler.js
-exports.handler = function(params) {}
+exports.handler = function(params) {};
 ```
 
 You can add as many functions as you want within this property.
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   functionOne:
     handler: handler.functionOne
@@ -67,8 +68,7 @@ You can specify an array of functions, which is useful if you separate your func
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}

@@ -47,12 +47,15 @@ function replaceEnv(values) {
   return originals;
 }
 
-function createTestService(tmpDir, options = {
-  // Either templateName or templateDir have to be provided
-  templateName: null, // Generic template to use (e.g. 'aws-nodejs')
-  templateDir: null, // Path to custom pre-prepared service template
-  serverlessConfigHook: null, // Eventual hook that allows to customize serverless config
-}) {
+function createTestService(
+  tmpDir,
+  options = {
+    // Either templateName or templateDir have to be provided
+    templateName: null, // Generic template to use (e.g. 'aws-nodejs')
+    templateDir: null, // Path to custom pre-prepared service template
+    serverlessConfigHook: null, // Eventual hook that allows to customize serverless config
+  }
+) {
   const serviceName = getServiceName();
 
   fse.mkdirsSync(tmpDir);
@@ -96,13 +99,17 @@ function persistentRequest(...args) {
   const funcArgs = args.slice(1);
   const MAX_TRIES = 5;
   return new BbPromise((resolve, reject) => {
-    const doCall = (numTry) => {
+    const doCall = numTry => {
       return func.apply(this, funcArgs).then(resolve, e => {
-        if (numTry < MAX_TRIES &&
-          ((e.providerError && e.providerError.retryable) || e.statusCode === 429)) {
+        if (
+          numTry < MAX_TRIES &&
+          ((e.providerError && e.providerError.retryable) || e.statusCode === 429)
+        ) {
           logger.log(
-            [`Recoverable error occurred (${e.message}), sleeping for 5 seconds.`,
-              `Try ${numTry + 1} of ${MAX_TRIES}`].join(' ')
+            [
+              `Recoverable error occurred (${e.message}), sleeping for 5 seconds.`,
+              `Try ${numTry + 1} of ${MAX_TRIES}`,
+            ].join(' ')
           );
           setTimeout(doCall, 5000, numTry + 1);
         } else {
