@@ -88,7 +88,7 @@
     "eslint-plugin-import": "^1.16.0",
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.10.3",
-    "git-list-updated": "^1.1.2",
+    "git-list-updated": "^1.2.0",
     "jest-circus": "^24.8.0",
     "jest-cli": "^24.8.0",
     "mocha": "^6.1.4",
@@ -103,10 +103,10 @@
     "strip-ansi": "^5.2.0"
   },
   "dependencies": {
-    "@serverless/enterprise-plugin": "^1.0.3",
+    "@serverless/enterprise-plugin": "^1.0.7",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.473.0",
+    "aws-sdk": "^2.482.0",
     "bluebird": "^3.5.5",
     "cachedir": "^2.2.0",
     "chalk": "^2.4.2",
