@@ -1161,7 +1161,7 @@ provider:
     websocketApiId: xxxxxxxxxx
     description: Some Description
     restApiResources:
-      /posts: xxxxxxxxxx
+      posts: xxxxxxxxxx
 
 functions:
   ...
