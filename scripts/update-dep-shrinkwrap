@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -e
-
-rm -fr node_modules
-
-docker pull node:latest
-docker-compose run serverless-node npm install
-docker-compose run serverless-node npm shrinkwrap
