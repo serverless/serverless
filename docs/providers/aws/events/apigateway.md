@@ -12,46 +12,45 @@ layout: Doc
 
 # API Gateway
 
-- [API Gateway](#API-Gateway)
-  - [Lambda Proxy Integration](#Lambda-Proxy-Integration)
-    - [Simple HTTP Endpoint](#Simple-HTTP-Endpoint)
-    - [Example "LAMBDA-PROXY" event (default)](#Example-%22LAMBDA-PROXY%22-event-default)
-    - [HTTP Endpoint with Extended Options](#HTTP-Endpoint-with-Extended-Options)
-    - [Enabling CORS](#Enabling-CORS)
-    - [HTTP Endpoints with `AWS_IAM` Authorizers](#HTTP-Endpoints-with-AWSIAM-Authorizers)
-    - [HTTP Endpoints with Custom Authorizers](#HTTP-Endpoints-with-Custom-Authorizers)
-    - [Using asynchronous integration](#Using-asynchronous-integration)
-    - [Catching Exceptions In Your Lambda Function](#Catching-Exceptions-In-Your-Lambda-Function)
-    - [Setting API keys for your Rest API](#Setting-API-keys-for-your-Rest-API)
-    - [Configuring endpoint types](#Configuring-endpoint-types)
-    - [Request Parameters](#Request-Parameters)
-    - [Request Schema Validators](#Request-Schema-Validators)
-    - [Setting source of API key for metering requests](#Setting-source-of-API-key-for-metering-requests)
-  - [Lambda Integration](#Lambda-Integration)
-    - [Example "LAMBDA" event (before customization)](#Example-%22LAMBDA%22-event-before-customization)
-    - [Request templates](#Request-templates)
-      - [Default Request Templates](#Default-Request-Templates)
-      - [Custom Request Templates](#Custom-Request-Templates)
-      - [Pass Through Behavior](#Pass-Through-Behavior)
-    - [Responses](#Responses)
-      - [Custom Response Headers](#Custom-Response-Headers)
-      - [Custom Response Templates](#Custom-Response-Templates)
-    - [Status Codes](#Status-Codes)
-      - [Available Status Codes](#Available-Status-Codes)
-      - [Using Status Codes](#Using-Status-Codes)
-      - [Custom Status Codes](#Custom-Status-Codes)
-  - [Setting an HTTP Proxy on API Gateway](#Setting-an-HTTP-Proxy-on-API-Gateway)
-  - [Share API Gateway and API Resources](#Share-API-Gateway-and-API-Resources)
-    - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#Easiest-and-CICD-friendly-example-of-using-shared-API-Gateway-and-API-Resources)
-    - [Manually Configuring shared API Gateway](#Manually-Configuring-shared-API-Gateway)
-      - [Note while using authorizers with shared API Gateway](#Note-while-using-authorizers-with-shared-API-Gateway)
-  - [Share Authorizer](#Share-Authorizer)
-  - [Resource Policy](#Resource-Policy)
-  - [Compression](#Compression)
-  - [Binary Media Types](#Binary-Media-Types)
-  - [AWS X-Ray Tracing](#AWS-X-Ray-Tracing)
-  - [Tags / Stack Tags](#Tags--Stack-Tags)
-  - [Logs](#Logs)
+- [API Gateway](#api-gateway)
+  - [Lambda Proxy Integration](#lambda-proxy-integration)
+    - [Simple HTTP Endpoint](#simple-http-endpoint)
+    - [Example "LAMBDA-PROXY" event (default)](#example-lambda-proxy-event-default)
+    - [HTTP Endpoint with Extended Options](#http-endpoint-with-extended-options)
+    - [Enabling CORS](#enabling-cors)
+    - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws_iam-authorizers)
+    - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
+    - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
+    - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
+    - [Configuring endpoint types](#configuring-endpoint-types)
+    - [Request Parameters](#request-parameters)
+    - [Request Schema Validation](#request-schema-validation)
+    - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
+  - [Lambda Integration](#lambda-integration)
+    - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
+    - [Request templates](#request-templates)
+      - [Default Request Templates](#default-request-templates)
+      - [Custom Request Templates](#custom-request-templates)
+      - [Pass Through Behavior](#pass-through-behavior)
+    - [Responses](#responses)
+      - [Custom Response Headers](#custom-response-headers)
+      - [Custom Response Templates](#custom-response-templates)
+    - [Status Codes](#status-codes)
+      - [Available Status Codes](#available-status-codes)
+      - [Using Status Codes](#using-status-codes)
+      - [Custom Status Codes](#custom-status-codes)
+  - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+  - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
+    - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
+    - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
+      - [Note while using authorizers with shared API Gateway](#note-while-using-authorizers-with-shared-api-gateway)
+  - [Share Authorizer](#share-authorizer)
+  - [Resource Policy](#resource-policy)
+  - [Compression](#compression)
+  - [Binary Media Types](#binary-media-types)
+  - [AWS X-Ray Tracing](#aws-x-ray-tracing)
+  - [Tags / Stack Tags](#tags--stack-tags)
+  - [Logs](#logs)
 
 _Are you looking for tutorials on using API Gateway? Check out the following resources:_
 
@@ -1104,6 +1103,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx # REST API resource ID. Default is generated by the framework
     restApiRootResourceId: xxxxxxxxxx # Root resource, represent as / path
+    websocketApiId: xxxxxxxxxx # Websocket API resource ID. Default is generated by the framewok
     description: Some Description # optional - description of deployment history
 
 functions:
@@ -1120,6 +1120,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
 
 functions:
@@ -1137,6 +1138,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
 
 functions:
@@ -1156,6 +1158,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
     restApiResources:
       posts: xxxxxxxxxx
@@ -1171,6 +1174,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
     restApiResources:
       /posts: xxxxxxxxxx
@@ -1189,6 +1193,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     # restApiRootResourceId: xxxxxxxxxx # Optional
+    websocketApiId: xxxxxxxxxx
     description: Some Description
     restApiResources:
       /posts: xxxxxxxxxx
@@ -1214,7 +1219,7 @@ functions:
 
 ### Easiest and CI/CD friendly example of using shared API Gateway and API Resources.
 
-You can define your API Gateway resource in its own service and export the `restApiId` and `restApiRootResourceId` using cloudformation cross-stack references.
+You can define your API Gateway resource in its own service and export the `restApiId`, `restApiRootResourceId` and `websocketApiId` using cloudformation cross-stack references.
 
 ```yml
 service: my-api
@@ -1232,6 +1237,13 @@ resources:
       Properties:
         Name: MyApiGW
 
+    MyWebsocketApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: MyWebsocketApi
+        ProtocolType: WEBSOCKET
+        RouteSelectionExpression: '$request.body.action'
+
   Outputs:
     apiGatewayRestApiId:
       Value:
@@ -1246,9 +1258,16 @@ resources:
           - RootResourceId
       Export:
         Name: MyApiGateway-rootResourceId
+
+    websocketApiId:
+      Value:
+        Ref: MyWebsocketApi
+      Export:
+        Name: MyApiGateway-websocketApiId
+
 ```
 
-This creates API gateway and then exports the `restApiId` and `rootResourceId` values using cloudformation cross stack output.
+This creates API gateway and then exports the `restApiId`, `rootResourceId` and `websocketApiId` values using cloudformation cross stack output.
 We will import this and reference in future services.
 
 ```yml
@@ -1260,6 +1279,8 @@ provider:
       'Fn::ImportValue': MyApiGateway-restApiId
     restApiRootResourceId:
       'Fn::ImportValue': MyApiGateway-rootResourceId
+    websocketApiId:
+      'Fn::ImportValue': MyApiGateway-websocketApiId
 
 functions:
   service-a-functions
@@ -1273,6 +1294,8 @@ provider:
       'Fn::ImportValue': MyApiGateway-restApiId
     restApiRootResourceId:
       'Fn::ImportValue': MyApiGateway-rootResourceId
+    websocketApiId:
+      'Fn::ImportValue': MyApiGateway-websocketApiId
 
 functions:
   service-b-functions
