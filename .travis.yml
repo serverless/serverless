@@ -95,5 +95,7 @@ jobs:
       deploy:
         provider: npm
         email: services@serverless.com
+        on:
+          tags: true
         api_key:
           secure: EgoetjrRlGfvGnmVp8A0btr1CzB0hl7owVIpbfk4zXJzhGEbHoVu0CG0IdmyLN+JlaZa7EDJTjkDCd6g3fVAh9TT7ZCeaq8YwbZDrql7mAJj7xYQAyM4eSkc95BRzcFJBx7Mxr6H90IDLxKr6ZtB+HEdiHN+59XbepKYYJeb1jHfnKn5xzOqk4BdnZo6pKfudfeO+7/BwJJ0FwlFA40bY2HS/Lp+NG/2IedNR7k3m/5W83/XH5qlWP8jhBKlxrAzks27aNo+42xHkRCVyPViJKq0mfz1hl2bfswChWHgaCuajp+0amNL39pgIX9eXxFc3bNX9Iftox5t31elEhsw06vvuAaVkKEd+VEMaDySbQ9M+irKZeREg+NFYZLnc2WiEE3Sexo6hm9eM2q2KEZ7bleN9B0CQAut1XXLRQEts80rzss4Z2Q7AZb9cOYBQlj9Wf1X0Y74UqvnDn83a4Y38a+lhx7J2q691ZeM1UFSCdO0QfeJRkB55bSyHqUqrLAqUN7eNsKGdBH0kvYIGFREgGgReEpBRAuNqWuJ/5qexp63Kbf+09raG5IvfxSIM5fJ5KE5VxSduBdRnSH0GNKfjuq296/Rg4fmm/bygZ3Yk5L6Wd41SUU8uHzlZFBwtcvxAKDTQe6s+5JU24ilqxOx6J4Ut34X3dIbLLAmoB1ogdM=
