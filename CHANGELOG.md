@@ -1,3 +1,30 @@
+# 1.46.0 (2019-06-26)
+
+- [Fix formatting issue with Markdown link](https://github.com/serverless/serverless/pull/6228)
+- [Update docs | dont use provider.tags with shared API Gateway](https://github.com/serverless/serverless/pull/6225)
+- [Fix: Update azure template](https://github.com/serverless/serverless/pull/6258)
+- [Improve user message](https://github.com/serverless/serverless/pull/6254)
+- [Reference custom ApiGateway for models and request validators if conf…](https://github.com/serverless/serverless/pull/6231)
+- [Ensure integration tests do not fail when run concurrently](https://github.com/serverless/serverless/pull/6256)
+- [Improve integration test experience](https://github.com/serverless/serverless/pull/6253)
+- [Fix lambda integration timeout response template](https://github.com/serverless/serverless/pull/6255)
+- [Fix duplicate packaging issue](https://github.com/serverless/serverless/pull/6244)
+- [Fix Travis configuration for branch/tag runs](https://github.com/serverless/serverless/pull/6265)
+- [fixed a typo 🖊](https://github.com/serverless/serverless/pull/6275)
+- [Fix #6267](https://github.com/serverless/serverless/pull/6268)
+- [#6017 Allow to load plugin from path](https://github.com/serverless/serverless/pull/6261)
+- [Added correction based on community feedback](https://github.com/serverless/serverless/pull/6286)
+- [Remove package-lock.json and shrinkwrap scripts](https://github.com/serverless/serverless/pull/6280)
+- [Remove README redundant link](https://github.com/serverless/serverless/pull/6288)
+- [Remove default stage value in provider object](https://github.com/serverless/serverless/pull/6200)
+- [Use naming to get stackName](https://github.com/serverless/serverless/pull/6285)
+- [Fix typo in link to ALB docs](https://github.com/serverless/serverless/pull/6292)
+- [Add ip, method, header and query conditions to ALB events](https://github.com/serverless/serverless/pull/6293)
+- [Feature/support external websocket api](https://github.com/serverless/serverless/pull/6272)
+
+## Meta
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.1...v1.46.0)
+
 # 1.45.1 (2019-06-12)
 
 - [Fix IAM policies setup for functions with custom name](https://github.com/serverless/serverless/pull/6240)
