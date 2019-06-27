@@ -1495,7 +1495,7 @@ By default, API Gateway access logs will use the following format:
 'requestId: $context.requestId, ip: $context.identity.sourceIp, caller: $context.identity.caller, user: $context.identity.user, requestTime: $context.requestTime, httpMethod: $context.httpMethod, resourcePath: $context.resourcePath, status: $context.status, protocol: $context.protocol, responseLength: $context.responseLength'
 ```
 
-You can specify your own [format for API Gateway Access Logs](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html#apigateway-cloudwatch-log-formats) by including your preferred string in the `logFormat` property:
+You can specify your own [format for API Gateway Access Logs](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html#apigateway-cloudwatch-log-formats) by including your preferred string in the `format` property:
 
 ```yml
 # serverless.yml
@@ -1503,5 +1503,5 @@ provider:
   name: aws
   logs:
     restApi:
-      logFormat: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
+      format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
 ```
