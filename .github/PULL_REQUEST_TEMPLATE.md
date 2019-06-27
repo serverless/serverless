@@ -34,7 +34,7 @@ Examples:
 
 ## Todos:
 
-_Note: Run `npm run test-ci` to run all validation checks on proposed changes_
+_**Note: Run `npm run test-ci` to run all validation checks on proposed changes**_
 
 - [ ] Write tests and confirm existing functionality is not broken.  
        **Validate via `npm test`**
@@ -50,5 +50,5 @@ _Note: Run `npm run test-ci` to run all validation checks on proposed changes_
 - [ ] Enable "Allow edits from maintainers" for this PR
 - [ ] Update the messages below
 
-**_Is this ready for review?:_** NO
+**_Is this ready for review?:_** NO  
 **_Is it a breaking change?:_** NO
