@@ -2,31 +2,34 @@
 
 'use strict';
 
+const componentsCli = require('@serverless/cli')
 const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
 
-Error.stackTraceLimit = Infinity;
+(() => {
+  if (componentsCli.runningComponents()) {
+    return componentsCli.runComponents().then(() => process.exit(0))
+  } 
+  
+  Error.stackTraceLimit = Infinity;
+  if (process.env.SLS_DEBUG) {
+    // For performance reasons enabled only in SLS_DEBUG mode
+    BbPromise.config({
+      longStackTraces: true,
+    });
+  }
 
-if (process.env.SLS_DEBUG) {
-  // For performance reasons enabled only in SLS_DEBUG mode
-  BbPromise.config({
-    longStackTraces: true,
+  process.on('unhandledRejection', e => {
+    logError(e);
   });
-}
+  
+  process.noDeprecation = true;
 
-process.on('unhandledRejection', e => {
-  logError(e);
-});
-process.noDeprecation = true;
-
-const invocationId = uuid.v4();
-
-// boot up error reporting via sentry before anything
-(() =>
-  initializeErrorReporter(invocationId)
+  const invocationId = uuid.v4();
+  return initializeErrorReporter(invocationId)
     .then(() => {
       if (process.argv[2] === 'completion') {
         return autocomplete();
@@ -68,4 +71,5 @@ const invocationId = uuid.v4();
     .catch(e => {
       process.exitCode = 1;
       logError(e);
-    }))();
+    })
+})()
