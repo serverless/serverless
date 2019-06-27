@@ -12,11 +12,11 @@ layout: Doc
 
 1. Node.js `v6.5.0` or later.
 2. Serverless CLI `v1.9.0` or later. You can run
-`npm install -g serverless` to install it.
+   `npm install -g serverless` to install it.
 3. An IBM Bluemix account. If you don't already have one, you can sign up for an [account](https://console.bluemix.net/registration/) and then follow the instructions for getting access to [OpenWhisk on Bluemix](https://console.ng.bluemix.net/openwhisk/).
 4. **Set-up your [Provider Credentials](./credentials.md)**.
 5. Install Framework & Dependencies
-*Due to an [outstanding issue](https://github.com/serverless/serverless/issues/2895) with provider plugins, the [OpenWhisk provider](https://github.com/serverless/serverless-openwhisk) must be installed as a global module.*
+   _Due to an [outstanding issue](https://github.com/serverless/serverless/issues/2895) with provider plugins, the [OpenWhisk provider](https://github.com/serverless/serverless-openwhisk) must be installed as a global module._
 
 ```bash
 $ npm install --global serverless serverless-openwhisk
@@ -34,6 +34,7 @@ $ cd my-service
 # Install npm dependencies
 $ npm install
 ```
+
 **Using a self-hosted version of the platform?**
 
 Ensure you set the `ignore_certs` option in the `serverless.yaml` prior to deployment.
@@ -48,44 +49,45 @@ provider:
 
 1. **Deploy the Service**
 
-  Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
 
-  ```bash
-  serverless deploy -v
-  ```
+```bash
+serverless deploy -v
+```
 
 2. **Deploy the Function**
 
-  Use this to quickly upload and overwrite your function code, allowing you to develop faster.
+Use this to quickly upload and overwrite your function code, allowing you to develop faster.
 
-  ```bash
-  serverless deploy function -f hello
-  ```
+```bash
+serverless deploy function -f hello
+```
 
 3. **Invoke the Function**
 
-  Invokes the Function and returns results.
+Invokes the Function and returns results.
 
-  ```bash
-  serverless invoke --function hello
-  # results
-  {
-    "payload": "Hello, World!"
-  }
+```bash
+serverless invoke --function hello
+# results
+{
+  "payload": "Hello, World!"
+}
 
-  serverless invoke --function hello --data '{"name": "OpenWhisk"}'
-  #results
-  {
-    "payload": "Hello, OpenWhisk!"
-  }
-  ```
+serverless invoke --function hello --data '{"name": "OpenWhisk"}'
+#results
+{
+  "payload": "Hello, OpenWhisk!"
+}
+```
 
 4. **Fetch the Function Logs**
 
-  Open up a separate tab in your console and stream all logs for a specific Function using this command.
-  ```bash
-  serverless logs -f hello -t
-  ```
+Open up a separate tab in your console and stream all logs for a specific Function using this command.
+
+```bash
+serverless logs -f hello -t
+```
 
 ## Cleanup
 

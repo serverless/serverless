@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/logs)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Logs
@@ -56,11 +58,13 @@ serverless logs -f hello
 ```bash
 serverless logs -f hello --startTime 5h
 ```
+
 This will fetch the logs that happened in the past 5 hours.
 
 ```bash
 serverless logs -f hello --startTime 1469694264
 ```
+
 This will fetch the logs that happened starting at epoch `1469694264`.
 
 ```bash
@@ -72,4 +76,5 @@ Serverless will tail the platform log output and print new log messages coming i
 ```bash
 serverless logs -f hello --filter serverless
 ```
+
 This will fetch only the logs that contain the string `serverless`

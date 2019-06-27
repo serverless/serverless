@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/deploy)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Deploy
@@ -19,6 +21,7 @@ serverless deploy
 ```
 
 ## Options
+
 - `--config` or `-c` Path to your conifguration file, if other than `serverless.yml|.yaml|.js|.json`.
 
 ## Artifacts

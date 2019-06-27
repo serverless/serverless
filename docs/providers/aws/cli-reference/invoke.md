@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Invoke
@@ -21,6 +23,7 @@ serverless invoke [local] --function functionName
 **Note:** Please refer to [this guide](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-set-up-simple-proxy.html#api-gateway-simple-proxy-for-lambda-input-format) for event data passing when your function uses the `http` event with a Lambda Proxy integration.
 
 ## Options
+
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
 - `--stage` or `-s` The stage in your service you want to invoke your function in.
 - `--region` or `-r` The region in your stage that you want to invoke your function in.
@@ -31,6 +34,7 @@ serverless invoke [local] --function functionName
 - `--log` or `-l` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation. Default is `false`.
 
 ## Provided lifecycle events
+
 - `invoke:invoke`
 
 # Invoke Local
@@ -45,7 +49,7 @@ serverless invoke local --function functionName
 
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
 - `--path` or `-p` The path to a json file holding input data to be passed to the invoked function as the `event`. This path is relative to the
-root directory of the service.
+  root directory of the service.
 - `--data` or `-d` String data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
 - `--raw` Pass data as a raw string even if it is JSON. If not set, JSON data are parsed and passed as an object.
 - `--contextPath` or `-x`, The path to a json file holding input context to be passed to the invoked function. This path is relative to the root directory of the service.
@@ -97,7 +101,7 @@ the specified/deployed function.
 {
   "resource": "/",
   "path": "/",
-  "httpMethod": "GET",
+  "httpMethod": "GET"
   //  etc. //
 }
 ```
@@ -109,9 +113,11 @@ serverless invoke local --function functionName --context "hello world"
 ```
 
 ### Local function invocation with context passing
+
 ```bash
 serverless invoke local --function functionName --contextPath lib/context.json
 ```
+
 This example will pass the json context in the `lib/context.json` file (relative to the root of the service) while invoking the specified/deployed function.
 
 ### Limitations
@@ -120,7 +126,7 @@ Currently, `invoke local` only supports the NodeJs and Python runtimes.
 
 ## Resource permissions
 
-Lambda functions assume an *IAM role* during execution: the framework creates this role, and set all the permission provided in the `iamRoleStatements` section of `serverless.yml`.
+Lambda functions assume an _IAM role_ during execution: the framework creates this role, and set all the permission provided in the `iamRoleStatements` section of `serverless.yml`.
 
 Unless you explicitly state otherwise, every call to the AWS SDK inside the lambda function is made using this role (a temporary pair of key / secret is generated and set by AWS as environment variables, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`).
 
@@ -131,4 +137,4 @@ Take a look to the official AWS documentation (in this particular instance, for 
 - [http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-shared.html](http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-shared.html)
 - [http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-lambda.html](http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-lambda.html)
 
-Whatever approach you decide to implement, **be aware**: the set of permissions might be (and probably is) different, so you won't have an exact simulation of the *real* IAM policy in place.
+Whatever approach you decide to implement, **be aware**: the set of permissions might be (and probably is) different, so you won't have an exact simulation of the _real_ IAM policy in place.

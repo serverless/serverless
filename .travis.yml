@@ -1,10 +1,15 @@
 language: node_js
 
 git:
-  depth: 1 # No need for commits history
+  # Do not take whole history, but ensure to not break things:
+  # - Merging multiple PR's around same time may introduce a case where it's not
+  #   the last merge commit that is to be tested
+  depth: 10
 
 branches:
-  only: master # Do not build PR branches
+  only:
+    - master # Do not build PR branches
+    - /^v\d+\.\d+\.\d+$/ # Ensure to build release tags
 
 env: SLS_IGNORE_WARNING=* # Default env
 
@@ -17,15 +22,30 @@ stages:
 
 jobs:
   include:
-    # To speed up Travis build, use one job per Platform + Node.js version combination
-    - name: "Lint, Unit Tests - Linux - Node.js v12"
+    # In most cases it's best to configure one job per Platform & Node.js version combination
+    # (job boot & setup takes ca 1 minute, one task run usually lasts seconds)
+
+    # PR's
+    - name: 'Prettier check updated, Lint updated, Unit Tests - Linux - Node.js v12'
+      if: type = pull_request
       node_js: 12
       env:
         - SLS_IGNORE_WARNING=*
         - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
       # Combine with '&&' to not continue on fail
-      script: npm run lint-updated && npm test
-    - name: "Unit Tests - Windows - Node.js v12"
+      script: npm run prettier-check-updated && npm run lint-updated && npm test
+
+    # master branch and version tags
+    - name: 'Lint, Unit Tests - Linux - Node.js v12'
+      if: type != pull_request
+      node_js: 12
+      env:
+        - SLS_IGNORE_WARNING=*
+        - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
+      # Combine with '&&' to not continue on fail
+      script: npm run lint && npm test
+
+    - name: 'Unit Tests - Windows - Node.js v12'
       os: windows
       node_js: 12
       env:
@@ -39,22 +59,24 @@ jobs:
             choco install python2 &&
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
-    - name: "Isolated Unit Tests, Package Integration Tests - Linux - Node.js v10"
+
+    - name: 'Isolated Unit Tests, Package Integration Tests - Linux - Node.js v10'
       node_js: 10
       env:
         - SLS_IGNORE_WARNING=*
         - FORCE_COLOR=1 # TTY is lost as processes are combined '&&'
       # Combine with '&&' to not continue on fail
       script: npm run test-isolated && npm run integration-test-run-package
-    - name: "Unit Tests, Coverage - Linux - Node.js v8"
+
+    - name: 'Unit Tests, Coverage - Linux - Node.js v8'
       node_js: 8
       script: npm run coverage
       after_success: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
-    - name: "Unit Tests - Linux - Node.js v6"
+    - name: 'Unit Tests - Linux - Node.js v6'
       node_js: 6
 
     - stage: Integration Test
-      name: "Integration Tests - Linux - Node.js v12"
+      name: 'Integration Tests - Linux - Node.js v12'
       node_js: 12
       env:
         - SLS_IGNORE_WARNING=*
@@ -68,9 +90,12 @@ jobs:
         - npm run integration-test-cleanup
 
     - stage: Deploy
+      node_js: 12
       script: skip
       deploy:
         provider: npm
         email: services@serverless.com
+        on:
+          tags: true
         api_key:
           secure: EgoetjrRlGfvGnmVp8A0btr1CzB0hl7owVIpbfk4zXJzhGEbHoVu0CG0IdmyLN+JlaZa7EDJTjkDCd6g3fVAh9TT7ZCeaq8YwbZDrql7mAJj7xYQAyM4eSkc95BRzcFJBx7Mxr6H90IDLxKr6ZtB+HEdiHN+59XbepKYYJeb1jHfnKn5xzOqk4BdnZo6pKfudfeO+7/BwJJ0FwlFA40bY2HS/Lp+NG/2IedNR7k3m/5W83/XH5qlWP8jhBKlxrAzks27aNo+42xHkRCVyPViJKq0mfz1hl2bfswChWHgaCuajp+0amNL39pgIX9eXxFc3bNX9Iftox5t31elEhsw06vvuAaVkKEd+VEMaDySbQ9M+irKZeREg+NFYZLnc2WiEE3Sexo6hm9eM2q2KEZ7bleN9B0CQAut1XXLRQEts80rzss4Z2Q7AZb9cOYBQlj9Wf1X0Y74UqvnDn83a4Y38a+lhx7J2q691ZeM1UFSCdO0QfeJRkB55bSyHqUqrLAqUN7eNsKGdBH0kvYIGFREgGgReEpBRAuNqWuJ/5qexp63Kbf+09raG5IvfxSIM5fJ5KE5VxSduBdRnSH0GNKfjuq296/Rg4fmm/bygZ3Yk5L6Wd41SUU8uHzlZFBwtcvxAKDTQe6s+5JU24ilqxOx6J4Ut34X3dIbLLAmoB1ogdM=

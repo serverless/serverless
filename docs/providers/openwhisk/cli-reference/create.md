@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/create)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Create
@@ -27,6 +29,7 @@ serverless create --template openwhisk-nodejs --path myService
 ```
 
 ## Options
+
 - `--template` or `-t` The name of one of the available templates. **Required if --template-url and --template-path are not present**.
 - `--template-url` or `-u` The name of one of the available templates. **Required if --template and --template-path are not present**.
 - `--template-path` The local path of your template. **Required if --template and --template-url are not present**.
@@ -34,6 +37,7 @@ serverless create --template openwhisk-nodejs --path myService
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
 ## Provided lifecycle events
+
 - `create:create`
 
 ## Available Templates

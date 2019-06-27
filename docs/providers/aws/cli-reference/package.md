@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/package)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - package
@@ -19,6 +21,7 @@ serverless package
 ```
 
 ## Options
+
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--package` or `-p` path to the custom packaging directory you want.

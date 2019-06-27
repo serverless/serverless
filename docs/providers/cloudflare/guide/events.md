@@ -7,19 +7,21 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/guide/events)
+
 <!-- DOCS-SITE-LINK:END -->
 
-
 # Cloudflare Workers - Events
+
 Simply put, events are the things that trigger your functions to run.
- 
+
 If you are using Cloudflare Workers as your provider, all `events` in the service are HTTP Events, because that is the only event that Cloudflare Workers currently support.
- 
+
 ```yml
 # serverless.yml
 …
- 
+
 functions:
   helloWorld:
     # What the script will be called on Cloudflare (this property value must match the function name one line above)
@@ -51,12 +53,12 @@ addEventListener('fetch', event => {
 });
 
 import hello from './includeMe';
-  
+
 async function handleRequest(request) {
   return new Response(hello.hello())
 }
 ```
 
 If your handler script looks like the above, the includeMe script will be packed into the final script on deployment.
- 
+
 [View the Cloudflare Workers events section for more information on HTTP events](../events).

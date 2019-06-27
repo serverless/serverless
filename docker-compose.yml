@@ -84,8 +84,8 @@ services:
   aws-go-mod:
     image: golang:1.11
     volumes:
-    - ./tmp/serverless-integration-test-aws-go-mod:/app
-    - ./tmp/serverless-integration-test-aws-go-mod:/go/src/app
+      - ./tmp/serverless-integration-test-aws-go-mod:/app
+      - ./tmp/serverless-integration-test-aws-go-mod:/go/src/app
   aws-nodejs-typescript:
     image: node:6.10.3
     volumes:

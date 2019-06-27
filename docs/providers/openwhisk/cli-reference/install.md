@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/install)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Install
@@ -19,10 +21,12 @@ serverless install --url https://github.com/some/service
 ```
 
 ## Options
+
 - `--url` or `-u` The services GitHub URL. **Required**.
 - `--name` or `-n` Name for the service.
 
 ## Provided lifecycle events
+
 - `install:install`
 
 ## Examples

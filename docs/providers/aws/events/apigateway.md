@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/apigateway)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # API Gateway
@@ -62,15 +64,16 @@ _Are you looking for tutorials on using API Gateway? Check out the following res
 To create HTTP endpoints as Event sources for your AWS Lambda Functions, use the Serverless Framework's easy AWS API Gateway Events syntax.
 
 There are five ways you can configure your HTTP endpoints to integrate with your AWS Lambda Functions:
-* `lambda-proxy` / `aws-proxy` / `aws_proxy` (Recommended)
-* `lambda` / `aws`
-* `http`
-* `http-proxy` / `http_proxy`
-* `mock`
+
+- `lambda-proxy` / `aws-proxy` / `aws_proxy` (Recommended)
+- `lambda` / `aws`
+- `http`
+- `http-proxy` / `http_proxy`
+- `mock`
 
 **The Framework uses the `lambda-proxy` method (i.e., everything is passed into your Lambda) by default unless another method is supplied by the user**
 
-The difference between these is `lambda-proxy` (alternative writing styles are `aws-proxy` and `aws_proxy` for compatibility with the standard AWS integration type naming) automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function.  Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code).  We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
+The difference between these is `lambda-proxy` (alternative writing styles are `aws-proxy` and `aws_proxy` for compatibility with the standard AWS integration type naming) automatically passes the content of the HTTP request into your AWS Lambda function (headers, body, etc.) and allows you to configure your response (headers, status code, body) in the code of your AWS Lambda Function. Whereas, the `lambda` method makes you explicitly define headers, status codes, and more in the configuration of each API Gateway Endpoint (not in code). We highly recommend using the `lambda-proxy` method if it supports your use-case, since the `lambda` method is highly tedious.
 
 Use `http` for integrating with an HTTP back end, `http-proxy` for integrating with the HTTP proxy integration or `mock` for testing without actually invoking the back end.
 
@@ -99,22 +102,22 @@ functions:
 'use strict';
 
 module.exports.hello = function(event, context, callback) {
+  console.log(event); // Contains incoming request data (e.g., query params, headers and more)
 
-    console.log(event); // Contains incoming request data (e.g., query params, headers and more)
+  const response = {
+    statusCode: 200,
+    headers: {
+      'x-custom-header': 'My Header Value',
+    },
+    body: JSON.stringify({ message: 'Hello World!' }),
+  };
 
-    const response = {
-      statusCode: 200,
-      headers: {
-        "x-custom-header" : "My Header Value"
-      },
-      body: JSON.stringify({ "message": "Hello World!" })
-    };
-
-    callback(null, response);
+  callback(null, response);
 };
 ```
 
 **Note:** When the body is a JSON-Document, you must parse it yourself:
+
 ```
 JSON.parse(event.body);
 ```
@@ -123,62 +126,62 @@ JSON.parse(event.body);
 
 ```json
 {
-    "resource": "/",
-    "path": "/",
+  "resource": "/",
+  "path": "/",
+  "httpMethod": "POST",
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
+    "cache-control": "max-age=0",
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "GB",
+    "content-type": "application/x-www-form-urlencoded",
+    "Host": "j3ap25j034.execute-api.eu-west-2.amazonaws.com",
+    "origin": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com",
+    "Referer": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com/dev/",
+    "upgrade-insecure-requests": "1",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+    "Via": "2.0 a3650115c5e21e2b5d133ce84464bea3.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "0nDeiXnReyHYCkv8cc150MWCFCLFPbJoTs1mexDuKe2WJwK5ANgv2A==",
+    "X-Amzn-Trace-Id": "Root=1-597079de-75fec8453f6fd4812414a4cd",
+    "X-Forwarded-For": "50.129.117.14, 50.112.234.94",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "path": "/dev/",
+    "accountId": "125002137610",
+    "resourceId": "qdolsr1yhk",
+    "stage": "dev",
+    "requestId": "0f2431a2-6d2f-11e7-b799-5152aa497861",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "apiKey": "",
+      "sourceIp": "50.129.117.14",
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+      "user": null
+    },
+    "resourcePath": "/",
     "httpMethod": "POST",
-    "headers": {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
-        "cache-control": "max-age=0",
-        "CloudFront-Forwarded-Proto": "https",
-        "CloudFront-Is-Desktop-Viewer": "true",
-        "CloudFront-Is-Mobile-Viewer": "false",
-        "CloudFront-Is-SmartTV-Viewer": "false",
-        "CloudFront-Is-Tablet-Viewer": "false",
-        "CloudFront-Viewer-Country": "GB",
-        "content-type": "application/x-www-form-urlencoded",
-        "Host": "j3ap25j034.execute-api.eu-west-2.amazonaws.com",
-        "origin": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com",
-        "Referer": "https://j3ap25j034.execute-api.eu-west-2.amazonaws.com/dev/",
-        "upgrade-insecure-requests": "1",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
-        "Via": "2.0 a3650115c5e21e2b5d133ce84464bea3.cloudfront.net (CloudFront)",
-        "X-Amz-Cf-Id": "0nDeiXnReyHYCkv8cc150MWCFCLFPbJoTs1mexDuKe2WJwK5ANgv2A==",
-        "X-Amzn-Trace-Id": "Root=1-597079de-75fec8453f6fd4812414a4cd",
-        "X-Forwarded-For": "50.129.117.14, 50.112.234.94",
-        "X-Forwarded-Port": "443",
-        "X-Forwarded-Proto": "https"
-    },
-    "queryStringParameters": null,
-    "pathParameters": null,
-    "stageVariables": null,
-    "requestContext": {
-        "path": "/dev/",
-        "accountId": "125002137610",
-        "resourceId": "qdolsr1yhk",
-        "stage": "dev",
-        "requestId": "0f2431a2-6d2f-11e7-b799-5152aa497861",
-        "identity": {
-            "cognitoIdentityPoolId": null,
-            "accountId": null,
-            "cognitoIdentityId": null,
-            "caller": null,
-            "apiKey": "",
-            "sourceIp": "50.129.117.14",
-            "accessKey": null,
-            "cognitoAuthenticationType": null,
-            "cognitoAuthenticationProvider": null,
-            "userArn": null,
-            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
-            "user": null
-        },
-        "resourcePath": "/",
-        "httpMethod": "POST",
-        "apiId": "j3azlsj0c4"
-    },
-    "body": "postcode=LS17FR",
-    "isBase64Encoded": false
+    "apiId": "j3azlsj0c4"
+  },
+  "body": "postcode=LS17FR",
+  "isBase64Encoded": false
 }
 ```
 
@@ -199,6 +202,7 @@ functions:
 ```
 
 ### Enabling CORS
+
 To set CORS configurations for your HTTP endpoints, simply modify your event configurations as follows:
 
 ```yml
@@ -263,10 +267,10 @@ functions:
 Wildcards are accepted. The following example will match all sub-domains of example.com over http:
 
 ```yml
-    cors:
-      origins:
-        - http://*.example.com
-        - http://example2.com
+cors:
+  origins:
+    - http://*.example.com
+    - http://example2.com
 ```
 
 Please note that since you can't send multiple values for [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), this configuration uses a response template to check if the request origin matches one of your provided `origins` and overrides the header with the following code:
@@ -276,7 +280,7 @@ Please note that since you can't send multiple values for [Access-Control-Allow-
 #if($origin == "http://example.com" || $origin == "http://*.amazonaws.com") #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end
 ```
 
-Configuring the `cors` property sets  [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
+Configuring the `cors` property sets [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
 
 To enable the `Access-Control-Max-Age` preflight response header, set the `maxAge` property in the `cors` object:
 
@@ -326,17 +330,16 @@ If you want to use CORS with the lambda-proxy integration, remember to include t
 'use strict';
 
 module.exports.hello = function(event, context, callback) {
+  const response = {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+      'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+    },
+    body: JSON.stringify({ message: 'Hello World!' }),
+  };
 
-    const response = {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
-        "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
-      },
-      body: JSON.stringify({ "message": "Hello World!" })
-    };
-
-    callback(null, response);
+  callback(null, response);
 };
 ```
 
@@ -371,7 +374,7 @@ functions:
 
 ### HTTP Endpoints with Custom Authorizers
 
-Custom Authorizers allow you to run an AWS Lambda Function before your targeted AWS Lambda Function.  This is useful for Microservice Architectures or when you simply want to do some Authorization before running your business logic.
+Custom Authorizers allow you to run an AWS Lambda Function before your targeted AWS Lambda Function. This is useful for Microservice Architectures or when you simply want to do some Authorization before running your business logic.
 
 You can enable Custom Authorizers for your HTTP endpoint by setting the Authorizer in your `http` event to another function
 in the same service, as shown in the following example:
@@ -388,6 +391,7 @@ functions:
   authorizerFunc:
     handler: handler.authorizerFunc
 ```
+
 Or, if you want to configure the Authorizer with more options, you can turn the `authorizer` property into an object as
 shown in the following example:
 
@@ -511,7 +515,7 @@ functions:
       - http:
           path: posts/create
           method: post
-          async: true  # default is false
+          async: true # default is false
 ```
 
 ### Catching Exceptions In Your Lambda Function
@@ -574,11 +578,11 @@ provider:
   name: aws
   apiKeys:
     - free:
-      - myFreeKey
-      - ${opt:stage}-myFreeKey
+        - myFreeKey
+        - ${opt:stage}-myFreeKey
     - paid:
-      - myPaidKey
-      - ${opt:stage}-myPaidKey
+        - myPaidKey
+        - ${opt:stage}-myPaidKey
   usagePlan:
     - free:
         quota:
@@ -691,9 +695,7 @@ A sample schema contained in `create_request.json` might look something like thi
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "The Root Schema",
-  "required": [
-    "username"
-  ],
+  "required": ["username"],
   "properties": {
     "username": {
       "type": "string",
@@ -752,51 +754,51 @@ This method is more complicated and involves a lot more configuration of the `ht
 
 ```json
 {
-    "body": {},
-    "method": "GET",
-    "principalId": "",
-    "stage": "dev",
-    "cognitoPoolClaims": {
-        "sub": ""
-    },
-    "enhancedAuthContext": {},
-    "headers": {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
-        "CloudFront-Forwarded-Proto": "https",
-        "CloudFront-Is-Desktop-Viewer": "true",
-        "CloudFront-Is-Mobile-Viewer": "false",
-        "CloudFront-Is-SmartTV-Viewer": "false",
-        "CloudFront-Is-Tablet-Viewer": "false",
-        "CloudFront-Viewer-Country": "GB",
-        "Host": "ec5ycylws8.execute-api.us-east-1.amazonaws.com",
-        "upgrade-insecure-requests": "1",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
-        "Via": "2.0 f165ce34daf8c0da182681179e863c24.cloudfront.net (CloudFront)",
-        "X-Amz-Cf-Id": "l06CAg2QsrALeQcLAUSxGXbm8lgMoMIhR2AjKa4AiKuaVnnGsOFy5g==",
-        "X-Amzn-Trace-Id": "Root=1-5970ef20-3e249c0321b2eef14aa513ae",
-        "X-Forwarded-For": "94.117.120.169, 116.132.62.73",
-        "X-Forwarded-Port": "443",
-        "X-Forwarded-Proto": "https"
-    },
-    "query": {},
-    "path": {},
-    "identity": {
-        "cognitoIdentityPoolId": "",
-        "accountId": "",
-        "cognitoIdentityId": "",
-        "caller": "",
-        "apiKey": "",
-        "sourceIp": "94.197.120.169",
-        "accessKey": "",
-        "cognitoAuthenticationType": "",
-        "cognitoAuthenticationProvider": "",
-        "userArn": "",
-        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
-        "user": ""
-    },
-    "stageVariables": {}
+  "body": {},
+  "method": "GET",
+  "principalId": "",
+  "stage": "dev",
+  "cognitoPoolClaims": {
+    "sub": ""
+  },
+  "enhancedAuthContext": {},
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Language": "en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4",
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "GB",
+    "Host": "ec5ycylws8.execute-api.us-east-1.amazonaws.com",
+    "upgrade-insecure-requests": "1",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+    "Via": "2.0 f165ce34daf8c0da182681179e863c24.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "l06CAg2QsrALeQcLAUSxGXbm8lgMoMIhR2AjKa4AiKuaVnnGsOFy5g==",
+    "X-Amzn-Trace-Id": "Root=1-5970ef20-3e249c0321b2eef14aa513ae",
+    "X-Forwarded-For": "94.117.120.169, 116.132.62.73",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "query": {},
+  "path": {},
+  "identity": {
+    "cognitoIdentityPoolId": "",
+    "accountId": "",
+    "cognitoIdentityId": "",
+    "caller": "",
+    "apiKey": "",
+    "sourceIp": "94.197.120.169",
+    "accessKey": "",
+    "cognitoAuthenticationType": "",
+    "cognitoAuthenticationProvider": "",
+    "userArn": "",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+    "user": ""
+  },
+  "stageVariables": {}
 }
 ```
 
@@ -866,7 +868,8 @@ You can then access the query string `https://example.com/dev/whatever?bar=123` 
 If you want to spread a string into multiple lines, you can use the `>` or `|` syntax, but the following strings have to be all indented with the same amount, [read more about `>` syntax](http://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines).
 
 #### Pass Through Behavior
-API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates.  When this happens, the request payload will either be passed through the integration request *without transformation* or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
+
+API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates. When this happens, the request payload will either be passed through the integration request _without transformation_ or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
 
 You can define this behaviour as follows (if not specified, a value of **NEVER** will be used):
 
@@ -885,11 +888,11 @@ functions:
 
 There are 3 available options:
 
-|Value             | Passed Through When                           | Rejected When                                                           |
-|----------------- | --------------------------------------------- | ----------------------------------------------------------------------- |
-|NEVER             |  Never                                        | No templates defined or Content-Type does not match a defined template  |
-|WHEN_NO_MATCH     |  Content-Type does not match defined template | Never                                                                   |
-|WHEN_NO_TEMPLATES |  No templates were defined                    | One or more templates defined, but Content-Type does not match          |
+| Value             | Passed Through When                          | Rejected When                                                          |
+| ----------------- | -------------------------------------------- | ---------------------------------------------------------------------- |
+| NEVER             | Never                                        | No templates defined or Content-Type does not match a defined template |
+| WHEN_NO_MATCH     | Content-Type does not match defined template | Never                                                                  |
+| WHEN_NO_TEMPLATES | No templates were defined                    | One or more templates defined, but Content-Type does not match         |
 
 See the [api gateway documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/integration-passthrough-behaviors.html) for detailed descriptions of these options.
 
@@ -953,26 +956,26 @@ the `${file(templatefile)}` syntax.
 Serverless ships with default status codes you can use to e.g. signal that a resource could not be found (404) or that
 the user is not authorized to perform the action (401). Those status codes are regex definitions that will be added to your API Gateway configuration.
 
-***Note:*** Status codes as documented in this chapter relate to `lambda` integration method (as documented at the top of this page). If using default integration method `lambda-proxy` object with status code and message should be returned as in the example below:
+**_Note:_** Status codes as documented in this chapter relate to `lambda` integration method (as documented at the top of this page). If using default integration method `lambda-proxy` object with status code and message should be returned as in the example below:
 
 ```javascript
 module.exports.hello = (event, context, callback) => {
-  callback(null, { statusCode: 404, body: "Not found", headers: { "Content-Type": "text/plain" } });
-}
+  callback(null, { statusCode: 404, body: 'Not found', headers: { 'Content-Type': 'text/plain' } });
+};
 ```
 
 #### Available Status Codes
 
-| Status Code | Meaning |
-| --- | --- |
-| 400 | Bad Request |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Not Found |
-| 422 | Unprocessable Entity |
-| 500 | Internal Server Error |
-| 502 | Bad Gateway |
-| 504 | Gateway Timeout |
+| Status Code | Meaning               |
+| ----------- | --------------------- |
+| 400         | Bad Request           |
+| 401         | Unauthorized          |
+| 403         | Forbidden             |
+| 404         | Not Found             |
+| 422         | Unprocessable Entity  |
+| 500         | Internal Server Error |
+| 502         | Bad Gateway           |
+| 504         | Gateway Timeout       |
 
 #### Using Status Codes
 
@@ -984,7 +987,7 @@ Here's an example which shows you how you can raise a 404 HTTP status from withi
 ```javascript
 module.exports.hello = (event, context, callback) => {
   callback(new Error('[404] Not found'));
-}
+};
 ```
 
 #### Custom Status Codes
@@ -1009,13 +1012,13 @@ functions:
               Content-Type: "'text/html'"
             template: $input.path('$')
             statusCodes:
-                201:
-                    pattern: '' # Default response method
-                409:
-                    pattern: '.*"statusCode":409,.*' # JSON response
-                    template: $input.path("$.errorMessage") # JSON return object
-                    headers:
-                      Content-Type: "'application/json+hal'"
+              201:
+                pattern: '' # Default response method
+              409:
+                pattern: '.*"statusCode":409,.*' # JSON response
+                template: $input.path("$.errorMessage") # JSON return object
+                headers:
+                  Content-Type: "'application/json+hal'"
 ```
 
 You can also create varying response templates for each code and content type by creating an object with the key as the content type
@@ -1034,15 +1037,15 @@ functions:
               Content-Type: "'text/html'"
             template: $input.path('$')
             statusCodes:
-                201:
-                    pattern: '' # Default response method
-                409:
-                    pattern: '.*"statusCode":409,.*' # JSON response
-                    template:
-                      application/json: $input.path("$.errorMessage") # JSON return object
-                      application/xml: $input.path("$.body.errorMessage") # XML return object
-                    headers:
-                      Content-Type: "'application/json+hal'"
+              201:
+                pattern: '' # Default response method
+              409:
+                pattern: '.*"statusCode":409,.*' # JSON response
+                template:
+                  application/json: $input.path("$.errorMessage") # JSON return object
+                  application/xml: $input.path("$.body.errorMessage") # XML return object
+                headers:
+                  Content-Type: "'application/json+hal'"
 ```
 
 ## Setting an HTTP Proxy on API Gateway
@@ -1053,8 +1056,7 @@ one for method. These two templates will work together to construct your proxy. 
 ```yml
 service: service-name
 provider: aws
-functions:
-  ...
+functions: ...
 
 resources:
   Resources:
@@ -1103,13 +1105,11 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx # REST API resource ID. Default is generated by the framework
     restApiRootResourceId: xxxxxxxxxx # Root resource, represent as / path
+    websocketApiId: xxxxxxxxxx # Websocket API resource ID. Default is generated by the framewok
     description: Some Description # optional - description of deployment history
 
-functions:
-  ...
-
+functions: ...
 ```
-
 
 If your application has many nested paths, you might also want to break them out into smaller services.
 
@@ -1119,6 +1119,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
 
 functions:
@@ -1136,6 +1137,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
 
 functions:
@@ -1155,13 +1157,12 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
     restApiResources:
-      /posts: xxxxxxxxxx
+      posts: xxxxxxxxxx
 
-functions:
-  ...
-
+functions: ...
 ```
 
 ```yml
@@ -1170,13 +1171,12 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     restApiRootResourceId: xxxxxxxxxx
+    websocketApiId: xxxxxxxxxx
     description: Some Description
     restApiResources:
       /posts: xxxxxxxxxx
 
-functions:
-  ...
-
+functions: ...
 ```
 
 You can define more than one path resource, but by default, Serverless will generate them from the root resource.
@@ -1188,11 +1188,11 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx
     # restApiRootResourceId: xxxxxxxxxx # Optional
+    websocketApiId: xxxxxxxxxx
     description: Some Description
     restApiResources:
       /posts: xxxxxxxxxx
       /categories: xxxxxxxxx
-
 
 functions:
   listPosts:
@@ -1208,12 +1208,11 @@ functions:
       - http:
           method: get
           path: /categories
-
 ```
 
 ### Easiest and CI/CD friendly example of using shared API Gateway and API Resources.
 
-You can define your API Gateway resource in its own service and export the `restApiId` and `restApiRootResourceId` using cloudformation cross-stack references.
+You can define your API Gateway resource in its own service and export the `restApiId`, `restApiRootResourceId` and `websocketApiId` using cloudformation cross-stack references.
 
 ```yml
 service: my-api
@@ -1231,6 +1230,13 @@ resources:
       Properties:
         Name: MyApiGW
 
+    MyWebsocketApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: MyWebsocketApi
+        ProtocolType: WEBSOCKET
+        RouteSelectionExpression: '$request.body.action'
+
   Outputs:
     apiGatewayRestApiId:
       Value:
@@ -1245,9 +1251,15 @@ resources:
           - RootResourceId
       Export:
         Name: MyApiGateway-rootResourceId
+
+    websocketApiId:
+      Value:
+        Ref: MyWebsocketApi
+      Export:
+        Name: MyApiGateway-websocketApiId
 ```
 
-This creates API gateway and then exports the `restApiId` and `rootResourceId` values using cloudformation cross stack output.
+This creates API gateway and then exports the `restApiId`, `rootResourceId` and `websocketApiId` values using cloudformation cross stack output.
 We will import this and reference in future services.
 
 ```yml
@@ -1259,10 +1271,12 @@ provider:
       'Fn::ImportValue': MyApiGateway-restApiId
     restApiRootResourceId:
       'Fn::ImportValue': MyApiGateway-rootResourceId
+    websocketApiId:
+      'Fn::ImportValue': MyApiGateway-websocketApiId
 
-functions:
-  service-a-functions
+functions: service-a-functions
 ```
+
 ```yml
 service: service-b
 
@@ -1272,13 +1286,15 @@ provider:
       'Fn::ImportValue': MyApiGateway-restApiId
     restApiRootResourceId:
       'Fn::ImportValue': MyApiGateway-rootResourceId
+    websocketApiId:
+      'Fn::ImportValue': MyApiGateway-websocketApiId
 
-functions:
-  service-b-functions
+functions: service-b-functions
 ```
 
 You can use this method to share your API Gateway across services in same region. Read about this limitation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html).
 
+**Note:** We've noticed you can't use provider.tags together with `Fn::ImportValue` for `restApiId` and `restApiRootResourceId`. Doing so won't resolve the imported value, and therefore returns an error.
 
 ### Manually Configuring shared API Gateway
 
@@ -1313,7 +1329,6 @@ functions:
         authorizer:
           arn: xxxxxxxxxxxxxxxxx #cognito/custom authorizer arn
 ```
-
 
 ```yml
 service: service-d
@@ -1396,15 +1411,14 @@ provider:
 
   resourcePolicy:
     - Effect: Allow
-      Principal: "*"
+      Principal: '*'
       Action: execute-api:Invoke
       Resource:
         - execute-api:/*/*/*
       Condition:
         IpAddress:
           aws:SourceIp:
-            - "123.123.123.123"
-
+            - '123.123.123.123'
 ```
 
 ## Compression

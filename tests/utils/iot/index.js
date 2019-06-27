@@ -6,7 +6,8 @@ const { region, persistentRequest } = require('../misc');
 function publishIotData(topic, message) {
   const Iot = new AWS.Iot({ region });
 
-  return Iot.describeEndpoint().promise()
+  return Iot.describeEndpoint()
+    .promise()
     .then(data => {
       const IotData = new AWS.IotData({ region, endpoint: data.endpointAddress });
 

@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Functions
 
-If you are using AWS as a provider, all *functions* inside the service are AWS Lambda functions.
+If you are using AWS as a provider, all _functions_ inside the service are AWS Lambda functions.
 
 ## Configuration
 
@@ -47,7 +49,7 @@ The `handler` property points to the file and module containing the code you wan
 
 ```javascript
 // handler.js
-module.exports.functionOne = function(event, context, callback) {}
+module.exports.functionOne = function(event, context, callback) {};
 ```
 
 You can add as many functions as you want within this property.
@@ -107,8 +109,7 @@ You can specify an array of functions, which is useful if you separate your func
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}
@@ -122,10 +123,9 @@ deleteFoo:
   handler: handler.foo
 ```
 
-
 ## Permissions
 
-Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account.  These permissions are set via an AWS IAM Role.  You can set permission policy statements within this role via the `provider.iamRoleStatements` property.
+Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role. You can set permission policy statements within this role via the `provider.iamRoleStatements` property.
 
 ```yml
 # serverless.yml
@@ -144,7 +144,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:us-east-1:*:*"
+      Resource: 'arn:aws:dynamodb:us-east-1:*:*'
 
 functions:
   functionOne:
@@ -160,21 +160,21 @@ service: myService
 provider:
   name: aws
   iamRoleStatements:
-      -  Effect: "Allow"
-         Action:
-           - "s3:ListBucket"
-         # You can put CloudFormation syntax in here.  No one will judge you.
-         # Remember, this all gets translated to CloudFormation.
-         Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket"} ] ] }
-      -  Effect: "Allow"
-         Action:
-           - "s3:PutObject"
-         Resource:
-           Fn::Join:
-             - ""
-             - - "arn:aws:s3:::"
-               - "Ref" : "ServerlessDeploymentBucket"
-               - "/*"
+    - Effect: 'Allow'
+      Action:
+        - 's3:ListBucket'
+      # You can put CloudFormation syntax in here.  No one will judge you.
+      # Remember, this all gets translated to CloudFormation.
+      Resource: { 'Fn::Join': ['', ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }]] }
+    - Effect: 'Allow'
+      Action:
+        - 's3:PutObject'
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - 'Ref': 'ServerlessDeploymentBucket'
+            - '/*'
 
 functions:
   functionOne:
@@ -293,6 +293,7 @@ functions:
     environment:
       TABLE_NAME: tableName2
 ```
+
 If you want your function's environment variables to have the same values from your machine's environment variables, please read the documentation about [Referencing Environment Variables](./variables.md).
 
 ## Tags
@@ -358,7 +359,6 @@ To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
 ## Log Group Resources
 
 By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
-
 
 ## Versioning Deployed Functions
 

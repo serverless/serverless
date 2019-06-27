@@ -26,37 +26,36 @@ plugins:
 
 # you can add packaging information here
 package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
+  #  include:
+  #    - include-me.js
+  #    - include-me-dir/**
   exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+    #    - exclude-me.js
+    #    - exclude-me-dir/**
     - local.settings.json
     - .vscode/**
 
 functions:
   hello:
-    handler: hello/index.handler
+    handler: hello.handler
     events:
       - http: true
         x-azure-settings:
-          authLevel : anonymous
+          authLevel: anonymous
       - http: true
         x-azure-settings:
           direction: out
           name: res
   goodbye:
-    handler: goodbye/index.handler
+    handler: goodbye.handler
     events:
       - http: true
         x-azure-settings:
-          authLevel : anonymous
+          authLevel: anonymous
       - http: true
         x-azure-settings:
           direction: out
           name: res
-
 # The following are a few examples of other events you can configure:
 #
 # events:

@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/schedule)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Schedule
@@ -35,8 +37,7 @@ functions:
       - schedule: cron(* * * * *) // run every minute
 ```
 
-This automatically generates a new trigger (``${service}_crawl_schedule_trigger`)
-and rule (`${service}_crawl_schedule_rule`) during deployment.
+This automatically generates a new trigger (``\${service}\_crawl_schedule_trigger`) and rule (`\${service}\_crawl_schedule_rule`) during deployment.
 
 ### Customise Parameters
 

@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/invoke)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Invoke
@@ -19,6 +21,7 @@ serverless invoke [local] --function functionName
 ```
 
 ## Options
+
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
 - `--data` or `-d` String data to be passed as an event to your function. By default data is read from standard input.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
@@ -26,6 +29,7 @@ serverless invoke [local] --function functionName
 - `--log` or `-l` If set to `true` and invocation type is `RequestResponse`, it will output logging data of the invocation. Default is `false`.
 
 ## Provided lifecycle events
+
 - `invoke:invoke`
 
 # Invoke Local
@@ -37,9 +41,10 @@ serverless invoke local --function functionName
 ```
 
 ## Options
+
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
 - `--path` or `-p` The path to a json file holding input data to be passed to the invoked function. This path is relative to the
-root directory of the service. The json file should have event and context properties to hold your mocked event and context data.
+  root directory of the service. The json file should have event and context properties to hold your mocked event and context data.
 - `--data` or `-d` String data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
 
 ## Examples

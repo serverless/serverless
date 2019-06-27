@@ -6,7 +6,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/ruby/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Hello World Ruby Example
@@ -55,8 +57,8 @@ In your terminal window you should see the response from AWS Lambda.
 
 ```json
 {
-    "statusCode": 200,
-    "body": "\"Go Serverless v1.0! Your function executed successfully!\""
+  "statusCode": 200,
+  "body": "\"Go Serverless v1.0! Your function executed successfully!\""
 }
 ```
 

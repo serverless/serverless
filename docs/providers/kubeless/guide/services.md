@@ -7,25 +7,27 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/services)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Services
 
-A `service` in the Serverless Framework is like a project ((not to be confused with [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/).  It's where you define your Kubeless Functions and the `events` that trigger them, all in a file called `serverless.yml`.
+A `service` in the Serverless Framework is like a project ((not to be confused with [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/). It's where you define your Kubeless Functions and the `events` that trigger them, all in a file called `serverless.yml`.
 
 To get started building your first Serverless Framework project, create a `service`.
 
 ## Organization
 
-In the beginning of an application, many people use a single Service to define all of the Functions and Events.  This is what we recommend in the beginning.
+In the beginning of an application, many people use a single Service to define all of the Functions and Events. This is what we recommend in the beginning.
 
 ```bash
 myService/
   serverless.yml  # Contains all functions and infrastructure resources
 ```
 
-However, as your application grows, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
+However, as your application grows, you can break it out into multiple services. A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
 
 ```bash
 users/
@@ -35,11 +37,12 @@ posts/
 comments/
   serverless.yml # Contains 4 functions that do Comments CRUD operations and the Comments database
 ```
+
 This makes sense since related functions usually use common infrastructure resources, and you want to keep those functions and resources together as a single unit of deployment, for better organization and separation of concerns.
 
 ## Creation
 
-To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in.  You can also pass in a path to create a directory and auto-name your service:
+To create a service, use the `create` command. You must also pass in a runtime (e.g., node.js, python etc.) you would like to write the service in. You can also pass in a path to create a directory and auto-name your service:
 
 ```bash
 # Create service with the Python template in the folder ./new-project
@@ -48,14 +51,15 @@ $ serverless create --template kubeless-python --path new-project
 
 Here are the available runtimes for Kubeless using the Serverless plugin:
 
-* kubeless-python
-* kubeless-nodejs
+- kubeless-python
+- kubeless-nodejs
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
 ## Contents
 
 You'll see the following files in your working directory:
+
 - `serverless.yml`
 - `handler.py`
 - `package.json`
@@ -66,11 +70,11 @@ Each `service` configuration is managed in the `serverless.yml` file. The main r
 
 - Declare a Serverless service
 - Define one or more functions in the service
-    - Define the provider the service will be deployed to (in our case, kubeless)
-    - Define any custom plugins to be used (in our case, we will need to use the serverless-kubeless plugin)
-    - Define events that trigger each function to execute (e.g. HTTP requests)
-    - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
-    - Allow flexible configuration using Serverless Variables
+  - Define the provider the service will be deployed to (in our case, kubeless)
+  - Define any custom plugins to be used (in our case, we will need to use the serverless-kubeless plugin)
+  - Define events that trigger each function to execute (e.g. HTTP requests)
+  - Allow events listed in the `events` section to automatically create the resources required for the event upon deployment
+  - Allow flexible configuration using Serverless Variables
 
 You can see the name of the service, the provider configuration and the first function inside the `functions` definition which points to the `handler.py` file. Any further service configuration will be done in this file.
 
@@ -112,7 +116,7 @@ To deploy a service, use the `deploy` command:
 serverless deploy
 ```
 
-Check out the [deployment guide](https://serverless.com/framework/docs/providers/kubeless/guide/deploying/) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
+Check out the [deployment guide](https://serverless.com/framework/docs/providers/kubeless/guide/deploying/) to learn more about deployments and how they work. Or, check out the [deploy command docs](../cli-reference/deploy) for all the details and options.
 
 ## Removal
 

@@ -7,13 +7,15 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/deploying)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Deploying
 
 The Serverless Framework was designed to provision your Azure Functions
-Functions, Triggers and Rules safely and quickly.  It does this via a couple of
+Functions, Triggers and Rules safely and quickly. It does this via a couple of
 methods designed for different types of deployments.
 
 ## Deploy All
@@ -28,20 +30,20 @@ Use this method when you have updated your Function, Event or Resource
 configuration in `serverless.yml` and you want to deploy that change (or multiple
 changes at the same time) to Azure Functions.
 
-**Note:** You can specify a different configuration file name with the the `--config` option. 
+**Note:** You can specify a different configuration file name with the the `--config` option.
 
 ### How It Works
 
 The Serverless Framework translates all syntax in `serverless.yml` to an Azure
 Resource Manager Template and Azure Function project.
 
-* Provider plugin parses `serverless.yml` configuration and translates to Azure resources.
-* The code of your Functions is then packaged into a directory and zipped.
-* Resources are deployed in the following order: *ARM template, Functions*
+- Provider plugin parses `serverless.yml` configuration and translates to Azure resources.
+- The code of your Functions is then packaged into a directory and zipped.
+- Resources are deployed in the following order: _ARM template, Functions_
 
 ### Tips
 
-* Use this in your CI/CD systems, as it is the safest method of deployment.
+- Use this in your CI/CD systems, as it is the safest method of deployment.
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 
@@ -57,13 +59,13 @@ serverless deploy function --function myFunction
 
 ### How It Works
 
-* The Framework packages up the targeted Azure Function into a zip file.
-* That zip file is deployed to the Function App using the kudu zip API.
+- The Framework packages up the targeted Azure Function into a zip file.
+- That zip file is deployed to the Function App using the kudu zip API.
 
 ### Tips
 
-* Use this when you are developing and want to test on Azure Functions because it's much faster.
-* During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
+- Use this when you are developing and want to test on Azure Functions because it's much faster.
+- During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
 
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 

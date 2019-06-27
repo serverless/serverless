@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/deploying)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Google - Deploying
@@ -24,7 +26,7 @@ serverless deploy
 
 Use this method when you have updated your Function, Events or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to the Google Cloud.
 
-**Note:** You can specify a different configuration file name with the the `--config` option. 
+**Note:** You can specify a different configuration file name with the the `--config` option.
 
 ### How It Works
 

@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/deploying)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Deploying
 
-The Serverless Framework was designed to provision your Kubeless Functions and Events.  It does this via a couple of methods designed for different types of deployments.
+The Serverless Framework was designed to provision your Kubeless Functions and Events. It does this via a couple of methods designed for different types of deployments.
 
 ## Deploy All
 
@@ -24,7 +26,7 @@ serverless deploy -v
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to your Kubernetes cluster.
 
-**Note:** You can specify a different configuration file name with the the `--config` option. 
+**Note:** You can specify a different configuration file name with the the `--config` option.
 
 ### How It Works
 
@@ -74,7 +76,6 @@ rs/hello-699783077   1         1         1         2m
 ```
 
 Kubeless will create a [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for your function and a [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/) for each event.
-
 
 ## Deploy Function
 

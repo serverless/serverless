@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/invoke)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Invoke
@@ -20,10 +22,12 @@ serverless invoke --function functionName
 ```
 
 ## Options
+
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
 
 ## Provided lifecycle events
+
 - `invoke:invoke`
 
 ## Examples
