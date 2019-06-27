@@ -2,7 +2,7 @@
 
 'use strict';
 
-const componentsCli = require('@serverless/cli')
+const componentsCli = require('@serverless/cli');
 const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
@@ -11,9 +11,9 @@ const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorRe
 
 (() => {
   if (componentsCli.runningComponents()) {
-    return componentsCli.runComponents().then(() => process.exit(0))
-  } 
-  
+    return componentsCli.runComponents().then(() => process.exit(0));
+  }
+
   Error.stackTraceLimit = Infinity;
   if (process.env.SLS_DEBUG) {
     // For performance reasons enabled only in SLS_DEBUG mode
@@ -25,7 +25,7 @@ const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorRe
   process.on('unhandledRejection', e => {
     logError(e);
   });
-  
+
   process.noDeprecation = true;
 
   const invocationId = uuid.v4();
@@ -71,5 +71,5 @@ const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorRe
     .catch(e => {
       process.exitCode = 1;
       logError(e);
-    })
-})()
+    });
+})();
