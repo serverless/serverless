@@ -1,6 +1,7 @@
 # 1.46.1 (2019-06-28)
 
 - [Fix service.provider.region resolution](https://github.com/serverless/serverless/pull/6317)
+- [Ensure deploy is triggered in CI](https://github.com/serverless/serverless/pull/6306)
 
 ## Meta
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.46.0...v1.46.1)
