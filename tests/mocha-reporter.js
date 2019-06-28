@@ -115,7 +115,7 @@ module.exports = class ServerlessSpec extends Spec {
         // Safe to ignore
       }
 
-      if (process.version[1] < 8) return; // Async leaks detector is not reliable in Node.js v6
+      if (process.version.match(/\d+/)[0] < 8) return; // Async leaks detector is not reliable in Node.js v6
 
       // Async leaks detection
       setTimeout(() => {
