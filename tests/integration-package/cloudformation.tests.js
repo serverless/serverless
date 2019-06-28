@@ -114,4 +114,15 @@ describe('Integration test - Packaging', () => {
       DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
     });
   });
+
+  it('resolves self.provider.region', () => {
+    fse.copySync(fixturePaths.regular, cwd);
+    execSync(`${serverlessExec} package`, { cwd });
+    const cfnTemplate = JSON.parse(
+      fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
+    );
+    expect(cfnTemplate.Resources.CustomDashnameLambdaFunction.Properties.FunctionName).toEqual(
+      'aws-nodejs-us-east-1-custom-name'
+    );
+  });
 });
