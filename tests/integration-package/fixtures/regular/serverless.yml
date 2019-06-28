@@ -7,3 +7,6 @@ provider:
 functions:
   hello:
     handler: handler.hello
+  custom-name:
+    name: ${self:service}-${self:provider.region}-custom-name
+    handler: handler.hello
