@@ -2,7 +2,7 @@
 
 const path = require('path');
 const fse = require('fs-extra');
-const { execSync } = require('child_process');
+const { execSync } = require('../utils/child-process');
 const { serverlessExec } = require('../utils/misc');
 const { getTmpDirPath, listZipFiles } = require('../utils/fs');
 
