@@ -6,6 +6,11 @@ const { execSync } = require('../utils/child-process');
 const { serverlessExec } = require('../utils/misc');
 const { getTmpDirPath, listZipFiles } = require('../utils/fs');
 
+const fixturePaths = {
+  regular: path.join(__dirname, 'fixtures/regular'),
+  individually: path.join(__dirname, 'fixtures/individually'),
+};
+
 describe('Integration test - Packaging', () => {
   let cwd;
   beforeEach(() => {
@@ -13,8 +18,7 @@ describe('Integration test - Packaging', () => {
   });
 
   it('packages the default aws template correctly in the zip', () => {
-    fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
-    fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
+    fse.copySync(fixturePaths.regular, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then(zipfiles => {
       expect(zipfiles).toEqual(['handler.js']);
@@ -22,8 +26,7 @@ describe('Integration test - Packaging', () => {
   });
 
   it('packages the default aws template with an npm dep correctly in the zip', () => {
-    fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
-    fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
+    fse.copySync(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('npm i lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
@@ -38,8 +41,7 @@ describe('Integration test - Packaging', () => {
   });
 
   it("doesn't package a dev dependency in the zip", () => {
-    fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
-    fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
+    fse.copySync(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('npm i --save-dev lodash', { cwd });
     execSync(`${serverlessExec} package`, { cwd });
@@ -54,8 +56,7 @@ describe('Integration test - Packaging', () => {
   });
 
   it('ignores package json files per ignore directive in the zip', () => {
-    fse.copySync(path.join(__dirname, 'serverless.yml'), path.join(cwd, 'serverless.yml'));
-    fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
+    fse.copySync(fixturePaths.regular, cwd);
     execSync('npm init --yes', { cwd });
     execSync('echo \'package: {exclude: ["package*.json"]}\' >> serverless.yml', { cwd });
     execSync('npm i lodash', { cwd });
@@ -71,9 +72,7 @@ describe('Integration test - Packaging', () => {
   });
 
   it('handles package individually with include/excludes correctly', () => {
-    fse.copySync(path.join(__dirname, 'individually.yml'), path.join(cwd, 'serverless.yml'));
-    fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler.js'));
-    fse.copySync(path.join(__dirname, 'handler.js'), path.join(cwd, 'handler2.js'));
+    fse.copySync(fixturePaths.individually, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     return listZipFiles(path.join(cwd, '.serverless/hello.zip'))
       .then(zipfiles => expect(zipfiles).toEqual(['handler.js']))
