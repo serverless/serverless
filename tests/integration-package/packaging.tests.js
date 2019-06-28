@@ -11,7 +11,6 @@ describe('Integration test - Packaging', () => {
   let cwd;
   beforeEach(() => {
     cwd = getTmpDirPath();
-    fse.mkdirsSync(cwd);
   });
 
   it('packages the default aws template correctly in the zip', () => {
