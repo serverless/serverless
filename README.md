@@ -74,7 +74,7 @@ Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing y
 serverless deploy function -f hello
 ```
 
-6. **Invoke the Function:**
+6. **Invoke the Function on AWS:**
 
 Invokes an AWS Lambda Function on AWS and returns logs.
 
@@ -82,7 +82,15 @@ Invokes an AWS Lambda Function on AWS and returns logs.
 serverless invoke -f hello -l
 ```
 
-7. **Fetch the Function Logs:**
+7. **Invoke the Function on your machine:**
+
+Invokes an AWS Lambda Function on your local machine and returns logs.
+
+```bash
+serverless invoke local -f hello -l
+```
+
+8. **Fetch the Function Logs:**
 
 Open up a separate tab in your console and stream all logs for a specific Function using this command.
 
@@ -90,7 +98,7 @@ Open up a separate tab in your console and stream all logs for a specific Functi
 serverless logs -f hello -t
 ```
 
-8. **Remove the Service:**
+9. **Remove the Service:**
 
 Removes all Functions, Events and Resources from your AWS account.
 
