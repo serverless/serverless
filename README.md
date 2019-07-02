@@ -90,7 +90,7 @@ Invokes an AWS Lambda Function on your local machine and returns logs.
 serverless invoke local -f hello -l
 ```
 
-7. **Fetch the Function Logs:**
+8. **Fetch the Function Logs:**
 
 Open up a separate tab in your console and stream all logs for a specific Function using this command.
 
@@ -98,7 +98,7 @@ Open up a separate tab in your console and stream all logs for a specific Functi
 serverless logs -f hello -t
 ```
 
-8. **Remove the Service:**
+9. **Remove the Service:**
 
 Removes all Functions, Events and Resources from your AWS account.
 
