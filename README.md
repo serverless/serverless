@@ -74,12 +74,20 @@ Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing y
 serverless deploy function -f hello
 ```
 
-6. **Invoke the Function:**
+6. **Invoke the Function on AWS:**
 
 Invokes an AWS Lambda Function on AWS and returns logs.
 
 ```bash
 serverless invoke -f hello -l
+```
+
+7. **Invoke the Function on your machine:**
+
+Invokes an AWS Lambda Function on your local machine and returns logs.
+
+```bash
+serverless invoke local -f hello -l
 ```
 
 7. **Fetch the Function Logs:**
