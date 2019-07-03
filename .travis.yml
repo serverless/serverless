@@ -6,6 +6,12 @@ git:
   #   the last merge commit that is to be tested
   depth: 10
 
+cache:
+  # Not relying on 'npm' shortcut - per Travis docs it's the only 'node_modules' that it'll be cached
+  directories:
+    - $HOME/.npm
+    - node_modules
+
 branches:
   only:
     - master # Do not build PR branches
