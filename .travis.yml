@@ -63,6 +63,7 @@ jobs:
       node_js: 8
       script: npm run coverage
       after_success: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+
     - name: 'Unit Tests - Linux - Node.js v6'
       node_js: 6
 
