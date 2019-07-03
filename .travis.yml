@@ -12,6 +12,13 @@ cache:
     - $HOME/.npm
     - node_modules
 
+# Ensure to install dependencies at their latest versions
+install:
+  # Note: with `npm update` there seems no way to update all project dependency groups in one run
+  - npm update --no-save # Updates just dependencies
+  # Note: npm documents --dev option for dev dependencies update, but it's only --save-dev that works
+  - npm update --save-dev --no-save # Updates just devDependencies
+
 branches:
   only:
     - master # Do not build PR branches
