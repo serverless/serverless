@@ -1,7 +1,7 @@
 language: node_js
 
 git:
-  # Do not take whole history, but ensure to not break things:
+  # Minimize git history, but ensure to not break things:
   # - Merging multiple PR's around same time may introduce a case where it's not
   #   the last merge commit that is to be tested
   depth: 10
