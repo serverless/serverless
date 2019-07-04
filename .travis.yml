@@ -27,7 +27,7 @@ branches:
 env:
   global:
     - SLS_IGNORE_WARNING=*
-    - FORCE_COLOR=1 # Ensure colored output for processes combined with '&&'
+    - FORCE_COLOR=1 # Ensure colored output (color support is not detected in some cases)
 
 stages:
   - name: Test
