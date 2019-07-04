@@ -7,7 +7,7 @@ git:
   depth: 10
 
 cache:
-  # Not relying on 'npm' shortcut - per Travis docs it's the only 'node_modules' that it'll be cached
+  # Not relying on 'npm' shortcut, as per Travis docs it's the only 'node_modules' that it'll cache
   directories:
     - $HOME/.npm
     - node_modules
