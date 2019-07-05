@@ -113,6 +113,10 @@
     "strip-ansi": "^5.2.0"
   },
   "dependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "@babel/preset-typescript": "^7.3.3",
+    "@babel/register": "^7.4.4",
     "@serverless/enterprise-plugin": "^1.0.7",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
