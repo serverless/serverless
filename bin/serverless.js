@@ -2,7 +2,6 @@
 
 'use strict';
 
-const componentsCli = require('@serverless/cli');
 const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
@@ -10,10 +9,12 @@ const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
 
 (() => {
-  if (componentsCli.runningComponents()) {
-    return componentsCli.runComponents().then(() => process.exit(0));
+  if (Number(process.version.split('.')[0].slice(1)) >= 8) {
+    const componentsCli = require('@serverless/cli');
+    if (componentsCli.runningComponents()) {
+      return componentsCli.runComponents().then(() => process.exit(0));
+    }
   }
-
   Error.stackTraceLimit = Infinity;
   if (process.env.SLS_DEBUG) {
     // For performance reasons enabled only in SLS_DEBUG mode
