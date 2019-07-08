@@ -4,6 +4,7 @@
 - [Ensure deploy is triggered in CI](https://github.com/serverless/serverless/pull/6306)
 
 ## Meta
+
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.46.0...v1.46.1)
 
 # 1.46.0 (2019-06-26)
@@ -31,6 +32,7 @@
 - [Feature/support external websocket api](https://github.com/serverless/serverless/pull/6272)
 
 ## Meta
+
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.1...v1.46.0)
 
 # 1.45.1 (2019-06-12)
@@ -39,8 +41,8 @@
 - [Fix Travis CI deploy config](https://github.com/serverless/serverless/pull/6234)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.0...v1.45.1)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.0...v1.45.1)
 
 # 1.45.0 (2019-06-12)
 
@@ -64,16 +66,16 @@
 - [Update Scala version to 2.13.0 for aws-scala-sbt template](https://github.com/serverless/serverless/pull/6222)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.1...v1.45.0)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.1...v1.45.0)
 
 # 1.44.1 (2019-05-28)
 
 - [Fix enterprise plugin lookup in global yarn installs](https://github.com/serverless/serverless/pull/6183)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.0...v1.44.1)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.0...v1.44.1)
 
 # 1.44.0 (2019-05-28)
 
@@ -88,8 +90,8 @@
 - [Upgrade mocha, switch from istanbul to nyc, improve tests configuration](https://github.com/serverless/serverless/pull/6169)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.43.0...v1.44.0)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.43.0...v1.44.0)
 
 # 1.43.0 (2019-05-20)
 
@@ -100,6 +102,7 @@
 - [Fix tests setup issues](https://github.com/serverless/serverless/pull/6147)
 
 ## Meta
+
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.3...v1.43.0)
 
 # 1.42.3 (2019-05-14)
@@ -115,7 +118,8 @@
 - [Improve handling of custom API Gateway options](https://github.com/serverless/serverless/pull/6129)
 
 ## Meta
- - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.2...v1.42.3)
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.2...v1.42.3)
 
 # 1.42.2 (2019-05-10)
 
