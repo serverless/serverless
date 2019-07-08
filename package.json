@@ -61,6 +61,7 @@
     "lint": "eslint . --cache",
     "lint:fix": "npm run lint -- --fix",
     "lint:updated": "pipe-git-updated --ext=js -- eslint --cache",
+    "pkg:build": "node ./scripts/pkg/build.js",
     "postinstall": "node ./scripts/postinstall.js",
     "prepare-release": "standard-version && prettier --write CHANGELOG.md",
     "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
@@ -73,7 +74,17 @@
   },
   "eslintConfig": {
     "extends": "@serverless/eslint-config/node",
-    "root": true
+    "root": true,
+    "overrides": [
+      {
+        "files": [
+          "scripts/pkg/build.js"
+        ],
+        "parserOptions": {
+          "ecmaVersion": 2017
+        }
+      }
+    ]
   },
   "eslintIgnore": [
     "lib/plugins/create/templates/**",
@@ -132,6 +143,7 @@
     "mocha-lcov-reporter": "^1.3.0",
     "mock-require": "^3.0.3",
     "nyc": "^14.1.1",
+    "pkg": "^4.4.0",
     "prettier": "^1.19.1",
     "process-utils": "^3.0.1",
     "proxyquire": "^2.1.3",
