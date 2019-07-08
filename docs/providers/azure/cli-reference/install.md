@@ -29,6 +29,13 @@ serverless install --url https://github.com/some/service
 
 - `install:install`
 
+## Supported Code Hosting Platforms
+
+- GitHub
+- GitHub Enterprise
+- GitLab
+- BitBucket
+
 ## Examples
 
 ### Installing a service from a GitHub URL
