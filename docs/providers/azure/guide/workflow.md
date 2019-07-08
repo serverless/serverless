@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/workflow)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Workflow
@@ -19,16 +21,18 @@ Intro. Quick recommendations and tips for various processes.
 1. Write your functions
 2. Use `serverless deploy` only when you've made changes to `serverless.yml` and in CI/CD systems.
 3. Use `serverless deploy function -f myFunction` to rapidly deploy changes when you are working on a specific Azure Functions Function.
-4. Use `serverless invoke -f myFunction ` to test your Azure Functions.
+4. Use `serverless invoke -f myFunction` to test your Azure Functions.
 5. Open up a separate tab in your console and stream logs in there via `serverless logs -f myFunction`.
 6. Write tests to run locally.
 
 ### Larger Projects
-* Break your application/project into multiple Serverless Services.
-* Model your Serverless Services around Data Models or Workflows.
-* Keep the Functions and Resources in your Serverless Services to a minimum.
+
+- Break your application/project into multiple Serverless Services.
+- Model your Serverless Services around Data Models or Workflows.
+- Keep the Functions and Resources in your Serverless Services to a minimum.
 
 ## Cheat Sheet
+
 A handy list of commands to use when developing with the Serverless Framework.
 
 ##### Create A Service:

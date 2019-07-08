@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/guide/events)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Events
@@ -48,7 +50,7 @@ queuejs:
   events:
     - queue: YourQueueName
       x-azure-settings:
-        connection : StorageAppSettingName
+        connection: StorageAppSettingName
     - blob:
       x-azure-settings:
         name: bindingName

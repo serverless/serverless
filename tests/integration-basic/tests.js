@@ -44,7 +44,8 @@ describe('Service Lifecyle Integration Test', () => {
   it('should deploy service to aws', () => {
     execSync(`${serverlessExec} deploy`);
 
-    return CF.describeStacks({ StackName }).promise()
+    return CF.describeStacks({ StackName })
+      .promise()
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE'));
   });
 
@@ -57,8 +58,7 @@ describe('Service Lifecyle Integration Test', () => {
   });
 
   it('should deploy updated service to aws', () => {
-    const newHandler =
-      `
+    const newHandler = `
         'use strict';
 
         module.exports.hello = (event, context, cb) => cb(null,
@@ -99,7 +99,8 @@ describe('Service Lifecyle Integration Test', () => {
   it('should remove service from aws', () => {
     execSync(`${serverlessExec} remove`);
 
-    return CF.describeStacks({ StackName }).promise()
+    return CF.describeStacks({ StackName })
+      .promise()
       .then(d => expect(d.Stacks[0].StackStatus).to.be.equal('DELETE_COMPLETE'))
       .catch(error => {
         if (error.message.indexOf('does not exist') > -1) return BbPromise.resolve();

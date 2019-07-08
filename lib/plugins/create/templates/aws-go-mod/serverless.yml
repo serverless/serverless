@@ -18,7 +18,7 @@ service: aws-go-mod # NOTE: update this with your service name
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
-frameworkVersion: ">=1.28.0 <2.0.0"
+frameworkVersion: '>=1.28.0 <2.0.0'
 
 provider:
   name: aws
@@ -49,10 +49,10 @@ provider:
 #    variable1: value1
 
 package:
- exclude:
-   - ./**
- include:
-   - ./bin/**
+  exclude:
+    - ./**
+  include:
+    - ./bin/**
 
 functions:
   hello:
@@ -67,7 +67,6 @@ functions:
       - http:
           path: world
           method: get
-
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

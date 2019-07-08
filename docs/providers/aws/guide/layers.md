@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/layers)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Layers
 
-If you are using AWS as a provider, all *layers* inside the service are [AWS Lambda
+If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda
 layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
 
 ## Configuration
@@ -109,7 +111,6 @@ layers:
       artifact: layerSource.zip
 ```
 
-
 ## Permissions
 
 You can make your layers usable by other accounts by setting the `allowedAccounts` property:
@@ -170,5 +171,5 @@ functions:
   hello:
     handler: handler.hello
     layers:
-      - {Ref: TestLambdaLayer}
+      - { Ref: TestLambdaLayer }
 ```

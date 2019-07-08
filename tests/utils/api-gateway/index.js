@@ -31,8 +31,9 @@ function getResources(restApiId) {
     restApiId,
   };
 
-  return APIG.getResources(params).promise()
-    .then((data) => data.items);
+  return APIG.getResources(params)
+    .promise()
+    .then(data => data.items);
 }
 
 function findRestApis(name) {
@@ -44,14 +45,16 @@ function findRestApis(name) {
 
   function recursiveFind(found, position) {
     if (position) params.position = position;
-    return APIG.getRestApis(params).promise().then(result => {
-      const matches = result.items.filter(restApi => restApi.name.match(name));
-      if (matches.length) {
-        _.merge(found, matches);
-      }
-      if (result.position) return recursiveFind(found, result.position);
-      return found;
-    });
+    return APIG.getRestApis(params)
+      .promise()
+      .then(result => {
+        const matches = result.items.filter(restApi => restApi.name.match(name));
+        if (matches.length) {
+          _.merge(found, matches);
+        }
+        if (result.position) return recursiveFind(found, result.position);
+        return found;
+      });
   }
 
   return recursiveFind([]);

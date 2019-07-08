@@ -64,11 +64,11 @@ During development, you can easily check coverage by running `npm test`, then op
 
 Please follow these Testing guidelines when writing your unit tests:
 
--  Include a top-level `describe('ClassName')` block, with the name of the class you are testing
--  Inside that top-level `describe()` block, create another `describe('#methodOne()')` block for each class method you might create or modify
--  For each method, include an `it('should do something')` test case for each logical edge case in your changes
--  As you write tests, check the code coverage and make sure all lines of code are covered.  If not, just add more test cases until everything is covered
--  For reference and inspiration, please check our `tests` directory
+- Include a top-level `describe('ClassName')` block, with the name of the class you are testing
+- Inside that top-level `describe()` block, create another `describe('#methodOne()')` block for each class method you might create or modify
+- For each method, include an `it('should do something')` test case for each logical edge case in your changes
+- As you write tests, check the code coverage and make sure all lines of code are covered. If not, just add more test cases until everything is covered
+- For reference and inspiration, please check our `tests` directory
 
 ## Testing templates
 

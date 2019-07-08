@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/cli-reference/config-credentials)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst Functions - Config Credentials

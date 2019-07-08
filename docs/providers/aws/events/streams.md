@@ -7,14 +7,17 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/streams)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # DynamoDB / Kinesis Streams
 
 This setup specifies that the `compute` function should be triggered whenever:
-  1. the corresponding DynamoDB table is modified (e.g. a new entry is added).
-  2. the Lambda checkpoint has not reached the end of the Kinesis stream (e.g. a new record is added).
+
+1. the corresponding DynamoDB table is modified (e.g. a new entry is added).
+2. the Lambda checkpoint has not reached the end of the Kinesis stream (e.g. a new record is added).
 
 The ARN for the stream can be specified as a string, the reference to the ARN of a resource by logical ID, or the import of an ARN that was exported by a different service or CloudFormation stack.
 

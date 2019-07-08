@@ -6,7 +6,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically geneated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/go/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Hello World Go Example
@@ -63,7 +65,7 @@ Change directories into 'myService' folder and you can see this project has 2 ha
 │   └── main.go
 ```
 
-This because a `main()` function is required as entry point for each handler executable.  
+This because a `main()` function is required as entry point for each handler executable.
 
 ## 2. Build using go build to create static binaries
 

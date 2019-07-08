@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/debugging)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Debugging
@@ -22,12 +24,12 @@ import json
 
 def find(event, context):
     term = event['data']['term']
-    url = "https://feeds.capitalbikeshare.com/stations/stations.json"    
+    url = "https://feeds.capitalbikeshare.com/stations/stations.json"
     response = urllib2.urlopen(url)
     stations = json.loads(response.read())
-    
+
     hits = []
-    
+
     for station in stations["stationBeanList"]:
         if station["stAddress1"].find(term) > -1:
             hits.append(station)
@@ -78,26 +80,26 @@ Serverless: Calling function: bikesearch...
     availableBikes: 9,
     id: 80,
     location: '' } ]
-```    
+```
 
-What happens when something goes wrong? The function currently has no error handling, so that's easy enough to test. Let's invoke the function again with a typo (use *trm* as the name of the input parameter instead of *term*):
+What happens when something goes wrong? The function currently has no error handling, so that's easy enough to test. Let's invoke the function again with a typo (use _trm_ as the name of the input parameter instead of _term_):
 
 ```
 serverless invoke --function bikesearch --data '{"trm":"Albemarle"}' -l
 
 # Output
 Serverless: Calling function: bikesearch...
- 
+
   Serverless Error ---------------------------------------
- 
+
   Internal Server Error
- 
+
   Get Support --------------------------------------------
      Docs:          docs.serverless.com
      Bugs:          github.com/serverless/serverless/issues
      Forums:        forum.serverless.com
      Chat:          gitter.im/serverless/serverless
- 
+
   Your Environment Information -----------------------------
      OS:                     darwin
      Node Version:           8.3.0
