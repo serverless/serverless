@@ -133,6 +133,10 @@ functions:
 
 To reference environment variables, use the `${env:SOME_VAR}` syntax in your `serverless.yml` configuration file. It is valid to use the empty string in place of `SOME_VAR`. This looks like "`${env:}`" and the result of declaring this in your `serverless.yml` is to embed the complete `process.env` object (i.e. all the variables defined in your environment).
 
+Using trailing & leading quotes in your environment variables will be removed once inserted into the generated CloudFormation template i.e:
+
+`export SOME_VAR="some value"` would be inserted as `some value`
+
 **Note:**
 
 Keep in mind that sensitive information which is provided through environment variables can be written into less protected or publicly accessible build logs, CloudFormation templates, et cetera.
