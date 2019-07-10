@@ -1,3 +1,33 @@
+# 1.47.0 (2019-07-10)
+
+- [Add Onica as a Consultant](https://github.com/serverless/serverless/pull/6300)
+- [Correct typo](https://github.com/serverless/serverless/pull/6301)
+- [Adapt new ESLint and Prettier configuration](https://github.com/serverless/serverless/pull/6284)
+- [Ensure deploy is triggered in CI](https://github.com/serverless/serverless/pull/6306)
+- [Remove jsbeautify configuration](https://github.com/serverless/serverless/pull/6309)
+- [Improve PR template](https://github.com/serverless/serverless/pull/6308)
+- [Allow users to specify API Gateway Access Log format](https://github.com/serverless/serverless/pull/6299)
+- [Fix service.provider.region resolution](https://github.com/serverless/serverless/pull/6317)
+- [Add null as a consultant](https://github.com/serverless/serverless/pull/6323)
+- [Update very minor typo in credentials.md](https://github.com/serverless/serverless/pull/6321)
+- [Expose non-errors in informative way](https://github.com/serverless/serverless/pull/6318)
+- [Fix async leaks detection conditional](https://github.com/serverless/serverless/pull/6319)
+- [Typo fix in AWS ALB event documentation](https://github.com/serverless/serverless/pull/6325)
+- [Websockets: fix passing log group ARN](https://github.com/serverless/serverless/pull/6310)
+- [Specify invoke local option in the guide](https://github.com/serverless/serverless/pull/6327)
+- [Update Webpack version and usage of aws-nodejs-ecma-script template](https://github.com/serverless/serverless/pull/6324)
+- [Make ALB event target group names unique](https://github.com/serverless/serverless/pull/6322)
+- [Improve Travis CI conf](https://github.com/serverless/serverless/pull/6330)
+- [Support for Github Entreprise in sls create](https://github.com/serverless/serverless/pull/6332)
+- [Merge patch 1.46.1 release artifacts back into master](https://github.com/serverless/serverless/pull/6343)
+- [Add support for existing S3 buckets](https://github.com/serverless/serverless/pull/6290)
+- [PLAT-1202 - Interactive `serverless` create](https://github.com/serverless/serverless/pull/6294)
+- [PLAT-1091 - message in `npm i` output about the `serverless` quickstart command](https://github.com/serverless/serverless/pull/6238)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.46.1...v1.47.0)
+
 # 1.46.1 (2019-06-28)
 
 - [Fix service.provider.region resolution](https://github.com/serverless/serverless/pull/6317)
