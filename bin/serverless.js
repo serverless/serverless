@@ -33,18 +33,15 @@ const invocationId = uuid.v4();
       }
       // requiring here so that if anything went wrong,
       // during require, it will be caught.
-      const Serverless = require('../lib/Serverless'); // eslint-disable-line global-require
+      const Serverless = require('../lib/Serverless');
 
-      const serverless = new Serverless({
-        interactive: typeof process.env.CI === 'undefined',
-      });
+      const serverless = new Serverless();
 
       serverless.invocationId = invocationId;
 
       return serverless
         .init()
         .then(() => serverless.run())
-        .then(() => process.exit(0))
         .catch(err => {
           // If Enterprise Plugin, capture error
           let enterpriseErrorHandler = null;
@@ -65,7 +62,10 @@ const invocationId = uuid.v4();
             });
         });
     })
-    .catch(e => {
-      process.exitCode = 1;
-      logError(e);
-    }))();
+    .then(
+      () => process.exit(0),
+      e => {
+        process.exitCode = 1;
+        logError(e);
+      }
+    ))();
