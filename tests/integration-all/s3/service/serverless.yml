@@ -1,0 +1,31 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  versionFunctions: false
+
+functions:
+  minimal:
+    handler: core.minimal
+    events:
+      - s3: CHANGE_TO_UNIQUE_PER_RUN
+  extended:
+    handler: core.extended
+    events:
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: photos/
+            - suffix: .jpg
+  existing:
+    handler: core.existing
+    events:
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: files/
+            - suffix: .txt
+          existing: true
