@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/events/schedule)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Schedule
@@ -22,11 +24,10 @@ The following example is a function configuration in the serverless.yml file tha
 functions:
   crawl:
     handler: handler.crawl
-    cron:  # Setup scheduled trigger with cron expression
+    cron: # Setup scheduled trigger with cron expression
       active: true
       value: '30 18 * * *'
 ```
-
 
 ## Active Status
 
@@ -40,10 +41,9 @@ This example will create and attach a schedule event for the function `crawl` wh
 functions:
   crawl:
     handler: handler.crawl
-    cron:  # Setup scheduled trigger with cron expression
+    cron: # Setup scheduled trigger with cron expression
       active: false
       value: '* 18 * * 1'
-
 ```
 
 **Note** When creating a `cron` trigger the `value` is the crontab expression. For help on crontab check out the [documentation](http://www.adminschoice.com/crontab-quick-reference)

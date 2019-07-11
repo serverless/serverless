@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Functions
 
-If you are using Kubeless as a provider, all *functions* inside the service are Kubernetes Function.v1.k8s.io objects.
+If you are using Kubeless as a provider, all _functions_ inside the service are Kubernetes Function.v1.k8s.io objects.
 
 ## Configuration
 
@@ -89,8 +91,7 @@ You can specify an array of functions, which is useful if you separate your func
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}
@@ -120,9 +121,9 @@ Please see the following repository for sample projects using those runtimes:
 
 For installing dependencies the standard dependency file should be placed in the function folder:
 
- - For Python functions, it will use the file `requirements.txt`
- - For Nodejs functions, `dependencies` in the `package.json` file will be installed
- - For Ruby functions, it will use the file `Gemfile.rb`
+- For Python functions, it will use the file `requirements.txt`
+- For Nodejs functions, `dependencies` in the `package.json` file will be installed
+- For Ruby functions, it will use the file `Gemfile.rb`
 
 If one of the above files is found, the depencies will be installed using a [`Init Container`](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
 
@@ -169,6 +170,7 @@ functions:
     environment:
       TABLE_NAME: tableName2
 ```
+
 ## Secrets
 
 Kubernetes [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) can be linked to your serverless function by mounting the file or defining environment variables. These can be configured as such in `serverless.yml`.
@@ -179,6 +181,7 @@ Given the kubernetes secret named `secret1` created by:
 We can access it like so:
 
 **Mounting**
+
 ```yml
 service: service-name
 provider:
@@ -194,10 +197,10 @@ functions:
     handler: handler.users
     secrets:
       - secret1
-
 ```
 
 **Environment Variables**
+
 ```yml
 service: service-name
 provider:
@@ -215,14 +218,13 @@ functions:
     # Note that the secret cannot have any `/`'s in the name
     handler: handler.users
     environment:
-    # The environment variable `PROD_USER_PASSWORD` would be set to "happy"
+      # The environment variable `PROD_USER_PASSWORD` would be set to "happy"
       - name: PROD_USER_PASSWORD
         valueFrom:
-            secretKeyRef:
-              - name: secret1
-                key: password
+          secretKeyRef:
+            - name: secret1
+              key: password
 ```
-
 
 ## Labels
 

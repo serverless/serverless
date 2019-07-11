@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - IoT
 menuText: IoT
-menuOrder: 9
+menuOrder: 11
 description:  Setting up AWS IoT Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/iot)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # IoT
@@ -51,9 +53,9 @@ functions:
     handler: myIoT.handler
     events:
       - iot:
-          name: "myIotEvent"
+          name: 'myIotEvent'
           sql: "SELECT * FROM 'some_topic'"
-          description: "My IoT Event Description"
+          description: 'My IoT Event Description'
 ```
 
 ## Specify SQL Versions
@@ -67,5 +69,5 @@ functions:
     events:
       - iot:
           sql: "SELECT * FROM 'some_topic'"
-          sqlVersion: "beta"
+          sqlVersion: 'beta'
 ```

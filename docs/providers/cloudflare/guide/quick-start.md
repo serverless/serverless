@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/guide/quick-start)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Cloudflare Workers - Quickstart
@@ -16,15 +18,17 @@ layout: Doc
 
 This guide is a walk through of using the Serverless Plugin to deploy Cloudflare Workers to a zone already proxied on Cloudflare.
 
-*Note:`workers.dev` domains are not currently supported using Serverless, but you can track our progress on [this Github issue](https://github.com/cloudflare/serverless-cloudflare-workers/issues/36).*
+_Note:`workers.dev` domains are not currently supported using Serverless, but you can track our progress on [this Github issue](https://github.com/cloudflare/serverless-cloudflare-workers/issues/36)._
 
 ## Pre-requisites
-Node.js `v6.5.0` or later.
+
+Node.js `v10.X` or later.
 Serverless CLI `v1.31.0` or later. You can run `npm install -g serverless` to install it. you also need our `serverless-cloudflare-workers` plugin. You can install it in your project with `npm install --save serverless-cloudflare-workers`.
 
 ## Create a new service
 
 To create a new service, you can use the `cloudflare-workers` template. Optionally specify a unique name and an optional path for your service.
+
 ```bash
 # Create a new Serverless Service/Project
 $ serverless create --template cloudflare-workers --path new-project
@@ -34,29 +38,29 @@ $ cd new-project
 $ npm install
 ```
 
-# Setup 
+# Setup
 
 ### Config
 
-To deploy, you will need either the environment variables set or manually input the `accountId` and  `zoneId` in your `serverless.yml` according to the *zone* you wish the Worker(s) to deploy to.
+To deploy, you will need either the environment variables set or manually input the `accountId` and `zoneId` in your `serverless.yml` according to the _zone_ you wish the Worker(s) to deploy to.
 
 ```yaml
 # serverless.yml
 service:
-    name: hello
-    config:
-      accountId: ${env:CLOUDFLARE_ACCOUNT_ID} 
-      zoneId: ${env:CLOUDFLARE_ZONE_ID} 
-    functions:
-      functionName:
-        worker: scriptName
-        script: filename
-        events: ...
+  name: hello
+  config:
+    accountId: ${env:CLOUDFLARE_ACCOUNT_ID}
+    zoneId: ${env:CLOUDFLARE_ZONE_ID}
+  functions:
+    functionName:
+      worker: scriptName
+      script: filename
+      events: ...
 ```
 
 Configure the [functions](#function) according to your specific routing and naming conventions or leave `functions` as is from what the template generated. When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` will be deployed at once.
 
-### Environment Variables 
+### Environment Variables
 
 You will need to set your Global API key from Cloudflare as an environmental variable named `CLOUDFLARE_AUTH_KEY`, and your Cloudflare account email as an environmental variable named `CLOUDFLARE_AUTH_EMAIL`. See: [How to find your API keys](https://support.cloudflare.com/hc/en-us/articles/200167836)
 
@@ -107,7 +111,7 @@ async function helloWorld(request) {
 }
 ```
 
-*Note: Serverless plugin omits the extension `.js` in the `serverless.yml` file when referring to what script to run*
+_Note: Serverless plugin omits the extension `.js` in the `serverless.yml` file when referring to what script to run_
 
 ## Deploy, test and diagnose your service
 
@@ -139,23 +143,23 @@ serverless invoke --function helloWorld
 Hello world
 ```
 
-Your Function must have the `events` field populated in order for the `serverless` tool to know exactly which route to request. 
+Your Function must have the `events` field populated in order for the `serverless` tool to know exactly which route to request.
 
 ```yml
 # serverless.yml
-...
+---
 foo:
-    name: foo
-    script: bar
-    events:
-      - http:
-          url: example.com/foo/bar
-          # Defines the method used by serverless when the `invoke` command is used. Cloudflare Workers only support GET requests for now
-          method: GET
+  name: foo
+  script: bar
+  events:
+    - http:
+        url: example.com/foo/bar
+        # Defines the method used by serverless when the `invoke` command is used. Cloudflare Workers only support GET requests for now
+        method: GET
 ```
 
-
 ## Cleanup
+
 If at any point, you no longer need your service, you can run the following command to remove the Functions, Events and Resources that were created.
 
 ```bash

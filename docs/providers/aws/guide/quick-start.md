@@ -11,8 +11,8 @@ layout: Doc
 ## Pre-requisites
 
 1. Node.js `v6.5.0` or later.
-2. Serverless CLI `v1.9.0` or later. You can run 
-`npm install -g serverless` to install it.
+2. Serverless CLI `v1.9.0` or later. You can run
+   `npm install -g serverless` to install it.
 3. An AWS account. If you don't already have one, you can sign up for a [free trial](https://aws.amazon.com/s/dm/optimization/server-side-test/free-tier/free_np/) that includes 1 million free Lambda requests per month.
 4. **Set-up your [Provider Credentials](./credentials.md)** -> [Watch the video on setting up credentials](https://www.youtube.com/watch?v=KngM5bfpttA)
 
@@ -40,34 +40,35 @@ $ cd my-service
 
 1. **Deploy the Service**
 
-  Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
-  
-  ```bash
-  serverless deploy -v
-  ```
+Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+
+```bash
+serverless deploy -v
+```
 
 2. **Deploy the Function**
 
-  Use this to quickly upload and overwrite your function code, allowing you to develop faster.
-  
-  ```bash
-  serverless deploy function -f hello
-  ```
+Use this to quickly upload and overwrite your function code, allowing you to develop faster.
+
+```bash
+serverless deploy function -f hello
+```
 
 3. **Invoke the Function**
 
-  Invokes a Function and returns logs.
-  
-  ```bash
-  serverless invoke -f hello -l
-  ```
+Invokes a Function and returns logs.
+
+```bash
+serverless invoke -f hello -l
+```
 
 4. **Fetch the Function Logs**
 
-  Open up a separate tab in your console, set your [Provider Credentials](./credentials.md) and stream all logs for a specific Function using this command.
-  ```bash
-  serverless logs -f hello -t
-  ```
+Open up a separate tab in your console, set your [Provider Credentials](./credentials.md) and stream all logs for a specific Function using this command.
+
+```bash
+serverless logs -f hello -t
+```
 
 ## Cleanup
 

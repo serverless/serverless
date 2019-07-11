@@ -12,7 +12,7 @@ layout: Doc
 
 1. Node.js `v6.5.0` or later.
 2. Serverless CLI `v1.20` or later. You can run
-`npm install -g serverless` to install it.
+   `npm install -g serverless` to install it.
 3. Install Fn & Dependencies(./installation.md).
 
 ## Create a new service
@@ -32,37 +32,38 @@ $ npm install
 
 1. **Deploy the Service**
 
-  Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
 
-  ```bash
-  serverless deploy -v
-  ```
+```bash
+serverless deploy -v
+```
 
 2. **Deploy the Function**
 
-  Use this to quickly upload and overwrite your function code, allowing you to develop faster.
+Use this to quickly upload and overwrite your function code, allowing you to develop faster.
 
-  ```bash
-  serverless deploy -f hello
-  ```
+```bash
+serverless deploy -f hello
+```
 
 3. **Invoke the Function**
 
-  Invokes the Function and returns results.
+Invokes the Function and returns results.
 
-  ```bash
-  $ serverless invoke --function hello --data '{"name":"Bob"}' -l
-  Serverless: Calling Function: hello
-  { message: 'Hello Bob' }
-  I show up in the logs name was: Bob
-  ```
+```bash
+$ serverless invoke --function hello --data '{"name":"Bob"}' -l
+Serverless: Calling Function: hello
+{ message: 'Hello Bob' }
+I show up in the logs name was: Bob
+```
 
 4. **Fetch the Function Logs**
 
-  Open up a separate tab in your console and view logs for a specific Function using this command.
-  ```bash
-  serverless logs -f hello
-  ```
+Open up a separate tab in your console and view logs for a specific Function using this command.
+
+```bash
+serverless logs -f hello
+```
 
 ## Cleanup
 

@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/events/http)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless HTTP Events
@@ -77,7 +79,6 @@ functions:
     events:
       - http:
           path: /delete
-
 ```
 
 If the events HTTP definitions contain a `path` attribute, when deploying this Serverless YAML definition, Kubeless will create the needed [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) rules to redirect each of the requests to the right service. You will need to create an [Ingress Controller](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-controllers) to make use of your Ingress rule(s):

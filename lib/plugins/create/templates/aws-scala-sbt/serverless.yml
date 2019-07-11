@@ -12,6 +12,8 @@
 # Happy Coding!
 
 service: aws-scala-sbt # NOTE: update this with your service name
+#app: your-app-name
+#tenant: your-tenant-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -49,12 +51,11 @@ provider:
 # Make sure to run "sbt assembly" to create a jar file
 # with all your dependencies and put that jar file name here.
 package:
-  artifact: target/scala-2.12/hello.jar
+  artifact: target/scala-2.13/hello.jar
 
 functions:
   hello:
     handler: hello.Handler
-
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -84,6 +85,12 @@ functions:
 #      - cognitoUserPool:
 #          pool: MyUserPool
 #          trigger: PreSignUp
+#      - alb:
+#          listenerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:listener/app/my-load-balancer/50dc6c495c0c9188/
+#          priority: 1
+#          conditions:
+#            host: example.com
+#            path: /hello
 
 #    Define function environment variables here
 #    environment:

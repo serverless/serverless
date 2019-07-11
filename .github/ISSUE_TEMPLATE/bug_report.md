@@ -16,17 +16,18 @@ about: Create a report to help us improve
 
 ## Description
 
-* What went wrong?
-* What did you expect should have happened?
-* What was the config you used?
-* What stacktrace or error message from your provider did you see?
+- What went wrong?
+- What did you expect should have happened?
+- What was the config you used?
+- What stacktrace or error message from your provider did you see?
 
 Similar or dependent issues:
-* #12345
+
+- #12345
 
 ## Additional Data
 
-* ***Serverless Framework Version you're using***:
-* ***Operating System***:
-* ***Stack Trace***:
-* ***Provider Error messages***:
+- **_Serverless Framework Version you're using_**:
+- **_Operating System_**:
+- **_Stack Trace_**:
+- **_Provider Error messages_**:

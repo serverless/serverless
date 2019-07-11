@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/packaging)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Google - Packaging
@@ -41,7 +43,7 @@ previously excluded files and directories.
 
 Exclude all node_modules but then re-include a specific modules (in this case node-fetch) using `exclude` exclusively
 
-``` yml
+```yml
 package:
   exclude:
     - node_modules/**
@@ -50,7 +52,7 @@ package:
 
 Exclude all files but `handler.js` using `exclude` and `include`
 
-``` yml
+```yml
 package:
   exclude:
     - src/**
@@ -111,6 +113,7 @@ functions:
       exclude:
         - some-file.js
 ```
+
 You can also select which functions to be packaged separately, and have the rest use the service package by setting the `individually` flag at the function level:
 
 ```yml

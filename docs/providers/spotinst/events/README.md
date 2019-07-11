@@ -6,7 +6,9 @@ menuOrder: 3
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/events/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Spotinst Functions Events

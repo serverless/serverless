@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/info)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Info
@@ -19,9 +21,11 @@ serverless info
 ```
 
 ## Options
+
 - `--verbose` or `-v` Shows displays any Stack Output.
 
 ## Provided lifecycle events
+
 - `info:info`
 
 ## Examples

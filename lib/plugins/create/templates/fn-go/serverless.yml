@@ -6,7 +6,7 @@
 
 # The `service` block is the name of the service
 service:
-    name: hello-world
+  name: hello-world
 #    config:
 #        some: 'val'
 
@@ -25,5 +25,5 @@ functions:
     format: json
     runtime: go
     events:
-        - http:
-            path: /hellogo
+      - http:
+          path: /hellogo

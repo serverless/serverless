@@ -18,7 +18,6 @@
     "typescript": "^3.2.4",
     "webpack": "^4.29.0"
   },
-  "author":
-    "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
+  "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
   "license": "MIT"
 }

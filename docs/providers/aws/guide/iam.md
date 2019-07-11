@@ -7,18 +7,20 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/iam)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # IAM
 
-Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account.  These permissions are set via an AWS IAM Role which the Serverless Framework automatically creates for each Serverless Service, and is shared by all of your Functions.  The Framework allows you to modify this Role or create Function-specific Roles, easily.
+Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role which the Serverless Framework automatically creates for each Serverless Service, and is shared by all of your Functions. The Framework allows you to modify this Role or create Function-specific Roles, easily.
 
 ## The Default IAM Role
 
 By default, one IAM Role is shared by all of the Lambda functions in your service. Also by default, your Lambda functions have permission to create and write to CloudWatch logs. When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated in order to communicate with your VPC resources.
 
-To add specific rights to this service-wide Role, define statements in `provider.iamRoleStatements` which will be merged into the generated policy.  As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
+To add specific rights to this service-wide Role, define statements in `provider.iamRoleStatements` which will be merged into the generated policy. As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
 
 ```yml
 service: new-service
@@ -26,26 +28,27 @@ service: new-service
 provider:
   name: aws
   iamRoleStatements:
-    -  Effect: "Allow"
-       Action:
-         - "s3:ListBucket"
-       Resource:
-         Fn::Join:
-           - ""
-           - - "arn:aws:s3:::"
-             - Ref: ServerlessDeploymentBucket
-    -  Effect: "Allow"
-       Action:
-         - "s3:PutObject"
-       Resource:
-         Fn::Join:
-           - ""
-           - - "arn:aws:s3:::"
-             - Ref: ServerlessDeploymentBucket
-             - "/*"
-
+    - Effect: 'Allow'
+      Action:
+        - 's3:ListBucket'
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - Ref: ServerlessDeploymentBucket
+    - Effect: 'Allow'
+      Action:
+        - 's3:PutObject'
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - Ref: ServerlessDeploymentBucket
+            - '/*'
 ```
+
 Alongside `provider.iamRoleStatements` managed policies can also be added to this service-wide Role, define managed policies in `provider.iamManagedPolicies`. These will also be merged into the generated IAM Role so you can use `Join`, `Ref` or any other CloudFormation method or feature here too.
+
 ```yml
 service: new-service
 
@@ -180,7 +183,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resource: 
+                  Resource:
                     - 'Fn::Join':
                       - ':'
                       -
@@ -218,7 +221,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resource: 
+                  Resource:
                     - 'Fn::Join':
                       - ':'
                       -
@@ -277,7 +280,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resource: 
+                  Resource:
                     - 'Fn::Join':
                       - ':'
                       -
@@ -316,7 +319,7 @@ resources:
                     - logs:CreateLogGroup
                     - logs:CreateLogStream
                     - logs:PutLogEvents
-                  Resource: 
+                  Resource:
                     - 'Fn::Join':
                       - ':'
                       -
@@ -331,5 +334,5 @@ resources:
                     - ec2:DetachNetworkInterface
                     - ec2:DeleteNetworkInterface
                   Resource: "*"
-                 
+
 ```

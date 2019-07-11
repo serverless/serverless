@@ -1,21 +1,37 @@
 'use strict';
 
 const path = require('path');
+const chalk = require('chalk');
 
 /* eslint-disable no-console */
-/* eslint-disable no-use-before-define */
 
 const Serverless = require('../lib/Serverless');
 const execSync = require('child_process').execSync;
 
+const truthyStr = val => val && !['0', 'false', 'f', 'n', 'no'].includes(val.toLowerCase());
+const { CI, ADBLOCK, SILENT } = process.env;
+if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
+  console.log(
+    chalk.yellow(`\
+ +------------------------------------------------------------------+
+ |                                                                  |
+ |  Serverless Framework successfully installed!                    |
+ |  To start your first project, run “serverless” in a new folder.  |
+ |                                                                  |
+ +------------------------------------------------------------------+
+`)
+  );
+}
+
 try {
   const serverless = new Serverless();
 
-  (() => serverless.init()
-    .then(() => serverless.utils.logStat(serverless, 'install'))
-    .then(() => setupAutocomplete())
-    .catch(() => Promise.resolve())
-  )();
+  (() =>
+    serverless
+      .init()
+      .then(() => serverless.utils.logStat(serverless, 'install'))
+      .then(() => setupAutocomplete())
+      .catch(() => Promise.resolve()))();
 } catch (error) {
   // fail silently
 }

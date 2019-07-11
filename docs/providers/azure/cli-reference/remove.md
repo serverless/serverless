@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/remove)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Remove
@@ -20,6 +22,7 @@ serverless remove
 ```
 
 ## Provided lifecycle events
+
 - `remove:remove`
 
 ## Examples

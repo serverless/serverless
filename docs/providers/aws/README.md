@@ -5,7 +5,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS Provider Documentation
@@ -93,6 +95,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
         <li><a href="./events/schedule.md">Schedule</a></li>
         <li><a href="./events/sns.md">SNS</a></li>
         <li><a href="./events/sqs.md">SQS</a></li>
+        <li><a href="./events/alb.md">ALB</a></li>
         <li><a href="./events/alexa-skill.md">Alexa Skill</a></li>
         <li><a href="./events/alexa-smart-home.md">Alexa Smart Home</a></li>
         <li><a href="./events/iot.md">IoT</a></li>
