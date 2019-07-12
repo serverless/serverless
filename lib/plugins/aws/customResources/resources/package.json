@@ -1,0 +1,11 @@
+{
+  "name": "@serverless/custom-resources",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/serverless/serverless"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.495.0"
+  }
+}
