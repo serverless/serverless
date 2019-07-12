@@ -62,6 +62,7 @@ functions:
 ```
 
 Or with intrinsic CloudFormation function like `Fn::Join` or `Fn::GetAtt`.
+**Note:** The arn can be in a different region to enable cross region invocation
 
 ```yml
 functions:
