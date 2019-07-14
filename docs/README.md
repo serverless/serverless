@@ -4,7 +4,7 @@ menuText: Docs
 layout: Doc
 menuItems:
   - {menuText: "Get Started", path: /framework/docs/getting-started/}
-  - {menuText: Dashboard Reference, path: /framework/docs/dashboard/}
+  - {menuText: "Dashboard Reference", path: /framework/docs/dashboard/}
   - {menuText: "- Insights", path: /framework/docs/dashboard/insights/}
   - {menuText: "- Notifications", path: /framework/docs/dashboard/notifications/}
   - {menuText: "- Output Variables", path: /framework/docs/dashboard/output_variables/}
@@ -13,7 +13,7 @@ menuItems:
  -  {menuText: "- Access Roles", path: /framework/docs/dashboard/access_roles/}
   - {menuText: "- Profiles", path: /framework/docs/dashboard/profiles/}
   - {menuText: "- Pipelines", path: /framework/docs/dashboard/pipelines/}
-  - {menuText: Provider CLI References, path: /framework/docs/providers}
+  - {menuText: "Provider CLI References", path: /framework/docs/providers}
   - {menuText: "- AWS", path: /framework/docs/providers/aws/}
   - {menuText: "- Azure", path: /framework/docs/providers/azure/}
   - {menuText: "- fn", path: /framework/docs/providers/fn/}
@@ -22,8 +22,8 @@ menuItems:
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
-  - {menuText: Examples, path: https://serverless.com/examples/}
-  - {menuText: Tutorials, path:https://serverless.com/courses/}
+  - {menuText: "Examples", path: https://serverless.com/examples/}
+  - {menuText: "Tutorials", path:https://serverless.com/courses/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
