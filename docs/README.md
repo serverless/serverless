@@ -36,4 +36,4 @@ menuItems:
 
 The Serverless Framework helps you build serverless apps with radically less overhead and cost. It provides a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications.
 
-If you are new to serverless and want to experience how fast and easy it is to build a serverless app, or if you are an experienced user of the Serverless Framework open source CLI and want to explore new features of the Framework, you can get started **[here](./getting-started.md)**here, for free.
+If you are new to serverless and want to experience how fast and easy it is to build a serverless app, or if you are an experienced user of the Serverless Framework open source CLI and want to explore new features of the Framework, you can get started **[here](./getting-started.md)**, for free.
