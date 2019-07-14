@@ -35,4 +35,4 @@ Next, simply run the ‘serverless’ command and follow the prompts.
 serverless
 ```
 
-Want to try out the Serverless Framework on a different cloud provider? Click on any of the cloud provider quick start guides, to the left. 
+Want to try out the Serverless Framework on a different cloud provider? Click on any of the cloud provider quick start guides, to the left, to get started.
