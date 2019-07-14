@@ -10,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Serverless Insights
+# Insights
 
 Serverless Insights help you monitor, develop and optimize your serverless application by providing key metrics and alerts.
 
