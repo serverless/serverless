@@ -12,7 +12,7 @@ layout: Doc
 
 # Deployment Profiles
 
-Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Secrets](./secrets.md) and [Access Roles](./access_roles.md). 
+Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Secrets](./secrets.md) and [Access Roles](./access-roles.md). 
 
 ## Use Deployment Profiles
 
