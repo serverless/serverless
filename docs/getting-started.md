@@ -28,10 +28,10 @@ npm update -g serverless
 
 If you don’t already have **[Node 6 or higher installed](./docs/providers/aws/guide/installation.md)** on your machine, you’ll need to do that first. 
 
-Next, simply run the ‘serverless’ command and follow the prompts. In no time you will have deployed your first serverless application.
+Next, simply run the ‘serverless’ command and follow the prompts.
 
 ```bash
-# Create a new serverless service/project
+# Create and deploy a new service/project
 serverless
 ```
 
