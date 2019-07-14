@@ -21,13 +21,14 @@ First things first, let's get the Serverless Framework open source CLI installed
 ```bash
 # Install the serverless cli
 npm install -g serverless
-# Update the serverless cli from a previous version
+
+# Or, update the serverless cli from a previous version
 npm update -g serverless
 ```
 
 If you don’t already have **[Node 6 or higher installed](./docs/providers/aws/guide/installation.md)** on your machine, you’ll need to do that first. 
 
-Once you have the Serverless Framework installed, simply run the ‘serverless’ command and follow the prompts. In no time you will have deployed your first serverless application.
+Next, simply run the ‘serverless’ command and follow the prompts. In no time you will have deployed your first serverless application.
 
 ```bash
 # Create a new serverless service/project
