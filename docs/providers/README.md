@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Infrastructure & Compute Providers
-menuText: Providers
+menuText: Provider CLI References
 layout: Doc
 -->
 
@@ -12,7 +12,7 @@ layout: Doc
 
 # Serverless Infrastructure Providers
 
-Under the hood, the serverless framework is deploying your code to a cloud provider like AWS, Microsoft Azure, Apache OpenWhisk or Google Cloud functions.
+Under the hood, the Serverless Framework is deploying your code to a cloud provider like AWS, Microsoft Azure, Google Cloud Platform, Apache OpenWhisk, Cloudflare Workers, or a Kubernetes-based solution like Kubeless.
 
 <div class="docsSections">
   <div class="docsSection">
@@ -111,3 +111,4 @@ service: my-service-name
 provider:
   name: aws
 ```
+
