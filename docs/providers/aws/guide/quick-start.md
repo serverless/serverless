@@ -61,7 +61,7 @@ $ serverless
 $ cd your-service-name
 ```
 
-This command will guide you through creating a new Node or Python Service, [configuring your AWS Account](https://serverless.com/framework/docs/providers/aws/guide/credentials/) to work with the Serverless Framework, and setting up a free Serverless Framework Dashboard account so you can monitor, troubleshoot, and test your new service. 
+The `serverless` command will guide you through creating a new Node or Python Service, [configuring your AWS Account](https://serverless.com/framework/docs/providers/aws/guide/credentials/) to work with the Serverless Framework, and setting up a free Serverless Framework Dashboard account so you can monitor, troubleshoot, and test your new service. 
 
 Looking to get started with something other than Node or Python? No problem. You can use the[`create` command](https://serverless.com/framework/docs/providers/aws/cli-reference/create/) to get started with a variety of other languages.
 
