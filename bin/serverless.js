@@ -12,7 +12,7 @@ const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorRe
   if (Number(process.version.split('.')[0].slice(1)) >= 8) {
     const componentsCli = require('@serverless/cli');
     if (componentsCli.runningComponents()) {
-      return componentsCli.runComponents().then(() => process.exit(0));
+      return componentsCli.runComponents();
     }
   }
   Error.stackTraceLimit = Infinity;
