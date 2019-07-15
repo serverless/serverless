@@ -31,7 +31,7 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
         <li><a href="./guide/quick-start.md">Quickstart</a></li>
         <li><a href="./guide/installation.md">Installation</a></li>
         <li><a href="./guide/credentials.md">Credentials</a></li>
-        <li><a href="./guide/services.md">Services</a></li>
+        <li><a href="./guide/services.md">Function Apps</a></li>
         <li><a href="./guide/functions.md">Functions</a></li>
         <li><a href="./guide/events.md">Events</a></li>
         <li><a href="./guide/deploying.md">Deploying</a></li>

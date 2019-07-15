@@ -12,8 +12,8 @@ layout: Doc
 
 1. Node.js `v6.5.0` or later. _(v6.5.0 is the minimum runtime version supported by Azure Functions)_
 2. Serverless CLI `v1.9.0` or later. You can run
-   `npm install -g serverless` to install it.
-3. Azure plugin that allows you to work with Azure Functions `npm install -g serverless-azure-functions`
+   `npm i -g serverless` to install it.
+3. Azure plugin that allows you to work with Azure Functions `npm i -g serverless-azure-functions`
 4. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes \$200 of free credit.
 5. **Set-up your [Provider Credentials](./credentials.md)**.
 
@@ -25,7 +25,7 @@ optional path for your service. Make sure you enter a globally unique name for t
 ```bash
 $ serverless create --template azure-nodejs --path my-service --name my-unique-name
 $ cd my-service
-$ npm install
+$ npm i
 ```
 
 Note: This template contains **two** Azure functions to demonstrate how that would be configured within `serverless.yml`.
@@ -37,7 +37,7 @@ Note: The `serverless.yml` file supports **inbound** and **outbound** function b
 In order to run & test your Azure Function(s) locally, run a one-time install of the Azure Functions Core Tools:
 
 ```bash
-npm install azure-functions-core-tools -g
+npm i azure-functions-core-tools -g
 ```
 
 From there, run the start script:

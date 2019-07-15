@@ -14,72 +14,44 @@ layout: Doc
 
 # Azure - Deploying
 
-The Serverless Framework was designed to provision your Azure Functions
-Functions, Triggers and Rules safely and quickly. It does this via a couple of
-methods designed for different types of deployments.
-
-## Deploy All
-
-This is the main method for doing deployments with the Serverless Framework:
-
-```bash
-serverless deploy
-```
-
-Use this method when you have updated your Function, Event or Resource
-configuration in `serverless.yml` and you want to deploy that change (or multiple
-changes at the same time) to Azure Functions.
-
-**Note:** You can specify a different configuration file name with the the `--config` option.
+The `serverless-azure-functions` plugin can deploy a Function App as well as other resources (storage account, App Insights, API Management, etc.). Here is some guidance on using the `deploy` command.
 
 ### How It Works
 
-The Serverless Framework translates all syntax in `serverless.yml` to an Azure
-Resource Manager Template and Azure Function project.
+The Serverless Framework translates all syntax in `serverless.yml` to an [Azure Resource Manager Template](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authoring-templates) and [Azure function bindings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings)
 
 - Provider plugin parses `serverless.yml` configuration and translates to Azure resources.
 - The code of your Functions is then packaged into a directory and zipped.
 - Resources are deployed in the following order: _ARM template, Functions_
 
-### Tips
+### Deployment Approach #1 - Upload Package to Function App
 
-- Use this in your CI/CD systems, as it is the safest method of deployment.
+> Note: Recommended for Function Apps running on Windows
 
-Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
+Current default behavior. To set explicitly in `serverless.yml`, add this section:
 
-## Deploy Function
-
-This deployment method updates a single function. It performs the platform API
-call to deploy your package without the other resources. It is much faster than
-redeploying your whole service each time.
-
-```bash
-serverless deploy function --function myFunction
+```yaml
+deploy:
+  runFromBlobUrl: false
 ```
 
-### How It Works
+### Deployment Approach #2 - Run from Package in Blob Storage
 
-- The Framework packages up the targeted Azure Function into a zip file.
-- That zip file is deployed to the Function App using the kudu zip API.
+> Note: Not currently recommended for Function Apps running on Windows
+
+To set in `serverless.yml`, add this section:
+
+```yaml
+deploy:
+  runFromBlobUrl: true
+```
+
+Visit the [docs](https://docs.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package#enabling-functions-to-run-from-a-package) for more detail on the two approaches to deployment.
+
+### Rollback
+
+By default, the `rollback` functionality is enabled. This allows for users to revert to a previous deployment should something go wrong with the current release. See our [rollback docs](../cli-reference/rollback.md) for more detail.
 
 ### Tips
 
-- Use this when you are developing and want to test on Azure Functions because it's much faster.
-- During development, people will often run this command several times, as opposed to `serverless deploy` which is only run when larger infrastructure provisioning is required.
-
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
-
-## Deploying a package
-
-This deployment option takes a deployment directory that has already been created
-with `serverless package` and deploys it to the cloud provider. This allows you
-to easier integrate CI / CD workflows with the Serverless Framework.
-
-```bash
-serverless deploy --package path-to-package
-```
-
-### How It Works
-
-- The argument to the `--package` flag is a directory that has been previously packaged by Serverless (with `serverless package`).
-- The deploy process bypasses the package step and uses the existing package to deploy and update Resources.
