@@ -12,7 +12,7 @@ layout: Doc
 
 # AWS Serverless Examples
 
-Search for AWS Serverless Examples using our [Example Explorer](https://serverless.com/examples).
+Search for AWS Serverless Examples using our [Example Explorer](https://serverless.com/examples/).
 
 Have an example? Submit a PR or [open an issue](https://github.com/serverless/examples/issues). ⚡️
 
