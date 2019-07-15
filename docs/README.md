@@ -23,7 +23,7 @@ menuItems:
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
   - {menuText: "Examples", path: https://serverless.com/examples/}
-  - {menuText: "Tutorials", path:https://serverless.com/courses/}
+  - {menuText: "Tutorials", path: https://serverless.com/blog/category/guides-and-tutorials/}
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
