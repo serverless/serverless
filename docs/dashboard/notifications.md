@@ -36,7 +36,7 @@ notifications to the topic.
 
 1. Go to the [SNS in the AWS Console](https://console.aws.amazon.com/sns/v3/home).
 2. Select the desired topic from the topics list.
-3. When adding a notification to an application, use the ARN of the ARN in the **SNS Topic ARN** field.
+3. When adding a notification to an application, use the ARN of the Topic in the SNS Topic ARN field.
 4. Navigate to the Topic and select **Edit** and expand the **Access policy** section.
 5. Add the following statement into the `Statement` array in the JSON editor.
 6. Save the changes.
