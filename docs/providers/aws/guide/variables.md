@@ -294,6 +294,19 @@ custom:
 
 In this example, the serverless variable will contain the decrypted value of the SecureString.
 
+For StringList type parameters, you can optionally split the resolved variable into an array using the extended syntax, `ssm:/path/to/stringlistparam~split`.
+
+```yml
+service: new-service
+provider: aws
+functions:
+  hello:
+    name: hello
+    handler: handler.hello
+custom:
+  myArrayVar: ${ssm:/path/to/stringlistparam~split}
+```
+
 ## Reference Variables using AWS Secrets Manager
 
 Variables in [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) can be referenced [using SSM](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html). Use the `ssm:/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager~true` syntax(note `~true` as secrets are always encrypted). For example:
