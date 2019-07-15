@@ -31,7 +31,7 @@ Read through [credentials doc](./credentials.md) to setup the credentials.
 
 ## 3. Update `serverless.yml`
 
-Update the `project` and `credentials` in your projects `serverless.yml`
+Update the `project` and `credentials` in your project's `serverless.yml`
 
 ## 4. Deploy
 
