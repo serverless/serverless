@@ -10,9 +10,9 @@ layout: Doc
 
 ## Pre-requisites
 
-1. Node.js v6.5.0+ *(this is the runtime version supported by Azure Functions)*
+1. Node.js v6.5.0+ _(this is the runtime version supported by Azure Functions)_
 2. Serverless CLI `v1.9.0+`. You can run `npm i -g serverless` if you don't already have it.
-3. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes $200 of free credit.
+3. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes \$200 of free credit.
 
 ## Create a new Azure Function App
 
@@ -143,7 +143,7 @@ $ sls func remove -n {functionName}
 
 This will remove the `{functionName}.js` handler and remove the function from `serverless.yml`
 
-*Note: Add & remove currently only support HTTP triggered functions. For other triggers, you will need to update `serverless.yml` manually
+\*Note: Add & remove currently only support HTTP triggered functions. For other triggers, you will need to update `serverless.yml` manually
 
 ## Advanced Authentication
 
@@ -153,41 +153,43 @@ The getting started walkthrough illustrates the interactive login experience, wh
 
 1. [Install the Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 2. Login via Azure CLI and set subscription
-    ```bash
-    # Login to Azure
-    $ az login
-    # Set Azure Subscription for which to create Service Principal
-    $ az account set -s <subscription-id>
-    ```
+   ```bash
+   # Login to Azure
+   $ az login
+   # Set Azure Subscription for which to create Service Principal
+   $ az account set -s <subscription-id>
+   ```
 3. Generate Service Principal for Azure Subscription
-    ```bash
-    # Create SP with unique name
-    $ az ad sp create-for-rbac --name <name>
-    ```
-    This will yield something like:
-    ```json
-    {
-      "appId": "<servicePrincipalId>",
-      "displayName": "<name>",
-      "name": "<name>",
-      "password": "<password>",
-      "tenant": "<tenantId>"
-    }
-    ```
+   ```bash
+   # Create SP with unique name
+   $ az ad sp create-for-rbac --name <name>
+   ```
+   This will yield something like:
+   ```json
+   {
+     "appId": "<servicePrincipalId>",
+     "displayName": "<name>",
+     "name": "<name>",
+     "password": "<password>",
+     "tenant": "<tenantId>"
+   }
+   ```
 4. Set environment variables
 
-    **Bash**
-    ```bash
-    $ export azureSubId='<subscriptionId>'
-    $ export azureServicePrincipalTenantId='<tenantId>'
-    $ export azureServicePrincipalClientId='<servicePrincipalId>'
-    $ export azureServicePrincipalPassword='<password>'
-    ```
+   **Bash**
 
-    **Powershell**
-    ```powershell
-    $env:azureSubId='<subscriptionId>'
-    $env:azureServicePrincipalTenantId='<tenantId>'
-    $env:azureServicePrincipalClientId='<servicePrincipalName>'
-    $env:azureServicePrincipalPassword='<password>'
-    ```
+   ```bash
+   $ export azureSubId='<subscriptionId>'
+   $ export azureServicePrincipalTenantId='<tenantId>'
+   $ export azureServicePrincipalClientId='<servicePrincipalId>'
+   $ export azureServicePrincipalPassword='<password>'
+   ```
+
+   **Powershell**
+
+   ```powershell
+   $env:azureSubId='<subscriptionId>'
+   $env:azureServicePrincipalTenantId='<tenantId>'
+   $env:azureServicePrincipalClientId='<servicePrincipalName>'
+   $env:azureServicePrincipalPassword='<password>'
+   ```
