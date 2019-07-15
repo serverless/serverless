@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Remove
 menuText: remove
-menuOrder: 8
+menuOrder: 7
 description: Remove a deployed Service and all of its Azure Functions Functions, Events and Resources
 layout: Doc
 -->
