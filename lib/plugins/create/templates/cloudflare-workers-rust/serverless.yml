@@ -1,5 +1,5 @@
 service:
-    name: hello-world
+  name: hello-world
 
 provider:
   name: cloudflare
@@ -27,4 +27,3 @@ functions:
       wasm:
         - variable: WASM
           file: rust-wasm/pkg/rust_wasm_bg.wasm
-

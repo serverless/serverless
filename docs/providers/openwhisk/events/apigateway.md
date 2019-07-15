@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/apigateway)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # API Gateway
@@ -144,8 +146,8 @@ functions:
 
 This feature comes with the following restrictions:
 
-- *Path parameters are only supported when `resp` is configured as`http`.*
-- *Individual path parameter values are not included as separate event parameters. Users have to manually parse values from the full `__ow_path` value.*
+- _Path parameters are only supported when `resp` is configured as`http`._
+- _Individual path parameter values are not included as separate event parameters. Users have to manually parse values from the full `__ow_path` value._
 
 ### Security
 

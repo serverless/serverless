@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework - Spotinst Guide - Serverless.yml Reference 
+title: Serverless Framework - Spotinst Guide - Serverless.yml Reference
 menuText: Serverless.yml
 menuOrder: 5
 description: Serverless.yml reference
@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://serverless.com/framework/docs/providers/spotinst/guide/serverless.yml/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless.yml Reference
@@ -36,13 +38,13 @@ provider:
   spotinst:
     environment: #{Your Environment ID}
 
-# Here is where you will list your functions for this service. Each Function is 
-# required to have a name, runtime, handler, memory and timeout. The runtime is 
-# the language that you want to run your function with, the handler tells which 
-# file and function to run, memory is the amount of memory needed to run your 
-# function, timeout is the time the function will take to run, if it goes over 
-# this time it will terminate itself. Access is default set to private so if you 
-# want to be able to run the function by HTTPS request this needs to be set to 
+# Here is where you will list your functions for this service. Each Function is
+# required to have a name, runtime, handler, memory and timeout. The runtime is
+# the language that you want to run your function with, the handler tells which
+# file and function to run, memory is the amount of memory needed to run your
+# function, timeout is the time the function will take to run, if it goes over
+# this time it will terminate itself. Access is default set to private so if you
+# want to be able to run the function by HTTPS request this needs to be set to
 # public. The environment variables can be set in here or on the Spotinst console.
 # Once they are set you can access the variables in your handler file with
 # process.env['{Your Key}']

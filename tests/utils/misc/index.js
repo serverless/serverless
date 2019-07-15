@@ -3,9 +3,9 @@
 const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
-const { execSync } = require('child_process');
 const chalk = require('chalk');
-const { replaceTextInFile } = require('../fs');
+const { execSync } = require('../child-process');
+const { readYamlFile, writeYamlFile } = require('../fs');
 
 const logger = console;
 
@@ -47,20 +47,35 @@ function replaceEnv(values) {
   return originals;
 }
 
-function createTestService(templateName, tmpDir, testServiceDir) {
+function createTestService(
+  tmpDir,
+  options = {
+    // Either templateName or templateDir have to be provided
+    templateName: null, // Generic template to use (e.g. 'aws-nodejs')
+    templateDir: null, // Path to custom pre-prepared service template
+    serverlessConfigHook: null, // Eventual hook that allows to customize serverless config
+  }
+) {
   const serviceName = getServiceName();
 
   fse.mkdirsSync(tmpDir);
   process.chdir(tmpDir);
 
-  // create a new Serverless service
-  execSync(`${serverlessExec} create --template ${templateName}`);
-
-  if (testServiceDir) {
-    fse.copySync(testServiceDir, tmpDir, { clobber: true, preserveTimestamps: true });
+  if (options.templateName) {
+    // create a new Serverless service
+    execSync(`${serverlessExec} create --template ${options.templateName}`);
+  } else if (options.templateDir) {
+    fse.copySync(options.templateDir, tmpDir, { clobber: true, preserveTimestamps: true });
+  } else {
+    throw new Error("Either 'templateName' or 'templateDir' options have to be provided");
   }
 
-  replaceTextInFile('serverless.yml', templateName, serviceName);
+  const serverlessFilePath = path.join(tmpDir, 'serverless.yml');
+  const serverlessConfig = readYamlFile(serverlessFilePath);
+  // Ensure unique service name
+  serverlessConfig.service = serviceName;
+  if (options.serverlessConfigHook) options.serverlessConfigHook(serverlessConfig);
+  writeYamlFile(serverlessFilePath, serverlessConfig);
 
   process.env.TOPIC_1 = `${serviceName}-1`;
   process.env.TOPIC_2 = `${serviceName}-1`;
@@ -69,8 +84,7 @@ function createTestService(templateName, tmpDir, testServiceDir) {
   process.env.COGNITO_USER_POOL_1 = `${serviceName}-1`;
   process.env.COGNITO_USER_POOL_2 = `${serviceName}-2`;
 
-  // return the name of the CloudFormation stack
-  return serviceName;
+  return serverlessConfig;
 }
 
 function getFunctionLogs(functionName) {
@@ -80,18 +94,36 @@ function getFunctionLogs(functionName) {
   return logsString;
 }
 
+function waitForFunctionLogs(functionName, startMarker, endMarker) {
+  let logs;
+  return new BbPromise(resolve => {
+    const interval = setInterval(() => {
+      logs = getFunctionLogs(functionName);
+      if (logs && logs.includes(startMarker) && logs.includes(endMarker)) {
+        clearInterval(interval);
+        return resolve(logs);
+      }
+      return null;
+    }, 2000);
+  });
+}
+
 function persistentRequest(...args) {
   const func = args[0];
   const funcArgs = args.slice(1);
   const MAX_TRIES = 5;
   return new BbPromise((resolve, reject) => {
-    const doCall = (numTry) => {
+    const doCall = numTry => {
       return func.apply(this, funcArgs).then(resolve, e => {
-        if (numTry < MAX_TRIES &&
-          ((e.providerError && e.providerError.retryable) || e.statusCode === 429)) {
+        if (
+          numTry < MAX_TRIES &&
+          ((e.providerError && e.providerError.retryable) || e.statusCode === 429)
+        ) {
           logger.log(
-            [`Recoverable error occurred (${e.message}), sleeping for 5 seconds.`,
-              `Try ${numTry + 1} of ${MAX_TRIES}`].join(' ')
+            [
+              `Recoverable error occurred (${e.message}), sleeping for 5 seconds.`,
+              `Try ${numTry + 1} of ${MAX_TRIES}`,
+            ].join(' ')
           );
           setTimeout(doCall, 5000, numTry + 1);
         } else {
@@ -141,6 +173,7 @@ module.exports = {
   replaceEnv,
   createTestService,
   getFunctionLogs,
+  waitForFunctionLogs,
   persistentRequest,
   skippedWithNotice,
   skipWithNotice,

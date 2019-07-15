@@ -25,18 +25,15 @@ functions:
     handler: http
     events:
       - http: path
-
   # NOTE: the following uses an "event" event (pubSub event in this case).
   # Please create the corresponding resources in the Google Cloud
   # before deploying this service through Serverless
-
   #second:
   #  handler: event
   #  events:
   #    - event:
   #        eventType: providers/cloud.pubsub/eventTypes/topic.publish
   #        resource: projects/*/topics/my-topic
-
 # you can define resources, templates etc. the same way you would in a
 # Google Cloud deployment configuration
 #resources:

@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/events/messagehub)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Message Hub
@@ -24,7 +26,7 @@ This event utilise the trigger feed provided by the [Message Hub package](https:
 /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
 ```
 
-## Configuration 
+## Configuration
 
 Users need to pass the message hub credentials and the kafka topic to listen for messages on when defining the event.
 
@@ -37,16 +39,15 @@ Developers only need to add the kafka topic to listen for messages on with each 
 ```yaml
 # serverless.yaml
 functions:
-    index:
-        handler: users.main
-        events:
-            - message_hub: 
-                package: /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
-                topic: my_kafka_topic
- 
+  index:
+    handler: users.main
+    events:
+      - message_hub:
+          package: /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
+          topic: my_kafka_topic
 ```
 
-*Optional parameters `json`, `binary_key`, `binary_value` are also supported.*
+_Optional parameters `json`, `binary_key`, `binary_value` are also supported._
 
 The configuration will create a trigger called `${serviceName}_${fnName}_messagehub_${db}` and a rule called `${serviceName}_${fnName}_messagehub_${db}_rule` to bind the function to the database update events.
 
@@ -59,18 +60,18 @@ Authentication credentials for the Message Hub event source can be defined expli
 ```yaml
 # serverless.yaml
 functions:
-    index:
-        handler: users.main
-        events:
-            - message_hub: 
-                topic: my_kafka_topic
-                brokers: afka01-prod01.messagehub.services.us-south.bluemix.net:9093
-                user: USERNAME
-                password: PASSWORD
-                admin_url:  https://kafka-admin-prod01.messagehub.services.us-south.bluemix.net:443
-                json: true
-                binary_key: true
-                binary_value: true         
+  index:
+    handler: users.main
+    events:
+      - message_hub:
+          topic: my_kafka_topic
+          brokers: afka01-prod01.messagehub.services.us-south.bluemix.net:9093
+          user: USERNAME
+          password: PASSWORD
+          admin_url: https://kafka-admin-prod01.messagehub.services.us-south.bluemix.net:443
+          json: true
+          binary_key: true
+          binary_value: true
 ```
 
 `topic`, `brokers`, `user`, `password` and `admin_url` are mandatory parameters.
@@ -85,34 +86,35 @@ functions:
     index:
         handler: users.main
         events:
-            - message_hub: 
+            - message_hub:
                 package: /${BLUEMIX_ORG}_${BLUEMIX_SPACE}/Bluemix_${SERVICE_NAME}_Credentials-1
                 topic: my_kafka_topic
                 trigger: log_events
-                rule: connect_index_to_kafka 
+                rule: connect_index_to_kafka
      another:
         handler: users.another
         events:
-            - trigger: log_events 
+            - trigger: log_events
 ```
 
 ## Event Details
 
-The payload of that trigger event will contain a `messages` field which is an array of messages that have been posted since the last time your trigger fired. 
+The payload of that trigger event will contain a `messages` field which is an array of messages that have been posted since the last time your trigger fired.
 
 The JSON representation of a sample event is as follows:
 
 ```json
 {
-    "messages": [
-        {
-            "partition": 0,
-            "key": "U29tZSBrZXk=",
-            "offset": 421760,
-            "topic": "mytopic",
-            "value": "Some value"
-        }
-    ]
+  "messages": [
+    {
+      "partition": 0,
+      "key": "U29tZSBrZXk=",
+      "offset": 421760,
+      "topic": "mytopic",
+      "value": "Some value"
+    }
+  ]
 }
 ```
+
 For more details on the exact semantics of the message properties, please see the [trigger feed documentation](https://github.com/openwhisk/openwhisk-package-kafka).

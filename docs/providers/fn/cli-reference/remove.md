@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/cli-reference/remove)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Fn - Remove
@@ -21,4 +23,5 @@ serverless remove
 It will remove the Fn Function functions from your Fn server.
 
 ## Provided lifecycle events
+
 - `remove:remove`

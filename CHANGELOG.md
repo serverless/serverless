@@ -1,11 +1,78 @@
+# 1.47.0 (2019-07-10)
+
+- [Add Onica as a Consultant](https://github.com/serverless/serverless/pull/6300)
+- [Correct typo](https://github.com/serverless/serverless/pull/6301)
+- [Adapt new ESLint and Prettier configuration](https://github.com/serverless/serverless/pull/6284)
+- [Ensure deploy is triggered in CI](https://github.com/serverless/serverless/pull/6306)
+- [Remove jsbeautify configuration](https://github.com/serverless/serverless/pull/6309)
+- [Improve PR template](https://github.com/serverless/serverless/pull/6308)
+- [Allow users to specify API Gateway Access Log format](https://github.com/serverless/serverless/pull/6299)
+- [Fix service.provider.region resolution](https://github.com/serverless/serverless/pull/6317)
+- [Add null as a consultant](https://github.com/serverless/serverless/pull/6323)
+- [Update very minor typo in credentials.md](https://github.com/serverless/serverless/pull/6321)
+- [Expose non-errors in informative way](https://github.com/serverless/serverless/pull/6318)
+- [Fix async leaks detection conditional](https://github.com/serverless/serverless/pull/6319)
+- [Typo fix in AWS ALB event documentation](https://github.com/serverless/serverless/pull/6325)
+- [Websockets: fix passing log group ARN](https://github.com/serverless/serverless/pull/6310)
+- [Specify invoke local option in the guide](https://github.com/serverless/serverless/pull/6327)
+- [Update Webpack version and usage of aws-nodejs-ecma-script template](https://github.com/serverless/serverless/pull/6324)
+- [Make ALB event target group names unique](https://github.com/serverless/serverless/pull/6322)
+- [Improve Travis CI conf](https://github.com/serverless/serverless/pull/6330)
+- [Support for Github Entreprise in sls create](https://github.com/serverless/serverless/pull/6332)
+- [Merge patch 1.46.1 release artifacts back into master](https://github.com/serverless/serverless/pull/6343)
+- [Add support for existing S3 buckets](https://github.com/serverless/serverless/pull/6290)
+- [PLAT-1202 - Interactive `serverless` create](https://github.com/serverless/serverless/pull/6294)
+- [PLAT-1091 - message in `npm i` output about the `serverless` quickstart command](https://github.com/serverless/serverless/pull/6238)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.46.1...v1.47.0)
+
+# 1.46.1 (2019-06-28)
+
+- [Fix service.provider.region resolution](https://github.com/serverless/serverless/pull/6317)
+- [Ensure deploy is triggered in CI](https://github.com/serverless/serverless/pull/6306)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.46.0...v1.46.1)
+
+# 1.46.0 (2019-06-26)
+
+- [Fix formatting issue with Markdown link](https://github.com/serverless/serverless/pull/6228)
+- [Update docs | dont use provider.tags with shared API Gateway](https://github.com/serverless/serverless/pull/6225)
+- [Fix: Update azure template](https://github.com/serverless/serverless/pull/6258)
+- [Improve user message](https://github.com/serverless/serverless/pull/6254)
+- [Reference custom ApiGateway for models and request validators if conf…](https://github.com/serverless/serverless/pull/6231)
+- [Ensure integration tests do not fail when run concurrently](https://github.com/serverless/serverless/pull/6256)
+- [Improve integration test experience](https://github.com/serverless/serverless/pull/6253)
+- [Fix lambda integration timeout response template](https://github.com/serverless/serverless/pull/6255)
+- [Fix duplicate packaging issue](https://github.com/serverless/serverless/pull/6244)
+- [Fix Travis configuration for branch/tag runs](https://github.com/serverless/serverless/pull/6265)
+- [fixed a typo 🖊](https://github.com/serverless/serverless/pull/6275)
+- [Fix #6267](https://github.com/serverless/serverless/pull/6268)
+- [#6017 Allow to load plugin from path](https://github.com/serverless/serverless/pull/6261)
+- [Added correction based on community feedback](https://github.com/serverless/serverless/pull/6286)
+- [Remove package-lock.json and shrinkwrap scripts](https://github.com/serverless/serverless/pull/6280)
+- [Remove README redundant link](https://github.com/serverless/serverless/pull/6288)
+- [Remove default stage value in provider object](https://github.com/serverless/serverless/pull/6200)
+- [Use naming to get stackName](https://github.com/serverless/serverless/pull/6285)
+- [Fix typo in link to ALB docs](https://github.com/serverless/serverless/pull/6292)
+- [Add ip, method, header and query conditions to ALB events](https://github.com/serverless/serverless/pull/6293)
+- [Feature/support external websocket api](https://github.com/serverless/serverless/pull/6272)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.1...v1.46.0)
+
 # 1.45.1 (2019-06-12)
 
 - [Fix IAM policies setup for functions with custom name](https://github.com/serverless/serverless/pull/6240)
 - [Fix Travis CI deploy config](https://github.com/serverless/serverless/pull/6234)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.0...v1.45.1)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.45.0...v1.45.1)
 
 # 1.45.0 (2019-06-12)
 
@@ -29,16 +96,16 @@
 - [Update Scala version to 2.13.0 for aws-scala-sbt template](https://github.com/serverless/serverless/pull/6222)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.1...v1.45.0)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.1...v1.45.0)
 
 # 1.44.1 (2019-05-28)
 
 - [Fix enterprise plugin lookup in global yarn installs](https://github.com/serverless/serverless/pull/6183)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.0...v1.44.1)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.44.0...v1.44.1)
 
 # 1.44.0 (2019-05-28)
 
@@ -53,8 +120,8 @@
 - [Upgrade mocha, switch from istanbul to nyc, improve tests configuration](https://github.com/serverless/serverless/pull/6169)
 
 ## Meta
-- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.43.0...v1.44.0)
 
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.43.0...v1.44.0)
 
 # 1.43.0 (2019-05-20)
 
@@ -65,6 +132,7 @@
 - [Fix tests setup issues](https://github.com/serverless/serverless/pull/6147)
 
 ## Meta
+
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.3...v1.43.0)
 
 # 1.42.3 (2019-05-14)
@@ -80,7 +148,8 @@
 - [Improve handling of custom API Gateway options](https://github.com/serverless/serverless/pull/6129)
 
 ## Meta
- - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.2...v1.42.3)
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.42.2...v1.42.3)
 
 # 1.42.2 (2019-05-10)
 

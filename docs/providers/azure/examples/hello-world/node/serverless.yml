@@ -9,11 +9,9 @@ plugins:
   - serverless-azure-functions
 
 functions:
-  hello: 
-     handler: templates/handler.hello
-     events: 
-       - http: true
-         x-azure-settings:
-           authLevel : anonymous
-     
- 
+  hello:
+    handler: templates/handler.hello
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel: anonymous

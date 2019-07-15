@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/sns)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # SNS
@@ -60,6 +62,7 @@ functions:
 ```
 
 Or with intrinsic CloudFormation function like `Fn::Join` or `Fn::GetAtt`.
+**Note:** The arn can be in a different region to enable cross region invocation
 
 ```yml
 functions:
@@ -69,11 +72,11 @@ functions:
       - sns:
           arn:
             Fn::Join:
-              - ":"
-              - - "arn:aws:sns"
-                - Ref: "AWS::Region"
-                - Ref: "AWS::AccountId"
-                - "MyCustomTopic"
+              - ':'
+              - - 'arn:aws:sns'
+                - Ref: 'AWS::Region'
+                - Ref: 'AWS::AccountId'
+                - 'MyCustomTopic'
           topicName: MyCustomTopic
 ```
 

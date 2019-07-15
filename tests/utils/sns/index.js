@@ -16,10 +16,11 @@ function createSnsTopic(topicName) {
 function removeSnsTopic(topicName) {
   const SNS = new AWS.SNS({ region });
 
-  return SNS.listTopics().promise()
+  return SNS.listTopics()
+    .promise()
     .then(data => {
-      const topicArn = data.Topics.find(topic => RegExp(topicName, 'g')
-        .test(topic.TopicArn)).TopicArn;
+      const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
+        .TopicArn;
 
       const params = {
         TopicArn: topicArn,
@@ -32,10 +33,11 @@ function removeSnsTopic(topicName) {
 function publishSnsMessage(topicName, message) {
   const SNS = new AWS.SNS({ region });
 
-  return SNS.listTopics().promise()
+  return SNS.listTopics()
+    .promise()
     .then(data => {
-      const topicArn = data.Topics.find(topic => RegExp(topicName, 'g')
-        .test(topic.TopicArn)).TopicArn;
+      const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
+        .TopicArn;
 
       const params = {
         Message: message,

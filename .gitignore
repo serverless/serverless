@@ -2,6 +2,7 @@
 *.log
 npm-debug.log
 npm-shrinkwrap.json
+/package-lock.json
 
 # Runtime data
 pids

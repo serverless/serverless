@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/cli-reference/deploy-function)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst Functions - Deploy Function
@@ -16,8 +18,8 @@ The `sls deploy` function command deploys an individual function. This command s
 
 ## Note: Please update your Environment ID before deploying a function
 
- 1. [Create an Environment](https://console.spotinst.com/functions)
- 2. Update your `serverless.yml` file with the Environment ID
+1.  [Create an Environment](https://console.spotinst.com/functions)
+2.  Update your `serverless.yml` file with the Environment ID
 
 ```yml
 service: myService
@@ -25,7 +27,7 @@ service: myService
 provider:
   name: spotinst
   spotinst:
-    environment: env-8f451a5f  # NOTE: Remember to add the environment ID
+    environment: env-8f451a5f # NOTE: Remember to add the environment ID
 
 functions:
   hello:
@@ -56,8 +58,8 @@ serverless deploy function -f functionName
 **Note:** Because this command is only deploying the function code, function
 properties such as environment variables and events will **not** be deployed.
 
-
 ## Options
+
 - `--function` or `-f` The name of the function which should be deployed
 
-*more options to come soon*
+_more options to come soon_

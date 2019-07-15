@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/slstats)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Statistics and Usage Tracking
@@ -46,8 +48,8 @@ The following is a list of the events that we collect:
 - service_pluginUninstalled
 - service_installed
 - user_awsCredentialsConfigured
-- user_enabledTracking  
-- user_disabledTracking 
+- user_enabledTracking
+- user_disabledTracking
 - user_loggedIn
 - user_loggedOut
 
