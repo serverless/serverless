@@ -37,23 +37,43 @@ custom:
 
 Serverless Insights include a pre-configured alerts designed to help you develop and optimize the performance and security of your serverless applications. These events are presented in the "activity and insights" feed within the Serverless Enterprise Framework [dashboard](https://dashboard.serverless.com/).  Preconfigured alerts include the following:
 
-### New Error
+### Memory: Unused Memory
+
+Configured memory for a function defines memory, cpu, and I/O capacity. It is also what defines a function's price.  While there are sometimes good reasons to overprovision memory (e.g. because your workload is cpu bound), unused memory can often represent an opportunity to save money by better optimizing your function's configured memory.
+
+The unused memory insight runs once per week at midnight UTC on Sunday.  It looks at all invocations of a function over the prior seven days and identifies the function invocation during that period that used the most amount of its configured memory.  If that amount is less than 80% of the function's configured memory it will generate an alert.
+
+### Memory: Approaching Out of Memory
+
+PLACEHOLDER
+
+### Memory: Out of Memory
+
+PLACEHOLDER
+
+### Error: New Error Type Identified
 
 Errors happen, and the sooner you know about them after they are introduced the better equipped you are to proactively mitigate their impact.  
 
 On a per function basis, the new error insight runs every five minutes, tracks error types reported during the past five minutes, and compares them with all error types reported over the prior 48 hours.  An alert is generated when an error type is found that was not present during the prior 48 hours.  From the activity and insights feed you are able to drill into the details of a specific occurrence of the new error type.
 
-### Escalated Invocation Count
+### Duration: Timeout
+
+PLACEHOLDER
+
+### Duration: Approaching Timeout
+
+PLACEHOLDER
+
+### Duration: Unusual Function Duration
+
+PLACEHOLDER
+
+### Invocations: Escalated Invocation Count
 
 An escalated invocation count can mean good things (e.g. more traffic) or bad things (e.g. higher costs or a runaway function).  This alert helps you get out in front of both the good and the bad scenarios.
 
 The escalated invocation count insight runs every five minutes and calculates the sum of invocations for a function over the prior five minutes. It then compares this most recent five minute invocation count against the highest five minute invocation count recorded during the prior 48 hours. If the most recent five minute invocation count is 25% greater than the highest five minute invocation count over the previous 48 hours an alert will be generated.
-
-### Unused memory
-
-Configured memory for a function defines memory, cpu, and I/O capacity. It is also what defines a function's price.  While there are sometimes good reasons to overprovision memory (e.g. because your workload is cpu bound), unused memory can often represent an opportunity to save money by better optimizing your function's configured memory.
-
-The unused memory insight runs once per week at midnight UTC on Sunday.  It looks at all invocations of a function over the prior seven days and identifies the function invocation during that period that used the most amount of its configured memory.  If that amount is less than 80% of the function's configured memory it will generate an alert.
 
 ### Add notifications
 
