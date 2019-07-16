@@ -75,7 +75,7 @@ An escalated invocation count can mean good things (e.g. more traffic) or bad th
 
 The escalated invocation count insight runs every five minutes and calculates the sum of invocations for a function over the prior five minutes. It then compares this most recent five minute invocation count against the highest five minute invocation count recorded during the prior 48 hours. If the most recent five minute invocation count is 25% greater than the highest five minute invocation count over the previous 48 hours an alert will be generated.
 
-### Add notifications
+## Add notifications
 
 The [notifications](./notifications.md) page provides instructions to forward Alerts for a particular Application to Slack, email, AWS SNS or a webhook.
 
