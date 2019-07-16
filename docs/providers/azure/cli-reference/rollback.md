@@ -8,11 +8,11 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/rollback)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/rollback)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# AWS - Rollback
+# Azure - Rollback
 
 Rollback the Serverless service to a specific deployment.
 
