@@ -13,12 +13,12 @@ const { CI, ADBLOCK, SILENT } = process.env;
 if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
   console.log(
     chalk.yellow(`\
- +------------------------------------------------------------------+
- |                                                                  |
- |  Serverless Framework successfully installed!                    |
- |  To start your first project, run “serverless” in a new folder.  |
- |                                                                  |
- +------------------------------------------------------------------+
+ +--------------------------------------------------+
+ |                                                  |
+ |  Serverless Framework successfully installed!    |
+ |  To start your first project, run “serverless”.  |
+ |                                                  |
+ +--------------------------------------------------+
 `)
   );
 }
