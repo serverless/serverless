@@ -8,11 +8,14 @@ const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
 
+const userNodeVersion = Number(process.version.split('.')[0].slice(1));
+
 (() => {
-  if (Number(process.version.split('.')[0].slice(1)) >= 8) {
-    const componentsCli = require('@serverless/cli');
-    if (componentsCli.runningComponents()) {
-      return componentsCli.runComponents();
+  // only check for components if user is running Node 8
+  if (userNodeVersion >= 8) {
+    const serverlessCli = require('@serverless/cli');
+    if (serverlessCli.runningComponents()) {
+      return serverlessCli.runComponents();
     }
   }
   Error.stackTraceLimit = Infinity;
