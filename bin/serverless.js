@@ -8,25 +8,32 @@ const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
 
-Error.stackTraceLimit = Infinity;
+const userNodeVersion = Number(process.version.split('.')[0].slice(1));
 
-if (process.env.SLS_DEBUG) {
-  // For performance reasons enabled only in SLS_DEBUG mode
-  BbPromise.config({
-    longStackTraces: true,
+(() => {
+  // only check for components if user is running Node 8
+  if (userNodeVersion >= 8) {
+    const serverlessCli = require('@serverless/cli');
+    if (serverlessCli.runningComponents()) {
+      return serverlessCli.runComponents();
+    }
+  }
+  Error.stackTraceLimit = Infinity;
+  if (process.env.SLS_DEBUG) {
+    // For performance reasons enabled only in SLS_DEBUG mode
+    BbPromise.config({
+      longStackTraces: true,
+    });
+  }
+
+  process.on('unhandledRejection', e => {
+    logError(e);
   });
-}
 
-process.on('unhandledRejection', e => {
-  logError(e);
-});
-process.noDeprecation = true;
+  process.noDeprecation = true;
 
-const invocationId = uuid.v4();
-
-// boot up error reporting via sentry before anything
-(() =>
-  initializeErrorReporter(invocationId)
+  const invocationId = uuid.v4();
+  return initializeErrorReporter(invocationId)
     .then(() => {
       if (process.argv[2] === 'completion') {
         return autocomplete();
@@ -68,4 +75,5 @@ const invocationId = uuid.v4();
         process.exitCode = 1;
         logError(e);
       }
-    ))();
+    );
+})();
