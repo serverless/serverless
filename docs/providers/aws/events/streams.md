@@ -32,7 +32,7 @@ functions:
       - stream:
           type: dynamodb
           arn:
-            Fn::GetAtt: [ MyDynamoDbTable, StreamArn ]
+            Fn::GetAtt: [MyDynamoDbTable, StreamArn]
       - stream:
           type: dynamodb
           arn:
@@ -51,7 +51,7 @@ functions:
           type: kinesis
           arn:
             Fn::Join:
-              - ":"
+              - ':'
               - - arn
                 - aws
                 - kinesis
