@@ -22,7 +22,7 @@ If you do not use the Serverless Framework Dashboard to set up an AWS Access Rol
 
 ## Link your AWS Account
 
-1. Open https://dashboard.serverless.com/
+1. Open the [Dashboard](https://dashboard.serverless.com/)
 2. Once logged in, click "**profiles**" near the top of the page.
 3. Navigate to the profile you would like to configure with the AWS Access Role.
 4. In the **AWS credential access role** tab, expand the "_how to add a role_".
