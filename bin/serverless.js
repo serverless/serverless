@@ -13,13 +13,14 @@ if (userNodeVersion >= 8) {
   }
 }
 
+Error.stackTraceLimit = Infinity;
+
 const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
 
-Error.stackTraceLimit = Infinity;
 if (process.env.SLS_DEBUG) {
   // For performance reasons enabled only in SLS_DEBUG mode
   BbPromise.config({
