@@ -28,10 +28,7 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-process.on('unhandledRejection', e => {
-  process.exitCode = 1;
-  logError(e);
-});
+process.on('unhandledRejection', logError);
 
 process.noDeprecation = true;
 
