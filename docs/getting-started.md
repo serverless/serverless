@@ -28,7 +28,8 @@ npm update -g serverless
 
 If you don’t already have **[Node 6 or higher installed](./docs/providers/aws/guide/installation.md)** on your machine, you’ll need to do that first. 
 
-Next, simply run the ‘serverless’ command and follow the prompts.
+Once you have the Serverless Framework installed, simply run the ‘serverless’ command and follow the prompts. In no time you will have deployed your first serverless app using the Serverless Framework **[CLI](./providers/)** and configured your Serverless Framework **[Dashboard](./dashboard/)** account to automatically monitor your serverless app, generate alerts, and much more.
+
 
 ```bash
 # Create and deploy a new service/project
