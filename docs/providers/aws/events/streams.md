@@ -47,7 +47,7 @@ functions:
           type: kinesis
           arn:
             Fn::ImportValue: MyExportedKinesisStreamArnId
-      - stream
+      - stream:
           type: kinesis
           arn:
             Fn::Join:
