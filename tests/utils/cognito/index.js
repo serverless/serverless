@@ -3,33 +3,59 @@
 const AWS = require('aws-sdk');
 const { region, persistentRequest } = require('../misc');
 
-function getCognitoUserPoolId(userPoolName) {
-  const cisp = new AWS.CognitoIdentityServiceProvider({ region });
+function createUserPool(name) {
+  const cognito = new AWS.CognitoIdentityServiceProvider({ region });
 
-  const params = {
-    MaxResults: 50,
-  };
-
-  return cisp
-    .listUserPools(params)
-    .promise()
-    .then(
-      data => data.UserPools.find(userPool => RegExp(userPoolName, 'g').test(userPool.Name)).Id
-    );
+  return cognito.createUserPool({ PoolName: name }).promise();
 }
 
-function createCognitoUser(userPoolId, username, password) {
-  const cisp = new AWS.CognitoIdentityServiceProvider({ region });
+function deleteUserPool(name) {
+  const cognito = new AWS.CognitoIdentityServiceProvider({ region });
+
+  return findUserPoolByName(name).then(pool =>
+    cognito.deleteUserPool({ UserPoolId: pool.Id }).promise()
+  );
+}
+
+function findUserPoolByName(name) {
+  const cognito = new AWS.CognitoIdentityServiceProvider({ region });
+
+  const params = {
+    MaxResults: 60,
+  };
+
+  function recursiveFind(nextToken) {
+    if (nextToken) params.NextToken = nextToken;
+    return cognito
+      .listUserPools(params)
+      .promise()
+      .then(result => {
+        const matches = result.UserPools.filter(pool => pool.Name === name);
+        if (matches.length) {
+          return matches.shift();
+        }
+        if (result.NextToken) return recursiveFind(result.NextToken);
+        return null;
+      });
+  }
+
+  return recursiveFind();
+}
+
+function createUser(userPoolId, username, password) {
+  const cognito = new AWS.CognitoIdentityServiceProvider({ region });
 
   const params = {
     UserPoolId: userPoolId,
     Username: username,
     TemporaryPassword: password,
   };
-  return cisp.adminCreateUser(params).promise();
+  return cognito.adminCreateUser(params).promise();
 }
 
 module.exports = {
-  getCognitoUserPoolId: persistentRequest.bind(this, getCognitoUserPoolId),
-  createCognitoUser: persistentRequest.bind(this, createCognitoUser),
+  createUserPool: persistentRequest.bind(this, createUserPool),
+  deleteUserPool: persistentRequest.bind(this, deleteUserPool),
+  findUserPoolByName: persistentRequest.bind(this, findUserPoolByName),
+  createUser: persistentRequest.bind(this, createUser),
 };

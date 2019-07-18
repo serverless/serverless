@@ -53,6 +53,7 @@ function createTestService(
     // Either templateName or templateDir have to be provided
     templateName: null, // Generic template to use (e.g. 'aws-nodejs')
     templateDir: null, // Path to custom pre-prepared service template
+    filesToAdd: [], // Array of additional files to add to the service directory
     serverlessConfigHook: null, // Eventual hook that allows to customize serverless config
   }
 ) {
@@ -68,6 +69,12 @@ function createTestService(
     fse.copySync(options.templateDir, tmpDir, { clobber: true, preserveTimestamps: true });
   } else {
     throw new Error("Either 'templateName' or 'templateDir' options have to be provided");
+  }
+
+  if (options.filesToAdd && options.filesToAdd.length) {
+    options.filesToAdd.forEach(filePath => {
+      fse.copySync(filePath, tmpDir, { preserveTimestamps: true });
+    });
   }
 
   const serverlessFilePath = path.join(tmpDir, 'serverless.yml');
