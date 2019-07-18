@@ -111,4 +111,3 @@ service: my-service-name
 provider:
   name: aws
 ```
-

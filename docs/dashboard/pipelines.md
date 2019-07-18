@@ -41,9 +41,9 @@ Follow these steps to create an access token:
 1. Login to the dashboard at https://dashboard.serverless.com/
 2. Open the username dropdown in the upper-right corner.
 3. Select "personal access keys" from the dropdown.
-3. Click “+ add” button.
-4. Provide a name and press “Create”
-5. You will be presented with the access key on the new page. 
+4. Click “+ add” button.
+5. Provide a name and press “Create”
+6. You will be presented with the access key on the new page.
 
 **Note**: The access token has permission to the tenant; however, it is associated with your account. If your account is deleted, then the access token will be revoked too.
 
@@ -63,4 +63,3 @@ Your CI/CD pipeline is now ready to deploy the service. This step should be conf
 npm install # installs all plugins and packages
 serverless deploy # deploys your service
 ```
-

@@ -26,9 +26,8 @@ Create a new secret by navigating to **profiles** in the [Serverless Framework D
 
 ## Using a Secret to deploy
 
-To use a secret, first make sure that the profile containing that secret is configured as the **default deployment profile** for your application, or it is configured as the **profile** on the stage and application you are using. 
+To use a secret, first make sure that the profile containing that secret is configured as the **default deployment profile** for your application, or it is configured as the **profile** on the stage and application you are using.
 
-In your `serverless.yml` file add the variable `${secrets:<key>}` anywhere you would like to use the secret. The `<key>` references the secret key configured in the profile. 
+In your `serverless.yml` file add the variable `${secrets:<key>}` anywhere you would like to use the secret. The `<key>` references the secret key configured in the profile.
 
-When you run `serverless deploy` the secret values will be obtained, decrypted and used to replace the variables in the `serverless.yml` for the deployment. 
-
+When you run `serverless deploy` the secret values will be obtained, decrypted and used to replace the variables in the `serverless.yml` for the deployment.

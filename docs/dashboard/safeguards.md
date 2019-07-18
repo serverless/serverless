@@ -12,8 +12,7 @@ layout: Doc
 
 # Safeguards
 
-Safeguards performs a series of policy checks when running the `serverless
-deploy` command. There are [fourteen policies](#default-policies) included which you can [configure in the dashboard](#configuring-policies). Additionally [custom policies](#custom-policies) can be created and added to your serverless project.
+Safeguards performs a series of policy checks when running the `serverless deploy` command. There are [fourteen policies](#default-policies) included which you can [configure in the dashboard](#configuring-policies). Additionally [custom policies](#custom-policies) can be created and added to your serverless project.
 
 ## Available Policies
 
@@ -53,13 +52,13 @@ There are two recommended alternatives of passing in credentials to your AWS
 Lambda functions:
 
 - **SSM Parameter Store**: The article "[You should use SSM Parameter Store over Lambda env variables](https://hackernoon.com/you-should-use-ssm-parameter-store-over-lambda-env-variables-5197fc6ea45b)"
-by Yan Cui provides a detailed explanation for using the SSM Parameters in your
-Serverless Framework service to save and retrieve credentials.
+  by Yan Cui provides a detailed explanation for using the SSM Parameters in your
+  Serverless Framework service to save and retrieve credentials.
 - **KMS Encryption**: Encrypt the environment variables using [KMS Keys](https://serverless.com/framework/docs/providers/aws/guide/functions#kms-keys).
 
 ### Ensure Dead Letter Queues are attached to functions
 
-**ID: require-dlq** 
+**ID: require-dlq**
 
 Ensures all functions with any of the events listed below, or functions with
 zero events, have an attached [Dead Letter Queue](https://docs.aws.amazon.com/lambda/latest/dg/dlq.html).
@@ -86,6 +85,7 @@ for all the functions which require the DLQ to be configured.
 
 This limits the runtimes that can be used in services. It is configurable with a list of allowed
 runtimes or a regular expression.
+
 ```yaml
 - nodejs8.10
 - python3.7
@@ -104,6 +104,7 @@ allowed runtimes.
 
 This limits the stages that can be used in services. It is configurable with a list of allowed
 stages or a regular expression.
+
 ```yaml
 - prod
 - dev
@@ -128,6 +129,7 @@ This policy limits which versions of the Serverless Framework can be used. It is
 ```
 
 #### Resolution
+
 Install an allowed version of the framework: `npm i -g serverless@$ALLOWED_VERSION`
 
 ### Require Cloudformation Deployment Role
@@ -140,6 +142,7 @@ in your `serverless.yml`. It has no
 configuration options.
 
 #### Resolution
+
 Add `cfnRole` to your `serverless.yml`.
 
 ### Required stack tags
@@ -168,9 +171,9 @@ minNumSubnets: 1 # if you don't want to require 2 and AZ support
 ```
 
 #### Resolution
+
 Add a global VPC configuration to your config:
 https://serverless.com/framework/docs/providers/aws/guide/functions/#vpc-configuration
-
 
 ### Allowed function names
 
@@ -187,15 +190,15 @@ ${SERVICE}-${STAGE}-${FUNCTION}
 ```
 
 Or, if you want custom names with stage first and underscores instead of dashes:
+
 ```
 ${STAGE}_${SERVICE}_${FUNCTION}
 ```
 
-
 #### Resolution
+
 Use the `name:` config option on the function object to customize the deployed function name to
 match the regex: https://serverless.com/framework/docs/providers/aws/guide/functions/#configuration
-
 
 ### Require Description
 
@@ -205,12 +208,14 @@ This rule requires that all functions have a description of minimum or maximum l
 it requires a minimum length of 30 and the lambda maximum of 256. Both these values are
 configurable however. Here is a config that requires a slightly longer config but doesn't allow as
 long a maximum:
+
 ```yaml
 minLength: 50
 maxLength: 100
 ```
 
 #### Resolution
+
 Add a function description to all your lambdas that is with in the minimum and maximum required
 lengths.
 
@@ -220,6 +225,7 @@ lengths.
 
 This rule allows you to restrict the regions to which a service may be deployed. It is configured
 with a list of regions:
+
 ```yaml
 # eg, us-east-1 and us-west-2 only
 - us-east-1
@@ -248,6 +254,7 @@ time, duration and optional interval.
 ```
 
 If you only need to specify one interval you can also directly use that object, eg:
+
 ```yaml
 # no deployments on friday, saturday, sunday
 time: 2019-03-08
@@ -256,8 +263,8 @@ interval: P1W
 ```
 
 #### Resolution
-Wait! You're not supposed to be deploying!
 
+Wait! You're not supposed to be deploying!
 
 ### Forbid S3 HTTP Access
 
@@ -267,21 +274,23 @@ This policy requires that you have a `BucketPolicy` forbidding access over HTTP 
 There are no configuration options.
 
 #### Resolution
+
 For a bucket without a name such as the `ServerlessDeploymentBucket` ensure that the `resources`
-section of your serverless yaml contains a policy like the following using `Ref`s. 
+section of your serverless yaml contains a policy like the following using `Ref`s.
 If using a different bucket, update the logical name in the `Ref`.
+
 ```yaml
 resources:
   Resources:
     ServerlessDeploymentBucketPolicy:
-      Type: "AWS::S3::BucketPolicy"
-      Properties: 
-        Bucket: {Ref: ServerlessDeploymentBucket}
+      Type: 'AWS::S3::BucketPolicy'
+      Properties:
+        Bucket: { Ref: ServerlessDeploymentBucket }
         PolicyDocument:
           Statement:
-            - Action: "s3:*"
-              Effect: "Deny"
-              Principal: "*"
+            - Action: 's3:*'
+              Effect: 'Deny'
+              Principal: '*'
               Resource:
                 Fn::Join:
                   - ''
@@ -292,26 +301,27 @@ resources:
                 Bool:
                   aws:SecureTransport: false
 ```
+
 If using a bucket with a name, say configured in the `custom` section of your config, use a policy
 like this:
+
 ```yaml
 resources:
   Resources:
     NamedBucketPolicy:
-      Type: "AWS::S3::BucketPolicy"
-      Properties: 
+      Type: 'AWS::S3::BucketPolicy'
+      Properties:
         Bucket: ${self:custom.bucketName}
         PolicyDocument:
           Statement:
-            - Action: "s3:*"
-              Effect: "Deny"
-              Principal: "*"
+            - Action: 's3:*'
+              Effect: 'Deny'
+              Principal: '*'
               Resource: 'arn:aws:s3:::${self:custom.bucketName}/*'
               Condition:
                 Bool:
                   aws:SecureTransport: false
 ```
-
 
 ## Running Policy Checks
 
@@ -320,6 +330,7 @@ This will load the safeguard settings from the `serverless.yml` file to
 determine which policies to evaluate.
 
 **Example deploy**
+
 ```
 $ sls deploy
 ...
@@ -356,12 +367,13 @@ Serverless Enterprise: Safeguards Summary: 6 passed, 0 warnings, 2 errors
 
 When a policy check is performed, the policy can respond with a **pass**,
 **fail** or **warning**. A fail will block and prevent the deploy from
-occurring. A warning will display a message but the deploy will continue. 
+occurring. A warning will display a message but the deploy will continue.
 
 If one or more of the policy checks fail the command will return a 1 exit code so
 it can be detected from a script or CI/CD service.
 
 ## Configuring Policies
+
 Safeguard policies are managed in the [Serverless Framework Dashboard](https://dashboard.serverless.com/). When you run `serverless deploy`, the CLI obtains the latest list of Safeguard policies and performs the checks before any resources are provisioned or deployed.
 
 The list of available Safeguards can be found by navigating to the "profiles" page, selecting the individual profile and opening the "safeguards" tab. The guide on [using deployment profiles to deploy](./profiles.md#using-a-deployment-profile-to-deploy) provides instructions to identify the profile used by your application and stage.
@@ -369,20 +381,24 @@ The list of available Safeguards can be found by navigating to the "profiles" pa
 When creating a new Safeguard policy you must specify each of the following fields:
 
 ### name
-This is a user-readable name for the Safeguard policy. When the policy check is run in the CLI, the Safeguard policy name is used in the output. 
+
+This is a user-readable name for the Safeguard policy. When the policy check is run in the CLI, the Safeguard policy name is used in the output.
 
 ### description
-The description should explain the intent of the policy. When the Safeguard policy check runs in the CLI this description will be displayed if the policy check fails. It is recommended that the description provides instructions on how to resolve an issue if the service is not compliant with the policy. 
+
+The description should explain the intent of the policy. When the Safeguard policy check runs in the CLI this description will be displayed if the policy check fails. It is recommended that the description provides instructions on how to resolve an issue if the service is not compliant with the policy.
 
 ### safeguard
+
 The safeguard dropdown lists all of the [available policies](#available-policies). Select the Safeguard you want to enforce. When you select the Safeguard the description and the settings will be populated for you with default values.
 
 ### enforcement level
-The enforcement level can be set to either `warning` or `error`.  When the Safeguard policy check runs in the CLI and the policy check passes, then enforcement level will have no impact on the deployment. However, if the policy check fails, then the enforcement level will control if the deployment can continue. If the enforcement level is set to `warning`, then the CLI will return a warning message but the deployment will continue. If the enforcement level is set to `error`, then the CLI will return an error message and the deployment will be blocked from continuing.
+
+The enforcement level can be set to either `warning` or `error`. When the Safeguard policy check runs in the CLI and the policy check passes, then enforcement level will have no impact on the deployment. However, if the policy check fails, then the enforcement level will control if the deployment can continue. If the enforcement level is set to `warning`, then the CLI will return a warning message but the deployment will continue. If the enforcement level is set to `error`, then the CLI will return an error message and the deployment will be blocked from continuing.
 
 ### settings
-Some of the [available safeguards](#available-safeguards) may allow or require configurations. For example, the [Allowed Runtimes (allowed-runtimes)](#allowed-runtimes) Safeguard requires a list of allowed AWS Lambda Runtimes for functions. This field allows you to customize the settings for the Safeguard policy.
 
+Some of the [available safeguards](#available-safeguards) may allow or require configurations. For example, the [Allowed Runtimes (allowed-runtimes)](#allowed-runtimes) Safeguard requires a list of allowed AWS Lambda Runtimes for functions. This field allows you to customize the settings for the Safeguard policy.
 
 ## Custom Policies
 
@@ -398,18 +414,19 @@ Create a single JS file to define your policy (e.g. `my-custom-policy.js`) in th
 policies directory.
 
 **./policies/my-custom-policy.js**
+
 ```javascript
 module.exports = function myCustomPolicy(policy, service) {
   // policy.fail(“Configuration is not compliant with policy”)
-  policy.approve()
-}
+  policy.approve();
+};
 ```
 
 There are two primary methods you can use to control the behavior of the policy checks
 when running the `deploy` command.
 
 - `approve()` - Passes the policy to allow the deploy to continue.
-- `fail(message)` - Fails the policy check and returns an failure message. 
+- `fail(message)` - Fails the policy check and returns an failure message.
 
 To define the policy method you’ll need to inspect the configuration. The entire
 configuration is made available in the service object. Use the [default policies](https://github.com/serverless/enterprise-plugin/tree/master/src/lib/safeguards/policies)
@@ -424,6 +441,7 @@ the relative path of the policies directory. To enable the policy you must also
 add it to the list of policies.
 
 **serverless.yml**
+
 ```yaml
 custom:
   safeguards:
@@ -439,14 +457,16 @@ accepts a third parameter (`options` in the example below) which contains the
 settings defined in the `serverless.yml` file.
 
 **./policies/my-custom-policy.js**
+
 ```javascript
 module.exports = function myCustomPolicy(policy, service, options) {
   // options.max = 2
-  policy.approve()
-}
+  policy.approve();
+};
 ```
 
 **serverless.yml**
+
 ```yaml
 custom:
   safeguards:
@@ -466,8 +486,7 @@ In the dashboard go to `safeguards` > `+ add`.
 
 On the `add a safeguard policy` page, set the name, description, enforcement level fields and from the `safeguards` dropdown select `javascript`.
 
-Selecting `javascript` as the `safeguard` will enable a IDE-like text area labeled `safeguard configuration`  where you define custom javascript policies.
-
+Selecting `javascript` as the `safeguard` will enable a IDE-like text area labeled `safeguard configuration` where you define custom javascript policies.
 
 **Defining the safeguard policy**
 
@@ -481,4 +500,3 @@ configuration is made available in the service object. Use the [default policies
 **Enabling the custom safeguard policy**
 
 Since this safeguard policy is defined in the dashboard, no further action is needed to enable it for all services. It will be evaluated across all services when running `sls deploy`.
-

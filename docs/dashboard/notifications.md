@@ -12,7 +12,7 @@ layout: Doc
 
 # Notifications
 
-The Serverless Framework can notify you in **Slack**, **Email**, **SNS Topics**, or via 
+The Serverless Framework can notify you in **Slack**, **Email**, **SNS Topics**, or via
 **webhooks** when [alerts](./insights.md#alerts) are generated for your application. Multiple notifications can be added to an application, each of which can be configured differently for different alerts, stages or services.
 
 ## Add a Notification to an Application
@@ -22,17 +22,15 @@ The Serverless Framework can notify you in **Slack**, **Email**, **SNS Topics**,
 3. Open the **notifications** tab in the application.
 4. Follow the "**Click here to create your first notification.**" link.
 5. Fill out the form and click **add notification** to save the new notification. The notification can be scoped to include only the **alerts**, **stages** or **services** you want.
-    - **alerts** - select "all alerts" to be notified about all alerts, including alerts which may be made available in the future, or individually select the alerts. The [Alerts](./insights.md#alerts) section provides more details on each of the available alert types.
-    - **stages** - select "all stages" to be notified about alerts on all stages, including stages which may be created in the future, or individually select the stages. The stages must be [configured](./profiles.md#add-a-deployment-profile-to-your-application-and-stage) on the application first for them to be available.
-    - **services** - select "all services" to notified about alerts on all services, including services which will be deployed in the future, or individually select the services.
-
+   - **alerts** - select "all alerts" to be notified about all alerts, including alerts which may be made available in the future, or individually select the alerts. The [Alerts](./insights.md#alerts) section provides more details on each of the available alert types.
+   - **stages** - select "all stages" to be notified about alerts on all stages, including stages which may be created in the future, or individually select the stages. The stages must be [configured](./profiles.md#add-a-deployment-profile-to-your-application-and-stage) on the application first for them to be available.
+   - **services** - select "all services" to notified about alerts on all services, including services which will be deployed in the future, or individually select the services.
 
 ## Configure an existing SNS Topic
 
 In order for Serverless Framework to notify you in a **SNS Topics**, it must be granted
 permission to publish to the topic. If you have an existing SNS Topic this is how you configure the Access Policy on the Topic to grant Serverless Framework permission to publish
 notifications to the topic.
-
 
 1. Go to the [SNS in the AWS Console](https://console.aws.amazon.com/sns/v3/home).
 2. Select the desired topic from the topics list.
@@ -76,10 +74,10 @@ functions:
       - sns:
           arn:
             Fn::Join:
-              - ":"
-              - - "arn:aws:sns"
-                - Ref: "AWS::Region"
-                - Ref: "AWS::AccountId"
+              - ':'
+              - - 'arn:aws:sns'
+                - Ref: 'AWS::Region'
+                - Ref: 'AWS::AccountId'
                 - ${self:custom.topicName}
           topicName: ${self:custom.topicName}
 
@@ -88,7 +86,7 @@ resources:
     AlarmTopic:
       Type: AWS::SNS::Topic
       Properties:
-        DisplayName: "Serverless Alerts"
+        DisplayName: 'Serverless Alerts'
         TopicName: ${self:custom.topicName}
     AlarmTopicPolicy:
       Type: AWS::SNS::TopicPolicy
@@ -96,13 +94,13 @@ resources:
         - AlarmTopic
       Properties:
         PolicyDocument:
-          Version: "2012-10-17"
+          Version: '2012-10-17'
           Statement:
             - Sid: AllowServerlessFrameworkEnterpriseToPublish
               Effect: Allow
               Principal:
-                AWS: "arn:aws:iam::802587217904:root"
-              Action: "sns:Publish"
+                AWS: 'arn:aws:iam::802587217904:root'
+              Action: 'sns:Publish'
               Resource:
                 Ref: AlarmTopic
         Topics:
@@ -115,4 +113,3 @@ resources:
 ```
 
 After your deploy is complete, run `sls info -v` to show the information about your service. At the bottom, in the **Stack Outputs** section, the ARN for your SNS Topic will be displayed as the `SnsTopicArn` output.
-
