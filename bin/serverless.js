@@ -30,6 +30,8 @@ if (process.env.SLS_DEBUG) {
 
 process.on('unhandledRejection', logError);
 
+require('../lib/utils/tracking').sendPending();
+
 process.noDeprecation = true;
 
 const invocationId = uuid.v4();
