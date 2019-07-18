@@ -14,7 +14,8 @@ const userNodeVersion = Number(process.version.split('.')[0].slice(1));
 if (userNodeVersion >= 8) {
   const serverlessCli = require('@serverless/cli');
   if (serverlessCli.runningComponents()) {
-    return serverlessCli.runComponents();
+    serverlessCli.runComponents();
+    return;
   }
 }
 Error.stackTraceLimit = Infinity;
