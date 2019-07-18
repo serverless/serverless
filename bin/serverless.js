@@ -10,70 +10,68 @@ const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorRe
 
 const userNodeVersion = Number(process.version.split('.')[0].slice(1));
 
-(() => {
-  // only check for components if user is running Node 8
-  if (userNodeVersion >= 8) {
-    const serverlessCli = require('@serverless/cli');
-    if (serverlessCli.runningComponents()) {
-      return serverlessCli.runComponents();
-    }
+// only check for components if user is running Node 8
+if (userNodeVersion >= 8) {
+  const serverlessCli = require('@serverless/cli');
+  if (serverlessCli.runningComponents()) {
+    return serverlessCli.runComponents();
   }
-  Error.stackTraceLimit = Infinity;
-  if (process.env.SLS_DEBUG) {
-    // For performance reasons enabled only in SLS_DEBUG mode
-    BbPromise.config({
-      longStackTraces: true,
-    });
-  }
-
-  process.on('unhandledRejection', e => {
-    logError(e);
+}
+Error.stackTraceLimit = Infinity;
+if (process.env.SLS_DEBUG) {
+  // For performance reasons enabled only in SLS_DEBUG mode
+  BbPromise.config({
+    longStackTraces: true,
   });
+}
 
-  process.noDeprecation = true;
+process.on('unhandledRejection', e => {
+  logError(e);
+});
 
-  const invocationId = uuid.v4();
-  return initializeErrorReporter(invocationId)
-    .then(() => {
-      if (process.argv[2] === 'completion') {
-        return autocomplete();
-      }
-      // requiring here so that if anything went wrong,
-      // during require, it will be caught.
-      const Serverless = require('../lib/Serverless');
+process.noDeprecation = true;
 
-      const serverless = new Serverless();
+const invocationId = uuid.v4();
+initializeErrorReporter(invocationId)
+  .then(() => {
+    if (process.argv[2] === 'completion') {
+      return autocomplete();
+    }
+    // requiring here so that if anything went wrong,
+    // during require, it will be caught.
+    const Serverless = require('../lib/Serverless');
 
-      serverless.invocationId = invocationId;
+    const serverless = new Serverless();
 
-      return serverless
-        .init()
-        .then(() => serverless.run())
-        .catch(err => {
-          // If Enterprise Plugin, capture error
-          let enterpriseErrorHandler = null;
-          serverless.pluginManager.plugins.forEach(p => {
-            if (p.enterprise && p.enterprise.errorHandler) {
-              enterpriseErrorHandler = p.enterprise.errorHandler;
-            }
-          });
-          if (!enterpriseErrorHandler) {
-            throw err;
+    serverless.invocationId = invocationId;
+
+    return serverless
+      .init()
+      .then(() => serverless.run())
+      .catch(err => {
+        // If Enterprise Plugin, capture error
+        let enterpriseErrorHandler = null;
+        serverless.pluginManager.plugins.forEach(p => {
+          if (p.enterprise && p.enterprise.errorHandler) {
+            enterpriseErrorHandler = p.enterprise.errorHandler;
           }
-          return enterpriseErrorHandler(err, invocationId)
-            .catch(error => {
-              process.stdout.write(`${error.stack}\n`);
-            })
-            .then(() => {
-              throw err;
-            });
         });
-    })
-    .then(
-      () => process.exit(0),
-      e => {
-        process.exitCode = 1;
-        logError(e);
-      }
-    );
-})();
+        if (!enterpriseErrorHandler) {
+          throw err;
+        }
+        return enterpriseErrorHandler(err, invocationId)
+          .catch(error => {
+            process.stdout.write(`${error.stack}\n`);
+          })
+          .then(() => {
+            throw err;
+          });
+      });
+  })
+  .then(
+    () => process.exit(0),
+    e => {
+      process.exitCode = 1;
+      logError(e);
+    }
+  );
