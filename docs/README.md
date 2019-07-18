@@ -36,4 +36,6 @@ menuItems:
 
 The Serverless Framework helps you build serverless apps with radically less overhead and cost. It provides a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications.
 
+The Serverless Framework consists of an open source **[CLI](./providers/)** that makes it easy to develop, deploy and test serverless apps across different cloud providers, as well as a hosted **[Dashboard](./dashboard/)** that includes features designed to further simplify serverless development, deployment, and testing, and enable you to easily secure and monitor your serverless apps.
+
 If you are new to serverless and want to experience how fast and easy it is to build a serverless app, or if you are an experienced user of the Serverless Framework open source CLI and want to explore new features of the Framework, you can get started **[here](./getting-started.md)**, for free.
