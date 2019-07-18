@@ -2,12 +2,6 @@
 
 'use strict';
 
-const autocomplete = require('../lib/utils/autocomplete');
-const BbPromise = require('bluebird');
-const logError = require('../lib/classes/Error').logError;
-const uuid = require('uuid');
-const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
-
 const userNodeVersion = Number(process.version.split('.')[0].slice(1));
 
 // only check for components if user is running Node 8
@@ -18,6 +12,13 @@ if (userNodeVersion >= 8) {
     return;
   }
 }
+
+const autocomplete = require('../lib/utils/autocomplete');
+const BbPromise = require('bluebird');
+const logError = require('../lib/classes/Error').logError;
+const uuid = require('uuid');
+const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
+
 Error.stackTraceLimit = Infinity;
 if (process.env.SLS_DEBUG) {
   // For performance reasons enabled only in SLS_DEBUG mode
