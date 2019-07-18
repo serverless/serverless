@@ -71,10 +71,7 @@ initializeErrorReporter(invocationId)
           });
       });
   })
-  .then(
-    () => process.exit(0),
-    e => {
-      process.exitCode = 1;
-      logError(e);
-    }
-  );
+  .catch(e => {
+    process.exitCode = 1;
+    logError(e);
+  });
