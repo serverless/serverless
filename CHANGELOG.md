@@ -16,6 +16,7 @@
 - [Add the missing colon](https://github.com/serverless/serverless/pull/6398)
 
 ## Meta
+
 - [Comparison since last release](https://github.com/serverless/serverless/compare/v1.47.0...v1.48.0)
 
 # 1.47.0 (2019-07-10)
