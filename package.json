@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.48.0",
+  "version": "1.48.1",
   "engines": {
     "node": ">=6.0"
   },
@@ -89,18 +89,18 @@
     "useStderr": true
   },
   "devDependencies": {
-    "@serverless/eslint-config": "^1.0.1",
+    "@serverless/eslint-config": "^1.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-ext": "^2.0.0",
     "cli-progress-footer": "^1.1.1",
     "coveralls": "^3.0.4",
     "eslint": "^6.0.1",
-    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-import": "^2.18.1",
     "git-list-updated": "^1.2.0",
     "jest-circus": "^24.8.0",
     "jest-cli": "^24.8.0",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.0",
     "mocha-lcov-reporter": "^1.3.0",
     "mock-require": "^3.0.3",
     "nyc": "^14.1.1",
@@ -113,8 +113,8 @@
     "strip-ansi": "^5.2.0"
   },
   "dependencies": {
-    "@serverless/cli": "^1.0.0",
-    "@serverless/enterprise-plugin": "^1.2.0",
+    "@serverless/cli": "^1.0.1",
+    "@serverless/enterprise-plugin": "^1.3.1",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.490.0",
@@ -137,7 +137,7 @@
     "json-refs": "^2.1.7",
     "jszip": "^3.2.2",
     "jwt-decode": "^2.2.0",
-    "lodash": "^4.17.13",
+    "lodash": "^4.17.15",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.24.0",
