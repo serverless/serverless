@@ -40,6 +40,13 @@ if (process.env.HOME) process.env.HOME = tmpDirCommonPath;
 
 ensureDirSync(tmpDirCommonPath); // Ensure temporary homedir exists
 
+const isTrackingDisabled = require('../lib/utils/isTrackingDisabled');
+
+if (!isTrackingDisabled) {
+  // Ensure no tracking during tests run
+  require.cache[require.resolve('../lib/utils/isTrackingDisabled')].exports = true;
+}
+
 module.exports = class ServerlessSpec extends Spec {
   constructor(runner) {
     super(runner);
