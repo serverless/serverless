@@ -4,7 +4,7 @@
 - [Fixing broken link for Node install.](https://github.com/serverless/serverless/pull/6405)
 - [Added Cloud Build option for serverless deploy guide](https://github.com/serverless/serverless/pull/6401)
 - [Changed AWS subscription filters to use function object name](https://github.com/serverless/serverless/pull/6402)
-- [https://github.com/serverless/serverless/pull/6408](https://github.com/serverless/serverless/pull/6408)
+- [Strip trailing comment when renaming a service](https://github.com/serverless/serverless/pull/6408)
 
 ## Meta
 
