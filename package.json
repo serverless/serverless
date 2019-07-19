@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.48.1",
+  "version": "1.48.2",
   "engines": {
     "node": ">=6.0"
   },
@@ -94,10 +94,10 @@
     "chai-as-promised": "^7.1.1",
     "child-process-ext": "^2.0.0",
     "cli-progress-footer": "^1.1.1",
-    "coveralls": "^3.0.4",
+    "coveralls": "^3.0.5",
     "eslint": "^6.0.1",
     "eslint-plugin-import": "^2.18.1",
-    "git-list-updated": "^1.2.0",
+    "git-list-updated": "^1.2.1",
     "jest-circus": "^24.8.0",
     "jest-cli": "^24.8.0",
     "mocha": "^6.2.0",
@@ -107,7 +107,7 @@
     "p-limit": "^2.2.0",
     "prettier": "^1.18.2",
     "process-utils": "^2.3.1",
-    "proxyquire": "^2.1.0",
+    "proxyquire": "^2.1.1",
     "sinon": "^7.3.2",
     "sinon-chai": "^3.3.0",
     "strip-ansi": "^5.2.0"
@@ -117,7 +117,7 @@
     "@serverless/enterprise-plugin": "^1.3.1",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.490.0",
+    "aws-sdk": "^2.496.0",
     "bluebird": "^3.5.5",
     "cachedir": "^2.2.0",
     "chalk": "^2.4.2",
@@ -130,7 +130,7 @@
     "globby": "^6.1.0",
     "graceful-fs": "^4.2.0",
     "https-proxy-agent": "^2.2.2",
-    "inquirer": "^6.4.1",
+    "inquirer": "^6.5.0",
     "is-docker": "^1.1.0",
     "js-yaml": "^3.13.1",
     "json-cycle": "^1.3.0",

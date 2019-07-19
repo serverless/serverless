@@ -5,7 +5,6 @@ const chalk = require('chalk');
 
 /* eslint-disable no-console */
 
-const Serverless = require('../lib/Serverless');
 const execSync = require('child_process').execSync;
 
 const truthyStr = val => val && !['0', 'false', 'f', 'n', 'no'].includes(val.toLowerCase());
@@ -24,6 +23,7 @@ if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
 }
 
 try {
+  const Serverless = require('../lib/Serverless');
   const serverless = new Serverless();
 
   (() =>
