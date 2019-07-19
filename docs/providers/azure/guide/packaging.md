@@ -146,7 +146,6 @@ The `serverless-azure-functions` plugin plays nicely with the `serverless-webpac
 To enable this functionality, add `serverless-webpack` to the `plugins` section of `serverless.yml`:
 
 ```yaml
-
 ---
 plugins:
   - serverless-azure-functions
