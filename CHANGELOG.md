@@ -1,3 +1,12 @@
+# 1.48.2 (2019-07-19)
+
+- [Fix issues in post install and pre uninstall scripts](https://github.com/serverless/serverless/pull/6415)
+- 
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.1...v1.48.2)
+
+
 # 1.48.1 (2019-07-19)
 
 - [Use Python3 for Python in interactive setup](https://github.com/serverless/serverless/pull/6406)
