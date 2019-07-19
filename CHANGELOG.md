@@ -5,6 +5,7 @@
 - [Added Cloud Build option for serverless deploy guide](https://github.com/serverless/serverless/pull/6401)
 - [Changed AWS subscription filters to use function object name](https://github.com/serverless/serverless/pull/6402)
 - [Strip trailing comment when renaming a service](https://github.com/serverless/serverless/pull/6408)
+- [Improve tracking reliability](https://github.com/serverless/serverless/pull/6410)
 
 ## Meta
 
