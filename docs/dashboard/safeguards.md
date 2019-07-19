@@ -334,7 +334,7 @@ determine which policies to evaluate.
 ```
 $ sls deploy
 ...
-Serverless Enterprise: Safeguards Results:
+Serverless: Safeguards Results:
 
    Summary --------------------------------------------------
 
@@ -359,7 +359,7 @@ Serverless Enterprise: Safeguards Results:
       Prevent "*" permissions being used in AWS IAM Roles by checking for wildcards on Actions and Resources in grant statements.
 
 
-Serverless Enterprise: Safeguards Summary: 6 passed, 0 warnings, 2 errors
+Serverless: Safeguards Summary: 6 passed, 0 warnings, 2 errors
 ...
 ```
 
