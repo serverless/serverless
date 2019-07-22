@@ -35,8 +35,8 @@ describe('AWS - Cognito User Pool Integration Test', () => {
       serverlessConfigHook:
         // Ensure unique user pool names for each test (to avoid collision among concurrent CI runs)
         config => {
-          poolBasicSetup = `${config.service}-cup-basic`;
-          poolExistingSetup = `${config.service}-cup-existing`;
+          poolBasicSetup = `${config.service} CUP Basic`;
+          poolExistingSetup = `${config.service} CUP Existing`;
           config.functions.basic.events[0].cognitoUserPool.pool = poolBasicSetup;
           config.functions.existing.events[0].cognitoUserPool.pool = poolExistingSetup;
         },
