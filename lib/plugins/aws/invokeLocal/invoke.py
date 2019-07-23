@@ -75,7 +75,7 @@ if __name__ == '__main__':
     input = json.load(sys.stdin)
     if sys.platform != 'win32':
         try:
-            if sys.platform != 'darwin':
+            if sys.platform.lower() != 'darwin':
                 subprocess.check_call('tty', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except (OSError, subprocess.CalledProcessError):
             pass
