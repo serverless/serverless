@@ -1,3 +1,14 @@
+# 1.48.3 (2019-07-23)
+
+- [Issue 6364 request path](https://github.com/serverless/serverless/pull/6422)
+- [Remove spaces from Cognito Pool Name](https://github.com/serverless/serverless/pull/6419)
+- [Use slss.io for links](https://github.com/serverless/serverless/pull/6428)
+- [Fix regression in EC2 & CodeBuild caused by missing creds check](https://github.com/serverless/serverless/pull/6427<Paste>)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.2...v1.48.3)
+
 # 1.48.2 (2019-07-19)
 
 - [Fix issues in post install and pre uninstall scripts](https://github.com/serverless/serverless/pull/6415)
