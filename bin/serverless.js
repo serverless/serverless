@@ -59,6 +59,7 @@ initializeErrorReporter(invocationId).then(() => {
         }
       });
       if (!enterpriseErrorHandler) {
+        process.exitCode = 1;
         throw err;
       }
       return enterpriseErrorHandler(err, invocationId)
