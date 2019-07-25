@@ -123,3 +123,7 @@ services:
     image: maven:3-jdk-8
     volumes:
       - ./tmp/serverless-integration-test-spotinst-java8:/app
+  twilio-runtime:
+    image: node:8.16.0
+    volumes:
+      - ./tmp/serverless-integration-test-twilio-runtime:/app
