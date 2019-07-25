@@ -1,3 +1,13 @@
+# 1.48.4 (2019-07-25)
+
+- [Add note for supported version of existing bucket feature](https://github.com/serverless/serverless/pull/6435)
+- [Support in interactive flow for SFE provided AWS creds](https://github.com/serverless/serverless/pull/6440)
+- [Fix sls package regression caused by cred fail fast](https://github.com/serverless/serverless/pull/6447)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.3...v1.48.4)
+
 # 1.48.3 (2019-07-23)
 
 - [Issue 6364 request path](https://github.com/serverless/serverless/pull/6422)
