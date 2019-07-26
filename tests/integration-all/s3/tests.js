@@ -95,7 +95,7 @@ describe('AWS - S3 Integration Test', () => {
       const markers = getMarkers(functionName);
       const expectedMessage = `Hello from S3! - (${functionName})`;
 
-      return createAndRemoveInBucket(bucketExistingSetup, { prefix: 'files/', suffix: '.txt' })
+      return createAndRemoveInBucket(bucketExistingSetup, { prefix: 'Files/', suffix: '.TXT' })
         .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
         .then(logs => {
           expect(/aws:s3/g.test(logs)).to.equal(true);

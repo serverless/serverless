@@ -26,6 +26,6 @@ functions:
           bucket: CHANGE_TO_UNIQUE_PER_RUN
           event: s3:ObjectCreated:*
           rules:
-            - prefix: files/
-            - suffix: .txt
+            - prefix: Files/
+            - suffix: .TXT
           existing: true
