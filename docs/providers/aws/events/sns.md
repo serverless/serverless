@@ -88,11 +88,11 @@ functions:
     handler: handler.run
     events:
       - sns:
-        arn: arn:aws:sns:us-east-1:00000000000:topicname
-        topicName: topicname-account-1-us-east-1
+          arn: arn:aws:sns:us-east-1:00000000000:topicname
+          topicName: topicname-account-1-us-east-1
       - sns:
-        arn: arn:aws:sns:us-east-1:11111111111:topicname
-        topicName: topicname-account-2-us-east-1
+          arn: arn:aws:sns:us-east-1:11111111111:topicname
+          topicName: topicname-account-2-us-east-1
 ```
 
 ## Setting a display name
