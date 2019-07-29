@@ -63,7 +63,7 @@ The timeout alert is checked on every invocation of the function. If any invocat
 
 ### Duration: Approaching Timeout
 
-PLACEHOLDER
+The approaching timeout alert runs every 5 minutes. It looks at the duration of all invocations of that function over the past 60 minutes. If any of the invocations exceed 90% of the configured timeout, then it will generate an alert. If an alert was already triggered in the past 60 minutes, a new alert will not be triggered.
 
 ### Duration: Unusual Function Duration
 
