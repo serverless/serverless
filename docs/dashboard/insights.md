@@ -49,7 +49,7 @@ The approaching out of memory alert runs every 5 minutes. It looks at the memory
 
 ### Memory: Out of Memory
 
-PLACEHOLDER
+The out of memory alert is checked on every invocation of the function. If any invocation exceeds memory utilization beyond the configured allocated memory, an out of memory error will be triggered and the alert will be triggered immediately. If an alert has been triggered in the past 48 hours, then the alert will be silenced for 48 hours.
 
 ### Error: New Error Type Identified
 
