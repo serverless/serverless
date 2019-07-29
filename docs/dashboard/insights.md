@@ -59,7 +59,7 @@ On a per function basis, the new error insight runs every five minutes, tracks e
 
 ### Duration: Timeout
 
-PLACEHOLDER
+The timeout alert is checked on every invocation of the function. If any invocation runs for a duration longer than is configured for that function, Lambda will abruptly shut down the invocation and trigger a timeout error. The alert will be triggered immediately. If an alert has been triggered in the past 48 hours, then the alert will be silenced for 48 hours.
 
 ### Duration: Approaching Timeout
 
