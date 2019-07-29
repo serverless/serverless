@@ -50,17 +50,17 @@ The approaching out of memory alert runs every 5 minutes. It looks at the memory
 
 ### Memory: Out of Memory
 
-The out of memory alert is checked on every invocation of the function. If any invocation uses more memory than is configured for that function, Lambda will abruptly shut down the invocation and trigger an out of memory error. The alert will be triggered immediately. If an alert has been triggered in the past 48 hours, then the alert will be silenced for 48 hours.
+The out of memory alert is checked on every invocation of the function. If any invocation uses more memory than is configured for that function, Lambda will abruptly shut down the invocation and trigger an out of memory error. The alert will be triggered immediately and only once in a given 48 hour period.
 
 ### Error: New Error Type Identified
 
 Errors happen, and the sooner you know about them after they are introduced the better equipped you are to proactively mitigate their impact.
 
-On a per function basis, the new error insight runs every five minutes, tracks error types reported during the past five minutes, and compares them with all error types reported over the prior 48 hours. An alert is generated when an error type is found that was not present during the prior 48 hours. From the activity and insights feed you are able to drill into the details of a specific occurrence of the new error type.
+On a per function and execution basis, the new error insight tracks error types reported (if any), and compares them with all error types reported over the prior 48 hours. An alert is generated when an error type is found that was not present during the prior 48 hours. From the activity and insights feed you are able to drill into the details of a specific occurrence of the new error type.
 
 ### Duration: Timeout
 
-The timeout alert is checked on every invocation of the function. If any invocation runs for a duration longer than is configured for that function, Lambda will abruptly shut down the invocation and trigger a timeout error. The alert will be triggered immediately. If an alert has been triggered in the past 48 hours, then the alert will be silenced for 48 hours.
+The timeout alert is checked on every invocation of the function. If any invocation runs for a duration longer than is configured for that function, Lambda will abruptly shut down the invocation and trigger a timeout error. The alert will be triggered immediately and only once in a given 48 hour period.
 
 ### Duration: Approaching Timeout
 
