@@ -45,7 +45,7 @@ The unused memory insight runs once per week at midnight UTC on Sunday.  It look
 
 ### Memory: Approaching Out of Memory
 
-The approaching out of memory alert runs every 60 minutes. It looks at all the memory usage of all invocations of that function over the past 60 minutes. If any of the invocations exceed 90% of the allocated memory, then it will generate an alert.
+The approaching out of memory alert runs every 5 minutes. It looks at the memory usage of all invocations of that function over the past 60 minutes. If any of the invocations exceed 90% of the allocated memory, then it will generate an alert. If an alert was already triggered in the past 60 minutes, a new alert will not be triggered.
 
 ### Memory: Out of Memory
 
