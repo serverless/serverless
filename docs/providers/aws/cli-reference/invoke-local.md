@@ -122,6 +122,11 @@ Use of the `--docker` flag and runtimes other than NodeJs, Python, Java, & Ruby 
 
 **Note:** In order to get correct output when using Java runtime, your Response class must implement `toString()` method.
 
+**Environment variables:** The `IS_LOCAL` environment variable, as well as
+any environment variables provided via command line arguments,
+will only be set once the invoked function begins its execution.
+They _will not_ be set during the parsing of the `serverless.yml` file.
+
 ## Resource permissions
 
 Lambda functions assume an _IAM role_ during execution: the framework creates this role, and set all the permission provided in the `iamRoleStatements` section of `serverless.yml`.
