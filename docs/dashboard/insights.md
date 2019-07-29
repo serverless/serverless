@@ -35,7 +35,7 @@ custom:
 
 ## Alerts
 
-Serverless Insights include a pre-configured alerts designed to help you develop and optimize the performance and security of your serverless applications. These events are presented in the "activity and insights" feed within the Serverless Enterprise Framework [dashboard](https://dashboard.serverless.com/).  Preconfigured alerts include the following:
+Serverless Insights include pre-configured alerts designed to help you develop and optimize the performance and security of your serverless applications. These events are presented in the "alerts" tab within the Serverless Framework [dashboard](https://dashboard.serverless.com/).  Preconfigured alerts include the following:
 
 ### Memory: Unused Memory
 
