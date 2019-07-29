@@ -122,10 +122,10 @@ Use of the `--docker` flag and runtimes other than NodeJs, Python, Java, & Ruby 
 
 **Note:** In order to get correct output when using Java runtime, your Response class must implement `toString()` method.
 
-**Environment variables:** The `IS_LOCAL` environment variable, as well as 
-any environment variables provided via command line arguments, 
+**Environment variables:** The `IS_LOCAL` environment variable, as well as
+any environment variables provided via command line arguments,
 will only be set once the invoked function begins its execution.
-They *will not* be set during the parsing of the `serverless.yml` file.
+They _will not_ be set during the parsing of the `serverless.yml` file.
 
 ## Resource permissions
 
