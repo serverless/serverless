@@ -67,7 +67,7 @@ The approaching timeout alert runs every 5 minutes. It looks at the duration of 
 
 ### Duration: Unusual Function Duration
 
-PLACEHOLDER
+The unusual function duration is checked every 5 minutes. It looks at every invocation over the past 60 minutes and calculates the median duration. An alert is triggered If any of the invocations in the last 60 minutes had a duration that exceeded more than twice the median duration.
 
 ### Invocations: Escalated Invocation Count
 
