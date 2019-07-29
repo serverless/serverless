@@ -11,7 +11,7 @@ const {
   removeService,
   waitForFunctionLogs,
 } = require('../../utils/misc');
-const { getMarkers } = require('./service/utils');
+const { getMarkers } = require('../shared/utils');
 
 describe('AWS - S3 Integration Test', () => {
   let serviceName;
@@ -27,6 +27,7 @@ describe('AWS - S3 Integration Test', () => {
     console.info(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
+      filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook:
         // Ensure unique S3 bucket names for each test (to avoid collision among concurrent CI runs)
         config => {

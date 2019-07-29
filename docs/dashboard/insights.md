@@ -27,6 +27,7 @@ When deploying, Serverless Framework will also create an IAM role in your accoun
 If you wish to disable log collection, set the following options:
 
 **serverless.yml**
+
 ```yaml
 custom:
   enterprise:
@@ -53,9 +54,9 @@ The out of memory alert is checked on every invocation of the function. If any i
 
 ### Error: New Error Type Identified
 
-Errors happen, and the sooner you know about them after they are introduced the better equipped you are to proactively mitigate their impact.  
+Errors happen, and the sooner you know about them after they are introduced the better equipped you are to proactively mitigate their impact.
 
-On a per function basis, the new error insight runs every five minutes, tracks error types reported during the past five minutes, and compares them with all error types reported over the prior 48 hours.  An alert is generated when an error type is found that was not present during the prior 48 hours.  From the activity and insights feed you are able to drill into the details of a specific occurrence of the new error type.
+On a per function basis, the new error insight runs every five minutes, tracks error types reported during the past five minutes, and compares them with all error types reported over the prior 48 hours. An alert is generated when an error type is found that was not present during the prior 48 hours. From the activity and insights feed you are able to drill into the details of a specific occurrence of the new error type.
 
 ### Duration: Timeout
 
@@ -85,11 +86,11 @@ As part of the Serverless Insights feature we also include a set of pre-configur
 
 ### Errors and Invocations
 
-The errors and invociations chart shows error count trends and the aggregate number of invocations for a particular service for a selected time period.  Click into any bar on the chart to see function specific metrics.  
+The errors and invociations chart shows error count trends and the aggregate number of invocations for a particular service for a selected time period. Click into any bar on the chart to see function specific metrics.
 
 ### Durations
 
-The durations chart shows the aggregate duration times for all functions in a particular Service for a selected time period.  Click into any point on the chart to see function specific metrics.
+The durations chart shows the aggregate duration times for all functions in a particular Service for a selected time period. Click into any point on the chart to see function specific metrics.
 
 ## Advanced Configuration Options
 
@@ -117,4 +118,3 @@ package:
     - dist/*.js
     - dist/*.js.map
 ```
-

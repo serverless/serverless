@@ -1,3 +1,67 @@
+# 1.48.4 (2019-07-25)
+
+- [Add note for supported version of existing bucket feature](https://github.com/serverless/serverless/pull/6435)
+- [Support in interactive flow for SFE provided AWS creds](https://github.com/serverless/serverless/pull/6440)
+- [Fix sls package regression caused by cred fail fast](https://github.com/serverless/serverless/pull/6447)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.3...v1.48.4)
+
+# 1.48.3 (2019-07-23)
+
+- [Issue 6364 request path](https://github.com/serverless/serverless/pull/6422)
+- [Remove spaces from Cognito Pool Name](https://github.com/serverless/serverless/pull/6419)
+- [Use slss.io for links](https://github.com/serverless/serverless/pull/6428)
+- [Fix regression in EC2 & CodeBuild caused by missing creds check](https://github.com/serverless/serverless/pull/6427<Paste>)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.2...v1.48.3)
+
+# 1.48.2 (2019-07-19)
+
+- [Fix issues in post install and pre uninstall scripts](https://github.com/serverless/serverless/pull/6415)
+-
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.1...v1.48.2)
+
+# 1.48.1 (2019-07-19)
+
+- [Use Python3 for Python in interactive setup](https://github.com/serverless/serverless/pull/6406)
+- [Fixing broken link for Node install.](https://github.com/serverless/serverless/pull/6405)
+- [Added Cloud Build option for serverless deploy guide](https://github.com/serverless/serverless/pull/6401)
+- [Changed AWS subscription filters to use function object name](https://github.com/serverless/serverless/pull/6402)
+- [Strip trailing comment when renaming a service](https://github.com/serverless/serverless/pull/6408)
+- [Improve tracking reliability](https://github.com/serverless/serverless/pull/6410)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.0...v1.48.1)
+
+# 1.48.0 (2019-07-18)
+
+- [SFE plugin & sdk version info](https://github.com/serverless/serverless/pull/6344)
+- [Allow optionally splitting SSM parameter value for StringList type](https://github.com/serverless/serverless/pull/6365)
+- [Cross region SNS Trigger](https://github.com/serverless/serverless/pull/6366)
+- [Fix typo](https://github.com/serverless/serverless/pull/6379)
+- [Add SLS_NO_WARNINGS env var](https://github.com/serverless/serverless/pull/6345)
+- [Fix async S3 test](https://github.com/serverless/serverless/pull/6385)
+- [Fix AWS secret access key validation in interactive CLI](https://github.com/serverless/serverless/pull/6387)
+- [Improve post install message](https://github.com/serverless/serverless/pull/6388)
+- [PLAT-1385 Ensure expected service name in interactively created project](https://github.com/serverless/serverless/pull/6386)
+- [Updated gradle and kotlin.js gradle plugin fixing #5598](https://github.com/serverless/serverless/pull/6372)
+- [actually update the right aws creds link interactive setup aws](https://github.com/serverless/serverless/pull/6395)
+- [Integrating Components](https://github.com/serverless/serverless/pull/6350)
+- [Add support for existing Cognito User Pools](https://github.com/serverless/serverless/pull/6362)
+- [Add the missing colon](https://github.com/serverless/serverless/pull/6398)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.47.0...v1.48.0)
+
 # 1.47.0 (2019-07-10)
 
 - [Add Onica as a Consultant](https://github.com/serverless/serverless/pull/6300)

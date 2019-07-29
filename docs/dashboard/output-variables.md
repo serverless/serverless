@@ -19,12 +19,13 @@ The Serverless Framework Dashboard helps you refactor large serverless applicati
 Define new output variables by adding a dictionary (key/value pairs) to the `outputs:` field in the `serverless.yml` file. The values can include any value supported by YAML including strings, integers, lists (arrays), and dictionaries (key/value pairs). The dictionaries can also be nested to any depth.
 
 **serverless.yml**
+
 ```yaml
 outputs:
   my-key: my-value
   my-availability-zones:
-   - us-east-1a
-   - us-east-1b
+    - us-east-1a
+    - us-east-1b
   my-table-name: DynamoDbTable-${self:custom.stage}
 ```
 
@@ -35,6 +36,7 @@ The values will be interpolated and saved when the service is deployed. The valu
 Output variables can be consumed from other services with they `${state}` variable. The reference must be formatted as `<service-id>.<key>`, where the `<service-id>` references another service in the same application, stage and region and the `<key>` references the dictionary key from the `outputs:`. The `<key>` can also be nested to reference nested values from the dictionary.
 
 **serverless.yml**
+
 ```yaml
 ${state:my-service.var-key}
 ```
@@ -45,6 +47,4 @@ The output variables for a service are made available on two different pages of 
 
 The current output variables for a given service instance are available in the **Variables** > **Output** section of the service instance view. This will show the values which are currently available.
 
-The historic output variables for a given service instance are available as a part of the deployment record which is available in the **activity & insights** section of the service instance view after a deployment. 
-
-
+The historic output variables for a given service instance are available as a part of the deployment record which is available in the **activity & insights** section of the service instance view after a deployment.

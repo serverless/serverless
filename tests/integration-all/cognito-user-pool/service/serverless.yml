@@ -1,0 +1,21 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  versionFunctions: false
+
+functions:
+  basic:
+    handler: core.basic
+    events:
+      - cognitoUserPool:
+          pool: CHANGE_TO_UNIQUE_PER_RUN
+          trigger: PreSignUp
+  existing:
+    handler: core.existing
+    events:
+      - cognitoUserPool:
+          pool: CHANGE_TO_UNIQUE_PER_RUN
+          trigger: PreSignUp
+          existing: true

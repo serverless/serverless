@@ -12,7 +12,7 @@ layout: Doc
 
 # Deployment Profiles
 
-Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Secrets](./secrets.md) and [Access Roles](./access-roles.md). 
+Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Secrets](./secrets.md) and [Access Roles](./access-roles.md).
 
 ## Use Deployment Profiles
 
@@ -42,7 +42,7 @@ Access Roles, Secrets and Safeguards have individual configuration guides:
 
 Create a new stage by navigating to **applications** in the [Serverless Framework Dashboard](https://dashboard.serverless.com).
 
-1. Expand the application and click into the **stages** tab. 
+1. Expand the application and click into the **stages** tab.
 2. Click **add stage** in the tab
 3. Provide the **name** and select the **deployment profile**.
 
@@ -53,4 +53,3 @@ You can also set the **default deployment profile** field in the application. Yo
 When you run `serverless deploy` Serverless Framework will obtain the AWS Access Key, Secret and Safeguards associated with the deployment profile configured for that application and stage based on the values for `app` and `stage` in your `serverless.yml` file.
 
 The Serverless Framework will first try to match the current stage from `serverless.yml` with a stage configured on that application in the dashboard. If they match, it will use the deployment profile associated with that stage. If the stages do not match, then the default deployment profile from that application will be used.
-
