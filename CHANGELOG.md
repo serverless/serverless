@@ -1,3 +1,17 @@
+# 1.49.0 (2019-07-30)
+
+- [Remove hard coded partition when validating subscription filters](https://github.com/serverless/serverless/pull/6446)
+- [Fix cross-account/cross-regions SNS subscriptions to topics with the same name](https://github.com/serverless/serverless/pull/6445)
+- [Add EventBridge event source](https://github.com/serverless/serverless/pull/6397)
+- [Update invoke-local.md documentation](https://github.com/serverless/serverless/pull/6466)
+- [Doc new insights](https://github.com/serverless/serverless/pull/6469)
+- [New error insight alert doc update to reflect per execution inspection](https://github.com/serverless/serverless/pull/6472)
+- [Existing S3 bucket fixes](https://github.com/serverless/serverless/pull/6456)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.4...v1.49.0)
+
 # 1.48.4 (2019-07-25)
 
 - [Add note for supported version of existing bucket feature](https://github.com/serverless/serverless/pull/6435)
