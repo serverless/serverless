@@ -117,7 +117,7 @@
     "@serverless/enterprise-plugin": "^1.3.1",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.496.0",
+    "aws-sdk": "^2.499.0",
     "bluebird": "^3.5.5",
     "cachedir": "^2.2.0",
     "chalk": "^2.4.2",
