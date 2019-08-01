@@ -125,7 +125,7 @@
     "download": "^5.0.3",
     "fast-levenshtein": "^2.0.6",
     "filesize": "^3.6.1",
-    "fs-extra": "^0.26.7",
+    "fs-extra": "^0.30.0",
     "get-stdin": "^5.0.1",
     "globby": "^6.1.0",
     "graceful-fs": "^4.2.0",
