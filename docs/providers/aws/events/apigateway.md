@@ -1507,3 +1507,16 @@ provider:
     restApi:
       format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
 ```
+
+The CloudWatch log role used for the API Gateway logging is global to your account. Serverless will create an IAM role with the name `${self:service}-${self:provider.stage}-${self:provider.region}-apiGatewayLogsRole`. Every time you deploy a Serverless stack, it will overwrite the global IAM role used for CloudWatch logging. All stacks will use the deployed last IAM role.
+
+You can specify a custom role.
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      iamRole: custom-api-gateway-logs-iam-role
+```
