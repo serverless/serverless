@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const BbPromise = require('bluebird');
 const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
@@ -19,7 +20,8 @@ describe('AWS - S3 Integration Test', () => {
   let tmpDirPath;
   let bucketMinimalSetup;
   let bucketExtendedSetup;
-  let bucketExistingSetup;
+  let bucketExistingSimpleSetup;
+  let bucketExistingComplexSetup;
   const stage = 'dev';
 
   beforeAll(() => {
@@ -33,18 +35,26 @@ describe('AWS - S3 Integration Test', () => {
         config => {
           bucketMinimalSetup = `${config.service}-s3-minimal`;
           bucketExtendedSetup = `${config.service}-s3-extended`;
-          bucketExistingSetup = `${config.service}-s3-existing`;
+          bucketExistingSimpleSetup = `${config.service}-s3-existing-simple`;
+          bucketExistingComplexSetup = `${config.service}-s3-existing-complex`;
           config.functions.minimal.events[0].s3 = bucketMinimalSetup;
           config.functions.extended.events[0].s3.bucket = bucketExtendedSetup;
-          config.functions.existing.events[0].s3.bucket = bucketExistingSetup;
+          config.functions.existing.events[0].s3.bucket = bucketExistingSimpleSetup;
+          config.functions.existingCreated.events[0].s3.bucket = bucketExistingComplexSetup;
+          config.functions.existingCreated.events[1].s3.bucket = bucketExistingComplexSetup;
+          config.functions.existingRemoved.events[0].s3.bucket = bucketExistingComplexSetup;
+          config.functions.existingRemoved.events[1].s3.bucket = bucketExistingComplexSetup;
         },
     });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
-    // create an external S3 bucket
-    // NOTE: deployment can only be done once the S3 bucket is created
-    console.info(`Creating S3 bucket "${bucketExistingSetup}"...`);
-    return createBucket(bucketExistingSetup).then(() => {
+    // create external S3 buckets
+    // NOTE: deployment can only be done once the S3 buckets are created
+    console.info('Creating S3 buckets...');
+    return BbPromise.all([
+      createBucket(bucketExistingSimpleSetup),
+      createBucket(bucketExistingComplexSetup),
+    ]).then(() => {
       console.info(`Deploying "${stackName}" service...`);
       deployService();
     });
@@ -53,8 +63,11 @@ describe('AWS - S3 Integration Test', () => {
   afterAll(() => {
     console.info('Removing service...');
     removeService();
-    console.info(`Deleting S3 bucket "${bucketExistingSetup}"...`);
-    return deleteBucket(bucketExistingSetup);
+    console.info('Deleting S3 buckets');
+    return BbPromise.all([
+      deleteBucket(bucketExistingSimpleSetup),
+      deleteBucket(bucketExistingComplexSetup),
+    ]);
   });
 
   describe('Minimal Setup', () => {
@@ -90,18 +103,90 @@ describe('AWS - S3 Integration Test', () => {
   });
 
   describe('Existing Setup', () => {
-    it('should invoke function when an object is created', () => {
-      const functionName = 'existing';
-      const markers = getMarkers(functionName);
-      const expectedMessage = `Hello from S3! - (${functionName})`;
+    describe('Single fuction / single bucket setup', () => {
+      it('should invoke function when an object is created', () => {
+        const functionName = 'existing';
+        const markers = getMarkers(functionName);
+        const expectedMessage = `Hello from S3! - (${functionName})`;
 
-      return createAndRemoveInBucket(bucketExistingSetup, { prefix: 'Files/', suffix: '.TXT' })
-        .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(/aws:s3/g.test(logs)).to.equal(true);
-          expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
-          expect(logs.includes(expectedMessage)).to.equal(true);
-        });
+        return createAndRemoveInBucket(bucketExistingSimpleSetup, {
+          prefix: 'Files/',
+          suffix: '.TXT',
+        })
+          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(logs => {
+            expect(/aws:s3/g.test(logs)).to.equal(true);
+            expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
+            expect(logs.includes(expectedMessage)).to.equal(true);
+          });
+      });
+    });
+
+    describe('Multi function / multi bucket setup', () => {
+      it('should invoke function when a .jpg object is created', () => {
+        const functionName = 'existingCreated';
+        const markers = getMarkers(functionName);
+        const expectedMessage = `Hello from S3! - (${functionName})`;
+
+        return createAndRemoveInBucket(bucketExistingComplexSetup, {
+          prefix: 'photos',
+          suffix: '.jpg',
+        })
+          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(logs => {
+            expect(/aws:s3/g.test(logs)).to.equal(true);
+            expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
+            expect(logs.includes(expectedMessage)).to.equal(true);
+          });
+      });
+      it('should invoke function when a .jpg object is removed', () => {
+        const functionName = 'existingRemoved';
+        const markers = getMarkers(functionName);
+        const expectedMessage = `Hello from S3! - (${functionName})`;
+
+        return createAndRemoveInBucket(bucketExistingComplexSetup, {
+          prefix: 'photos',
+          suffix: '.jpg',
+        })
+          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(logs => {
+            expect(/aws:s3/g.test(logs)).to.equal(true);
+            expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);
+            expect(logs.includes(expectedMessage)).to.equal(true);
+          });
+      });
+      it('should invoke function when a .png object is created', () => {
+        const functionName = 'existingCreated';
+        const markers = getMarkers(functionName);
+        const expectedMessage = `Hello from S3! - (${functionName})`;
+
+        return createAndRemoveInBucket(bucketExistingComplexSetup, {
+          prefix: 'photos',
+          suffix: '.png',
+        })
+          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(logs => {
+            expect(/aws:s3/g.test(logs)).to.equal(true);
+            expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
+            expect(logs.includes(expectedMessage)).to.equal(true);
+          });
+      });
+      it('should invoke function when a .png object is removed', () => {
+        const functionName = 'existingRemoved';
+        const markers = getMarkers(functionName);
+        const expectedMessage = `Hello from S3! - (${functionName})`;
+
+        return createAndRemoveInBucket(bucketExistingComplexSetup, {
+          prefix: 'photos',
+          suffix: '.png',
+        })
+          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(logs => {
+            expect(/aws:s3/g.test(logs)).to.equal(true);
+            expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);
+            expect(logs.includes(expectedMessage)).to.equal(true);
+          });
+      });
     });
   });
 });
