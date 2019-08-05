@@ -30,7 +30,13 @@ if (process.env.SLS_DEBUG) {
 
 process.on('uncaughtException', error => logError(error, { forceExit: true }));
 
-process.on('unhandledRejection', logError);
+process.on('unhandledRejection', error => {
+  if (process.listenerCount('unhandledRejection') > 1) {
+    // User attached its own unhandledRejection handler, abort
+    return;
+  }
+  throw error;
+});
 
 require('../lib/utils/tracking').sendPending();
 
