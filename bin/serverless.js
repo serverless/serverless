@@ -28,6 +28,8 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
+process.on('uncaughtException', error => logError(error, { forceExit: true }));
+
 process.on('unhandledRejection', logError);
 
 require('../lib/utils/tracking').sendPending();
