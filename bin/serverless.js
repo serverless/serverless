@@ -59,14 +59,15 @@ initializeErrorReporter(invocationId).then(() => {
         }
       });
       if (!enterpriseErrorHandler) {
-        throw err;
+        logError(err);
+        return null;
       }
       return enterpriseErrorHandler(err, invocationId)
         .catch(error => {
           process.stdout.write(`${error.stack}\n`);
         })
         .then(() => {
-          throw err;
+          logError(err);
         });
     });
 });
