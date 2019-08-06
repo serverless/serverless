@@ -78,6 +78,8 @@ functions:
 
 Sometimes you might want to attach Lambda functions to existing Cognito User Pools. In that case you just need to set the `existing` event configuration property to `true`. All the other config parameters can also be used on existing user pools:
 
+**IMPORTANT:** You can only attach 1 existing Cognito User Pool per function.
+
 **NOTE:** Using the `existing` config will add an additional Lambda function and IAM Role to your stack. The Lambda function backs-up the Custom Cognito User Pool Resource which is used to support existing user pools.
 
 ```yaml
