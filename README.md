@@ -16,7 +16,7 @@ The Framework uses new event-driven compute services, like AWS Lambda, Google Cl
 
 Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
-<a href="https://www.youtube.com/watch?v=bFHmgqbAh4M" target="_blank">Watch the video guide here.</a>
+<a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Watch the video overview here.</a>
 
 <a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
 
