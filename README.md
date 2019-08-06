@@ -20,6 +20,8 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 <a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
 
+[![serverless components notice](https://s3.amazonaws.com/assets.github.serverless/components/serverless_components_notice_dark.gif)](https://github.com/serverless/components) 
+
 ## Contents
 
 <img align="right" width="400" src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/email/sls-getting-started.gif" />
