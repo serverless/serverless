@@ -27,16 +27,16 @@ service: my-service
 provider:
   name: kubeless
   runtime: python2.7
-  memorySize: 512M    # optional, maximum memory
-  timeout: 10         # optional, in seconds, default is 180
+  memorySize: 512M # optional, maximum memory
+  timeout: 10 # optional, in seconds, default is 180
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
-  ingress:            # optional, ingress configuration if not using nginx
-    class: "traefik"                 # optional, class of ingress
-    additionalAnnotations:           # optional, extra annotations to put in ingress metadata
-      kubernetes.io/tls-acme: "true" 
-    tlsConfig:                       # optional, TLS configuration block
+  ingress: # optional, ingress configuration if not using nginx
+    class: 'traefik' # optional, class of ingress
+    additionalAnnotations: # optional, extra annotations to put in ingress metadata
+      kubernetes.io/tls-acme: 'true'
+    tlsConfig: # optional, TLS configuration block
       - hosts:
-          - "example.com"
+          - 'example.com'
         secretName: ingress-example-com-certs
 
 plugins:
@@ -305,10 +305,10 @@ You can specify a custom Ingress Controller and extra annotations that will be p
 
 provider:
   name: kubeless
-  ingress:  
-    class: "traefik"
-    additionalAnnotations: 
-      kubernetes.io/tls-acme: "true" 
+  ingress:
+    class: 'traefik'
+    additionalAnnotations:
+      kubernetes.io/tls-acme: 'true'
 ```
 
 This will change the default annotations of:
@@ -329,6 +329,7 @@ annotations:
 ```
 
 You can find the above annotations with the following `kubectl` command, after deploying:
+
 ```
 kubectl describe ingress function-name
 ```
