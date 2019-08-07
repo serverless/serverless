@@ -1,5 +1,5 @@
 {
-  "name": "twilio-runtime-serverless",
+  "name": "twilio-nodejs-runtime-example",
   "version": "1.0.0",
   "description": "Twilio Functions sample for the Serverless framework",
   "scripts": {

@@ -1,4 +1,4 @@
-service: twilio-runtime-serverless # NOTE: update this with your service name
+service: twilio-nodejs-runtime-example # NOTE: update this with your service name
 
 provider:
   # Twilio runtime as your preferred provider
