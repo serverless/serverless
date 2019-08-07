@@ -16,14 +16,20 @@ const spawn = require('child-process-ext/spawn');
 const chalk = require('chalk');
 const pLimit = require('p-limit');
 
-const shouldApplyFsCleanupCheck = (() => {
-  const argIndex = process.argv.indexOf('--skip-fs-cleanup-check');
-  if (argIndex === -1) return true;
-  process.argv.splice(argIndex, 1);
+const inputOptions = {};
+const patterns = process.argv.slice(2).filter(arg => {
+  if (!arg.startsWith('-')) return true;
+  switch (arg) {
+    case '--skip-fs-cleanup-check':
+      inputOptions.skipFsCleanupCheck = true;
+      break;
+    default:
+      process.stderr.write(chalk.red.bold(`Unrecognized option ${arg}\n\n`));
+      process.exit(1);
+  }
   return false;
-})();
-
-const patterns = process.argv.length <= 2 ? ['**/*.test.js'] : process.argv.slice(2);
+});
+if (!patterns.length) patterns.push('**/*.test.js');
 patterns.push('!node_modules/**');
 
 const resolveGitStatus = () =>
@@ -36,9 +42,9 @@ const resolveGitStatus = () =>
     }
   );
 
-const initialGitStatusDeferred = shouldApplyFsCleanupCheck ? resolveGitStatus() : null;
+const initialGitStatusDeferred = !inputOptions.skipFsCleanupCheck ? resolveGitStatus() : null;
 
-const initialSetupDeferred = shouldApplyFsCleanupCheck
+const initialSetupDeferred = !inputOptions.skipFsCleanupCheck
   ? initialGitStatusDeferred
   : Promise.resolve();
 
@@ -48,7 +54,7 @@ globby(patterns).then(paths => {
     process.exit(1);
   }
 
-  const processesCount = shouldApplyFsCleanupCheck
+  const processesCount = !inputOptions.skipFsCleanupCheck
     ? 1
     : Math.max(require('os').cpus().length - 1, 1);
 
@@ -75,7 +81,7 @@ globby(patterns).then(paths => {
           return Promise.resolve();
         };
       }
-      if (!shouldApplyFsCleanupCheck) return () => Promise.resolve();
+      if (inputOptions.skipFsCleanupCheck) return () => Promise.resolve();
       return () =>
         Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
           ([initialStatus, currentStatus]) => {
