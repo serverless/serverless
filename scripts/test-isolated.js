@@ -47,13 +47,14 @@ const initialSetupDeferred = !inputOptions.skipFsCleanupCheck
   ? initialGitStatusDeferred
   : Promise.resolve();
 
+const cwdPathLength = process.cwd().length + 1;
 const paths = mochaCollectFiles({
   ignore: [],
   extension: ['js'],
   file: [],
   recursive: process.argv.includes('--recursive'),
   spec: filePatterns,
-});
+}).map(filename => filename.slice(cwdPathLength));
 
 if (!paths.length) {
   process.stderr.write(chalk.red.bold('No test files matched\n\n'));
