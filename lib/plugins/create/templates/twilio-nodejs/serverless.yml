@@ -1,0 +1,51 @@
+service: twilio-nodejs-runtime-example # NOTE: update this with your service name
+
+provider:
+  # Twilio runtime as your preferred provider
+  name: twilio
+
+  # Auth credentials which you'll find at twilio.com/console
+  config:
+    accountSid: ${env:TWILIO_ACCOUNT_SID}
+    authToken: ${env:TWILIO_AUTH_TOKEN}
+
+  # Dependency definitions similar
+  # to dependencies in a package.json
+  # -> these dependencies will be available in the
+  #    Twilio Node.js runtime
+  dependencies:
+    asciiart-logo: '*'
+
+  # Twilio runtime supports several domains
+  # your functions and assets will be available under
+  # -> defaulting to 'dev'
+  environment: ${env:TWILIO_RUNTIME_ENV, 'dev'}
+
+  # Environment variables passed to your functions
+  # available via process.env
+  environmentVars:
+    MY_MESSAGE: 'THIS IS cool stuff'
+
+# Twilio runtime has to be added a plugin
+plugins:
+  - '@twilio-labs/serverless-twilio-runtime'
+
+functions:
+  hello-world:
+    # Path to the JS handler function in the project (without file extension '.js')
+    handler: handler
+    # URL path of the function after deployment
+    path: /hello/world
+    # visibility of the function (can be "public" or "protected")
+    access: public
+
+resources:
+  assets:
+    # Asset name
+    example-image:
+      # path to the asset in the project
+      filePath: example.jpg
+      # URL path to the asset after deployment
+      path: /assets/foo/example.jpg
+      # visibility of the asset
+      access: public
