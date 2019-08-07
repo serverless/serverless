@@ -15,14 +15,15 @@ const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
 
 const CF = new AWS.CloudFormation({ region });
 
-describe('Service Lifecyle Integration Test', () => {
+describe('Service Lifecyle Integration Test', function() {
+  this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   const templateName = 'aws-nodejs';
   const tmpDir = getTmpDirPath();
   let oldCwd;
   let serviceName;
   let StackName;
 
-  beforeAll(() => {
+  before(() => {
     oldCwd = process.cwd();
     serviceName = getServiceName();
     StackName = `${serviceName}-dev`;
@@ -30,7 +31,7 @@ describe('Service Lifecyle Integration Test', () => {
     process.chdir(tmpDir);
   });
 
-  afterAll(() => {
+  after(() => {
     process.chdir(oldCwd);
   });
 
