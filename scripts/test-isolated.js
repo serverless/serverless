@@ -17,7 +17,7 @@ const chalk = require('chalk');
 const pLimit = require('p-limit');
 
 const inputOptions = {};
-const patterns = process.argv.slice(2).filter(arg => {
+const filePatterns = process.argv.slice(2).filter(arg => {
   if (!arg.startsWith('-')) return true;
   switch (arg) {
     case '--skip-fs-cleanup-check':
@@ -29,8 +29,8 @@ const patterns = process.argv.slice(2).filter(arg => {
   }
   return false;
 });
-if (!patterns.length) patterns.push('**/*.test.js');
-patterns.push('!node_modules/**');
+if (!filePatterns.length) filePatterns.push('**/*.test.js');
+filePatterns.push('!node_modules/**');
 
 const resolveGitStatus = () =>
   spawn('git', ['status', '--porcelain']).then(
@@ -48,7 +48,7 @@ const initialSetupDeferred = !inputOptions.skipFsCleanupCheck
   ? initialGitStatusDeferred
   : Promise.resolve();
 
-globby(patterns).then(paths => {
+globby(filePatterns).then(paths => {
   if (!paths.length) {
     process.stderr.write(chalk.red.bold('No test files matched\n\n'));
     process.exit(1);
