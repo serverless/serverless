@@ -11,10 +11,10 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
-const globby = require('globby');
 const spawn = require('child-process-ext/spawn');
 const chalk = require('chalk');
 const pLimit = require('p-limit');
+const mochaCollectFiles = require('mocha/lib/cli/collect-files');
 
 const inputOptions = {};
 const filePatterns = process.argv.slice(2).filter(arg => {
@@ -29,8 +29,7 @@ const filePatterns = process.argv.slice(2).filter(arg => {
   }
   return false;
 });
-if (!filePatterns.length) filePatterns.push('**/*.test.js');
-filePatterns.push('!node_modules/**');
+if (!filePatterns.length) filePatterns.push('!(node_modules)/**/*.test.js');
 
 const resolveGitStatus = () =>
   spawn('git', ['status', '--porcelain']).then(
@@ -48,73 +47,79 @@ const initialSetupDeferred = !inputOptions.skipFsCleanupCheck
   ? initialGitStatusDeferred
   : Promise.resolve();
 
-globby(filePatterns).then(paths => {
-  if (!paths.length) {
-    process.stderr.write(chalk.red.bold('No test files matched\n\n'));
-    process.exit(1);
+const paths = mochaCollectFiles({
+  ignore: [],
+  extension: ['js'],
+  file: [],
+  recursive: process.argv.includes('--recursive'),
+  spec: filePatterns,
+});
+
+if (!paths.length) {
+  process.stderr.write(chalk.red.bold('No test files matched\n\n'));
+  process.exit(1);
+}
+
+const processesCount = !inputOptions.skipFsCleanupCheck
+  ? 1
+  : Math.max(require('os').cpus().length - 1, 1);
+
+const isMultiProcessRun = processesCount > 1;
+
+const { ongoing, cliFooter } = (() => {
+  if (!isMultiProcessRun) return {};
+  return { ongoing: new Set(), cliFooter: require('cli-progress-footer')() };
+})();
+
+const run = path => {
+  if (isMultiProcessRun) {
+    ongoing.add(path);
+    cliFooter.updateProgress(Array.from(ongoing));
   }
 
-  const processesCount = !inputOptions.skipFsCleanupCheck
-    ? 1
-    : Math.max(require('os').cpus().length - 1, 1);
-
-  const isMultiProcessRun = processesCount > 1;
-
-  const { ongoing, cliFooter } = (() => {
-    if (!isMultiProcessRun) return {};
-    return { ongoing: new Set(), cliFooter: require('cli-progress-footer')() };
+  const onFinally = (() => {
+    if (isMultiProcessRun) {
+      return ({ stdoutBuffer, stderrBuffer }) => {
+        ongoing.delete(path);
+        cliFooter.updateProgress(Array.from(ongoing));
+        process.stdout.write(stdoutBuffer);
+        process.stderr.write(stderrBuffer);
+        return Promise.resolve();
+      };
+    }
+    if (inputOptions.skipFsCleanupCheck) return () => Promise.resolve();
+    return () =>
+      Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
+        ([initialStatus, currentStatus]) => {
+          if (initialStatus !== currentStatus) {
+            process.stderr.write(
+              chalk.red.bold(`${path} didn't clean created temporary files\n\n`)
+            );
+            process.exit(1);
+          }
+        }
+      );
   })();
 
-  const run = path => {
-    if (isMultiProcessRun) {
-      ongoing.add(path);
-      cliFooter.updateProgress(Array.from(ongoing));
-    }
-
-    const onFinally = (() => {
-      if (isMultiProcessRun) {
-        return ({ stdoutBuffer, stderrBuffer }) => {
-          ongoing.delete(path);
-          cliFooter.updateProgress(Array.from(ongoing));
-          process.stdout.write(stdoutBuffer);
-          process.stderr.write(stderrBuffer);
-          return Promise.resolve();
-        };
-      }
-      if (inputOptions.skipFsCleanupCheck) return () => Promise.resolve();
-      return () =>
-        Promise.all([initialGitStatusDeferred, resolveGitStatus()]).then(
-          ([initialStatus, currentStatus]) => {
-            if (initialStatus !== currentStatus) {
-              process.stderr.write(
-                chalk.red.bold(`${path} didn't clean created temporary files\n\n`)
-              );
-              process.exit(1);
-            }
-          }
-        );
-    })();
-
-    return spawn('npx', ['mocha', path], {
-      stdio: isMultiProcessRun ? null : 'inherit',
-      env: {
-        APPDATA: process.env.APPDATA,
-        FORCE_COLOR: '1',
-        HOME: process.env.HOME,
-        PATH: process.env.PATH,
-        TMPDIR: process.env.TMPDIR,
-        USERPROFILE: process.env.USERPROFILE,
-      },
-    }).then(onFinally, error => {
-      if (isMultiProcessRun) ongoing.clear();
-      return onFinally(error).then(() => {
-        process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
-        if (error.code <= 2) process.exit(error.code);
-        throw error;
-      });
+  return spawn('npx', ['mocha', path], {
+    stdio: isMultiProcessRun ? null : 'inherit',
+    env: {
+      APPDATA: process.env.APPDATA,
+      FORCE_COLOR: '1',
+      HOME: process.env.HOME,
+      PATH: process.env.PATH,
+      TMPDIR: process.env.TMPDIR,
+      USERPROFILE: process.env.USERPROFILE,
+    },
+  }).then(onFinally, error => {
+    if (isMultiProcessRun) ongoing.clear();
+    return onFinally(error).then(() => {
+      process.stderr.write(chalk.red.bold(`${path} failed\n\n`));
+      if (error.code <= 2) process.exit(error.code);
+      throw error;
     });
-  };
+  });
+};
 
-  const limit = pLimit(processesCount);
-  return initialSetupDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));
-});
+const limit = pLimit(processesCount);
+return initialSetupDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));
