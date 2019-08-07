@@ -82,7 +82,7 @@ module.exports = class ServerlessSpec extends Spec {
       } catch (error) {
         if (error.code !== 'ENOENT') throw error;
       }
-      if (process.cwd() !== startCwd) {
+      if (process.cwd() !== startCwd && !runner.failures) {
         runner._abort = true; // eslint-disable-line no-underscore-dangle,no-param-reassign
         throw new Error(
           `Tests in ${suite.file.slice(startCwd.length + 1)} didn't revert ` +
