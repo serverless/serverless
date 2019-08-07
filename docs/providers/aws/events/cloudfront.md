@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cloudfront)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # CloudFront
@@ -21,10 +23,11 @@ Origin is the endpoint definition of the service that is delivered, e.g. S3 buck
 Behavior defines how the Amazon CloudFront acts when the request hits the service. That is where Lambda@Edge functions are also defined.
 
 Lambda@Edge has four options when the Lambda function is triggered
-* `viewer-request`, when the CloudFront first receives the request from the client
-* `origin-request`, before the request to the origin service
-* `origin-response`, when CloudFront receives the request from the origin service
-* `viewer-response`, before the response returned to the client
+
+- `viewer-request`, when the CloudFront first receives the request from the client
+- `origin-request`, before the request to the origin service
+- `origin-response`, when CloudFront receives the request from the origin service
+- `viewer-response`, before the response returned to the client
 
 ## Simple event definition
 
@@ -50,9 +53,7 @@ module.exports.handler = (event, context, callback) => {
   const response = event.Records[0].cf.response;
   const headers = response.headers;
 
-  headers['x-serverless-time'] = [
-      { key: 'x-serverless-time', value: Date.now().toString() },
-  ];
+  headers['x-serverless-time'] = [{ key: 'x-serverless-time', value: Date.now().toString() }];
 
   return callback(null, response);
 };
