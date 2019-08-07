@@ -27,9 +27,17 @@ service: my-service
 provider:
   name: kubeless
   runtime: python2.7
-  memorySize: 512M # optional, maximum memory
-  timeout: 10 # optional, in seconds, default is 180
+  memorySize: 512M    # optional, maximum memory
+  timeout: 10         # optional, in seconds, default is 180
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
+  ingress:            # optional, ingress configuration if not using nginx
+    class: "traefik"                 # optional, class of ingress
+    additionalAnnotations:           # optional, extra annotations to put in ingress metadata
+      kubernetes.io/tls-acme: "true" 
+    tlsConfig:                       # optional, TLS configuration block
+      - hosts:
+          - "example.com"
+        secretName: ingress-example-com-certs
 
 plugins:
   - serverless-kubeless
@@ -287,6 +295,43 @@ functions:
 The above will result in an endpoint like `1.2.3.4.xip.io/hello` where `1.2.3.4` is the IP of the cluster server.
 
 The final URL in which the function will be listening can be retrieved executing `serverless info`.
+
+## Custom Ingress Controller and annotations
+
+You can specify a custom Ingress Controller and extra annotations that will be placed in the `metadata.annotations` block of your function's Ingress.
+
+```yml
+# Serverless.yml:
+
+provider:
+  name: kubeless
+  ingress:  
+    class: "traefik"
+    additionalAnnotations: 
+      kubernetes.io/tls-acme: "true" 
+```
+
+This will change the default annotations of:
+
+```yml
+annotations:
+  kubernetes.io/ingress.class: nginx
+  nginx.ingress.kubernetes.io/rewrite-target: /
+```
+
+To the following:
+
+```yml
+annotations:
+  kubernetes.io/ingress.class: traefik
+  traefik.ingress.kubernetes.io/rewrite-target: /
+  kubernetes.io/tls-acme: true
+```
+
+You can find the above annotations with the following `kubectl` command, after deploying:
+```
+kubectl describe ingress function-name
+```
 
 ## Custom images (alpha feature)
 
