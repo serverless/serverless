@@ -39,7 +39,7 @@ describe('AWS - API Gateway Integration Test', () => {
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
-    deployService();
+    deployService(tmpDirPath);
     // create an external REST API
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;
     return createRestApi(externalRestApiName)
@@ -64,9 +64,9 @@ describe('AWS - API Gateway Integration Test', () => {
     writeYamlFile(serverlessFilePath, serverless);
     // NOTE: deploying once again to get the stack into the original state
     console.info('Redeploying service...');
-    deployService();
+    deployService(tmpDirPath);
     console.info('Removing service...');
-    removeService();
+    removeService(tmpDirPath);
     console.info('Deleting external rest API...');
     return deleteRestApi(restApiId);
   });
@@ -233,7 +233,7 @@ describe('AWS - API Gateway Integration Test', () => {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService();
+      deployService(tmpDirPath);
     });
 
     it('should update the stage without service interruptions', () => {
@@ -268,7 +268,7 @@ describe('AWS - API Gateway Integration Test', () => {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService();
+      deployService(tmpDirPath);
     });
 
     it('should update the stage without service interruptions', () => {

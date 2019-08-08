@@ -56,13 +56,13 @@ describe('AWS - S3 Integration Test', () => {
       createBucket(bucketExistingComplexSetup),
     ]).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService();
+      deployService(tmpDirPath);
     });
   });
 
   afterAll(() => {
     console.info('Removing service...');
-    removeService();
+    removeService(tmpDirPath);
     console.info('Deleting S3 buckets');
     return BbPromise.all([
       deleteBucket(bucketExistingSimpleSetup),
@@ -77,7 +77,7 @@ describe('AWS - S3 Integration Test', () => {
       const expectedMessage = `Hello from S3! - (${functionName})`;
 
       return createAndRemoveInBucket(bucketMinimalSetup)
-        .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
         .then(logs => {
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -93,7 +93,7 @@ describe('AWS - S3 Integration Test', () => {
       const expectedMessage = `Hello from S3! - (${functionName})`;
 
       return createAndRemoveInBucket(bucketExtendedSetup, { prefix: 'photos/', suffix: '.jpg' })
-        .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
         .then(logs => {
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);
@@ -113,7 +113,7 @@ describe('AWS - S3 Integration Test', () => {
           prefix: 'Files/',
           suffix: '.TXT',
         })
-          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
           .then(logs => {
             expect(/aws:s3/g.test(logs)).to.equal(true);
             expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -132,7 +132,7 @@ describe('AWS - S3 Integration Test', () => {
           prefix: 'photos',
           suffix: '.jpg',
         })
-          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
           .then(logs => {
             expect(/aws:s3/g.test(logs)).to.equal(true);
             expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -148,7 +148,7 @@ describe('AWS - S3 Integration Test', () => {
           prefix: 'photos',
           suffix: '.jpg',
         })
-          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
           .then(logs => {
             expect(/aws:s3/g.test(logs)).to.equal(true);
             expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);
@@ -164,7 +164,7 @@ describe('AWS - S3 Integration Test', () => {
           prefix: 'photos',
           suffix: '.png',
         })
-          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
           .then(logs => {
             expect(/aws:s3/g.test(logs)).to.equal(true);
             expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -180,7 +180,7 @@ describe('AWS - S3 Integration Test', () => {
           prefix: 'photos',
           suffix: '.png',
         })
-          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
           .then(logs => {
             expect(/aws:s3/g.test(logs)).to.equal(true);
             expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);

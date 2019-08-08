@@ -22,12 +22,12 @@ function getServiceName() {
   return `${testServiceIdentifier}-${hrtime[1]}`;
 }
 
-function deployService() {
-  execSync(`${serverlessExec} deploy`);
+function deployService(cwd) {
+  execSync(`${serverlessExec} deploy`, { cwd });
 }
 
-function removeService() {
-  execSync(`${serverlessExec} remove`);
+function removeService(cwd) {
+  execSync(`${serverlessExec} remove`, { cwd });
 }
 
 function replaceEnv(values) {
@@ -60,11 +60,10 @@ function createTestService(
   const serviceName = getServiceName();
 
   fse.mkdirsSync(tmpDir);
-  process.chdir(tmpDir);
 
   if (options.templateName) {
     // create a new Serverless service
-    execSync(`${serverlessExec} create --template ${options.templateName}`);
+    execSync(`${serverlessExec} create --template ${options.templateName}`, { cwd: tmpDir });
   } else if (options.templateDir) {
     fse.copySync(options.templateDir, tmpDir, { clobber: true, preserveTimestamps: true });
   } else {
@@ -94,18 +93,20 @@ function createTestService(
   return serverlessConfig;
 }
 
-function getFunctionLogs(functionName) {
-  const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`);
+function getFunctionLogs(cwd, functionName) {
+  const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`, {
+    cwd,
+  });
   const logsString = Buffer.from(logs, 'base64').toString();
   process.stdout.write(logsString);
   return logsString;
 }
 
-function waitForFunctionLogs(functionName, startMarker, endMarker) {
+function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
   let logs;
   return new BbPromise(resolve => {
     const interval = setInterval(() => {
-      logs = getFunctionLogs(functionName);
+      logs = getFunctionLogs(cwd, functionName);
       if (logs && logs.includes(startMarker) && logs.includes(endMarker)) {
         clearInterval(interval);
         return resolve(logs);

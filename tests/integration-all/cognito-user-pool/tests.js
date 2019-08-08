@@ -59,13 +59,13 @@ describe('AWS - Cognito User Pool Integration Test', () => {
       createUserPool(poolExistingMultiSetup),
     ]).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService();
+      deployService(tmpDirPath);
     });
   });
 
   afterAll(() => {
     console.info('Removing service...');
-    removeService();
+    removeService(tmpDirPath);
     console.info('Deleting Cognito User Pools');
     return BbPromise.all([
       deleteUserPool(poolExistingSimpleSetup),
@@ -84,7 +84,7 @@ describe('AWS - Cognito User Pool Integration Test', () => {
           userPoolId = pool.Id;
           return createUser(userPoolId, 'johndoe', '!!!wAsD123456wAsD!!!');
         })
-        .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
         .then(logs => {
           expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
           expect(logs).to.include('"userName":"johndoe"');
@@ -105,7 +105,7 @@ describe('AWS - Cognito User Pool Integration Test', () => {
             userPoolId = pool.Id;
             return createUser(userPoolId, 'janedoe', '!!!wAsD123456wAsD!!!');
           })
-          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
           .then(logs => {
             expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
             expect(logs).to.include('"userName":"janedoe"');
@@ -133,7 +133,7 @@ describe('AWS - Cognito User Pool Integration Test', () => {
                 .then(() => initiateAuth(clientId, username, password));
             });
           })
-          .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
+          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
           .then(logs => {
             expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
             expect(logs).to.include(`"userName":"${username}"`);
