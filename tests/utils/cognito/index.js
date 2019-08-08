@@ -3,10 +3,11 @@
 const AWS = require('aws-sdk');
 const { region, persistentRequest } = require('../misc');
 
-function createUserPool(name) {
+function createUserPool(name, config = {}) {
   const cognito = new AWS.CognitoIdentityServiceProvider({ region });
 
-  return cognito.createUserPool({ PoolName: name }).promise();
+  const params = Object.assign({}, { PoolName: name }, config);
+  return cognito.createUserPool(params).promise();
 }
 
 function createUserPoolClient(name, userPoolId) {
@@ -53,6 +54,12 @@ function findUserPoolByName(name) {
   return recursiveFind();
 }
 
+function describeUserPool(userPoolId) {
+  const cognito = new AWS.CognitoIdentityServiceProvider({ region });
+
+  return cognito.describeUserPool({ UserPoolId: userPoolId }).promise();
+}
+
 function createUser(userPoolId, username, password) {
   const cognito = new AWS.CognitoIdentityServiceProvider({ region });
 
@@ -94,6 +101,7 @@ module.exports = {
   createUserPool: persistentRequest.bind(this, createUserPool),
   deleteUserPool: persistentRequest.bind(this, deleteUserPool),
   findUserPoolByName: persistentRequest.bind(this, findUserPoolByName),
+  describeUserPool: persistentRequest.bind(this, describeUserPool),
   createUserPoolClient: persistentRequest.bind(this, createUserPoolClient),
   createUser: persistentRequest.bind(this, createUser),
   setUserPassword: persistentRequest.bind(this, setUserPassword),

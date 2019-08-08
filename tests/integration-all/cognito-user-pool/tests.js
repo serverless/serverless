@@ -9,6 +9,7 @@ const {
   createUserPool,
   deleteUserPool,
   findUserPoolByName,
+  describeUserPool,
   createUser,
   createUserPoolClient,
   setUserPassword,
@@ -29,6 +30,7 @@ describe('AWS - Cognito User Pool Integration Test', () => {
   let poolBasicSetup;
   let poolExistingSimpleSetup;
   let poolExistingMultiSetup;
+  let poolExistingSimpleSetupConfig;
   const stage = 'dev';
 
   beforeAll(() => {
@@ -52,10 +54,15 @@ describe('AWS - Cognito User Pool Integration Test', () => {
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     // create external Cognito User Pools
+    // the simple pool setup has some additional configuration when we set it up
+    poolExistingSimpleSetupConfig = {
+      EmailVerificationMessage: 'email{####}message',
+      EmailVerificationSubject: 'email{####}subject',
+    };
     // NOTE: deployment can only be done once the Cognito User Pools are created
     console.info('Creating Cognito User Pools');
     return BbPromise.all([
-      createUserPool(poolExistingSimpleSetup),
+      createUserPool(poolExistingSimpleSetup, poolExistingSimpleSetupConfig),
       createUserPool(poolExistingMultiSetup),
     ]).then(() => {
       console.info(`Deploying "${stackName}" service...`);
@@ -111,6 +118,19 @@ describe('AWS - Cognito User Pool Integration Test', () => {
             expect(logs).to.include('"userName":"janedoe"');
             expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
           });
+      });
+
+      it('should not overwrite existing User Pool configurations', () => {
+        return findUserPoolByName(poolExistingSimpleSetup).then(pool => {
+          return describeUserPool(pool.Id).then(config => {
+            expect(config.UserPool.EmailVerificationMessage).to.equal(
+              poolExistingSimpleSetupConfig.EmailVerificationMessage
+            );
+            expect(config.UserPool.EmailVerificationSubject).to.equal(
+              poolExistingSimpleSetupConfig.EmailVerificationSubject
+            );
+          });
+        });
       });
     });
 
