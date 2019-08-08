@@ -20,6 +20,9 @@ const inputOptions = {};
 const filePatterns = process.argv.slice(2).filter(arg => {
   if (!arg.startsWith('-')) return true;
   switch (arg) {
+    case '--pass-through-aws-creds':
+      inputOptions.passThroughAwsCreds = true;
+      break;
     case '--skip-fs-cleanup-check':
       inputOptions.skipFsCleanupCheck = true;
       break;
@@ -102,16 +105,23 @@ const run = path => {
       );
   })();
 
+  const env = {
+    APPDATA: process.env.APPDATA,
+    FORCE_COLOR: '1',
+    HOME: process.env.HOME,
+    PATH: process.env.PATH,
+    TMPDIR: process.env.TMPDIR,
+    USERPROFILE: process.env.USERPROFILE,
+  };
+
+  if (inputOptions.passThroughAwsCreds) {
+    for (const envVarName of Object.keys(process.env)) {
+      if (envVarName.startsWith('AWS_')) env[envVarName] = process.env[envVarName];
+    }
+  }
   return spawn('npx', ['mocha', path], {
     stdio: isMultiProcessRun ? null : 'inherit',
-    env: {
-      APPDATA: process.env.APPDATA,
-      FORCE_COLOR: '1',
-      HOME: process.env.HOME,
-      PATH: process.env.PATH,
-      TMPDIR: process.env.TMPDIR,
-      USERPROFILE: process.env.USERPROFILE,
-    },
+    env,
   }).then(onFinally, error => {
     if (isMultiProcessRun) ongoing.clear();
     return onFinally(error).then(() => {
