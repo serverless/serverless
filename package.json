@@ -79,15 +79,6 @@
     "reporter": "tests/mocha-reporter",
     "timeout": 5000
   },
-  "jest": {
-    "setupFilesAfterEnv": [
-      "<rootDir>/tests/setup-tests.js"
-    ],
-    "testEnvironment": "node",
-    "testRegex": "(\\.|/)(tests)\\.js$",
-    "testRunner": "jest-circus/runner",
-    "useStderr": true
-  },
   "devDependencies": {
     "@serverless/eslint-config": "^1.1.0",
     "chai": "^4.2.0",
@@ -98,8 +89,6 @@
     "eslint": "^6.0.1",
     "eslint-plugin-import": "^2.18.1",
     "git-list-updated": "^1.2.1",
-    "jest-circus": "^24.8.0",
-    "jest-cli": "^24.8.0",
     "mocha": "^6.2.0",
     "mocha-lcov-reporter": "^1.3.0",
     "mock-require": "^3.0.3",
