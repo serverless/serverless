@@ -19,31 +19,24 @@ describe('Service Lifecyle Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   const templateName = 'aws-nodejs';
   const tmpDir = getTmpDirPath();
-  let oldCwd;
   let serviceName;
   let StackName;
 
   before(() => {
-    oldCwd = process.cwd();
     serviceName = getServiceName();
     StackName = `${serviceName}-dev`;
     fse.mkdirsSync(tmpDir);
-    process.chdir(tmpDir);
-  });
-
-  after(() => {
-    process.chdir(oldCwd);
   });
 
   it('should create service in tmp directory', () => {
-    execSync(`${serverlessExec} create --template ${templateName}`);
-    replaceTextInFile('serverless.yml', templateName, serviceName);
+    execSync(`${serverlessExec} create --template ${templateName}`, { cwd: tmpDir });
+    replaceTextInFile(path.join(tmpDir, 'serverless.yml'), templateName, serviceName);
     expect(fs.existsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(fs.existsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
 
   it('should deploy service to aws', () => {
-    execSync(`${serverlessExec} deploy`);
+    execSync(`${serverlessExec} deploy`, { cwd: tmpDir });
 
     return CF.describeStacks({ StackName })
       .promise()
@@ -51,7 +44,9 @@ describe('Service Lifecyle Integration Test', function() {
   });
 
   it('should invoke function from aws', () => {
-    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
+    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`, {
+      cwd: tmpDir,
+    });
     const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
     // parse it once again because the body is stringified to be LAMBDA-PROXY ready
     const message = JSON.parse(result.body).message;
@@ -68,18 +63,20 @@ describe('Service Lifecyle Integration Test', function() {
       `;
 
     fs.writeFileSync(path.join(tmpDir, 'handler.js'), newHandler);
-    execSync(`${serverlessExec} deploy`);
+    execSync(`${serverlessExec} deploy`, { cwd: tmpDir });
   });
 
   it('should invoke updated function from aws', () => {
-    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
+    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`, {
+      cwd: tmpDir,
+    });
     const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
     expect(result.message).to.be.equal('Service Update Succeeded');
   });
 
   it('should list existing deployments and roll back to first deployment', () => {
     let timestamp;
-    const listDeploys = execSync(`${serverlessExec} deploy list`);
+    const listDeploys = execSync(`${serverlessExec} deploy list`, { cwd: tmpDir });
     const output = stripAnsi(listDeploys.toString());
     const match = output.match(new RegExp('Datetime: (.+)'));
     if (match) {
@@ -88,9 +85,11 @@ describe('Service Lifecyle Integration Test', function() {
     // eslint-disable-next-line no-unused-expressions
     expect(timestamp).to.not.undefined;
 
-    execSync(`${serverlessExec} rollback -t ${timestamp}`);
+    execSync(`${serverlessExec} rollback -t ${timestamp}`, { cwd: tmpDir });
 
-    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`);
+    const invoked = execSync(`${serverlessExec} invoke --function hello --noGreeting true`, {
+      cwd: tmpDir,
+    });
     const result = JSON.parse(Buffer.from(invoked, 'base64').toString());
     // parse it once again because the body is stringified to be LAMBDA-PROXY ready
     const message = JSON.parse(result.body).message;
@@ -98,7 +97,7 @@ describe('Service Lifecyle Integration Test', function() {
   });
 
   it('should remove service from aws', () => {
-    execSync(`${serverlessExec} remove`);
+    execSync(`${serverlessExec} remove`, { cwd: tmpDir });
 
     return CF.describeStacks({ StackName })
       .promise()
