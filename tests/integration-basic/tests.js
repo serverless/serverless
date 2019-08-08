@@ -8,7 +8,7 @@ const AWS = require('aws-sdk');
 const stripAnsi = require('strip-ansi');
 const { expect } = require('chai');
 const { execSync } = require('../utils/child-process');
-const { getTmpDirPath, replaceTextInFile } = require('../utils/fs');
+const { getTmpDirPath } = require('../utils/fs');
 const { region, getServiceName } = require('../utils/misc');
 
 const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
@@ -29,8 +29,9 @@ describe('Service Lifecyle Integration Test', function() {
   });
 
   it('should create service in tmp directory', () => {
-    execSync(`${serverlessExec} create --template ${templateName}`, { cwd: tmpDir });
-    replaceTextInFile(path.join(tmpDir, 'serverless.yml'), templateName, serviceName);
+    execSync(`${serverlessExec} create --template ${templateName} --name ${serviceName}`, {
+      cwd: tmpDir,
+    });
     expect(fs.existsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(fs.existsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
