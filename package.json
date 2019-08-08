@@ -132,6 +132,7 @@
     "https-proxy-agent": "^2.2.2",
     "inquirer": "^6.5.0",
     "is-docker": "^1.1.0",
+    "is-wsl": "^2.1.0",
     "js-yaml": "^3.13.1",
     "json-cycle": "^1.3.0",
     "json-refs": "^2.1.7",
