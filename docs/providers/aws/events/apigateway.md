@@ -1510,7 +1510,7 @@ provider:
 
 The CloudWatch log role used for the API Gateway logging is global to your account. Serverless will create an IAM role with the name `${self:service}-${self:provider.stage}-${self:provider.region}-apiGatewayLogsRole`. Every time you deploy a Serverless stack, it will overwrite the global IAM role used for CloudWatch logging. All stacks will use the deployed last IAM role.
 
-You can specify a custom role.
+You can specify a custom role name.
 
 ```yml
 # serverless.yml
@@ -1519,4 +1519,15 @@ provider:
   logs:
     restApi:
       iamRole: custom-api-gateway-logs-iam-role
+```
+
+You can specify a custom role ARN. The ARN must be in the same account as the stack.
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      iamRole: arn:aws:iam::123456789012:role/custom-api-gateway-logs-iam-role
 ```
