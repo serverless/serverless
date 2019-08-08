@@ -22,7 +22,8 @@ const {
 } = require('../../utils/misc');
 const { getMarkers } = require('../shared/utils');
 
-describe('AWS - Cognito User Pool Integration Test', () => {
+describe('AWS - Cognito User Pool Integration Test', function() {
+  this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let stackName;
   let tmpDirPath;
@@ -31,7 +32,7 @@ describe('AWS - Cognito User Pool Integration Test', () => {
   let poolExistingMultiSetup;
   const stage = 'dev';
 
-  beforeAll(() => {
+  before(() => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = createTestService(tmpDirPath, {
@@ -63,7 +64,7 @@ describe('AWS - Cognito User Pool Integration Test', () => {
     });
   });
 
-  afterAll(() => {
+  after(() => {
     console.info('Removing service...');
     removeService(tmpDirPath);
     console.info('Deleting Cognito User Pools');

@@ -13,7 +13,8 @@ const {
 } = require('../../utils/misc');
 const { getMarkers } = require('../shared/utils');
 
-describe('AWS - Event Bridge Integration Test', () => {
+describe('AWS - Event Bridge Integration Test', function() {
+  this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let stackName;
   let tmpDirPath;
@@ -30,7 +31,7 @@ describe('AWS - Event Bridge Integration Test', () => {
     },
   ];
 
-  beforeAll(() => {
+  before(() => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = createTestService(tmpDirPath, {
@@ -64,7 +65,7 @@ describe('AWS - Event Bridge Integration Test', () => {
     });
   });
 
-  afterAll(() => {
+  after(() => {
     console.info('Removing service...');
     removeService(tmpDirPath);
     console.info(`Deleting Event Bus "${arnEventBusName}"...`);

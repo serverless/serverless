@@ -12,7 +12,8 @@ const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-
 
 const CF = new AWS.CloudFormation({ region });
 
-describe('AWS - API Gateway Integration Test', () => {
+describe('AWS - API Gateway Integration Test', function() {
+  this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let endpoint;
   let stackName;
@@ -23,7 +24,7 @@ describe('AWS - API Gateway Integration Test', () => {
   let apiKey;
   const stage = 'dev';
 
-  beforeAll(() => {
+  before(() => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
@@ -56,7 +57,7 @@ describe('AWS - API Gateway Integration Test', () => {
       });
   });
 
-  afterAll(() => {
+  after(() => {
     // NOTE: deleting the references to the old, external REST API
     const serverless = readYamlFile(serverlessFilePath);
     delete serverless.provider.apiGateway.restApiId;
@@ -217,7 +218,7 @@ describe('AWS - API Gateway Integration Test', () => {
   });
 
   describe('Using stage specific configuration', () => {
-    beforeAll(() => {
+    before(() => {
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
@@ -248,7 +249,7 @@ describe('AWS - API Gateway Integration Test', () => {
 
   // NOTE: this test should  be at the very end because we're using an external REST API here
   describe('when using an existing REST API with stage specific configuration', () => {
-    beforeAll(() => {
+    before(() => {
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
