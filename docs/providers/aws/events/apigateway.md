@@ -1518,10 +1518,10 @@ provider:
   name: aws
   logs:
     restApi:
-      iamRoleName: custom-api-gateway-logs-iam-role
+      iamRole: custom-api-gateway-logs-iam-role
 ```
 
-You can specify a custom role ARN. The ARN must be in the same account as the stack. The `iamRoleArn` property takes precedence of the `iamRoleName` property.
+You can specify a custom role ARN. The ARN must be in the same account as the stack.
 
 ```yml
 # serverless.yml
@@ -1529,5 +1529,5 @@ provider:
   name: aws
   logs:
     restApi:
-      iamRoleArn: arn:aws:iam::123456789012:role/custom-api-gateway-logs-iam-role
+      iamRole: arn:aws:iam::123456789012:role/custom-api-gateway-logs-iam-role
 ```
