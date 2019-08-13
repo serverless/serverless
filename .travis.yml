@@ -41,6 +41,9 @@ before_script:
   # More info on below line: https://www.davidpashley.com/articles/writing-robust-shell-scripts/#idm5413512
   - set -e
 
+script:
+  - npm test -- -b # Bail after first fail
+
 # Ensure to fail build if deploy fails, Travis doesn't ensure that: https://github.com/travis-ci/travis-ci/issues/921
 before_deploy:
   # Remove eventual old npm logs
@@ -65,7 +68,7 @@ jobs:
       script:
         - npm run prettier-check-updated
         - npm run lint-updated
-        - npm test
+        - npm test -- -b
 
     # master branch and version tags
     - name: 'Lint, Unit Tests - Linux - Node.js v12'
@@ -73,7 +76,7 @@ jobs:
       node_js: 12
       script:
         - npm run lint
-        - npm test
+        - npm test -- -b
 
     - name: 'Unit Tests - Windows - Node.js v12'
       os: windows
