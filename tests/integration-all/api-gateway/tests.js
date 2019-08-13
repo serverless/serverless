@@ -7,7 +7,13 @@ const fetch = require('node-fetch');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const { region, createTestService, deployService, removeService } = require('../../utils/misc');
+const {
+  region,
+  confirmCloudWatchLogs,
+  createTestService,
+  deployService,
+  removeService,
+} = require('../../utils/misc');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
 const CF = new AWS.CloudFormation({ region });
@@ -241,9 +247,15 @@ describe('AWS - API Gateway Integration Test', function() {
       // re-using the endpoint from the "minimal" test case
       const testEndpoint = `${endpoint}`;
 
-      return fetch(testEndpoint, { method: 'GET' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
+      return confirmCloudWatchLogs(
+        `/aws/api-gateway/${stackName}`,
+        () =>
+          fetch(`${testEndpoint}`, { method: 'GET' })
+            .then(response => response.json())
+            // Confirm that APIGW responds as expected
+            .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'))
+        // Confirm that CloudWatch logs for APIGW are written
+      ).then(events => expect(events.length > 0).to.equal(true));
     });
   });
 
