@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/info)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Info
@@ -19,11 +21,13 @@ serverless info
 ```
 
 ## Options
+
 - `--stage` or `-s` The stage in your service you want to display information about.
 - `--region` or `-r` The region in your stage that you want to display information about.
 - `--verbose` or `-v` Shows displays any Stack Output.
 
 ## Provided lifecycle events
+
 - `info:info`
 
 ## Examples

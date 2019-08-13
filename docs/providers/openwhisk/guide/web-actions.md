@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/web-actions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Web Actions
 
-Functions can be turned into ["*web actions*"](http://bit.ly/2xSRbOQ) which return HTTP content without use of an API Gateway. This feature is enabled by setting an annotation (`web-export`) in the configuration file.
+Functions can be turned into ["_web actions_"](http://bit.ly/2xSRbOQ) which return HTTP content without use of an API Gateway. This feature is enabled by setting an annotation (`web-export`) in the configuration file.
 
 ```
 functions:
@@ -28,11 +30,11 @@ Functions with this annotation can be invoked through a URL template with the fo
 https://{APIHOST}/api/v1/web/{USER_NAMESPACE}/{PACKAGE}/{ACTION_NAME}.{TYPE}
 ```
 
-- *APIHOST* - platform endpoint e.g. *openwhisk.ng.bluemix.net.*
-- *USER_NAMESPACE* - this must be an explicit namespace and cannot use the default namespace (_).
-- *PACKAGE* - action package or `default`.
-- *ACTION_NAME* - default form `${servicename}-${space}-${name}`.
-- *TYPE* - `.json`, `.html`, `.text` or `.http`.
+- _APIHOST_ - platform endpoint e.g. _openwhisk.ng.bluemix.net._
+- _USER_NAMESPACE_ - this must be an explicit namespace and cannot use the default namespace (\_).
+- _PACKAGE_ - action package or `default`.
+- _ACTION_NAME_ - default form `${servicename}-${space}-${name}`.
+- _TYPE_ - `.json`, `.html`, `.text` or `.http`.
 
 Return values from the function are used to construct the HTTP response. The following parameters are supported.
 
@@ -44,12 +46,11 @@ Here is an example of returning HTML content:
 
 ```javascript
 function main(args) {
-    var msg = "you didn&#39;t tell me who you are."
-    if (args.name) {
-        msg = `hello ${args.name}!`
-    }
-    return {body:
-       `<html><body><h3><center>${msg}</center></h3></body></html>`}
+  var msg = 'you didn&#39;t tell me who you are.';
+  if (args.name) {
+    msg = `hello ${args.name}!`;
+  }
+  return { body: `<html><body><h3><center>${msg}</center></h3></body></html>` };
 }
 ```
 

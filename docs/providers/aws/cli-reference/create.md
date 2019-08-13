@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/create)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Create
@@ -33,6 +35,7 @@ serverless create --template-url https://github.com/serverless/serverless/tree/m
 ```
 
 ## Options
+
 - `--template` or `-t` The name of one of the available templates. **Required if --template-url and --template-path are not present**.
 - `--template-url` or `-u` The name of one of the available templates. **Required if --template and --template-path are not present**.
 - `--template-path` The local path of your template. **Required if --template and --template-url are not present**.
@@ -40,6 +43,7 @@ serverless create --template-url https://github.com/serverless/serverless/tree/m
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
 ## Provided lifecycle events
+
 - `create:create`
 
 ## Available Templates
@@ -48,11 +52,16 @@ To see a list of available templates run `serverless create --help`
 
 Most commonly used templates:
 
+- aws-clojurescript-gradle
+- aws-clojure-gradle
 - aws-nodejs
 - aws-nodejs-typescript
+- aws-alexa-typescript
 - aws-nodejs-ecma-script
 - aws-python
 - aws-python3
+- aws-ruby
+- aws-provided
 - aws-kotlin-jvm-maven
 - aws-kotlin-jvm-gradle
 - aws-kotlin-nodejs-gradle
@@ -62,6 +71,9 @@ Most commonly used templates:
 - aws-scala-sbt
 - aws-csharp
 - aws-fsharp
+- aws-go
+- aws-go-dep
+- aws-go-mod
 - plugin
 
 ## Examples

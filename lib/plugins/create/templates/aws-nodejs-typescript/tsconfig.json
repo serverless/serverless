@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
+    "lib": ["es2017"],
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "sourceMap": true,
-    "target": "es6",
-    "lib": [
-      "esnext"
-    ],
-    "moduleResolution": "node"
+    "target": "es2017",
+    "outDir": "lib"
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

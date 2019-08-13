@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Functions
 
-If you are using Kubeless as a provider, all *functions* inside the service are Kubernetes Function.v1.k8s.io objects.
+If you are using Kubeless as a provider, all _functions_ inside the service are Kubernetes Function.v1.k8s.io objects.
 
 ## Configuration
 
@@ -28,6 +30,14 @@ provider:
   memorySize: 512M # optional, maximum memory
   timeout: 10 # optional, in seconds, default is 180
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
+  ingress: # optional, ingress configuration if not using nginx
+    class: 'traefik' # optional, class of ingress
+    additionalAnnotations: # optional, extra annotations to put in ingress metadata
+      kubernetes.io/tls-acme: 'true'
+    tlsConfig: # optional, TLS configuration block
+      - hosts:
+          - 'example.com'
+        secretName: ingress-example-com-certs
 
 plugins:
   - serverless-kubeless
@@ -89,8 +99,7 @@ You can specify an array of functions, which is useful if you separate your func
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}
@@ -120,9 +129,9 @@ Please see the following repository for sample projects using those runtimes:
 
 For installing dependencies the standard dependency file should be placed in the function folder:
 
- - For Python functions, it will use the file `requirements.txt`
- - For Nodejs functions, `dependencies` in the `package.json` file will be installed
- - For Ruby functions, it will use the file `Gemfile.rb`
+- For Python functions, it will use the file `requirements.txt`
+- For Nodejs functions, `dependencies` in the `package.json` file will be installed
+- For Ruby functions, it will use the file `Gemfile.rb`
 
 If one of the above files is found, the depencies will be installed using a [`Init Container`](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
 
@@ -168,6 +177,61 @@ functions:
     handler: handler.users
     environment:
       TABLE_NAME: tableName2
+```
+
+## Secrets
+
+Kubernetes [secrets](https://kubernetes.io/docs/concepts/configuration/secret/) can be linked to your serverless function by mounting the file or defining environment variables. These can be configured as such in `serverless.yml`.
+
+Given the kubernetes secret named `secret1` created by:
+`kubectl create secret generic secret1 --from-literal=username=produser --from-literal=password=happy`
+
+We can access it like so:
+
+**Mounting**
+
+```yml
+service: service-name
+provider:
+  name: kubeless
+
+plugins:
+  - serverless-kubeless
+
+functions:
+  users:
+    # The kubernetes secret  will be mounted at `/secret1`
+    # Note that the secret cannot have any `/`'s in the name
+    handler: handler.users
+    secrets:
+      - secret1
+```
+
+**Environment Variables**
+
+```yml
+service: service-name
+provider:
+  name: kubeless
+  environment:
+    SYSTEM_NAME: mySystem
+    TABLE_NAME: tableName1
+
+plugins:
+  - serverless-kubeless
+
+functions:
+  users:
+    # The kubernetes secret  will be mounted at `/secret1`
+    # Note that the secret cannot have any `/`'s in the name
+    handler: handler.users
+    environment:
+      # The environment variable `PROD_USER_PASSWORD` would be set to "happy"
+      - name: PROD_USER_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            - name: secret1
+              key: password
 ```
 
 ## Labels
@@ -231,6 +295,44 @@ functions:
 The above will result in an endpoint like `1.2.3.4.xip.io/hello` where `1.2.3.4` is the IP of the cluster server.
 
 The final URL in which the function will be listening can be retrieved executing `serverless info`.
+
+## Custom Ingress Controller and annotations
+
+You can specify a custom Ingress Controller and extra annotations that will be placed in the `metadata.annotations` block of your function's Ingress.
+
+```yml
+# Serverless.yml:
+
+provider:
+  name: kubeless
+  ingress:
+    class: 'traefik'
+    additionalAnnotations:
+      kubernetes.io/tls-acme: 'true'
+```
+
+This will change the default annotations of:
+
+```yml
+annotations:
+  kubernetes.io/ingress.class: nginx
+  nginx.ingress.kubernetes.io/rewrite-target: /
+```
+
+To the following:
+
+```yml
+annotations:
+  kubernetes.io/ingress.class: traefik
+  traefik.ingress.kubernetes.io/rewrite-target: /
+  kubernetes.io/tls-acme: true
+```
+
+You can find the above annotations with the following `kubectl` command, after deploying:
+
+```
+kubectl describe ingress function-name
+```
 
 ## Custom images (alpha feature)
 

@@ -35,19 +35,23 @@ Any non-backward compatible changes leads to a major version bump. This includes
 #### What is considered a breaking change?
 
 - Everything which touches the public facing API
-  + CLI commands
-  + CLI options
-  + Methods accessible through `this.serverless`
-  + ...
+  - CLI commands
+  - CLI options
+  - Methods accessible through `this.serverless`
+  - ...
 - Output Serverless produces
-  + Files and their names
-  + Transient data which is available during runtime
-  + Formatted CLI outputs (e.g. via `--json`) **NOT:** standard outputs
-  + ...
+  - Files and their names
+  - Transient data which is available during runtime
+  - Formatted CLI outputs (e.g. via `--json`) **NOT:** standard outputs
+  - ...
 
 #### Example of a Breaking Change
 
 If we remove a helper function from the serverless object passed down to a plugin then this is a breaking change since some people might rely on it in custom made plugins.
+
+### Node.js versions
+
+The Serverless Framework supports the major cloud providers Node.js runtime versions. Support for old Node.js versions will be removed once Cloud providers announce that such runtimes are not supported anymore.
 
 ### FAQ
 

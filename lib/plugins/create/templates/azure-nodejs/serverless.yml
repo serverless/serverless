@@ -19,32 +19,43 @@ service: azure-nodejs # NOTE: update this with your service name
 
 provider:
   name: azure
-  location: West US
+  location: West US 2
 
 plugins:
   - serverless-azure-functions
 
 # you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+package:
+  #  include:
+  #    - include-me.js
+  #    - include-me-dir/**
+  exclude:
+    #    - exclude-me.js
+    #    - exclude-me-dir/**
+    - local.settings.json
+    - .vscode/**
 
 functions:
   hello:
-    handler: handler.hello
+    handler: hello.handler
     events:
       - http: true
         x-azure-settings:
-          authLevel : anonymous
+          authLevel: anonymous
       - http: true
         x-azure-settings:
           direction: out
           name: res
-
+  goodbye:
+    handler: goodbye.handler
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel: anonymous
+      - http: true
+        x-azure-settings:
+          direction: out
+          name: res
 # The following are a few examples of other events you can configure:
 #
 # events:

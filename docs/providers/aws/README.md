@@ -5,16 +5,12 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS Provider Documentation
-
-Welcome to the Serverless AWS Functions documentation!
-
-If you have any questions, [search the forums](https://forum.serverless.com?utm_source=framework-docs) or [start your own thread](https://forum.serverless.com?utm_source=framework-docs)
-
-**Note:** [AWS system credentials](./guide/credentials.md) are required for using serverless + AWS.
 
 <div class="docsSections">
   <div class="docsSection">
@@ -87,15 +83,19 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
     <div>
       <ul>
         <li><a href="./events/apigateway.md">API Gateway</a></li>
+        <li><a href="./events/websocket.md">Websocket</a></li>
         <li><a href="./events/streams.md">Streams</a></li>
         <li><a href="./events/s3.md">S3</a></li>
         <li><a href="./events/schedule.md">Schedule</a></li>
         <li><a href="./events/sns.md">SNS</a></li>
+        <li><a href="./events/sqs.md">SQS</a></li>
+        <li><a href="./events/alb.md">ALB</a></li>
         <li><a href="./events/alexa-skill.md">Alexa Skill</a></li>
         <li><a href="./events/alexa-smart-home.md">Alexa Smart Home</a></li>
         <li><a href="./events/iot.md">IoT</a></li>
         <li><a href="./events/cloudwatch-event.md">CloudWatch Event</a></li>
         <li><a href="./events/cloudwatch-log.md">CloudWatch Log</a></li>
+        <li><a href="./events/event-bridge.md">EventBridge</a></li>
         <li><a href="./events/cognito-user-pool.md">Cognito User Pool</a></li>
       </ul>
     </div>

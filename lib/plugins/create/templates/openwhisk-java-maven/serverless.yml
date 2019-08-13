@@ -23,7 +23,7 @@ provider:
 
 # you can add packaging information here
 package:
- artifact: target/demo-function.jar
+  artifact: target/demo-function.jar
 
 functions:
   demo:
@@ -32,8 +32,7 @@ functions:
 # extend the framework using plugins listed here:
 # https://github.com/serverless/plugins
 plugins:
-  - "serverless-openwhisk"
-
+  - 'serverless-openwhisk'
 # you can define custom triggers and trigger feeds using the resources section.
 #
 #resources:

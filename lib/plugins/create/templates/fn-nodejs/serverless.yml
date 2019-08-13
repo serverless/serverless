@@ -6,7 +6,7 @@
 
 # The `service` block is the name of the service
 service:
-    name: hello-world
+  name: hello-world
 #    config:
 #        some: 'val'
 
@@ -25,9 +25,9 @@ functions:
     idletimeout: 45
     format: json
     memory: 256
-#    config:
-#        another: value
+    #    config:
+    #        another: value
     runtime: node
     events:
-        - http:
-            path: /hello
+      - http:
+          path: /hello

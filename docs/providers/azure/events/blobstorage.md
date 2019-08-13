@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/events/blobstorage)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Blob Storage Trigger
@@ -35,9 +37,9 @@ functions:
     events:
       - blob:
         x-azure-settings:
-            name: item #<string>, default - "myBlob", specifies which name it's available on `context.bindings`
-            path: hello/{name}
-            connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", App Setting/environment variable which contains Storage Account Connection String
+          name: item #<string>, default - "myBlob", specifies which name it's available on `context.bindings`
+          path: hello/{name}
+          connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", App Setting/environment variable which contains Storage Account Connection String
 ```
 
 ```javascript
@@ -46,7 +48,7 @@ functions:
 'use strict';
 
 module.exports.hello = function(context, item) {
-  context.log("Received item: ${item}");
+  context.log('Received item: ${item}');
   context.done();
 };
 ```

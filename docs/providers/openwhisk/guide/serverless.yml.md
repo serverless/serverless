@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/serverless.yml)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - serverless.yml Reference
@@ -19,7 +21,7 @@ Here is a list of all available properties in `serverless.yml` when the provider
 
 service: myService
 
-frameworkVersion: ">=1.0.0 <2.0.0"
+frameworkVersion: '>=1.0.0 <2.0.0'
 
 provider:
   name: openwhisk
@@ -43,11 +45,11 @@ functions:
     overwrite: false # Can we overwrite deployed function?
     namespace: 'custom' # use custom namespace, defaults to '_'
     annotations:
-        parameter_name: value
+      parameter_name: value
     parameters:
       parameter_name: value
     events: # The Events that trigger this Function
-    # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
+      # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
       - http: METHOD /path/to/url
       - trigger: my_trigger # bind function to trigger event
       - trigger:

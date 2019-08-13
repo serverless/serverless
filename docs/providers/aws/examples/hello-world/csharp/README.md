@@ -6,7 +6,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/csharp/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Hello World C# Example
@@ -14,6 +16,8 @@ layout: Doc
 Make sure `serverless` is installed. [See installation guide](../../../guide/installation.md).
 
 Once installed the Serverless CLI can be called with `serverless` or the shorthand `sls` command.
+
+If `sls` command retuns an error in PowerShell, please use `serverless` command.
 
 ```
 $ sls
@@ -54,7 +58,6 @@ sls deploy
 ```
 
 This will deploy your function to AWS Lambda based on the settings in `serverless.yml`.
-
 
 ## 4. Invoke deployed function
 

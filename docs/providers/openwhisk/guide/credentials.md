@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/credentials)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Credentials
@@ -18,45 +20,75 @@ OpenWhisk is an open-source serverless platform. This means you can either choos
 
 Here we'll provide setup instructions for both options, just pick the one that you're using.
 
-## Register with OpenWhisk platform (IBM Bluemix)
+## Register with IBM Cloud Functions
 
-IBM's Bluemix cloud platform provides a hosted serverless solution based upon Apache OpenWhisk.
+[IBM's Cloud platform](https://console.bluemix.net/) provides a hosted serverless solution ([IBM Cloud Functions](https://console.bluemix.net/openwhisk/)) based upon Apache OpenWhisk.
 
 Here's how to get started…
 
-- Sign up for a free account @ [https://bluemix.net](https://console.ng.bluemix.net/registration/)
+- Sign up for a free account @ [IBM Cloud](https://console.bluemix.net/)
 
-IBM Bluemix comes with a [free trial](https://www.ibm.com/cloud-computing/bluemix/pricing?cm_mc_uid=22424350960514851832143&cm_mc_sid_50200000=1485183214) that doesn't need credit card details for the first 30 days. Following the trial, developers have to enrol using a credit card but get a free tier for the platform and services.
+IBM Cloud comes with a [lite account](https://console.bluemix.net/registration/) that does not need credit card details to register. Lite accounts provide free access to certain platform services and do not expire after a limited time period.
 
-**All IBM Bluemix users get access to the [Free Tier for OpenWhisk](https://console.ng.bluemix.net/openwhisk/learn/pricing). This includes 400,000 GB-seconds of serverless function compute time per month.**
+**All IBM Cloud users get access to the [Free Tier for IBM Cloud Functions](https://console.ng.bluemix.net/openwhisk/learn/pricing). This includes 400,000 GB-seconds of serverless function compute time per month.**
 
-Additional execution time is charged at $0.000017 per GB-second of execution, rounded to the nearest 100ms.
+Additional execution time is charged at \$0.000017 per GB-second of execution, rounded to the nearest 100ms.
 
-### Access Account Credentials
+### Install the IBM Cloud CLI
 
-Once you have signed up for IBM Bluemix, we need to retrieve your account credentials. These are available on [the page](https://console.ng.bluemix.net/openwhisk/learn/cli) about installing the command-line tool from the [service homepage](https://console.ng.bluemix.net/openwhisk/).
+Following the [instructions on this page](https://console.bluemix.net/docs/cli/index.html#overview) to download and install the IBM Cloud CLI.
 
-The second point in the instructions contains a command-line which includes the platform endpoint and authentication keys.
-
-```
-wsk property set --apihost openwhisk.ng.bluemix.net --auth XXX:YYY
-```
-
-**Make a note of the `apihost` and `auth` command flag values.**
-
-### (optional) Install command-line utility
-
-The command-line utility is linked from [the previous page](https://console.ng.bluemix.net/openwhisk/learn/cli). Download and install the binary into a location in your [shell path](http://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
-
-### (optional) Authenticate with API gateway
-
-OpenWhisk on IBM Bluemix uses a third-party API gateway service. An access token is needed to add HTTP endpoints to your functions. This can be retrieved automatically using the `wsk` command-line.
+_On Linux, you can run this command:_
 
 ```
-wsk bluemix login
+curl -fsSL https://clis.ng.bluemix.net/install/linux | sh
 ```
 
-After running the login command, you will be prompted to enter your authentication credentials. The access token will be stored in the `.wskprops` file under your home directory, using the key (`APIGW_ACCESS_TOKEN`).
+_On OS X, you can run this command:_
+
+```
+curl -fsSL https://clis.ng.bluemix.net/install/osx | sh
+```
+
+### Install the IBM Cloud Functions Plugin
+
+```
+ibmcloud plugin install Cloud-Functions -r Bluemix
+```
+
+### Authenticate with the CLI
+
+Log into the CLI to create local authentication credentials. The framework plugin automatically uses these credentials when interacting with IBM Cloud Functions.
+
+```
+ibmcloud login -a <REGION_API> -o <INSERT_USER_ORGANISATION> -s <SPACE>
+```
+
+**Replace `<..>` values with your [platform region endpoint, account organisation and space](https://console.bluemix.net/docs/account/orgs_spaces.html#orgsspacesusers).**
+
+For example....
+
+```
+ibmcloud login -a api.ng.bluemix.net -o user@email_host.com -s dev
+```
+
+After logging into the CLI, run the following command to populate the `~/.wskprops` file with credentials needed to run `serverless` commands:
+
+```
+ibmcloud wsk property get --auth
+```
+
+#### Regions
+
+Cloud Functions is available with the following regions US-South (`api.ng.bluemix.net`), London (`api.eu-gb.bluemix.net`), Frankfurt (`api.eu-de.bluemix.net`). Use the appropriate [API endpoint](https://console.bluemix.net/docs/overview/ibm-cloud.html#ov_intro_reg) to target Cloud Functions in that region.
+
+#### Organisations and Spaces
+
+Organisations and spaces for your account can be viewed on this page: [https://console.bluemix.net/account/organizations](https://console.bluemix.net/account/organizations)
+
+Accounts normally have a default organisation using the account email address. Default space name is usually `dev`.
+
+_After running the login command, authentication credentials will be stored in the `.wskprops` file under your home directory._
 
 ## Register with OpenWhisk platform (Self-Hosted)
 
@@ -78,15 +110,14 @@ cd openwhisk/tools/vagrant
 
 This platform will now be running inside a virtual machine at the following IP address: `192.168.33.13`
 
-**Please note:** *If you are using a self-hosted platform, the `ignore_certs` property in `serverless.yaml` needs to be `true`. This allows the client to be used against local deployments of OpenWhisk with a self-signed certificate.*
+**Please note:** _If you are using a self-hosted platform, the `ignore_certs` property in `serverless.yaml` needs to be `true`. This allows the client to be used against local deployments of OpenWhisk with a self-signed certificate._
 
 ```yaml
 service: testing
 provider:
   name: openwhisk
   ignore_certs: true
-functions:
-  ...
+functions: ...
 ```
 
 ### Access Account Credentials
@@ -103,15 +134,23 @@ Executables for other operating system, and CPU architectures are located in the
 
 Download and install the correct binary into a location in your [shell path](http://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
 
-
-
 ## Using Account Credentials
 
-You can configure the Serverless Framework to use your OpenWhisk credentials in two ways:
+You can configure the Serverless Framework to use your OpenWhisk credentials in a few ways:
 
-#### Quick Setup
+#### IBM Cloud Functions
 
-As a quick setup to get started you can export them as environment variables so they would be accessible to Serverless Framework:
+After logging into the CLI, run the following command to populate the `~/.wskprops` file with credentials needed to run `serverless` commands:
+
+```
+ibmcloud wsk property get --auth
+```
+
+With this file available, the provider plugin will automatically read those credentials and you don't need to do anything else!
+
+#### Environment Variables Setup
+
+Access credentials can be provided as environment variables.
 
 ```bash
 # mandatory parameters
@@ -125,23 +164,21 @@ serverless deploy
 
 #### Using Configuration File
 
-For a more permanent solution you can also set up credentials through a configuration file. Here are different methods you can use to do so.
+Credentials can be stored in a local configuration file, using either the CLI or manually creating the file.
 
 ##### Setup with the `wsk` cli
 
-If you have followed the instructions above to install the `wsk` command-line utility, run the following command to create the configuration file.
+If you are using a self-hosted platform and have followed the instructions above to install the `wsk` command-line utility, run the following command to create the configuration file.
 
 ```bash
 $ wsk property set --apihost PLATFORM_API_HOST --auth USER_AUTH_KEY
-// followed by this command if you want to use the api gateway on bluemix
-$ wsk bluemix login
 ```
 
 Credentials are stored in `~/.wskprops`, which you can edit directly if needed.
 
 ##### Edit file manually
 
-The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST`, `USER_AUTH_KEY` and (optionally) `ACCESS_TOKEN` values will the  credentials from above.
+The following configuration values should be stored in a new file (`.wskprops`) in your home directory. Replace the `PLATFORM_API_HOST`, `USER_AUTH_KEY` and (optionally) `ACCESS_TOKEN` values will the credentials from above.
 
 ```
 APIHOST=PLATFORM_API_HOST

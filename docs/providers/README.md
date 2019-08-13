@@ -1,16 +1,18 @@
 <!--
 title: Serverless - Infrastructure & Compute Providers
-menuText: Providers
+menuText: Provider CLI References
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Infrastructure Providers
 
-Under the hood, the serverless framework is deploying your code to a cloud provider like AWS, Microsoft Azure, Apache OpenWhisk or Google Cloud functions.
+Under the hood, the Serverless Framework is deploying your code to a cloud provider like AWS, Microsoft Azure, Google Cloud Platform, Apache OpenWhisk, Cloudflare Workers, or a Kubernetes-based solution like Kubeless. Click on your provider for detailed Serverless Framework CLI user guides and references.
 
 <div class="docsSections">
   <div class="docsSection">
@@ -75,22 +77,22 @@ Under the hood, the serverless framework is deploying your code to a cloud provi
   </div>
   <div class="docsSection">
     <div class="docsSectionHeader">
-      <a href="./webtasks/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/webtask-small-grayscale.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./webtasks/">Auth0 Webtasks Docs</a>
-    </div>
-  </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
       <a href="./fn/">
         <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
       </a>
     </div>
     <div style="text-align:center;">
       <a href="./fn/">Fn Docs</a>
+    </div>
+  </div>
+  <div class="docsSection">
+    <div class="docsSectionHeader">
+      <a href="./cloudflare/">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png" width="250" draggable="false"/>
+      </a>
+    </div>
+    <div style="text-align:center;">
+      <a href="./cloudflare/">Cloudflare Workers Docs</a>
     </div>
   </div>
   <div class="docsSection">

@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Functions
 
-If you are using OpenWhisk as a provider, all *functions* inside the service are OpenWhisk Actions.
+If you are using OpenWhisk as a provider, all _functions_ inside the service are OpenWhisk Actions.
 
 ## Configuration
 
@@ -43,7 +45,7 @@ The `handler` property points to the file and module containing the code you wan
 
 ```javascript
 // handler.js
-exports.handler = function(params) {}
+exports.handler = function(params) {};
 ```
 
 You can add as many functions as you want within this property.
@@ -104,8 +106,7 @@ You can specify an array of functions, which is useful if you separate your func
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}
@@ -123,7 +124,7 @@ deleteFoo:
 
 OpenWhisk provides a concept called "packages" to manage related actions. Packages can contain multiple actions under a common identifier in a namespace. Configuration values needed by all actions in a package can be set as default properties on the package, rather than individually on each action.
 
-*Packages are identified using the following format:* `/namespaceName/packageName/actionName`.
+_Packages are identified using the following format:_ `/namespaceName/packageName/actionName`.
 
 ### Implicit Packages
 
@@ -133,10 +134,10 @@ Functions can be assigned to packages by setting the function `name` with a pack
 functions:
   foo:
     handler: handler.foo
-    name: "myPackage/foo"
+    name: 'myPackage/foo'
   bar:
     handler: handler.bar
-    name: "myPackage/bar"
+    name: 'myPackage/bar'
 ```
 
 In this example, two new actions (`foo` & `bar`) will be created using the `myPackage` package.
@@ -151,16 +152,61 @@ Packages can also be defined explicitly to set shared configuration parameters. 
 functions:
   foo:
     handler: handler.foo
-    name: "myPackage/foo"
+    name: 'myPackage/foo'
 
 resources:
   packages:
     myPackage:
+      name: optionalCustomName
       parameters:
         hello: world
 ```
 
-*Explicit packages support the following properties: `parameters`, `annotations` and `shared`.*
+_Explicit packages support the following properties: `name`, `parameters`, `annotations` and `shared`._
+
+## Binding Services (IBM Cloud Functions)
+
+**_This feature requires the [IBM Cloud CLI](https://console.bluemix.net/docs/cli/reference/bluemix_cli/download_cli.html#download_install) and [IBM Cloud Functions plugin](https://console.bluemix.net/openwhisk/learn/cli) to be installed._**
+
+IBM Cloud Functions supports [automatic binding of service credentials](https://console.bluemix.net/docs/openwhisk/binding_services.html#binding_services) to actions using the CLI.
+
+Bound service credentials will be passed as the `__bx_creds` parameter in the invocation parameters.
+
+This feature is also available through the `serverless.yaml` file using the `bind` property for each function.
+
+```yaml
+functions:
+  my_function:
+    handler: file_name.handler
+    bind:
+      - service:
+          name: cloud-object-storage
+          instance: my-cos-storage
+```
+
+The `service` configuration supports the following properties.
+
+- `name`: identifier for the cloud service
+- `instance`: instance name for service (_optional_)
+- `key`: key name for instance and service (_optional_)
+
+_If the `instance` or `key` properties are missing, the first available instance and key found will be used._
+
+Binding services removes the need to manually create default parameters for service keys from platform services.
+
+More details on binding service credentials to actions can be found in the [official documentation](https://console.bluemix.net/docs/openwhisk/binding_services.html#binding_services) and [this blog post](http://jamesthom.as/blog/2018/06/05/binding-iam-services-to-ibm-cloud-functions/).
+
+Packages defined in the `resources` section can bind services using the same configuration properties.
+
+```yaml
+resources:
+  packages:
+    myPackage:
+      bind:
+        - service:
+            name: cloud-object-storage
+            instance: my-cos-storage
+```
 
 ## Runtimes
 
@@ -168,7 +214,9 @@ The OpenWhisk provider plugin supports the following runtimes.
 
 - Node.js
 - Python
+- Java
 - Php
+- Ruby
 - Swift
 - Binary
 - Docker

@@ -15,6 +15,14 @@ services:
       - AWS_PROFILE
       - AWS_SESSION_TOKEN
       - AWS_SECURITY_TOKEN
+  aws-clojure-gradle:
+    image: java:8
+    volumes:
+      - ./tmp/serverless-integration-test-aws-clojure-gradle:/app
+  aws-clojurescript-gradle:
+    image: pgoudreau/docker-maven-node
+    volumes:
+      - ./tmp/serverless-integration-test-aws-clojurescript-gradle:/app
   aws-nodejs:
     image: node:5.11.1
     volumes:
@@ -24,7 +32,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-python:/app
   aws-python3:
-    image: python:3.6
+    image: python:3.7
     volumes:
       - ./tmp/serverless-integration-test-aws-python3:/app
   aws-java-maven:
@@ -52,7 +60,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-groovy-gradle:/app
   aws-scala-sbt:
-    image: hseeberger/scala-sbt
+    image: hseeberger/scala-sbt:8u181_2.12.8_1.2.8
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
   aws-csharp:
@@ -73,10 +81,19 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-go-dep:/app
       - ./tmp/serverless-integration-test-aws-go-dep:/go/src/app
+  aws-go-mod:
+    image: golang:1.11
+    volumes:
+      - ./tmp/serverless-integration-test-aws-go-mod:/app
+      - ./tmp/serverless-integration-test-aws-go-mod:/go/src/app
   aws-nodejs-typescript:
     image: node:6.10.3
     volumes:
       - ./tmp/serverless-integration-test-aws-nodejs-typescript:/app
+  aws-alexa-typescript:
+    image: node:6.10.3
+    volumes:
+      - ./tmp/serverless-integration-test-aws-alexa-typescript:/app
   aws-nodejs-ecma-script:
     image: node:6.10.3
     volumes:
@@ -85,6 +102,11 @@ services:
     image: node:6.9.1
     volumes:
       - ./tmp/serverless-integration-test-google-nodejs:/app
+  google-go:
+    image: golang:1.11
+    volumes:
+      - ./tmp/serverless-integration-test-google-go:/app
+      - ./tmp/serverless-integration-test-google-go:/go/src/app
   spotinst-nodejs:
     image: node:4.8
     volumes:
@@ -101,10 +123,10 @@ services:
     image: maven:3-jdk-8
     volumes:
       - ./tmp/serverless-integration-test-spotinst-java8:/app
-  webtasks-nodejs:
-    image: node:6.10.3
+  twilio-nodejs:
+    image: node:8.16.0
     volumes:
-      - ./tmp/serverless-integration-test-webtasks-nodejs:/app
+      - ./tmp/serverless-integration-test-twilio-nodejs:/app
   aliyun-nodejs:
     image: node:8
     volumes:

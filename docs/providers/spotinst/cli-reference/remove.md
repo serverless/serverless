@@ -7,16 +7,19 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/spotinst/cli-reference/remove)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Spotinst Functions - Remove
 
-The `sls remove` command will remove the deployed service, defined in your current working directory,  from the provider.
+The `sls remove` command will remove the deployed service, defined in your current working directory, from the provider.
 
 ```bash
 serverless remove
 ```
 
 ## Options
+
 - `--verbose` or `-v` Shows all stack events during deployment.

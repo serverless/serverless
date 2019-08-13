@@ -1,0 +1,23 @@
+{
+  "name": "aws-alexa-typescript",
+  "version": "1.0.0",
+  "description": "Alexa example using Typescript",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "ask-sdk": "^2.3.0",
+    "source-map-support": "^0.5.10"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.18",
+    "serverless-alexa-skills": "^0.1.0",
+    "serverless-webpack": "^5.2.0",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.2.4",
+    "webpack": "^4.29.0"
+  },
+  "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
+  "license": "MIT"
+}

@@ -1,4 +1,7 @@
-apply plugin: 'groovy'
+plugins {
+  id 'groovy'
+  id 'com.github.johnrengelman.shadow' version '2.0.2'
+}
 
 repositories {
     mavenCentral()
@@ -9,32 +12,23 @@ targetCompatibility = 1.8
 
 dependencies {
     compile (
-        'org.codehaus.groovy:groovy-all:2.4.7',
+        'org.codehaus.groovy:groovy-all:2.5.1',
         'com.amazonaws:aws-lambda-java-core:1.1.0',
         'com.amazonaws:aws-lambda-java-log4j:1.0.0'
     )
 }
 
-// Task for building the zip file for upload
-task buildZip(type: Zip) {
-    // Using the Zip API from gradle to build a zip file of all the dependencies
-    //
-    // The path to this zip file can be set in the serverless.yml file for the
-    // package/artifact setting for deployment to the S3 bucket
-    //
-    // Link: https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Zip.html
-
-    // set the base name of the zip file
-    baseName = "hello"
-    from compileGroovy
-    from processResources
-    into('lib') {
-        from configurations.runtime
+task(buildJson) {
+  doLast {
+    new File("$buildDir/build.json").newWriter().withWriter { w ->
+      w << groovy.json.JsonOutput.toJson([distribution: relativePath(shadowJar.archivePath), version: shadowJar.version])
     }
+  }
 }
 
-build.dependsOn buildZip
+shadowJar.finalizedBy(buildJson)
+build.dependsOn shadowJar
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.5'
+  gradleVersion = '4.9'
 }

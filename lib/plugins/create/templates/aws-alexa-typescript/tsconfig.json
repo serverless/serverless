@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "target": "es6",
+    "lib": ["esnext"],
+    "moduleResolution": "node"
+  },
+  "exclude": ["node_modules"]
+}

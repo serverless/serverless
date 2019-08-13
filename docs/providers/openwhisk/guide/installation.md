@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/installation)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Installation
@@ -44,19 +46,17 @@ To see which version of serverless you have installed run:
 serverless --version
 ```
 
-
-
 ### Installing OpenWhisk Provider Plugin
 
-Now we need to install the provider plugin to allow the framework to deploy services to the platform. This plugin is also [published](http://npmjs.com/package/serverless-openwhisk) on [npm](https://npmjs.org) and can installed using the same `npm install` command.
+Now we need to install the provider plugin to allow the framework to deploy services to the platform. This plugin is also [published](http://npmjs.com/package/serverless-openwhisk) on [npm](https://npmjs.org) and can installed as a project dependency using the `npm install --save-dev` command.
 
 ```
-npm install -g serverless-openwhisk
+npm install serverless-openwhisk --save-dev
 ```
 
-*Due to an [outstanding issue](https://github.com/serverless/serverless/issues/2895) with provider plugins, the [OpenWhisk provider](https://github.com/serverless/serverless-openwhisk) must be installed as a global module.*
+Project templates already have this dependency listed in the `package.json` file allowing you to just `npm install` in the service directory.
 
-
+The `serverless-openwhisk` plugin must be saved as a `devDependency` in the project's `package.json` to ensure it is not bundled in the deployment package.
 
 ### Setting up OpenWhisk
 

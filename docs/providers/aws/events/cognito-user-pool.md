@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Cognito User Pool
 menuText: Cognito User Pool
-menuOrder: 10
+menuOrder: 15
 description:  Setting up AWS Cognito User Pool Triggers with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cognito-user-pool)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Cognito User Pool
@@ -72,6 +74,25 @@ functions:
           trigger: PreSignUp
 ```
 
+## Using existing pools
+
+Sometimes you might want to attach Lambda functions to existing Cognito User Pools. In that case you just need to set the `existing` event configuration property to `true`. All the other config parameters can also be used on existing user pools:
+
+**IMPORTANT:** You can only attach 1 existing Cognito User Pool per function.
+
+**NOTE:** Using the `existing` config will add an additional Lambda function and IAM Role to your stack. The Lambda function backs-up the Custom Cognito User Pool Resource which is used to support existing user pools.
+
+```yaml
+functions:
+  users:
+    handler: users.handler
+    events:
+      - cognitoUserPool:
+          pool: legacy-user-pool
+          trigger: CustomMessage
+          existing: true
+```
+
 ## Custom message trigger handlers
 
 For custom messages, you will need to check `event.triggerSource` type inside your handler function:
@@ -114,5 +135,4 @@ resources:
 ```
 
 [aws-triggers-guide]: http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools-working-with-aws-lambda-triggers.html
-[aws-triggers-list]:
-https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html
+[aws-triggers-list]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html
