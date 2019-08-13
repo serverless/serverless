@@ -4,12 +4,14 @@ const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const chalk = require('chalk');
+const CloudWatchLogsSdk = require('aws-sdk/clients/cloudwatchlogs');
 const { execSync } = require('../child-process');
 const { readYamlFile, writeYamlFile } = require('../fs');
 
 const logger = console;
 
 const region = 'us-east-1';
+const cloudWatchLogsSdk = new CloudWatchLogsSdk({ region });
 
 const testServiceIdentifier = 'integ-test';
 
@@ -116,6 +118,23 @@ function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
   });
 }
 
+/**
+ * Cloudwatch logs when turned on, are usually take some time for being effective
+ * This function allows to confirm that new setting (turned on cloudwatch logs)
+ * is effective after stack deployment
+ */
+function confirmCloudWatchLogs(logGroupName, trigger, timeout = 60000) {
+  const startTime = Date.now();
+  return trigger()
+    .then(() => cloudWatchLogsSdk.filterLogEvents({ logGroupName }).promise())
+    .then(result => {
+      if (result.events.length) return result.events;
+      const duration = Date.now() - startTime;
+      if (duration > timeout) return [];
+      return confirmCloudWatchLogs(logGroupName, trigger, timeout - duration);
+    });
+}
+
 function persistentRequest(...args) {
   const func = args[0];
   const funcArgs = args.slice(1);
@@ -172,6 +191,7 @@ function skipOnWindowsDisabledSymlinks(error, context, afterCallback) {
 module.exports = {
   logger,
   region,
+  confirmCloudWatchLogs,
   testServiceIdentifier,
   serverlessExec,
   serviceNameRegex,
