@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const { expect } = require('chai');
 const fse = require('fs-extra');
 const { execSync } = require('../utils/child-process');
 const { serverlessExec } = require('../utils/misc');
@@ -12,8 +11,7 @@ const fixturePaths = {
   individually: path.join(__dirname, 'fixtures/individually'),
 };
 
-describe('Integration test - Packaging', function() {
-  this.timeout(10000);
+describe('Integration test - Packaging', () => {
   let cwd;
   beforeEach(() => {
     cwd = getTmpDirPath();
@@ -23,7 +21,7 @@ describe('Integration test - Packaging', function() {
     fse.copySync(fixturePaths.regular, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     return listZipFiles(path.join(cwd, '.serverless/aws-nodejs.zip')).then(zipfiles => {
-      expect(zipfiles).to.deep.equal(['handler.js']);
+      expect(zipfiles).toEqual(['handler.js']);
     });
   });
 
@@ -37,12 +35,8 @@ describe('Integration test - Packaging', function() {
         zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1])
       );
       const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
-      expect(nodeModules).to.deep.equal(new Set(['lodash']));
-      expect(nonNodeModulesFiles).to.deep.equal([
-        'handler.js',
-        'package-lock.json',
-        'package.json',
-      ]);
+      expect(nodeModules).toEqual(new Set(['lodash']));
+      expect(nonNodeModulesFiles).toEqual(['handler.js', 'package-lock.json', 'package.json']);
     });
   });
 
@@ -56,12 +50,8 @@ describe('Integration test - Packaging', function() {
         zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1])
       );
       const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
-      expect(nodeModules).to.deep.equal(new Set([]));
-      expect(nonNodeModulesFiles).to.deep.equal([
-        'handler.js',
-        'package-lock.json',
-        'package.json',
-      ]);
+      expect(nodeModules).toEqual(new Set([]));
+      expect(nonNodeModulesFiles).toEqual(['handler.js', 'package-lock.json', 'package.json']);
     });
   });
 
@@ -76,8 +66,8 @@ describe('Integration test - Packaging', function() {
         zipfiles.filter(f => f.startsWith('node_modules')).map(f => f.split(path.sep)[1])
       );
       const nonNodeModulesFiles = zipfiles.filter(f => !f.startsWith('node_modules'));
-      expect(nodeModules).to.deep.equal(new Set(['lodash']));
-      expect(nonNodeModulesFiles).to.deep.equal(['handler.js']);
+      expect(nodeModules).toEqual(new Set(['lodash']));
+      expect(nonNodeModulesFiles).toEqual(['handler.js']);
     });
   });
 
@@ -85,8 +75,8 @@ describe('Integration test - Packaging', function() {
     fse.copySync(fixturePaths.individually, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     return listZipFiles(path.join(cwd, '.serverless/hello.zip'))
-      .then(zipfiles => expect(zipfiles).to.deep.equal(['handler.js']))
+      .then(zipfiles => expect(zipfiles).toEqual(['handler.js']))
       .then(() => listZipFiles(path.join(cwd, '.serverless/hello2.zip')))
-      .then(zipfiles => expect(zipfiles).to.deep.equal(['handler2.js']));
+      .then(zipfiles => expect(zipfiles).toEqual(['handler2.js']));
   });
 });

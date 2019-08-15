@@ -13,8 +13,7 @@ const {
 } = require('../../utils/misc');
 const { getMarkers } = require('../shared/utils');
 
-describe('AWS - Event Bridge Integration Test', function() {
-  this.timeout(1000 * 60 * 10); // Involves time-taking deploys
+describe('AWS - Event Bridge Integration Test', () => {
   let serviceName;
   let stackName;
   let tmpDirPath;
@@ -31,7 +30,7 @@ describe('AWS - Event Bridge Integration Test', function() {
     },
   ];
 
-  before(() => {
+  beforeAll(() => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = createTestService(tmpDirPath, {
@@ -61,13 +60,13 @@ describe('AWS - Event Bridge Integration Test', function() {
       writeYamlFile(serverlessFilePath, config);
       // deploy the service
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      deployService();
     });
   });
 
-  after(() => {
+  afterAll(() => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    removeService();
     console.info(`Deleting Event Bus "${arnEventBusName}"...`);
     return deleteEventBus(arnEventBusName);
   });
@@ -78,7 +77,7 @@ describe('AWS - Event Bridge Integration Test', function() {
       const markers = getMarkers(functionName);
 
       return putEvents('default', putEventEntries)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
+        .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
         .then(logs => {
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
@@ -93,7 +92,7 @@ describe('AWS - Event Bridge Integration Test', function() {
       const markers = getMarkers(functionName);
 
       return putEvents(namedEventBusName, putEventEntries)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
+        .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
         .then(logs => {
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
@@ -108,7 +107,7 @@ describe('AWS - Event Bridge Integration Test', function() {
       const markers = getMarkers(functionName);
 
       return putEvents(arnEventBusName, putEventEntries)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
+        .then(() => waitForFunctionLogs(functionName, markers.start, markers.end))
         .then(logs => {
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);

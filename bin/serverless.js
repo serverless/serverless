@@ -28,15 +28,7 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-process.on('uncaughtException', error => logError(error, { forceExit: true }));
-
-process.on('unhandledRejection', error => {
-  if (process.listenerCount('unhandledRejection') > 1) {
-    // User attached its own unhandledRejection handler, abort
-    return;
-  }
-  throw error;
-});
+process.on('unhandledRejection', logError);
 
 require('../lib/utils/tracking').sendPending();
 
@@ -67,15 +59,14 @@ initializeErrorReporter(invocationId).then(() => {
         }
       });
       if (!enterpriseErrorHandler) {
-        logError(err);
-        return null;
+        throw err;
       }
       return enterpriseErrorHandler(err, invocationId)
         .catch(error => {
           process.stdout.write(`${error.stack}\n`);
         })
         .then(() => {
-          logError(err);
+          throw err;
         });
     });
 });

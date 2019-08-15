@@ -13,8 +13,8 @@ function basic(event, context, callback) {
   return callback(null, nextEvent);
 }
 
-function existingSimple(event, context, callback) {
-  const functionName = 'existingSimple';
+function existing(event, context, callback) {
+  const functionName = 'existing';
   const nextEvent = Object.assign({}, event);
   nextEvent.response.autoConfirmUser = true;
 
@@ -22,11 +22,4 @@ function existingSimple(event, context, callback) {
   return callback(null, nextEvent);
 }
 
-function existingMulti(event, context, callback) {
-  const functionName = 'existingMulti';
-
-  log(functionName, JSON.stringify(event));
-  return callback(null, event);
-}
-
-module.exports = { basic, existingSimple, existingMulti };
+module.exports = { basic, existing };

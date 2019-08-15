@@ -12,22 +12,10 @@ functions:
       - cognitoUserPool:
           pool: CHANGE_TO_UNIQUE_PER_RUN
           trigger: PreSignUp
-  existingSimple:
-    handler: core.existingSimple
+  existing:
+    handler: core.existing
     events:
       - cognitoUserPool:
           pool: CHANGE_TO_UNIQUE_PER_RUN
           trigger: PreSignUp
-          existing: true
-  # testing if two functions share one cognito user pool with multiple configs
-  existingMulti:
-    handler: core.existingMulti
-    events:
-      - cognitoUserPool:
-          pool: CHANGE_TO_UNIQUE_PER_RUN
-          trigger: PreSignUp
-          existing: true
-      - cognitoUserPool:
-          pool: CHANGE_TO_UNIQUE_PER_RUN
-          trigger: PreAuthentication
           existing: true

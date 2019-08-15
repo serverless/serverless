@@ -4,14 +4,12 @@ const path = require('path');
 const fse = require('fs-extra');
 const BbPromise = require('bluebird');
 const chalk = require('chalk');
-const CloudWatchLogsSdk = require('aws-sdk/clients/cloudwatchlogs');
 const { execSync } = require('../child-process');
 const { readYamlFile, writeYamlFile } = require('../fs');
 
 const logger = console;
 
 const region = 'us-east-1';
-const cloudWatchLogsSdk = new CloudWatchLogsSdk({ region });
 
 const testServiceIdentifier = 'integ-test';
 
@@ -24,12 +22,12 @@ function getServiceName() {
   return `${testServiceIdentifier}-${hrtime[1]}`;
 }
 
-function deployService(cwd) {
-  execSync(`${serverlessExec} deploy`, { cwd });
+function deployService() {
+  execSync(`${serverlessExec} deploy`);
 }
 
-function removeService(cwd) {
-  execSync(`${serverlessExec} remove`, { cwd });
+function removeService() {
+  execSync(`${serverlessExec} remove`);
 }
 
 function replaceEnv(values) {
@@ -62,10 +60,11 @@ function createTestService(
   const serviceName = getServiceName();
 
   fse.mkdirsSync(tmpDir);
+  process.chdir(tmpDir);
 
   if (options.templateName) {
     // create a new Serverless service
-    execSync(`${serverlessExec} create --template ${options.templateName}`, { cwd: tmpDir });
+    execSync(`${serverlessExec} create --template ${options.templateName}`);
   } else if (options.templateDir) {
     fse.copySync(options.templateDir, tmpDir, { clobber: true, preserveTimestamps: true });
   } else {
@@ -95,20 +94,18 @@ function createTestService(
   return serverlessConfig;
 }
 
-function getFunctionLogs(cwd, functionName) {
-  const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`, {
-    cwd,
-  });
+function getFunctionLogs(functionName) {
+  const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`);
   const logsString = Buffer.from(logs, 'base64').toString();
   process.stdout.write(logsString);
   return logsString;
 }
 
-function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
+function waitForFunctionLogs(functionName, startMarker, endMarker) {
   let logs;
   return new BbPromise(resolve => {
     const interval = setInterval(() => {
-      logs = getFunctionLogs(cwd, functionName);
+      logs = getFunctionLogs(functionName);
       if (logs && logs.includes(startMarker) && logs.includes(endMarker)) {
         clearInterval(interval);
         return resolve(logs);
@@ -116,23 +113,6 @@ function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
       return null;
     }, 2000);
   });
-}
-
-/**
- * Cloudwatch logs when turned on, are usually take some time for being effective
- * This function allows to confirm that new setting (turned on cloudwatch logs)
- * is effective after stack deployment
- */
-function confirmCloudWatchLogs(logGroupName, trigger, timeout = 60000) {
-  const startTime = Date.now();
-  return trigger()
-    .then(() => cloudWatchLogsSdk.filterLogEvents({ logGroupName }).promise())
-    .then(result => {
-      if (result.events.length) return result.events;
-      const duration = Date.now() - startTime;
-      if (duration > timeout) return [];
-      return confirmCloudWatchLogs(logGroupName, trigger, timeout - duration);
-    });
 }
 
 function persistentRequest(...args) {
@@ -191,7 +171,6 @@ function skipOnWindowsDisabledSymlinks(error, context, afterCallback) {
 module.exports = {
   logger,
   region,
-  confirmCloudWatchLogs,
   testServiceIdentifier,
   serverlessExec,
   serviceNameRegex,
