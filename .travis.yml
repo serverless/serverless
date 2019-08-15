@@ -41,6 +41,9 @@ before_script:
   # More info on below line: https://www.davidpashley.com/articles/writing-robust-shell-scripts/#idm5413512
   - set -e
 
+script:
+  - npm test -- -b # Bail after first fail
+
 # Ensure to fail build if deploy fails, Travis doesn't ensure that: https://github.com/travis-ci/travis-ci/issues/921
 before_deploy:
   # Remove eventual old npm logs
@@ -65,7 +68,7 @@ jobs:
       script:
         - npm run prettier-check-updated
         - npm run lint-updated
-        - npm test
+        - npm test -- -b
 
     # master branch and version tags
     - name: 'Lint, Unit Tests - Linux - Node.js v12'
@@ -73,7 +76,7 @@ jobs:
       node_js: 12
       script:
         - npm run lint
-        - npm test
+        - npm test -- -b
 
     - name: 'Unit Tests - Windows - Node.js v12'
       os: windows
@@ -97,7 +100,8 @@ jobs:
       node_js: 8
       script: npm run coverage
       after_success:
-        - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+        - |
+          cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js || :
         - rm -rf ./coverage
 
     - name: 'Unit Tests - Linux - Node.js v6'
@@ -112,7 +116,7 @@ jobs:
         # AWS_SECRET_ACCESS_KEY
         - secure: Dgaa5XIsA5Vbw/CYQLUAuVVsDX26C8+f1XYGwsbNmFQKbKvM8iy9lGrHlfrT3jftJkJH6re8tP1RjyZjjzLe25KPk4Tps7grNteCyiIIEDsC2aHhiXHD6zNHsItpxYusaFfyQinFWnK4CAYKWb9ZNIwHIDUIB4vq807QGAhYsnoj1Lg/ajWvtEKBwYjEzDz9OjB91lw7lpCnHtmKKw5A+TNIVGpDDZ/jRBqETsPaePtiXC9UTHZQyM3gFoeVXiJw9KSU/gjIx9REihCaWWPbnuQSeIONGGlVWY9V4DTZIsJr9/uwDcbioeXDD3G1ezGtNPPRSNTtq08QlUtE4mEtKea/+ObpllKZCeZGn6AJhMn+uqMIP95FFlqBB55YzRcLZY+Igi/qm/9LJ9RinAhxRVXiwzeQ+BdVA6jshAAzr+7wklux6lZAa0xGw9pgTv7MI4RP2LJ/LMP1ppFsnv9n/qt93Ax1VEwEu3xHZe3VTYL9tbXOPTZutf6fKjUrW7wSSuy637queESjYnnPKSb1vZcPxjSFlyh+GJvxu/3PurF9aqfiBdiorIBre+pQS4lakLtoft5nsbA+4iYUwrXR58qUPVUqQ7a0A0hedOWlp6g9ixLa6nugUP5aobJzR71T8l/IjqpnY2EEd/iINEb0XfUiZtB5zHaqFWejBtmWwCI=
       script:
-        #- npm run integration-test-run-basic || { npm run integration-test-cleanup; exit 1; }
+        - npm run integration-test-run-basic || { npm run integration-test-cleanup; exit 1; }
         - npm run integration-test-run-all || { npm run integration-test-cleanup; exit 1; }
         - npm run integration-test-cleanup
 
