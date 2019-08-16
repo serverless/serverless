@@ -130,7 +130,9 @@ provider:
     apiGateway: true
     lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
   logs:
-    restApi: true # Optional configuration which specifies if API Gateway logs are used
+    restApi: # Optional configuration which specifies if API Gateway logs are used. This can either be set to true to use defaults, or configured via subproperties.
+      format: 'requestId: $context.requestId' # Optional configuration which specifies the log format to use.
+      level: INFO # Optional configuration which specifies the log level to use. May be either INFO or ERROR.
     websocket: true # Optional configuration which specifies if Websockets logs are used
 
 package: # Optional deployment packaging configuration
