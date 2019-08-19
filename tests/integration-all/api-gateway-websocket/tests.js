@@ -13,11 +13,17 @@ const {
   deployService,
   removeService,
 } = require('../../utils/misc');
-const { createApi, deleteApi, getRoutes, createStage, deleteStage } = require('../../utils/api-gateway-v2');
+const {
+  createApi,
+  deleteApi,
+  getRoutes,
+  createStage,
+  deleteStage,
+} = require('../../utils/api-gateway-v2');
 
 const CF = new AWS.CloudFormation({ region });
 
-describe('AWS - API Gateway Websocket Integration Test', function () {
+describe('AWS - API Gateway Websocket Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let stackName;
@@ -39,11 +45,10 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
     deployService(tmpDirPath);
     // create an external websocket API
     const externalWebsocketApiName = `${stage}-${serviceName}-ext-api`;
-    return createApi(externalWebsocketApiName)
-      .then(wsApiMeta => {
-        websocketApiId = wsApiMeta.ApiId;
-        return createStage(websocketApiId, 'dev');
-      });
+    return createApi(externalWebsocketApiName).then(wsApiMeta => {
+      websocketApiId = wsApiMeta.ApiId;
+      return createStage(websocketApiId, 'dev');
+    });
   });
 
   after(() => {
@@ -65,13 +70,16 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
   });
 
   describe('Minimal Setup', () => {
-
-    it('should expose an accessible websocket endpoint', () => CF.describeStacks({ StackName: stackName })
-      .promise()
-      .then(result => _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpointWebsocket' }).OutputValue)
-      .then(endpointOutput => {
-        expect(endpointOutput).to.match(/wss:\/\/.+\.execute-api\..+\.amazonaws\.com.+/);
-      }));
+    it('should expose an accessible websocket endpoint', () =>
+      CF.describeStacks({ StackName: stackName })
+        .promise()
+        .then(
+          result =>
+            _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpointWebsocket' }).OutputValue
+        )
+        .then(endpointOutput => {
+          expect(endpointOutput).to.match(/wss:\/\/.+\.execute-api\..+\.amazonaws\.com.+/);
+        }));
 
     // NOTE: this test should  be at the very end because we're using an external REST API here
     describe('when using an existing websocket API', () => {
@@ -81,14 +89,13 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
           apiGateway: {
             websocketApiId,
           },
-
         });
         writeYamlFile(serverlessFilePath, serverless);
         deployService(tmpDirPath);
       });
 
-      it('should add the routes to the referenced API', () => getRoutes(websocketApiId)
-        .then(routes => {
+      it('should add the routes to the referenced API', () =>
+        getRoutes(websocketApiId).then(routes => {
           expect(routes).to.have.length.greaterThan(0);
           expect(routes[0].RouteKey).to.equal('minimal');
         }));

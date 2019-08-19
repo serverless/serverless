@@ -1,8 +1,7 @@
-'use strict'
+'use strict';
 
 const AWS = require('aws-sdk');
 const { region, persistentRequest } = require('../misc');
-
 
 function createApi(name) {
   const APIG = new AWS.ApiGatewayV2({ region });
@@ -38,13 +37,13 @@ function deleteStage(apiId, stageName) {
   const params = {
     ApiId: apiId,
     StageName: stageName,
-  }
+  };
   return APIG.deleteStage(params).promise();
 }
 
 function getRoutes(apiId) {
   const APIG = new AWS.ApiGatewayV2({ region });
-  APIG.getRoutes
+  APIG.getRoutes;
   return APIG.getRoutes({ ApiId: apiId })
     .promise()
     .then(data => data.Items);
