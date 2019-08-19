@@ -1,0 +1,14 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  versionFunctions: false
+
+functions:
+  # core functions
+  minimal:
+    handler: core.minimal
+    events:
+      - websocket:
+          route: minimal
