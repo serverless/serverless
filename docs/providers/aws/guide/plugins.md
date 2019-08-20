@@ -201,6 +201,7 @@ As of version 1.51.0 of Serverless framework, you can officially implement your 
 for use in `serverless.yml` config files.
 
 Example:
+
 ```javascript
 'use strict';
 
@@ -218,6 +219,7 @@ class EchoTestVarPlugin {
   }
 }
 ```
+
 The above plugin will add support for variables like `${echo:foobar}` and resolve to the key. EG:
 `${echo:foobar}` will resolve to `'foobar'`.
 
