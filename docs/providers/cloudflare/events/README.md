@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Cloudflare Workers - Events
-menuText: Cloudflare Workers Events
+menuText: Events
 layout: Doc
 -->
 
