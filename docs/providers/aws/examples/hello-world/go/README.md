@@ -1,6 +1,6 @@
 <!--
 title: Hello World Go Example
-menuText: Hello World Go Example
+menuText: Go
 description: Create a Go Hello World Lambda function
 layout: Doc
 -->

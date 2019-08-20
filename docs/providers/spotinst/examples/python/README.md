@@ -1,6 +1,6 @@
 <!--
 title: Hello World Python Example
-menuText: Hello World Python Example
+menuText: Python
 description: Create a Python Hello World function
 layout: Doc
 -->
