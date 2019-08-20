@@ -21,7 +21,7 @@ const {
   getRoutes,
   createStage,
   deleteStage,
-} = require('../../utils/api-gateway-v2');
+} = require('../../utils/websocket');
 
 const CF = new AWS.CloudFormation({ region });
 
