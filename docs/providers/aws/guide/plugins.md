@@ -195,6 +195,30 @@ class Deploy {
 module.exports = Deploy;
 ```
 
+### Custom variable getters
+
+As of version 1.51.0 of Serverless framework, you can officially implement your own variable types
+for use in `serverless.yml` config files.
+
+Example:
+```javascript
+'use strict';
+
+class EchoTestVarPlugin {
+  constructor() {
+    this.variableGetters = [
+      [/^echo/, this.getEchoTestValue],
+      // if a variable type depends on profile/stage/region/credentials, specify as such to avoid
+      // infinite loops in trying to resolve variables that depend on themselves
+      [/^echoStageDependent/, this.getEchoTestValue, { dependendServiceName: 'StageDepEcho' }],
+    ];
+  }
+  getEchoTestValue(src) {
+    return src.slice(5);
+  }
+}
+```
+
 ### Nesting Commands
 
 You can also nest commands, e.g. if you want to provide a command `serverless deploy function`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
