@@ -99,7 +99,8 @@
     "proxyquire": "^2.1.1",
     "sinon": "^7.3.2",
     "sinon-chai": "^3.3.0",
-    "strip-ansi": "^5.2.0"
+    "strip-ansi": "^5.2.0",
+    "ws": "^7.1.2"
   },
   "dependencies": {
     "@serverless/cli": "^1.0.1",

@@ -4,6 +4,8 @@ provider:
   name: aws
   runtime: nodejs10.x
   versionFunctions: false
+  logs:
+    websocket: true
 
 functions:
   # core functions

@@ -2,16 +2,18 @@
 
 const path = require('path');
 const AWS = require('aws-sdk');
+const WebSocket = require('ws');
 const _ = require('lodash');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const {
   region,
-  // confirmCloudWatchLogs,
+  confirmCloudWatchLogs,
   createTestService,
   deployService,
   removeService,
+  wait,
 } = require('../../utils/misc');
 const {
   createApi,
@@ -55,7 +57,39 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
       const webSocketServerUrl = _.find(result.Stacks[0].Outputs, {
         OutputKey: 'ServiceEndpointWebsocket',
       }).OutputValue;
+      console.info('WebSocket Server URL', webSocketServerUrl);
       expect(webSocketServerUrl).to.match(/wss:\/\/.+\.execute-api\..+\.amazonaws\.com.+/);
+      return new Promise((resolve, reject) => {
+        const ws = new WebSocket(webSocketServerUrl);
+        let isRejected = false;
+        reject = (promiseReject => error => {
+          isRejected = true;
+          promiseReject(error);
+          try {
+            ws.close();
+          } catch (closeError) {
+            // safe to ignore
+          }
+        })(reject);
+        ws.on('error', reject);
+        ws.on('open', () => {
+          confirmCloudWatchLogs(`/aws/websocket/${stackName}`, () => {
+            if (isRejected) throw new Error('Stop propagation');
+            ws.send('test message');
+            return wait(500);
+          }).then(events => {
+            expect(events.length > 0).to.equal(true);
+            ws.close();
+          }, reject);
+        });
+
+        ws.on('close', resolve);
+
+        ws.on('message', event => {
+          console.info('Unexpected WebSocket message', event);
+          reject(new Error('Unexpected message'));
+        });
+      });
     });
 
     // NOTE: this test should  be at the very end because we're using an external REST API here
@@ -95,7 +129,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
       it('should add the routes to the referenced API', async () => {
         const routes = await getRoutes(websocketApiId);
         expect(routes).to.have.length.greaterThan(0);
-        expect(routes[0].RouteKey).to.equal('minimal');
+        expect(routes[0].RouteKey).to.equal('$connect');
       });
     });
   });
