@@ -128,8 +128,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
       it('should add the routes to the referenced API', async () => {
         const routes = await getRoutes(websocketApiId);
-        expect(routes).to.have.length.greaterThan(0);
-        expect(routes[0].RouteKey).to.equal('$connect');
+        expect(routes.length).to.equal(3);
       });
     });
   });
