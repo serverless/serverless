@@ -207,15 +207,20 @@ Example:
 
 class EchoTestVarPlugin {
   constructor() {
-    this.variableGetters = [
-      [/^echo/, this.getEchoTestValue],
-      // if a variable type depends on profile/stage/region/credentials, specify as such to avoid
-      // infinite loops in trying to resolve variables that depend on themselves
-      [/^echoStageDependent/, this.getEchoTestValue, { dependendServiceName: 'StageDepEcho' }],
-    ];
-  }
-  getEchoTestValue(src) {
-    return src.slice(5);
+    getEchoTestValue(src) {
+      return src.slice(5);
+    }
+    getDependentEchoTestValue(src) {
+      return src.slice(5);
+    }
+    // if a variable type depends on profile/stage/region/credentials, to avoid infinite loops in
+    // trying to resolve variables that depend on themselves, specify as such by setting a
+    // dependendServiceName property on the variable getter
+    getDependentEchoTestValue.dependendServiceName = 'StateDependentEcho'
+    this.variableGetters = {
+      echo: this.getEchoTestValue,
+      echoStageDependent: getDependentEchoTestValue
+    };
   }
 }
 ```
