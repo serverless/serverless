@@ -52,10 +52,10 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   describe('Minimal Setup', () => {
     it('should expose an accessible websocket endpoint', async () => {
       const result = await CF.describeStacks({ StackName: stackName }).promise();
-      const endpointOutput = _.find(result.Stacks[0].Outputs, {
+      const webSocketServerUrl = _.find(result.Stacks[0].Outputs, {
         OutputKey: 'ServiceEndpointWebsocket',
       }).OutputValue;
-      expect(endpointOutput).to.match(/wss:\/\/.+\.execute-api\..+\.amazonaws\.com.+/);
+      expect(webSocketServerUrl).to.match(/wss:\/\/.+\.execute-api\..+\.amazonaws\.com.+/);
     });
 
     // NOTE: this test should  be at the very end because we're using an external REST API here
