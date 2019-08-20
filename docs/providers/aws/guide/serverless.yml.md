@@ -133,7 +133,7 @@ provider:
     baz: qux
   tracing:
     apiGateway: true
-    lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
+    lambda: true # Optional, can be true (true equals 'Active'), false (equals 'PassThrough), 'Active' or 'PassThrough'
   logs:
     restApi: # Optional configuration which specifies if API Gateway logs are used. This can either be set to true to use defaults, or configured via subproperties.
       format: 'requestId: $context.requestId' # Optional configuration which specifies the log format to use.
