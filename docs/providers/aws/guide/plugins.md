@@ -218,6 +218,8 @@ class EchoTestVarPlugin {
   }
 }
 ```
+The above plugin will add support for variables like `${echo:foobar}` and resolve to the key. EG:
+`${echo:foobar}` will resolve to `'foobar'`.
 
 ### Nesting Commands
 
