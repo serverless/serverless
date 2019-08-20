@@ -11,4 +11,8 @@ functions:
     handler: core.minimal
     events:
       - websocket:
-          route: minimal
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: $default
