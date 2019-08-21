@@ -213,13 +213,15 @@ class EchoTestVarPlugin {
     getDependentEchoTestValue(src) {
       return src.slice(5);
     }
-    // if a variable type depends on profile/stage/region/credentials, to avoid infinite loops in
-    // trying to resolve variables that depend on themselves, specify as such by setting a
-    // dependendServiceName property on the variable getter
-    getDependentEchoTestValue.dependendServiceName = 'StateDependentEcho'
-    this.variableGetters = {
+    this.variableResolvers = {
       echo: this.getEchoTestValue,
-      echoStageDependent: getDependentEchoTestValue
+      // if a variable type depends on profile/stage/region/credentials, to avoid infinite loops in
+      // trying to resolve variables that depend on themselves, specify as such by setting a
+      // dependendServiceName property on the variable getter
+      echoStageDependent: : {
+        resolver: this.getDependentEchoTestValue,
+        serviceName: 'echo that isnt prepopulated',
+        isDisabledAtPrepopulation: true
     };
   }
 }
