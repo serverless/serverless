@@ -140,7 +140,7 @@ provider:
       format: 'requestId: $context.requestId' # Optional configuration which specifies the log format to use for access logging.
       executionLogging: true # Optional configuration which enables or disables execution logging. Defaults to true.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
-      fullData: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
+      fullExecutionData: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
     websocket: true # Optional configuration which specifies if Websockets logs are used
 
 package: # Optional deployment packaging configuration
