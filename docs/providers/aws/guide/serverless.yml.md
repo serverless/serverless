@@ -136,10 +136,10 @@ provider:
     lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
   logs:
     restApi: # Optional configuration which specifies if API Gateway logs are used. This can either be set to true to use defaults, or configured via subproperties.
-      enableAccessLogging: true # Optional configuration which enables or disables access logging. Defaults to true.
+      accessLogging: true # Optional configuration which enables or disables access logging. Defaults to true.
       format: 'requestId: $context.requestId' # Optional configuration which specifies the log format to use for access logging.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR, or set to OFF to disable.
-      dateTrace: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
+      fullData: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
     websocket: true # Optional configuration which specifies if Websockets logs are used
 
 package: # Optional deployment packaging configuration
