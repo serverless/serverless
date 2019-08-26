@@ -1,3 +1,11 @@
+# 1.50.1 (2019-08-26)
+
+- [add `interactiveCli:end lifecycle hook & bump dashboard plugin dep`](https://github.com/serverless/serverless/pull/6549)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.50.0...v1.50.1)
+
 # 1.50.0 (2019-08-14)
 
 - [Render event information in aws-ruby handler template](https://github.com/serverless/serverless/pull/6478)
