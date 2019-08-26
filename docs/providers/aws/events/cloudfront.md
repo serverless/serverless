@@ -26,7 +26,7 @@ Lambda@Edge has four options when the Lambda function is triggered
 
 - `viewer-request`, when the CloudFront first receives the request from the client
 - `origin-request`, before the request to the origin service
-- `origin-response`, when CloudFront receives the request from the origin service
+- `origin-response`, when CloudFront receives the response from the origin service
 - `viewer-response`, before the response returned to the client
 
 ## Simple event definition
