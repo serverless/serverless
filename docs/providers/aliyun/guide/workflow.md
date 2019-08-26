@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/guide/workflow)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Alibaba Cloud - Workflow
@@ -18,7 +20,7 @@ Intro. Quick recommendations and tips for various processes.
 
 1. Write your functions
 2. Use `serverless deploy` when you've made changes to `serverless.yml` and in CI/CD systems
-3. Use `serverless invoke --function myFunction ` to test your Alibaba Cloud Function Compute functions
+3. Use `serverless invoke --function myFunction` to test your Alibaba Cloud Function Compute functions
 4. Open up a separate tab in your console and see logs in there via `serverless logs --function myFunction`
 5. Write tests to run locally
 

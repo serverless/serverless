@@ -5,7 +5,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Alibaba Cloud Function Compute Provider Documentation
@@ -15,7 +17,6 @@ Welcome to the Serverless Alibaba Cloud Function Compute documentation!
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
 
 **Note:** [Alibaba Cloud AccessKeys](./guide/credentials.md) are required for using the CLI.
-
 
 ## Guide
 

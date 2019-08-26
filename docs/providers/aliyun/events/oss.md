@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/events/event)
+
 <!-- DOCS-SITE-LINK:END -->
 
 ## OSS
@@ -27,7 +29,7 @@ functions:
     events:
       - oss:
           sourceArn: acs:oss:cn-shanghai:${env:ALIYUN_ACCOUNT}:my-service-resource
-          triggerConfig: 
+          triggerConfig:
             events:
               - oss:ObjectCreated:PutObject
 ```
@@ -39,8 +41,8 @@ exports.first = (event, context, callback) => {
   const response = {
     statusCode: 200,
     body: JSON.stringify({
-      message: 'Hello!'
-    })
+      message: 'Hello!',
+    }),
   };
 
   callback(null, response);

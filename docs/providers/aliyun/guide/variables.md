@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/guide/variables)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Alibaba Cloud - Variables
@@ -54,6 +56,7 @@ functions:
 ```
 
 ## Reference Properties In serverless.yml
+
 To self-reference properties in `serverless.yml`, use the `${self:someProperty}` syntax in your `serverless.yml`. This functionality is recursive, so you can go as deep in the object tree as you want.
 
 ```yml
@@ -87,14 +90,14 @@ In the above example you're setting a global event resource for all functions by
 
 ## Reference Variables in JavaScript Files
 
-To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`.  Here's an example:
+To add dynamic data into your variables, reference javascript files by putting `${file(./myFile.js):someModule}` syntax in your `serverless.yml`. Here's an example:
 
 ```javascript
 // myCustomFile.js
 module.exports.path = () => {
-   // Code that generates dynamic data
-   return '/quo/foo/bar';
-}
+  // Code that generates dynamic data
+  return '/quo/foo/bar';
+};
 ```
 
 ```yml
@@ -123,11 +126,11 @@ You can also return an object and reference a specific property. Just make sure 
 ```javascript
 // myCustomFile.js
 module.exports.paths = () => {
-   // Code that generates dynamic data
-   return {
-     current: '/quo/foo/bar'
-   };
-}
+  // Code that generates dynamic data
+  return {
+    current: '/quo/foo/bar',
+  };
+};
 ```
 
 ```yml

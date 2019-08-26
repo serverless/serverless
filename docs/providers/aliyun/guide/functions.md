@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Alibaba Cloud - Functions
 
-If you are using Alibaba Cloud Function Compute as a provider, all *functions* inside the service are Alibaba Cloud Function Compute functions.
+If you are using Alibaba Cloud Function Compute as a provider, all _functions_ inside the service are Alibaba Cloud Function Compute functions.
 
 ## Configuration
 
@@ -45,7 +47,7 @@ When you e.g. export a function with the name `hello` in `index.js` your `handle
 
 ```javascript
 // index.js
-exports.hello = (event, context, callback) => {}
+exports.hello = (event, context, callback) => {};
 ```
 
 ## Memory size and timeout

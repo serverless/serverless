@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/guide/intro)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Alibaba Cloud - Introduction
@@ -27,8 +29,8 @@ Here are the Framework's main concepts and how they pertain to Alibaba Cloud Fun
 
 A Function is an [Alibaba Cloud Function Compute Function](https://serverless.aliyun.com). It's an independent unit of deployment, like a microservice. It's merely code, deployed in the cloud, that is most often written to perform a single job such as:
 
-- *Saving a user to the database*
-- *Processing a file in a database*
+- _Saving a user to the database_
+- _Processing a file in a database_
 
 You can perform multiple jobs in your code, but we don't recommend doing that without good reason. Separation of concerns is best and the Framework is designed to help you easily develop and deploy Functions, as well as manage lots of them.
 
@@ -36,15 +38,15 @@ You can perform multiple jobs in your code, but we don't recommend doing that wi
 
 Anything that triggers a Alibaba Cloud Function Compute to execute is regarded by the Framework as an **Event**. Events are platform events on Alibaba Cloud Function Compute such as:
 
-- *An HTTP Trigger (e.g., for a REST API)*
-- *An OSS event (e.g., Image uploaded into bucket)*
-- *And more...*
+- _An HTTP Trigger (e.g., for a REST API)_
+- _An OSS event (e.g., Image uploaded into bucket)_
+- _And more..._
 
 When you define an event for your Alibaba Cloud Function Compute in the Serverless Framework, the Framework will automatically translate the event with its function into corresponding cloud resources. This way the event is configured so that your functions can listen to it.
 
 ### Services
 
-A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application.  It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json`). It looks like this:
+A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json`). It looks like this:
 
 ```yml
 # serverless.yml

@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/guide/services)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Alibaba Cloud - Services
@@ -18,14 +20,14 @@ To get started building your first Serverless Framework project, create a `servi
 
 ## Organization
 
-In the beginning of an application, many people use a single Service to define all of the Functions and  Events for that project. This is what we recommend in the beginning.
+In the beginning of an application, many people use a single Service to define all of the Functions and Events for that project. This is what we recommend in the beginning.
 
 ```bash
 myService/
   serverless.yml  # Contains all functions and infrastructure resources
 ```
 
-However, as your application grows, you can break it out into multiple services.  A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
+However, as your application grows, you can break it out into multiple services. A lot of people organize their services by workflows or data models, and group the functions related to those workflows and data models together in the service.
 
 ```bash
 users/
@@ -49,7 +51,7 @@ serverless create --template aliyun-nodejs --path my-service
 
 Here are the available runtimes for Alibaba Cloud Function Compute:
 
-* aliyun-nodejs
+- aliyun-nodejs
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
@@ -109,7 +111,7 @@ To deploy a service, use the `deploy` command:
 serverless deploy
 ```
 
-Check out the [deployment guide](./deploying.md) to learn more about deployments and how they work.  Or, check out the [deploy command docs](../cli-reference/deploy.md) for all the details and options.
+Check out the [deployment guide](./deploying.md) to learn more about deployments and how they work. Or, check out the [deploy command docs](../cli-reference/deploy.md) for all the details and options.
 
 ## Removal
 
@@ -138,7 +140,7 @@ To configure version pinning define a `frameworkVersion` property in your server
 ```yml
 # serverless.yml
 
-frameworkVersion: "=1.0.3"
+frameworkVersion: '=1.0.3'
 ```
 
 #### Version Range
@@ -146,9 +148,8 @@ frameworkVersion: "=1.0.3"
 ```yml
 # serverless.yml
 
-frameworkVersion: ">=1.0.0 <2.0.0"
+frameworkVersion: '>=1.0.0 <2.0.0'
 ```
-
 
 ## Installing Serverless in an existing service
 
@@ -164,6 +165,7 @@ npm install serverless --save-dev
 To execute the locally installed Serverless executable you have to reference the binary out of the node modules directory.
 
 Example:
+
 ```
 node ./node_modules/serverless/bin/serverless deploy
 ```

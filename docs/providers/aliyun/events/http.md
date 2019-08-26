@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/events/http)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # HTTP
@@ -42,7 +44,7 @@ functions:
 exports.hello = (event, context, callback) => {
   const response = {
     statusCode: 200,
-    body: JSON.stringify({ message: 'Hello!' })
+    body: JSON.stringify({ message: 'Hello!' }),
   };
 
   callback(null, response);
