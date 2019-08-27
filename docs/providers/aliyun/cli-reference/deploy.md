@@ -12,7 +12,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Deploy
+# Alibaba Cloud - Deploy
 
 The `serverless deploy` command deploys your entire service via the Alibaba Cloud API. Run this command when you have made service changes (i.e., you edited `serverless.yml`).
 

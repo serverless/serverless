@@ -1,5 +1,5 @@
 <!--
-title: Alibaba Cloud Function Compute Serverless install command
+title: Serverless Framework Commands - Alibaba Cloud Function Compute - Install
 menuText: install
 menuOrder: 2
 description: Install pre-written Alibaba Cloud Function Compute Functions, Events and Resources with the Serverless Framework

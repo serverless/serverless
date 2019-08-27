@@ -12,7 +12,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Alibaba Cloud - package
+# Alibaba Cloud - Package
 
 The `sls package` command packages your entire infrastructure into the `.serverless` directory by default and make it ready for deployment.
 

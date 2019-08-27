@@ -1,5 +1,5 @@
 <!--
-title: Alibaba Cloud Function Compute Serverless logs command
+title: Serverless Framework Commands - Alibaba Cloud Function Compute - Logs
 menuText: logs
 menuOrder: 8
 description: View logs of your Alibaba Cloud Function Compute Function within your terminal using the Serverless Framework

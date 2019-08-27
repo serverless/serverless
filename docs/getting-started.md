@@ -12,7 +12,7 @@ menuItems:
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
   - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
   - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
-  - {menuText: "- Alibaba Cloud" , path: /framework/docs/providers/aliyun/}
+  - {menuText: Alibaba Guide , path: /framework/docs/providers/aliyun/guide/quick-start}
 -->
 
 # Getting Started with the Serverless Framework and AWS

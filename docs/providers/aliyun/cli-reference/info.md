@@ -1,5 +1,5 @@
 <!--
-title: Alibaba Cloud Function Compute Serverless info command
+title: Serverless Framework Commands - Alibaba Cloud Function Compute - Info
 menuText: info
 menuOrder: 5
 description: Get information about your deployed service

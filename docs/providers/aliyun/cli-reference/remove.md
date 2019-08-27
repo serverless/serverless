@@ -1,5 +1,5 @@
 <!--
-title: Alibaba Cloud Function Compute Serverless remove command
+title: Serverless Framework Commands - Alibaba Cloud Function Compute - Remove
 menuText: remove
 menuOrder: 9
 description: Remove a deployed Service and all of its Alibaba Cloud Function Compute Functions, Events and Resources
