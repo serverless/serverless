@@ -1,6 +1,6 @@
 <!--
 title: Hello World C# Example
-menuText: Hello World C# Example
+menuText: C#
 description: Create a C# Hello World Lambda function
 layout: Doc
 -->

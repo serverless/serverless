@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Output Variables
 menuText: Output Variables
+menuOrder: 3
 layout: Doc
 -->
 
