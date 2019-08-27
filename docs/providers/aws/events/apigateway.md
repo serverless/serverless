@@ -1507,3 +1507,16 @@ provider:
     restApi:
       format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
 ```
+
+The default API Gateway log level will be INFO. You can change this to error with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      level: ERROR
+```
+
+Valid values are INFO, ERROR.

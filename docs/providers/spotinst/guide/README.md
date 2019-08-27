@@ -15,7 +15,7 @@ menuOrder: 1
 
 Welcome to the Serverless Spotinst Functions Guide!
 
-Get started with the **[Introduction to the framework](./intro.md)**
+Get started with the [Introduction to the framework](./intro.md)
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
 

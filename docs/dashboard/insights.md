@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Insights
 menuText: Insights
+menuOrder: 1
 layout: Doc
 -->
 

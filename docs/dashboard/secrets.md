@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Secrets
 menuText: Secrets
+menuOrder: 4
 layout: Doc
 -->
 
