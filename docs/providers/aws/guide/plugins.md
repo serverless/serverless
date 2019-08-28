@@ -197,7 +197,7 @@ module.exports = Deploy;
 
 ### Custom variable getters
 
-As of version 1.51.0 of Serverless framework, you can officially implement your own variable types
+As of version 1.52.0 of Serverless framework, you can officially implement your own variable types
 for use in `serverless.yml` config files.
 
 Example:
