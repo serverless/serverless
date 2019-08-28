@@ -29,6 +29,8 @@ Lambda@Edge has four options when the Lambda function is triggered
 - `origin-response`, when CloudFront receives the response from the origin service
 - `viewer-response`, before the response returned to the client
 
+**IMPORTANT** Due to current [Lambda@Edge limitations](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-delete-replicas.html) it's necessary to set the `DeletionPolicy` to `Retain` for AWS Lambda functions which use the `cloudFront` event. The Serverless Framework will do this automatically for you. However bear in mind that **you have to delete those AWS Lambda functions manually** once you've removed the service via `serverless remove`.
+
 ## Simple event definition
 
 This will enable your Lambda@Edge function to be called by a CloudFront.
