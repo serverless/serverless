@@ -147,7 +147,7 @@ If the function is triggered by an OSS event, then the `event` would be a JSON s
 
 ### `context`
 
-The `context` argument contains information about the function and the service. The credentials in `conetxt.credentials` can be used to access other Alibaba Cloud resources.
+The `context` argument contains information about the function and the service. The credentials in `context.credentials` can be used to access other Alibaba Cloud resources.
 
 ```javascript
 {
