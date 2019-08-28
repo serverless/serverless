@@ -74,7 +74,7 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
   <a href="./aliyun/">
   <div class="providerSection">
     <div class="providerSectionHeader">
-        <img src="http://docs.alibabagroup.com/assets2/images/en/news/library_logos_aliyun_large.png" width="250" draggable="false" class='aliyun-logo'/>
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/alibaba-cloud-logo-gray.png" width="250" draggable="false" class='aliyun-logo'/>
     </div>
   </div>
   </a>
