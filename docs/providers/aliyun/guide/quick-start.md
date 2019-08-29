@@ -35,6 +35,8 @@ Update the `project` and `credentials` in your projects `serverless.yml`
 
 ## 4. Deploy
 
+Make sure that you have activated Function Compute and any other dependent services such as RAM, Log Service, API Gateway and OSS before attempting to deploy your function.
+
 Run the [deploy command](../cli-reference/deploy.md)
 
 ```bash
