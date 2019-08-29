@@ -1,3 +1,35 @@
+# 1.51.0 (2019-08-28)
+
+- [AWS API Gateway customize log level](https://github.com/serverless/serverless/pull/6542)
+- [Fix retained layer logical id](https://github.com/serverless/serverless/pull/6545)
+- [add docs for options misused in #6546](https://github.com/serverless/serverless/pull/6547)
+- [Fix: Remove Bluebird promise warning when NODE_ENV=development](https://github.com/serverless/serverless/pull/6556)
+- [AWS API Gateway set value of provider.logRetentionInDays for log group expiration](https://github.com/serverless/serverless/pull/6548)
+- [Fix support for external websocketApiId](https://github.com/serverless/serverless/pull/6543)
+- [Ensure AWS SDK is mocked for tests that call it](https://github.com/serverless/serverless/pull/6571)
+- [do not log warnings on empty arrays](https://github.com/serverless/serverless/pull/6554)
+- [API Gateway enable/disable access/execution logs](https://github.com/serverless/serverless/pull/6578)
+- [Allow unresolved Rest API id with provider.tags setting](https://github.com/serverless/serverless/pull/6586)
+- [Improve error reporting](https://github.com/serverless/serverless/pull/6585)
+- [Fix exclusion of Yarn logs in Lambda packages](https://github.com/serverless/serverless/pull/6589)
+- [Improve Rest API id resolution for SDK updates](https://github.com/serverless/serverless/pull/6587)
+- [Fix ServerlessError handling](https://github.com/serverless/serverless/pull/6588)
+- [Style updates for docs](https://github.com/serverless/serverless/pull/6596)
+- [PLAT-1629 - Fix custom resource lambda naming](https://github.com/serverless/serverless/pull/6599)
+- [Ensure API Gateway CloudWatch role is setup via custom resource](https://github.com/serverless/serverless/pull/6591)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.50.1...v1.51.0)
+
+# 1.50.1 (2019-08-26)
+
+- [add `interactiveCli:end lifecycle hook & bump dashboard plugin dep`](https://github.com/serverless/serverless/pull/6549)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.50.0...v1.50.1)
+
 # 1.50.0 (2019-08-14)
 
 - [Render event information in aws-ruby handler template](https://github.com/serverless/serverless/pull/6478)

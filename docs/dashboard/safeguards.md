@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Safeguards
 menuText: Safeguards
+menuOrder: 5
 layout: Doc
 -->
 

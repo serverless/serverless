@@ -188,6 +188,10 @@ function skipOnWindowsDisabledSymlinks(error, context, afterCallback) {
   skipWithNotice(context, 'Missing admin rights to create symlinks', afterCallback);
 }
 
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 module.exports = {
   logger,
   region,
@@ -206,4 +210,5 @@ module.exports = {
   skippedWithNotice,
   skipWithNotice,
   skipOnWindowsDisabledSymlinks,
+  wait,
 };
