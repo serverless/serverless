@@ -52,4 +52,4 @@ functions:
     events:
       - timer:
         x-azure-settings:
-          schedule: "*/10 * * * * *"
+          schedule: '*/10 * * * * *'

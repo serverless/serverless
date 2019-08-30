@@ -23,7 +23,6 @@ provider:
   region: West US # westus also work
   runtime: nodejs10.x
 
-
 plugins:
   - serverless-azure-functions
 
