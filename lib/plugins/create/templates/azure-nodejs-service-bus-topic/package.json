@@ -1,0 +1,19 @@
+{
+  "name": "azure-nodejs",
+  "version": "1.0.0",
+  "description": "Azure Functions sample for the Serverless framework",
+  "scripts": {
+    "test": "echo \"No tests yet...\"",
+    "start": "func host start",
+    "azurite": "mkdir -p AzuriteMetadata && azurite -l AzuriteMetadata"
+  },
+  "keywords": [
+    "azure",
+    "serverless"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "azurite": "^2.7.0",
+    "serverless-azure-functions": "^1.0.0-26"
+  }
+}
