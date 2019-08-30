@@ -1,0 +1,57 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: nodejs-storage-queue # NOTE: update this with your service name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: azure
+  region: West US # westus also work
+  runtime: nodejs10.x
+
+plugins:
+  - serverless-azure-functions
+
+# you can add packaging information here
+package:
+  #  include:
+  #    - include-me.js
+  #    - include-me-dir/**
+  exclude:
+    #    - exclude-me.js
+    #    - exclude-me-dir/**
+    - local.settings.json
+    - .vscode/**
+
+functions:
+  hello:
+    handler: src/handler/hello.sayHello
+    events:
+      - http: true
+        x-azure-settings:
+          authLevel: anonymous
+      - http: true
+        x-azure-settings:
+          direction: out
+          name: res
+
+  storageQueue:
+    handler: src/handlers/storageQueue.printMessage
+    events:
+    - queue: queue-sample
+      x-azure-settings:
+        name: message # Specifies which naem is available on `context`
+        connection : AzureWebJobsStorage
