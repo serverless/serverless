@@ -231,6 +231,7 @@ The above plugin will add support for variables like `${echo:foobar}` and resolv
 `${echo:foobar}` will resolve to `'foobar'`.
 
 #### `this.variableResolvers` structure
+
 The data structure of `this.variableResolvers` is an `Object` with keys that are either a
 `function` or `Object`.
 
@@ -242,13 +243,14 @@ a `Promise` and accepts the variable string(with prefix but not the wrapping var
 eg `test:foobar`) as it's only argument.
 
 If the value is an `Object`, it can have the following keys:
- * `resolver` - required, a function, same requirements as described above.
- * `isDisabledAtPrepopulation` - optional, a boolean, disable this variable type when populating
-   stage, region, and credentials. This is important for variable types that depend on AWS or other
-   service that depend on those variables
- * `serviceName` - required if `isDisabledAtPrepopulation === true`, a string to display to users
-   if they try to use the variable type in one of the fields disabled for populating
-   stage/region/credentials.
+
+- `resolver` - required, a function, same requirements as described above.
+- `isDisabledAtPrepopulation` - optional, a boolean, disable this variable type when populating
+  stage, region, and credentials. This is important for variable types that depend on AWS or other
+  service that depend on those variables
+- `serviceName` - required if `isDisabledAtPrepopulation === true`, a string to display to users
+  if they try to use the variable type in one of the fields disabled for populating
+  stage/region/credentials.
 
 ### Nesting Commands
 
