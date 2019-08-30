@@ -28,6 +28,7 @@ You need to enable the following services so that Serverless can create the corr
 - <a href="https://www.alibabacloud.com/product/ram" target="_blank">Resource Access Management</a>
 - <a href="https://www.alibabacloud.com/product/log-service" target="_blank">Log Service</a>
 - <a href="https://www.alibabacloud.com/product/api-gateway" target="_blank">API Gateway</a>
+- <a href="https://www.alibabacloud.com/product/oss" target="_blank">Object Storage Service</a>
 - <a href="https://www.aliyun.com/product/fc" target="_blank">Function Compute</a>
 
 ## Get the Credentials
