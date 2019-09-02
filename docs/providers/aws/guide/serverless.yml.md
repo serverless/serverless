@@ -142,6 +142,7 @@ provider:
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
       fullExecutionData: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
     websocket: true # Optional configuration which specifies if Websockets logs are used
+    frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
 
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
