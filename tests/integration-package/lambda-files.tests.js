@@ -10,6 +10,7 @@ const { getTmpDirPath, listZipFiles } = require('../utils/fs');
 const fixturePaths = {
   regular: path.join(__dirname, 'fixtures/regular'),
   individually: path.join(__dirname, 'fixtures/individually'),
+  individuallyFunction: path.join(__dirname, 'fixtures/individually-function'),
 };
 
 describe('Integration test - Packaging', function() {
@@ -83,6 +84,15 @@ describe('Integration test - Packaging', function() {
 
   it('handles package individually with include/excludes correctly', () => {
     fse.copySync(fixturePaths.individually, cwd);
+    execSync(`${serverlessExec} package`, { cwd });
+    return listZipFiles(path.join(cwd, '.serverless/hello.zip'))
+      .then(zipfiles => expect(zipfiles).to.deep.equal(['handler.js']))
+      .then(() => listZipFiles(path.join(cwd, '.serverless/hello2.zip')))
+      .then(zipfiles => expect(zipfiles).to.deep.equal(['handler2.js']));
+  });
+
+  it('handles package individually on function level with include/excludes correctly', () => {
+    fse.copySync(fixturePaths.individuallyFunction, cwd);
     execSync(`${serverlessExec} package`, { cwd });
     return listZipFiles(path.join(cwd, '.serverless/hello.zip'))
       .then(zipfiles => expect(zipfiles).to.deep.equal(['handler.js']))
