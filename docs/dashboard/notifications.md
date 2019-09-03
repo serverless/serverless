@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Notifications
 menuText: Notifications
+menuOrder: 2
 layout: Doc
 -->
 

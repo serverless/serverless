@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Profiles
 menuText: Profiles
+menuOrder: 7
 layout: Doc
 -->
 

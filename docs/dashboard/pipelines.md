@@ -1,6 +1,7 @@
 <!--
 title: Serverless Dashboard - Pipelines
 menuText: Pipelines
+menuOrder: 8
 layout: Doc
 -->
 
