@@ -1,133 +1,211 @@
-# Azure Functions - Quick Start
+# Azure Functions
 
 ## Pre-requisites
 
-1. Node.js `v6.5.0` or later. _(v6.5.0 is the minimum runtime version supported by Azure Functions)_
-2. Serverless CLI `v1.9.0` or later. You can run
-   `npm install -g serverless` to install it.
-3. Azure plugin that allows you to work with Azure Functions `npm install -g serverless-azure-functions`
-4. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes \$200 of free credit.
-5. **Set-up your [Provider Credentials](./credentials.md)**.
+1. Node.js v6.5.0+ _(this is the runtime version supported by Azure Functions)_
+2. Serverless CLI `v1.9.0+`. You can run `npm i -g serverless` if you don't already have it.
+3. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes \$200 of free credit.
 
-## Create a new service
-
-Create a new service using the Node.js template, specifying a unique name and an
-optional path for your service. Make sure you enter a globally unique name for the `--name` argument.
+## Create a new Azure Function App
 
 ```bash
-$ serverless create --template azure-nodejs --path my-service --name my-unique-name
-$ cd my-service
-$ npm install
+# Create Azure Function App from template
+sls create -t azure-nodejs -p <appName>
+# Move into project directory
+cd <appName>
+# Install dependencies (including this plugin)
+npm install
 ```
 
-Note: This template contains **two** Azure functions to demonstrate how that would be configured within `serverless.yml`.
+### Note
 
-Note: The `serverless.yml` file supports **inbound** and **outbound** function bindings by specifying the `direction` property.
+1. If `--name/-n` is not specified, the path name will be use as the service name.
+1. If `--path/-p` is not specified, a folder will not be created and all files will be generated into the current working directory.
+1. If `--path/-p` and `--name/-n` are not specified, the current folder name will be use as the service name.
 
-## Running Locally
+## Running Function App Locally (`offline` plugin)
 
-In order to run & test your Azure Function(s) locally, run a one-time install of the Azure Functions Core Tools:
+Offline support is built into the plugin. All you have to do
+is run the following command in the root directory.
 
 ```bash
-npm install azure-functions-core-tools -g
+# Builds necessary function bindings files and starts the function app
+$ sls offline
 ```
 
-From there, run the start script:
+The `offline` process will
+
+- generate a directory for each of your functions, which will contain a file titled `function.json`. This will contain a relative reference to your handler file & exported function from that file as long as they are referenced correctly in `serverless.yml`.
+
+- After the necessary files are generated, it will start the function app from within the same shell. For HTTP functions, the local URLs will be displayed in the console when the function app is initialized.
+- generate a `local.settings.json` file if it does not exist
+- clean up all the generated `function.json` files when you exit
+
+### Additonal commands
+
+To simply start the function app _without_ building the files, run:
 
 ```bash
-# Start Function app
-npm start
+sls offline start
 ```
 
-You will be provided with local URLs for each function for testing.
-
-Note: The file `{function name}/function.json` is included in the template for the quickstart, but this will be replaced by a generated file from the `serverless-azure-functions` plugin at deployment. There will soon be an option in the plugin for generating this file before deployment for local testing, but that scenario is not currently supported. If you want to test different function bindings locally before deploying, make the changes manually in `function.json` and update the `serverless.yml` to reflect the same.
-
-## Deploy and test
-
-1. **Deploy the Service:**
-
-Deploy your new service to Azure! The first time you do this, you will be asked
-to authenticate with your Azure account, so the `serverless` CLI can manage
-Functions on your behalf. Simply follow the provided instructions, and the
-deployment will continue as soon as the authentication process is completed.
+To build the files _without_ spawning the process to start the function app, run:
 
 ```bash
-serverless deploy
+sls offline build
 ```
 
-> Note: Once you've authenticated, a new Azure "service principal" will be
-> created, and used for subsequent deployments. This prevents you from needing to
-> manually login again. See [below](#advanced-authentication) if you'd prefer to
-> use a custom service principal instead.
-
-2. **Deploy the Function**
-
-Use this to quickly upload and overwrite your function code,allowing you to
-develop faster. If you're working on a single function, you can simply deploy
-the specified function instead of the entire service.
+To clean up files generated from the build, run:
 
 ```bash
-serverless deploy function -f hello
+sls offline cleanup
 ```
 
-3. **Invoke the Function**
+## Deploy Your Function App
 
-Invoke a function, in order to test that it works:
+Deploy your new service to Azure! The first time you do this, you will be asked to authenticate with your Azure account, so the `serverless` CLI can manage Functions on your behalf. Simply follow the provided instructions, and the deployment will continue as soon as the authentication process is completed.
 
 ```bash
-serverless invoke -f hello
+sls deploy
 ```
 
-4. **Fetch the Function Logs**
+For more advanced deployment scenarios, see [deployment docs](https://github.com/serverless/serverless-azure-functions)
 
-Open up a separate tab in your console and stream all logs for a specific
-Function using this command.
+## Test Your Function App
+
+Invoke your HTTP functions without ever leaving the CLI using:
 
 ```bash
-serverless logs -f hello -t
+sls invoke -f <functionName>
 ```
 
-## Cleanup
+### Invoke Options
 
-If at any point, you no longer need your service, you can run the following
-command to remove the Functions, Events and Resources that were created, and
-ensure that you don't incur any unexpected charges.
+- `-f` or `--function` - Function to Invoke
+- `-d` or `--data` - Stringified JSON data to use as either query params or request body
+- `-p` or `--path` - Path to JSON file to use as either query params or request body
+- `-m` or `--method` - HTTP method for request
+
+#### Example
+
+After deploying template function app, run
 
 ```bash
-serverless remove
+sls invoke -f hello '{"name": "Azure"}'
 ```
 
-Check out the [Serverless Framework Guide](./README.md) for more information.
+## Roll Back Your Function App
+
+To roll back your function app to a previous deployment, simply select a timestamp of a previous deployment and use `rollback` command.
+
+```bash
+# List all deployments to know the timestamp for rollback
+$ sls deploy list
+Serverless:
+-----------
+Name: myFunctionApp-t1561479533
+Timestamp: 1561479533
+Datetime: 2019-06-25T16:18:53+00:00
+-----------
+Name: myFunctionApp-t1561479506
+Timestamp: 1561479506
+Datetime: 2019-06-25T16:18:26+00:00
+-----------
+Name: myFunctionApp-t1561479444
+Timestamp: 1561479444
+Datetime: 2019-06-25T16:17:24+00:00
+-----------
+
+# Rollback Function App to timestamp
+$ sls rollback -t 1561479506
+```
+
+This will update the app code and infrastructure to the selected previous deployment.
+
+For more details, check out our [rollback docs](docs/ROLLBACK.md).
+
+## Deleting Your Function App
+
+**DANGEROUS:** If at any point you no longer need your service, you can run the following command to delete the resource group containing your Azure Function App and other depoloyed resources using:
+
+```bash
+sls remove
+```
+
+## Creating or removing Azure Functions
+
+To create a new Azure Function within your function app, run the following command from within your app's directory:
+
+```bash
+# -n or --name for name of new function
+sls func add -n {functionName}
+```
+
+This will create a new handler file at the root of your project with the title `{functionName}.js`. It will also update `serverless.yml` to contain the new function.
+
+To remove an existing Azure Function from your function app, run the following command from within your app's directory:
+
+```bash
+# -n or --name for name of function to remove
+sls func remove -n {functionName}
+```
+
+This will remove the `{functionName}.js` handler and remove the function from `serverless.yml`
+
+> Note:
+> Add & remove currently only support HTTP triggered functions. For other triggers, you will need to update `serverless.yml` manually
 
 ## Advanced Authentication
 
-The getting started walkthrough illustrates the interactive login experience,
-which is recommended for most users. However, if you'd prefer to create an Azure
-["service principal"](http://bit.ly/2wLVE7k)
-yourself, you can indicate that this plugin should use its credentials instead,
-by setting the following environment variables:
+The getting started walkthrough illustrates the interactive login experience, which is recommended when getting started. However, for more robust use, a [service principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals) is recommended for authentication.
 
-**Bash**
+### Creating a Service Principal
 
-```bash
-export azureSubId='<subscriptionId>'
-export azureServicePrincipalTenantId='<tenantId>'
-export azureServicePrincipalClientId='<servicePrincipalName>'
-export azureServicePrincipalPassword='<password>'
-```
+1. [Install the Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+1. Login via Azure CLI and set subscription
 
-**Powershell**
+   ```bash
+   # Login to Azure
+   $ az login
+   # Set Azure Subscription for which to create Service Principal
+   $ az account set -s <subscription-id>
+   ```
 
-```powershell
-$env:azureSubId='<subscriptionId>'
-$env:azureServicePrincipalTenantId='<tenantId>'
-$env:azureServicePrincipalClientId='<servicePrincipalName>'
-$env:azureServicePrincipalPassword='<password>'
-```
+1. Generate Service Principal for Azure Subscription
 
-## Issues / Feedback / Feature Requests?
+   ```bash
+   # Create SP with unique name
+   $ az ad sp create-for-rbac --name <name>
+   ```
 
-If you have any issues, comments or want to see new features, please file an issue in the project repository:
+   This will yield something like:
 
-https://github.com/serverless/serverless-azure-functions
+   ```json
+   {
+     "appId": "<servicePrincipalId>",
+     "displayName": "<name>",
+     "name": "<name>",
+     "password": "<password>",
+     "tenant": "<tenantId>"
+   }
+   ```
+
+1. Set environment variables
+
+   **Bash**
+
+   ```bash
+   export azureSubId='<subscriptionId>'
+   export azureServicePrincipalTenantId='<tenantId>'
+   export azureServicePrincipalClientId='<servicePrincipalId>'
+   export azureServicePrincipalPassword='<password>'
+   ```
+
+   **Powershell**
+
+   ```powershell
+   $env:azureSubId='<subscriptionId>'
+   $env:azureServicePrincipalTenantId='<tenantId>'
+   $env:azureServicePrincipalClientId='<servicePrincipalName>'
+   $env:azureServicePrincipalPassword='<password>'
+   ```
