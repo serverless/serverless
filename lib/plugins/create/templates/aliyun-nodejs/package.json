@@ -8,7 +8,7 @@
   },
   "author": "alibabacloud.com",
   "license": "MIT",
-  "dependencies": {
-    "serverless-aliyun-function-compute": "^1.2.1"
+  "devDependencies": {
+    "serverless-aliyun-function-compute": "*"
   }
 }
