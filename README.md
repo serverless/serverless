@@ -184,7 +184,7 @@ These consultants use the Serverless Framework and can help you build your serve
 - [Trek10](https://www.trek10.com/)
 - [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
 - [Geniusee](https://geniusee.com)
-- [SC5 Online](https://sc5.io)
+- [Nordcloud](https://nordcloud.com) - they created [several plugins](https://github.com/nordcloud?utf8=%E2%9C%93&q=serverless&type=&language=), sponsor [Serverless Days Helsinki](https://helsinki.serverlessdays.io/) and regularly host [Serverless Finland](https://www.meetup.com/Serverless-Finland/) Meetups.
 - [Carrot Creative](https://carrot.is)
 - [microapps](http://microapps.com)
 - [Apiwise](http://www.apiwise.nl)
