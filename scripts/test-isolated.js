@@ -133,4 +133,4 @@ const run = path => {
 };
 
 const limit = pLimit(processesCount);
-return initialSetupDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));
+initialSetupDeferred.then(() => Promise.all(paths.map(path => limit(() => run(path)))));

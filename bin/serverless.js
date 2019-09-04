@@ -9,7 +9,6 @@ if (userNodeVersion >= 8) {
   const serverlessCli = require('@serverless/cli');
   if (serverlessCli.runningComponents()) {
     serverlessCli.runComponents();
-    return;
   }
 }
 
