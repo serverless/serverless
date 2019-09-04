@@ -1,4 +1,4 @@
-module.exports.printMessage = async function (context, blob) {
+module.exports.printMessage = async function(context, blob) {
   const content = JSON.parse(blob);
 
   context.log('================= MESSAGE START =================');
