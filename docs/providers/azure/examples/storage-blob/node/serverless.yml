@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: nodejs-hello-goodbye # NOTE: update this with your service name
+service: nodejs-storage-blob # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -32,15 +32,11 @@ package:
     - .vscode/**
 
 functions:
-  hello:
-    handler: src/handlers/sayHello
+  storageBlob:
+    handler: src/handlers/storageBlob.printMessage
     events:
-      - http: true
+      - blob:
         x-azure-settings:
-          authLevel: anonymous
-  goodbye:
-    handler: src/handlers/goodbye.sayGoodbye
-    events:
-      - http: true
-        x-azure-settings:
-          authLevel: anonymous
+          name: blob # Specifies which name is available on `context`
+          path: blob-sample/{blobName}
+          connection: AzureWebJobsStorage # App Setting/environment variable which contains Storage Account Connection String

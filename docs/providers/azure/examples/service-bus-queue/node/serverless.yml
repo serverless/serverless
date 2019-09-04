@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: nodejs-hello-goodbye # NOTE: update this with your service name
+service: nodejs-sb-queue # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -21,6 +21,8 @@ provider:
   name: azure
   region: West US # westus also work
   runtime: nodejs10.x
+  environment:
+    SERVICE_BUS_CONNECTION: ${env:SERVICE_BUS_CONNECTION} # pull this value from environment variable
 
 plugins:
   - serverless-azure-functions
@@ -32,15 +34,11 @@ package:
     - .vscode/**
 
 functions:
-  hello:
-    handler: src/handlers/sayHello
+  serviceBusQueue:
+    handler: src/handlers/serviceBusQueue.printMessage
     events:
-      - http: true
+      - serviceBus:
         x-azure-settings:
-          authLevel: anonymous
-  goodbye:
-    handler: src/handlers/goodbye.sayGoodbye
-    events:
-      - http: true
-        x-azure-settings:
-          authLevel: anonymous
+          name: message # Specifies which name is available on `context`
+          queueName: sample-queue # Name of the service bus queue to consume
+          connection: SERVICE_BUS_CONNECTION # App Setting/environment variable variable which contains Service Bus Namespace Connection String

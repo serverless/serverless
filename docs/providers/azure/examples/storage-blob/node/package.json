@@ -4,15 +4,18 @@
   "description": "Azure Functions sample for the Serverless framework",
   "scripts": {
     "test": "echo \"No tests yet...\"",
-    "start": "func host start"
+    "start": "func host start",
+    "azurite": "mkdir -p AzuriteMetadata && azurite -d AzuriteMetadata -l AzuriteMetadata"
   },
   "keywords": [
     "azure",
     "serverless",
-    "http-trigger"
+    "storage-blob",
+    "storage-blob-trigger"
   ],
   "dependencies": {},
   "devDependencies": {
+    "azurite": "^2.7.0",
     "serverless-azure-functions": ">= 1.0.0-32"
   }
 }
