@@ -4,7 +4,7 @@
 
 'use strict';
 
-const { values } = require('lodash');
+const { entries, values } = require('lodash');
 const overrideEnv = require('process-utils/override-env');
 const overrideCwd = require('process-utils/override-cwd');
 const overrideArgv = require('process-utils/override-argv');
@@ -13,7 +13,8 @@ const resolveServerless = (modulesCacheStub, callback) => {
   if (!modulesCacheStub) return callback(require('../../lib/Serverless'));
   const originalCache = Object.assign({}, require.cache);
   for (const key of Object.keys(require.cache)) delete require.cache[key];
-  Object.assign(require.cache, modulesCacheStub);
+  for (const [key, value] of entries(modulesCacheStub)) require.cache[key] = { exports: value };
+
   const restore = () => {
     for (const key of Object.keys(require.cache)) delete require.cache[key];
     Object.assign(require.cache, originalCache);
