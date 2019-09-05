@@ -5,6 +5,7 @@
 'use strict';
 
 const { values } = require('lodash');
+const overrideEnv = require('process-utils/override-env');
 const overrideCwd = require('process-utils/override-cwd');
 const overrideArgv = require('process-utils/override-argv');
 
@@ -37,38 +38,42 @@ const resolveServerless = (modulesCacheStub, callback) => {
 module.exports = ({
   cwd,
   cliArgs,
+  env,
   pluginConstructorsWhitelist,
   hookNamesWhitelist,
   modulesCacheStub,
 }) =>
-  overrideCwd(cwd, () =>
-    overrideArgv({ args: ['serverless', ...(cliArgs || [])] }, () =>
-      resolveServerless(modulesCacheStub, Serverless => {
-        // Intialize serverless instances in preconfigured environment
-        const serverless = new Serverless();
-        const { pluginManager } = serverless;
-        return serverless.init().then(() => {
-          // Strip registered hooks, so only those intended are executed
-          const whitelistedPlugins = pluginManager.plugins.filter(plugin =>
-            pluginConstructorsWhitelist.some(Plugin => plugin instanceof Plugin)
-          );
-
-          const { hooks } = pluginManager;
-          for (const hookName of Object.keys(hooks)) {
-            if (!hookNamesWhitelist.includes(hookName)) {
-              delete hooks[hookName];
-              continue;
-            }
-            hooks[hookName] = hooks[hookName].filter(({ hook }) =>
-              whitelistedPlugins.some(whitelistedPlugin =>
-                values(whitelistedPlugin.hooks).includes(hook)
-              )
+  overrideEnv(() => {
+    if (env) Object.assign(process.env, env);
+    return overrideCwd(cwd, () =>
+      overrideArgv({ args: ['serverless', ...(cliArgs || [])] }, () =>
+        resolveServerless(modulesCacheStub, Serverless => {
+          // Intialize serverless instances in preconfigured environment
+          const serverless = new Serverless();
+          const { pluginManager } = serverless;
+          return serverless.init().then(() => {
+            // Strip registered hooks, so only those intended are executed
+            const whitelistedPlugins = pluginManager.plugins.filter(plugin =>
+              pluginConstructorsWhitelist.some(Plugin => plugin instanceof Plugin)
             );
-          }
 
-          // Run plugin manager hooks
-          return serverless.run();
-        });
-      })
-    )
-  );
+            const { hooks } = pluginManager;
+            for (const hookName of Object.keys(hooks)) {
+              if (!hookNamesWhitelist.includes(hookName)) {
+                delete hooks[hookName];
+                continue;
+              }
+              hooks[hookName] = hooks[hookName].filter(({ hook }) =>
+                whitelistedPlugins.some(whitelistedPlugin =>
+                  values(whitelistedPlugin.hooks).includes(hook)
+                )
+              );
+            }
+
+            // Run plugin manager hooks
+            return serverless.run();
+          });
+        })
+      )
+    );
+  });
