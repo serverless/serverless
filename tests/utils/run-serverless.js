@@ -13,6 +13,7 @@ const resolveServerless = (modulesCacheStub, callback) => {
   if (!modulesCacheStub) return callback(require('../../lib/Serverless'));
   const originalCache = Object.assign({}, require.cache);
   for (const key of Object.keys(require.cache)) delete require.cache[key];
+  require.cache[require.resolve('../../lib/utils/isTrackingDisabled')] = { exports: true };
   for (const [key, value] of entries(modulesCacheStub)) require.cache[key] = { exports: value };
 
   const restore = () => {
