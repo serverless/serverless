@@ -45,7 +45,8 @@ module.exports = ({
   hookNamesWhitelist,
   modulesCacheStub,
 }) =>
-  overrideEnv(() => {
+  overrideEnv(originalEnv => {
+    process.env.APPDATA = originalEnv.APPDATA; // Needed on Windows
     if (env) Object.assign(process.env, env);
     return overrideCwd(cwd, () =>
       overrideArgv({ args: ['serverless', ...(cliArgs || [])] }, () =>
