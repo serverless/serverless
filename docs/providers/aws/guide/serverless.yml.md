@@ -190,6 +190,10 @@ functions:
     layers: # An optional list Lambda Layers to use
       - arn:aws:lambda:region:XXXXXX:layer:LayerName:Y # Layer Version ARN
     tracing: Active # optional, can be 'Active' or 'PassThrough' (overwrites the one defined on the provider level)
+    condition: SomeCondition # optional, adds 'Condition' clause
+    dependsOn: # optional, appends these additional resources to the 'DependsOn' list
+      - MyThing
+      - MyOtherThing
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
