@@ -41,7 +41,7 @@ module.exports = ({
   cwd,
   cliArgs,
   env,
-  pluginConstructorsWhitelist,
+  pluginPathsWhitelist,
   hookNamesWhitelist,
   modulesCacheStub,
 }) =>
@@ -53,6 +53,7 @@ module.exports = ({
           // Intialize serverless instances in preconfigured environment
           const serverless = new Serverless();
           const { pluginManager } = serverless;
+          const pluginConstructorsWhitelist = pluginPathsWhitelist.map(path => require(path));
           return serverless.init().then(() => {
             // Strip registered hooks, so only those intended are executed
             const whitelistedPlugins = pluginManager.plugins.filter(plugin =>
