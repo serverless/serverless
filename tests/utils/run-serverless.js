@@ -1,4 +1,4 @@
-// Runs complete serverless instances in preconfigured environement, and limited
+// Runs complete serverless instance in preconfigured environment, limited
 // to predefined plugins and hook events
 
 'use strict';
