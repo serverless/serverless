@@ -1,0 +1,66 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  versionFunctions: false
+
+functions:
+  minimal:
+    handler: core.minimal
+    events:
+      - s3: CHANGE_TO_UNIQUE_PER_RUN
+  extended:
+    handler: core.extended
+    events:
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: photos/
+            - suffix: .jpg
+  existing:
+    handler: core.existing
+    events:
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: Files/
+            - suffix: .TXT
+          existing: true
+  # testing if two functions share one bucket with multiple bucket configs
+  existingCreated:
+    handler: core.existingCreated
+    events:
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: photos
+            - suffix: .jpg
+          existing: true
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: photos
+            - suffix: .png
+          existing: true
+  existingRemoved:
+    handler: core.existingRemoved
+    events:
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: photos
+            - suffix: .jpg
+          existing: true
+      - s3:
+          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: photos
+            - suffix: .png
+          existing: true

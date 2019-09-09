@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Plugin Install
-menuText: Plugin Install
+menuText: plugin install
 menuOrder: 19
 description: Install a Serverless plugin
 layout: Doc

@@ -7,12 +7,19 @@ const fetch = require('node-fetch');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const { region, createTestService, deployService, removeService } = require('../../utils/misc');
+const {
+  region,
+  confirmCloudWatchLogs,
+  createTestService,
+  deployService,
+  removeService,
+} = require('../../utils/misc');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
 const CF = new AWS.CloudFormation({ region });
 
-describe('AWS - API Gateway Integration Test', () => {
+describe('AWS - API Gateway Integration Test', function() {
+  this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let endpoint;
   let stackName;
@@ -23,7 +30,7 @@ describe('AWS - API Gateway Integration Test', () => {
   let apiKey;
   const stage = 'dev';
 
-  beforeAll(() => {
+  before(() => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
@@ -39,7 +46,7 @@ describe('AWS - API Gateway Integration Test', () => {
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
-    deployService();
+    deployService(tmpDirPath);
     // create an external REST API
     const externalRestApiName = `${stage}-${serviceName}-ext-api`;
     return createRestApi(externalRestApiName)
@@ -56,7 +63,7 @@ describe('AWS - API Gateway Integration Test', () => {
       });
   });
 
-  afterAll(() => {
+  after(() => {
     // NOTE: deleting the references to the old, external REST API
     const serverless = readYamlFile(serverlessFilePath);
     delete serverless.provider.apiGateway.restApiId;
@@ -64,9 +71,9 @@ describe('AWS - API Gateway Integration Test', () => {
     writeYamlFile(serverlessFilePath, serverless);
     // NOTE: deploying once again to get the stack into the original state
     console.info('Redeploying service...');
-    deployService();
+    deployService(tmpDirPath);
     console.info('Removing service...');
-    removeService();
+    removeService(tmpDirPath);
     console.info('Deleting external rest API...');
     return deleteRestApi(restApiId);
   });
@@ -217,7 +224,7 @@ describe('AWS - API Gateway Integration Test', () => {
   });
 
   describe('Using stage specific configuration', () => {
-    beforeAll(() => {
+    before(() => {
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
@@ -233,22 +240,28 @@ describe('AWS - API Gateway Integration Test', () => {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService();
+      deployService(tmpDirPath);
     });
 
     it('should update the stage without service interruptions', () => {
       // re-using the endpoint from the "minimal" test case
       const testEndpoint = `${endpoint}`;
 
-      return fetch(testEndpoint, { method: 'GET' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
+      return confirmCloudWatchLogs(
+        `/aws/api-gateway/${stackName}`,
+        () =>
+          fetch(`${testEndpoint}`, { method: 'GET' })
+            .then(response => response.json())
+            // Confirm that APIGW responds as expected
+            .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'))
+        // Confirm that CloudWatch logs for APIGW are written
+      ).then(events => expect(events.length > 0).to.equal(true));
     });
   });
 
   // NOTE: this test should  be at the very end because we're using an external REST API here
   describe('when using an existing REST API with stage specific configuration', () => {
-    beforeAll(() => {
+    before(() => {
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
@@ -268,7 +281,7 @@ describe('AWS - API Gateway Integration Test', () => {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService();
+      deployService(tmpDirPath);
     });
 
     it('should update the stage without service interruptions', () => {

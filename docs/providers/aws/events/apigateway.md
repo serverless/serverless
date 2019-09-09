@@ -798,7 +798,8 @@ This method is more complicated and involves a lot more configuration of the `ht
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
     "user": ""
   },
-  "stageVariables": {}
+  "stageVariables": {},
+  "requestPath": "/request/path"
 }
 ```
 
@@ -822,6 +823,7 @@ Both templates give you access to the following properties you can access with t
 - path
 - identity
 - stageVariables
+- requestPath
 
 #### Custom Request Templates
 
@@ -1505,3 +1507,16 @@ provider:
     restApi:
       format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
 ```
+
+The default API Gateway log level will be INFO. You can change this to error with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      level: ERROR
+```
+
+Valid values are INFO, ERROR.

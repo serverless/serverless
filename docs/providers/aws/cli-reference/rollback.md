@@ -14,7 +14,7 @@ layout: Doc
 
 # AWS - Rollback
 
-Rollback the Serverless service to a specific deployment.
+Rollback a service to a specific deployment.
 
 ```bash
 serverless rollback --timestamp timestamp

@@ -12,20 +12,12 @@ layout: Doc
 
 # AWS Provider Documentation
 
-Welcome to the Serverless AWS Functions documentation!
-
-If you have any questions, [search the forums](https://forum.serverless.com?utm_source=framework-docs) or [start your own thread](https://forum.serverless.com?utm_source=framework-docs)
-
-**Note:** [AWS system credentials](./guide/credentials.md) are required for using serverless + AWS.
-
 <div class="docsSections">
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_guide.png" alt="Serverless Framework AWS Lambda Guide" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Guides</h4>
     </div>
-    <div class="test">
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
         <li><a href="./guide/installation.md">Installation</a></li>
@@ -47,12 +39,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_cli.png" alt="Serverless Framework AWS Lambda CLI Reference" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>CLI references</h4>
     </div>
-    <div>
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./cli-reference/config-credentials.md">Config Credentials</a></li>
         <li><a href="./cli-reference/create.md">Create</a></li>
@@ -81,12 +71,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_events.png" alt="Serverless Framework AWS Lambda Events"  width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Events</h4>
     </div>
-    <div>
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./events/apigateway.md">API Gateway</a></li>
         <li><a href="./events/websocket.md">Websocket</a></li>
@@ -101,19 +89,19 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
         <li><a href="./events/iot.md">IoT</a></li>
         <li><a href="./events/cloudwatch-event.md">CloudWatch Event</a></li>
         <li><a href="./events/cloudwatch-log.md">CloudWatch Log</a></li>
+        <li><a href="./events/event-bridge.md">EventBridge</a></li>
+        <li><a href="./events/cloudfront.md">CloudFront</a></li>
         <li><a href="./events/cognito-user-pool.md">Cognito User Pool</a></li>
       </ul>
     </div>
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_examples.png" alt="Serverless Framework AWS Lambda Examples" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Examples</h4>
     </div>
     <div>
-      <div>
+      <div class="docsProviderItems">
         <ul>
           <li><a href="./examples/hello-world">Hello World</a></li>
         </ul>

@@ -12,7 +12,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Workflow
+# Workflow Tips
 
 Quick recommendations and tips for various processes.
 
