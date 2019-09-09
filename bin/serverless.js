@@ -2,6 +2,13 @@
 
 'use strict';
 
+// global graceful-fs patch
+// https://github.com/isaacs/node-graceful-fs#global-patching
+const realFs = require('fs');
+const gracefulFs = require('graceful-fs');
+
+gracefulFs.gracefulify(realFs);
+
 const userNodeVersion = Number(process.version.split('.')[0].slice(1));
 
 // only check for components if user is running Node 8
