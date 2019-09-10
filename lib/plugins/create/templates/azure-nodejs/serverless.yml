@@ -17,11 +17,6 @@ service: azure-nodejs # NOTE: update this with your service name
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
 
-# if you are using webpack for packaging
-# custom:
-#   webpack:
-#     keepOutputDirectory: true
-
 provider:
   name: azure
   region: West US 2
@@ -36,18 +31,18 @@ provider:
 
   # you can define apim configuration here
   # apim:
-  #   api:
-  #     name: v1
-  #     subscriptionRequired: false
-  #     displayName: v1
-  #     description: V1 sample app APIs
-  #     protocols:
-  #       - https
-  #     path: v1
-  #     tags:
-  #       - tag1
-  #       - tag2
-  #     authorization: none
+  #   apis:
+  #     - name: v1
+  #       subscriptionRequired: false # if true must provide an api key
+  #       displayName: v1
+  #       description: V1 sample app APIs
+  #       protocols:
+  #         - https
+  #       path: v1
+  #       tags:
+  #         - tag1
+  #         - tag2
+  #       authorization: none
   #   cors:
   #     allowCredentials: false
   #     allowedOrigins:
@@ -63,30 +58,30 @@ provider:
   #     exposeHeaders:
   #       - "*"
 
-plugins:
+plugins: # look for additional plugins in the community plugins repo: https://github.com/serverless/plugins
   - serverless-azure-functions
-  # - serverless-webpack  # to use webpack for packaging code
 
 # you can add packaging information here
 package:
-  #  include:
-  #    - include-me.js
-  #    - include-me-dir/**
+  # include:
+  #   - include-me.js
+  #   - include-me-dir/**
   exclude:
-    #    - exclude-me.js
-    #    - exclude-me-dir/**
+    # - exclude-me.js
+    # - exclude-me-dir/**
     - local.settings.json
     - .vscode/**
 
 functions:
   hello:
-    handler: src/handlers/sayHello
+    handler: src/handlers/hello.sayHello
     events:
       - http: true
         x-azure-settings:
           methods:
             - GET
           authLevel: anonymous
+
   goodbye:
     handler: src/handlers/goodbye.sayGoodbye
     events:
@@ -134,7 +129,7 @@ functions:
   #         name: message # Specifies which name is available on `context`
   #         queueName: sample-queue # Name of the service bus queue to consume
   #         connection: SERVICE_BUS_CONNECTION # App Setting/environment variable variable which contains Service Bus Namespace Connection String
-  #  serviceBusTopic:
+  # serviceBusTopic:
   #   handler: src/handlers/serviceBusTopic.printMessage
   #   events:
   #     - serviceBus:
