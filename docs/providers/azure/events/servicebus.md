@@ -34,7 +34,7 @@ functions:
     events:
       - serviceBus:
         x-azure-settings:
-          name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings`
+          name: item #<string>, default - "mySbMsg", specifies which name is available on `context.bindings`
           queueName: hello #<string>, specifies the queue name to listen on
           accessRights: manage #<enum manage|listen>, specifies the permission to use when listening on the queue (manage will create queue if not exists)
           connection: ServiceBusConnection #<string>, environment variable which contains Service Bus Namespace Connection String
