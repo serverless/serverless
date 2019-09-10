@@ -1,5 +1,5 @@
 {
-  "name": "serverless",
+  "name": "@publicdomain/serverless",
   "version": "1.51.0",
   "engines": {
     "node": ">=6.0"
