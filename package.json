@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.51.0",
+  "version": "1.52.0",
   "engines": {
     "node": ">=6.0"
   },
@@ -83,10 +83,10 @@
     "@serverless/eslint-config": "^1.2.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "child-process-ext": "^2.0.0",
+    "child-process-ext": "^2.1.0",
     "cli-progress-footer": "^1.1.1",
     "coveralls": "^3.0.6",
-    "eslint": "^6.2.2",
+    "eslint": "^6.3.0",
     "eslint-plugin-import": "^2.18.2",
     "git-list-updated": "^1.2.1",
     "mocha": "^6.2.0",
@@ -97,17 +97,17 @@
     "prettier": "^1.18.2",
     "process-utils": "^2.5.0",
     "proxyquire": "^2.1.3",
-    "sinon": "^7.4.1",
+    "sinon": "^7.4.2",
     "sinon-chai": "^3.3.0",
     "strip-ansi": "^5.2.0",
     "ws": "^7.1.2"
   },
   "dependencies": {
-    "@serverless/cli": "^1.0.3",
+    "@serverless/cli": "^1.1.1",
     "@serverless/enterprise-plugin": "^2.0.0",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.518.0",
+    "aws-sdk": "^2.526.0",
     "bluebird": "^3.5.5",
     "cachedir": "^2.2.0",
     "chalk": "^2.4.2",
