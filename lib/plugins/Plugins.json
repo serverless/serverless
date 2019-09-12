@@ -32,6 +32,7 @@
     "./aws/rollback/index.js",
     "./aws/rollbackFunction/index.js",
     "./aws/package/compile/layers/index.js",
+    "./aws/package/compile/vpc/index.js",
     "./aws/package/compile/functions/index.js",
     "./aws/package/compile/events/schedule/index.js",
     "./aws/package/compile/events/s3/index.js",
