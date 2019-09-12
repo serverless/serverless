@@ -122,9 +122,9 @@ Here is an example of how to use it from the `context` object:
 module.exports.hello = async (event, context) => {
   try {
     // do some real stuff but it throws an error, oh no!
-    throw new Error('aa')
+    throw new Error('aa');
   } catch (error) {
-    context.captureError(error)
+    context.captureError(error);
   }
   return {
     statusCode: 500,
@@ -136,14 +136,14 @@ module.exports.hello = async (event, context) => {
 And to import it instead, import with `const { captureError } = require('./serverless-sdk')` then call `captureError` instead of `context.captureError`.
 
 ```javascript
-const { captureError } = require('./serverless_sdk')
+const { captureError } = require('./serverless_sdk');
 
-module.exports.hello = async (event) => {
+module.exports.hello = async event => {
   try {
     // do some real stuff but it throws an error, oh no!
-    throw new Error('aa')
+    throw new Error('aa');
   } catch (error) {
-    captureError(error)
+    captureError(error);
   }
   return {
     statusCode: 500,
