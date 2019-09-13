@@ -39,6 +39,8 @@ includes \$200 of free credit.
 
 ## Interactive Login
 
+> Note: Interactive login is **CURRENTLY NOT SUPPORTED** for free/trial Azure subscription, thus we recommend you stick with using the [Service Principal](#Using-Service-Principal) method
+
 Upon running `sls deploy`, if you don't already have service principal set in your
 environment, you will automatically be prompted to login via your browser.
 Simply follow the instructions.
@@ -49,7 +51,7 @@ Simply follow the instructions.
 
 ---
 
-## Azure Account Credentials
+## Using Service Principal
 
 Setting up service principal in your environment is an alternative to using interactive login.
 
@@ -60,7 +62,7 @@ or through the Azure CLI, as the instructions below illustrate.
 > Note: If you're using non-public Azure, such as national clouds or Azure Stack, be sure
 > you set your Azure endpoint before logging in.
 
-### Generate Service Principals
+### Pre-requisite: Azure-CLI
 
 1. Get the Azure CLI
 
@@ -78,15 +80,15 @@ or through the Azure CLI, as the instructions below illustrate.
    login with your Azure identity (this may happen automatically if you're
    already logged in). You'll then be able to access your account via the CLI.
 
-#### Setting environment variables
+### Generate Service Principal
 
 The rest of the process can be done 2 ways.
 
-##### Easy way
+#### Easy way
 
 Download this [script](https://github.com/serverless/serverless-azure-functions/blob/master/scripts/generate-service-principal.sh) and run it.
 
-##### Hard way
+#### Hard way
 
 1. Get your subscription and tenant id
 
