@@ -21,12 +21,7 @@
           "Statement": [
             {
               "Effect": "Allow",
-              "Action": ["logs:CreateLogStream"],
-              "Resource": []
-            },
-            {
-              "Effect": "Allow",
-              "Action": ["logs:PutLogEvents"],
+              "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
               "Resource": []
             }
           ]
