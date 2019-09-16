@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Plugin List
 menuText: Plugin List
-menuOrder: 9
+menuOrder: 11
 description: List all available Serverless plugins
 layout: Doc
 -->
