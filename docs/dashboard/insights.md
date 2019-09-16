@@ -39,16 +39,6 @@ custom:
 
 Serverless Insights include pre-configured alerts designed to help you develop and optimize the performance and security of your serverless applications. These events are presented in the "alerts" tab within the Serverless Framework [dashboard](https://dashboard.serverless.com/). Preconfigured alerts include the following:
 
-### Memory: Unused Memory
-
-Configured memory for a function defines memory, cpu, and I/O capacity. It is also what defines a function's price. While there are sometimes good reasons to overprovision memory (e.g. because your workload is cpu bound), unused memory can often represent an opportunity to save money by better optimizing your function's configured memory.
-
-The unused memory insight runs once per week at midnight UTC on Sunday. It looks at all invocations of a function over the prior seven days and identifies the function invocation during that period that used the most amount of its configured memory. If that amount is less than 80% of the function's configured memory it will generate an alert.
-
-### Memory: Approaching Out of Memory
-
-The approaching out of memory alert runs every 5 minutes. It looks at the memory usage of all invocations of that function over the past 60 minutes. If any of the invocations exceed 90% of the allocated memory, then it will generate an alert. If an alert was already triggered in the past 60 minutes, a new alert will not be triggered.
-
 ### Memory: Out of Memory
 
 The out of memory alert is checked on every invocation of the function. If any invocation uses more memory than is configured for that function, Lambda will abruptly shut down the invocation and trigger an out of memory error. The alert will be triggered immediately and only once in a given 48 hour period.
@@ -118,4 +108,46 @@ package:
     - src/*.js
     - dist/*.js
     - dist/*.js.map
+```
+
+## Capturing non-fatal errors
+
+Your lambda function may throw an exception, but your function handles it in order to respond to the requestor without throwing the error. One very common example is functions tied to HTTP endpoints. Those usually should still return JSON, even if there is an error since the API Gateway integration will fail rather than returning a meaningful error.
+
+For this case, we provide a `captureError` function available on either the `context` or on the module imported from `'./serverless-sdk'`. This will cause the invocation to still display as an error in the serverless dashboard while allowing you to return an error to the user.
+
+Here is an example of how to use it from the `context` object:
+
+```javascript
+module.exports.hello = async (event, context) => {
+  try {
+    // do some real stuff but it throws an error, oh no!
+    throw new Error('aa');
+  } catch (error) {
+    context.captureError(error);
+  }
+  return {
+    statusCode: 500,
+    body: JSON.stringify({ name: 'bob' }),
+  };
+};
+```
+
+And to import it instead, import with `const { captureError } = require('./serverless-sdk')` then call `captureError` instead of `context.captureError`.
+
+```javascript
+const { captureError } = require('./serverless_sdk');
+
+module.exports.hello = async event => {
+  try {
+    // do some real stuff but it throws an error, oh no!
+    throw new Error('aa');
+  } catch (error) {
+    captureError(error);
+  }
+  return {
+    statusCode: 500,
+    body: JSON.stringify({ name: 'bob' }),
+  };
+};
 ```
