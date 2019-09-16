@@ -86,3 +86,13 @@ serverless create --template-path path/to/my/template/folder --path path/to/my/s
 ```
 
 This will copy the `path/to/my/template/folder` folder into `path/to/my/service` and rename the service to `my-new-service`.
+
+### Creating a new service using a template hosted in a Bitbucket Server
+
+```bash
+serverless create --template-url https://myUsername:myPassword@my.bitbucket.ltd/rest/api/latest/projects/myProject/repos/myRepo/archive?at=ref%2forigin%2fmaster --path /path/to/my/service --name my-new-service
+```
+
+This will copy the content of your repository into `/path/to/my/service` and rename the service to `my-new-service`.
+
+In order to use this feature, you need to have a Bitbucket Server with the Rest-API available and the endpoint `/rest/api/1.0/application-properties` accessible with no authentification (default behaviour). This endpoint is used to identify if the given DNS is attached to a Bitbucket server. The repository is downloaded over HTTP(S) as a ZIP file using the following api [https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html#idm8297859856](https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html#idm8297859856)

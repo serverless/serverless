@@ -46,7 +46,9 @@
     "./aws/package/compile/events/cloudWatchEvent/index.js",
     "./aws/package/compile/events/cloudWatchLog/index.js",
     "./aws/package/compile/events/cognitoUserPool/index.js",
+    "./aws/package/compile/events/eventBridge/index.js",
     "./aws/package/compile/events/sqs/index.js",
+    "./aws/package/compile/events/cloudFront/index.js",
     "./aws/deployFunction/index.js",
     "./aws/deployList/index.js",
     "./aws/invokeLocal/index.js"

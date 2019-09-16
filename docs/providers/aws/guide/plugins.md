@@ -195,6 +195,63 @@ class Deploy {
 module.exports = Deploy;
 ```
 
+### Custom Variable Types
+
+As of version 1.52.0 of the Serverless framework, plugins can officially implement their own
+variable types for use in serverless config files.
+
+Example:
+
+```javascript
+'use strict';
+
+class EchoTestVarPlugin {
+  constructor() {
+    getEchoTestValue(src) {
+      return src.slice(5);
+    }
+    getDependentEchoTestValue(src) {
+      return src.slice(5);
+    }
+    this.variableResolvers = {
+      echo: this.getEchoTestValue,
+      // if a variable type depends on profile/stage/region/credentials, to avoid infinite loops in
+      // trying to resolve variables that depend on themselves, specify as such by setting a
+      // dependendServiceName property on the variable getter
+      echoStageDependent: {
+        resolver: this.getDependentEchoTestValue,
+        serviceName: 'echo that isnt prepopulated',
+        isDisabledAtPrepopulation: true
+    };
+  }
+}
+```
+
+The above plugin will add support for variables like `${echo:foobar}` and resolve to the key. EG:
+`${echo:foobar}` will resolve to `'foobar'`.
+
+#### `this.variableResolvers` structure
+
+The data structure of `this.variableResolvers` is an `Object` with keys that are either a
+`function` or `Object`.
+
+The keys are used to generate the regex which matches the variable type. Eg, a key of `test` will
+match variables like `${test:foobar}`.
+
+If the value is a `function` it is used to resolve variables matched. It must be `async` or return
+a `Promise` and accepts the variable string(with prefix but not the wrapping variable syntax,
+eg `test:foobar`) as it's only argument.
+
+If the value is an `Object`, it can have the following keys:
+
+- `resolver` - required, a function, same requirements as described above.
+- `isDisabledAtPrepopulation` - optional, a boolean, disable this variable type when populating
+  stage, region, and credentials. This is important for variable types that depend on AWS or other
+  service that depend on those variables
+- `serviceName` - required if `isDisabledAtPrepopulation === true`, a string to display to users
+  if they try to use the variable type in one of the fields disabled for populating
+  stage/region/credentials.
+
 ### Nesting Commands
 
 You can also nest commands, e.g. if you want to provide a command `serverless deploy function`. Those nested commands have their own lifecycle events and do not inherit them from their parents.

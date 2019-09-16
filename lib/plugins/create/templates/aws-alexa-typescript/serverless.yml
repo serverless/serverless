@@ -1,7 +1,8 @@
 service:
   name: aws-alexa-typescript
+# app and org for use with dashboard.serverless.com
 #app: your-app-name
-#tenant: your-tenant-name
+#org: your-org-name
 
 plugins:
   - serverless-webpack

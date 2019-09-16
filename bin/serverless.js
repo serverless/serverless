@@ -2,13 +2,31 @@
 
 'use strict';
 
+// global graceful-fs patch
+// https://github.com/isaacs/node-graceful-fs#global-patching
+const realFs = require('fs');
+const gracefulFs = require('graceful-fs');
+
+gracefulFs.gracefulify(realFs);
+
+const userNodeVersion = Number(process.version.split('.')[0].slice(1));
+
+// only check for components if user is running Node 8
+if (userNodeVersion >= 8) {
+  const serverlessCli = require('@serverless/cli');
+  if (serverlessCli.runningComponents()) {
+    serverlessCli.runComponents();
+    return;
+  }
+}
+
+Error.stackTraceLimit = Infinity;
+
 const autocomplete = require('../lib/utils/autocomplete');
 const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
-
-Error.stackTraceLimit = Infinity;
 
 if (process.env.SLS_DEBUG) {
   // For performance reasons enabled only in SLS_DEBUG mode
@@ -17,55 +35,54 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-process.on('unhandledRejection', e => {
-  logError(e);
+process.on('uncaughtException', error => logError(error, { forceExit: true }));
+
+process.on('unhandledRejection', error => {
+  if (process.listenerCount('unhandledRejection') > 1) {
+    // User attached its own unhandledRejection handler, abort
+    return;
+  }
+  throw error;
 });
+
+require('../lib/utils/tracking').sendPending();
+
 process.noDeprecation = true;
 
 const invocationId = uuid.v4();
+initializeErrorReporter(invocationId).then(() => {
+  if (process.argv[2] === 'completion') {
+    return autocomplete();
+  }
+  // requiring here so that if anything went wrong,
+  // during require, it will be caught.
+  const Serverless = require('../lib/Serverless');
 
-// boot up error reporting via sentry before anything
-(() =>
-  initializeErrorReporter(invocationId)
-    .then(() => {
-      if (process.argv[2] === 'completion') {
-        return autocomplete();
+  const serverless = new Serverless();
+
+  serverless.invocationId = invocationId;
+
+  return serverless
+    .init()
+    .then(() => serverless.run())
+    .catch(err => {
+      // If Enterprise Plugin, capture error
+      let enterpriseErrorHandler = null;
+      serverless.pluginManager.plugins.forEach(p => {
+        if (p.enterprise && p.enterprise.errorHandler) {
+          enterpriseErrorHandler = p.enterprise.errorHandler;
+        }
+      });
+      if (!enterpriseErrorHandler) {
+        logError(err);
+        return null;
       }
-      // requiring here so that if anything went wrong,
-      // during require, it will be caught.
-      const Serverless = require('../lib/Serverless');
-
-      const serverless = new Serverless();
-
-      serverless.invocationId = invocationId;
-
-      return serverless
-        .init()
-        .then(() => serverless.run())
-        .catch(err => {
-          // If Enterprise Plugin, capture error
-          let enterpriseErrorHandler = null;
-          serverless.pluginManager.plugins.forEach(p => {
-            if (p.enterprise && p.enterprise.errorHandler) {
-              enterpriseErrorHandler = p.enterprise.errorHandler;
-            }
-          });
-          if (!enterpriseErrorHandler) {
-            throw err;
-          }
-          return enterpriseErrorHandler(err, invocationId)
-            .catch(error => {
-              process.stdout.write(`${error.stack}\n`);
-            })
-            .then(() => {
-              throw err;
-            });
+      return enterpriseErrorHandler(err, invocationId)
+        .catch(error => {
+          process.stdout.write(`${error.stack}\n`);
+        })
+        .then(() => {
+          logError(err);
         });
-    })
-    .then(
-      () => process.exit(0),
-      e => {
-        process.exitCode = 1;
-        logError(e);
-      }
-    ))();
+    });
+});

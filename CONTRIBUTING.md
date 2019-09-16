@@ -60,7 +60,7 @@ We aim for a (near) 100% test coverage, so make sure your tests cover as much of
 
 ## Test coverage
 
-During development, you can easily check coverage by running `npm test`, then opening the `index.html` file inside the `coverage` directory.
+During development, you can easily check coverage by running `npm run coverage`, then opening the `index.html` file inside the `coverage` directory.
 
 Please follow these Testing guidelines when writing your unit tests:
 

@@ -14,7 +14,7 @@ layout: Doc
 
 Welcome to the Serverless Azure Functions Guide!
 
-Get started with the **[Introduction to the framework](./intro.md)**
+Get started with the [Introduction to the framework](./intro.md)
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless), [post over on the forums](http://forum.serverless.com/) or [post issues in the plugin repo](https://github.com/serverless/serverless-azure-functions/issues)
 
