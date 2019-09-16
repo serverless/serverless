@@ -16,48 +16,29 @@ layout: Doc
 
 ## Package CLI Command
 
-Using the Serverless CLI tool, you can package your project without deploying it
-to Azure. This is best used with CI / CD workflows to ensure consistent
-deployable artifacts.
+Using the Serverless CLI tool, you can package your project without deploying it to Azure.
 
-Running the following command will build and save all of the deployment artifacts
-in the service's .serverless directory:
+Running the following command will build and save all of the deployment artifacts in the `.serverless` directory:
 
 ```bash
-serverless package
-```
-
-However, you can also use the --package option to add a destination path and
-Serverless will store your deployment artifacts there (./my-artifacts in the
-following case):
-
-```bash
-serverless package --package my-artifacts
+sls package
 ```
 
 ## Package Configuration
 
-Sometimes you might like to have more control over your function artifacts and
-how they are packaged.
+Sometimes you might like to have more control over your function artifacts and how they are packaged.
 
-You can use the `package` and `exclude` configuration for more control over the
-packaging process.
+You can use the `package` and `exclude` configuration for more control over the packaging process.
 
 ### Exclude / include
 
-Exclude and include allows you to define globs that will be excluded / included
-from the resulting artifact. If you wish to include files you can use a glob
-pattern prefixed with `!` such as `!re-include-me/**` in `exclude` or the
-dedicated `include` config. Serverless will run the glob patterns in order.
+Exclude and include allows you to define globs that will be excluded / included from the resulting artifact. If you wish to include files you can use a glob pattern prefixed with `!` such as `!re-include-me/**` in `exclude` or the dedicated `include` config. Serverless will run the glob patterns in order.
 
-At first it will apply the globs defined in `exclude`. After that it'll add all
-the globs from `include`. This way you can always re-include previously excluded
-files and directories.
+At first it will apply the globs defined in `exclude`. After that it'll add all the globs from `include`. This way you can always re-include previously excluded files and directories.
 
 ### Examples
 
-Exclude all node_modules but then re-include a specific modules (in this case
-node-fetch) using `exclude` exclusively
+Exclude all node_modules but then re-include a specific modules (in this case node-fetch) using `exclude` exclusively
 
 ```yml
 package:
@@ -87,13 +68,9 @@ exclude:
 
 ### Artifact
 
-For complete control over the packaging process you can specify your own artifact
-zip file. Serverless won't zip your service if this is configured and therefore
-`exclude` and `include` will be ignored. Either you use artifact or
-include/exclude.
+For complete control over the packaging process you can specify your own artifact zip file. Serverless won't zip your service if this is configured and therefore `exclude` and `include` will be ignored. Either you use artifact or include/exclude.
 
-The artifact option is especially useful in case your development environment
-allows you to generate a deployable artifact like Maven does for Java.
+The artifact option is especially useful in case your development environment allows you to generate a deployable artifact like Maven does for Java.
 
 ### Example
 
@@ -110,15 +87,9 @@ package:
 
 ### Packaging functions separately
 
-If you want even more controls over your functions for deployment you can
-configure them to be packaged independently. This allows you more control for
-optimizing your deployment. To enable individual packaging set `individually` to
-true in the service or function wide packaging settings.
+If you want even more controls over your functions for deployment you can configure them to be packaged independently. This allows you more control for optimizing your deployment. To enable individual packaging set `individually` to true in the service or function wide packaging settings.
 
-Then for every function you can use the same `exclude`, `include` or `artifact`
-config options as you can service wide. The `exclude` and `include` option will
-be merged with the service wide options to create one `exclude` and `include`
-config per function during packaging.
+Then for every function you can use the same `exclude`, `include` or `artifact` config options as you can service wide. The `exclude` and `include` option will be merged with the service wide options to create one `exclude` and `include` config per function during packaging.
 
 ```yml
 service: my-service
@@ -140,8 +111,7 @@ functions:
         - some-file.js
 ```
 
-You can also select which functions to be packaged separately, and have the rest
-use the service package by setting the `individually` flag at the function level:
+You can also select which functions to be packaged separately, and have the rest use the service package by setting the `individually` flag at the function level:
 
 ```yml
 service: my-service
@@ -165,4 +135,44 @@ You can opt-out of automatic dev dependency exclusion by setting the `excludeDev
 ```yml
 package:
   excludeDevDependencies: false
+```
+
+### Pro Tips
+
+##### `serverless-webpack` for Node.js applications
+
+The `serverless-azure-functions` plugin plays nicely with the `serverless-webpack` plugin. This speeds up the packaging process and minimizes the size of the package quite a bit.
+
+To enable this functionality, add `serverless-webpack` to the `plugins` section of `serverless.yml`:
+
+```yaml
+---
+plugins:
+  - serverless-azure-functions
+  - serverless-webpack
+```
+
+Install the dependencies:
+
+```bash
+$ npm i serverless-webpack webpack webpack-cli --save
+```
+
+Add the following `webpack.config.js` to the root of your project:
+
+```javascript
+const path = require('path');
+const slsw = require('serverless-webpack');
+
+module.exports = {
+  entry: slsw.lib.entries,
+  target: 'node',
+  output: {
+    libraryTarget: 'commonjs2',
+    library: 'index',
+    path: path.resolve(__dirname, '.webpack'),
+    filename: '[name].js',
+  },
+  plugins: [],
+};
 ```

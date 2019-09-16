@@ -14,29 +14,22 @@ layout: Doc
 
 # Azure - Plugins
 
-A Plugin is custom JavaScript code that creates new or extends existing commands
-within the Serverless Framework. The Serverless Framework is merely a group of
-Plugins that are provided in the core. If you or your organization have a
-specific workflow, install a pre-written Plugin or write a plugin to customize
-the Framework to your needs. External Plugins are written exactly the same way
-as the core Plugins.
+A Plugin is custom JavaScript code that creates new or extends existing commands within the Serverless Framework. The Serverless Framework is merely a group of Plugins that are provided in the core. If you or your organization have a specific workflow, install a pre-written Plugin or write a plugin to customize the Framework to your needs. External Plugins are written exactly the same way as the core Plugins.
 
 - [How to create serverless plugins - Part 1](https://serverless.com/blog/writing-serverless-plugins/)
 - [How to create serverless plugins - Part 2](https://serverless.com/blog/writing-serverless-plugins-2/)
 
 ## Installing Plugins
 
-External Plugins are added on a per service basis and are not applied globally.
-Make sure you are in your Service's root directory, then install the
+External Plugins are added on a per function app basis and are not applied globally.
+Make sure you are in your function app's root directory, then install the
 corresponding Plugin with the help of npm:
 
 ```
-npm install --save custom-serverless-plugin
+npm i --save custom-serverless-plugin
 ```
 
-We need to tell Serverless that we want to use the plugin inside our service. We
-do this by adding the name of the Plugin to the `plugins` section in the
-`serverless.yml` file.
+We need to tell Serverless that we want to use the plugin inside our function app. We do this by adding the name of the Plugin to the `plugins` section in the `serverless.yml` file.
 
 ```yml
 # serverless.yml file

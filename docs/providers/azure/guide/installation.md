@@ -16,12 +16,7 @@ layout: Doc
 
 ### Installing Node.js
 
-Serverless is a [Node.js](https://nodejs.org) CLI tool so the first thing you
-need to do is to install Node.js on your machine.
-
-Go to the official [Node.js website](https://nodejs.org), download and follow the
-[installation instructions](https://nodejs.org/en/download/) to install Node.js
-on your local machine.
+Serverless is a [Node.js](https://nodejs.org) CLI tool so the first thing you need to do is to [install Node.js](https://nodejs.org/en/download/) on your machine.
 
 **Note:** The Azure Functions Serverless Framework plugin requires Node v6.5.0
 
@@ -34,23 +29,23 @@ out.
 Next, install the Serverless Framework via [npm](https://npmjs.org) which was
 already installed when you installed Node.js.
 
-Open up a terminal and type `npm install -g serverless` to install Serverless.
+Open up a terminal and type `npm i -g serverless` to install Serverless.
 
 ```bash
-npm install -g serverless
+npm i -g serverless
 ```
 
 Once the installation process is done you can verify that Serverless is installed
 successfully by running the following command in your terminal:
 
 ```bash
-serverless
+sls
 ```
 
 To see which version of serverless you have installed run:
 
 ```bash
-serverless --version
+sls --version
 ```
 
 ### Installing Azure Functions Provider Plugin
@@ -63,7 +58,6 @@ npm i --save serverless-azure-functions
 
 ### Setting up Azure Functions
 
-To run serverless commands that interface with the Azure platform, you will need
-to setup your Azure subscription credentials on your machine.
+To run serverless commands that interface with the Azure platform, you will need to set up your Azure subscription credentials on your machine.
 
 [Follow these instructions on setting up Azure subscription credentials](./credentials.md)

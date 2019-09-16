@@ -81,3 +81,33 @@ getFoo:
 deleteFoo:
   handler: handler.foo
 ```
+
+```yml
+#bar-functions-yml
+getBar:
+  handler: handler.bar
+deleteBar:
+  handler: handler.bar
+```
+
+Handlers can also be referenced by a file path relative to the root. If your directory structure were something like:
+
+```yml
+serverless.yml
+src/
+  handlers/
+    foo.js # exported `handler` function
+    bar.js # exported `handler` function
+```
+
+Your `serverless.yml` would look something like:
+
+```yml
+# serverless.yml
+---
+functions:
+  foo:
+    handler: src/handlers/foo.handler
+  bar:
+    handler: src/handlers/bar.handler
+```
