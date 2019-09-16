@@ -1,4 +1,18 @@
+<!--
+title: Serverless Dashboard - Testing
+menuText: Testing
+menuOrder: 9
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/testing/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Testing
+
 Serverless Framework supports defining and running integration tests against lambdas
 with HTTP integrations. To get started, assuming we have the default configuration in from the
 [enterprise-template](https://github.com/serverless/enterprise-template), you can define a test for
