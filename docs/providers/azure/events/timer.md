@@ -35,7 +35,7 @@ functions:
     events:
       - timer:
         x-azure-settings:
-          name: timerObj #<string>, default - "myTimer", specifies which name it's available on `context.bindings`
+          name: timerObj #<string>, default - "myTimer", specifies which name is available on `context.bindings`
           schedule: 0 */5 * * * * #<string>, cron expression to run on
 ```
 
