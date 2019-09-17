@@ -16,7 +16,7 @@ layout: Doc
 Serverless Framework supports defining and running integration tests against lambdas
 with HTTP integrations. To get started, assuming we have the default configuration in from the
 [enterprise-template](https://github.com/serverless/enterprise-template), you can define a test for
-it as follows with a  `serverless.test.yml` file:
+it as follows with a `serverless.test.yml` file:
 
 ```yml
 - name: hello endpoint returns 200
@@ -34,15 +34,14 @@ $ sls test
 Serverless Enterprise: Test Results:
 
   Summary --------------------------------------------------
-  
+
   passed - POST hello - hello endpoint returns 200
-  
+
 Serverless Enterprise: Test Summary: 1 passed, 0 failed
 ```
 
 If we add a test like this which requires the body to be JSON encoded and contain a key called
 `foo` with the value `bar`.
-
 
 ```yml
 - name: hello endpoint returns 200
@@ -60,12 +59,12 @@ $ sls test
 Serverless Enterprise: Test Results:
 
   Summary --------------------------------------------------
-  
+
   passed - POST hello - hello endpoint returns 200
   failed - POST hello - hello endpoint returns 2000
-  
+
   Details --------------------------------------------------
-  
+
   1) Failed - hello endpoint returns 200
      status: 200
      headers: (TRUNCATED)
@@ -76,13 +75,15 @@ Serverless Enterprise: Test Results:
        "message": (TRUNCATED),
        "input": (TRUNCATED),
      }
-  
+
 Serverless Enterprise: Test Summary: 1 passed, 1 failed
 ```
 
 ## `serverless.test.yml` specification
+
 The specification file must be an array of objects. Each test is an object in that array.
 Here is a config file that uses all the options:
+
 ```yaml
 - name: hello endpoint returns success # the name of the test. used for running a specific test & in CLI output
   endpoint: # this is used to specify which HTTP endpoint / lambda to test against
@@ -126,6 +127,8 @@ Here is a config file that uses all the options:
 ```
 
 ## Options
+
 There are 2 options to allow you to avoid running your entire test suite:
-  - `--function` - only run tests for the function specified. This requires that you've set `endpoint.function`
-  - `--name` - only run the test with the specified name
+
+- `--function` - only run tests for the function specified. This requires that you've set `endpoint.function`
+- `--name` - only run the test with the specified name
