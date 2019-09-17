@@ -26,7 +26,7 @@ it as follows with a `serverless.test.yml` file:
     status: 200
 ```
 
-Then, when you run `sls test` (your function must already have been deployed) it will mak an HTTP
+Then, when you run `sls test` (your function must already have been deployed) it will make an HTTP
 request against the `hello` function and pass if the response has a status code of 200:
 
 ```
@@ -88,7 +88,7 @@ Here is a config file that uses all the options:
 - name: hello endpoint returns success # the name of the test. used for running a specific test & in CLI output
   endpoint: # this is used to specify which HTTP endpoint / lambda to test against
     # specifying only the funciton name only works if the function has only one HTTP endpoint and
-    # a specific path & method (ie not ANY or {parameterizedUrls}
+    # a specific path & method (i.e. not ANY or {parameterizedUrls})
     function: hello
   response: true # setting response to true is equivalent to setting it to {status: 200}
   request: # this specifies the request to send
@@ -115,7 +115,7 @@ Here is a config file that uses all the options:
     function: hello
   response: true
   request:
-    form: # setting form encodes to an query param, ie: ?foo=bar&blah=baz
+    form: # setting form encodes to a query param, i.e.: ?foo=bar&blah=baz
       foo: bar
       blah: baz
 - name: hello endpoint returns sucess with a text request
