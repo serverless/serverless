@@ -127,3 +127,7 @@ services:
     image: node:8.16.0
     volumes:
       - ./tmp/serverless-integration-test-twilio-nodejs:/app
+  aliyun-nodejs:
+    image: node:8
+    volumes:
+      - ./tmp/serverless-integration-test-aliyun-nodejs:/app

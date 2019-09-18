@@ -38,3 +38,4 @@ integration-test spotinst-python
 integration-test spotinst-ruby
 integration-test spotinst-java8 mvn package
 integration-test twilio-nodejs
+integration-test aliyun-nodejs './build.sh'
