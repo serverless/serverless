@@ -1,6 +1,6 @@
 <!--
 title: Serverless Dashboard - Troubleshooting CI/CD
-menuText: Troubleshooting CI/CD
+menuText: Troubleshooting
 layout: Doc
 -->
 
