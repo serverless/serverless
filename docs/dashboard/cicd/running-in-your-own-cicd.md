@@ -1,19 +1,20 @@
 <!--
-title: Serverless Dashboard - Pipelines
-menuText: Pipelines
-menuOrder: 8
+title: Serverless Dashboard - Running in your own CI/CD
+menuText: Running in your own CI/CD
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/pipelines/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/cicd/running-in-your-own-cicd/)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Running in CI/CD
+# Running in your own CI/CD
 
-For teams that use Serverless Framework to develop and deploy services it might be desirable to deploy the services from a CI/CD pipeline instead of the local CLI. Configuring your CI/CD pipeline is split between configuring the environment and the build step. Configuring the environment only needs to be performed once across all service deployments while the build step must be configured to run on each deploy.
+If you have an existing CI/CD service and you do not wish to use the CI/CD service provided by Serverless, you can still deploy from your existing CI/CD service while using the other features of the Serverless Framework Dashboard.
+
+\Configuring your CI/CD pipeline is split between configuring the environment and the build step. Configuring the environment only needs to be performed once across all service deployments while the build step must be configured to run on each deploy.
 
 ## Configure the environment
 
