@@ -1,6 +1,6 @@
 <!--
-title: Serverless Dashboard - Alerting
-menuText: Alerting
+title: Serverless Dashboard - Alerts
+menuText: Alerts
 layout: Doc
 -->
 
