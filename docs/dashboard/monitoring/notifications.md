@@ -14,7 +14,7 @@ layout: Doc
 # Notifications
 
 The Serverless Framework can notify you in **Slack**, **Email**, **SNS Topics**, or via
-**webhooks** when [alerts](./insights.md#alerts) are generated for your application. Multiple notifications can be added to an application, each of which can be configured differently for different alerts, stages or services.
+**webhooks** when [alerts](./alerts.md) are generated for your application. Multiple notifications can be added to an application, each of which can be configured differently for different alerts, stages or services.
 
 ## Add a Notification to an Application
 
