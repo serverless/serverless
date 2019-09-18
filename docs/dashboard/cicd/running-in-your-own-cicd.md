@@ -1,6 +1,6 @@
 <!--
 title: Serverless Dashboard - Running in your own CI/CD
-menuText: Running in your own CI/CD
+menuText: Deploy in your own CI/CD
 layout: Doc
 -->
 
@@ -10,7 +10,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Running in your own CI/CD
+# Deploy in your own CI/CD
 
 If you have an existing CI/CD service and you do not wish to use the CI/CD service provided by Serverless, you can still deploy from your existing CI/CD service while using the other features of the Serverless Framework Dashboard.
 
