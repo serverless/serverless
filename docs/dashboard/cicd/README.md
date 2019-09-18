@@ -105,4 +105,4 @@ Custom scripts before or after a test can be set by wrapping your test command i
 
 ## Deployment settings
 
-If your services depends on settings which are different for each stage, we recommend using [deployment profiles](/framework/docs/dashboard/profiles/) to set different [Parameters](https://serverless.com/framework/docs/dashboard/secrets/) for each stage. 
+If your services depends on settings which are different for each stage, we recommend using [deployment profiles](/framework/docs/dashboard/profiles/) to set different [parameters](https://serverless.com/framework/docs/dashboard/secrets/) for each stage. 
