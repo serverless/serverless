@@ -1,3 +1,14 @@
+<!--
+title: Serverless Dashboard - Alerting
+menuText: Alerting
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/monitoring/alerts/)
+
+<!-- DOCS-SITE-LINK:END -->
 
 # Alerts
 

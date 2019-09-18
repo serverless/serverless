@@ -1,3 +1,15 @@
+<!--
+title: Serverless Dashboard - Metrics
+menuText: Metrics
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/monitoring/metrics/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Metrics
 
 As part of the Serverless Insights feature we also include a set of pre-configured metrics and charts, including the following:
