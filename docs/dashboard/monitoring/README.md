@@ -11,13 +11,13 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Insights
+# Monitoring
 
-Serverless Insights help you monitor, develop and optimize your serverless application by providing key metrics and alerts.
+Serverless Monitoring help you monitor, develop and optimize your serverless application by providing key metrics and alerts.
 
 ## Installing
 
-Insights are enabled by default when you deploy a Service using the Serverless Framework CLI.
+Monitoring is enabled by default when you deploy a Service using the Serverless Framework CLI.
 
 ### Configuration
 
