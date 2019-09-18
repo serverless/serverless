@@ -14,7 +14,7 @@ layout: Doc
 
 If you have an existing CI/CD service and you do not wish to use the CI/CD service provided by Serverless, you can still deploy from your existing CI/CD service while using the other features of the Serverless Framework Dashboard.
 
-\Configuring your CI/CD pipeline is split between configuring the environment and the build step. Configuring the environment only needs to be performed once across all service deployments while the build step must be configured to run on each deploy.
+Configuring your CI/CD pipeline is split between configuring the environment and the build step. Configuring the environment only needs to be performed once across all service deployments while the build step must be configured to run on each deploy.
 
 ## Configure the environment
 
