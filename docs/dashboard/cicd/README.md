@@ -32,17 +32,19 @@ Before you setup your CI/CD workflow, make sure you meet the following requireme
 5. Click the "connect github repository" button to grant the Serverless Dashboard access to the repository.
 6. After authenticate with Github you'll be asked to install the Serverless application in your Github organizations. In the "Repository access" section, ensure you select "All repositories", or that the intended repository is included if you select "Only select repositories".
 
-## Troubleshooting
+### Troubleshooting Github connections
 
 In the setup process the Serverless Framework will authenticate you with Github with the OAuth application flow, and install the Serverless Github application to access the repositories. If there are problems with either of these, you can reset the state of the integration.
 
 **Reset the OAuth access**:
+
 1. Go to the [Authorized GitHub Apps in Github](https://github.com/settings/apps/authorizations) and click "Revoke" next to "Serverless". This will revoke the keys used by the Serverless Framework Dashboard to access Github on your behalf.
 2. Go through Steps 1-4 above to access the deployment settings. You will be prompted to "connect github repository". Authenticate with Github again.
 3. You will be prompted with the install instructions. If you did not uninstall the Github application, then you do not need to update these settings. You can close the window.
 4. You will need to refresh the deployment settings page.
 
 **Configure or Reset the installed application**:
+
 1. Go to the [Installed Github Apps in Github](https://github.com/settings/installations) and click “Configure” for the “Serverless” app. Here you can update the access settings or uninstall the application.
 2. You can update the “Repository access” settings, to make sure that Serverless has access to the repositories you want to deploy.
 3. You can also Uninstall the application.
@@ -51,11 +53,8 @@ In the setup process the Serverless Framework will authenticate you with Github 
 
 ## Configure the build settings
 
-1. Select the Github repository from the "repository" dropdown. This must be a repository that contains one more Serverless Framework projects. 
-2. Select the "base directory" containing the `serverless.yml` file. The dropdown list of base directories is automatically filtered to meet this criteria:
-    1. The directory must contain a `serverless.yml`.
-    2. The `service` field in the `serverless.yml` must also match the name of the current service.
-    3. It the `app` and `org` fields in the `serverless.yml` are set, then they must match the current org and app.
+1. Select the Github repository from the "repository" dropdown. This must be a repository that contains one more Serverless Framework projects.
+2. Select the "base directory" containing the `serverless.yml` file. The dropdown list of base directories is automatically filtered to directories which contain a `serverless.yml`, and the `org`, `app`, and `service` in the `serverless.yml` file matches the current org/app/service. If `org` and `app` are not set, they are ignored.
 3. Select the “region” for the deployments. Only regions supported by the Serverless Dashboard are currently listed. If you plan to deploy to another region, please reach out sales or support to request support for a new region.
 
 # Branch Deployments
