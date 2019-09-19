@@ -59,7 +59,7 @@ You need to create credentials with appropriate roles Serverless can use to crea
 5. Click `CREATE SERVICE ACCOUNT` button on the top
 6. Input Service account name and Service account ID will be generated automatically for you. Change it if you wish to.
 7. Click `Create` button
-8. Add `Deployment Manager Editor` `Storage Admin` `Logging Admin` `Cloud Functions Developer` roles and click `Continue`
+8. Add `Deployment Manager Editor`, `Storage Admin`, `Logging Admin`, `Cloud Functions Developer` roles and click `Continue`
 9. Click `+CREATE KEY` button and select `JSON` key type and click `Create` button
 10. You will see a json (AKA `keyfile`) file downloaded
 11. Click `Done` button
