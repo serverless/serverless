@@ -1,3 +1,11 @@
+# 1.52.1 (2019-09-19)
+
+- [Change how enterprise plugin async init is preformed](https://github.com/serverless/serverless/pull/6687)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.52.0...v1.52.1)
+
 # 1.52.0 (2019-09-11)
 
 - [Add initialize lifecycle event](https://github.com/serverless/serverless/pull/6601)
