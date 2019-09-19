@@ -206,6 +206,7 @@ These consultants use the Serverless Framework and can help you build your serve
 - [superluminar](https://superluminar.io) - runs serverlessdays Hamburg and Serverless Meetup Hamburg
 - [Onica](https://www.onica.com/aws-cloud-native-developers/) - AWS Premier Consulting Partner for Cloud Native Development and host of [eleven regional Meetup groups](https://www.onica.com/events/).
 - [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
+- [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
 
 ---
 
