@@ -63,7 +63,7 @@ module.exports.handler = (event, context, callback) => {
 };
 ```
 
-For more specific setup, origin can be a object, which uses CloudFromation yaml syntax.
+For more specific setup, origin can be a object, which uses CloudFormation yaml syntax.
 
 ```yaml
 functions:
