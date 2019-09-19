@@ -21,7 +21,7 @@ In the setup process the Serverless Framework will authenticate you with Github 
 3. You will be prompted with the install instructions. If you did not uninstall the Github application, then you do not need to update these settings. You can close the window.
 4. You will need to refresh the deployment settings page.
 
-## Configure or Reset the installed application
+## Configure or reset the installed application
 
 1. Go to the [Installed Github Apps in Github](https://github.com/settings/installations) and click “Configure” for the “Serverless” app. Here you can update the access settings or uninstall the application.
 2. You can update the “Repository access” settings, to make sure that Serverless has access to the repositories you want to deploy.

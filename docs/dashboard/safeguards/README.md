@@ -13,13 +13,13 @@ layout: Doc
 
 # Safeguards
 
-Safeguards performs a series of policy checks when running the `serverless deploy` command. There are [fourteen policies](#default-policies) included which you can [configure in the dashboard](#configuring-policies). Additionally [custom policies](#custom-policies) can be created and added to your serverless project.
+Safeguards performs a series of policy checks when running the `serverless deploy` command. There are [fourteen policies](/framework/docs/dashboard/safeguards/available/) included which you can [configure in the dashboard](#configuring-policies). Additionally [custom safeguards](/framework/docs/dashboard/safeguards/custom/) can be created and added to your serverless project.
 
 ## Configuring Policies
 
 Safeguard policies are managed in the [Serverless Framework Dashboard](https://dashboard.serverless.com/). When you run `serverless deploy`, the CLI obtains the latest list of Safeguard policies and performs the checks before any resources are provisioned or deployed.
 
-The list of available Safeguards can be found by navigating to the "profiles" page, selecting the individual profile and opening the "safeguards" tab. The guide on [using deployment profiles to deploy](./profiles.md#using-a-deployment-profile-to-deploy) provides instructions to identify the profile used by your application and stage.
+The list of available Safeguards can be found by navigating to the "profiles" page, selecting the individual profile and opening the "safeguards" tab. The guide on [using deployment profiles to deploy](/framework/docs/dashboard/profiles#using-a-deployment-profile-to-deploy) provides instructions to identify the profile used by your application and stage.
 
 When creating a new Safeguard policy you must specify each of the following fields:
 
@@ -33,7 +33,7 @@ The description should explain the intent of the policy. When the Safeguard poli
 
 ### safeguard
 
-The safeguard dropdown lists all of the [available policies](#available-policies). Select the Safeguard you want to enforce. When you select the Safeguard the description and the settings will be populated for you with default values.
+The safeguard dropdown lists all of the [available safeguards](/framework/docs/dashboard/safeguards/available/). Select the Safeguard you want to enforce. When you select the Safeguard the description and the settings will be populated for you with default values.
 
 ### enforcement level
 
@@ -41,7 +41,7 @@ The enforcement level can be set to either `warning` or `error`. When the Safegu
 
 ### settings
 
-Some of the [available safeguards](#available-safeguards) may allow or require configurations. For example, the [Allowed Runtimes (allowed-runtimes)](#allowed-runtimes) Safeguard requires a list of allowed AWS Lambda Runtimes for functions. This field allows you to customize the settings for the Safeguard policy.
+Some of the [available safeguards](/framework/docs/dashboard/safeguards/available/) may allow or require configurations. For example, the [Allowed Runtimes (allowed-runtimes)](#allowed-runtimes) Safeguard requires a list of allowed AWS Lambda Runtimes for functions. This field allows you to customize the settings for the Safeguard policy.
 
 
 ## Running Policy Checks

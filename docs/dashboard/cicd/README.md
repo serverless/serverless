@@ -15,7 +15,7 @@ layout: Doc
 
 Serverless CI/CD enables you to automatically test and deploy services from Github.
 
-## Prerequisites
+## Requirements
 
 Before you setup your CI/CD workflow, make sure you meet the following requirements:
 
