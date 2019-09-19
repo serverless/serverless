@@ -35,8 +35,6 @@ custom:
     collectLambdaLogs: false
 ```
 
-
-
 ## Advanced Configuration Options
 
 ### Uploading Source Map

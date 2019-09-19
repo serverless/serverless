@@ -43,7 +43,6 @@ The enforcement level can be set to either `warning` or `error`. When the Safegu
 
 Some of the [available safeguards](/framework/docs/dashboard/safeguards/available/) may allow or require configurations. For example, the [Allowed Runtimes (allowed-runtimes)](#allowed-runtimes) Safeguard requires a list of allowed AWS Lambda Runtimes for functions. This field allows you to customize the settings for the Safeguard policy.
 
-
 ## Running Policy Checks
 
 The policy checks are performed as a part of the `serverless deploy` command.
@@ -92,5 +91,3 @@ occurring. A warning will display a message but the deploy will continue.
 
 If one or more of the policy checks fail the command will return a 1 exit code so
 it can be detected from a script or CI/CD service.
-
-

@@ -57,7 +57,7 @@ Preview deployments enable you to deploy on every pull request. As a part of the
 
 ### Enabling preview deployments
 
-To enable preview deployments, select "Deploy previews for all branches" or "Deploy previews for individually selected branches". The latter will only deploy a branch from a PR targeting the selected branches. 
+To enable preview deployments, select "Deploy previews for all branches" or "Deploy previews for individually selected branches". The latter will only deploy a branch from a PR targeting the selected branches.
 
 Each deployment must target a specific stage. You can select a pre-configured stage, or you can select “use branch name as stage”.
 
@@ -73,7 +73,7 @@ As development teams, we often have multiple pull requests and branches open at 
 
 To avoid this collision, you have the convenient option to "use branch name as stage", which ensures that each pull request will deploy to a unique stage. Since the stage is not preconfigured and may not yet exist at the time of deployment, the default deployment profile will be used. In this case, ensure that the default deployment profile is configured with an [AWS Access Role](/framework/docs/dashboard/access-roles/).
 
-If you use the "use branch name as stage", you may also want to reference the branch name in your configuration using [Variables](/framework/docs/providers/aws/guide/variables/) Since the stage name matches the branch name, you can use the `${self:provider.stage}` variable in your `serverless.yml` to reference the stage name, which will match the branch name. 
+If you use the "use branch name as stage", you may also want to reference the branch name in your configuration using [Variables](/framework/docs/providers/aws/guide/variables/) Since the stage name matches the branch name, you can use the `${self:provider.stage}` variable in your `serverless.yml` to reference the stage name, which will match the branch name.
 
 ## Running Tests
 
@@ -105,4 +105,4 @@ Custom scripts before or after a test can be set by wrapping your test command i
 
 ## Deployment settings
 
-If your services depends on settings which are different for each stage, we recommend using [deployment profiles](/framework/docs/dashboard/profiles/) to set different [parameters](https://serverless.com/framework/docs/dashboard/secrets/) for each stage. 
+If your services depends on settings which are different for each stage, we recommend using [deployment profiles](/framework/docs/dashboard/profiles/) to set different [parameters](https://serverless.com/framework/docs/dashboard/secrets/) for each stage.
