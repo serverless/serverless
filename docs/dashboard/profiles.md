@@ -13,11 +13,11 @@ layout: Doc
 
 # Deployment Profiles
 
-Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Secrets](./secrets.md) and [Access Roles](./access-roles.md).
+Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Parameters](./secrets.md) and [Access Roles](./access-roles.md).
 
 ## Use Deployment Profiles
 
-Deployment profiles are managed in the [Serverless Framework Dashboard](https://dashboard.serverless.com). When you run `serverless deploy`, the CLI obtains the Safeguard policies, Secrets and the generated AWS Credentials.
+Deployment profiles are managed in the [Serverless Framework Dashboard](https://dashboard.serverless.com). When you run `serverless deploy`, the CLI obtains the Safeguard policies, Parameters, and the generated AWS Credentials.
 
 ### Creating a new Deployment Profile
 
@@ -31,13 +31,13 @@ This is a user-readable name for the deployment profile. Most often it has a nam
 
 The description helps provide additional context when listing the deployment profiles.
 
-#### access roles, secrets and safeguards
+#### access roles, parameters and safeguards
 
-Access Roles, Secrets and Safeguards have individual configuration guides:
+Access Roles, Parameters and Safeguards have individual configuration guides:
 
 - [access roles](./access_role.md#link-your-aws-account)
 - [safeguard policies](./safeguards.md#configuring-policies)
-- [secrets](./secrets.md)
+- [parameters](./secrets.md)
 
 ### Add a deployment profile to your application and stage
 
