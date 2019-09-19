@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Alibaba Cloud Function Compute - Events
-menuText: Alibaba Cloud Functions Events
+menuText: Events
 layout: Doc
 -->
 
