@@ -29,3 +29,11 @@ Currently, the Serverless Framework Dashboard supports the following providers, 
 - Regions: us-east-1, us-east-2, us-west-2, eu-central-1, eu-west-1, eu-west-2, ap-northeast-1, ap-south-1, ap-southeast-1, ap-southeast-2
 
 Need unsupported providers, runtimes or regions? [Let us know](https://serverless.com/enterprise/) what you need. We are working hard to quickly expand our supported runtimes and regions.
+
+# Installing
+
+To get started with the Serverless Framework Dashboard, follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide. When you run the `serverless` command, you will be asked if you would like to enable dashboard features.
+
+# Enabling the Dashboard on existing Serverless Framework services
+
+If you have an existing Serverless Framework service, it is incredibly easy to enable the Serverless Framework Dashboard features. Just follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide and then run the `serverless` command in your existing Serverless Framework project. It will update your `serverless.yml` to work with the Dashboard.
