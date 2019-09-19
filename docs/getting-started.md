@@ -29,7 +29,13 @@ npm update -g serverless
 
 If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to do that first.
 
-Once you have the Serverless Framework installed, simply run the ‘serverless’ command and follow the prompts. In no time you will have deployed your first serverless app using the Serverless Framework [CLI](./providers/) and configured your Serverless Framework [Dashboard](./dashboard/) account to automatically monitor your serverless app, generate alerts, and much more.
+If you already registered for a [Serverless Framework Dashboard](https://dashboard.serverless.com) account, login to your account from the CLI.
+
+```bash
+serverless login
+```
+
+Once you have the Serverless Framework installed, simply run the `serverless` command and follow the prompts. In no time you will have deployed your first serverless app using the Serverless Framework [CLI](./providers/) and configured your [Serverless Framework Dashboard](./dashboard/) account to automatically monitor your serverless app, generate alerts, and much more. If you already have an existing Serverless Framework Dashboard account, you'll be prompted for your organization and application as well.
 
 ```bash
 # Create and deploy a new service/project
