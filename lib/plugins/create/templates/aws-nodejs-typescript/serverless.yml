@@ -12,6 +12,9 @@ provider:
   name: aws
   runtime: nodejs10.x
 
+# setup a basic VPC configuration
+# vpc: true
+
 functions:
   hello:
     handler: handler.hello

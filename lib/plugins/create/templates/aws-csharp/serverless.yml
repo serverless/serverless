@@ -48,6 +48,9 @@ provider:
 #  environment:
 #    variable1: value1
 
+# setup a basic VPC configuration
+# vpc: true
+
 package:
   individually: true
 
