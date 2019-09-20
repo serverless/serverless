@@ -70,6 +70,7 @@ For this case, we provide a `captureError` function available on either the `con
 
 Here is an example of how to use it from the `context` object:
 
+In NodeJS:
 ```javascript
 module.exports.hello = async (event, context) => {
   try {
@@ -84,9 +85,23 @@ module.exports.hello = async (event, context) => {
   };
 };
 ```
+In Python:
+```python
+def hello(event, context):
+    try:
+        # do some real stuff but it throws an error, oh no!
+        raise Exception('aa')
+    except Exception as exc:
+        context.capture_exception(exc)
+    return {
+        'statusCode': 500,
+        'body': '{"name": "bob"}',
+    }
+```
 
 And to import it instead, import with `const { captureError } = require('./serverless-sdk')` then call `captureError` instead of `context.captureError`.
 
+In NodeJS:
 ```javascript
 const { captureError } = require('./serverless_sdk');
 
@@ -102,4 +117,19 @@ module.exports.hello = async event => {
     body: JSON.stringify({ name: 'bob' }),
   };
 };
+```
+In Python:
+```python
+from serverless_sdk import capture_exception
+
+def hello(event, context):
+    try:
+        # do some real stuff but it throws an error, oh no!
+        raise Exception('aa')
+    except Exception as exc:
+        capture_exception(exc)
+    return {
+        'statusCode': 500,
+        'body': '{"name": "bob"}',
+    }
 ```
