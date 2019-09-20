@@ -144,6 +144,8 @@ provider:
     websocket: true # Optional configuration which specifies if Websockets logs are used
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
 
+vpc: true # Optional automatically setup a VPC and deploy the Lambda functions into it (useful when using other AWS services which require a VPC)
+
 package: # Optional deployment packaging configuration
   include: # Specify the directories and files which should be included in the deployment package
     - src/**

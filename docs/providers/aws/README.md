@@ -26,6 +26,8 @@ layout: Doc
         <li><a href="./guide/functions.md">Functions</a></li>
         <li><a href="./guide/events.md">Events</a></li>
         <li><a href="./guide/resources.md">Resources</a></li>
+        <li><a href="./guide/layers.md">Layers</a></li>
+        <li><a href="./guide/vpc.md">VPC</a></li>
         <li><a href="./guide/deploying.md">Deploying</a></li>
         <li><a href="./guide/testing.md">Testing</a></li>
         <li><a href="./guide/variables.md">Variables</a></li>

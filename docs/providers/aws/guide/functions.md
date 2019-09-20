@@ -196,6 +196,8 @@ See the documentation about [IAM](./iam.md) for function level IAM roles.
 
 ## VPC Configuration
 
+**NOTE:** If you don't want to configure VPC on your own you can use Serverless Frameworks [native VPC support](./vpc.md).
+
 You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Here's an example configuration:
 
 ```yml
