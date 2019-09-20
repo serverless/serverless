@@ -1,3 +1,11 @@
+# 1.52.2 (2019-09-20)
+
+- [Lock graceful-fs at 4.2.1](https://github.com/serverless/serverless/pull/6717)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.52.1...v1.52.2)
+
 # 1.52.1 (2019-09-19)
 
 - [Change how enterprise plugin async init is preformed](https://github.com/serverless/serverless/pull/6687)
