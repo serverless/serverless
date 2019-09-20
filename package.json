@@ -118,7 +118,7 @@
     "fs-extra": "^0.30.0",
     "get-stdin": "^5.0.1",
     "globby": "^6.1.0",
-    "graceful-fs": "^4.2.2",
+    "graceful-fs": "4.2.1",
     "https-proxy-agent": "^2.2.2",
     "inquirer": "^6.5.2",
     "is-docker": "^1.1.0",
