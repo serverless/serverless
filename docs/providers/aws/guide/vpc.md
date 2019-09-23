@@ -27,7 +27,6 @@ The Serverless Framework has built-in support for VPC configurations to help dev
 Configuring the Serverless Framerwork to setup a basic VPC is as easy as adding the `vpc: true` configuration to the `serverless.yml` file:
 
 ```yaml
-#serverless.yml
 service: myService
 
 provider:
