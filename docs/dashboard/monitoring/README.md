@@ -133,3 +133,27 @@ def hello(event, context):
         'body': '{"name": "bob"}',
     }
 ```
+
+## AWS SDK spans
+Serverles automatically instruments `aws-sdk` and `boto3`(`botocore` specifically) in NodeJS and
+Python3. Calls(service & operation. eg: S3 putItem) to the SDK are show in the invocation detail
+in the dashboard.
+
+## HTTP spans
+Serverless also instruments your lambdas to report the spans for HTTP & HTTPS requests. In NodeJS
+the `http` and `https` methods are instrumented, so any library built upon those will be captured.
+In Python, `urllib3`(thus `requests`) and `urllib2`(in Python2) and `urlib.request`(in Python3) use
+is captured.
+
+By default, requests to AWS are not captured because of the above AWS SDK instrumentation which
+provides more insight into the request.
+
+### Configuring HTTP spans
+You can configure the HTTP spans with the following environment variables
+ * `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_HOSTS` - `*` by default. Set to a comma delimited list of
+   host names to capture.
+ * `SERVERLESS_ENTERPRISE_SPANS_IGNORE_HOSTS` - not set by default. Set to comma delimited list of
+   hostnames to NOT capture.
+ * `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_AWS_SDK_HTTP` - not set by default. Set to any value to
+   also capture requests from `botocore` or `aws-sdk`.
+   hostnames to NOT capture.
