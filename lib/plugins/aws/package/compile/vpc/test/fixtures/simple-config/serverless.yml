@@ -1,0 +1,20 @@
+service: vpc
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+vpc: true
+
+functions:
+  first:
+    handler: handler.handler
+  second:
+    handler: handler.handler
+    vpc:
+      subnetIds:
+        - existingSubnet1
+        - existingSubnet2
+      securityGroupIds:
+        - existingSecurityGroup1
+        - existingSecurityGroup2

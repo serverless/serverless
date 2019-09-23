@@ -63,3 +63,4 @@ obj/
 
 # Tests
 !tests/**/*.zip
+**/test/**/.serverless
