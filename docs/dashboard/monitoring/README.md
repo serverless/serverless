@@ -135,7 +135,7 @@ def hello(event, context):
 ```
 
 ## AWS SDK spans
-Serverles automatically instruments `aws-sdk` and `boto3`(`botocore` specifically) in NodeJS and
+Serverless automatically instruments `aws-sdk` and `boto3`(`botocore` specifically) in NodeJS and
 Python3. Calls(service & operation. eg: S3 putItem) to the SDK are show in the invocation detail
 in the dashboard.
 
