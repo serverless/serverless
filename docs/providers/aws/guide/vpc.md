@@ -39,6 +39,27 @@ functions:
     handler: index.handler
 ```
 
+If you need more control over the VPC configuration you can use the object syntax as demonstrated below:
+
+```yaml
+service: myService
+
+provider:
+  name: aws
+
+vpc:
+  cidrBlock: 11.0.0.0/16
+  subnets:
+    private:
+      cidrBlock: 11.0.1.0/24
+    public:
+      cidrBlock: 11.0.2.0/24
+
+functions:
+  func1:
+    handler: index.handler
+```
+
 ## VPC Resources
 
 Using the `vpc: true` configuration will instruct the Serverless Framework to setup the following resources in your AWS account:

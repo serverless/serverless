@@ -1,0 +1,26 @@
+service: vpc
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+vpc:
+  cidrBlock: 11.0.0.0/16
+  subnets:
+    private:
+      cidrBlock: 11.0.1.0/24
+    public:
+      cidrBlock: 11.0.2.0/24
+
+functions:
+  first:
+    handler: handler.handler
+  second:
+    handler: handler.handler
+    vpc:
+      subnetIds:
+        - existingSubnet1
+        - existingSubnet2
+      securityGroupIds:
+        - existingSecurityGroup1
+        - existingSecurityGroup2
