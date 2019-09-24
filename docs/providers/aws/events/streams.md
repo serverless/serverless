@@ -78,3 +78,29 @@ functions:
           startingPosition: LATEST
           enabled: false
 ```
+
+## Setting the BatchWindow
+
+The configuration below sets up a Kinesis stream event for the `preprocess` function which has a batch window of `10`.
+
+The `batchWindow` property specifies a maximum amount of time to wait before triggering a Lambda invocation with a batch of records. Your Lambda function will be invoked when one of the following three things happens:
+
+1. The total payload size reaches 6MB;
+
+2. The `batchWindow` reaches its maximum value; or
+
+3. the `batchSize` reaches it maximum value.
+
+For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2019/09/aws-lambda-now-supports-custom-batch-window-for-kinesis-and-dynamodb-event-sources/) for this property.
+
+**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          batchWindow: 10
+```
