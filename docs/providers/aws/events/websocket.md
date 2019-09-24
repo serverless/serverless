@@ -156,6 +156,31 @@ functions:
     handler: handler.auth
 ```
 
+## Using API keys
+
+If you want to work with API keys, you can set the `private` property to `true`. This enforces API key requirement on the endpoint. *Please note that most WS implementations in browser don't support additional request-header values. This configuration currently only makes sense if you use a custom authorizer that provides the key automatically.*:
+
+```yml
+provider:
+  name: aws
+  websocketsApiKeySelectionExpression: $request.header.x-api-key # api key is either selected form the request headers (default) or the authorizer if your provide '$context.authorizer.usageIdentifierKey' as value.
+
+functions:
+  connectHandler:
+    handler: handler.connectHandler
+    events:
+      - websocket:
+          route: $connect
+          private: true # default is false
+          authorizer:
+            name: auth
+
+  auth:
+    handler: handler.auth
+```
+
+If you create usage plans with your service, those usage plans are automatically attached to all websocket stages ([Compare API Gateway](apigateway.md)).
+
 ## Send a message to a ws-client
 
 To send a message to a ws-client the [@connection](https://docs.amazonaws.cn/en_us/apigateway/latest/developerguide/apigateway-how-to-call-websocket-api-connections.html) command is used.
