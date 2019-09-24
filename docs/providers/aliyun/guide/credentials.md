@@ -19,7 +19,7 @@ The Serverless Framework needs access to account credentials for your Alibaba Cl
 ## Create an Alibaba Cloud Account
 
 You need a Billing Account to use Alibaba Cloud Function Compute. See <a href="https://www.alibabacloud.com/help/doc-detail/50482.htm" target="_blank">Create an Alibaba Cloud account
-</a> and <a href="https://www.alibabacloud.com/help/doc-detail/50517.htm" target="_blank">Add billing information</a> on how to create a Billing Account. For some regions in mainland China (including the plugin's default region of Shanghai) you will also have to go through <a href="https://www.alibabacloud.com/help/doc-detail/52595.htm" target="_blank">Real Name Verification</a>.
+</a> and <a href="https://www.alibabacloud.com/help/doc-detail/50517.htm" target="_blank">Add billing information</a> on how to create a Billing Account. For some regions in mainland China (including the plugin's default region of Shanghai) you will also have to go through <a href="https://www.alibabacloud.com/help/doc-detail/52595.htm" target="_blank">Real Name Verification</a>. To avoid this, use a region outside of Mainland China such as `ap-southeast-1` by setting the `region` option in the `provider` section of your `serverless.yml`.
 
 ## Enable Services
 
