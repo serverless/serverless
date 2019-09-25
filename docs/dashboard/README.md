@@ -46,4 +46,4 @@ In your working directory with your `serverless.yml` file, run `serverless`. Thi
 
 You can also integrate the dashboard manually simply by adding `org: <org>` and `app: <app>` to your `serverless.yml` in your favorite IDE using the org and app name from the dashboard.
 
-Once the `org` and `app` fields are set, just run `sls deploy` to redeploy your service with the instrumentation needed for the Dashboard.
+Once the `org` and `app` fields are set, just run `serverless deploy` to redeploy your service with the instrumentation needed for the Dashboard.
