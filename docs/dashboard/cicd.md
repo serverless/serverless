@@ -1,12 +1,13 @@
 <!--
 title: Serverless Dashboard - Running in your own CI/CD
 menuText: Deploy in your own CI/CD
+menuOrder: 5
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/cicd/running-in-your-own-cicd/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/cicd/)
 
 <!-- DOCS-SITE-LINK:END -->
 
