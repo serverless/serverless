@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('fs');
 
 const pkgJson = JSON.parse(fs.readFileSync('package.json'));
