@@ -38,9 +38,12 @@ To get started with the Serverless Framework Dashboard, follow the [Getting Star
 
 If you have an existing Serverless Framework service, it is incredibly easy to enable the Serverless Framework Dashboard features. Just follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide to install update the Serverless Framework to the latest release.
 
-1. Create a new account at [https://dashboard.serverless.com](https://dashboard.serverless.com) if you don't already have one.
-2. Run `sls login` to login to your account.
-3. Go to your existing working directory containing the `serverless.yml`
-4. Run `serverless` to walk you through the integration process. Once it is complete, your `serverless.yml` will be updated with `org` and `app` from the dashboard.
-5. Run `serverless deploy` to deploy your service
-6. Run `serverless dashboard` to view the dashboard for your service
+If you don't already have a Serverless account, create a new account at [https://dashboard.serverless.com].
+
+After you create your account, run `serverless login` on the CLI to authenticate your CLI with the dashboard.
+
+In your working directory with your `serverless.yml` file, run `serverless`. This will walk you through the setup process, including setting up your AWS account credentials and selecting your organization and application from the dashboard. Once completed, you'll notice that the `org` and `app` fields will be added to your `serverless.yml` to indicate the org/app to which this service belongs.
+
+You can also integrate the dashboard manually simply by adding `org: <org>` and `app: <app>` to your `serverless.yml` in your favorite IDE using the org and app name from the dashboard.
+
+Once the `org` and `app` fields are set, just run `sls deploy` to redeploy your service with the instrumentation needed for the Dashboard.
