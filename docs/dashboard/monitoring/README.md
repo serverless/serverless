@@ -141,9 +141,9 @@ in the dashboard.
 
 ## HTTP spans
 Serverless also instruments your lambdas to report the spans for HTTP & HTTPS requests. In NodeJS
-the `http` and `https` methods are instrumented, so any library built upon those will be captured.
-In Python, `urllib3`(thus `requests`) and `urllib2`(in Python2) and `urlib.request`(in Python3) use
-is captured.
+the `http` and `https` modules are instrumented, so any library built upon those will be captured.
+In Python, the `urllib3`(thus `requests`) and `urllib2`(in Python2) and `urlib.request`(in Python3)
+libraries are unstrumented to capture HTTP & HTTPS requests.
 
 By default, requests to AWS are not captured because of the above AWS SDK instrumentation which
 provides more insight into the request.
