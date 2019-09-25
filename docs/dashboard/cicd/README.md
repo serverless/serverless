@@ -36,7 +36,7 @@ Before you setup your CI/CD workflow, make sure you meet the following requireme
 ## Configure the build settings
 
 1. Select the Github repository from the "repository" dropdown. This must be a repository that contains one more Serverless Framework projects.
-2. Select the "base directory" containing the `serverless.yml` file. The dropdown list of base directories is automatically filtered to directories which contain a `serverless.yml`, and the `org`, `app`, and `service` in the `serverless.yml` file matches the current org/app/service. If `org` and `app` are not set, they are ignored.
+2. Select the "base directory" containing the `serverless.yml` file.
 3. Select the “region” for the deployments. Only regions supported by the Serverless Dashboard are currently listed. If you plan to deploy to another region, please reach out sales or support to request support for a new region.
 
 ## Branch Deployments
