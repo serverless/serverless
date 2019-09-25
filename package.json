@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.52.2",
+  "version": "1.53.0",
   "engines": {
     "node": ">=6.0"
   },
