@@ -72,6 +72,7 @@ error in the serverless dashboard while allowing you to return an error to the u
 Here is an example of how to use it from the `context` object:
 
 In NodeJS:
+
 ```javascript
 module.exports.hello = async (event, context) => {
   try {
@@ -86,7 +87,9 @@ module.exports.hello = async (event, context) => {
   };
 };
 ```
+
 In Python:
+
 ```python
 def hello(event, context):
     try:
@@ -103,6 +106,7 @@ def hello(event, context):
 And to import it instead, import with `const { captureError } = require('./serverless_sdk')` then call `captureError` instead of `context.captureError`.
 
 In NodeJS:
+
 ```javascript
 const { captureError } = require('./serverless_sdk');
 
@@ -119,7 +123,9 @@ module.exports.hello = async event => {
   };
 };
 ```
+
 In Python:
+
 ```python
 from serverless_sdk import capture_exception
 
@@ -136,11 +142,13 @@ def hello(event, context):
 ```
 
 ## AWS SDK spans
+
 Serverless automatically instruments `aws-sdk` and `boto3`(`botocore` specifically) in NodeJS and
 Python. Calls(service & operation. eg: S3 putItem) to the SDK are show in the invocation detail
 in the dashboard.
 
 ## HTTP spans
+
 Serverless also instruments your lambdas to report the spans for HTTP & HTTPS requests. In NodeJS
 the `http` and `https` modules are instrumented, so any library built upon those will be captured.
 In Python, the `urllib3`(thus `requests`) and `urllib2`(in Python2) and `urlib.request`(in Python3)
@@ -150,10 +158,12 @@ By default, requests to AWS are not captured because of the above AWS SDK instru
 provides more insight into the request.
 
 ### Configuring HTTP spans
+
 You can configure the HTTP spans with the following environment variables
- * `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_HOSTS` - `*` by default. Set to a comma delimited list of
-   host names to capture.
- * `SERVERLESS_ENTERPRISE_SPANS_IGNORE_HOSTS` - not set by default. Set to comma delimited list of
-   hostnames to not capture.
- * `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_AWS_SDK_HTTP` - not set by default. Set to any value to
-   also capture HTTP spans for requests from `botocore` or `aws-sdk`.
+
+- `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_HOSTS` - `*` by default. Set to a comma delimited list of
+  host names to capture.
+- `SERVERLESS_ENTERPRISE_SPANS_IGNORE_HOSTS` - not set by default. Set to comma delimited list of
+  hostnames to not capture.
+- `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_AWS_SDK_HTTP` - not set by default. Set to any value to
+  also capture HTTP spans for requests from `botocore` or `aws-sdk`.
