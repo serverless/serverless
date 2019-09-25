@@ -44,6 +44,11 @@ After you create your account, run `serverless login` on the CLI to authenticate
 
 In your working directory with your `serverless.yml` file, run `serverless`. This will walk you through the setup process, including setting up your AWS account credentials and selecting your organization and application from the dashboard. Once completed, you'll notice that the `org` and `app` fields will be added to your `serverless.yml` to indicate the org/app to which this service belongs.
 
-You can also integrate the dashboard manually simply by adding `org: <org>` and `app: <app>` to your `serverless.yml` in your favorite IDE using the org and app name from the dashboard.
+You can also integrate the dashboard manually simply by adding `org` and `app` to your `serverless.yml` in your favorite IDE using the org and app name from the dashboard.
+
+```yaml
+org: <org>
+app: <app>
+```
 
 Once the `org` and `app` fields are set, just run `serverless deploy` to redeploy your service with the instrumentation needed for the Dashboard.
