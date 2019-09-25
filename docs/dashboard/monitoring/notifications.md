@@ -73,12 +73,7 @@ functions:
     events:
       - sns:
           arn:
-            Fn::Join:
-              - ':'
-              - - 'arn:aws:sns'
-                - Ref: 'AWS::Region'
-                - Ref: 'AWS::AccountId'
-                - ${self:custom.topicName}
+            Ref: AlarmTopic
           topicName: ${self:custom.topicName}
 
 resources:
