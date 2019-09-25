@@ -66,7 +66,8 @@ package:
 
 Your lambda function may throw an exception, but your function handles it in order to respond to the requestor without throwing the error. One very common example is functions tied to HTTP endpoints. Those usually should still return JSON, even if there is an error since the API Gateway integration will fail rather than returning a meaningful error.
 
-For this case, we provide a `captureError` function available on either the `context` or on the module imported from `'./serverless-sdk'`. This will cause the invocation to still display as an error in the serverless dashboard while allowing you to return an error to the user.
+For this case, we provide a `captureError` function available on either the `context` or on the module imported from `'./serverless_sdk'` in NodeJS or `serverless_sdk` in Python. This will cause the invocation to still display as an
+error in the serverless dashboard while allowing you to return an error to the user.
 
 Here is an example of how to use it from the `context` object:
 
@@ -99,7 +100,7 @@ def hello(event, context):
     }
 ```
 
-And to import it instead, import with `const { captureError } = require('./serverless-sdk')` then call `captureError` instead of `context.captureError`.
+And to import it instead, import with `const { captureError } = require('./serverless_sdk')` then call `captureError` instead of `context.captureError`.
 
 In NodeJS:
 ```javascript
