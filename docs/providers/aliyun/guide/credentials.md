@@ -19,7 +19,7 @@ The Serverless Framework needs access to account credentials for your Alibaba Cl
 ## Create an Alibaba Cloud Account
 
 You need a Billing Account to use Alibaba Cloud Function Compute. See <a href="https://www.alibabacloud.com/help/doc-detail/50482.htm" target="_blank">Create an Alibaba Cloud account
-</a> and <a href="https://www.alibabacloud.com/help/doc-detail/50517.htm" target="_blank">Add billing information</a> on how to create a Billing Account.
+</a> and <a href="https://www.alibabacloud.com/help/doc-detail/50517.htm" target="_blank">Add billing information</a> on how to create a Billing Account. For some regions in mainland China (including the plugin's default region of Shanghai) you will also have to go through <a href="https://www.alibabacloud.com/help/doc-detail/52595.htm" target="_blank">Real Name Verification</a>. To avoid this, use a region outside of Mainland China such as `ap-southeast-1` by setting the `region` option in the `provider` section of your `serverless.yml`.
 
 ## Enable Services
 
@@ -29,7 +29,7 @@ You need to enable the following services so that Serverless can create the corr
 - <a href="https://www.alibabacloud.com/product/log-service" target="_blank">Log Service</a>
 - <a href="https://www.alibabacloud.com/product/api-gateway" target="_blank">API Gateway</a>
 - <a href="https://www.alibabacloud.com/product/oss" target="_blank">Object Storage Service</a>
-- <a href="https://www.aliyun.com/product/fc" target="_blank">Function Compute</a>
+- <a href="https://www.alibabacloud.com/products/function-compute" target="_blank">Function Compute</a>
 
 ## Get the Credentials
 
@@ -45,7 +45,7 @@ You need to create credentials Serverless can use to create resources in your Pr
 - AliyunFCFullAccess
 
 3. Go to the <a href="https://account.console.aliyun.com/#/secure" target="_blank">Security Settings</a> page to get the Account ID of your Alibaba Cloud account.
-4. Create a file containing the credentails that you have collected.
+4. Create a file containing the credentials that you have collected.
 
 ```ini
 [default]
