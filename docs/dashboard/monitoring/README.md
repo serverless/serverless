@@ -153,7 +153,6 @@ You can configure the HTTP spans with the following environment variables
  * `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_HOSTS` - `*` by default. Set to a comma delimited list of
    host names to capture.
  * `SERVERLESS_ENTERPRISE_SPANS_IGNORE_HOSTS` - not set by default. Set to comma delimited list of
-   hostnames to NOT capture.
+   hostnames to not capture.
  * `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_AWS_SDK_HTTP` - not set by default. Set to any value to
-   also capture requests from `botocore` or `aws-sdk`.
-   hostnames to NOT capture.
+   also capture HTTP spans for requests from `botocore` or `aws-sdk`.
