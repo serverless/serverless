@@ -12,13 +12,17 @@ Closes #XXXXX
 
 ## Todos
 
-**Useful scripts:**
+<details>
+<summary>Useful Scripts</summary>
+<!-- You might want to use the following scripts to streamline your development workflow -->
 
 - `npm run test-ci` --> Run all validation checks on proposed changes
 - `npm run lint-updated` --> Lint all the updated files
 - `npm run lint:fix` --> Automatically fix lint problems (if possible)
 - `npm run prettier-check-updated` --> Check if updated files adhere to Prettier config
 - `npm run prettify-updated` --> Prettify all the updated files
+
+</details>
 
 - [ ] Write and run all tests
 - [ ] Write documentation
