@@ -38,7 +38,7 @@ To get started with the Serverless Framework Dashboard, follow the [Getting Star
 
 If you have an existing Serverless Framework service, it is incredibly easy to enable the Serverless Framework Dashboard features. Just follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide to install update the Serverless Framework to the latest release.
 
-If you don't already have a Serverless account, create a new account at [https://dashboard.serverless.com].
+If you don't already have a Serverless account, create a new account at [https://dashboard.serverless.com](https://dashboard.serverless.com).
 
 After you create your account, run `serverless login` on the CLI to authenticate your CLI with the dashboard.
 
