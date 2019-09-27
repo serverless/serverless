@@ -1,0 +1,54 @@
+service: cf-via-components-${self:custom.idx}
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  versionFunctions: false
+  region: ${self:custom.region}
+  logs:
+    frameworkLambda: true
+  # we need this rule so that we can manage S3 buckets
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - s3:CreateBucket
+        - s3:ListBucket
+        - s3:DeleteBucket
+        - s3:ListAllMyBuckets
+        - s3:GetAccelerateConfiguration
+        - s3:PutAccelerateConfiguration
+      Resource:
+        - arn:aws:s3:::*
+
+custom:
+  idx: 0
+  region: eu-central-1
+
+functions:
+  # this is the Lambda function in which we use our S3 Component to
+  # manage S3 buckets
+  cfHandler:
+    handler: code/handler.handler
+
+resources:
+  Resources:
+    ComponentsS3Bucket:
+      # we have to await the creation of our Lambda function which includes the logic
+      # to deal with this custom resource
+      DependsOn:
+        - CfHandlerLambdaFunction
+      # this is the actual interface / abstraction we later on use
+      # to manage S3 buckets via Components (although this is an implementation detail)
+      Type: Custom::ComponentsS3Bucket
+      Version: '0.1'
+      Properties:
+        # here we reference the Lambda function from above which
+        # carries out the different CRUD operations for our S3 bucket
+        ServiceToken:
+          Fn::GetAtt:
+            - CfHandlerLambdaFunction
+            - Arn
+        # the following are the actual parameters which are passed into the Lambda above
+        Name: components-via-cf-s3-bucket
+        Region: eu-central-1
+        Accelerated: false
