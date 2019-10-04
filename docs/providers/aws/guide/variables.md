@@ -510,18 +510,18 @@ module.exports.promised = () => {
 ```
 
 For example, in such helper you could call AWS SDK to get account details:
+
 ```js
 // myCustomFile.js
 const { STS } = require('aws-sdk');
 const sts = new STS();
 
 module.exports.getAccountId = async () => {
-    // Checking AWS user details
-    const { Account } = await sts.getCallerIdentity().promise();
-    return Account;
+  // Checking AWS user details
+  const { Account } = await sts.getCallerIdentity().promise();
+  return Account;
 };
 ```
-
 
 ```yml
 # serverless.yml
