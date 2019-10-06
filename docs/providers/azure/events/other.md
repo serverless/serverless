@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - Azure Functions Events - Other Bindings
 menuText: Other Bindings
-menuOrder: 7
+menuOrder: 8
 description: Setting up Other Bindings Events with Azure Functions via the Serverless Framework
 layout: Doc
 -->
@@ -21,42 +21,3 @@ These work by setting the direction explicitly. The properties go under the
 
 You can learn about all the bindings Azure has to offer here on the
 [official documentation](https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings).
-
-## Example
-
-This is an example of outputting data to Document DB.
-
-```yml
-# serverless.yml
-
-functions:
-  example:
-    handler: handler.hello
-    events:
-      - queue: hello
-        x-azure-settings:
-          name: item #<string>, default - "myQueueItem", specifies which name is available on `context.bindings`
-          connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", environment variable which contains Storage Account Connection String
-      - documentDB:
-        x-azure-settings:
-          name: record # Name of input parameter in function signature>",
-          databaseName: myDocs # "<Name of the DocumentDB database>",
-          collectionName: todo # "<Name of the DocumentDB collection>",
-          createIfNotExists: true
-          connection: docDBAppSetting # "<Name of app setting with connection string - see below>",
-          direction: out
-```
-
-```javascript
-// handler.js
-
-'use strict';
-
-module.exports.hello = function(context, item) {
-  context.log('Received item: ${item}');
-  context.bindings.record = {
-    hello: 'world',
-  };
-  context.done();
-};
-```
