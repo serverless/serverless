@@ -179,17 +179,17 @@ The getting started walkthrough illustrates the interactive login experience, wh
    **Bash**
 
    ```bash
-   $ export azureSubId='<subscriptionId>'
-   $ export azureServicePrincipalTenantId='<tenantId>'
-   $ export azureServicePrincipalClientId='<servicePrincipalId>'
-   $ export azureServicePrincipalPassword='<password>'
+   $ export AZURE_SUBSCRIPTION_ID='<subscriptionId>'
+   $ export AZURE_TENANT_ID='<tenantId>'
+   $ export AZURE_CLIENT_ID='<servicePrincipalId>'
+   $ export AZURE_CLIENT_SECRET='<password>'
    ```
 
    **Powershell**
 
    ```powershell
-   $env:azureSubId='<subscriptionId>'
-   $env:azureServicePrincipalTenantId='<tenantId>'
-   $env:azureServicePrincipalClientId='<servicePrincipalName>'
-   $env:azureServicePrincipalPassword='<password>'
+   $env:AZURE_SUBSCRIPTION_ID='<subscriptionId>'
+   $env:AZURE_TENANT_ID='<tenantId>'
+   $env:AZURE_CLIENT_ID='<servicePrincipalName>'
+   $env:AZURE_CLIENT_SECRET='<password>'
    ```
