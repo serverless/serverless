@@ -1,5 +1,5 @@
 ---
-name: "❓ Questions"
+name: '❓ Questions'
 about: Please use https://forum.serverless.com, StackOverflow or other forums for questions
 ---
 
@@ -7,6 +7,6 @@ Please use https://forum.serverless.com, StackOverflow or other forums for quest
 This issue tracker is dedicated for bug reports and feature requests.
 We'll close question issues immediately.
 
-
 Useful links
-* [Ask on StackOverflow with `serverless-framework` tag](https://stackoverflow.com/questions/ask?tags=serverless-framework) (need login)
+
+- [Ask on StackOverflow with `serverless-framework` tag](https://stackoverflow.com/questions/ask?tags=serverless-framework) (need login)
