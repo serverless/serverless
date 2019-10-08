@@ -105,7 +105,7 @@ In the IDE-like text area, `safeguard configuration`, write the javascript code 
 The javascript code must return `true` to pass the policy check, or `false` to fail the policy check. If the code doesn’t explicitly `return`, then the response from the last line will be used as the policy check response.
 
 To define the policy method you’ll need to inspect the configuration. The entire
-configuration is made available in the service object. Use the [default policies](https://github.com/serverless/enterprise-plugin/tree/master/src/lib/safeguards/policies) as reference to the content of the service object.
+configuration is made available in the service object. Use the [default policies](https://github.com/serverless/enterprise-plugin/tree/4416ac1e10e66a06c2025d0b1faaa29b17df5bcb/lib/safeguards/policies) as reference to the content of the service object.
 
 **Enabling the custom safeguard policy**
 

@@ -7,7 +7,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/secrets/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/parameters/)
 
 <!-- DOCS-SITE-LINK:END -->
 
@@ -19,18 +19,18 @@ All parameters are treated as sensitive values, therefore they are not visible i
 
 ## Creating a new Parameters
 
-Create a new secret by navigating to **profiles** in the [Serverless Framework Dashboard](https://dashboard.serverless.com).
+Create a new parameter by navigating to **profiles** in the [Serverless Framework Dashboard](https://dashboard.serverless.com).
 
 1. Navigate into the profile you would like to use for the Parameter.
 2. Navigate into the **parameters** tab.
 3. Set a **key** and **value** and click **add**.
-4. Repeat Step 3 for each secret you would like to add.
+4. Repeat Step 3 for each parameter you would like to add.
 5. When done, click **save changes**.
 
 ## Using a Parameter to deploy
 
-To use a secret, first make sure that the profile containing that secret is configured as the **default deployment profile** for your application, or it is configured as the **profile** on the stage and application you are using.
+To use a parameter, first make sure that the profile containing that parameter is configured as the **default deployment profile** for your application, or it is configured as the **profile** on the stage and application you are using.
 
-In your `serverless.yml` file add the variable `${param:<key>}` anywhere you would like to use the secret. The `<key>` references the secret key configured in the profile.
+In your `serverless.yml` file add the variable `${param:<key>}` anywhere you would like to use the parameter. The `<key>` references the parameter key configured in the profile.
 
-When you run `serverless deploy` the secret values will be obtained, decrypted and used to replace the variables in the `serverless.yml` for the deployment.
+When you run `serverless deploy` the parameter values will be obtained, decrypted and used to replace the variables in the `serverless.yml` for the deployment.
