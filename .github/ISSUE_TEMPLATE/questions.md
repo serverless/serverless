@@ -4,9 +4,10 @@ about: Please use https://forum.serverless.com, StackOverflow or other forums fo
 ---
 
 Please use https://forum.serverless.com, StackOverflow or other forums for questions.
-This issue tracker is dedicated for bug reports and feature requests.
-We'll close question issues immediately.
+This issue tracker is dedicated for bug reports and feature requests. Question issues might be closed immediately.
 
-Useful links
+**Useful links:**
 
-- [Ask on StackOverflow with `serverless-framework` tag](https://stackoverflow.com/questions/ask?tags=serverless-framework) (need login)
+- [Official Serverless Forum](https://forum.serverless.com)
+- [Official Serverless Slack Workspace](https://serverless.com/slack)
+- [StackOverflow `serverless-framework` tag](https://stackoverflow.com/questions/ask?tags=serverless-framework) (need login)
