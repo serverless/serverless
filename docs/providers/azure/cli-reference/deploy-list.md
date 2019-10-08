@@ -22,7 +22,7 @@ The displayed information is useful when rolling back a deployment or function v
 
 ## Options
 
-- `--config` or `-c` Path to your conifguration file, if other than `serverless.yml|.yaml|.js|.json`.
+- `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
 
 ## Examples
 
