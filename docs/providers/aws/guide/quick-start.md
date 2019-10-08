@@ -73,7 +73,7 @@ Looking to get started with something other than Node or Python? No problem. You
 
 ### Set up an endpoint
 
-An Event is anything that can trigger your serverless functions. In this case, you need to define a endpoint in your `serverless.yml` that will trigger your serverless function. 
+An Event is anything that can trigger your serverless functions. In this case, you need to define a endpoint in your `serverless.yml` that will trigger your serverless function.
 
 ```
 functions:
