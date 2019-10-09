@@ -87,6 +87,7 @@ module.exports.hello = async (event, context) => {
 ```
 
 [Full NodeJS Documentation](../sdk/nodejs.md#captureerror)
+
 [Full Python Documentation](../sdk/python.md#capture_exception)
 
 ## AWS SDK spans
@@ -124,4 +125,5 @@ module.exports.handler = async (event, context) => {
 ```
 
 [Full NodeJS Documentation](../sdk/nodejs.md#span)
+
 [Full Python Documentation](../sdk/python.md#span)
