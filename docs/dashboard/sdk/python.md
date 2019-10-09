@@ -61,3 +61,5 @@ def handler(event, context):
     with span('some-label'):
         pass # the execution of this `with` statement will be captured as a span
 ```
+
+It also works as an async context manager for use with `async with`.
