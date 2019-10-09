@@ -1,4 +1,5 @@
 # `capture_exception`
+
 Your lambda function may throw an exception, but your function handles it in order to respond to
 the requester without throwing the error. One very common example is functions tied to HTTP
 endpoints. Those usually should still return JSON, even if there is an error since the API Gateway
@@ -41,7 +42,9 @@ def hello(event, context):
         'body': '{"name": "bob"}',
     }
 ```
+
 # `span`
+
 While the `serverless_sdk` automatically instruments AWS SDK and HTTP spans, you may be interested
 in capturing span data for functions that do numerical computation or functions making database
 queries. For this use-case, you can use the `span` context manager provided by `serverless_sdk`.
@@ -55,6 +58,7 @@ def handler(event, context):
 ```
 
 You can also import the function from `serverless_sdk`
+
 ```python
 from serverless_sdk import span
 def handler(event, context):

@@ -108,20 +108,20 @@ provides more insight into the request.
 
 [Configuration docs](../sdk/README.md#configuring-http-spans)
 
-
 ## Custom function spans
 
 You can also instrument your own spans for services not covered by AWS SDK & HTTP span
 instrumentation such as databases.
 
 Here's an example of how to instrument a block of code in NodeJS:
+
 ```javascript
 module.exports.handler = async (event, context) => {
   await context.span('some-label', async () => {
     // The execution of this function is captured as a span.
     // It is automatically invoked with no arguments and awaited.
-  })
-}
+  });
+};
 ```
 
 [Full NodeJS Documentation](../sdk/nodejs.md#span)

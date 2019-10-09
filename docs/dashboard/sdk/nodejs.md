@@ -1,4 +1,5 @@
 # `captureError`
+
 Your lambda function may throw an exception, but your function handles it in order to respond to
 the requester without throwing the error. One very common example is functions tied to HTTP
 endpoints. Those usually should still return JSON, even if there is an error since the API Gateway
@@ -9,6 +10,7 @@ module imported from `'./serverless_sdk'`. This will cause the invocation to sti
 error in the serverless dashboard while allowing you to return an error to the user.
 
 Here is an example of how to use it from the `context` object:
+
 ```javascript
 module.exports.hello = async (event, context) => {
   try {
@@ -46,6 +48,7 @@ module.exports.hello = async event => {
 ```
 
 # `span`
+
 While the `serverless_sdk` automatically instruments AWS SDK and HTTP spans, you may be interested
 in capturing span data for functions that do numerical computation or functions making database
 queries. For this use-case, you can use the `span` function provided by `serverless_sdk`. The first
@@ -54,32 +57,35 @@ argument is a function. If it returns a `Promise`, then so will `span` if it doe
 return nothing.
 
 Example from context with an async function:
+
 ```javascript
 module.exports.handler = async (event, context) => {
   await context.span('some-label', async () => {
     // The execution of this function is captured as a span.
     // It is automatically invoked with no arguments and awaited.
-  })
-}
+  });
+};
 ```
 
 Example from context with an sync function:
+
 ```javascript
 module.exports.handler = async (event, context) => {
   context.span('some-label', () => {
     // The execution of this function is captured as a span.
     // It is automatically invoked with no arguments.
-  })
-}
+  });
+};
 ```
 
 You can also import the function from `'./serverless_sdk'`
+
 ```javascript
-const { span } = require('./serverless_sdk')
+const { span } = require('./serverless_sdk');
 module.exports.handler = async (event, context) => {
   span('some-label', () => {
     // The execution of this function is captured as a span.
     // It is automatically invoked with no arguments.
-  })
-}
+  });
+};
 ```

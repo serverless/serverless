@@ -1,11 +1,11 @@
 # `serverless_sdk`
+
 When using the Serverless Dashboard, the framework automatically injects the `serverless_sdk`
 module into your lambda package and wraps your lambda to automatically instrument all the
 monitoring features in the Dashboard.
 
 It also has certain features you can use directly in your lambda such as capturing an error in the
 Dashboard without causing your lambda to error and custom function spans.
-
 
 [NodeJS Documentation](../sdk/nodejs.md)
 
