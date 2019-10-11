@@ -158,7 +158,7 @@ functions:
 
 ## Using API keys
 
-If you want to work with API keys, you can set the `private` property to `true`. This enforces API key requirement on the endpoint. *Please note that most WS implementations in browser don't support additional request-header values. This configuration currently only makes sense if you use a custom authorizer that provides the key automatically.*:
+If you want to work with API keys, you can set the `private` property to `true`. This enforces API key requirement on the endpoint. _Please note that most WS implementations in browser don't support additional request-header values. This configuration currently only makes sense if you use a custom authorizer that provides the key automatically._:
 
 ```yml
 provider:
