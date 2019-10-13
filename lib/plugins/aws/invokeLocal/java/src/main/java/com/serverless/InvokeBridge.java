@@ -136,7 +136,7 @@ public class InvokeBridge {
   }
 
   private String getInput() throws IOException {
-    BufferedReader streamReader = Buffer.fromedReader(new InputStreamReader(System.in, "UTF-8"));
+    BufferedReader streamReader = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
     StringBuilder inputStringBuilder = new StringBuilder();
     String inputStr;
 
