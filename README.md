@@ -18,7 +18,7 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 <a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Watch the video overview here.</a>
 
-[![serverless components notice](https://s3.amazonaws.com/assets.github.serverless/components/serverless_components_notice_dark.gif)](https://github.com/serverless/components)
+[![serverless components notice](https://s3.amazonaws.com/assets.github.serverless/announcement-serverless-components.gif)](https://github.com/serverless/components)
 
 ## Contents
 
