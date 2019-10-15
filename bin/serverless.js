@@ -46,7 +46,7 @@ process.on('unhandledRejection', error => {
 });
 process.noDeprecation = true;
 
-if (require('../lib/utils/isTabCompletionSupported') && process.argv[2] === 'completion') {
+if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'completion') {
   autocomplete();
   return;
 }
