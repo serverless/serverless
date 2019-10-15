@@ -71,8 +71,6 @@ error in the serverless dashboard while allowing you to return an error to the u
 
 Here is an example of how to use it from the `context` object:
 
-In NodeJS:
-
 ```javascript
 module.exports.hello = async (event, context) => {
   try {
@@ -88,58 +86,9 @@ module.exports.hello = async (event, context) => {
 };
 ```
 
-In Python:
+[Full NodeJS Documentation](../sdk/nodejs.md#captureerror)
 
-```python
-def hello(event, context):
-    try:
-        # do some real stuff but it throws an error, oh no!
-        raise Exception('aa')
-    except Exception as exc:
-        context.capture_exception(exc)
-    return {
-        'statusCode': 500,
-        'body': '{"name": "bob"}',
-    }
-```
-
-And to import it instead, import with `const { captureError } = require('./serverless_sdk')` then call `captureError` instead of `context.captureError`.
-
-In NodeJS:
-
-```javascript
-const { captureError } = require('./serverless_sdk');
-
-module.exports.hello = async event => {
-  try {
-    // do some real stuff but it throws an error, oh no!
-    throw new Error('aa');
-  } catch (error) {
-    captureError(error);
-  }
-  return {
-    statusCode: 500,
-    body: JSON.stringify({ name: 'bob' }),
-  };
-};
-```
-
-In Python:
-
-```python
-from serverless_sdk import capture_exception
-
-def hello(event, context):
-    try:
-        # do some real stuff but it throws an error, oh no!
-        raise Exception('aa')
-    except Exception as exc:
-        capture_exception(exc)
-    return {
-        'statusCode': 500,
-        'body': '{"name": "bob"}',
-    }
-```
+[Full Python Documentation](../sdk/python.md#capture_exception)
 
 ## AWS SDK spans
 
@@ -157,13 +106,24 @@ libraries are unstrumented to capture HTTP & HTTPS requests.
 By default, requests to AWS are not captured because of the above AWS SDK instrumentation which
 provides more insight into the request.
 
-### Configuring HTTP spans
+[Configuration docs](../sdk/README.md#configuring-http-spans)
 
-You can configure the HTTP spans with the following environment variables
+## Custom function spans
 
-- `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_HOSTS` - `*` by default. Set to a comma delimited list of
-  host names to capture.
-- `SERVERLESS_ENTERPRISE_SPANS_IGNORE_HOSTS` - not set by default. Set to comma delimited list of
-  hostnames to not capture.
-- `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_AWS_SDK_HTTP` - not set by default. Set to any value to
-  also capture HTTP spans for requests from `botocore` or `aws-sdk`.
+You can also instrument your own spans for services not covered by AWS SDK & HTTP span
+instrumentation such as databases.
+
+Here's an example of how to instrument a block of code in NodeJS:
+
+```javascript
+module.exports.handler = async (event, context) => {
+  await context.span('some-label', async () => {
+    // The execution of this function is captured as a span.
+    // It is automatically invoked with no arguments and awaited.
+  });
+};
+```
+
+[Full NodeJS Documentation](../sdk/nodejs.md#span)
+
+[Full Python Documentation](../sdk/python.md#span)
