@@ -83,7 +83,7 @@
       "@serverless/test/setup/mock-homedir",
       "@serverless/test/setup/restore-cwd"
     ],
-    "timeout": 10000
+    "timeout": 15000
   },
   "devDependencies": {
     "@serverless/eslint-config": "^1.2.0",
