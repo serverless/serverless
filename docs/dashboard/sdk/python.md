@@ -1,3 +1,15 @@
+<!--
+title: Serverless SDK - Python
+menuText: python
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/sdk/python/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # `capture_exception`
 
 Your lambda function may throw an exception, but your function handles it in order to respond to
