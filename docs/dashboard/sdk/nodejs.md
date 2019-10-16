@@ -1,5 +1,5 @@
 <!--
-title: Serverless SDK
+title: Serverless SDK - Node.js
 menuText: nodejs
 layout: Doc
 -->

@@ -1,5 +1,5 @@
 <!--
-title: Serverless SDK
+title: Serverless SDK - Python
 menuText: python
 layout: Doc
 -->
