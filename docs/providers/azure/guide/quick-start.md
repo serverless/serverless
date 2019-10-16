@@ -60,7 +60,7 @@ Deploy your new service to Azure! The first time you do this, you will be asked 
 $ sls deploy
 ```
 
-For more advanced deployment scenarios, see our [deployment docs](https://github.com/serverless/serverless-azure-functions/blob/dev/docs/DEPLOY.md)
+For more advanced deployment scenarios, see our [deployment docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/DEPLOY.md)
 
 ## Test Your Function App
 
