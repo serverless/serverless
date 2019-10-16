@@ -1,3 +1,8 @@
+<!--
+title: Serverless SDK
+menuText: nodejs
+layout: Doc
+-->
 # `captureError`
 
 Your lambda function may throw an exception, but your function handles it in order to respond to

@@ -1,3 +1,9 @@
+<!--
+title: Serverless SDK
+menuText: sdk
+layout: Doc
+-->
+
 # `serverless_sdk`
 
 When using the Serverless Dashboard, the framework automatically injects the `serverless_sdk`
