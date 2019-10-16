@@ -4,6 +4,12 @@ menuText: sdk
 layout: Doc
 -->
 
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/sdk/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # `serverless_sdk`
 
 When using the Serverless Dashboard, the framework automatically injects the `serverless_sdk`

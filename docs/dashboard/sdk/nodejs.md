@@ -3,6 +3,13 @@ title: Serverless SDK - Node.js
 menuText: nodejs
 layout: Doc
 -->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/sdk/nodejs/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # `captureError`
 
 Your lambda function may throw an exception, but your function handles it in order to respond to
