@@ -44,21 +44,21 @@ process.on('unhandledRejection', error => {
   }
   throw error;
 });
+process.noDeprecation = true;
+
+if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'completion') {
+  autocomplete();
+  return;
+}
 
 let resolveServerlessExecutionSpan;
 require('../lib/utils/tracking').sendPending({
   serverlessExecutionSpan: new BbPromise(resolve => (resolveServerlessExecutionSpan = resolve)),
 });
 
-process.noDeprecation = true;
-
 const invocationId = uuid.v4();
 initializeErrorReporter(invocationId)
   .then(() => {
-    if (process.argv[2] === 'completion') {
-      resolveServerlessExecutionSpan();
-      return autocomplete();
-    }
     // requiring here so that if anything went wrong,
     // during require, it will be caught.
     const Serverless = require('../lib/Serverless');

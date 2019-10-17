@@ -83,11 +83,11 @@
       "@serverless/test/setup/mock-homedir",
       "@serverless/test/setup/restore-cwd"
     ],
-    "timeout": 10000
+    "timeout": 15000
   },
   "devDependencies": {
     "@serverless/eslint-config": "^1.2.0",
-    "@serverless/test": "^2.0.0",
+    "@serverless/test": "^2.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-ext": "^2.1.0",
@@ -149,7 +149,7 @@
     "replaceall": "^0.1.6",
     "semver": "^5.7.1",
     "semver-regex": "^1.0.0",
-    "tabtab": "^2.2.2",
+    "tabtab": "^3.0.2",
     "untildify": "^3.0.3",
     "update-notifier": "^2.5.0",
     "uuid": "^2.0.3",
