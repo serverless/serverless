@@ -78,6 +78,7 @@
   "mocha": {
     "reporter": "./tests/mocha-reporter",
     "require": [
+      "@serverless/test/setup/log",
       "@serverless/test/setup/async-leaks-detector",
       "@serverless/test/setup/async-leaks-detector/bluebird-patch",
       "@serverless/test/setup/mock-homedir",
