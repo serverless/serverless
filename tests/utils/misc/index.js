@@ -3,7 +3,6 @@
 const path = require('path');
 const BbPromise = require('bluebird');
 const CloudWatchLogsSdk = require('aws-sdk/clients/cloudwatchlogs');
-const { execSync } = require('../child-process');
 
 const logger = console;
 
@@ -36,34 +35,6 @@ function replaceEnv(values) {
     }
   }
   return originals;
-}
-
-function getFunctionLogs(cwd, functionName) {
-  try {
-    const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`, {
-      cwd,
-    });
-    const logsString = Buffer.from(logs, 'base64').toString();
-    process.stdout.write(logsString);
-    return logsString;
-  } catch (_) {
-    // Attempting to read logs before first invocation will will result in a "No existing streams for the function" error
-    return null;
-  }
-}
-
-function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
-  let logs;
-  return new BbPromise(resolve => {
-    const interval = setInterval(() => {
-      logs = getFunctionLogs(cwd, functionName);
-      if (logs && logs.includes(startMarker) && logs.includes(endMarker)) {
-        clearInterval(interval);
-        return resolve(logs);
-      }
-      return null;
-    }, 2000);
-  });
 }
 
 /**
@@ -123,8 +94,6 @@ module.exports = {
   serviceNameRegex,
   getServiceName,
   replaceEnv,
-  getFunctionLogs,
-  waitForFunctionLogs,
   persistentRequest,
   wait,
 };

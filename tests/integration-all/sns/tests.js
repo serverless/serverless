@@ -6,8 +6,12 @@ const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createSnsTopic, removeSnsTopic, publishSnsMessage } = require('../../utils/sns');
-const { waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const {
+  createTestService,
+  deployService,
+  removeService,
+  waitForFunctionLogs,
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - SNS Integration Test', function() {

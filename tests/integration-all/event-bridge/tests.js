@@ -5,8 +5,13 @@ const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { createEventBus, putEvents, deleteEventBus } = require('../../utils/eventBridge');
-const { waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+
+const {
+  createTestService,
+  deployService,
+  removeService,
+  waitForFunctionLogs,
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Event Bridge Integration Test', function() {

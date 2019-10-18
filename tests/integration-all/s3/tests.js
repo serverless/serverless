@@ -6,8 +6,12 @@ const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createBucket, createAndRemoveInBucket, deleteBucket } = require('../../utils/s3');
-const { waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const {
+  createTestService,
+  deployService,
+  removeService,
+  waitForFunctionLogs,
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - S3 Integration Test', function() {
