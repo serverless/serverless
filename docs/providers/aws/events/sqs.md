@@ -27,7 +27,7 @@ functions:
   compute:
     handler: handler.compute
     events:
-      # These are all possible formats.
+      # These are all possible formats
       - sqs: arn:aws:sqs:region:XXXXXX:MyFirstQueue
       - sqs:
           arn:
@@ -65,12 +65,4 @@ functions:
 
 ## IAM Permissions
 
-Your Lambda role must include the following permissions:
-
-- sqs:ChangeMessageVisibility
-
-- sqs:DeleteMessage
-
-- sqs:GetQueueAttributes
-
-- sqs:ReceiveMessage
+The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.
