@@ -5,8 +5,8 @@ const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../../utils/sqs');
-const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService } = require('../../utils/integration');
+const { waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - SQS Integration Test', function() {
@@ -37,13 +37,13 @@ describe('AWS - SQS Integration Test', function() {
     console.info(`Creating SQS queue "${queueName}"...`);
     return createSqsQueue(queueName).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting SQS queue');
     return deleteSqsQueue(queueName);
   });

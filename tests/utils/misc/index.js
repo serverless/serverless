@@ -21,14 +21,6 @@ function getServiceName() {
   return `${testServiceIdentifier}-${hrtime[1]}`;
 }
 
-function deployService(cwd) {
-  execSync(`${serverlessExec} deploy`, { cwd });
-}
-
-function removeService(cwd) {
-  execSync(`${serverlessExec} remove`, { cwd });
-}
-
 function replaceEnv(values) {
   const originals = {};
   for (const key of Object.keys(values)) {
@@ -130,8 +122,6 @@ module.exports = {
   serverlessExec,
   serviceNameRegex,
   getServiceName,
-  deployService,
-  removeService,
   replaceEnv,
   getFunctionLogs,
   waitForFunctionLogs,

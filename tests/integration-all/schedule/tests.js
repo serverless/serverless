@@ -4,8 +4,8 @@ const path = require('path');
 const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
-const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService } = require('../../utils/integration');
+const { waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Schedule Integration Test', function() {
@@ -25,12 +25,12 @@ describe('AWS - Schedule Integration Test', function() {
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
-    deployService(tmpDirPath);
+    return deployService(tmpDirPath);
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    return removeService(tmpDirPath);
   });
 
   describe('Minimal Setup', () => {

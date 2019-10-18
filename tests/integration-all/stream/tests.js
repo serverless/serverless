@@ -10,8 +10,8 @@ const {
   putKinesisRecord,
 } = require('../../utils/kinesis');
 const { putDynamoDbItem } = require('../../utils/dynamodb');
-const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService } = require('../../utils/integration');
+const { waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Stream Integration Test', function() {
@@ -52,13 +52,13 @@ describe('AWS - Stream Integration Test', function() {
         console.info(
           `Deploying "${stackName}" service with DynamoDB table resource "${tableName}"...`
         );
-        deployService(tmpDirPath);
+        return deployService(tmpDirPath);
       });
   });
 
-  after(() => {
+  after(async () => {
     console.info(`Removing service (and DynamoDB table resource "${tableName}")...`);
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting Kinesis stream');
     return deleteKinesisStream(streamName);
   });

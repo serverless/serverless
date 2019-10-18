@@ -56,6 +56,16 @@ async function createTestService(
   return serverlessConfig;
 }
 
+async function deployService(cwd) {
+  return spawn(serverlessExec, ['deploy'], { cwd });
+}
+
+async function removeService(cwd) {
+  return spawn(serverlessExec, ['remove'], { cwd });
+}
+
 module.exports = {
   createTestService,
+  deployService,
+  removeService,
 };

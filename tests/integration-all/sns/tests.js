@@ -6,8 +6,8 @@ const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createSnsTopic, removeSnsTopic, publishSnsMessage } = require('../../utils/sns');
-const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService } = require('../../utils/integration');
+const { waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - SNS Integration Test', function() {
@@ -49,13 +49,13 @@ describe('AWS - SNS Integration Test', function() {
     console.info(`Creating SNS topic "${existingTopicName}"...`);
     return createSnsTopic(existingTopicName).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting SNS topics');
     return removeSnsTopic(existingTopicName);
   });

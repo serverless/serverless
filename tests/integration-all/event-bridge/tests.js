@@ -5,8 +5,8 @@ const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { createEventBus, putEvents, deleteEventBus } = require('../../utils/eventBridge');
-const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService } = require('../../utils/integration');
+const { waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Event Bridge Integration Test', function() {
@@ -57,13 +57,13 @@ describe('AWS - Event Bridge Integration Test', function() {
       writeYamlFile(serverlessFilePath, config);
       // deploy the service
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info(`Deleting Event Bus "${arnEventBusName}"...`);
     return deleteEventBus(arnEventBusName);
   });

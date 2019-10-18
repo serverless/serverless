@@ -15,8 +15,8 @@ const {
   setUserPassword,
   initiateAuth,
 } = require('../../utils/cognito');
-const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
-const { createTestService } = require('../../utils/integration');
+const { waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Cognito User Pool Integration Test', function() {
@@ -63,13 +63,13 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       createUserPool(poolExistingMultiSetup),
     ]).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting Cognito User Pools');
     return BbPromise.all([
       deleteUserPool(poolExistingSimpleSetup),
