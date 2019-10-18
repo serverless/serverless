@@ -28,6 +28,16 @@ describe('Service Lifecyle Integration Test', function() {
     fse.mkdirsSync(tmpDir);
   });
 
+  after(async () => {
+    try {
+      await CF.describeStacks({ StackName }).promise();
+    } catch (error) {
+      if (error.message.indexOf('does not exist') > -1) return;
+      throw error;
+    }
+    await spawn(serverlessExec, ['remove'], { cwd: tmpDir });
+  });
+
   it('should create service in tmp directory', async () => {
     await spawn(serverlessExec, ['create', '--template', templateName, '--name', serviceName], {
       cwd: tmpDir,
