@@ -109,7 +109,7 @@ By default, no environment variable is passed to the functions. All environment 
 
 provider:
   environment:
-    max_delay: "5000"
+    max_delay: '5000'
 
 functions:
   first:
@@ -128,7 +128,7 @@ Google Cloud Functions have different handler signatures dependent on the event 
 
 ```javascript
 exports.http = (request, response) => {
-  response.status(200).send("Hello World!");
+  response.status(200).send('Hello World!');
 };
 ```
 
@@ -136,7 +136,7 @@ exports.http = (request, response) => {
 
 ```javascript
 exports.event = (event, callback) => {
-  console.log("Hello World!");
+  console.log('Hello World!');
   callback();
 };
 ```
