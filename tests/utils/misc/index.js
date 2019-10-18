@@ -95,12 +95,17 @@ function createTestService(
 }
 
 function getFunctionLogs(cwd, functionName) {
-  const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`, {
-    cwd,
-  });
-  const logsString = Buffer.from(logs, 'base64').toString();
-  process.stdout.write(logsString);
-  return logsString;
+  try {
+    const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`, {
+      cwd,
+    });
+    const logsString = Buffer.from(logs, 'base64').toString();
+    process.stdout.write(logsString);
+    return logsString;
+  } catch (_) {
+    // Attempting to read logs before first invocation will will result in a "No existing streams for the function" error
+    return null;
+  }
 }
 
 function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
