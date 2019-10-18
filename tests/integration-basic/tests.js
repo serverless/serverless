@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 const stripAnsi = require('strip-ansi');
 const { expect } = require('chai');
 const spawn = require('child-process-ext/spawn');
+const resolveAwsEnv = require('@serverless/test/lib/resolve-aws-env');
 const { getTmpDirPath } = require('../utils/fs');
 const { region, getServiceName } = require('../utils/misc');
 
@@ -18,6 +19,7 @@ describe('Service Lifecyle Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   const templateName = 'aws-nodejs';
   const tmpDir = getTmpDirPath();
+  const env = resolveAwsEnv();
   let serviceName;
   let StackName;
 
@@ -41,13 +43,14 @@ describe('Service Lifecyle Integration Test', function() {
   it('should create service in tmp directory', async () => {
     await spawn(serverlessExec, ['create', '--template', templateName, '--name', serviceName], {
       cwd: tmpDir,
+      env,
     });
     expect(fs.existsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(fs.existsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
 
   it('should deploy service to aws', async () => {
-    await spawn(serverlessExec, ['deploy'], { cwd: tmpDir });
+    await spawn(serverlessExec, ['deploy'], { cwd: tmpDir, env });
 
     const d = await CF.describeStacks({ StackName }).promise();
     expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE');
@@ -59,6 +62,7 @@ describe('Service Lifecyle Integration Test', function() {
       ['invoke', '--function', 'hello', '--noGreeting', 'true'],
       {
         cwd: tmpDir,
+        env,
         // As in invoke we optionally read stdin, we need to ensure it's closed
         // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
         shouldCloseStdin: true,
@@ -89,6 +93,7 @@ describe('Service Lifecyle Integration Test', function() {
       ['invoke', '--function', 'hello', '--noGreeting', 'true'],
       {
         cwd: tmpDir,
+        env,
         // As in invoke we optionally read stdin, we need to ensure it's closed
         // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
         shouldCloseStdin: true,
@@ -102,6 +107,7 @@ describe('Service Lifecyle Integration Test', function() {
     let timestamp;
     const { stdoutBuffer: listDeploys } = await spawn(serverlessExec, ['deploy', 'list'], {
       cwd: tmpDir,
+      env,
     });
     const output = stripAnsi(listDeploys.toString());
     const match = output.match(new RegExp('Datetime: (.+)'));
@@ -111,13 +117,14 @@ describe('Service Lifecyle Integration Test', function() {
     // eslint-disable-next-line no-unused-expressions
     expect(timestamp).to.not.undefined;
 
-    await spawn(serverlessExec, ['rollback', '-t', timestamp], { cwd: tmpDir });
+    await spawn(serverlessExec, ['rollback', '-t', timestamp], { cwd: tmpDir, env });
 
     const { stdoutBuffer: invoked } = await spawn(
       serverlessExec,
       ['invoke', '--function', 'hello', '--noGreeting', 'true'],
       {
         cwd: tmpDir,
+        env,
         // As in invoke we optionally read stdin, we need to ensure it's closed
         // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
         shouldCloseStdin: true,
@@ -130,7 +137,7 @@ describe('Service Lifecyle Integration Test', function() {
   });
 
   it('should remove service from aws', async () => {
-    await spawn(serverlessExec, ['remove'], { cwd: tmpDir });
+    await spawn(serverlessExec, ['remove'], { cwd: tmpDir, env });
 
     const d = await (async () => {
       try {
