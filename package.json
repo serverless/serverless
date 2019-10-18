@@ -73,7 +73,8 @@
     "root": true
   },
   "eslintIgnore": [
-    "lib/plugins/create/templates/**"
+    "lib/plugins/create/templates/**",
+    "lib/plugins/aws/customResources/node_modules/**"
   ],
   "mocha": {
     "reporter": "./tests/mocha-reporter",
