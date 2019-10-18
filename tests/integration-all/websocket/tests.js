@@ -10,11 +10,11 @@ const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs')
 const {
   region,
   confirmCloudWatchLogs,
-  createTestService,
   deployService,
   removeService,
   wait,
 } = require('../../utils/misc');
+const { createTestService } = require('../../utils/integration');
 const {
   createApi,
   deleteApi,

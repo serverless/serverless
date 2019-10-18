@@ -5,12 +5,8 @@ const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../../utils/sqs');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/misc');
+const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - SQS Integration Test', function() {

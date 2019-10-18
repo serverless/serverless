@@ -7,13 +7,8 @@ const fetch = require('node-fetch');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const {
-  region,
-  confirmCloudWatchLogs,
-  createTestService,
-  deployService,
-  removeService,
-} = require('../../utils/misc');
+const { region, confirmCloudWatchLogs, deployService, removeService } = require('../../utils/misc');
+const { createTestService } = require('../../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
 const CF = new AWS.CloudFormation({ region });

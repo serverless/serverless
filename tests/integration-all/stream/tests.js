@@ -10,12 +10,8 @@ const {
   putKinesisRecord,
 } = require('../../utils/kinesis');
 const { putDynamoDbItem } = require('../../utils/dynamodb');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/misc');
+const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Stream Integration Test', function() {

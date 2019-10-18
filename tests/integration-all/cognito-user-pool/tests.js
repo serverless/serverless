@@ -15,12 +15,8 @@ const {
   setUserPassword,
   initiateAuth,
 } = require('../../utils/cognito');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/misc');
+const { deployService, removeService, waitForFunctionLogs } = require('../../utils/misc');
+const { createTestService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Cognito User Pool Integration Test', function() {
