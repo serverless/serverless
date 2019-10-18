@@ -84,9 +84,7 @@ async function getFunctionLogs(cwd, functionName) {
     // Attempting to read logs before first invocation will will result in a "No existing streams for the function" error
     return null;
   }
-  const logsString = String(logs);
-  process.stdout.write(logsString);
-  return logsString;
+  return String(logs);
 }
 
 async function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
