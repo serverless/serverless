@@ -5,10 +5,12 @@
 const path = require('path');
 const fse = require('fs-extra');
 const spawn = require('child-process-ext/spawn');
+const resolveAwsEnv = require('@serverless/test/lib/resolve-aws-env');
 const { getServiceName } = require('./misc');
 const { readYamlFile, writeYamlFile } = require('./fs');
 
 const serverlessExec = path.resolve(__dirname, '..', '..', 'bin', 'serverless');
+const env = resolveAwsEnv();
 
 async function createTestService(
   tmpDir,
@@ -26,7 +28,10 @@ async function createTestService(
 
   if (options.templateName) {
     // create a new Serverless service
-    await spawn(serverlessExec, ['create', '--template', options.templateName], { cwd: tmpDir });
+    await spawn(serverlessExec, ['create', '--template', options.templateName], {
+      cwd: tmpDir,
+      env,
+    });
   } else if (options.templateDir) {
     fse.copySync(options.templateDir, tmpDir, { clobber: true, preserveTimestamps: true });
   } else {
@@ -57,15 +62,16 @@ async function createTestService(
 }
 
 async function deployService(cwd) {
-  return spawn(serverlessExec, ['deploy'], { cwd });
+  return spawn(serverlessExec, ['deploy'], { cwd, env });
 }
 
 async function removeService(cwd) {
-  return spawn(serverlessExec, ['remove'], { cwd });
+  return spawn(serverlessExec, ['remove'], { cwd, env });
 }
 
 module.exports = {
   createTestService,
   deployService,
   removeService,
+  env,
 };
