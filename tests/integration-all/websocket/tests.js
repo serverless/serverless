@@ -33,11 +33,11 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   let serverlessFilePath;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
     });
     serviceName = serverlessConfig.service;

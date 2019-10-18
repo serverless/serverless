@@ -15,10 +15,10 @@ describe('AWS - Schedule Integration Test', function() {
   let tmpDirPath;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
     });

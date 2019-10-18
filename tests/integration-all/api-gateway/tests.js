@@ -25,11 +25,11 @@ describe('AWS - API Gateway Integration Test', function() {
   let apiKey;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       serverlessConfigHook:
         // Ensure unique API key for each test (to avoid collision among concurrent CI runs)

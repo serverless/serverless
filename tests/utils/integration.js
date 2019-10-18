@@ -4,13 +4,13 @@
 
 const path = require('path');
 const fse = require('fs-extra');
+const spawn = require('child-process-ext/spawn');
 const { getServiceName } = require('./misc');
 const { readYamlFile, writeYamlFile } = require('./fs');
-const { execSync } = require('./child-process');
 
 const serverlessExec = path.resolve(__dirname, '..', '..', 'bin', 'serverless');
 
-function createTestService(
+async function createTestService(
   tmpDir,
   options = {
     // Either templateName or templateDir have to be provided
@@ -26,7 +26,7 @@ function createTestService(
 
   if (options.templateName) {
     // create a new Serverless service
-    execSync(`${serverlessExec} create --template ${options.templateName}`, { cwd: tmpDir });
+    await spawn(serverlessExec, ['create', '--template', options.templateName], { cwd: tmpDir });
   } else if (options.templateDir) {
     fse.copySync(options.templateDir, tmpDir, { clobber: true, preserveTimestamps: true });
   } else {
