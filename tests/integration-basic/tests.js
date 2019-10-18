@@ -37,7 +37,7 @@ describe('Service Lifecyle Integration Test', function() {
       if (error.message.indexOf('does not exist') > -1) return;
       throw error;
     }
-    await spawn(serverlessExec, ['remove'], { cwd: tmpDir });
+    await spawn(serverlessExec, ['remove'], { cwd: tmpDir, env });
   });
 
   it('should create service in tmp directory', async () => {
@@ -84,7 +84,7 @@ describe('Service Lifecyle Integration Test', function() {
       `;
 
     fs.writeFileSync(path.join(tmpDir, 'handler.js'), newHandler);
-    return spawn(serverlessExec, ['deploy'], { cwd: tmpDir });
+    return spawn(serverlessExec, ['deploy'], { cwd: tmpDir, env });
   });
 
   it('should invoke updated function from aws', async () => {
