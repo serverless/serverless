@@ -5,7 +5,7 @@
 const path = require('path');
 const fse = require('fs-extra');
 const spawn = require('child-process-ext/spawn');
-const resolveAwsEnv = require('@serverless/test/lib/resolve-aws-env');
+const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const { getServiceName, wait } = require('./misc');
 const { readYamlFile, writeYamlFile } = require('./fs');
 

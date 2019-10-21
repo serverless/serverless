@@ -7,7 +7,7 @@ const AWS = require('aws-sdk');
 const stripAnsi = require('strip-ansi');
 const { expect } = require('chai');
 const spawn = require('child-process-ext/spawn');
-const resolveAwsEnv = require('@serverless/test/lib/resolve-aws-env');
+const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const { getTmpDirPath } = require('../utils/fs');
 const { region, getServiceName } = require('../utils/misc');
 
