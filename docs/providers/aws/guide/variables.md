@@ -657,3 +657,15 @@ Resources:
         - Ref: 'AWS::AccountId'
         - 'log-group:/aws/lambda/*:*:*'
 ```
+
+## Casting string variables to boolean values
+
+In some cases, a parameter expect a `true` or `false` value. If you are using a variable to define the value, it may return as a string (e.g. when using SSM variables) and thus return a `"true"` or `"false"` value.
+
+To ensure a boolean value is returned, cast the variable value. For example:
+
+```yml
+provider:
+  tracing:
+    apiGateway: ${toBool:${ssm:API_GW_DEBUG_ENABLED}}
+```
