@@ -20,6 +20,13 @@ describe('Service Lifecyle Integration Test', function() {
   const templateName = 'aws-nodejs';
   const tmpDir = getTmpDirPath();
   const env = resolveAwsEnv();
+  const spawnOptions = {
+    cwd: tmpDir,
+    env,
+    // As in invoke we optionally read stdin, we need to ensure it's closed
+    // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
+    shouldCloseStdin: true,
+  };
   let serviceName;
   let StackName;
 
@@ -41,10 +48,11 @@ describe('Service Lifecyle Integration Test', function() {
   });
 
   it('should create service in tmp directory', async () => {
-    await spawn(serverlessExec, ['create', '--template', templateName, '--name', serviceName], {
-      cwd: tmpDir,
-      env,
-    });
+    await spawn(
+      serverlessExec,
+      ['create', '--template', templateName, '--name', serviceName],
+      spawnOptions
+    );
     expect(fs.existsSync(path.join(tmpDir, 'serverless.yml'))).to.be.equal(true);
     expect(fs.existsSync(path.join(tmpDir, 'handler.js'))).to.be.equal(true);
   });
@@ -60,13 +68,7 @@ describe('Service Lifecyle Integration Test', function() {
     const { stdoutBuffer: invoked } = await spawn(
       serverlessExec,
       ['invoke', '--function', 'hello', '--noGreeting', 'true'],
-      {
-        cwd: tmpDir,
-        env,
-        // As in invoke we optionally read stdin, we need to ensure it's closed
-        // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
-        shouldCloseStdin: true,
-      }
+      spawnOptions
     );
     const result = JSON.parse(invoked);
     // parse it once again because the body is stringified to be LAMBDA-PROXY ready
@@ -84,20 +86,14 @@ describe('Service Lifecyle Integration Test', function() {
       `;
 
     fs.writeFileSync(path.join(tmpDir, 'handler.js'), newHandler);
-    return spawn(serverlessExec, ['deploy'], { cwd: tmpDir, env });
+    return spawn(serverlessExec, ['deploy'], spawnOptions);
   });
 
   it('should invoke updated function from aws', async () => {
     const { stdoutBuffer: invoked } = await spawn(
       serverlessExec,
       ['invoke', '--function', 'hello', '--noGreeting', 'true'],
-      {
-        cwd: tmpDir,
-        env,
-        // As in invoke we optionally read stdin, we need to ensure it's closed
-        // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
-        shouldCloseStdin: true,
-      }
+      spawnOptions
     );
     const result = JSON.parse(invoked);
     expect(result.message).to.be.equal('Service Update Succeeded');
@@ -105,10 +101,11 @@ describe('Service Lifecyle Integration Test', function() {
 
   it('should list existing deployments and roll back to first deployment', async () => {
     let timestamp;
-    const { stdoutBuffer: listDeploys } = await spawn(serverlessExec, ['deploy', 'list'], {
-      cwd: tmpDir,
-      env,
-    });
+    const { stdoutBuffer: listDeploys } = await spawn(
+      serverlessExec,
+      ['deploy', 'list'],
+      spawnOptions
+    );
     const output = stripAnsi(listDeploys.toString());
     const match = output.match(new RegExp('Datetime: (.+)'));
     if (match) {
@@ -122,13 +119,7 @@ describe('Service Lifecyle Integration Test', function() {
     const { stdoutBuffer: invoked } = await spawn(
       serverlessExec,
       ['invoke', '--function', 'hello', '--noGreeting', 'true'],
-      {
-        cwd: tmpDir,
-        env,
-        // As in invoke we optionally read stdin, we need to ensure it's closed
-        // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
-        shouldCloseStdin: true,
-      }
+      spawnOptions
     );
     const result = JSON.parse(invoked);
     // parse it once again because the body is stringified to be LAMBDA-PROXY ready
