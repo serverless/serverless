@@ -104,7 +104,7 @@ describe('AWS - S3 Integration Test', function() {
   });
 
   describe('Existing Setup', () => {
-    describe('Single fuction / single bucket setup', () => {
+    describe('Single function / single bucket setup', () => {
       it('should invoke function when an object is created', () => {
         const functionName = 'existing';
         const markers = getMarkers(functionName);
