@@ -11,7 +11,7 @@ const resolveAwsEnv = require('@serverless/test/lib/resolve-aws-env');
 const { getTmpDirPath } = require('../utils/fs');
 const { region, getServiceName } = require('../utils/misc');
 
-const serverlessExec = path.join(__dirname, '..', '..', 'bin', 'serverless');
+const serverlessExec = require('../serverless-binary');
 
 const CF = new AWS.CloudFormation({ region });
 

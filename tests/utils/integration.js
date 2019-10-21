@@ -9,7 +9,8 @@ const resolveAwsEnv = require('@serverless/test/lib/resolve-aws-env');
 const { getServiceName, wait } = require('./misc');
 const { readYamlFile, writeYamlFile } = require('./fs');
 
-const serverlessExec = path.resolve(__dirname, '..', '..', 'bin', 'serverless');
+const serverlessExec = require('../serverless-binary');
+
 const env = resolveAwsEnv();
 
 async function createTestService(

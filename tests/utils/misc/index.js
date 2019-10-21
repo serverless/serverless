@@ -1,6 +1,5 @@
 'use strict';
 
-const path = require('path');
 const BbPromise = require('bluebird');
 const CloudWatchLogsSdk = require('aws-sdk/clients/cloudwatchlogs');
 
@@ -10,8 +9,6 @@ const region = 'us-east-1';
 const cloudWatchLogsSdk = new CloudWatchLogsSdk({ region });
 
 const testServiceIdentifier = 'integ-test';
-
-const serverlessExec = path.resolve(__dirname, '..', '..', '..', 'bin', 'serverless');
 
 const serviceNameRegex = new RegExp(`${testServiceIdentifier}-d+`);
 
@@ -90,7 +87,6 @@ module.exports = {
   region,
   confirmCloudWatchLogs,
   testServiceIdentifier,
-  serverlessExec,
   serviceNameRegex,
   getServiceName,
   replaceEnv,
