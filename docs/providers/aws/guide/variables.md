@@ -46,6 +46,9 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Pseudo Parameters Reference](#pseudo-parameters-reference)
+- [Casting String Variable Values to Boolean](#casting-string-variables-values-to-boolean)
+
+## Casting string variables to boolean values
 
 ## Recursively reference properties
 
@@ -658,7 +661,7 @@ Resources:
         - 'log-group:/aws/lambda/*:*:*'
 ```
 
-## Casting string variables to boolean values
+## Casting string variables values to boolean
 
 In some cases, a parameter expect a `true` or `false` value. If you are using a variable to define the value, it may return as a string (e.g. when using SSM variables) and thus return a `"true"` or `"false"` value.
 
