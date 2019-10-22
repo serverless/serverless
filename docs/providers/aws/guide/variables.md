@@ -46,7 +46,7 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Pseudo Parameters Reference](#pseudo-parameters-reference)
-- [Casting String Variable Values to Boolean](#casting-string-variables-values-to-boolean)
+- [Read String Variables Values as Boolean Values](#read-string-variables-values-as-boolean-values)
 
 ## Casting string variables to boolean values
 
@@ -661,14 +661,14 @@ Resources:
         - 'log-group:/aws/lambda/*:*:*'
 ```
 
-## Casting string variables values to boolean
+## Read String Variables Values as Boolean Values
 
-In some cases, a parameter expect a `true` or `false` value. If you are using a variable to define the value, it may return as a string (e.g. when using SSM variables) and thus return a `"true"` or `"false"` value.
+In some cases, a parameter expect a `true` or `false` boolean value. If you are using a variable to define the value, it may return as a string (e.g. when using SSM variables) and thus return a `"true"` or `"false"` string value.
 
-To ensure a boolean value is returned, cast the variable value. For example:
+To ensure a boolean value is returned, read the string variable value as a boolean value. For example:
 
 ```yml
 provider:
   tracing:
-    apiGateway: ${toBool:${ssm:API_GW_DEBUG_ENABLED}}
+    apiGateway: ${strToBool(${ssm:API_GW_DEBUG_ENABLED})}
 ```
