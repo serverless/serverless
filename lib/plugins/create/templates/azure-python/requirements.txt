@@ -1,0 +1,2 @@
+azure.functions
+azure-functions-worker

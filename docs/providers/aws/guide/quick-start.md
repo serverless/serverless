@@ -71,6 +71,21 @@ The `serverless` command will guide you through creating a new Node or Python Se
 
 Looking to get started with something other than Node or Python? No problem. You can use the[`create` command](https://serverless.com/framework/docs/providers/aws/cli-reference/create/) to get started with a variety of other languages.
 
+### Set up an endpoint
+
+An Event is anything that can trigger your serverless functions. In this case, you need to define a endpoint in your `serverless.yml` that will trigger your serverless function.
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    # Add the following lines:
+    events:
+      - http:
+          path: hello
+          method: post
+```
+
 ### Deploy the Service
 
 Use this command to deploy your service for the first time and after you make changes to your Functions, Events or Resources in `serverless.yml` and want to deploy all changes within your Service at the same time.

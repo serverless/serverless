@@ -60,7 +60,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-groovy-gradle:/app
   aws-scala-sbt:
-    image: hseeberger/scala-sbt:8u181_2.12.8_1.2.8
+    image: hseeberger/scala-sbt:8u222_1.3.2_2.13.1
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
   aws-csharp:

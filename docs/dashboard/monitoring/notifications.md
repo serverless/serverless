@@ -1,20 +1,19 @@
 <!--
 title: Serverless Dashboard - Notifications
 menuText: Notifications
-menuOrder: 2
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/notifications/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/monitoring/notifications/)
 
 <!-- DOCS-SITE-LINK:END -->
 
 # Notifications
 
 The Serverless Framework can notify you in **Slack**, **Email**, **SNS Topics**, or via
-**webhooks** when [alerts](./insights.md#alerts) are generated for your application. Multiple notifications can be added to an application, each of which can be configured differently for different alerts, stages or services.
+**webhooks** when [alerts](./alerts.md) are generated for your application. Multiple notifications can be added to an application, each of which can be configured differently for different alerts, stages or services.
 
 ## Add a Notification to an Application
 
@@ -74,12 +73,7 @@ functions:
     events:
       - sns:
           arn:
-            Fn::Join:
-              - ':'
-              - - 'arn:aws:sns'
-                - Ref: 'AWS::Region'
-                - Ref: 'AWS::AccountId'
-                - ${self:custom.topicName}
+            Ref: AlarmTopic
           topicName: ${self:custom.topicName}
 
 resources:

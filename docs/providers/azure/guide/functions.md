@@ -38,7 +38,7 @@ functions:
     events:
       - http: true
         x-azure-settings:
-          authLevel: anonymous
+          authLevel: anonymous # can also be `function` or `admin`
 ```
 
 The `handler` property points to the file (default filename: handler.js) and
