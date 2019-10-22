@@ -98,7 +98,7 @@ async function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
 module.exports = {
   createTestService,
   deployService,
+  env,
   removeService,
   waitForFunctionLogs,
-  env,
 };
