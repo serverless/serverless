@@ -14,7 +14,7 @@ const fixturePaths = {
 };
 
 describe('Integration test - Packaging - Lambda Files', function() {
-  this.timeout(10000);
+  this.timeout(15000);
   let cwd;
   beforeEach(() => {
     cwd = getTmpDirPath();
