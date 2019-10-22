@@ -125,7 +125,7 @@
     "get-stdin": "^5.0.1",
     "globby": "^6.1.0",
     "graceful-fs": "4.2.1",
-    "https-proxy-agent": "^2.2.2",
+    "https-proxy-agent": "^3.0.0",
     "inquirer": "^6.5.2",
     "is-docker": "^1.1.0",
     "is-wsl": "^2.1.1",
