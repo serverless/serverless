@@ -61,7 +61,6 @@ stage:
 ${output::dev::my-service.var-key}
 ```
 
-
 ## View output variables in the dashboard
 
 The output variables for a service are made available on two different pages of the Serverless Framework Dashboard.
