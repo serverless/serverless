@@ -13,7 +13,7 @@ const fixturePaths = {
   individuallyFunction: path.join(__dirname, 'fixtures/individually-function'),
 };
 
-describe('Integration test - Packaging', function() {
+describe('Integration test - Packaging - Lambda Files', function() {
   this.timeout(10000);
   let cwd;
   beforeEach(() => {
