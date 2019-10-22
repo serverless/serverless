@@ -5,6 +5,8 @@
 const path = require('path');
 const fse = require('fs-extra');
 const spawn = require('child-process-ext/spawn');
+const nodeFetch = require('node-fetch');
+const logFetch = require('log').get('fetch');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const { getServiceName, wait } = require('./misc');
 const { readYamlFile, writeYamlFile } = require('./fs');
@@ -95,10 +97,36 @@ async function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
   return waitForFunctionLogs(cwd, functionName, startMarker, endMarker);
 }
 
+let lastRequestId = 0;
+async function fetch(url, options) {
+  const requestId = ++lastRequestId;
+  logFetch.debug('[%d] %s %o', requestId, url, options);
+
+  let response;
+  try {
+    response = await nodeFetch(url, options);
+  } catch (error) {
+    logFetch.error('[%d] request error: %o', requestId, error);
+    throw error;
+  }
+
+  /* eslint-disable no-underscore-dangle */
+  logFetch.debug('[%d] %d %j', requestId, response.status, response.headers._headers);
+  const responseDecodeResult = response._decode();
+  response._decode = () => responseDecodeResult;
+  /* eslint-enable */
+  responseDecodeResult.then(
+    buffer => logFetch.debug('[%d] %s', requestId, String(buffer)),
+    error => logFetch.error('[%d] response resolution error: %o', requestId, error)
+  );
+  return response;
+}
+
 module.exports = {
   createTestService,
   deployService,
   env,
+  fetch,
   removeService,
   waitForFunctionLogs,
 };

@@ -3,12 +3,16 @@
 const path = require('path');
 const AWS = require('aws-sdk');
 const _ = require('lodash');
-const fetch = require('node-fetch');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { region, confirmCloudWatchLogs } = require('../../utils/misc');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const {
+  createTestService,
+  deployService,
+  removeService,
+  fetch,
+} = require('../../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
 const CF = new AWS.CloudFormation({ region });
