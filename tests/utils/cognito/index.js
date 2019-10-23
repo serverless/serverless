@@ -1,6 +1,7 @@
 'use strict';
 
 const AWS = require('aws-sdk');
+const log = require('log').get('aws');
 const { region, persistentRequest } = require('../misc');
 
 function createUserPool(name, config = {}) {
@@ -30,6 +31,7 @@ function deleteUserPool(name) {
 }
 
 function findUserPoolByName(name) {
+  log.debug('find cognito user pool by name %s', name);
   const cognito = new AWS.CognitoIdentityServiceProvider({ region });
 
   const params = {
@@ -42,6 +44,7 @@ function findUserPoolByName(name) {
       .listUserPools(params)
       .promise()
       .then(result => {
+        log.debug('cognito.listUserPools %j', result);
         const matches = result.UserPools.filter(pool => pool.Name === name);
         if (matches.length) {
           return matches.shift();
@@ -57,7 +60,13 @@ function findUserPoolByName(name) {
 function describeUserPool(userPoolId) {
   const cognito = new AWS.CognitoIdentityServiceProvider({ region });
 
-  return cognito.describeUserPool({ UserPoolId: userPoolId }).promise();
+  return cognito
+    .describeUserPool({ UserPoolId: userPoolId })
+    .promise()
+    .then(result => {
+      log.debug('cognito.describeUserPool %s %j', userPoolId, result);
+      return result;
+    });
 }
 
 function createUser(userPoolId, username, password) {
