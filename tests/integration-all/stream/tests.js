@@ -15,7 +15,7 @@ const {
   deployService,
   removeService,
   waitForFunctionLogs,
-} = require('../../utils/misc');
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Stream Integration Test', function() {
@@ -28,10 +28,10 @@ describe('AWS - Stream Integration Test', function() {
   const historicStreamMessage = 'Hello from the Kinesis horizon!';
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook:
@@ -56,13 +56,13 @@ describe('AWS - Stream Integration Test', function() {
         console.info(
           `Deploying "${stackName}" service with DynamoDB table resource "${tableName}"...`
         );
-        deployService(tmpDirPath);
+        return deployService(tmpDirPath);
       });
   });
 
-  after(() => {
+  after(async () => {
     console.info(`Removing service (and DynamoDB table resource "${tableName}")...`);
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting Kinesis stream');
     return deleteKinesisStream(streamName);
   });

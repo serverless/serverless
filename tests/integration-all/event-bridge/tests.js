@@ -5,12 +5,13 @@ const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { createEventBus, putEvents, deleteEventBus } = require('../../utils/eventBridge');
+
 const {
   createTestService,
   deployService,
   removeService,
   waitForFunctionLogs,
-} = require('../../utils/misc');
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Event Bridge Integration Test', function() {
@@ -31,10 +32,10 @@ describe('AWS - Event Bridge Integration Test', function() {
     },
   ];
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook:
@@ -61,13 +62,13 @@ describe('AWS - Event Bridge Integration Test', function() {
       writeYamlFile(serverlessFilePath, config);
       // deploy the service
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info(`Deleting Event Bus "${arnEventBusName}"...`);
     return deleteEventBus(arnEventBusName);
   });

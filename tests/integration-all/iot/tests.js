@@ -10,7 +10,7 @@ const {
   deployService,
   removeService,
   waitForFunctionLogs,
-} = require('../../utils/misc');
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - IoT Integration Test', function() {
@@ -21,10 +21,10 @@ describe('AWS - IoT Integration Test', function() {
   let tmpDirPath;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook:
@@ -43,7 +43,7 @@ describe('AWS - IoT Integration Test', function() {
   after(() => {
     // Topics are ephemeral and IoT endpoint is part of the account
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    return removeService(tmpDirPath);
   });
 
   describe('Basic Setup', () => {
