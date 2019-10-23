@@ -3,17 +3,16 @@
 const path = require('path');
 const AWS = require('aws-sdk');
 const _ = require('lodash');
-const fetch = require('node-fetch');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
+const { region, confirmCloudWatchLogs } = require('../../utils/misc');
 const {
-  region,
-  confirmCloudWatchLogs,
   createTestService,
   deployService,
   removeService,
-} = require('../../utils/misc');
+  fetch,
+} = require('../../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
 const CF = new AWS.CloudFormation({ region });
@@ -30,11 +29,11 @@ describe('AWS - API Gateway Integration Test', function() {
   let apiKey;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       serverlessConfigHook:
         // Ensure unique API key for each test (to avoid collision among concurrent CI runs)
@@ -46,36 +45,12 @@ describe('AWS - API Gateway Integration Test', function() {
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
-    deployService(tmpDirPath);
-    // create an external REST API
-    const externalRestApiName = `${stage}-${serviceName}-ext-api`;
-    return createRestApi(externalRestApiName)
-      .then(restApiMeta => {
-        restApiId = restApiMeta.id;
-        return getResources(restApiId);
-      })
-      .then(resources => {
-        restApiRootResourceId = resources[0].id;
-        console.info(
-          'Created external rest API ' +
-            `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
-        );
-      });
+    await deployService(tmpDirPath);
   });
 
-  after(() => {
-    // NOTE: deleting the references to the old, external REST API
-    const serverless = readYamlFile(serverlessFilePath);
-    delete serverless.provider.apiGateway.restApiId;
-    delete serverless.provider.apiGateway.restApiRootResourceId;
-    writeYamlFile(serverlessFilePath, serverless);
-    // NOTE: deploying once again to get the stack into the original state
-    console.info('Redeploying service...');
-    deployService(tmpDirPath);
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
-    console.info('Deleting external rest API...');
-    return deleteRestApi(restApiId);
+    await removeService(tmpDirPath);
   });
 
   beforeEach(() => {
@@ -224,7 +199,7 @@ describe('AWS - API Gateway Integration Test', function() {
   });
 
   describe('Using stage specific configuration', () => {
-    before(() => {
+    before(async () => {
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
@@ -240,7 +215,7 @@ describe('AWS - API Gateway Integration Test', function() {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService(tmpDirPath);
+      await deployService(tmpDirPath);
     });
 
     it('should update the stage without service interruptions', () => {
@@ -261,7 +236,22 @@ describe('AWS - API Gateway Integration Test', function() {
 
   // NOTE: this test should  be at the very end because we're using an external REST API here
   describe('when using an existing REST API with stage specific configuration', () => {
-    before(() => {
+    before(async () => {
+      // create an external REST API
+      const externalRestApiName = `${stage}-${serviceName}-ext-api`;
+      await createRestApi(externalRestApiName)
+        .then(restApiMeta => {
+          restApiId = restApiMeta.id;
+          return getResources(restApiId);
+        })
+        .then(resources => {
+          restApiRootResourceId = resources[0].id;
+          console.info(
+            'Created external rest API ' +
+              `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
+          );
+        });
+
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
@@ -281,7 +271,21 @@ describe('AWS - API Gateway Integration Test', function() {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService(tmpDirPath);
+      console.info('Redeploying service (with external Rest API ID)...');
+      await deployService(tmpDirPath);
+    });
+
+    after(async () => {
+      // NOTE: deleting the references to the old, external REST API
+      const serverless = readYamlFile(serverlessFilePath);
+      delete serverless.provider.apiGateway.restApiId;
+      delete serverless.provider.apiGateway.restApiRootResourceId;
+      writeYamlFile(serverlessFilePath, serverless);
+      // NOTE: deploying once again to get the stack into the original state
+      console.info('Redeploying service (without external Rest API ID)...');
+      await deployService(tmpDirPath);
+      console.info('Deleting external rest API...');
+      return deleteRestApi(restApiId);
     });
 
     it('should update the stage without service interruptions', () => {

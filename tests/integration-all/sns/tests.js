@@ -11,7 +11,7 @@ const {
   deployService,
   removeService,
   waitForFunctionLogs,
-} = require('../../utils/misc');
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - SNS Integration Test', function() {
@@ -24,10 +24,10 @@ describe('AWS - SNS Integration Test', function() {
   let existingTopicName;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook:
@@ -53,13 +53,13 @@ describe('AWS - SNS Integration Test', function() {
     console.info(`Creating SNS topic "${existingTopicName}"...`);
     return createSnsTopic(existingTopicName).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting SNS topics');
     return removeSnsTopic(existingTopicName);
   });
