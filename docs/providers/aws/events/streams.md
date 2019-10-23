@@ -48,6 +48,10 @@ functions:
           arn:
             Fn::ImportValue: MyExportedKinesisStreamArnId
       - stream:
+          type: dynamodb
+          arn:
+            Ref: MyDynamoDbTableStreamArn
+      - stream:
           type: kinesis
           arn:
             Fn::Join:
