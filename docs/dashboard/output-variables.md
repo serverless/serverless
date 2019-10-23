@@ -39,7 +39,26 @@ Output variables can be consumed from other services with they `${state}` variab
 **serverless.yml**
 
 ```yaml
-${state:my-service.var-key}
+${output:my-service.var-key}
+```
+
+or, to reference a service in a different app, stage or region, specify it like this:
+
+```yaml
+${output:appname:stagename:regionname:my-service.var-key}
+```
+
+So, for example:
+
+```yaml
+${output:another-app:dev:us-east-1:my-service.var-key}
+```
+
+You can also omit any of app, stage or region by leaving it empty like this, which only specifies
+stage:
+
+```yaml
+${output::dev::my-service.var-key}
 ```
 
 ## View output variables in the dashboard
