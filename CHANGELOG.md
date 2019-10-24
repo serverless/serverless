@@ -1,3 +1,11 @@
+# 1.55.1 (2019-10-23)
+
+- [Allow plugins to customize what flags are supported during interactive cli](https://github.com/serverless/serverless/pull/6697)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.55.0...v1.55.1)
+
 # 1.55.0 (2019-10-23)
 
 - [Allow empty arrays in overrides](https://github.com/serverless/serverless/pull/6813)
