@@ -18,6 +18,10 @@ Serverless Insights include pre-configured alerts designed to help you develop a
 
 The out of memory alert is checked on every invocation of the function. If any invocation uses more memory than is configured for that function, Lambda will abruptly shut down the invocation and trigger an out of memory error. The alert will be triggered immediately and only once in a given 48 hour period.
 
+## Memory: Unused Memory
+
+The unused memory alert checks memory usage of functions and compares it to allocated memory to identify cases to lower the allocated memory to save cost on invocations. The unused memory alert check runs every hour and compares the maximum memory usage over the last 7 days with the allocated memory. If the number is below 80% of the allocated memory, then an alert will be triggered. The alert will show a proposed memory configuration as well as the amount of money which can be saved with the proposed configuration. It will only trigger once per function in each 7 day period.
+
 ## Error: New Error Type Identified
 
 Errors happen, and the sooner you know about them after they are introduced the better equipped you are to proactively mitigate their impact.
