@@ -42,6 +42,7 @@ layout: Doc
       - [Using Status Codes](#using-status-codes)
       - [Custom Status Codes](#custom-status-codes)
   - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+  - [Mock Integration](#mock-integration)
   - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
     - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
     - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
@@ -1095,6 +1096,30 @@ endpoint of your proxy, and the URI you want to set a proxy to.
 
 Now that you have these two CloudFormation templates defined in your `serverless.yml` file, you can simply run
 `serverless deploy` and that will deploy these custom resources for you along with your service and set up a proxy on your Rest API.
+
+## Mock Integration
+
+Mocks allow developers to offer simulated methods for an API, with this, responses can be defined directly, without the need for a integration backend. A simple mock response example is provided below:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http: 
+         path: hello
+         cors: true
+         method: get
+         integration: mock
+         request:
+            template:
+              application/json: '{"statusCode": 200}'
+         response:
+            template: $input.path('$')
+            statusCodes:
+              201:
+                pattern: ''
+``` 
 
 ## Share API Gateway and API Resources
 
