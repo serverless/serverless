@@ -672,3 +672,14 @@ provider:
   tracing:
     apiGateway: ${strToBool(${ssm:API_GW_DEBUG_ENABLED})}
 ```
+
+Note: These are examples of how the conversion works.
+
+```plaintext
+${strToBool(true)} => true
+${strToBool(false)} => false
+${strToBool(null)} => true
+${strToBool( )} => true
+${strToBool(anything)} => true
+${strToBool()} => ServerlessError
+```
