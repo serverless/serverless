@@ -142,6 +142,7 @@ provider:
       executionLogging: true # Optional configuration which enables or disables execution logging. Defaults to true.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
       fullExecutionData: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
+      role: arn:aws:iam::123456:role # Optional IAM role for ApiGateway to use when managing CloudWatch Logs
     websocket: true # Optional configuration which specifies if Websockets logs are used
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
 
