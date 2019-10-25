@@ -1106,20 +1106,20 @@ functions:
   hello:
     handler: handler.hello
     events:
-      - http: 
-         path: hello
-         cors: true
-         method: get
-         integration: mock
-         request:
+      - http:
+          path: hello
+          cors: true
+          method: get
+          integration: mock
+          request:
             template:
               application/json: '{"statusCode": 200}'
-         response:
+          response:
             template: $input.path('$')
             statusCodes:
               201:
                 pattern: ''
-``` 
+```
 
 ## Share API Gateway and API Resources
 
