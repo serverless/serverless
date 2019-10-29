@@ -22,7 +22,7 @@ serverless invoke --function functionName
 
 ## Options
 
-- `--config` or `-c` Path to your conifguration file, if other than `serverless.yml|.yaml|.js|.json`.
+- `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
 - `--data` or `-d` Stringified JSON data to be used as input to the function

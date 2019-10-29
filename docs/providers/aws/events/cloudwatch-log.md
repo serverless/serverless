@@ -26,6 +26,8 @@ functions:
       - cloudwatchLog: '/aws/lambda/hello'
 ```
 
+**WARNING**: If you specify several CloudWatch Log events for one AWS Lambda function you'll only see the first subscription in the AWS Lambda Web console. This is a known AWS problem but it's only graphical, you should be able to view your CloudWatch Log Group subscriptions in the CloudWatch Web console.
+
 ## Specifying a filter
 
 Here's an example how you can specify a filter rule.

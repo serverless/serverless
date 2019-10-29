@@ -20,7 +20,7 @@ const {
   deployService,
   removeService,
   waitForFunctionLogs,
-} = require('../../utils/misc');
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Cognito User Pool Integration Test', function() {
@@ -34,10 +34,10 @@ describe('AWS - Cognito User Pool Integration Test', function() {
   let poolExistingSimpleSetupConfig;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook:
@@ -67,13 +67,13 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       createUserPool(poolExistingMultiSetup),
     ]).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting Cognito User Pools');
     return BbPromise.all([
       deleteUserPool(poolExistingSimpleSetup),

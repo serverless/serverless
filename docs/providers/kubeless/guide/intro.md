@@ -37,7 +37,7 @@ You can perform multiple jobs in your code, but we don't recommend doing that wi
 
 ### Events
 
-Anything that triggers an Kubeless Event to execute is regarded by the Framework as an **Event**. Events are platform events on Kubeless such as:
+Anything that triggers a Kubeless Event to execute is regarded by the Framework as an **Event**. Events are platform events on Kubeless such as:
 
 - _An API Gateway HTTP endpoint (e.g., for a REST API)_
 - _A Kafka queue message (e.g., a message)_

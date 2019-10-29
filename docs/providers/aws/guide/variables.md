@@ -509,6 +509,28 @@ module.exports.promised = () => {
 };
 ```
 
+For example, in such helper you could call AWS SDK to get account details:
+
+```js
+// myCustomFile.js
+const { STS } = require('aws-sdk');
+const sts = new STS();
+
+module.exports.getAccountId = async () => {
+  // Checking AWS user details
+  const { Account } = await sts.getCallerIdentity().promise();
+  return Account;
+};
+```
+
+```yml
+# serverless.yml
+service: new-service
+provider: aws
+custom:
+  accountId: ${file(./myCustomFile.js):getAccountId}
+```
+
 ## Multiple Configuration Files
 
 Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.

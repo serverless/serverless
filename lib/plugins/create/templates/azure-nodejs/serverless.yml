@@ -80,7 +80,7 @@ functions:
         x-azure-settings:
           methods:
             - GET
-          authLevel: anonymous
+          authLevel: anonymous # can also be `function` or `admin`
 
   goodbye:
     handler: src/handlers/goodbye.sayGoodbye

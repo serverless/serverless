@@ -44,45 +44,56 @@ process.on('unhandledRejection', error => {
   }
   throw error;
 });
-
-require('../lib/utils/tracking').sendPending();
-
 process.noDeprecation = true;
 
-const invocationId = uuid.v4();
-initializeErrorReporter(invocationId).then(() => {
-  if (process.argv[2] === 'completion') {
-    return autocomplete();
-  }
-  // requiring here so that if anything went wrong,
-  // during require, it will be caught.
-  const Serverless = require('../lib/Serverless');
+if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'completion') {
+  autocomplete();
+  return;
+}
 
-  const serverless = new Serverless();
-
-  serverless.invocationId = invocationId;
-
-  return serverless
-    .init()
-    .then(() => serverless.run())
-    .catch(err => {
-      // If Enterprise Plugin, capture error
-      let enterpriseErrorHandler = null;
-      serverless.pluginManager.plugins.forEach(p => {
-        if (p.enterprise && p.enterprise.errorHandler) {
-          enterpriseErrorHandler = p.enterprise.errorHandler;
-        }
-      });
-      if (!enterpriseErrorHandler) {
-        logError(err);
-        return null;
-      }
-      return enterpriseErrorHandler(err, invocationId)
-        .catch(error => {
-          process.stdout.write(`${error.stack}\n`);
-        })
-        .then(() => {
-          logError(err);
-        });
-    });
+let resolveServerlessExecutionSpan;
+require('../lib/utils/tracking').sendPending({
+  serverlessExecutionSpan: new BbPromise(resolve => (resolveServerlessExecutionSpan = resolve)),
 });
+
+const invocationId = uuid.v4();
+initializeErrorReporter(invocationId)
+  .then(() => {
+    // requiring here so that if anything went wrong,
+    // during require, it will be caught.
+    const Serverless = require('../lib/Serverless');
+
+    const serverless = new Serverless();
+
+    serverless.invocationId = invocationId;
+
+    return serverless
+      .init()
+      .then(() => serverless.run())
+      .then(() => resolveServerlessExecutionSpan())
+      .catch(err => {
+        resolveServerlessExecutionSpan();
+        // If Enterprise Plugin, capture error
+        let enterpriseErrorHandler = null;
+        serverless.pluginManager.plugins.forEach(p => {
+          if (p.enterprise && p.enterprise.errorHandler) {
+            enterpriseErrorHandler = p.enterprise.errorHandler;
+          }
+        });
+        if (!enterpriseErrorHandler) {
+          logError(err);
+          return null;
+        }
+        return enterpriseErrorHandler(err, invocationId)
+          .catch(error => {
+            process.stdout.write(`${error.stack}\n`);
+          })
+          .then(() => {
+            logError(err);
+          });
+      });
+  })
+  .catch(error => {
+    resolveServerlessExecutionSpan();
+    throw error;
+  });

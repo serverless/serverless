@@ -273,7 +273,7 @@ functions:
           path: /hello
 ```
 
-In the example above, once the Ingress Rule has been processed by the Ingress controller, you can call the function using as endpoing `myhostname.io/hello`.
+In the example above, once the Ingress Rule has been processed by the Ingress controller, you can call the function using as endpoint `myhostname.io/hello`.
 
 If no hostname is given but a function specifies a `path`, the plugin will use the IP of the cluster followed by a DNS mapping service. By default [nip.io](http://nip.io) will be used but this can be configured with the property `defaultDNSResolution`.
 
