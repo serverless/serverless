@@ -15,7 +15,7 @@ service: my-service # service name
 
 provider: # provider information
   name: tencent
-  runtime: PHP5
+  runtime: Php5
   credentials: ~/credentials
 
 # you can overwrite defaults here
@@ -38,7 +38,7 @@ functions:
   function_one:
     handler: index.main_handler
 #    description: Tencent Serverless Cloud Function
-#    runtime: PHP5
+#    runtime: Php5
 #    memorySize: 256
 #    timeout: 10
 #    environment:

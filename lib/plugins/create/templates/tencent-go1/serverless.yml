@@ -15,7 +15,7 @@ service: my-service # service name
 
 provider: # provider information
   name: tencent
-  runtime: Golang1
+  runtime: Go1
   credentials: ~/credentials
 
 # you can overwrite defaults here
@@ -43,9 +43,9 @@ plugins:
 
 functions:
   function_one:
-    handler: index.main_handler
+    handler: main
 #    description: Tencent Serverless Cloud Function
-#    runtime: Golang1
+#    runtime: Go1
 #    memorySize: 256
 #    timeout: 10
 #    environment:
