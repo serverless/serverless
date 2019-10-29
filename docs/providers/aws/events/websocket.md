@@ -158,12 +158,12 @@ functions:
 
 ## Using API keys
 
-If you want to work with API keys, you can set the `private` property to `true`. This enforces API key requirement on the endpoint. _Please note that most WS implementations in browser don't support additional request-header values. This configuration currently only makes sense if you use a custom authorizer that provides the key automatically._:
+If you want to work with API keys, you can set the `private` property to `true`. This enforces API key requirements on the endpoint. _Please note that most WS implementations in browsers don't support additional request-header values. This configuration currently only makes sense if you use a custom authorizer that provides the key automatically._:
 
 ```yml
 provider:
   name: aws
-  websocketsApiKeySelectionExpression: $request.header.x-api-key # api key is either selected form the request headers (default) or the authorizer if your provide '$context.authorizer.usageIdentifierKey' as value.
+  websocketsApiKeySelectionExpression: $request.header.x-api-key # api key is either selected from the request headers (default) or the authorizer if your provide '$context.authorizer.usageIdentifierKey' as a value.
 
 functions:
   connectHandler:
@@ -171,7 +171,7 @@ functions:
     events:
       - websocket:
           route: $connect
-          private: true # default is false
+          private: true # default is `false`
           authorizer:
             name: auth
 
