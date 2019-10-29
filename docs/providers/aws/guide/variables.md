@@ -678,6 +678,7 @@ Note: These are examples of how the conversion works.
 ```plaintext
 ${strToBool(true)} => true
 ${strToBool(false)} => false
+${strToBool(0)} => false
 ${strToBool(null)} => true
 ${strToBool(anything)} => true
 ```
