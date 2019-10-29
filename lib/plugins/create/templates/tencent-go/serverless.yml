@@ -40,7 +40,6 @@ plugins:
 #  include:
 #    - ./bin/**
 
-
 functions:
   function_one:
     handler: main

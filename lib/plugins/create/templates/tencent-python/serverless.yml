@@ -42,7 +42,6 @@ plugins:
 #    - exclude-me.py
 #    - exclude-me-dir/**
 
-
 functions:
   function_one:
     handler: index.main_handler
