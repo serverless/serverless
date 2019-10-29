@@ -9,6 +9,6 @@
   "author": "cloud.tencent.com",
   "license": "MIT",
   "devDependencies": {
-    "serverless-tencent-scf": "*"
+    "serverless-tencent-scf": "^0.1.7"
   }
 }

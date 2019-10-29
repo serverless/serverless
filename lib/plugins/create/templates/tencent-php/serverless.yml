@@ -15,7 +15,7 @@ service: my-service # service name
 
 provider: # provider information
   name: tencent
-  runtime: Nodejs6.10
+  runtime: Php7 # Php7 or Php5
   credentials: ~/credentials
 
 # you can overwrite defaults here
@@ -33,21 +33,11 @@ provider: # provider information
 plugins:
   - serverless-tencent-scf
 
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
-
 functions:
-  function_one:
+  function_one_one_one:
     handler: index.main_handler
 #    description: Tencent Serverless Cloud Function
-#    runtime: Nodejs6.10
+#    runtime: Php7 # Php7 or Php5
 #    memorySize: 256
 #    timeout: 10
 #    environment:

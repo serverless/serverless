@@ -15,7 +15,7 @@ service: my-service # service name
 
 provider: # provider information
   name: tencent
-  runtime: Php7
+  runtime: Python3.6 # Python3.6 or Python2.7
   credentials: ~/credentials
 
 # you can overwrite defaults here
@@ -33,11 +33,21 @@ provider: # provider information
 plugins:
   - serverless-tencent-scf
 
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.py
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.py
+#    - exclude-me-dir/**
+
+
 functions:
-  function_one_one_one:
+  function_one:
     handler: index.main_handler
 #    description: Tencent Serverless Cloud Function
-#    runtime: Php7
+#    runtime: Python3.6 # Python3.6 or Python2.7
 #    memorySize: 256
 #    timeout: 10
 #    environment:
