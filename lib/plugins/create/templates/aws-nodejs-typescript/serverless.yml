@@ -1,9 +1,13 @@
 service:
-  name: aws-nodejs-typescript
+  name: haha
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
 
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
 # Add the serverless-webpack plugin
 plugins:
   - serverless-webpack
@@ -11,6 +15,8 @@ plugins:
 provider:
   name: aws
   runtime: nodejs10.x
+  apiGateway:
+    minimumCompressionSize: 1024 #Enable gzip compression for responses > 1KB
 
 functions:
   hello:
