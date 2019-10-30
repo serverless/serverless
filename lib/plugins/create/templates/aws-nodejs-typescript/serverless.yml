@@ -1,5 +1,5 @@
 service:
-  name: haha
+  name: aws-nodejs-typescript
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
