@@ -4,14 +4,9 @@
       "name": "Lambda",
       "type": "node",
       "request": "launch",
-      "runtimeArgs": [
-        "--inspect",
-        "--debug-port=9229"
-      ],
+      "runtimeArgs": ["--inspect", "--debug-port=9229"],
       "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
-      "args": [
-        "offline"
-      ],
+      "args": ["offline"],
       "port": 9229,
       "console": "integratedTerminal"
     }
