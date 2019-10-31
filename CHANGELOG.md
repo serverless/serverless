@@ -1,3 +1,11 @@
+# 1.56.1 (2019-10-31)
+
+- [Fix deployment bucket policy handling with custom bucket ](https://github.com/serverless/serverless/pull/6909)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/comparev1.56.0...v1.56.1)
+
 # 1.56.0 (2019-10-31)
 
 - [AWS - deployment bucket policy for HTTPS only](https://github.com/serverless/serverless/pull/6823)
