@@ -679,6 +679,7 @@ Note: These are examples of how the conversion works.
 ${strToBool(true)} => true
 ${strToBool(false)} => false
 ${strToBool(0)} => false
-${strToBool(null)} => true
-${strToBool(anything)} => true
+${strToBool(1)} => true
+${strToBool(null)} => Error
+${strToBool(anything)} => Error
 ```
