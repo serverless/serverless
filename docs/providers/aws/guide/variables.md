@@ -673,13 +673,14 @@ provider:
     apiGateway: ${strToBool(${ssm:API_GW_DEBUG_ENABLED})}
 ```
 
-Note: These are examples of how the conversion works.
+These are examples that explain how the conversion works:
 
 ```plaintext
 ${strToBool(true)} => true
 ${strToBool(false)} => false
 ${strToBool(0)} => false
 ${strToBool(1)} => true
+${strToBool(2)} => Error
 ${strToBool(null)} => Error
 ${strToBool(anything)} => Error
 ```
