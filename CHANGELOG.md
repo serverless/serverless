@@ -1,3 +1,20 @@
+# 1.56.0 (2019-10-31)
+
+- [AWS - deployment bucket policy for HTTPS only](https://github.com/serverless/serverless/pull/6823)
+- [Docs on renamed outputs and expanded support](https://github.com/serverless/serverless/pull/6870)
+- [Fix minor typo](https://github.com/serverless/serverless/pull/6877)
+- [Added mock integration documentation example](https://github.com/serverless/serverless/pull/6883)
+- [Fix region error handling in Lambda@Edge implementation](https://github.com/serverless/serverless/pull/6886)
+- [Allow specifying ApiGateway logs role ARN](https://github.com/serverless/serverless/pull/6747)
+- [Adds unused memory alert](https://github.com/serverless/serverless/pull/6889)
+- [Find origin by domain name and path](https://github.com/serverless/serverless/pull/6880)
+- [fix minor typo in kubeless docs](https://github.com/serverless/serverless/pull/6896)
+- [Add tencent provider create-template](https://github.com/serverless/serverless/pull/6898)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.55.1...v1.56.0)
+
 # 1.55.1 (2019-10-23)
 
 - [Allow plugins to customize what flags are supported during interactive cli](https://github.com/serverless/serverless/pull/6697)
