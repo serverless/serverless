@@ -6,19 +6,19 @@ Creates a new service in the current working directory based on the provided tem
 **Create service in current working directory:**
 
 ```bash
-serverless create --template tencent-nodejs8
+serverless create --template tencent-nodejs
 ```
 
 **Create service in new folder:**
 
 ```bash
-serverless create --template tencent-nodejs8 --path myService
+serverless create --template tencent-nodejs --path myService
 ```
 
 **Create service in new folder using a custom template:**
 
 ```bash
-serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/tencent-nodejs8 --path myService
+serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/tencent-nodejs --path myService
 ```
 ## Options
 
@@ -38,26 +38,23 @@ To see a list of available templates run `serverless create --help`
 
 Most commonly used templates:
 
-- tencent-nodejs8
-- tencent-nodejs6
-- tencent-python3
-- tencent-python2
-- tencent-php7
-- tencent-php5
-- tencent-go1
+- tencent-nodejs
+- tencent-python
+- tencent-php
+- tencent-go
 
 ## Examples
 
 ### Creating a new service
 
 ```bash
-serverless create --template tencent-nodejs8 --name my-project
+serverless create --template tencent-nodejs --name my-project
 ```
 
 This example will generate scaffolding for a service with `Tencent` as a provider and `nodejs8` as runtime. The scaffolding
 will be generated in the current working directory.
 
-Your new service will have a default stage called `dev` and a default region inside that stage called `ap-beijing`.
+Your new service will have a default stage called `dev` and a default region inside that stage called `ap-guangzhou`.
 The provider which is used for deployment later on is Tencent Cloud.
 
 ### Creating a named service in a (new) directory
