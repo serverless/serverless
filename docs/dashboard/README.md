@@ -52,3 +52,7 @@ app: <app>
 ```
 
 Once the `org` and `app` fields are set, just run `serverless deploy` to redeploy your service with the instrumentation needed for the Dashboard.
+
+## Moving Between Dashboard Apps
+
+You can associate each service with its own app or group them into specific apps. If you already added your service to an app and want to add it to a different app, you need to create that app in the Dashboard before changing the `app` in `serverless.yml` if it doesn't already exist. Then, simply change the app name in `serverless.yml`.
