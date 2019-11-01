@@ -32,3 +32,19 @@ This is the simplest deployment usage possible. With this command Serverless wil
 provider in the default stage (`dev`) to the default region (`ap-guangzhou`).
 
 
+### Deployment with stage and region options
+
+```bash
+serverless deploy --stage pro --region ap-guangzhou
+```
+
+With this example we've defined that we want our service to be deployed to the `pro` stage in the region
+`ap-guangzhou`.
+
+### Deployment from a pre-packaged directory
+
+```bash
+serverless deploy --package /path/package/directory
+```
+
+With this example, the packaging step will be skipped and the framework will start deploying the package from the `/path/package/directory` directory.
