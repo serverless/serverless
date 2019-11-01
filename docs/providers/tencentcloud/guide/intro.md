@@ -35,7 +35,7 @@ When you define an event for your functions in the Serverless Framework, the Fra
 
 ### Resources
 
-**Resources** are AWS infrastructure components which your Functions use such as:
+**Resources** are Tencent Cloud infrastructure components which your Functions use such as:
 
 - _An API Gateway Service and API (e.g., for a REST API)_
 - _A COS Bucket (e.g., for saving images or files)_
