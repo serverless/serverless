@@ -120,6 +120,7 @@ Invokes a Function and returns logs.
 ```bash
 serverless invoke -f hello
 ```
+More information in [invoke command](../cli-reference/invoke.md)
 
 ### Fetch the Function Logs
 
