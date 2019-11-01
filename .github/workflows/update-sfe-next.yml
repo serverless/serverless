@@ -1,0 +1,25 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/heads
+    branches:
+      - master
+name: Update the sfe-next branch on pushes to master
+jobs:
+  updateSfeNextBranch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup node
+        uses: actions/setup-node@v1
+      - name: update the dependency on @serverless/enterprise-plugin to the next tag
+        run: node scripts/update-sfe-dep.js
+      - name: git commit
+        uses: srt32/git-actions@v0.0.3
+        with:
+          args: git config --global user.email "engineering@serverless.com" && git config --global user.name "Github Action" && git commit -am 'Update the dependency on @serverless/enterprise-plugin to the next tag'
+      - name: git push
+        uses: srt32/git-actions@v0.0.3
+        with:
+          args: git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY} HEAD:sfe-next -f
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

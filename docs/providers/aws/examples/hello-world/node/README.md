@@ -1,6 +1,6 @@
 <!--
 title: Hello World Node.js Example
-menuText: Hello World Node.js Example
+menuText: Node.js
 description: Create a Node.js Hello World Lambda function
 layout: Doc
 -->

@@ -1,4 +1,4 @@
-[![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/assets.github.serverless/readme-serverless-framework.jpg)](http://serverless.com)
+[![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/assets.github.serverless/readme-serverless-framework.gif)](http://serverless.com)
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![Build Status](https://travis-ci.org/serverless/serverless.svg?branch=master)](https://travis-ci.org/serverless/serverless)
@@ -8,7 +8,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/serverless/serverless/badge.svg)](https://snyk.io/test/github/serverless/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](https://serverless.com/subscribe/) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless/meetups) • [Twitter](https://twitter.com/goserverless) • [We're Hiring](https://serverless.com/company/jobs/) • [Enterprise](https://serverless.com/enterprise/)
+[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](https://serverless.com/subscribe/) • [Swag](https://teespring.com/stores/serverless) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless/meetups) • [Twitter](https://twitter.com/goserverless) • [We're Hiring](https://serverless.com/company/jobs/) • [Enterprise](https://serverless.com/enterprise/)
 
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run. This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
@@ -16,9 +16,9 @@ The Framework uses new event-driven compute services, like AWS Lambda, Google Cl
 
 Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
-<a href="https://www.youtube.com/watch?v=bFHmgqbAh4M" target="_blank">Watch the video guide here.</a>
+<a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Watch the video overview here.</a>
 
-<a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
+[![serverless components notice](https://s3.amazonaws.com/assets.github.serverless/announcement-serverless-components-3.gif)](https://github.com/serverless/components)
 
 ## Contents
 
@@ -74,7 +74,7 @@ Use this to quickly upload and overwrite your AWS Lambda code on AWS, allowing y
 serverless deploy function -f hello
 ```
 
-6. **Invoke the Function:**
+6. **Invoke the Function on AWS:**
 
 Invokes an AWS Lambda Function on AWS and returns logs.
 
@@ -82,7 +82,15 @@ Invokes an AWS Lambda Function on AWS and returns logs.
 serverless invoke -f hello -l
 ```
 
-7. **Fetch the Function Logs:**
+7. **Invoke the Function on your machine:**
+
+Invokes an AWS Lambda Function on your local machine and returns logs.
+
+```bash
+serverless invoke local -f hello -l
+```
+
+8. **Fetch the Function Logs:**
 
 Open up a separate tab in your console and stream all logs for a specific Function using this command.
 
@@ -90,7 +98,7 @@ Open up a separate tab in your console and stream all logs for a specific Functi
 serverless logs -f hello -t
 ```
 
-8. **Remove the Service:**
+9. **Remove the Service:**
 
 Removes all Functions, Events and Resources from your AWS account.
 
@@ -176,7 +184,7 @@ These consultants use the Serverless Framework and can help you build your serve
 - [Trek10](https://www.trek10.com/)
 - [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
 - [Geniusee](https://geniusee.com)
-- [SC5 Online](https://sc5.io)
+- [Nordcloud](https://nordcloud.com) - they created [several plugins](https://github.com/nordcloud?utf8=%E2%9C%93&q=serverless&type=&language=), sponsor [Serverless Days Helsinki](https://helsinki.serverlessdays.io/) and regularly host [Serverless Finland](https://www.meetup.com/Serverless-Finland/) Meetups.
 - [Carrot Creative](https://carrot.is)
 - [microapps](http://microapps.com)
 - [Apiwise](http://www.apiwise.nl)
@@ -197,6 +205,8 @@ These consultants use the Serverless Framework and can help you build your serve
 - [Seraro](http://www.seraro.com/) - Who also runs Atlanta Serverless Meetup (https://www.meetup.com/Atlanta-CABI-Camp-Cloud-AI-Blockchain-IOT) and Delhi Serverless Meetup (https://www.meetup.com/Delhi-NCR-Serverless-Architecture-Meetup/)
 - [superluminar](https://superluminar.io) - runs serverlessdays Hamburg and Serverless Meetup Hamburg
 - [Onica](https://www.onica.com/aws-cloud-native-developers/) - AWS Premier Consulting Partner for Cloud Native Development and host of [eleven regional Meetup groups](https://www.onica.com/events/).
+- [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
+- [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
 
 ---
 

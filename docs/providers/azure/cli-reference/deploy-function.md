@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Deploy Function
 menuText: deploy function
-menuOrder: 4
+menuOrder: 5
 description: Deploy your Azure Functions functions quickly
 layout: Doc
 -->
@@ -14,17 +14,4 @@ layout: Doc
 
 # Azure - Deploy Function
 
-The `serverless deploy function` command deploys an individual function. This
-command simply compiles a deployment package with a single function handler. This
-is a much faster way of deploying changes in code.
-
-```bash
-serverless deploy function -f functionName
-```
-
-**Note:** Because this command is only deploying the function code, function
-properties such as environment variables and events will **not** be deployed.
-
-## Options
-
-- `--function` or `-f` The name of the function which should be deployed
+The `serverless deploy function` command is not supported within the `serverless-azure-functions` plugin. Functions within a Function App are deployed as a unit and cannot be separated.

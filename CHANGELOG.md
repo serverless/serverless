@@ -1,3 +1,354 @@
+# 1.56.0 (2019-10-31)
+
+- [AWS - deployment bucket policy for HTTPS only](https://github.com/serverless/serverless/pull/6823)
+- [Docs on renamed outputs and expanded support](https://github.com/serverless/serverless/pull/6870)
+- [Fix minor typo](https://github.com/serverless/serverless/pull/6877)
+- [Added mock integration documentation example](https://github.com/serverless/serverless/pull/6883)
+- [Fix region error handling in Lambda@Edge implementation](https://github.com/serverless/serverless/pull/6886)
+- [Allow specifying ApiGateway logs role ARN](https://github.com/serverless/serverless/pull/6747)
+- [Adds unused memory alert](https://github.com/serverless/serverless/pull/6889)
+- [Find origin by domain name and path](https://github.com/serverless/serverless/pull/6880)
+- [fix minor typo in kubeless docs](https://github.com/serverless/serverless/pull/6896)
+- [Add tencent provider create-template](https://github.com/serverless/serverless/pull/6898)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.55.1...v1.56.0)
+
+# 1.55.1 (2019-10-23)
+
+- [Allow plugins to customize what flags are supported during interactive cli](https://github.com/serverless/serverless/pull/6697)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.55.0...v1.55.1)
+
+# 1.55.0 (2019-10-23)
+
+- [Allow empty arrays in overrides](https://github.com/serverless/serverless/pull/6813)
+- [Make question mark available as variables fallback](https://github.com/serverless/serverless/pull/6808)
+- [Improve plugins resolution and initialization flow](https://github.com/serverless/serverless/pull/6814)
+- [Azure Python template](https://github.com/serverless/serverless/pull/6822)
+- [Chore - stop using deprecated 'new Buffer()' method.](https://github.com/serverless/serverless/pull/6829)
+- [AWS - adding naming function for S3 compiled template file name.](https://github.com/serverless/serverless/pull/6828)
+- [Span docs! and full `serverless_sdk` docs](https://github.com/serverless/serverless/pull/6809)
+- [Fix perms with several CloudWatch log subscriptions](https://github.com/serverless/serverless/pull/6827)
+- [Fixing an Azure docs broken link](https://github.com/serverless/serverless/pull/6838)
+- [Adding note to Azure nodejs template](https://github.com/serverless/serverless/pull/6839)
+- [Updated Azure Functions documentation](https://github.com/serverless/serverless/pull/6840)
+- [Support for NotAction and NotResource in IAM role statements](https://github.com/serverless/serverless/pull/6842)
+- [added frontmatter to sdk docs](https://github.com/serverless/serverless/pull/6845)
+- [Setup <tab> completion via CLI command and interactive CLI step](https://github.com/serverless/serverless/pull/6835)
+- [Upgrade gradle version](https://github.com/serverless/serverless/pull/6855)
+- [Update Google provider documentation for functions](https://github.com/serverless/serverless/pull/6854)
+- [SNS integration tests](https://github.com/serverless/serverless/pull/6846)
+- [SQS integration tests](https://github.com/serverless/serverless/pull/6847)
+- [Streams integration tests](https://github.com/serverless/serverless/pull/6848)
+- [Improvements on SQS docs as suggested on #6516](https://github.com/serverless/serverless/pull/6853)
+- [Schedule integration tests](https://github.com/serverless/serverless/pull/6851)
+- [Update event documentation](https://github.com/serverless/serverless/pull/6857)
+- [Upgrade groovy/gradle/plugin versions and dependencies (aws-groovy-gradle)](https://github.com/serverless/serverless/pull/6862)
+- [Upgrade gradle/plugins version and dependencies (aws-clojure-gradle)](https://github.com/serverless/serverless/pull/6861)
+- [IoT integration tests](https://github.com/serverless/serverless/pull/6837)
+- [Update https-proxy-agent dependency](https://github.com/serverless/serverless/pull/6866)
+- [Allow to use Ref in stream arn property](https://github.com/serverless/serverless/pull/6856)
+- [Add Tests for resolveFilePathsFromPatterns()](https://github.com/serverless/serverless/pull/6825)
+- [Integration tests improvements and fixes](https://github.com/serverless/serverless/pull/6867)
+- [Honor cfnRole in custom resources](https://github.com/serverless/serverless/pull/6871)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.54.0...v1.55.0)
+
+# 1.54.0 (2019-10-09)
+
+- [Fixing typos in variable names](https://github.com/serverless/serverless/pull/6746)
+- [Simplify GitHub Issue / PR templates](https://github.com/serverless/serverless/pull/6753)
+- [Capture and span docs](https://github.com/serverless/serverless/pull/6757)
+- [Automate keeping the sfe-next branch upto date](https://github.com/serverless/serverless/pull/6743)
+- [Update dependencies in aws-scala-sbt template](https://github.com/serverless/serverless/pull/6754)
+- [PR Template --> Hide useful scripts in expandable section](https://github.com/serverless/serverless/pull/6763)
+- [Doc refactoring and new features](https://github.com/serverless/serverless/pull/6758)
+- [doc: add cosmosdb events doc](https://github.com/serverless/serverless/pull/6794)
+- [Showcase how to use AWS SDK in sls helpers](https://github.com/serverless/serverless/pull/6788)
+- [Issue 4867 - Allowing InvokeBridge to find handleRequest method from super classes](https://github.com/serverless/serverless/pull/6791)
+- [Update Azure environment variable documentation](https://github.com/serverless/serverless/pull/6798)
+- [Update quick-start.md](https://github.com/serverless/serverless/pull/6802)
+- [Add Questions issue template that navigate users to forums](https://github.com/serverless/serverless/pull/6786)
+- [Update SLS Deploy Documentation](https://github.com/serverless/serverless/pull/6790)
+- [S3 Block Public Access](https://github.com/serverless/serverless/pull/6779)
+- [Documentation for CI/CD](https://github.com/serverless/serverless/pull/6767)
+- [Added logging Implementation for serverless openwhisk-nodejs template](https://github.com/serverless/serverless/pull/6806)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.53.0...v1.54.0)
+
+# 1.53.0 (2019-09-25)
+
+- [Respect logRetentionInDays in log group for websocket](https://github.com/serverless/serverless/pull/6658)
+- [Remove requirement for an existing AWS profile on sls package command](https://github.com/serverless/serverless/pull/6564)
+- [Adding docs on using captureError](https://github.com/serverless/serverless/pull/6670)
+- [Make minor correction to CONTRIBUTING.md.](https://github.com/serverless/serverless/pull/6682)
+- [[Docs] Added clarification on specifying SNS ARN](https://github.com/serverless/serverless/pull/6678)
+- [Fix regular expression escaping in aws plugin.](https://github.com/serverless/serverless/pull/6689)
+- [Update Azure quickstart and Azure Node.js project README](https://github.com/serverless/serverless/pull/6376)
+- [Update Azure CLI Reference Docs](https://github.com/serverless/serverless/pull/6380)
+- [Docs: update and clean up hello world app documentation](https://github.com/serverless/serverless/pull/6664)
+- [Update Azure provider guide docs](https://github.com/serverless/serverless/pull/6403)
+- [Update azure nodejs template](https://github.com/serverless/serverless/pull/6626)
+- [Move common test utils to @serverless/test](https://github.com/serverless/serverless/pull/6660)
+- [Add testing docs](https://github.com/serverless/serverless/pull/6696)
+- [Add aliyun provider](https://github.com/serverless/serverless/pull/4922)
+- [Update homepage in package.json to point to the docs](https://github.com/serverless/serverless/pull/6703)
+- [Fix typo](https://github.com/serverless/serverless/pull/6712)
+- [Truncated aliyun events menuText](https://github.com/serverless/serverless/pull/6708)
+- [Added Components Versions](https://github.com/serverless/serverless/pull/6702)
+- [Add commas when specifying Google roles for legibility](https://github.com/serverless/serverless/pull/6707)
+- [Add Theodo to the consultants section of the README](https://github.com/serverless/serverless/pull/6713)
+- [Remove incorrect AWS Access Role test instruction](https://github.com/serverless/serverless/pull/6686)
+- [Feat: add qualifier option to invoke command](https://github.com/serverless/serverless/pull/6711)
+- [Upgrade @serverless/test to v2](https://github.com/serverless/serverless/pull/6714)
+- [Allow plugins not in registry to be installed](https://github.com/serverless/serverless/pull/6719)
+- [PLAT-1599 Modularize interactive AWS setup](https://github.com/serverless/serverless/pull/6639)
+- [Documented url+zip deploy strategy for serverless-kubeless](https://github.com/serverless/serverless/pull/6721)
+- [Improve message for Windows users in AWS credentials setup](https://github.com/serverless/serverless/pull/6728)
+- [Fix custom resources install](https://github.com/serverless/serverless/pull/6742)
+- [Add support for MaximumBatchingWindowInSeconds property on stream events](https://github.com/serverless/serverless/pull/6741)
+- [Alibaba Docs Update](https://github.com/serverless/serverless/pull/6744)
+- [Update Jackson versions](https://github.com/serverless/serverless/pull/6748)
+- [Improvements to stats handling](https://github.com/serverless/serverless/pull/6749)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.52.2...v1.53.0)
+
+# 1.52.2 (2019-09-20)
+
+- [Lock graceful-fs at 4.2.1](https://github.com/serverless/serverless/pull/6717)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.52.1...v1.52.2)
+
+# 1.52.1 (2019-09-19)
+
+- [Change how enterprise plugin async init is preformed](https://github.com/serverless/serverless/pull/6687)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.52.0...v1.52.1)
+
+# 1.52.0 (2019-09-11)
+
+- [Add initialize lifecycle event](https://github.com/serverless/serverless/pull/6601)
+- [Fix API Gateway name not being resolved API Gateway Resource not in main stack](https://github.com/serverless/serverless/pull/6611)
+- [Support optional CloudWatch logs writing for custom resource lambdas](https://github.com/serverless/serverless/pull/6608)
+- [Ensure inquirer's chalk override works through symlinks](https://github.com/serverless/serverless/pull/6616)
+- [Fixes aws partition name in apigateway resourceArn to support GovCloud](https://github.com/serverless/serverless/pull/6615)
+- [Do not retry on AWS 403 errors](https://github.com/serverless/serverless/pull/6618)
+- [Fix overriding package settings after packaging function](https://github.com/serverless/serverless/pull/6606)
+- [null](https://github.com/serverless/serverless/pull/1)
+- [Download templates from a Bitbucket Server](https://github.com/serverless/serverless/pull/6604)
+- [Update Readme to replace SC5.io with nordcloud.com](https://github.com/serverless/serverless/pull/6622)
+- [Add plugin hooks to define config variable getters](https://github.com/serverless/serverless/pull/6566)
+- [Allow for tail on GetAtt parsing](https://github.com/serverless/serverless/pull/6624)
+- [Resolve empty config object for an empty config file](https://github.com/serverless/serverless/pull/6631)
+- [Remove enterprise from upgrade notes](https://github.com/serverless/serverless/pull/6625)
+- [Add support for Lambda@Edge](https://github.com/serverless/serverless/pull/6512)
+- [Tests for interactive CLI ](https://github.com/serverless/serverless/pull/6635)
+- [Support functions without events in CloudFront remove logging](https://github.com/serverless/serverless/pull/6645)
+- [Add support for Condition and DependsOn](https://github.com/serverless/serverless/pull/6642)
+- [Improve plugin loading error reporting](https://github.com/serverless/serverless/pull/6646)
+- [Use hooks to log Lambda@Edge removal reminder](https://github.com/serverless/serverless/pull/6652)
+- [Quickfix "too many open files" issue on Windows](https://github.com/serverless/serverless/pull/6653)
+- [Bump sfe plugin!](https://github.com/serverless/serverless/pull/6654)
+- [replace use of tenant with org in docs & templates](https://github.com/serverless/serverless/pull/6655)
+- [Update insights.md](https://github.com/serverless/serverless/pull/6663)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.51.0...v1.52.0)
+
+# 1.51.0 (2019-08-28)
+
+- [AWS API Gateway customize log level](https://github.com/serverless/serverless/pull/6542)
+- [Fix retained layer logical id](https://github.com/serverless/serverless/pull/6545)
+- [add docs for options misused in #6546](https://github.com/serverless/serverless/pull/6547)
+- [Fix: Remove Bluebird promise warning when NODE_ENV=development](https://github.com/serverless/serverless/pull/6556)
+- [AWS API Gateway set value of provider.logRetentionInDays for log group expiration](https://github.com/serverless/serverless/pull/6548)
+- [Fix support for external websocketApiId](https://github.com/serverless/serverless/pull/6543)
+- [Ensure AWS SDK is mocked for tests that call it](https://github.com/serverless/serverless/pull/6571)
+- [do not log warnings on empty arrays](https://github.com/serverless/serverless/pull/6554)
+- [API Gateway enable/disable access/execution logs](https://github.com/serverless/serverless/pull/6578)
+- [Allow unresolved Rest API id with provider.tags setting](https://github.com/serverless/serverless/pull/6586)
+- [Improve error reporting](https://github.com/serverless/serverless/pull/6585)
+- [Fix exclusion of Yarn logs in Lambda packages](https://github.com/serverless/serverless/pull/6589)
+- [Improve Rest API id resolution for SDK updates](https://github.com/serverless/serverless/pull/6587)
+- [Fix ServerlessError handling](https://github.com/serverless/serverless/pull/6588)
+- [Style updates for docs](https://github.com/serverless/serverless/pull/6596)
+- [PLAT-1629 - Fix custom resource lambda naming](https://github.com/serverless/serverless/pull/6599)
+- [Ensure API Gateway CloudWatch role is setup via custom resource](https://github.com/serverless/serverless/pull/6591)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.50.1...v1.51.0)
+
+# 1.50.1 (2019-08-26)
+
+- [add `interactiveCli:end lifecycle hook & bump dashboard plugin dep`](https://github.com/serverless/serverless/pull/6549)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.50.0...v1.50.1)
+
+# 1.50.0 (2019-08-14)
+
+- [Render event information in aws-ruby handler template](https://github.com/serverless/serverless/pull/6478)
+- [Adding ap-south-1 to supported region list](https://github.com/serverless/serverless/pull/6473)
+- [Fix invalid path char in GoLang packaging on Windows](https://github.com/serverless/serverless/pull/6484)
+- [Multiple event definitions for existing S3 bucket](https://github.com/serverless/serverless/pull/6477)
+- [Remove Enterprise and Platform from log info](https://github.com/serverless/serverless/pull/6501)
+- [Allow AWS Subscription Filters to be reordered](https://github.com/serverless/serverless/pull/6471)
+- [Check if more than 1 existing bucket is configured](https://github.com/serverless/serverless/pull/6506)
+- [Multiple event definitions for existing Cognito User Pools](https://github.com/serverless/serverless/pull/6491)
+- [Improve error handling](https://github.com/serverless/serverless/pull/6502)
+- [Add PreTokenGeneration & UserMigration Cognito triggers](https://github.com/serverless/serverless/pull/6511)
+- [Add Twilio Runtime to create templates](https://github.com/serverless/serverless/pull/6467)
+- [Update kubeless guide docs](https://github.com/serverless/serverless/pull/6513)
+- [Fix ImportValue handling in existing S3 buckets #6416](https://github.com/serverless/serverless/pull/6417)
+- [Improve interactive AWS creds flow](https://github.com/serverless/serverless/pull/6449)
+- [Retain existing Cognito User Pool config](https://github.com/serverless/serverless/pull/6519)
+- [Switch integration tests runner from Jest to Mocha](https://github.com/serverless/serverless/pull/6517)
+- [Change strategy for deciding to deploy new function.](https://github.com/serverless/serverless/pull/6520)
+- [Fix support for EventBridge partner event sources](https://github.com/serverless/serverless/pull/6518)
+- [fix(GITHUB-6525-5172): Rewrite copyDirContentsSyncAllow to call fs-extra::copySync() on the directories instead of calling it on the files to copy individually](https://github.com/serverless/serverless/pull/6526)
+- [Do not crash CI on Coveralls error](https://github.com/serverless/serverless/pull/6535)
+- [Only add merged IAM policies for Lambda when they will be used (#6262)](https://github.com/serverless/serverless/pull/6534)
+- [Setup APIGW CloudWatch role via custom resource](https://github.com/serverless/serverless/pull/6531)
+- [Fix deploy command if package.individually set on a function-level](https://github.com/serverless/serverless/pull/6537)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.49.0...v1.50.0)
+
+# 1.49.0 (2019-07-30)
+
+- [Remove hard coded partition when validating subscription filters](https://github.com/serverless/serverless/pull/6446)
+- [Fix cross-account/cross-regions SNS subscriptions to topics with the same name](https://github.com/serverless/serverless/pull/6445)
+- [Add EventBridge event source](https://github.com/serverless/serverless/pull/6397)
+- [Update invoke-local.md documentation](https://github.com/serverless/serverless/pull/6466)
+- [Doc new insights](https://github.com/serverless/serverless/pull/6469)
+- [New error insight alert doc update to reflect per execution inspection](https://github.com/serverless/serverless/pull/6472)
+- [Existing S3 bucket fixes](https://github.com/serverless/serverless/pull/6456)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.4...v1.49.0)
+
+# 1.48.4 (2019-07-25)
+
+- [Add note for supported version of existing bucket feature](https://github.com/serverless/serverless/pull/6435)
+- [Support in interactive flow for SFE provided AWS creds](https://github.com/serverless/serverless/pull/6440)
+- [Fix sls package regression caused by cred fail fast](https://github.com/serverless/serverless/pull/6447)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.3...v1.48.4)
+
+# 1.48.3 (2019-07-23)
+
+- [Issue 6364 request path](https://github.com/serverless/serverless/pull/6422)
+- [Remove spaces from Cognito Pool Name](https://github.com/serverless/serverless/pull/6419)
+- [Use slss.io for links](https://github.com/serverless/serverless/pull/6428)
+- [Fix regression in EC2 & CodeBuild caused by missing creds check](https://github.com/serverless/serverless/pull/6427<Paste>)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.2...v1.48.3)
+
+# 1.48.2 (2019-07-19)
+
+- [Fix issues in post install and pre uninstall scripts](https://github.com/serverless/serverless/pull/6415)
+-
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.1...v1.48.2)
+
+# 1.48.1 (2019-07-19)
+
+- [Use Python3 for Python in interactive setup](https://github.com/serverless/serverless/pull/6406)
+- [Fixing broken link for Node install.](https://github.com/serverless/serverless/pull/6405)
+- [Added Cloud Build option for serverless deploy guide](https://github.com/serverless/serverless/pull/6401)
+- [Changed AWS subscription filters to use function object name](https://github.com/serverless/serverless/pull/6402)
+- [Strip trailing comment when renaming a service](https://github.com/serverless/serverless/pull/6408)
+- [Improve tracking reliability](https://github.com/serverless/serverless/pull/6410)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.48.0...v1.48.1)
+
+# 1.48.0 (2019-07-18)
+
+- [SFE plugin & sdk version info](https://github.com/serverless/serverless/pull/6344)
+- [Allow optionally splitting SSM parameter value for StringList type](https://github.com/serverless/serverless/pull/6365)
+- [Cross region SNS Trigger](https://github.com/serverless/serverless/pull/6366)
+- [Fix typo](https://github.com/serverless/serverless/pull/6379)
+- [Add SLS_NO_WARNINGS env var](https://github.com/serverless/serverless/pull/6345)
+- [Fix async S3 test](https://github.com/serverless/serverless/pull/6385)
+- [Fix AWS secret access key validation in interactive CLI](https://github.com/serverless/serverless/pull/6387)
+- [Improve post install message](https://github.com/serverless/serverless/pull/6388)
+- [PLAT-1385 Ensure expected service name in interactively created project](https://github.com/serverless/serverless/pull/6386)
+- [Updated gradle and kotlin.js gradle plugin fixing #5598](https://github.com/serverless/serverless/pull/6372)
+- [actually update the right aws creds link interactive setup aws](https://github.com/serverless/serverless/pull/6395)
+- [Integrating Components](https://github.com/serverless/serverless/pull/6350)
+- [Add support for existing Cognito User Pools](https://github.com/serverless/serverless/pull/6362)
+- [Add the missing colon](https://github.com/serverless/serverless/pull/6398)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.47.0...v1.48.0)
+
+# 1.47.0 (2019-07-10)
+
+- [Add Onica as a Consultant](https://github.com/serverless/serverless/pull/6300)
+- [Correct typo](https://github.com/serverless/serverless/pull/6301)
+- [Adapt new ESLint and Prettier configuration](https://github.com/serverless/serverless/pull/6284)
+- [Ensure deploy is triggered in CI](https://github.com/serverless/serverless/pull/6306)
+- [Remove jsbeautify configuration](https://github.com/serverless/serverless/pull/6309)
+- [Improve PR template](https://github.com/serverless/serverless/pull/6308)
+- [Allow users to specify API Gateway Access Log format](https://github.com/serverless/serverless/pull/6299)
+- [Fix service.provider.region resolution](https://github.com/serverless/serverless/pull/6317)
+- [Add null as a consultant](https://github.com/serverless/serverless/pull/6323)
+- [Update very minor typo in credentials.md](https://github.com/serverless/serverless/pull/6321)
+- [Expose non-errors in informative way](https://github.com/serverless/serverless/pull/6318)
+- [Fix async leaks detection conditional](https://github.com/serverless/serverless/pull/6319)
+- [Typo fix in AWS ALB event documentation](https://github.com/serverless/serverless/pull/6325)
+- [Websockets: fix passing log group ARN](https://github.com/serverless/serverless/pull/6310)
+- [Specify invoke local option in the guide](https://github.com/serverless/serverless/pull/6327)
+- [Update Webpack version and usage of aws-nodejs-ecma-script template](https://github.com/serverless/serverless/pull/6324)
+- [Make ALB event target group names unique](https://github.com/serverless/serverless/pull/6322)
+- [Improve Travis CI conf](https://github.com/serverless/serverless/pull/6330)
+- [Support for Github Entreprise in sls create](https://github.com/serverless/serverless/pull/6332)
+- [Merge patch 1.46.1 release artifacts back into master](https://github.com/serverless/serverless/pull/6343)
+- [Add support for existing S3 buckets](https://github.com/serverless/serverless/pull/6290)
+- [PLAT-1202 - Interactive `serverless` create](https://github.com/serverless/serverless/pull/6294)
+- [PLAT-1091 - message in `npm i` output about the `serverless` quickstart command](https://github.com/serverless/serverless/pull/6238)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.46.1...v1.47.0)
+
+# 1.46.1 (2019-06-28)
+
+- [Fix service.provider.region resolution](https://github.com/serverless/serverless/pull/6317)
+- [Ensure deploy is triggered in CI](https://github.com/serverless/serverless/pull/6306)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.46.0...v1.46.1)
+
 # 1.46.0 (2019-06-26)
 
 - [Fix formatting issue with Markdown link](https://github.com/serverless/serverless/pull/6228)

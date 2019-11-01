@@ -1,0 +1,34 @@
+# Welcome to Serverless!
+#
+# For full config options, check out the Alibaba Cloud Function Compute
+# plugin docs:
+#    https://github.com/aliyun/serverless-aliyun-function-compute
+#
+# For documentation on Alibaba Cloud Function Compute itself:
+#    https://serverless.aliyun.com
+
+# Update the service name below with your own service name
+
+service: aliyun-nodejs
+
+provider:
+  name: aliyun
+  runtime: nodejs8
+  credentials: ~/.aliyuncli/credentials # path must be absolute
+
+plugins:
+  - serverless-aliyun-function-compute
+
+package:
+  exclude:
+    - package-lock.json
+    - .gitignore
+    - .git/**
+
+functions:
+  hello:
+    handler: index.hello
+    events:
+      - http:
+          path: /foo
+          method: get

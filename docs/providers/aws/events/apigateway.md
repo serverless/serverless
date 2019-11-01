@@ -42,6 +42,8 @@ layout: Doc
       - [Using Status Codes](#using-status-codes)
       - [Custom Status Codes](#custom-status-codes)
   - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+  - [Accessing private resources using VPC Link](#accessing-private-resources-using-vpc-link)
+  - [Mock Integration](#mock-integration)
   - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
     - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
     - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
@@ -798,7 +800,8 @@ This method is more complicated and involves a lot more configuration of the `ht
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
     "user": ""
   },
-  "stageVariables": {}
+  "stageVariables": {},
+  "requestPath": "/request/path"
 }
 ```
 
@@ -822,6 +825,7 @@ Both templates give you access to the following properties you can access with t
 - path
 - identity
 - stageVariables
+- requestPath
 
 #### Custom Request Templates
 
@@ -1111,6 +1115,30 @@ We can use following configuration to have an http-proxy vpc-link integration.
     request:
       uri: http://www.github.com/v1/repository
       method: get
+```
+
+## Mock Integration
+
+Mocks allow developers to offer simulated methods for an API, with this, responses can be defined directly, without the need for a integration backend. A simple mock response example is provided below:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          cors: true
+          method: get
+          integration: mock
+          request:
+            template:
+              application/json: '{"statusCode": 200}'
+          response:
+            template: $input.path('$')
+            statusCodes:
+              201:
+                pattern: ''
 ```
 
 ## Share API Gateway and API Resources
@@ -1524,3 +1552,16 @@ provider:
     restApi:
       format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
 ```
+
+The default API Gateway log level will be INFO. You can change this to error with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      level: ERROR
+```
+
+Valid values are INFO, ERROR.

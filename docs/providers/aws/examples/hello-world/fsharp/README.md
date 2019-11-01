@@ -1,6 +1,6 @@
 <!--
 title: Hello World F# Example
-menuText: Hello World F# Example
+menuText: F#
 description: Create a F# Hello World Lambda function
 layout: Doc
 -->

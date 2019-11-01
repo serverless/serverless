@@ -1,6 +1,6 @@
 <!--
 title: Serverless Getting Started Guide
-menuText: Getting Started
+menuText: Get Started
 layout: Doc
 menuOrder: 0
 menuItems:
@@ -12,110 +12,34 @@ menuItems:
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
   - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
   - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
+  - {menuText: Alibaba Guide , path: /framework/docs/providers/aliyun/guide/quick-start}
 -->
 
-# Getting Started with Serverless
+# Getting Started with the Serverless Framework and AWS
 
-First things first, let's get the Serverless framework installed on your machine.
+First things first, let's get the Serverless Framework open source CLI installed on your machine.
 
 ```bash
-# Installing the serverless cli
+# Install the serverless cli
 npm install -g serverless
-# Updating serverless from a previous version of serverless
+
+# Or, update the serverless cli from a previous version
 npm update -g serverless
 ```
 
-Next up, it's time to choose where you'd like your serverless service to run.
+If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to do that first.
 
-## Choose your compute provider
+If you already registered for a [Serverless Framework Dashboard](https://dashboard.serverless.com) account, login to your account from the CLI.
 
-<div class="docsSections">
-  <a href="/framework/docs/providers/aws/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/aws-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Amazon Web Services<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/azure/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/azure-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Azure Functions<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/openwhisk/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/openwhisk-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Apache OpenWhisk<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/google/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/gcf-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Google Cloud Functions<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/kubeless/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless-logos-black.png"
-          width="250" draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Kubeless<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/spotinst/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png"
-          width="250" draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Spotinst<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/fn/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Fn<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/cloudflare/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png"
-          width="250" draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Cloudflare Workers<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-</div>
+```bash
+serverless login
+```
+
+Once you have the Serverless Framework installed, simply run the `serverless` command and follow the prompts. In no time you will have deployed your first serverless app using the Serverless Framework [CLI](./providers/) and configured your [Serverless Framework Dashboard](./dashboard/) account to automatically monitor your serverless app, generate alerts, and much more. If you already have an existing Serverless Framework Dashboard account, you'll be prompted for your organization and application as well.
+
+```bash
+# Create and deploy a new service/project
+serverless
+```
+
+Want to try out the Serverless Framework on a different cloud provider? Click on any of the cloud provider quick start guides, to the left, to get started.

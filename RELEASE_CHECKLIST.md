@@ -9,6 +9,9 @@ More info about our release process can be found in the [`RELEASE_PROCESS.md`](.
 - [ ] Look through all open issues and PRs (if any) of that milestone and close them / move them to another
       milestone if still open
 - [ ] Create a new branch for the release
+- [ ] Bump version ranges of _all_ dependencies to latest supported versions (e.g. if latest version of a dependency is `2.3.5`, range in a `package.json` is `^2.2.4` then it should be updated to `^2.3.5`)  
+       _Note: Unfortunately there seems no reliable utility to automate that (there's a [request at `npm-check-updates`](https://github.com/tjunnone/npm-check-updates/issues/581))  
+       If you handle installation of dependencies through [npm-cross-link](https://github.com/medikoo/npm-cross-link#npm-cross-link) then [`--bump-deps`](https://github.com/medikoo/npm-cross-link#general-options) option will bump version ranges as expected_
 - [ ] Bump the version number in `package.json`
 - [ ] Run `./scripts/prs-since-last-tag <OLD-TAG>`
 - [ ] Save the terminal output to your clipboard

@@ -1,33 +1,20 @@
 'use strict';
 
-const path = require('path');
-const fse = require('fs-extra');
 const BbPromise = require('bluebird');
-const chalk = require('chalk');
-const { execSync } = require('../child-process');
-const { readYamlFile, writeYamlFile } = require('../fs');
+const CloudWatchLogsSdk = require('aws-sdk/clients/cloudwatchlogs');
 
 const logger = console;
 
 const region = 'us-east-1';
+const cloudWatchLogsSdk = new CloudWatchLogsSdk({ region });
 
 const testServiceIdentifier = 'integ-test';
-
-const serverlessExec = path.resolve(__dirname, '..', '..', '..', 'bin', 'serverless');
 
 const serviceNameRegex = new RegExp(`${testServiceIdentifier}-d+`);
 
 function getServiceName() {
   const hrtime = process.hrtime();
   return `${testServiceIdentifier}-${hrtime[1]}`;
-}
-
-function deployService() {
-  execSync(`${serverlessExec} deploy`);
-}
-
-function removeService() {
-  execSync(`${serverlessExec} remove`);
 }
 
 function replaceEnv(values) {
@@ -47,51 +34,21 @@ function replaceEnv(values) {
   return originals;
 }
 
-function createTestService(
-  tmpDir,
-  options = {
-    // Either templateName or templateDir have to be provided
-    templateName: null, // Generic template to use (e.g. 'aws-nodejs')
-    templateDir: null, // Path to custom pre-prepared service template
-    serverlessConfigHook: null, // Eventual hook that allows to customize serverless config
-  }
-) {
-  const serviceName = getServiceName();
-
-  fse.mkdirsSync(tmpDir);
-  process.chdir(tmpDir);
-
-  if (options.templateName) {
-    // create a new Serverless service
-    execSync(`${serverlessExec} create --template ${options.templateName}`);
-  } else if (options.templateDir) {
-    fse.copySync(options.templateDir, tmpDir, { clobber: true, preserveTimestamps: true });
-  } else {
-    throw new Error("Either 'templateName' or 'templateDir' options have to be provided");
-  }
-
-  const serverlessFilePath = path.join(tmpDir, 'serverless.yml');
-  const serverlessConfig = readYamlFile(serverlessFilePath);
-  // Ensure unique service name
-  serverlessConfig.service = serviceName;
-  if (options.serverlessConfigHook) options.serverlessConfigHook(serverlessConfig);
-  writeYamlFile(serverlessFilePath, serverlessConfig);
-
-  process.env.TOPIC_1 = `${serviceName}-1`;
-  process.env.TOPIC_2 = `${serviceName}-1`;
-  process.env.BUCKET_1 = `${serviceName}-1`;
-  process.env.BUCKET_2 = `${serviceName}-2`;
-  process.env.COGNITO_USER_POOL_1 = `${serviceName}-1`;
-  process.env.COGNITO_USER_POOL_2 = `${serviceName}-2`;
-
-  return serverlessConfig;
-}
-
-function getFunctionLogs(functionName) {
-  const logs = execSync(`${serverlessExec} logs --function ${functionName} --noGreeting true`);
-  const logsString = Buffer.from(logs, 'base64').toString();
-  process.stdout.write(logsString);
-  return logsString;
+/**
+ * Cloudwatch logs when turned on, are usually take some time for being effective
+ * This function allows to confirm that new setting (turned on cloudwatch logs)
+ * is effective after stack deployment
+ */
+function confirmCloudWatchLogs(logGroupName, trigger, timeout = 60000) {
+  const startTime = Date.now();
+  return trigger()
+    .then(() => cloudWatchLogsSdk.filterLogEvents({ logGroupName }).promise())
+    .then(result => {
+      if (result.events.length) return result.events;
+      const duration = Date.now() - startTime;
+      if (duration > timeout) return [];
+      return confirmCloudWatchLogs(logGroupName, trigger, timeout - duration);
+    });
 }
 
 function persistentRequest(...args) {
@@ -121,46 +78,18 @@ function persistentRequest(...args) {
   });
 }
 
-const skippedWithNotice = [];
-
-function skipWithNotice(context, reason, afterCallback) {
-  if (!context || typeof context.skip !== 'function') {
-    throw new TypeError('Passed context is not a valid mocha suite');
-  }
-  if (process.env.CI) return; // Do not tolerate skips in CI environment
-  skippedWithNotice.push({ context, reason });
-  process.stdout.write(chalk.yellow(`\n Skipped due to: ${chalk.red(reason)}\n\n`));
-  if (afterCallback) {
-    try {
-      // Ensure teardown is called
-      // (Mocha fails to do it -> https://github.com/mochajs/mocha/issues/3740)
-      afterCallback();
-    } catch (error) {
-      process.stdout.write(chalk.error(`after callback crashed with: ${error.stack}\n`));
-    }
-  }
-  context.skip();
-}
-
-function skipOnWindowsDisabledSymlinks(error, context, afterCallback) {
-  if (error.code !== 'EPERM' || process.platform !== 'win32') return;
-  skipWithNotice(context, 'Missing admin rights to create symlinks', afterCallback);
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = {
   logger,
   region,
+  confirmCloudWatchLogs,
   testServiceIdentifier,
-  serverlessExec,
   serviceNameRegex,
   getServiceName,
-  deployService,
-  removeService,
   replaceEnv,
-  createTestService,
-  getFunctionLogs,
   persistentRequest,
-  skippedWithNotice,
-  skipWithNotice,
-  skipOnWindowsDisabledSymlinks,
+  wait,
 };

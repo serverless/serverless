@@ -16,7 +16,7 @@ layout: Doc
 
 [Application Load Balancers](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) can be used to re-route requests when certain traffic patterns are met. While traffic can be routed to services such as EC2 it [can also be routed to Lambda functions](https://aws.amazon.com/de/blogs/networking-and-content-delivery/lambda-functions-as-targets-for-application-load-balancers/) which can in turn be used process incoming requests.
 
-The Serverless Framework makes it possible to setup the connection between Application Load Balancers and Lamdba functions with the help of the `alb` event.
+The Serverless Framework makes it possible to setup the connection between Application Load Balancers and Lambda functions with the help of the `alb` event.
 
 ## Event definition
 
