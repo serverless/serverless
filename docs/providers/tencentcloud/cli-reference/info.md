@@ -1,7 +1,7 @@
 
 # Tencent-scf - Info
 
-Displays information about the deployed service.
+Displays information about the deployed service, such as runtime, region, stage and function list.
 
 ```bash
 serverless info
