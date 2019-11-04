@@ -3,7 +3,7 @@
 
 Tencent Serverless Cloud Functions can create function based API endpoints through API Gateway.
 
-It might be helpful to read the Tencent Serverless Cloud Functions [Trigger docs](https://intl.cloud.tencent.com/document/product/583/12513) to learn the full functionality.
+It might be helpful to read the Tencent Serverless Cloud Functions [API Gateway Trigger](https://intl.cloud.tencent.com/document/product/583/12513) to learn the full functionality.
 
 ## HTTP Endpoint
 
