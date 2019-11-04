@@ -93,6 +93,7 @@ functions:
            parameters:
              stageName: release
              serviceId:
+             integratedResponse: true
              httpMethod: ANY
 ```
 
