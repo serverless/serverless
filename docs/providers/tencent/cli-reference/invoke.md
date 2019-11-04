@@ -46,6 +46,5 @@ Example of `event.json`
   "resource": "/",
   "path": "/",
   "httpMethod": "GET"
-  //  etc. //
 }
 ```
