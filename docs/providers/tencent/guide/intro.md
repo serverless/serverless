@@ -54,13 +54,20 @@ A **Service** is the Framework's unit of organization. You can think of it as a 
 service: users
 
 functions: # Your "Functions"
-  usersCreate:
+  function_one:
     events: # The "Events" that trigger this function
-      - http: post users/create
-  usersDelete:
+      - timer:
+          name: timer
+          parameters:
+            cronExpression: '0 */1 * * *'
+            enable: false
+  function_two:
     events:
-      - http: delete users/delete
-
+      - apigw:
+         name: hello_world_apigw
+         parameters:
+           stageName: release
+           httpMethod: ANY
 ```
 
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
@@ -73,6 +80,6 @@ You can overwrite or extend the functionality of the Framework using **Plugins**
 # serverless.yml
 
 plugins:
-  - serverless-offline
+  - serverless-tencent-scf
   - serverless-secrets
 ```
