@@ -28,10 +28,6 @@ serverless create --template-url https://github.com/serverless/serverless/tree/m
 - `--path` or `-p` The path where the service should be created.
 - `--name` or `-n` the name of the service in `serverless.yml`.
 
-## Provided lifecycle events
-
-- `create:create`
-
 ## Available Templates
 
 To see a list of available templates run `serverless create --help`
