@@ -10,7 +10,7 @@ This is the main method for doing deployments with the Serverless Framework:
 serverless deploy
 ```
 
-Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Amazon Web Services.
+Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Tencent Cloud.
 
 **Note:** You can always enforce a deployment using the `--force` option, or specify a different configuration file name with the the `--config` option.
 
