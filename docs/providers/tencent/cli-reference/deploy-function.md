@@ -1,4 +1,3 @@
-
 # Tencent-scf - Deploy Function
 
 The `sls deploy function` command deploys an individual SCF function when there is any change in the function. This is a much faster way of deploying changes in code.

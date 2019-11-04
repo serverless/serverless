@@ -1,4 +1,3 @@
-
 # Tencent-scf - Deploy List
 
 The `sls deploy list [functions]` command will list information about your deployments.

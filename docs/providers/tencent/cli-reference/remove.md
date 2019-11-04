@@ -1,4 +1,3 @@
-
 # Tencent-scf - Remove
 
 The `sls remove` command will remove the deployed service, defined in your current working directory, from the provider.

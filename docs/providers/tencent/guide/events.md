@@ -1,4 +1,3 @@
-
 # Tencent-SCF - Events
 
 Simply put, events are the things that trigger your functions to run.

@@ -1,4 +1,3 @@
-
 # Tencent-scf - Create
 
 Creates a new service in the current working directory based on the provided template.
@@ -20,6 +19,7 @@ serverless create --template tencent-nodejs --path myService
 ```bash
 serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/tencent-nodejs --path myService
 ```
+
 ## Options
 
 - `--template` or `-t` The name of one of the available templates. **Required if --template-url and --template-path are not present**.

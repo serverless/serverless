@@ -1,4 +1,3 @@
-
 # Tencent-SCF Variables
 
 Variables allow users to dynamically replace config values in `serverless.yml` config. They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
@@ -24,5 +23,3 @@ provider:
     variables:
       ENV_FIRST: ${env:TENCENTCLOUD_APPID}
 ```
-
-

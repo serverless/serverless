@@ -1,4 +1,3 @@
-
 # CMQ (Cloud Message Queue)
 
 ## Using a pre-existing topic
@@ -11,11 +10,11 @@ functions:
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
-     - cmq:
-         name: cmq_trigger
-         parameters:
-           name: test-topic
-           enable: true
+      - cmq:
+          name: cmq_trigger
+          parameters:
+            name: test-topic
+            enable: true
 ```
 
 **Note:** CMQ triggers are enabled by default.

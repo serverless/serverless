@@ -1,4 +1,3 @@
-
 # Tencent SCF - Introduction
 
 The Serverless Framework helps you develop and deploy your Tencent SCF (Serverless Cloud Function), along with the Tencent infrastructure resources they require. It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
@@ -64,10 +63,10 @@ functions: # Your "Functions"
   function_two:
     events:
       - apigw:
-         name: hello_world_apigw
-         parameters:
-           stageName: release
-           httpMethod: ANY
+          name: hello_world_apigw
+          parameters:
+            stageName: release
+            httpMethod: ANY
 ```
 
 When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.

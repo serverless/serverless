@@ -1,4 +1,3 @@
-
 # Tencent-scf - Install
 
 Installs a service from a GitHub URL in the current working directory.

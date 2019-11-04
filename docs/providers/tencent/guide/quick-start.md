@@ -1,4 +1,3 @@
-
 # Quick Start
 
 Complete the steps in this guide to install the Serverless Framework open-source CLI and deploy a sample Service on Tencent Cloud that reports deployment information and operational metrics to the Serverless Framework.
@@ -52,7 +51,7 @@ Now that you’ve completed your setup, let’s create and deploy a serverless S
 
 1. Use the Serverless Framework open-source CLI to create a new Service with `tencent-nodejs`template.
 
-```sh
+````sh
 # Create a new Serverless service/project
 $ serverless create --template tencent-nodejs --path my-service
 
@@ -62,7 +61,7 @@ $ serverless create --template tencent-nodejs --path my-service
 # Change into the newly created directory
 $ cd my-service
 $ npm install
-```
+````
 
 ### Set up the credentials
 
@@ -88,13 +87,13 @@ functions:
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
-        - apigw:
-           name: hello_world_apigw
-           parameters:
-             stageName: release
-             serviceId:
-             integratedResponse: true
-             httpMethod: ANY
+      - apigw:
+          name: hello_world_apigw
+          parameters:
+            stageName: release
+            serviceId:
+            integratedResponse: true
+            httpMethod: ANY
 ```
 
 ### Deploy the Service
@@ -104,6 +103,7 @@ Use this command to deploy your service for the first time and after you make ch
 ```bash
 serverless deploy
 ```
+
 More information in [deploy command](../cli-reference/deploy.md)
 
 ### Test your Service
@@ -121,6 +121,7 @@ Invokes a Function and returns logs.
 ```bash
 serverless invoke -f hello
 ```
+
 More information in [invoke command](../cli-reference/invoke.md)
 
 ### Fetch the Function Logs
@@ -135,7 +136,7 @@ serverless logs -f hello -t
 
 ### Remove your Service
 
-If at any point you no longer need your Service, you can run the following command to remove the Functions, Events and Resources that were created. This will delete the resources you created and ensure that you don't incur any unexpected charges. 
+If at any point you no longer need your Service, you can run the following command to remove the Functions, Events and Resources that were created. This will delete the resources you created and ensure that you don't incur any unexpected charges.
 
 ```sh
 serverless remove

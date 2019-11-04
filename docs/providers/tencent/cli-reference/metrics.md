@@ -1,4 +1,3 @@
-
 # Tencent-scf - Metrics
 
 Lets you watch the metrics of a specific function.

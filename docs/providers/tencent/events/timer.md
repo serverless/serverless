@@ -1,4 +1,3 @@
-
 # Timer
 
 The following config will attach a timer trigger and causes the function `function_one` to be called every 5 seconds. The configuration allows you to attach multiple timer triggers to the same function. You can use the `cron` syntax. Take a look at the [Timer documentation](https://intl.cloud.tencent.com/document/product/583/9708) for more details.
@@ -39,7 +38,7 @@ functions:
 
 ## Specify Name of Timer
 
-Name can be specified for a timer. 
+Name can be specified for a timer.
 
 ```yaml
 events:
@@ -53,9 +52,9 @@ When a timer trigger triggers a function, the following data structures are enca
 
 ```json
 {
-    "Type":"timer",
-    "TriggerName":"EveryDay",
-    "Time":"2019-02-21T11:49:00Z",
-    "Message":"user define msg body"
+  "Type": "timer",
+  "TriggerName": "EveryDay",
+  "Time": "2019-02-21T11:49:00Z",
+  "Message": "user define msg body"
 }
 ```

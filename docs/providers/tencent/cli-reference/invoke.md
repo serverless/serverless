@@ -1,4 +1,3 @@
-
 # Tencent-scf - Invoke
 
 Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
@@ -12,7 +11,7 @@ serverless invoke --function functionName
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
 - `--stage` or `-s` The stage in your service you want to invoke your function in.
 - `--region` or `-r` The region in your stage that you want to invoke your function in.
-- `--data` or `-d` String data to be passed as an event to your function. 
+- `--data` or `-d` String data to be passed as an event to your function.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
 
 ## Examples

@@ -1,4 +1,3 @@
-
 # CKafka (Cloud Kafka)
 
 ## Using a pre-existing CKafka topic
@@ -11,14 +10,14 @@ functions:
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
-     - ckafka:
-         name: ckafka_trigger
-         parameters:
-           name: ckafka-2o10hua5 # ckafka-id
-           topic: test
-           maxMsgNum: 999
-           offset: latest
-           enable: true
+      - ckafka:
+          name: ckafka_trigger
+          parameters:
+            name: ckafka-2o10hua5 # ckafka-id
+            topic: test
+            maxMsgNum: 999
+            offset: latest
+            enable: true
 ```
 
 **Note:** CKafka triggers are enabled by default, and the consumer of CKafka will start to get the message from the `latest` offset.
@@ -33,8 +32,8 @@ When the specified CKafka topic receives a message, the backend consumer module 
     {
       "Ckafka": {
         "topic": "test-topic",
-        "partition":1,
-        "offset":36,
+        "partition": 1,
+        "offset": 36,
         "msgKey": "None",
         "msgBody": "Hello from Ckafka!"
       }
@@ -42,8 +41,8 @@ When the specified CKafka topic receives a message, the backend consumer module 
     {
       "Ckafka": {
         "topic": "test-topic",
-        "partition":1,
-        "offset":37,
+        "partition": 1,
+        "offset": 37,
         "msgKey": "None",
         "msgBody": "Hello from Ckafka again!"
       }

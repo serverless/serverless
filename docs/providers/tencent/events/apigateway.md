@@ -1,4 +1,3 @@
-
 # API Gateway
 
 Tencent Serverless Cloud Functions can create function based API endpoints through API Gateway.
@@ -18,13 +17,13 @@ functions:
     runtime: Nodejs8.9
 
     events:
-        - apigw:
-           name: hello_world_apigw
-           parameters:
-             stageName: release
-             serviceId:  # if you don't specify an exsiting serviceId, a new service will be created by default.
-             httpMethod: POST
-             integratedResponse: true # enable integrated response
+      - apigw:
+          name: hello_world_apigw
+          parameters:
+            stageName: release
+            serviceId: # if you don't specify an exsiting serviceId, a new service will be created by default.
+            httpMethod: POST
+            integratedResponse: true # enable integrated response
 ```
 
 ```javascript
@@ -35,9 +34,9 @@ exports.main_handler = async (event, context, callback) => {
     isBase64Encoded: false,
     statusCode: 200,
     headers: { 'Content-Type': 'text/html' },
-    body: 'hello world'
-  }
-}
+    body: 'hello world',
+  };
+};
 ```
 
 ## Event message structures of integration request for API Gateway trigger
@@ -70,7 +69,7 @@ When an API Gateway trigger receives a request, it sends the event data to the b
   "queryStringParameters": {
     "foo": "bar"
   },
-  "headerParameters":{
+  "headerParameters": {
     "Refer": "10.0.2.14"
   },
   "stageVariables": {
@@ -78,8 +77,8 @@ When an API Gateway trigger receives a request, it sends the event data to the b
   },
   "path": "/test/value",
   "queryString": {
-    "foo" : "bar",
-    "bob" : "alice"
+    "foo": "bar",
+    "bob": "alice"
   },
   "httpMethod": "POST"
 }

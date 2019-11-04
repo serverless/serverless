@@ -1,4 +1,3 @@
-
 # Tencent-scf - Installation
 
 ### Installing Node.js

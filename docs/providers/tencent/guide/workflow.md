@@ -1,4 +1,3 @@
-
 # Tencent-SCF Workflow Tips
 
 Quick recommendations and tips for various processes.
@@ -6,7 +5,7 @@ Quick recommendations and tips for various processes.
 ### Development Workflow
 
 1. Write your functions
-2. Use `serverless deploy` only when you've made changes to `serverless.yml` and in CI/CD systems. 
+2. Use `serverless deploy` only when you've made changes to `serverless.yml` and in CI/CD systems.
 3. Use `serverless deploy function -f myFunction` to rapidly deploy changes when you are working on a specific Serverless Cloud Function.
 4. Use `serverless invoke -f myFunction` to test your functions on Tencent Cloud.
 5. Open up a separate tab in your console and stream logs in there via `serverless logs -f myFunction -t`.
@@ -77,6 +76,7 @@ serverless logs -f [FUNCTION NAME] -s [STAGE NAME] -r [REGION NAME]
 ```
 
 ##### Info
+
 See information about your deployed/undeployed functions by running the info command in your service directory.
 
 ```

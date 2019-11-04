@@ -1,4 +1,3 @@
-
 # Tencent-SCF - Functions
 
 If you are using Tencent as a provider, all _functions_ inside the service are Tencent Serverless Cloud Functions.
@@ -33,7 +32,7 @@ plugins:
 functions:
   function_one:
     handler: index.main_handler
-#   description: Tencent Serverless Cloud Function
+    #   description: Tencent Serverless Cloud Function
     runtime: Nodejs8.9
 #    memorySilsze: 256
 #    timeout: 10
@@ -81,7 +80,7 @@ service: myService
 provider: # provider information
   name: tencent
   runtime: Nodejs8.9
-  memorySize: 512 # will be inherited by all functions 
+  memorySize: 512 # will be inherited by all functions
 
 functions:
   functionOne:
@@ -134,7 +133,7 @@ provider: # provider information
   name: tencent
   runtime: Nodejs8.9
   credentials: ~/credentials
-  role: QCS_SCFExcuteRole      # SCF default role to interact with other services.
+  role: QCS_SCFExcuteRole # SCF default role to interact with other services.
 
 functions:
   functionOne:
@@ -145,6 +144,7 @@ functions:
 The executing role `QCS_SCFExcuteRole` is used to grant the function code permissions to read and operate resources during execution.
 
 Currently, this role has the following policies:
+
 - QcloudSCFFullAccess
 - QcloudCLSFullAccess
 

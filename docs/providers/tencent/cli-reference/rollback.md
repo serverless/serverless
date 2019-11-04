@@ -1,4 +1,3 @@
-
 # Tencent-scf - Rollback
 
 Rollback a service to a specific deployment.
@@ -15,7 +14,6 @@ If `timestamp` is not specified, Framework will show your existing deployments.
 - `--verbose` or `-v` Shows any history deployment.
 
 ## Examples
-
 
 At first you want to run `serverless deploy list` to show your existing deployments. This will provide you with a list of the deployments stored in your COS bucket. You can then use the timestamp of one of these deployments to rollback to this specific deployment.
 

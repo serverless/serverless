@@ -1,4 +1,3 @@
-
 # Tencnet SCF - Services
 
 A `service` is like a project. It's where you define your Tencent Serverless Cloud Functions and the `events` that trigger them, all in a file called `serverless.yml`.
@@ -43,7 +42,6 @@ Here are the available runtimes for Tencent Serverless Cloud Function:
 - tencent-php
 - tencent-go
 
-
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
 ## Contents
@@ -83,13 +81,13 @@ functions:
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
-        - apigw:
-           name: hello_world_apigw
-           parameters:
-             stageName: release
-             serviceId:
-             integratedResponse: true
-             httpMethod: ANY
+      - apigw:
+          name: hello_world_apigw
+          parameters:
+            stageName: release
+            serviceId:
+            integratedResponse: true
+            httpMethod: ANY
 ```
 
 ### index.js

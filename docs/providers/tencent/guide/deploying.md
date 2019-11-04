@@ -1,4 +1,3 @@
-
 # Tencent-SCF - Deploying
 
 The Serverless Framework was designed to provision your Serverless Cloud Functions, Events and infrastructure Resources safely and quickly. It does this via a couple of methods designed for different types of deployments.
@@ -14,7 +13,6 @@ serverless deploy
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to Amazon Web Services.
 
 **Note:** You can always enforce a deployment using the `--force` option, or specify a different configuration file name with the the `--config` option.
-
 
 ### Tips
 
@@ -43,7 +41,6 @@ Use this method when you have updated your Function, Event or Resource configura
 
 - You can specify your own COS bucket which should be used to store all the deployment artifacts.
   The `cosBucket` config which is nested under `provider` lets you e.g. set the `name` for this bucket. If you don't provide your own bucket, Serverless will create a bucket which by default.
-
 
 ## Deploy Function
 
