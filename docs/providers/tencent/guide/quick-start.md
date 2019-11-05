@@ -1,3 +1,11 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Quick Start | Serverless Framework   
+menuText: Quick Start
+menuOrder: 2
+description: Get started with Serverless Cloud Function (Tencent) in 5 minutes or less
+layout: Doc
+-->
+
 # Quick Start
 
 Complete the steps in this guide to install the Serverless Framework open-source CLI and deploy a sample Service on Tencent Cloud that reports deployment information and operational metrics to the Serverless Framework.

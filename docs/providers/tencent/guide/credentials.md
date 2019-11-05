@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Credentials | Serverless Framework
+menuText: Credentials
+menuOrder: 3
+description: How to set up the Serverless Framework with your Tencent Cloud credentials
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/credentials/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent Cloud - Credentials
 
 The Serverless Framework needs access to account credentials for your Tencent Cloud account so that it can create and manage resources on your behalf.

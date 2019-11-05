@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Functions | Serverless Framework
+menuText: Functions
+menuOrder: 5
+description: How to configure Tencent Cloud's Serverless Cloud Functions in the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/functions/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent-SCF - Functions
 
 If you are using Tencent as a provider, all _functions_ inside the service are Tencent Serverless Cloud Functions.

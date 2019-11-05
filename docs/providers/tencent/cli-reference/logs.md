@@ -1,4 +1,18 @@
-# Tencent-scf - Logs
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Logs
+menuText: logs
+menuOrder: 10
+description: View logs of your Tencent-SCF function within your terminal using the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/logs/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Logs
 
 Lets you watch the logs of a specific function deployed in Tencent Cloud.
 

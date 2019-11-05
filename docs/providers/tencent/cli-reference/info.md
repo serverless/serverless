@@ -1,4 +1,18 @@
-# Tencent-scf - Info
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Info
+menuText: info
+menuOrder: 13
+description: Display information about your deployed service and the Serverless Cloud Function, Events and Tencent Cloud Resources it contains.
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/info/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Info
 
 Displays information about the deployed service, such as runtime, region, stage and function list.
 

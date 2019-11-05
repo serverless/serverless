@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Variables | Serverless Framework 
+menuText: Variables
+menuOrder: 10
+description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/variables/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent-SCF Variables
 
 Variables allow users to dynamically replace config values in `serverless.yml` config. They are especially useful when providing secrets for your service to use and when you are working with multiple stages.

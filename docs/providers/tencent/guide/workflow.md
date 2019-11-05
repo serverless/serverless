@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Workflow | Serverless Framework 
+menuText: Workflow
+menuOrder: 14
+description: A guide and cheatsheet containing CLI commands and workflow recommendations.
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aliyun/guide/workflow/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent-SCF Workflow Tips
 
 Quick recommendations and tips for various processes.

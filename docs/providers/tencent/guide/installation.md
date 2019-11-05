@@ -1,4 +1,18 @@
-# Tencent-scf - Installation
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Installation | Serverless Framework
+menuText: Installation
+menuOrder: 2
+description: How to install the Serverless Framework and start using Tencent Cloud's Serverless Cloud Functions
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/installation/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Installation
 
 ### Installing Node.js
 

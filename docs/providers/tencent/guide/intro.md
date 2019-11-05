@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Introduction | Serverless Framework
+menuText: Intro
+menuOrder: 1
+description: An introduction to using Tencent Cloud's Serverless Cloud Function (SCF) with the Serverless Framework.
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/intro/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent SCF - Introduction
 
 The Serverless Framework helps you develop and deploy your Tencent SCF (Serverless Cloud Function), along with the Tencent infrastructure resources they require. It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).

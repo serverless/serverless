@@ -1,4 +1,16 @@
-# Serverless Tencent SCF Guide
+<!--
+title: Serverless - Tencent SCF - Events
+menuText: Events
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/events/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Serverless Tencent SCF Events
 
 Welcome to the Serverless Tencent SCF Events Glossary!
 

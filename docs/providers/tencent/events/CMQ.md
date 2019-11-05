@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - Tencent-SCF Events - Cloud Message Queue
+menuText: CMQ
+menuOrder: 9
+description:  Setting up Cloud Message Queue Events with Tencent-SCF via the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/events/cmq/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # CMQ (Cloud Message Queue)
 
 ## Using a pre-existing topic

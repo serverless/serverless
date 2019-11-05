@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - Tencent-SCF Events - API Gateway
+menuText: API Gateway
+menuOrder: 9
+description:  Setting up API Gateway Events with Tencent-SCF via the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/events/apigateway/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # API Gateway
 
 Tencent Serverless Cloud Functions can create function based API endpoints through API Gateway.

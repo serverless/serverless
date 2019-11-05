@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Events | Serverless Framework 
+menuText: Events
+menuOrder: 6
+description: Configuring Tencent Cloud's Serverless Cloud Function events in the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/events/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent-SCF - Events
 
 Simply put, events are the things that trigger your functions to run.

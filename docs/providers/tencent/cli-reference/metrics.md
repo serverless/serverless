@@ -1,4 +1,18 @@
-# Tencent-scf - Metrics
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Metrics
+menuText: metrics
+menuOrder: 11
+description: View metrics of a specific Tencent-SCF function within your terminal using the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/logs/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Metrics
 
 Lets you watch the metrics of a specific function.
 

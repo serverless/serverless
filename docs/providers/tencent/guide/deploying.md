@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Deploying | Serverless Framework 
+menuText: Deploying
+menuOrder: 8
+description: How to deploy your Tencent Cloud's Serverless Cloud functions and their required infrastructure
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/deploying/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent-SCF - Deploying
 
 The Serverless Framework was designed to provision your Serverless Cloud Functions, Events and infrastructure Resources safely and quickly. It does this via a couple of methods designed for different types of deployments.

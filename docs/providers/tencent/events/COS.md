@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - Tencent-SCF Events - Cloud Object Storage
+menuText: cos
+menuOrder: 9
+description:  Setting up Cloud Object Storage Events with Tencent-SCF via the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/events/cos/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 ## COS (Cloud Object Storage)
 
 ## Event Definition

@@ -1,4 +1,18 @@
-# Tencnet SCF - Services
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Services | Serverless Framework
+menuText: Services
+menuOrder: 4
+description: How to manage and configure Serverless services, which contain your Serverless Cloud Function, their events and resources.
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/services/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent SCF - Services
 
 A `service` is like a project. It's where you define your Tencent Serverless Cloud Functions and the `events` that trigger them, all in a file called `serverless.yml`.
 

@@ -1,4 +1,18 @@
-# Tencent-scf - Deploy Function
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Deploy
+menuText: deploy function
+menuOrder: 4
+description: Deploy your service to the specified provider
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/deploy/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Deploy Function
 
 The `sls deploy function` command deploys an individual SCF function when there is any change in the function. This is a much faster way of deploying changes in code.
 

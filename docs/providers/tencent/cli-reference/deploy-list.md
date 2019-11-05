@@ -1,4 +1,18 @@
-# Tencent-scf - Deploy List
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Deploy List
+menuText: deploy list
+menuOrder: 7
+description: List your previous CloudFormation deployments
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/deploy-list/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Deploy List
 
 The `sls deploy list [functions]` command will list information about your deployments.
 

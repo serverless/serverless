@@ -1,4 +1,18 @@
-# Tencent-scf - Invoke
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Invoke
+menuText: invoke
+menuOrder: 6
+description: Invoke a Tencent-SCF function using the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/invoke/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Invoke
 
 Invokes deployed function. It allows to send event data to the function, read logs and display other important information of the function invocation.
 

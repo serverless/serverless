@@ -1,4 +1,18 @@
-# Tencent-scf - deploy
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Deploy
+menuText: deploy
+menuOrder: 5
+description: Deploy your service to the specified provider
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/deploy/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - deploy
 
 The `sls deploy` command deploys your entire service. Run this command when you have made infrastructure changes (i.e., you edited `serverless.yml`). Use `serverless deploy function -f myFunction` when you have made code changes and you want to quickly upload your updated code to Tencent SCF (Serverless Cloud Functions) or just change function configuration.
 

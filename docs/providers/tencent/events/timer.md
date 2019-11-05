@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - Tencent-SCF Events - Timer
+menuText: Timer
+menuOrder: 9
+description:  Setting up Timer Events with Tencent-SCF via the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/events/timer/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Timer
 
 The following config will attach a timer trigger and causes the function `function_one` to be called every 5 seconds. The configuration allows you to attach multiple timer triggers to the same function. You can use the `cron` syntax. Take a look at the [Timer documentation](https://intl.cloud.tencent.com/document/product/583/9708) for more details.

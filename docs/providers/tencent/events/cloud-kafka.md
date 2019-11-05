@@ -1,3 +1,17 @@
+<!--
+title: Serverless Framework - Tencent-SCF Events - Cloud Kafka
+menuText: Cloud Kafka
+menuOrder: 9
+description:  Setting up Cloud Kafka Events with Tencent-SCF via the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/events/cloud-kafka/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # CKafka (Cloud Kafka)
 
 ## Using a pre-existing CKafka topic

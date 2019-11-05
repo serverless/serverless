@@ -1,3 +1,17 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Packaging | Serverless Framework 
+menuText: Packaging
+menuOrder: 9
+description: How the Serverless Framework packages your Serverless Cloud Function (Tencent Cloud) and other available options
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/packaging/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Tencent-SCF - Packaging
 
 ## Package CLI Command

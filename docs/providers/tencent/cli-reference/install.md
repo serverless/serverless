@@ -1,4 +1,18 @@
-# Tencent-scf - Install
+<!--
+title: Serverless Framework Commands - Tencent-SCF - Install
+menuText: install
+menuOrder: 2
+description: Install pre-written Tencent-SCF Functions, Events and Resources with the Serverless Framework
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/install/)
+
+<!-- DOCS-SITE-LINK:END -->
+
+# Tencent-SCF - Install
 
 Installs a service from a GitHub URL in the current working directory.
 

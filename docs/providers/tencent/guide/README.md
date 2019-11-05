@@ -1,3 +1,15 @@
+<!--
+title: Tencent Cloud - Serverless Cloud Function (SCF) - Guide 
+menuText: Guide
+layout: Doc
+-->
+
+<!-- DOCS-SITE-LINK:START automatically generated  -->
+
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/guide/)
+
+<!-- DOCS-SITE-LINK:END -->
+
 # Serverless Tencent SCF Guide
 
 Welcome to the Serverless Tencent SCF Guide!
