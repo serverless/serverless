@@ -1,5 +1,5 @@
 <!--
-title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Variables | Serverless Framework 
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Variables | Serverless Framework
 menuText: Variables
 menuOrder: 10
 description: How to use Serverless Variables to insert dynamic configuration info into your serverless.yml

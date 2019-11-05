@@ -1,5 +1,5 @@
 <!--
-title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Events | Serverless Framework 
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Events | Serverless Framework
 menuText: Events
 menuOrder: 6
 description: Configuring Tencent Cloud's Serverless Cloud Function events in the Serverless Framework

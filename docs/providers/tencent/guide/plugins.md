@@ -1,5 +1,5 @@
 <!--
-title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Plugins | Serverless Framework  
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Plugins | Serverless Framework
 menuText: Plugins
 menuOrder: 13
 description: How to install and create Plugins to extend or overwrite the functionality of the Serverless Framework

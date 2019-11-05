@@ -1,5 +1,5 @@
 <!--
-title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Deploying | Serverless Framework 
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Deploying | Serverless Framework
 menuText: Deploying
 menuOrder: 8
 description: How to deploy your Tencent Cloud's Serverless Cloud functions and their required infrastructure

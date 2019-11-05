@@ -1,5 +1,5 @@
 <!--
-title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Workflow | Serverless Framework 
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Workflow | Serverless Framework
 menuText: Workflow
 menuOrder: 14
 description: A guide and cheatsheet containing CLI commands and workflow recommendations.

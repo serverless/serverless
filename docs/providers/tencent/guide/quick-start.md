@@ -1,5 +1,5 @@
 <!--
-title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Quick Start | Serverless Framework   
+title: Tencent Cloud - Serverless Cloud Function (SCF) Guide - Quick Start | Serverless Framework
 menuText: Quick Start
 menuOrder: 2
 description: Get started with Serverless Cloud Function (Tencent) in 5 minutes or less
