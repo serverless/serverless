@@ -23,6 +23,7 @@ menuItems:
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
   - {menuText: "- Alibaba Cloud" , path: /framework/docs/providers/aliyun/}
+  - {menuText: "- Tencent Cloud" , path: /framework/docs/providers/tencent/}
   - {menuText: "Examples", path: https://serverless.com/examples/}
   - {menuText: "Tutorials", path: https://serverless.com/blog/category/guides-and-tutorials/}
 -->
