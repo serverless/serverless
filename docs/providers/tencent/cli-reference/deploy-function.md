@@ -1,5 +1,5 @@
 <!--
-title: Serverless Framework Commands - Tencent-SCF - Deploy
+title: Serverless Framework Commands - Tencent-SCF - Deploy Function
 menuText: deploy function
 menuOrder: 4
 description: Deploy your service to the specified provider
@@ -8,7 +8,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/deploy/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/tencent/cli-reference/deploy-function/)
 
 <!-- DOCS-SITE-LINK:END -->
 
