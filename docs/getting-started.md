@@ -13,6 +13,7 @@ menuItems:
   - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
   - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
   - {menuText: Alibaba Guide , path: /framework/docs/providers/aliyun/guide/quick-start}
+  - {menuText: Tencent Guide , path: /framework/docs/providers/tencent/guide/quick-start}
 -->
 
 # Getting Started with the Serverless Framework and AWS

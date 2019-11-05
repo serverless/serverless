@@ -78,6 +78,13 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
+  <a href="./tencent/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/tencent-cloud-logo-gray.png" width="250" draggable="false" class='tencent-logo'/>
+    </div>
+  </div>
+  </a>
 
 </div>
 <br/>
