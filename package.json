@@ -94,7 +94,6 @@
     "chai-as-promised": "^7.1.1",
     "child-process-ext": "^2.1.0",
     "cli-progress-footer": "^1.1.1",
-    "coveralls": "^3.0.7",
     "eslint": "^6.6.0",
     "eslint-plugin-import": "^2.18.2",
     "git-list-updated": "^1.2.1",

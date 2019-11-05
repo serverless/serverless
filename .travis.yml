@@ -98,10 +98,11 @@ jobs:
 
     - name: 'Unit Tests, Coverage - Linux - Node.js v8'
       node_js: 8
+      before_install:
+        - npm install -g codecov
       script: npm run coverage
       after_success:
-        - |
-          cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js || :
+        - codecov
         - rm -rf ./coverage
 
     - name: 'Unit Tests - Linux - Node.js v6'
