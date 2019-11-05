@@ -17,7 +17,7 @@ layout: Doc
 Installs a service from a GitHub URL in the current working directory.
 
 ```bash
-serverless install --url https://github.com/some/service
+serverless install --url https://github.com/serverless-tencent/serverless-tencent-scf/tree/master/templates/tencent-nodejs
 ```
 
 ## Options
@@ -30,7 +30,7 @@ serverless install --url https://github.com/some/service
 ### Installing a service from a GitHub URL
 
 ```bash
-serverless install --url https://github.com/tencentcloud/serverless/tencent-nodejs
+serverless install --url https://github.com/serverless-tencent/serverless-tencent-scf/tree/master/templates/tencent-nodejs
 ```
 
 This example will download the .zip file of the `tencent-nodejs` service from GitHub, create a new directory with the name `tencent-nodejs` in the current working directory and unzips the files in this directory.
@@ -38,7 +38,7 @@ This example will download the .zip file of the `tencent-nodejs` service from Gi
 ### Installing a service from a GitHub URL with a new service name
 
 ```bash
-serverless install --url https://github.com/tencentcloud/serverless/tencent-nodejs --name my-service
+serverless install --url https://github.com/serverless-tencent/serverless-tencent-scf/tree/master/templates/tencent-nodejs --name my-service
 ```
 
 This example will download the .zip file of the `tencent-nodejs` service from GitHub, create a new directory with the name `my-service` in the current working directory and unzips the files in this directory and renames the service to `my-service` if `serverless.yml` exists in the service root.
