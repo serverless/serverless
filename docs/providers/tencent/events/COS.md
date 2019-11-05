@@ -12,7 +12,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-## COS (Cloud Object Storage)
+# COS (Cloud Object Storage)
 
 ## Event Definition
 
