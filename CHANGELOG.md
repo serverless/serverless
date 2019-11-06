@@ -4,7 +4,7 @@
 
 ## Meta
 
-- [Comparison since last release](https://github.com/serverless/serverless/comparev1.56.0...v1.56.1)
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.56.0...v1.56.1)
 
 # 1.56.0 (2019-10-31)
 
