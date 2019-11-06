@@ -1,10 +1,26 @@
-# 1.56.1 (2019-10-31)
+# 1.57.0 (2019-11-06)
 
-- [Fix deployment bucket policy handling with custom bucket ](https://github.com/serverless/serverless/pull/6909)
+- [Note about how to move services to new apps](https://github.com/serverless/serverless/pull/6912)
+- [Allow casting to boolean in Serverless variables](https://github.com/serverless/serverless/pull/6869)
+- [Create distinct target groups for different ALBs](https://github.com/serverless/serverless/pull/6383)
+- [sls create --help improvements](https://github.com/serverless/serverless/pull/6919)
+- [Fix race conditions handling in stats requests](https://github.com/serverless/serverless/pull/6920)
+- [Update AWS Limits on Lambda@Edge](https://github.com/serverless/serverless/pull/6922)
+- [Fixes bug with sns-cross-region definition using psuedo params](https://github.com/serverless/serverless/pull/6879)
+- [Add tencent-plugins english version docs](https://github.com/serverless/serverless/pull/6916)
 
 ## Meta
 
-- [Comparison since last release](https://github.com/serverless/serverless/comparev1.56.0...v1.56.1)
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.56.1...v1.57.0)
+
+# 1.56.1 (2019-10-31)
+
+- [Fix deployment bucket policy handling with custom bucket ](https://github.com/serverless/serverless/pull/6909)
+- [Feat: aws-nodejs-typescript template improvements](https://github.com/serverless/serverless/pull/6904)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.56.0...v1.56.1)
 
 # 1.56.0 (2019-10-31)
 
