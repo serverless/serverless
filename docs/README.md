@@ -20,6 +20,7 @@ menuItems:
   - {menuText: "- Google", path: /framework/docs/providers/google/}
   - {menuText: "- OpenWhisk", path: /framework/docs/providers/openwhisk/}
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
+  - {menuText: "- Knative" , path: /framework/docs/providers/knative/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
   - {menuText: "- Alibaba Cloud" , path: /framework/docs/providers/aliyun/}
