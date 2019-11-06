@@ -1,6 +1,7 @@
 # 1.56.1 (2019-10-31)
 
 - [Fix deployment bucket policy handling with custom bucket ](https://github.com/serverless/serverless/pull/6909)
+- [Feat: aws-nodejs-typescript template improvements](https://github.com/serverless/serverless/pull/6904)
 
 ## Meta
 
