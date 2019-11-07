@@ -54,7 +54,7 @@
     "test": "mocha \"!(node_modules)/**/*.test.js\"",
     "test-ci": "npm run prettier-check-updated && npm run lint-updated && npm run test-isolated",
     "test-isolated": "mocha-isolated",
-    "coverage": "nyc --reporter=lcov --reporter=html --reporter=text-summary npm test",
+    "coverage": "nyc npm test",
     "lint": "eslint . --cache",
     "lint:fix": "npm run lint -- --fix",
     "lint-updated": "pipe-git-updated --ext=js -- eslint --cache",
@@ -86,6 +86,24 @@
       "@serverless/test/setup/restore-cwd"
     ],
     "timeout": 15000
+  },
+  "nyc": {
+    "all": true,
+    "exclude": [
+      "**/*.test.js",
+      "bin/**",
+      "coverage/**",
+      "dist/**",
+      "scripts/**",
+      "tests/**",
+      "tmp/**",
+      "prettier.config.js"
+    ],
+    "reporter": [
+      "lcov",
+      "html",
+      "text-summary"
+    ]
   },
   "devDependencies": {
     "@serverless/eslint-config": "^1.2.1",
