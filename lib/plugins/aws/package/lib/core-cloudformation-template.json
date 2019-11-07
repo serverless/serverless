@@ -30,7 +30,10 @@
               "Principal": "*",
               "Resource": [
                 {
-                  "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "ServerlessDeploymentBucket" }, "/*"]]
+                  "Fn::Join": [
+                    "",
+                    ["arn:${AWS::Partition}:s3:::", { "Ref": "ServerlessDeploymentBucket" }, "/*"]
+                  ]
                 }
               ],
               "Condition": {
