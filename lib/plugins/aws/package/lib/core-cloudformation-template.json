@@ -32,7 +32,13 @@
                 {
                   "Fn::Join": [
                     "",
-                    ["arn:${AWS::Partition}:s3:::", { "Ref": "ServerlessDeploymentBucket" }, "/*"]
+                    [
+                      "arn:",
+                      { "Ref": "AWS::Partition" },
+                      ":s3:::",
+                      { "Ref": "ServerlessDeploymentBucket" },
+                      "/*"
+                    ]
                   ]
                 }
               ],
