@@ -197,6 +197,8 @@ jobs:
       # Ensure to fail build if deploy fails, Travis doesn't ensure that: https://github.com/travis-ci/travis-ci/issues/921
       before_deploy:
         - set -e
+        -  # Prepare binaries
+        - npm run pkg:build
         # Remove eventual old npm logs
         - rm -rf ~/.npm/_logs
       after_deploy:
@@ -208,6 +210,7 @@ jobs:
             travis_terminate 1
           fi
         - npx github-release-from-cc-changelog $TRAVIS_TAG
+        - npm run pkg:upload
       deploy:
         provider: npm
         email: services@serverless.com
