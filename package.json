@@ -62,6 +62,7 @@
     "lint:fix": "npm run lint -- --fix",
     "lint:updated": "pipe-git-updated --ext=js -- eslint --cache",
     "pkg:build": "node ./scripts/pkg/build.js",
+    "pkg:upload": "node ./scripts/pkg/upload.js",
     "postinstall": "node ./scripts/postinstall.js",
     "prepare-release": "standard-version && prettier --write CHANGELOG.md",
     "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
@@ -78,10 +79,10 @@
     "overrides": [
       {
         "files": [
-          "scripts/pkg/build.js"
+          "scripts/pkg/*"
         ],
         "parserOptions": {
-          "ecmaVersion": 2017
+          "ecmaVersion": 2018
         }
       }
     ]
