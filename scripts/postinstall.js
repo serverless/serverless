@@ -1,20 +1,18 @@
 'use strict';
 
+const boxen = require('boxen');
 const chalk = require('chalk');
 
 const truthyStr = val => val && !['0', 'false', 'f', 'n', 'no'].includes(val.toLowerCase());
 const { CI, ADBLOCK, SILENT } = process.env;
 if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
   process.stdout.write(
-    chalk.yellow(`\
- +--------------------------------------------------+
- |                                                  |
- |  Serverless Framework successfully installed!    |
- |  To start your first project, run “serverless”.  |
- |                                                  |
- +--------------------------------------------------+
-
-`)
+    `${boxen(
+      chalk.yellow(
+        'Serverless Framework successfully installed!\nTo start your first project, run “serverless”.'
+      ),
+      { padding: 1, margin: 1, borderColor: 'yellow' }
+    )}\n`
   );
 }
 
