@@ -35,10 +35,18 @@ A handy list of commands to use when developing with the Serverless Framework.
 
 ##### Create A Function App:
 
-Install the boilerplate application.
+Install the boilerplate application:
+
+- with node:
 
 ```bash
 sls create -t azure-nodejs -p my-app
+```
+
+- with python:
+
+```bash
+sls create -t azure-python -p my-app
 ```
 
 ##### Install A Service
