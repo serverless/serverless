@@ -1,6 +1,7 @@
 <!--
 title: Knative - Knative Documentation
 menuText: Knative
+menuOrder: 5
 layout: Doc
 -->
 

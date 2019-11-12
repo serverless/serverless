@@ -1,6 +1,7 @@
 <!--
 title: Serverless - Apache OpenWhisk Documentation
 menuText: OpenWhisk
+menuOrder: 10
 layout: Doc
 -->
 

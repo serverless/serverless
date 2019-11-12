@@ -1,6 +1,7 @@
 <!--
 title: Serverless - Google Cloud Functions Documentation
 menuText: Google
+menuOrder: 4
 layout: Doc
 -->
 
