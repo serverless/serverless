@@ -1,6 +1,7 @@
 <!--
 title: Serverless - Kubeless Documentation
 menuText: Kubeless
+menuOrder: 9
 layout: Doc
 -->
 

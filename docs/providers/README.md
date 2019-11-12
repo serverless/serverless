@@ -22,13 +22,6 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-  <a href="./tencent/">
-  <div class="providerSection">
-    <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/tencent-cloud-logo.png" width="250" draggable="false" class='tencent-logo'/>
-    </div>
-  </div>
-  </a>
   <a href="./azure/">
   <div class="providerSection">
     <div class="providerSectionHeader">
@@ -36,10 +29,10 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-  <a href="./openwhisk/">
+  <a href="./tencent/">
   <div class="providerSection">
     <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/openwhisk-logo.svg" width="250" draggable="false" class='openwhisk-logo'/>
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/tencent-cloud-logo.png" width="250" draggable="false" class='tencent-logo'/>
     </div>
   </div>
   </a>
@@ -50,13 +43,6 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-  <a href="./kubeless/">
-  <div class="providerSection">
-    <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/kubeless-logo.svg" width="250" draggable="false" class='kubeless-logo'/>
-    </div>
-  </div>
-  </a>
   <a href="./knative/">
   <div class="providerSection">
     <div class="providerSectionHeader">
@@ -64,17 +50,10 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-  <a href="./spotinst/">
+  <a href="./aliyun/">
   <div class="providerSection">
     <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/spotinst-logo.svg" width="250" draggable="false" class='spotinst-logo'/>
-    </div>
-  </div>
-  </a>
-  <a href="./fn/">
-  <div class="providerSection">
-    <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/fn-logo.svg" width="250" draggable="false" class='fn-logo'/>
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/alibaba-cloud-logo-gray.png" width="250" draggable="false" class='aliyun-logo'/>
     </div>
   </div>
   </a>
@@ -85,10 +64,31 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-  <a href="./aliyun/">
+  <a href="./fn/">
   <div class="providerSection">
     <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/alibaba-cloud-logo-gray.png" width="250" draggable="false" class='aliyun-logo'/>
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/fn-logo.svg" width="250" draggable="false" class='fn-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./kubeless/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/kubeless-logo.svg" width="250" draggable="false" class='kubeless-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./openwhisk/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/openwhisk-logo.svg" width="250" draggable="false" class='openwhisk-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./spotinst/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/spotinst-logo.svg" width="250" draggable="false" class='spotinst-logo'/>
     </div>
   </div>
   </a>
