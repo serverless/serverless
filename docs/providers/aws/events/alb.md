@@ -61,3 +61,45 @@ functions:
               - fe80:0000:0000:0000:0204:61ff:fe9d:f156/6
               - 192.168.0.1/0
 ```
+
+## Enabling multi-value headers
+
+By default when the request contains a duplicate header field name or query parameter key, the load balancer uses the last value sent by the client.
+
+Set the `multiValueHeaders` attribute to `true` if you want to receive headers and query parameters as an array of values.
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.hello
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          multiValueHeaders: true
+          conditions:
+            path: /hello
+```
+
+When this option is enabled, the event structure is changed:
+
+```javascript
+module.exports.hello = async (event, context, callback) => {
+  const headers = event.multiValueHeaders;
+  const queryString = event.multiValueQueryStringParameters;
+
+  ...
+
+  return {
+    statusCode: 200,
+    statusDescription: '200 OK',
+    isBase64Encoded: false,
+    multiValueHeaders: {
+      'Content-Type': ['application/json'],
+      'Set-Cookie': ['language=en-us', 'theme=rust']
+    }
+  };
+};
+```
+
+The handler response object must use `multiValueHeaders` to set HTTP response headers, `headers` would be ignored.
