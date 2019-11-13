@@ -29,10 +29,10 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-  <a href="./openwhisk/">
+  <a href="./tencent/">
   <div class="providerSection">
     <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/openwhisk-logo.svg" width="250" draggable="false" class='openwhisk-logo'/>
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/tencent-cloud-logo.png" width="250" draggable="false" class='tencent-logo'/>
     </div>
   </div>
   </a>
@@ -43,31 +43,10 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-  <a href="./kubeless/">
+  <a href="./knative/">
   <div class="providerSection">
     <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/kubeless-logo.svg" width="250" draggable="false" class='kubeless-logo'/>
-    </div>
-  </div>
-  </a>
-  <a href="./spotinst/">
-  <div class="providerSection">
-    <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/spotinst-logo.svg" width="250" draggable="false" class='spotinst-logo'/>
-    </div>
-  </div>
-  </a>
-  <a href="./fn/">
-  <div class="providerSection">
-    <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/fn-logo.svg" width="250" draggable="false" class='fn-logo'/>
-    </div>
-  </div>
-  </a>
-  <a href="./cloudflare/">
-  <div class="providerSection">
-    <div class="providerSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/cloudflare-logo.svg" width="250" draggable="false" class='cloudflare-logo'/>
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/knative-logo.svg" width="250" draggable="false" class='knative-logo'/>
     </div>
   </div>
   </a>
@@ -78,7 +57,41 @@ Under the hood, the Serverless Framework is deploying your code to a cloud provi
     </div>
   </div>
   </a>
-
+  <a href="./cloudflare/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/cloudflare-logo.svg" width="250" draggable="false" class='cloudflare-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./fn/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/fn-logo.svg" width="250" draggable="false" class='fn-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./kubeless/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/kubeless-logo.svg" width="250" draggable="false" class='kubeless-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./openwhisk/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/openwhisk-logo.svg" width="250" draggable="false" class='openwhisk-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./spotinst/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/spotinst-logo.svg" width="250" draggable="false" class='spotinst-logo'/>
+    </div>
+  </div>
+  </a>
 </div>
 <br/>
 <br/>

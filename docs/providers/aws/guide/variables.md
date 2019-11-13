@@ -46,6 +46,9 @@ You can define your own variable syntax (regex) if it conflicts with CloudFormat
 - [CloudFormation stack outputs](#reference-cloudformation-outputs)
 - [Properties exported from Javascript files (sync or async)](#reference-variables-in-javascript-files)
 - [Pseudo Parameters Reference](#pseudo-parameters-reference)
+- [Read String Variable Values as Boolean Values](#read-string-variable-values-as-boolean-values)
+
+## Casting string variables to boolean values
 
 ## Recursively reference properties
 
@@ -509,6 +512,28 @@ module.exports.promised = () => {
 };
 ```
 
+For example, in such helper you could call AWS SDK to get account details:
+
+```js
+// myCustomFile.js
+const { STS } = require('aws-sdk');
+const sts = new STS();
+
+module.exports.getAccountId = async () => {
+  // Checking AWS user details
+  const { Account } = await sts.getCallerIdentity().promise();
+  return Account;
+};
+```
+
+```yml
+# serverless.yml
+service: new-service
+provider: aws
+custom:
+  accountId: ${file(./myCustomFile.js):getAccountId}
+```
+
 ## Multiple Configuration Files
 
 Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.
@@ -634,4 +659,28 @@ Resources:
         - Ref: 'AWS::Region'
         - Ref: 'AWS::AccountId'
         - 'log-group:/aws/lambda/*:*:*'
+```
+
+## Read String Variable Values as Boolean Values
+
+In some cases, a parameter expect a `true` or `false` boolean value. If you are using a variable to define the value, it may return as a string (e.g. when using SSM variables) and thus return a `"true"` or `"false"` string value.
+
+To ensure a boolean value is returned, read the string variable value as a boolean value. For example:
+
+```yml
+provider:
+  tracing:
+    apiGateway: ${strToBool(${ssm:API_GW_DEBUG_ENABLED})}
+```
+
+These are examples that explain how the conversion works:
+
+```plaintext
+${strToBool(true)} => true
+${strToBool(false)} => false
+${strToBool(0)} => false
+${strToBool(1)} => true
+${strToBool(2)} => Error
+${strToBool(null)} => Error
+${strToBool(anything)} => Error
 ```

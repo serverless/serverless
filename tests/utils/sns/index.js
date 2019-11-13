@@ -30,7 +30,7 @@ function removeSnsTopic(topicName) {
     });
 }
 
-function publishSnsMessage(topicName, message) {
+function publishSnsMessage(topicName, message, messageAttributes = null) {
   const SNS = new AWS.SNS({ region });
 
   return SNS.listTopics()
@@ -43,6 +43,9 @@ function publishSnsMessage(topicName, message) {
         Message: message,
         TopicArn: topicArn,
       };
+      if (messageAttributes) {
+        params.MessageAttributes = messageAttributes;
+      }
 
       return SNS.publish(params).promise();
     });

@@ -11,7 +11,7 @@ const {
   deployService,
   removeService,
   waitForFunctionLogs,
-} = require('../../utils/misc');
+} = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - S3 Integration Test', function() {
@@ -25,10 +25,10 @@ describe('AWS - S3 Integration Test', function() {
   let bucketExistingComplexSetup;
   const stage = 'dev';
 
-  before(() => {
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook:
@@ -57,13 +57,13 @@ describe('AWS - S3 Integration Test', function() {
       createBucket(bucketExistingComplexSetup),
     ]).then(() => {
       console.info(`Deploying "${stackName}" service...`);
-      deployService(tmpDirPath);
+      return deployService(tmpDirPath);
     });
   });
 
-  after(() => {
+  after(async () => {
     console.info('Removing service...');
-    removeService(tmpDirPath);
+    await removeService(tmpDirPath);
     console.info('Deleting S3 buckets');
     return BbPromise.all([
       deleteBucket(bucketExistingSimpleSetup),
@@ -104,7 +104,7 @@ describe('AWS - S3 Integration Test', function() {
   });
 
   describe('Existing Setup', () => {
-    describe('Single fuction / single bucket setup', () => {
+    describe('Single function / single bucket setup', () => {
       it('should invoke function when an object is created', () => {
         const functionName = 'existing';
         const markers = getMarkers(functionName);

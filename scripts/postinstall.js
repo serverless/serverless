@@ -1,16 +1,11 @@
 'use strict';
 
-const path = require('path');
 const chalk = require('chalk');
-
-/* eslint-disable no-console */
-
-const execSync = require('child_process').execSync;
 
 const truthyStr = val => val && !['0', 'false', 'f', 'n', 'no'].includes(val.toLowerCase());
 const { CI, ADBLOCK, SILENT } = process.env;
 if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
-  console.log(
+  process.stdout.write(
     chalk.yellow(`\
  +--------------------------------------------------+
  |                                                  |
@@ -18,6 +13,7 @@ if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
  |  To start your first project, run “serverless”.  |
  |                                                  |
  +--------------------------------------------------+
+
 `)
   );
 }
@@ -26,34 +22,13 @@ try {
   const Serverless = require('../lib/Serverless');
   const serverless = new Serverless();
 
-  (() =>
-    serverless
-      .init()
-      .then(() => serverless.utils.logStat(serverless, 'install'))
-      .then(() => setupAutocomplete())
-      .catch(() => Promise.resolve()))();
+  serverless
+    .init()
+    .then(() => serverless.utils.logStat(serverless, 'install'))
+    .catch(() => {});
 } catch (error) {
-  // fail silently
-}
-
-function setupAutocomplete() {
-  return new Promise((resolve, reject) => {
-    const indexRegex = new RegExp(path.join(path.sep, 'index.js'));
-    const tabtabPath = require.resolve('tabtab').replace(indexRegex, '');
-    const tabtabCliPath = path.join(tabtabPath, 'src', 'cli.js');
-
-    try {
-      execSync(`node "${tabtabCliPath}" install --name serverless --auto`);
-      execSync(`node "${tabtabCliPath}" install --name sls --auto`);
-      execSync(`node "${tabtabCliPath}" install --name slss --auto`);
-      return resolve();
-    } catch (error) {
-      execSync(`node "${tabtabCliPath}" install --name serverless --stdout`);
-      execSync(`node "${tabtabCliPath}" install --name sls --stdout`);
-      execSync(`node "${tabtabCliPath}" install --name slss --stdout`);
-      console.log('Could not auto-install serverless autocomplete script.');
-      console.log('Please copy / paste the script above into your shell.');
-      return reject(error);
-    }
-  });
+  // Ignore any eventual errors.
+  // Package when installed globally may be installed in uncommon user contexts,
+  // that may lead to fs access related crashes
+  // when e.g. trying to access user's .serverlessrc config
 }

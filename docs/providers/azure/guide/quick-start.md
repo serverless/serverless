@@ -60,7 +60,7 @@ Deploy your new service to Azure! The first time you do this, you will be asked 
 $ sls deploy
 ```
 
-For more advanced deployment scenarios, see our [deployment docs](https://github.com/serverless/serverless-azure-functions/blob/dev/docs/DEPLOY.md)
+For more advanced deployment scenarios, see our [deployment docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/DEPLOY.md)
 
 ## Test Your Function App
 
@@ -179,17 +179,17 @@ The getting started walkthrough illustrates the interactive login experience, wh
    **Bash**
 
    ```bash
-   $ export azureSubId='<subscriptionId>'
-   $ export azureServicePrincipalTenantId='<tenantId>'
-   $ export azureServicePrincipalClientId='<servicePrincipalId>'
-   $ export azureServicePrincipalPassword='<password>'
+   $ export AZURE_SUBSCRIPTION_ID='<subscriptionId>'
+   $ export AZURE_TENANT_ID='<tenantId>'
+   $ export AZURE_CLIENT_ID='<servicePrincipalId>'
+   $ export AZURE_CLIENT_SECRET='<password>'
    ```
 
    **Powershell**
 
    ```powershell
-   $env:azureSubId='<subscriptionId>'
-   $env:azureServicePrincipalTenantId='<tenantId>'
-   $env:azureServicePrincipalClientId='<servicePrincipalName>'
-   $env:azureServicePrincipalPassword='<password>'
+   $env:AZURE_SUBSCRIPTION_ID='<subscriptionId>'
+   $env:AZURE_TENANT_ID='<tenantId>'
+   $env:AZURE_CLIENT_ID='<servicePrincipalName>'
+   $env:AZURE_CLIENT_SECRET='<password>'
    ```

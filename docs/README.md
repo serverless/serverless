@@ -20,9 +20,11 @@ menuItems:
   - {menuText: "- Google", path: /framework/docs/providers/google/}
   - {menuText: "- OpenWhisk", path: /framework/docs/providers/openwhisk/}
   - {menuText: "- Kubeless" , path: /framework/docs/providers/kubeless/}
+  - {menuText: "- Knative" , path: /framework/docs/providers/knative/}
   - {menuText: "- Spotinst" , path: /framework/docs/providers/spotinst/}
   - {menuText: "- Cloudflare" , path: /framework/docs/providers/cloudflare/}
   - {menuText: "- Alibaba Cloud" , path: /framework/docs/providers/aliyun/}
+  - {menuText: "- Tencent Cloud" , path: /framework/docs/providers/tencent/}
   - {menuText: "Examples", path: https://serverless.com/examples/}
   - {menuText: "Tutorials", path: https://serverless.com/blog/category/guides-and-tutorials/}
 -->
