@@ -8,15 +8,21 @@ const isPathDependent =
 const truthyStr = val => val && !['0', 'false', 'f', 'n', 'no'].includes(val.toLowerCase());
 const { CI, ADBLOCK, SILENT } = process.env;
 if (!truthyStr(CI) && !truthyStr(ADBLOCK) && !truthyStr(SILENT)) {
+  const messageTokens = ['Serverless Framework successfully installed!'];
+  if (isPathDependent) {
+    messageTokens.push(
+      'To start your first project, please open another terminal and run “serverless”.',
+      'You can uninstall at anytime by running “serverless uninstall”.'
+    );
+  } else {
+    messageTokens.push('To start your first project run “serverless”.');
+  }
   process.stdout.write(
-    `${boxen(
-      chalk.yellow(
-        `Serverless Framework successfully installed!\nTo start your first project, ${
-          isPathDependent ? 'please open another terminal and ' : ''
-        }run “serverless”.`
-      ),
-      { padding: 1, margin: 1, borderColor: 'yellow' }
-    )}\n`
+    `${boxen(chalk.yellow(messageTokens.join('\n\n')), {
+      padding: 1,
+      margin: 1,
+      borderColor: 'yellow',
+    })}\n`
   );
 }
 
