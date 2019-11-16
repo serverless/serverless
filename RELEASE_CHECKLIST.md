@@ -7,31 +7,30 @@ More info about our release process can be found in the [`RELEASE_PROCESS.md`](.
 ## Pre-Release
 
 - [ ] Look through all open issues and PRs (if any) of that milestone and close them / move them to another
-milestone if still open
-- [ ] Look through all closed issues and PRs of that milestone to see what has changed. Run `./scripts/prs-since-last-tag` or if you want to run against a specific tag `./scripts/prs-since-last-tag v1.20.0` to get a list of all merged PR's since a specific tag
-- [ ] Close milestone on GitHub
-- [ ] Create a new draft release in GitHub
-
-# Testing
-
-- [ ] Create a Serverless service (with some events), deploy and test it intensively
-- [ ] Look through the milestone and test all of the new major changes
-- [ ] Run `npm test`
-- [ ] Run `npm run simple-integration-test`
-- [ ] Run `npm run complex-integration-test`
+      milestone if still open
+- [ ] Create a new branch for the release
+- [ ] Bump version ranges of _all_ dependencies to latest supported versions (e.g. if latest version of a dependency is `2.3.5`, range in a `package.json` is `^2.2.4` then it should be updated to `^2.3.5`)  
+       _Note: Unfortunately there seems no reliable utility to automate that (there's a [request at `npm-check-updates`](https://github.com/tjunnone/npm-check-updates/issues/581))  
+       If you handle installation of dependencies through [npm-cross-link](https://github.com/medikoo/npm-cross-link#npm-cross-link) then [`--bump-deps`](https://github.com/medikoo/npm-cross-link#general-options) option will bump version ranges as expected_
+- [ ] Bump the version number in `package.json`
+- [ ] Run `./scripts/prs-since-last-tag <OLD-TAG>`
+- [ ] Save the terminal output to your clipboard
+- [ ] Close the milestone on GitHub
+- [ ] Create a new [**draft** release](https://github.com/serverless/serverless/releases/new) in GitHub
+  - [ ] Use the content in your clipboard as a description (without the heading)
+  - [ ] Ensure that the "Tag version" follows our naming convention
 
 ## Prepare Package
 
-- [ ] Create a new branch to bump version in `package.json`
-- [ ] Install the latest `npm` version or Docker container with latest `node` and `npm`
-- [ ] Bump version in `package.json`, remove `node_modules` folder and run `npm install` and `npm prune --production && npm shrinkwrap`
-- [ ] Look through closed PRs and update `CHANGELOG.md`
+- [ ] Install the latest `npm` version or Docker container with latest `node` and `npm` (Ensure to work with an `npm` version which is distributed with latest `node` version)
+- [ ] Update `CHANGELOG.md` with the content from your clipboard
 - [ ] Make sure all files that need to be pushed are included in `package.json -> files`
-- [ ] Send PR and merge PR with new version to be released
-- [ ] Add the changes you made to `CHANGELOG.md` to the description of the GitHub release draft
-- [ ] Go back to branch you want to release from (e.g. `master`) and pull bumped version changes from GitHub
+- [ ] Commit your changes (make sure that `package.json` and `CHANGELOG.md` are updated)
+- [ ] Push your branch and open up a new PR
+- [ ] Await approval and merge the PR into `master`
+- [ ] Go back to the branch you want to release from (e.g. `master`) and pull the changes from GitHub
 - [ ] Make sure there are no local changes to your repository (or reset with `git reset --hard HEAD`)
-- [ ] Check `package.json`, `package-lock.json` and `npm-shrinkwrap.json` version config to make sure it fits what we want to release
+- [ ] Check `package.json` version config to make sure it fits what we want to release
 
 ## Releasing
 
@@ -41,7 +40,3 @@ milestone if still open
 ## Validate Release
 
 - [ ] Validate that `npm install` works (`npm install -g serverless@<new-tag>` or `npm install -g serverless` if latest is released)
-
-## Post-Release
-
-- [ ] Run `./scripts/generate-release-contributors-list <old-tag> <new-tag>` and hand the generated list over to the release blog post author

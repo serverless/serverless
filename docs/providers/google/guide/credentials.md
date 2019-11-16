@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/credentials)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Google - Credentials
@@ -31,9 +33,9 @@ A Google Cloud Project is required to use Google Cloud Functions. Here's how to 
 1. Go to the <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a>.
 2. There is a dropdown near the top left of the screen (near the search bar that lists your projects). Click it and select "Create Project".
 3. Enter a Project name and select the Billing Account you created in the steps above (or any Billing Account with a valid credit card attached).
-3. Click on "Create" to start the creation process.
-4. Wait until the Project was successfully created and Google will redirect you to your new Project.
-5. Verify your currently within your new Project by looking at the dropdown next to the search bar. This should mark your new Project as selected.
+4. Click on "Create" to start the creation process.
+5. Wait until the Project was successfully created and Google will redirect you to your new Project.
+6. Verify your currently within your new Project by looking at the dropdown next to the search bar. This should mark your new Project as selected.
 
 ## Enable the necessary APIs
 
@@ -57,7 +59,7 @@ You need to create credentials with appropriate roles Serverless can use to crea
 5. Click `CREATE SERVICE ACCOUNT` button on the top
 6. Input Service account name and Service account ID will be generated automatically for you. Change it if you wish to.
 7. Click `Create` button
-8. Add `Deployment Manager Editor` `Storage Admin` `Logging Admin` `Cloud Functions Developer` roles and click `Continue`
+8. Add `Deployment Manager Editor`, `Storage Admin`, `Logging Admin`, `Cloud Functions Developer` roles and click `Continue`
 9. Click `+CREATE KEY` button and select `JSON` key type and click `Create` button
 10. You will see a json (AKA `keyfile`) file downloaded
 11. Click `Done` button

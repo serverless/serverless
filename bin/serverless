@@ -1,66 +1,9 @@
 #!/usr/bin/env node
 
+// TODO (BREAKING): Remove this file with next major release
+// Left as a fallback placeholder to not accidentally break things
+// https://github.com/search?q=%22bin%2Fserverless%22&type=Code
+
 'use strict';
 
-const autocomplete = require('../lib/utils/autocomplete');
-const BbPromise = require('bluebird');
-const platform = require('@serverless/platform-sdk');
-const logError = require('../lib/classes/Error').logError;
-const uuid = require('uuid');
-const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
-
-Error.stackTraceLimit = Infinity;
-
-if (process.env.SLS_DEBUG) {
-  // For performance reasons enabled only in SLS_DEBUG mode
-  BbPromise.config({
-    longStackTraces: true,
-  });
-}
-
-process.on('unhandledRejection', (e) => {
-  logError(e);
-});
-process.noDeprecation = true;
-
-const invocationId = uuid.v4();
-
-// boot up error reporting via sentry before anything
-(() => initializeErrorReporter(invocationId).then(() => {
-  if (process.argv[2] === 'completion') {
-    return autocomplete();
-  }
-  // requiring here so that if anything went wrong,
-  // during require, it will be caught.
-  const Serverless = require('../lib/Serverless'); // eslint-disable-line global-require
-
-  const serverless = new Serverless({
-    interactive: typeof process.env.CI === 'undefined',
-  });
-
-  serverless.invocationId = invocationId;
-
-  return serverless.init()
-    .then(() => serverless.run())
-    .then(() => process.exit(0))
-    .catch((e) => {
-      if (serverless.service.deployment && serverless.service.deployment.deploymentId) {
-        const deploymentData = {
-          tenant: serverless.service.deployment.tenant,
-          app: serverless.service.deployment.app,
-          serviceName: serverless.service.deployment.serviceName,
-          deploymentId: serverless.service.deployment.deploymentId,
-          accessKey: serverless.service.deployment.accessKey,
-        };
-        deploymentData.status = 'Failed';
-        return platform.updateDeployment(deploymentData)
-          .then(() => {
-            throw e;
-          });
-      }
-      throw e;
-    });
-}).catch(e => {
-  process.exitCode = 1;
-  logError(e);
-}))();
+require('./serverless.js');

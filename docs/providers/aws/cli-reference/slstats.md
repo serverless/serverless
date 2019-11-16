@@ -7,14 +7,16 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/slstats)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Statistics and Usage Tracking
 
-The Serverless Framework development is driven by usage and demand of our community. We understand what users are doing by collecting various events and usage data, and we use this data to iterate and improve Serverless based on this gained insight. This includes things like providers, runtimes, event types, function memory size and timeout, plugins installed, and a bit about the environment of the CLI like operating systems, within a CI system or docker container, node.js version, etc. If you'd prefer, you can [disable usage tracking](#disable-statistics-and-usage-tracking].
+The Serverless Framework development is driven by usage and demand of our community. We understand what users are doing by collecting various events and usage data, and we use this data to iterate and improve Serverless based on this gained insight. This includes things like providers, runtimes, event types, function memory size and timeout, plugins installed, and a bit about the environment of the CLI like operating systems, within a CI system or docker container, node.js version, etc. If you'd prefer, you can [disable usage tracking](#disable-statistics-and-usage-tracking).
 
-We do not use event payloads to collect any identifying information, and the data is used in aggregate to understand the community as a whole. The one exception is if you are logged in to the Serverless Platform we collect information about your logged in user such as your `userId`, more information can be found in the [signed in to platform section](#signed-in-to-the-platform).
+We do not use event payloads to collect any identifying information, and the data is used in aggregate to understand the community as a whole. The one exception is if you are logged in to the Serverless Dashboard we collect information about your logged in user such as your `userId`, more information can be found in the [signed in to platform section](#signed-in-to-the-platform).
 
 ## Disable Statistics and Usage Tracking
 
@@ -46,13 +48,13 @@ The following is a list of the events that we collect:
 - service_pluginUninstalled
 - service_installed
 - user_awsCredentialsConfigured
-- user_enabledTracking  
-- user_disabledTracking 
+- user_enabledTracking
+- user_disabledTracking
 - user_loggedIn
 - user_loggedOut
 
-## Signed in to the Platform
+## Signed in to the Dashboard
 
-If you are signed in to the platform, we do receive your userId as part of the event payloads. We can use this information to understand your tenant and users interactions with the CLI and building services.
+If you are signed in to the [Serverless Dashboard](<(https://dashboard.serverless.com)>), we do receive your userId as part of the event payloads. We can use this information to understand your tenant and users interactions with the CLI and building services.
 
 If you are not signed in, we do not send any identifying information, such as an userId, within any of the event payloads.

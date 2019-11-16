@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework Commands - Login
 menuText: login
-menuOrder: 6
+menuOrder: 9
 description: Login to the serverless platform
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/login)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Login

@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Plugin Search
 menuText: Plugin Search
-menuOrder: 10
+menuOrder: 12
 description: Search through all available Serverless plugins
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/plugin-search)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Search
@@ -19,9 +21,11 @@ serverless plugin search --query query
 ```
 
 ## Options
+
 - `--query` or `-q` The query you want to use for your search. **Required**.
 
 ## Provided lifecycle events
+
 - `plugin:search:search`
 
 ## Examples

@@ -1,11 +1,13 @@
 <!--
 title: Serverless - Azure Functions - Events
-menuText: Azure Events 
+menuText: Events
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/events/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Azure Functions Events

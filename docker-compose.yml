@@ -60,7 +60,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-groovy-gradle:/app
   aws-scala-sbt:
-    image: hseeberger/scala-sbt
+    image: hseeberger/scala-sbt:8u222_1.3.2_2.13.1
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
   aws-csharp:
@@ -84,8 +84,8 @@ services:
   aws-go-mod:
     image: golang:1.11
     volumes:
-    - ./tmp/serverless-integration-test-aws-go-mod:/app
-    - ./tmp/serverless-integration-test-aws-go-mod:/go/src/app
+      - ./tmp/serverless-integration-test-aws-go-mod:/app
+      - ./tmp/serverless-integration-test-aws-go-mod:/go/src/app
   aws-nodejs-typescript:
     image: node:6.10.3
     volumes:
@@ -102,6 +102,11 @@ services:
     image: node:6.9.1
     volumes:
       - ./tmp/serverless-integration-test-google-nodejs:/app
+  google-go:
+    image: golang:1.11
+    volumes:
+      - ./tmp/serverless-integration-test-google-go:/app
+      - ./tmp/serverless-integration-test-google-go:/go/src/app
   spotinst-nodejs:
     image: node:4.8
     volumes:
@@ -118,3 +123,11 @@ services:
     image: maven:3-jdk-8
     volumes:
       - ./tmp/serverless-integration-test-spotinst-java8:/app
+  twilio-nodejs:
+    image: node:8.16.0
+    volumes:
+      - ./tmp/serverless-integration-test-twilio-nodejs:/app
+  aliyun-nodejs:
+    image: node:8
+    volumes:
+      - ./tmp/serverless-integration-test-aliyun-nodejs:/app

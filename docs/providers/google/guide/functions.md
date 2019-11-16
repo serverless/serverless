@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/guide/functions)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Google - Functions
 
-If you are using Google Cloud Functions as a provider, all *functions* inside the service are Google Cloud Functions.
+If you are using Google Cloud Functions as a provider, all _functions_ inside the service are Google Cloud Functions.
 
 ## Configuration
 
@@ -39,8 +41,7 @@ You can specify an array of functions, which is useful if you separate your func
 
 ```yml
 # serverless.yml
-...
-
+---
 functions:
   - ${file(./foo-functions.yml)}
   - ${file(./bar-functions.yml)}
@@ -54,7 +55,6 @@ deleteFoo:
   handler: handler.foo
 ```
 
-
 ## Handler
 
 The `handler` property should be the function name you've exported in your entrypoint file.
@@ -63,7 +63,7 @@ When you e.g. export a function with the name `http` in `index.js` your `handler
 
 ```javascript
 // index.js
-exports.http = (request, response) => {}
+exports.http = (request, response) => {};
 ```
 
 **A note about index.js and the entrypoint file**
@@ -96,6 +96,30 @@ functions:
     timeout: 120s
 ```
 
+## Environment variables
+
+Google Cloud Functions support environment variables. Those can be useful in a lot of ways, especially when deploying across multiple environments. Environment variables are defined as key-value pairs.
+
+The `environment` property can be specified at the provider or at the function level. The provider wide definition causes all functions to share those environment variables, whereas the function wide definition means that this configuration is only valid for the function.
+
+By default, no environment variable is passed to the functions. All environment variable values must be strings.
+
+```yml
+# serverless.yml
+
+provider:
+  environment:
+    max_delay: '5000'
+
+functions:
+  first:
+    handler: first
+  second:
+    handler: second
+    environment:
+      auth_provider: oauth2
+```
+
 ## Handler signatures
 
 Google Cloud Functions have different handler signatures dependent on the event type which will trigger them.
@@ -125,13 +149,15 @@ Labels are defined as key-value pairs.
 
 Labels can be applied globally, to all functions in your configuration file, and to specific functions.
 
+There are limitations to labels. Make sure to consult the link above to learn about the requirements.
+
 ```yml
 # serverless.yml
 
 provider:
   name: google
   labels:
-    application: Serverless Example
+    application: serverless-example
 
 functions:
   first:
@@ -139,19 +165,19 @@ functions:
     events:
       - http: path
     labels:
-      team: GCF Team
+      team: gcf-team
   second:
     handler: httpSecond
     events:
       - http: path
     labels:
-      application: Serverless Example - Documentation
+      application: serverless-example_documentation
 ```
 
 With the above configuration the `httpFirst` function would have two labels applied, `application` and `team`.
-The value of the `application` label would be `Serverless Example`, the value of the `team` label would be `GCF Team`.
+The value of the `application` label would be `serverless-example`, the value of the `team` label would be `gcf-team`.
 
-The `httpSecond` function would have only one label applied, `application`, and it would have a value of `Serverless Example - Documentation`.
+The `httpSecond` function would have only one label applied, `application`, and it would have a value of `serverless-example_documentation`.
 
 Labels defined under the `provider` object are applied to all functions in the file.
 Labels defined under specific functions only apply to that function.

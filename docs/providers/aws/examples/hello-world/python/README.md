@@ -1,12 +1,14 @@
 <!--
 title: Hello World Python Example
-menuText: Hello World Python Example
+menuText: Python
 description: Create a Python Hello World Lambda function
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/examples/hello-world/python/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Hello World Python Example

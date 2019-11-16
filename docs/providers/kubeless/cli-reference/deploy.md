@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/cli-reference/deploy)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Deploy
@@ -23,6 +25,8 @@ serverless deploy
 This is the simplest deployment usage possible. With this command Serverless will deploy your service to the default Kubernetes cluster in your kubeconfig file.
 
 ## Options
+
+- `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
 - `--noDeploy` or `-n` Skips the deployment steps and leaves artifacts in the `.serverless` directory.
 - `--verbose` or `-v` Shows all stack events during deployment, and display any Stack Output.
 - `--package` or `-p` The path of a previously packaged deployment to get deployed (skips packaging step).
@@ -33,6 +37,7 @@ This is the simplest deployment usage possible. With this command Serverless wil
 After the `serverless deploy` command runs all created deployment artifacts are placed in the `.serverless` folder of the service.
 
 ## Provided lifecycle events
+
 - `deploy:cleanup`
 - `deploy:initialize`
 - `deploy:setupProviderConfiguration`

@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/guide/debugging)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Fn - Debugging
@@ -19,15 +21,15 @@ Let's imagine that we have deployed the following Nodejs code as a Fn function u
 ```javascript
 const fdk = require('@fnproject/fdk');
 
-fdk.handle((input) => {
-    input = JSON.parse(input)
-    let name = 'World';
-    if (input.name) {
-        name = input.name;
-    }
-    const response = { message: `Hello ${name}` };
-    console.error(`I show up in the logs name was: ${name}`);
-    return response;
+fdk.handle(input => {
+  input = JSON.parse(input);
+  let name = 'World';
+  if (input.name) {
+    name = input.name;
+  }
+  const response = { message: `Hello ${name}` };
+  console.error(`I show up in the logs name was: ${name}`);
+  return response;
 });
 ```
 
@@ -35,7 +37,7 @@ And its corresponding Serverless YAML file:
 
 ```yml
 service:
-    name: hello-world
+  name: hello-world
 
 provider:
   name: fn
@@ -49,8 +51,8 @@ functions:
     runtime: node
     format: json
     events:
-        - http:
-            path: /hello
+      - http:
+          path: /hello
 ```
 
 Let's invoke correctly that function

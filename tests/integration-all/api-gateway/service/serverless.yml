@@ -1,0 +1,70 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  versionFunctions: false
+  apiKeys:
+    - name: CHANGE_TO_UNIQUE_PER_RUN
+      value: CHANGE_TO_UNIQUE_PER_RUN
+
+functions:
+  # core functions
+  minimal:
+    handler: core.minimal
+    events:
+      - http: GET /
+      - http:
+          method: POST
+          path: minimal-1
+      - http:
+          method: PUT
+          path: /minimal-2
+      - http:
+          method: DELETE
+          path: /minimal-3/
+  cors:
+    handler: core.cors
+    events:
+      - http:
+          method: GET
+          path: simple-cors
+          cors: true
+      - http:
+          method: GET
+          path: complex-cors
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+  customAuthorizers:
+    handler: core.customAuthorizers
+    events:
+      - http:
+          path: custom-auth
+          method: GET
+          authorizer: authorizer
+  apiKeys:
+    handler: core.apiKeys
+    events:
+      - http:
+          path: api-keys
+          method: GET
+          private: true
+  timeout:
+    handler: core.timeout
+    timeout: 1
+    events:
+      - http:
+          method: GET
+          integration: lambda
+          path: integration-lambda-timeout
+  # helper functions
+  authorizer:
+    handler: helper.auth

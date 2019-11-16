@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SQS Queues
 menuText: SQS
-menuOrder: 6
+menuOrder: 7
 description:  Setting up AWS SQS Queue Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/sqs)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # SQS Queues
@@ -25,6 +27,7 @@ functions:
   compute:
     handler: handler.compute
     events:
+      # These are all possible formats
       - sqs: arn:aws:sqs:region:XXXXXX:MyFirstQueue
       - sqs:
           arn:
@@ -34,18 +37,32 @@ functions:
       - sqs:
           arn:
             Fn::ImportValue: MyExportedQueueArnId
+      - sqs:
+          arn:
+            Fn::Join:
+              - ':'
+              - - arn
+                - aws
+                - sqs
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - MyOtherQueue
 ```
 
 ## Setting the BatchSize
 
-For the SQS event integration, you can set the `batchSize`, which effects how many SQS messages will be included in a single Lambda invocation. The default `batchSize` is 10, and the max `batchSize` is 10.
+For the SQS event integration, you can set the `batchSize`, which effects how many SQS messages can be included in a single Lambda invocation. The default `batchSize` is 10, and the max `batchSize` is 10.
 
 ```yml
 functions:
-  preprocess:
-    handler: handler.preprocess
+  compute:
+    handler: handler.compute
     events:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
 ```
+
+## IAM Permissions
+
+The Serverless Framework will automatically configure the most minimal set of IAM permissions for you. However you can still add additional permissions if you need to. Read the official [AWS documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-lambda-function-trigger.html) for more information about IAM Permissions for SQS events.

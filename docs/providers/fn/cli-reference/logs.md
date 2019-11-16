@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/fn/cli-reference/logs)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Fn - Logs
@@ -27,4 +29,5 @@ serverless logs -f hello
 ```bash
 serverless logs -f hello
 ```
+
 This will fetch the logs for hello for the most recent calls to it.

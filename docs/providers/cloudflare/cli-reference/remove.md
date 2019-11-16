@@ -7,15 +7,21 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/cloudflare/cli-reference/remove)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Cloudflare Workers - Remove
+
 The `serverless remove` command will remove the deployed service, defined in your current working directory, from the provider.
- 
+
 ```bash
 serverless remove
 ```
+
 It will remove the Cloudflare Worker functions from the Cloudflare.
+
 ## Provided lifecycle events
+
 - `remove:remove`

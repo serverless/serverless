@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/guide/events)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Events
@@ -45,12 +47,12 @@ functions:
     events: # All events associated with this function
       - http: GET /users/create
       - http: POST /users/update
-      - trigger: "custom trigger"
+      - trigger: 'custom trigger'
 ```
 
 ## Types
 
-The Serverless Framework supports all of the Apache OpenWhisk events and more.  Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality.  [Check out the events section for more information.](../events)
+The Serverless Framework supports all of the Apache OpenWhisk events and more. Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality. [Check out the events section for more information.](../events)
 
 ## Deploying
 

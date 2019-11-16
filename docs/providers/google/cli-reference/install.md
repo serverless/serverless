@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/install)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Google - Install
@@ -20,8 +22,16 @@ serverless install --url https://github.com/some/service
 
 ## Options
 
-- `--url` or `-u` The services GitHub URL. **Required**.
+- `--url` or `-u` The services Git URL. **Required**.
 - `--name` or `-n` Name for the service.
+
+## Supported Code Hosting Platforms
+
+- GitHub
+- GitHub Enterprise
+- GitLab
+- BitBucket
+- BitBucket Server
 
 ## Examples
 

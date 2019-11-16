@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Print
-menuText: Print
+menuText: print
 menuOrder: 21
 description: Print your config with all variables resolved for debugging
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/print)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Print
@@ -42,7 +44,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   stage: ${opt:stage, "dev"}
 
 functions:
@@ -66,7 +68,7 @@ custom:
   bucketName: test
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   stage: dev # <-- Resolved
 functions:
   hello:

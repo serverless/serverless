@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Install
 menuText: install
-menuOrder: 2
+menuOrder: 8
 description: Install pre-written Azure Functions Functions, Events and Resources with the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/install)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Azure - Install
@@ -19,11 +21,21 @@ serverless install --url https://github.com/some/service
 ```
 
 ## Options
-- `--url` or `-u` The services GitHub URL. **Required**.
+
+- `--url` or `-u` The services Git URL. **Required**.
 - `--name` or `-n` Name for the service.
 
 ## Provided lifecycle events
+
 - `install:install`
+
+## Supported Code Hosting Platforms
+
+- GitHub
+- GitHub Enterprise
+- GitLab
+- BitBucket
+- BitBucket Server
 
 ## Examples
 

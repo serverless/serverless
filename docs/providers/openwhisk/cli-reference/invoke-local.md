@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/openwhisk/cli-reference/invoke-local)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # OpenWhisk - Invoke Local
@@ -18,13 +20,14 @@ This runs your code locally by emulating the Apache OpenWhisk environment. Pleas
 serverless invoke local --function functionName
 ```
 
-__*Please note that only the JavaScript and Python runtimes are supported with this command.*__
+**_Please note that only the JavaScript and Python runtimes are supported with this command._**
 
 ## Options
 
 - `--function` or `-f` The name of the function in your service that you want to invoke locally. **Required**.
 - `--path` or `-p` The path to a json file holding input data to be passed to the invoked function. This path is relative to the root directory of the service. The json file should have event and context properties to hold your mocked event and context data.
 - `--data` or `-d` String data to be passed as an event to your function. Keep in mind that if you pass both `--path` and `--data`, the data included in the `--path` file will overwrite the data you passed with the `--data` flag.
+
 * `--env` or `-e` String representing an environment variable to set when invoking your function, in the form `<name>=<value>`. Can be repeated for more than one environment variable.
 
 ## Examples

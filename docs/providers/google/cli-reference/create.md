@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/create)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Google - Create
@@ -41,6 +43,8 @@ To see a list of available templates run `serverless create --help`
 Most commonly used templates:
 
 - google-nodejs
+- google-go
+- google-python
 
 ## Examples
 

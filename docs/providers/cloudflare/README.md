@@ -1,11 +1,14 @@
 <!--
 title: Serverless - Cloudflare Workers Documentation
 menuText: Cloudflare Workers
+menuOrder: 7
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Cloudflare Provider Documentation
@@ -16,12 +19,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
 
 <div class="docsSections">
  <div class="docsSection">
-   <div class="docsSectionHeader">
-     <a href="./guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/guide.png" alt="Serverless Framework Cloudflare Workers Guide" width="250" draggable="false"/>
-     </a>
+   <div class="docsSectionSubHeader">
+     <h4>Guides</h4>
    </div>
-   <div class="test">
+   <div class="docsProviderItems">
      <ul>
        <li><a href="./guide/intro.md">Intro</a></li>
        <li><a href="./guide/quick-start.md">Quickstart</a></li>
@@ -37,12 +38,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
  </div>
 
  <div class="docsSection">
-   <div class="docsSectionHeader">
-     <a href="./cli-reference/">
-       <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cli.png" alt="Serverless Framework Cloudflare Workers CLI Reference" width="250" draggable="false"/>
-     </a>
+   <div class="docsSectionSubHeader">
+     <h4>CLI References</h4>
    </div>
-   <div>
+   <div class="docsProviderItems">
      <ul>
        <li><a href="./cli-reference/create.md">Create</a></li>
        <li><a href="./cli-reference/deploy.md">Deploy</a></li>
@@ -57,12 +56,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
  </div>
 
  <div class="docsSection">
-   <div class="docsSectionHeader">
-     <a href="./events/">
-       <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/events.png" alt="Serverless Framework Cloudflare Workers Events Reference" width="250" draggable="false"/>
-     </a>
+   <div class="docsSectionSubHeader">
+     <h4>Events</h4>
    </div>
-   <div>
+   <div class="docsProviderItems">
      <ul>
        <li><a href="./events/http.md">HTTP Events</a></li>
      </ul>

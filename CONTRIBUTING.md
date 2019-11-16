@@ -38,7 +38,19 @@ You can do that by replying to [issues on Github](https://github.com/serverless/
 
 # Code Style
 
-We aim for clean, consistent code style. We're using ESlint to check for codestyle issues using the Airbnb preset (you can run `npm run lint` to lint your code).
+We aim for clean, consistent code style. We're using ESlint to check for codestyle issues using the Airbnb preset.
+
+## Verifying linting style
+
+```
+npm run lint
+```
+
+## Fixing lint issues
+
+```
+npm run lint:fix
+```
 
 To help reduce the effort of creating contributions with this style, an [.editorconfig file](http://editorconfig.org/) is provided that your editor may use to override any conflicting global defaults and automate a subset of the style settings.
 
@@ -48,15 +60,15 @@ We aim for a (near) 100% test coverage, so make sure your tests cover as much of
 
 ## Test coverage
 
-During development, you can easily check coverage by running `npm test`, then opening the `index.html` file inside the `coverage` directory.
+During development, you can easily check coverage by running `npm run coverage`, then opening the `index.html` file inside the `coverage` directory.
 
 Please follow these Testing guidelines when writing your unit tests:
 
--  Include a top-level `describe('ClassName')` block, with the name of the class you are testing
--  Inside that top-level `describe()` block, create another `describe('#methodOne()')` block for each class method you might create or modify
--  For each method, include an `it('should do something')` test case for each logical edge case in your changes
--  As you write tests, check the code coverage and make sure all lines of code are covered.  If not, just add more test cases until everything is covered
--  For reference and inspiration, please check our `tests` directory
+- Include a top-level `describe('ClassName')` block, with the name of the class you are testing
+- Inside that top-level `describe()` block, create another `describe('#methodOne()')` block for each class method you might create or modify
+- For each method, include an `it('should do something')` test case for each logical edge case in your changes
+- As you write tests, check the code coverage and make sure all lines of code are covered. If not, just add more test cases until everything is covered
+- For reference and inspiration, please check our `tests` directory
 
 ## Testing templates
 
@@ -65,7 +77,7 @@ If you add a new template or want to test a template after changing it you can r
 To run all integration tests run:
 
 ```
-./tests/templates/test_all_templates
+./tests/templates/test-all-templates
 ```
 
 To run only a specific integration test run:
@@ -80,7 +92,7 @@ so for example:
 tests/templates/integration-test-template aws-java-maven mvn package
 ```
 
-If you add a new template make sure to add it to the `test_all_templates` file and configure the `docker-compose.yml` file for your template.
+If you add a new template make sure to add it to the `test-all-templates` file and configure the `docker-compose.yml` file for your template.
 
 # Our Code of Conduct
 

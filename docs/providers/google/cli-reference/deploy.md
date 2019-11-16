@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/cli-reference/deploy)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Deploy
@@ -17,6 +19,10 @@ The `serverless deploy` command deploys your entire service via the Google Cloud
 ```bash
 serverless deploy
 ```
+
+## Options
+
+- `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
 
 ## Artifacts
 

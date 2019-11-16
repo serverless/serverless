@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/deploying)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Deploying
 
-The Serverless Framework was designed to provision your Kubeless Functions and Events.  It does this via a couple of methods designed for different types of deployments.
+The Serverless Framework was designed to provision your Kubeless Functions and Events. It does this via a couple of methods designed for different types of deployments.
 
 ## Deploy All
 
@@ -23,6 +25,8 @@ serverless deploy -v
 ```
 
 Use this method when you have updated your Function, Event or Resource configuration in `serverless.yml` and you want to deploy that change (or multiple changes at the same time) to your Kubernetes cluster.
+
+**Note:** You can specify a different configuration file name with the the `--config` option.
 
 ### How It Works
 
@@ -73,6 +77,26 @@ rs/hello-699783077   1         1         1         2m
 
 Kubeless will create a [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for your function and a [Kubernetes service](https://kubernetes.io/docs/concepts/services-networking/service/) for each event.
 
+Deployment will spin up a [Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/)) based on runtime you have defined in your `serverless.yml`. Runtime is a public docker image, providing only binaries for your code. Function code itself is injected into Pod by `kubeless-controller-manager` and stored in Kubernetes Function object definition.
+
+Kubernetes Function definition has a size limit, since it is stored as yaml in cluster's etcd. So, you can't deploy function any larger than approximately 1.5MB.
+
+In order to overcome this limitation, function code can be fetched from [external url](https://kubeless.io/docs/advanced-function-deployment/); in this case only link (and checksum) is stored in Kubernetes function definition. Starting from v0.8.0 of `serverless-kubeless`, you can change default deployment method to `S3ZipContent` and configure `serverless-kubeless` with S3 bucket, where the function code will be stored:
+
+```yaml
+provider:
+  name: kubeless
+  runtime: python2.7
+  deploy:
+    strategy: S3ZipContent
+    options:
+      accessKeyId: minio
+      secretAccessKey: minio123
+      endpoint: http://minio.local
+      bucket: workbench
+      region: eu-central-1
+      s3ForcePathStyle: True
+```
 
 ## Deploy Function
 

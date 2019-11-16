@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework Commands - Azure - Print
 menuText: Print
-menuOrder: 13
+menuOrder: 15
 description: Print your config with all variables resolved for debugging
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/print)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Print

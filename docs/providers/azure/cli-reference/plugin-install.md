@@ -1,30 +1,35 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Plugin Install
 menuText: Plugin Install
-menuOrder: 11
+menuOrder: 13
 description: Install a Serverless plugin
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/azure/cli-reference/plugin-install)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin Install
 
-Install a Serverless plugin and add it to the services `plugins` array. By default, a latest version is installed.
+Install a Serverless plugin and add it to the `plugins` array of `serverless.yml`. By default, a latest version is installed.
+
 If you want a specific version, you can specify `<pluginname>@<version>` as name option.
 
-**Note:** You might want to change the order of the plugin in the services `plugins` array.
+**Note:** You might want to change the order of the plugin in the `plugins` array.
 
 ```bash
 serverless plugin install --name pluginName
 ```
 
 ## Options
+
 - `--name` or `-n` The plugins name. **Required**.
 
 ## Provided lifecycle events
+
 - `plugin:install:install`
 
 ## Examples

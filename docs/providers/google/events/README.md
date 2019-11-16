@@ -1,11 +1,13 @@
 <!--
 title: Google Cloud Functions Serverless Events
-menuText: Google Functions Events
+menuText: Events
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/google/events/)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Serverless Google Cloud Functions Events

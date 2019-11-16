@@ -7,12 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/guide/layers)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # AWS - Layers
 
-If you are using AWS as a provider, all *layers* inside the service are [AWS Lambda
+If you are using AWS as a provider, all _layers_ inside the service are [AWS Lambda
 layers](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-use-any-programming-language-and-share-common-components/).
 
 ## Configuration
@@ -23,7 +25,7 @@ All of the Lambda layers in your serverless service can be found in `serverless.
 # serverless.yml
 service: myService
 
-provider:ad
+provider:
   name: aws
 
 layers:
@@ -36,6 +38,7 @@ layers:
     licenseInfo: GPLv3 # optional, a string specifying license information
     allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
       - '*'
+    retain: false # optional, false by default. If true, layer versions are not deleted as new ones are created
 ```
 
 You can add up to 5 layers as you want within this property.
@@ -58,7 +61,7 @@ layers:
     path: layerThree
 ```
 
-Your functions can either inherit their packaging settings from the global `package` property.
+Your layers can either inherit their packaging settings from the global `package` property.
 
 ```yml
 # serverless.yml
@@ -107,7 +110,6 @@ layers:
     package:
       artifact: layerSource.zip
 ```
-
 
 ## Permissions
 
@@ -169,5 +171,5 @@ functions:
   hello:
     handler: handler.hello
     layers:
-      - {Ref: TestLambdaLayer}
+      - { Ref: TestLambdaLayer }
 ```

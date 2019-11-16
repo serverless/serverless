@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Plugin List
-menuText: Plugin List
+menuText: plugin list
 menuOrder: 17
 description: List all available Serverless plugins
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/plugin-list)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Plugin List
@@ -19,7 +21,9 @@ serverless plugin list
 ```
 
 ## Options
-- *None*
+
+- _None_
 
 ## Provided lifecycle events
+
 - `plugin:list:list`

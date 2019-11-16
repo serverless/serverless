@@ -1,13 +1,15 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudWatch Log
 menuText: CloudWatch Log
-menuOrder: 10
+menuOrder: 13
 description:  Setting up AWS CloudWatch Logs with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/cloudwatch-log)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # CloudWatch Log
@@ -23,6 +25,8 @@ functions:
     events:
       - cloudwatchLog: '/aws/lambda/hello'
 ```
+
+**WARNING**: If you specify several CloudWatch Log events for one AWS Lambda function you'll only see the first subscription in the AWS Lambda Web console. This is a known AWS problem but it's only graphical, you should be able to view your CloudWatch Log Group subscriptions in the CloudWatch Web console.
 
 ## Specifying a filter
 

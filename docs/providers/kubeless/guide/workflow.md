@@ -7,7 +7,9 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
+
 ### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/kubeless/guide/workflow)
+
 <!-- DOCS-SITE-LINK:END -->
 
 # Kubeless - Workflow
@@ -24,43 +26,55 @@ Intro. Quick recommendations and tips for various processes.
 6. Write tests to run locally.
 
 ### Larger Projects
-* Break your application/project into multiple Serverless Services.
-* Model your Serverless Services around Data Models or Workflows.
-* Keep the Functions and Resources in your Serverless Services to a minimum.
+
+- Break your application/project into multiple Serverless Services.
+- Model your Serverless Services around Data Models or Workflows.
+- Keep the Functions and Resources in your Serverless Services to a minimum.
 
 ## Cheat Sheet
+
 A handy list of commands to use when developing with the Serverless Framework.
 
 ##### Create A Service:
+
 Creates a new Service
 
 ```
 serverless create -p [SERVICE NAME] -t kubeless-python
 ```
+
 ```
 serverless create -p [SERVICE NAME] -t kubeless-nodejs
 ```
 
 ##### Deploy All
+
 Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+
 ```
 serverless deploy
 ```
 
 ##### Deploy Function
+
 Use this to quickly overwrite your Kubeless Functinos, allowing you to develop faster.
+
 ```
 serverless deploy function -f [FUNCTION NAME]
 ```
 
 ##### Invoke Function
+
 Invokes an Kubeless Function and returns logs.
+
 ```
 serverless invoke function -f [FUNCTION NAME] -l
 ```
 
 ##### Streaming Logs
+
 Open up a separate tab in your console and stream all logs for a specific Function using this command.
+
 ```
 serverless logs -f [FUNCTION NAME]
 ```

@@ -1,0 +1,12 @@
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+functions:
+  hello:
+    handler: handler.hello
+  custom-name:
+    name: ${self:service}-${self:provider.region}-custom-name
+    handler: handler.hello

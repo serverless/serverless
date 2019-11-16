@@ -7,13 +7,14 @@ layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/rollback)
-<!-- DOCS-SITE-LINK:END -->
 
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/cli-reference/rollback)
+
+<!-- DOCS-SITE-LINK:END -->
 
 # AWS - Rollback
 
-Rollback the Serverless service to a specific deployment.
+Rollback a service to a specific deployment.
 
 ```bash
 serverless rollback --timestamp timestamp
@@ -22,10 +23,12 @@ serverless rollback --timestamp timestamp
 If `timestamp` is not specified, Framework will show your existing deployments.
 
 ## Options
+
 - `--timestamp` or `-t` The deployment you want to rollback to.
 - `--verbose` or `-v` Shows any Stack Output.
 
 ## Provided lifecycle events
+
 - `rollback:initialize`
 - `rollback:rollback`
 

@@ -12,8 +12,8 @@ layout: Doc
 
 1. Node.js `v6.5.0` or later.
 2. Serverless CLI `v1.20` or later. You can run
-`npm install -g serverless` to install it.
-3. Install Kubeless & Dependencies(./installation.md). 
+   `npm install -g serverless` to install it.
+3. Install Kubeless & Dependencies(./installation.md).
 
 ## Create a new service
 
@@ -32,36 +32,37 @@ $ npm install
 
 1. **Deploy the Service**
 
-  Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
+Use this when you have made changes to your Functions, Events or Resources in `serverless.yml` or you simply want to deploy all changes within your Service at the same time.
 
-  ```bash
-  serverless deploy -v
-  ```
+```bash
+serverless deploy -v
+```
 
 2. **Deploy the Function**
 
-  Use this to quickly upload and overwrite your function code, allowing you to develop faster.
+Use this to quickly upload and overwrite your function code, allowing you to develop faster.
 
-  ```bash
-  serverless deploy function -f capitalize
-  ```
+```bash
+serverless deploy function -f capitalize
+```
 
 3. **Invoke the Function**
 
-  Invokes the Function and returns results.
+Invokes the Function and returns results.
 
-  ```bash
-  $ serverless invoke --function capitalize --data '"WELCOME TO KUBELESS!"' -l
-  # results
+```bash
+$ serverless invoke --function capitalize --data '"WELCOME TO KUBELESS!"' -l
+# results
 "Welcome To Kubeless!"
-   ```
+```
 
 4. **Fetch the Function Logs**
 
-  Open up a separate tab in your console and stream all logs for a specific Function using this command.
-  ```bash
-  serverless logs -f capitalize -t
-  ```
+Open up a separate tab in your console and stream all logs for a specific Function using this command.
+
+```bash
+serverless logs -f capitalize -t
+```
 
 ## Cleanup
 
