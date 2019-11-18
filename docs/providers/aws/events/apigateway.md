@@ -873,7 +873,7 @@ If you want to spread a string into multiple lines, you can use the `>` or `|` s
 
 #### Pass Through Behavior
 
-API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates. When this happens, the request payload will either be passed through the integration request _without transformation_ or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
+[API Gateway](https://serverless.com/amazon-api-gateway/) provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates. When this happens, the request payload will either be passed through the integration request _without transformation_ or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
 
 You can define this behaviour as follows (if not specified, a value of **NEVER** will be used):
 
