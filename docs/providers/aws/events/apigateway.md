@@ -277,7 +277,7 @@ cors:
 
 Please note that since you can't send multiple values for [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), this configuration uses a response template to check if the request origin matches one of your provided `origins` and overrides the header with the following code:
 
-```bash
+```
 #set($origin = $input.params("Origin")
 #if($origin == "http://example.com" || $origin == "http://*.amazonaws.com") #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end
 ```
@@ -1538,7 +1538,7 @@ The log streams will be generated in a dedicated log group which follows the nam
 
 By default, API Gateway access logs will use the following format:
 
-```bash
+```
 'requestId: $context.requestId, ip: $context.identity.sourceIp, caller: $context.identity.caller, user: $context.identity.user, requestTime: $context.requestTime, httpMethod: $context.httpMethod, resourcePath: $context.resourcePath, status: $context.status, protocol: $context.protocol, responseLength: $context.responseLength'
 ```
 
