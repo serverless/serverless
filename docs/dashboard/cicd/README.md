@@ -28,20 +28,20 @@ Before you setup your CI/CD workflow, make sure you meet the following requireme
 
 1. Select your application from the main dashboard.
 2. Select the service you want to deploy or create a new one.
-3. Select the “settings” tab from the application page.
-4. Select the service from the menu under the “SERVICE DEPLOYMENTS” section.
+3. Select the “ci/cd settings” tab from the application page.
+4. Select the service from the left-hand menu.
 5. Click the "connect github repository" button to grant the Serverless Dashboard access to the repository.
 6. After authenticate with Github you'll be asked to install the Serverless application in your Github organizations. In the "Repository access" section, ensure you select "All repositories", or that the intended repository is included if you select "Only select repositories".
 
 ## Configure the build settings
 
-1. Select the Github repository from the "repository" dropdown. This must be a repository that contains one more Serverless Framework projects.
-2. Select the "base directory" containing the `serverless.yml` file. The repository must contain at least one `serverless.yml` with the `org`, `app`, and `service` values which match the current org/app/service in the dashboard.
+1. Select the Github repository from the "repository" dropdown. This must be a repository that contains one or more `serverless.yml` files.
+2. Select the "base directory" containing the `serverless.yml` file. The repository must contain at least one `serverless.yml` and `service` value must match the current service in the dashboard.
 3. Select the “region” for the deployments. Only regions supported by the Serverless Dashboard are currently listed. If you plan to deploy to another region, please reach out sales or support to request support for a new region.
 
 ## Branch Deployments
 
-Branch deployments enable you to automatically deploy a service to a stage from a branch in your Github repository.
+Branch deployments enable you to automatically deploy a service to a stage from a branch in your Github repository. Every commit to this branch is automatically deployed.
 
 ### Adding a branch deployment
 
@@ -53,7 +53,7 @@ If you are a first time user, the stage list may be empty. You must first [creat
 
 ## Preview Deployment
 
-Preview deployments enable you to deploy on every pull request. As a part of the pull request review process, it is helpful to have an instance of your serverless application deployed.
+Preview deployments enable you to deploy on every pull request. As a part of the pull request review process, it is helpful to have an instance of your serverless application deployed. A pull request will trigger the deployment and all subsequent commits on that branch will also be deployed.
 
 ### Enabling preview deployments
 
@@ -61,11 +61,7 @@ To enable preview deployments, select "Deploy previews for all branches" or "Dep
 
 Each deployment must target a specific stage. You can select a pre-configured stage, or you can select “use branch name as stage”.
 
-### Deleting preview deployments
-
-Configuring the preview deployments with the "use branch name as stages" may lead to a large number of deployed service instances. If those services instances are no longer used, you’ll want to delete them.
-
-Deleted service instance from the dashboard is not yet supported. To delete the service instance you must run `sls remove` from the CLI in the repository containing the `serverless.yml` file. The region and stage must also match the region and stage you intend to delete.
+Using "use branch name as stage" will cause the deployment to deploy to a stage with the same name as the branch name. The deployment profile associated with the "default" stage in your application will be used.
 
 ### Using branch name as stages
 
@@ -96,6 +92,14 @@ The tests only run if a `test` script is present in the `package.json` file, lik
 ```
 
 The tests will be skipped if the `npm test` command returns `Error: no test specified`. This is the response from `npm` if no `test` script is defined. It is also the default value of the `test` script when you initialize a new package.json via `npm init`.
+
+### Automatically deleting preview deployments (recommended)
+
+The recommended method for deleting preview service instances is to select "Destroy stage and resources when branch is deleted". If the changes in the PR are accepted then they will be merged and then the branch is deleted. If the changes are rejected the branch is also deleted. Whenever the branch is deleted, Serverless Framework Pro will automatically run `sls remove` on this service instance.
+
+### Manually deleting preview deployments
+
+Alternativley you can delete service via the CLI. To delete the service instance you must run `sls remove` from the CLI in the repository containing the `serverless.yml` file. The `org`, `app`, `stage`, and `region` must all match the service instance you intend to delete.
 
 ## Custom scripts
 
