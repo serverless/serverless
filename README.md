@@ -124,6 +124,7 @@ The following are services you can instantly install and use by running `serverl
 - [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
 - [CRUD with FaunaDB](https://github.com/faunadb/serverless-crud) - CRUD service using FaunaDB
 - [CRUD with S3](https://github.com/tscanlin/serverless-s3-crud) - CRUD service using S3
+- [CRUD with Flask and SQLAlchemy](https://github.com/jetbridge/sls-flask) - Python [CRUD API service](https://blog.jetbridge.com/framework/) with Flask, SQLAlchemy and Swagger
 - [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 - [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
 - [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
@@ -207,6 +208,7 @@ These consultants use the Serverless Framework and can help you build your serve
 - [Onica](https://www.onica.com/aws-cloud-native-developers/) - AWS Premier Consulting Partner for Cloud Native Development and host of [eleven regional Meetup groups](https://www.onica.com/events/).
 - [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
 - [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
+- [JetBridge](https://jetbridge.com) - cloud-native and serverless application development services.
 
 ---
 
