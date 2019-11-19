@@ -118,7 +118,10 @@ Here is an example of how to use it from the `context.serverlessSdk` object:
 ```javascript
 module.exports.hello = async (event, context) => {
   // ... set up some state/custom logic
-  context.serverlessSdk.tagEvent('customer-id', event.body.customerId, { demoUser: true, freeTrialExpires: '2020-09-01' });
+  context.serverlessSdk.tagEvent('customer-id', event.body.customerId, {
+    demoUser: true,
+    freeTrialExpires: '2020-09-01',
+  });
   return {
     statusCode: 200,
     body: JSON.stringify({ name: 'bob' }),
