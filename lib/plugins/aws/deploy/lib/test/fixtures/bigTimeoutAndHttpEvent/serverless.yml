@@ -1,0 +1,11 @@
+service: 'service'
+provider: 'aws'
+
+functions:
+  foo:
+    handler: index.js
+    timeout: 31
+    events:
+      - http:
+          path: foo
+          method: GET

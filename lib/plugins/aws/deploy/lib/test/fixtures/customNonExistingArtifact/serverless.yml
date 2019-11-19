@@ -1,0 +1,9 @@
+service: 'service'
+provider: 'aws'
+
+package:
+  artifact: custom-artifact.zip
+
+functions:
+  foo:
+    handler: index.js

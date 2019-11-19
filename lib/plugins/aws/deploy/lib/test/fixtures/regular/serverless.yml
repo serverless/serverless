@@ -1,0 +1,6 @@
+service: 'service'
+provider: 'aws'
+
+functions:
+  foo:
+    handler: index.js
