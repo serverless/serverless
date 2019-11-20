@@ -16,7 +16,7 @@ As part of the Serverless Insights feature we also include a set of pre-configur
 
 ## Errors and Invocations
 
-The errors and invociations chart shows error count trends and the aggregate number of invocations for a particular service for a selected time period. Click into any bar on the chart to see function specific metrics.
+The errors and invocations chart shows error count trends and the aggregate number of invocations for a particular service for a selected time period. Click into any bar on the chart to see function specific metrics.
 
 ## Durations
 

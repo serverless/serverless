@@ -20,7 +20,7 @@ Serverless is a [Node.js](https://nodejs.org) CLI tool so the first thing you ne
 
 Go to the official [Node.js website](https://nodejs.org), download and follow the [installation instructions](https://nodejs.org/en/download/) to install Node.js on your local machine.
 
-You can verify that Node.js is installed successfully by runnning `node --version` in your terminal. You should see the corresponding Node version number printed out.
+You can verify that Node.js is installed successfully by running `node --version` in your terminal. You should see the corresponding Node version number printed out.
 
 ### Installing the Serverless Framework
 

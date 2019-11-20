@@ -20,7 +20,7 @@ Intro. Quick recommendations and tips for various processes.
 
 1. Write your functions
 2. Run function app locally by using `sls offline` and `npm start` (or `func host start`). See [quickstart](./quick-start).
-3. Use `serverless deploy` to deploy your function app (preferrably in a CI/CD environment)
+3. Use `serverless deploy` to deploy your function app (preferably in a CI/CD environment)
 4. Use `serverless invoke -f myFunction` to test your Azure Functions.
 
 ### Larger Projects

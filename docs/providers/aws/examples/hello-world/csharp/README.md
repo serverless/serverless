@@ -17,7 +17,7 @@ Make sure `serverless` is installed. [See installation guide](../../../guide/ins
 
 Once installed the Serverless CLI can be called with `serverless` or the shorthand `sls` command.
 
-If `sls` command retuns an error in PowerShell, please use `serverless` command.
+If `sls` command returns an error in PowerShell, please use `serverless` command.
 
 ```
 $ sls

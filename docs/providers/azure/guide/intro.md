@@ -14,7 +14,7 @@ layout: Doc
 
 # Azure - Introduction
 
-The Serverless Framework helps you develop and deploy serverless applications using Azure Functions. It's a CLI that offers structure, automation and best practices for deployment of both code and infrstructure, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
+The Serverless Framework helps you develop and deploy serverless applications using Azure Functions. It's a CLI that offers structure, automation and best practices for deployment of both code and infrastructure, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [Functions](#functions) and [Events](#events).
 
 ## Core Concepts
 
