@@ -149,7 +149,7 @@ You can even set up different profiles for different accounts, which can be used
 service: new-service
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: dev
   profile: devProfile
 ```
@@ -194,7 +194,7 @@ This example `serverless.yml` snippet will load the profile depending upon the s
 service: new-service
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.profiles.${self:provider.stage}}
 custom:

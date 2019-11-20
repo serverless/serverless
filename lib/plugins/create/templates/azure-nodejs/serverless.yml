@@ -20,7 +20,7 @@ service: azure-nodejs # NOTE: update this with your service name
 provider:
   name: azure
   region: West US 2
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   # prefix: "sample"  # prefix of generated resource name
   # subscriptionId: A356AC8C-E310-44F4-BF85-C7F29044AF99
   # stage: dev
