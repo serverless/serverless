@@ -91,7 +91,7 @@ plugins:
   - serverless-tencent-scf
 
 functions:
-  function_one:
+  hello_world:
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
@@ -127,7 +127,7 @@ $ curl -X POST https://service-xxxx-1300000000.ap-guangzhou.apigateway.myqcloud.
 Invokes a Function and returns logs.
 
 ```bash
-serverless invoke -f hello
+serverless invoke -f hello_world
 ```
 
 More information in [invoke command](../cli-reference/invoke.md)
@@ -137,7 +137,7 @@ More information in [invoke command](../cli-reference/invoke.md)
 Open up a separate tab in your console and stream all logs for a specific Function using this command.
 
 ```bash
-serverless logs -f hello -t
+serverless logs -f hello_world -t
 ```
 
 ## Cleanup

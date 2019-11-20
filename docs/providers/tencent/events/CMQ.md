@@ -20,7 +20,7 @@ In the following example we choose a pre-existing CMQ topic with name `cmq_trigg
 
 ```yml
 functions:
-  function_one:
+  hello_world:
     handler: index.main_handler
     runtime: Nodejs8.9
     events:

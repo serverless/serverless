@@ -20,7 +20,7 @@ In the following example we choose a pre-existing CKafka topic with name `ckafka
 
 ```yml
 functions:
-  function_one:
+  hello_world:
     handler: index.main_handler
     runtime: Nodejs8.9
     events:
