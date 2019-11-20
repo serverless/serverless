@@ -11,6 +11,9 @@
 #
 # Happy Coding!
 
+# Tencent Cloud serverless.yml Reference
+# https://github.com/serverless-tencent/serverless-tencent-scf/blob/master/docs/en/yaml.md
+
 service: my-service # service name
 
 provider: # provider information
@@ -29,12 +32,15 @@ provider: # provider information
 #    variables:
 #      ENV_FIRST: env1
 #      ENV_SECOND: env2
+#  vpcConfig:
+#    vpcId: test
+#    subnetId: test
 
 plugins:
   - serverless-tencent-scf
 
 functions:
-  function_one_one_one:
+  hello_world:
     handler: index.main_handler
 #    description: Tencent Serverless Cloud Function
 #    runtime: Php7 # Php7 or Php5
@@ -44,6 +50,9 @@ functions:
 #      variables:
 #        ENV_FIRST: env1
 #        ENV_Third: env2
+#    vpcConfig:
+#      vpcId: test
+#      subnetId: test
 #    events:
 #      - timer:
 #          name: timer

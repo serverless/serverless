@@ -11,6 +11,9 @@
 #
 # Happy Coding!
 
+# Tencent Cloud serverless.yml Reference
+# https://github.com/serverless-tencent/serverless-tencent-scf/blob/master/docs/en/yaml.md
+
 service: my-service # service name
 
 provider: # provider information
@@ -29,6 +32,9 @@ provider: # provider information
 #    variables:
 #      ENV_FIRST: env1
 #      ENV_SECOND: env2
+#  vpcConfig:
+#    vpcId: test
+#    subnetId: test
 
 plugins:
   - serverless-tencent-scf
@@ -41,16 +47,19 @@ plugins:
 #    - ./bin/**
 
 functions:
-  function_one:
-    handler: main
-#    description: Tencent Serverless Cloud Function
-#    runtime: Go1
+  hello_world:
+    handler: index
+    description: Tencent Serverless Cloud Function
+    runtime: Go1
 #    memorySize: 256
 #    timeout: 10
 #    environment:
 #      variables:
 #        ENV_FIRST: env1
 #        ENV_Third: env2
+#    vpcConfig:
+#      vpcId: test
+#      subnetId: test
 #    events:
 #      - timer:
 #          name: timer
