@@ -16,7 +16,7 @@ layout: Doc
 
 Simply put, events are the things that trigger your functions to run.
 
-If you are using AWS as your provider, all `events` in the service are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via API Gateway.
+If you are using AWS as your provider, all `events` in the service are anything in AWS that can trigger an AWS Lambda function, like an S3 bucket upload, an SNS topic, and HTTP endpoints created via [API Gateway](https://serverless.com/amazon-api-gateway/).
 
 [View the AWS events section for a list of supported events](../events)
 
