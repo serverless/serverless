@@ -22,7 +22,7 @@ service: aws-nodejs # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 # you can overwrite defaults here
 #  stage: dev
