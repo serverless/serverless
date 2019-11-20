@@ -1,6 +1,7 @@
 <!--
 title: Serverless - Spotinst Documentation
 menuText: Spotinst
+menuOrder: 11
 layout: Doc
 -->
 

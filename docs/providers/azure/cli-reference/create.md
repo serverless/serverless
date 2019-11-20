@@ -48,6 +48,7 @@ To see a list of available templates run `serverless create --help`
 Most commonly used templates:
 
 - [azure-nodejs](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/azure-nodejs)
+- [azure-python](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/azure-python)
 
 ## Examples
 

@@ -1,6 +1,7 @@
 <!--
 title: Serverless - Alibaba Cloud Function Compute Documentation
 menuText: Alibaba Cloud
+menuOrder: 6
 layout: Doc
 -->
 

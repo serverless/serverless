@@ -1,6 +1,7 @@
 <!--
 title: Serverless - AWS Documentation
 menuText: AWS
+menuOrder: 1
 layout: Doc
 -->
 

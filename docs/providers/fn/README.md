@@ -1,6 +1,7 @@
 <!--
 title: Serverless - Fn Documentation
 menuText: Fn
+menuOrder: 8
 layout: Doc
 -->
 

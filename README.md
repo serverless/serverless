@@ -3,12 +3,12 @@
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![Build Status](https://travis-ci.org/serverless/serverless.svg?branch=master)](https://travis-ci.org/serverless/serverless)
 [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
-[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=master)](https://coveralls.io/github/serverless/serverless?branch=master)
+[![codecov](https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg)](https://codecov.io/gh/serverless/serverless)
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
 [![Known Vulnerabilities](https://snyk.io/test/github/serverless/serverless/badge.svg)](https://snyk.io/test/github/serverless/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](https://serverless.com/subscribe/) • [Swag](https://teespring.com/stores/serverless) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless/meetups) • [Twitter](https://twitter.com/goserverless) • [We're Hiring](https://serverless.com/company/jobs/) • [Enterprise](https://serverless.com/enterprise/)
+[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](https://serverless.com/subscribe/) • [Swag](https://teespring.com/stores/serverless) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://www.meetup.com/pro/serverless/) • [Twitter](https://twitter.com/goserverless) • [We're Hiring](https://serverless.com/company/jobs/) • [Try Pro](https://dashboard.serverless.com)
 
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run. This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
@@ -124,6 +124,7 @@ The following are services you can instantly install and use by running `serverl
 - [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
 - [CRUD with FaunaDB](https://github.com/faunadb/serverless-crud) - CRUD service using FaunaDB
 - [CRUD with S3](https://github.com/tscanlin/serverless-s3-crud) - CRUD service using S3
+- [CRUD with Flask and SQLAlchemy](https://github.com/jetbridge/sls-flask) - Python [CRUD API service](https://blog.jetbridge.com/framework/) with Flask, SQLAlchemy and Swagger
 - [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 - [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
 - [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
@@ -207,6 +208,7 @@ These consultants use the Serverless Framework and can help you build your serve
 - [Onica](https://www.onica.com/aws-cloud-native-developers/) - AWS Premier Consulting Partner for Cloud Native Development and host of [eleven regional Meetup groups](https://www.onica.com/events/).
 - [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
 - [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
+- [JetBridge](https://jetbridge.com) - cloud-native and serverless application development services.
 
 ---
 

@@ -1,3 +1,44 @@
+# 1.57.0 (2019-11-06)
+
+- [Note about how to move services to new apps](https://github.com/serverless/serverless/pull/6912)
+- [Allow casting to boolean in Serverless variables](https://github.com/serverless/serverless/pull/6869)
+- [Create distinct target groups for different ALBs](https://github.com/serverless/serverless/pull/6383)
+- [sls create --help improvements](https://github.com/serverless/serverless/pull/6919)
+- [Fix race conditions handling in stats requests](https://github.com/serverless/serverless/pull/6920)
+- [Update AWS Limits on Lambda@Edge](https://github.com/serverless/serverless/pull/6922)
+- [Fixes bug with sns-cross-region definition using psuedo params](https://github.com/serverless/serverless/pull/6879)
+- [Add tencent-plugins english version docs](https://github.com/serverless/serverless/pull/6916)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.56.1...v1.57.0)
+
+# 1.56.1 (2019-10-31)
+
+- [Fix deployment bucket policy handling with custom bucket ](https://github.com/serverless/serverless/pull/6909)
+- [Feat: aws-nodejs-typescript template improvements](https://github.com/serverless/serverless/pull/6904)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.56.0...v1.56.1)
+
+# 1.56.0 (2019-10-31)
+
+- [AWS - deployment bucket policy for HTTPS only](https://github.com/serverless/serverless/pull/6823)
+- [Docs on renamed outputs and expanded support](https://github.com/serverless/serverless/pull/6870)
+- [Fix minor typo](https://github.com/serverless/serverless/pull/6877)
+- [Added mock integration documentation example](https://github.com/serverless/serverless/pull/6883)
+- [Fix region error handling in Lambda@Edge implementation](https://github.com/serverless/serverless/pull/6886)
+- [Allow specifying ApiGateway logs role ARN](https://github.com/serverless/serverless/pull/6747)
+- [Adds unused memory alert](https://github.com/serverless/serverless/pull/6889)
+- [Find origin by domain name and path](https://github.com/serverless/serverless/pull/6880)
+- [fix minor typo in kubeless docs](https://github.com/serverless/serverless/pull/6896)
+- [Add tencent provider create-template](https://github.com/serverless/serverless/pull/6898)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.55.1...v1.56.0)
+
 # 1.55.1 (2019-10-23)
 
 - [Allow plugins to customize what flags are supported during interactive cli](https://github.com/serverless/serverless/pull/6697)
