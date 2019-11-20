@@ -196,7 +196,7 @@ You can add such custom output to CloudFormation stack. For example:
 service: another-service
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   region: ap-northeast-1
   memorySize: 512
 functions:
@@ -621,7 +621,7 @@ service: new-service
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   variableSyntax: "\\${{([ ~:a-zA-Z0-9._@\\'\",\\-\\/\\(\\)]+?)}}" # notice the double quotes for yaml to ignore the escape characters!
 #  variableSyntax: "\\${((?!AWS)[ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)]+?)}" # Use this for allowing CloudFormation Pseudo-Parameters in your serverless.yml -- e.g. ${AWS::Region}. All other Serverless variables work as usual.
 

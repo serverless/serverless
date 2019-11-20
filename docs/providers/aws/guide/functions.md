@@ -26,7 +26,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
@@ -61,7 +61,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   functionOne:
@@ -81,7 +81,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512 # will be inherited by all functions
 
 functions:
@@ -97,7 +97,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   functionOne:
@@ -133,7 +133,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   iamRoleStatements: # permissions for all of your functions can be set here
     - Effect: Allow
       Action: # Gives permission to DynamoDB tables in a specific region
@@ -390,7 +390,7 @@ service: service
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   hello:
@@ -443,7 +443,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   tracing:
     lambda: true
 ```
