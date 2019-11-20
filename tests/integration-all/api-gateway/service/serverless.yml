@@ -2,7 +2,7 @@ service: CHANGE_TO_UNIQUE_PER_RUN
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   versionFunctions: false
   apiKeys:
     - name: CHANGE_TO_UNIQUE_PER_RUN
