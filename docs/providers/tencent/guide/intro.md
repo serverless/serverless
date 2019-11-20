@@ -67,7 +67,7 @@ A **Service** is the Framework's unit of organization. You can think of it as a 
 service: users
 
 functions: # Your "Functions"
-  function_one:
+  hello_world:
     events: # The "Events" that trigger this function
       - timer:
           name: timer

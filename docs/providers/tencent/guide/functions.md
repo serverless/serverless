@@ -44,7 +44,7 @@ plugins:
   - serverless-tencent-scf
 
 functions:
-  function_one:
+  hello_world:
     handler: index.main_handler
     #   description: Tencent Serverless Cloud Function
     runtime: Nodejs8.9

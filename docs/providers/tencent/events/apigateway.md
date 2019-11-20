@@ -26,7 +26,7 @@ Here's an example:
 
 ```yml
 functions:
-  function_one:
+  hello_world:
     handler: index.main_handler
     runtime: Nodejs8.9
 
