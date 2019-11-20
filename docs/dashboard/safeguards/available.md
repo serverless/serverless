@@ -147,7 +147,7 @@ Add `cfnRole` to your `serverless.yml`.
 
 This rule requires you to specify certain tags in the
 [`stackTags` option](https://serverless.com/framework/docs/providers/aws/guide/serverless.yml/)
-in your `serverless.yml`. It is configured with a mapping of keys to regexes. All the keys must be
+in your `serverless.yml`. It is configured with a mapping of keys to regex's. All the keys must be
 present and value must match the regex.
 
 ```yaml
