@@ -1,3 +1,36 @@
+# 1.58.0 (2019-11-20)
+
+- [Fix missing ALB trigger in console](https://github.com/serverless/serverless/pull/6926)
+- [Add support for vpc link integration discussed as part of #5025](https://github.com/serverless/serverless/pull/6051)
+- [Setup Codecov](https://github.com/serverless/serverless/pull/6924)
+- [Fix handling of China region in S3 bucket policy](https://github.com/serverless/serverless/pull/6934)
+- [Fix policy definition](https://github.com/serverless/serverless/pull/6937)
+- [Fix typo in Tencent docs](https://github.com/serverless/serverless/pull/6935)
+- [Add Knative provider template](https://github.com/serverless/serverless/pull/6936)
+- [Add Knative documentation](https://github.com/serverless/serverless/pull/6930)
+- [PLAT-1798 - set env vars for AWS creds from cached credentials…](https://github.com/serverless/serverless/pull/6938)
+- [Add azure python to cli](https://github.com/serverless/serverless/pull/6945)
+- [updated providers menu order in docs](https://github.com/serverless/serverless/pull/6955)
+- [Update API Gateway tagging to use partition for deployed region](https://github.com/serverless/serverless/pull/6948)
+- [Fix: use normalized maps in zipService.js](https://github.com/serverless/serverless/pull/6705)
+- [Add support for multi-value headers in ALB events](https://github.com/serverless/serverless/pull/6940)
+- [Improve config error handling](https://github.com/serverless/serverless/pull/6962)
+- [sls-flask starter kit](https://github.com/serverless/serverless/pull/6967)
+- [Add variable completion report if variable progress was reported](https://github.com/serverless/serverless/pull/6966)
+- [Update docs links](https://github.com/serverless/serverless/pull/6975)
+- [Update documentation to include information about tags](https://github.com/serverless/serverless/pull/6982)
+- [Python3.8 support!](https://github.com/serverless/serverless/pull/6978)
+- [Updates to CI/CD settings for the beta](https://github.com/serverless/serverless/pull/6972)
+- [rename output variables to outputs](https://github.com/serverless/serverless/pull/6971)
+- [Fix Tencent Template and Readme](https://github.com/serverless/serverless/pull/6984)
+- [Default to Nodejs12.x runtime](https://github.com/serverless/serverless/pull/6983)
+- [#6162: Support multiple schemas, don't overwrite RequestModels for each](https://github.com/serverless/serverless/pull/6954)
+- [Support empty deploymentPrefix](https://github.com/serverless/serverless/pull/6941)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.57.0...v1.58.0)
+
 # 1.57.0 (2019-11-06)
 
 - [Note about how to move services to new apps](https://github.com/serverless/serverless/pull/6912)
