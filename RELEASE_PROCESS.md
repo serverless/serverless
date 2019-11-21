@@ -48,4 +48,4 @@ Alpha releases should never be installed automatically when the user installs / 
 
 Assuming our current version is `v1.1.0`.
 
-The alpha releas would be `v1.2.0-alpha.1`. A subsequent alpha release would be `v1.2.0-alpha.2` etc.
+The alpha release would be `v1.2.0-alpha.1`. A subsequent alpha release would be `v1.2.0-alpha.2` etc.

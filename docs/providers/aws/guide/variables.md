@@ -413,7 +413,7 @@ functions:
     events: ${file(./myCustomFile.yml):myevents}
 ```
 
-or for a JSON reference file use this sytax:
+or for a JSON reference file use this syntax:
 
 ```yml
 functions:
