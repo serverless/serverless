@@ -117,7 +117,7 @@ describe('AWS - API Gateway Integration Test', function() {
         ].join(',');
         expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
-        expect(headers.get('access-control-allow-credentials')).to.equal('false');
+        expect(headers.get('access-control-allow-credentials')).to.equal(null);
         // TODO: for some reason this test fails for now...
         // expect(headers.get('access-control-allow-origin')).to.equal('*');
       });
