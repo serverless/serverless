@@ -284,6 +284,8 @@ Please note that since you can't send multiple values for [Access-Control-Allow-
 
 Configuring the `cors` property sets [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
 
+Please note that the [Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)-Header is omitted when not explicitly set to `true`.
+
 To enable the `Access-Control-Max-Age` preflight response header, set the `maxAge` property in the `cors` object:
 
 ```yml
