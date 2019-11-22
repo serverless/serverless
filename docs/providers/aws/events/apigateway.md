@@ -1494,6 +1494,22 @@ provider:
 
 In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
 
+To convert the request or response payload, you can set the [contentHandling](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html) property.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            contentHandling: CONVERT_TO_TEXT
+          response:
+            contentHandling: CONVERT_TO_TEXT
+```
+
 ## AWS X-Ray Tracing
 
 API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless application's API Gateway add the following to your `serverless.yml`
