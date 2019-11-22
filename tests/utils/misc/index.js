@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const awsRequest = require('@serverless/test/aws-request');
 
 const logger = console;
@@ -62,6 +63,13 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function generateRandomString(length = 8) {
+  return crypto
+    .randomBytes(Math.ceil(length / 2))
+    .toString('hex')
+    .slice(0, length);
+}
+
 module.exports = {
   confirmCloudWatchLogs,
   getServiceName,
@@ -70,4 +78,5 @@ module.exports = {
   serviceNameRegex,
   testServiceIdentifier,
   wait,
+  generateRandomString,
 };
