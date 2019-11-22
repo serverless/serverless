@@ -164,6 +164,7 @@ functions:
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
+    provisionedConcurrency: 3 # optional, Count of provisioned lambda instances
     runtime: nodejs12.x # Runtime for this specific function. Overrides the default which is set on the provider level
     timeout: 10 # Timeout for this specific function.  Overrides the default set above.
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
