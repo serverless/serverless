@@ -1,0 +1,9 @@
+service: 'service'
+provider:
+  name: 'aws'
+  deploymentBucket:
+    serverSideEncryption: AES256
+
+functions:
+  foo:
+    handler: index.js
