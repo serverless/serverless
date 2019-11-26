@@ -1,5 +1,6 @@
-service: 'service'
-provider: 'aws'
+service: service
+provider:
+  name: aws
 
 package:
   individually: true

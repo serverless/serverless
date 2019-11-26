@@ -1,6 +1,6 @@
-service: 'service'
+service: service
 provider:
-  name: 'aws'
+  name: aws
   deploymentBucket:
     serverSideEncryption: AES256
 
