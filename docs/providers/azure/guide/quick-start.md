@@ -156,10 +156,29 @@ The getting started walkthrough illustrates the interactive login experience, wh
    ```bash
    # Login to Azure
    $ az login
-   # Set Azure Subscription for which to create Service Principal
+    ```
+    This will yield something like:
+    ```json
+    [
+      {
+        "cloudName": "<cloudName>",
+        "id": "<subscription-id>",
+        "isDefault": true,
+        "name": "<name>",
+        "state": "<state>",
+        "tenantId": "<tenantId>",
+        "user": {
+          "name": "<name>",
+          "type": "<user>"
+        }
+      }
+    ]
+    ```
+3. Set Azure Subscription for which to create Service Principal
+    ```bash
    $ az account set -s <subscription-id>
    ```
-3. Generate Service Principal for Azure Subscription
+4. Generate Service Principal for Azure Subscription
    ```bash
    # Create SP with unique name
    $ az ad sp create-for-rbac --name <name>
@@ -174,7 +193,7 @@ The getting started walkthrough illustrates the interactive login experience, wh
      "tenant": "<tenantId>"
    }
    ```
-4. Set environment variables
+5. Set environment variables
 
    **Bash**
 
