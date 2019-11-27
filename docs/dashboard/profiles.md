@@ -47,7 +47,7 @@ Create a new stage by navigating to **applications** in the [Serverless Framewor
 2. Click **add stage** in the tab
 3. Provide the **name** and select the **deployment profile**.
 
-You can also set the **default deployment profile** field in the application. You can use this to set the deployment profile on all sevices in that application. When deploying to a stage which hasn't be defined in the dashboard, then the default deployment profile will be used.
+You can also set the **default deployment profile** field in the application. You can use this to set the deployment profile on all services in that application. When deploying to a stage which hasn't be defined in the dashboard, then the default deployment profile will be used.
 
 ### Using a Deployment Profile to deploy
 

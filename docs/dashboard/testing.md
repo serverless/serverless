@@ -52,7 +52,7 @@ If we add a test like this which requires the body to be JSON encoded and contai
       foo: bar
 ```
 
-Then when we run `sls test` we get the details of the faiulre:
+Then when we run `sls test` we get the details of the failure:
 
 ```
 $ sls test
@@ -87,7 +87,7 @@ Here is a config file that uses all the options:
 ```yaml
 - name: hello endpoint returns success # the name of the test. used for running a specific test & in CLI output
   endpoint: # this is used to specify which HTTP endpoint / lambda to test against
-    # specifying only the funciton name only works if the function has only one HTTP endpoint and
+    # specifying only the function name only works if the function has only one HTTP endpoint and
     # a specific path & method (i.e. not ANY or {parameterizedUrls})
     function: hello
   response: true # setting response to true is equivalent to setting it to {status: 200}
@@ -110,7 +110,7 @@ Here is a config file that uses all the options:
     body: # setting body to an object json encodes it & adds the correct content-type header
       foo: bar
       blah: baz
-- name: hello endpoint returns sucess with a form request
+- name: hello endpoint returns success with a form request
   endpoint:
     function: hello
   response: true
@@ -118,7 +118,7 @@ Here is a config file that uses all the options:
     form: # setting form encodes to a query param, i.e.: ?foo=bar&blah=baz
       foo: bar
       blah: baz
-- name: hello endpoint returns sucess with a text request
+- name: hello endpoint returns success with a text request
   endpoint:
     function: hello
   response: true
