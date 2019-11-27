@@ -156,26 +156,26 @@ The getting started walkthrough illustrates the interactive login experience, wh
    ```bash
    # Login to Azure
    $ az login
-    ```
-    This will yield something like:
-    ```json
-    [
-      {
-        "cloudName": "<cloudName>",
-        "id": "<subscription-id>",
-        "isDefault": true,
-        "name": "<name>",
-        "state": "<state>",
-        "tenantId": "<tenantId>",
-        "user": {
-          "name": "<name>",
-          "type": "<user>"
-        }
-      }
-    ]
-    ```
+   ```
+   This will yield something like:
+   ```json
+   [
+     {
+       "cloudName": "<cloudName>",
+       "id": "<subscription-id>",
+       "isDefault": true,
+       "name": "<name>",
+       "state": "<state>",
+       "tenantId": "<tenantId>",
+       "user": {
+         "name": "<name>",
+         "type": "<user>"
+       }
+     }
+   ]
+   ```
 3. Set Azure Subscription for which to create Service Principal
-    ```bash
+   ```bash
    $ az account set -s <subscription-id>
    ```
 4. Generate Service Principal for Azure Subscription
