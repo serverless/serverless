@@ -26,7 +26,7 @@ clojurescript {
         outputDir = 'js/out'
         target = 'nodejs'
         optimizations = 'simple'
-        npmDeps = ['moment': '2.22.2']
+        npmDeps = ['dayjs': '1.8.17']
         installDeps = true
         verbose = true
       }
