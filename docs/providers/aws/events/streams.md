@@ -114,6 +114,8 @@ functions:
 
 This configuration sets up the maximum number of times to retry when the function returns an error.
 
+**Note:** Serverless only sets this property if you explicitly add it to the stream configuration(like below example), if not AWS will default this value.
+
 [Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumretryattempts)
 
 **Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
