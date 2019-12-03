@@ -46,15 +46,7 @@ describe('AWS - API Gateway Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
     await deployService(tmpDirPath);
-  });
-
-  after(async () => {
-    console.info('Removing service...');
-    await removeService(tmpDirPath);
-  });
-
-  beforeEach(() => {
-    return CF.describeStacks({ StackName: stackName })
+    CF.describeStacks({ StackName: stackName })
       .promise()
       .then(
         result => _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' }).OutputValue
@@ -63,6 +55,11 @@ describe('AWS - API Gateway Integration Test', function() {
         endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
         endpoint = `${endpoint}`;
       });
+  });
+
+  after(async () => {
+    console.info('Removing service...');
+    await removeService(tmpDirPath);
   });
 
   describe('Minimal Setup', () => {
@@ -147,7 +144,7 @@ describe('AWS - API Gateway Integration Test', function() {
   describe('Custom Authorizers', () => {
     let testEndpoint;
 
-    beforeEach(() => {
+    before(() => {
       testEndpoint = `${endpoint}/custom-auth`;
     });
 
@@ -179,7 +176,7 @@ describe('AWS - API Gateway Integration Test', function() {
   describe('API Keys', () => {
     let testEndpoint;
 
-    beforeEach(() => {
+    before(() => {
       testEndpoint = `${endpoint}/api-keys`;
     });
 
