@@ -22,6 +22,7 @@ install:
 branches:
   only:
     - master # Do not build PR branches
+    - release-fast-track # Do not build PR branches
     - /^v\d+\.\d+\.\d+$/ # Ensure to build release tags
 
 env:
@@ -70,7 +71,7 @@ jobs:
         - npm run lint-updated
         - npm test -- -b
 
-    # master branch and version tags
+    # release target branch and version tags
     - name: 'Lint, Unit Tests - Linux - Node.js v12'
       if: type != pull_request
       node_js: 12
