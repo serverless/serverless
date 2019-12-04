@@ -1,3 +1,35 @@
+# 1.59.0 (2019-12-04)
+
+- [Fix spelling and typos in docs, code variables and code comments](https://github.com/serverless/serverless/pull/6986)
+- [Code cleanup and refactoring](https://github.com/serverless/serverless/pull/6990)
+- [Add support for contentHandling - Fixes gh-6949](https://github.com/serverless/serverless/pull/6987)
+- [Fix deployment bucket SSE documentation](https://github.com/serverless/serverless/pull/7000)
+- [Make authorizer type check from #6150 case insensitive](https://github.com/serverless/serverless/pull/7001)
+- [Govcloud custom resource fix](https://github.com/serverless/serverless/pull/6996)
+- [Lint and style patches](https://github.com/serverless/serverless/pull/7004)
+- [Fix/cors omit access control allow credentials on false](https://github.com/serverless/serverless/pull/6999)
+- [Fix: remove `$context.status` from websocket access log format](https://github.com/serverless/serverless/pull/7014)
+- [Clarifying Azure setup](https://github.com/serverless/serverless/pull/7015)
+- [Expose ParallelizationFactor prop for Kinesis Streams](https://github.com/serverless/serverless/pull/7024)
+- [Replace moment with dayjs](https://github.com/serverless/serverless/pull/7025)
+- [Update AWS SQS event docs regarding FIFO queue trigger for Lambda](https://github.com/serverless/serverless/pull/7029)
+- [Awsprovider - adding support for SDK sub-classes.](https://github.com/serverless/serverless/pull/7031)
+- [Provide backoff for retryable aws requests and the option to adjust the cf status check interval via an environment variable](https://github.com/serverless/serverless/pull/6981)
+- [Add page for best practices on CI/CD](https://github.com/serverless/serverless/pull/6988)
+- [Optimize custom resources generation](https://github.com/serverless/serverless/pull/7032)
+- [Update API GW stage settings only when explicitly set](https://github.com/serverless/serverless/pull/7033)
+- [Do not apply APIGW wide settings on externally referenced APIGW](https://github.com/serverless/serverless/pull/7034)
+- [Enable Content Trust checking when pulling lambci/lambda images](https://github.com/serverless/serverless/pull/6992)
+- [Fix resolution of user configured APIGW](https://github.com/serverless/serverless/pull/7039)
+- [Add option to change log level for websocket logs](https://github.com/serverless/serverless/pull/7035)
+- [Support lambda provisioned concurrency](https://github.com/serverless/serverless/pull/7043)
+- [Fix AWS creds handling](https://github.com/serverless/serverless/pull/7044)
+- [Fix lambda provisioned concurrency setup](https://github.com/serverless/serverless/pull/7045)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.58.0...v1.59.0)
+
 # 1.58.0 (2019-11-20)
 
 - [Fix missing ALB trigger in console](https://github.com/serverless/serverless/pull/6926)
