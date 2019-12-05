@@ -94,7 +94,7 @@ jobs:
     - name: 'Isolated Unit Tests, Package Integration Tests - Linux - Node.js v10'
       node_js: 10
       script:
-        - npm run test-isolated
+        - npm run test:isolated
         - npm run integration-test-run-package
 
     - name: 'Unit Tests, Coverage - Linux - Node.js v8'
