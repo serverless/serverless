@@ -63,7 +63,7 @@ jobs:
     # (job boot & setup takes ca 1 minute, one task run usually lasts seconds)
 
     # PR's
-    - name: 'Prettier check updated, Lint updated, Unit Tests - Linux - Node.js v12'
+    - name: 'Prettier check updated, Lint updated, Unit Tests - Node.js v12'
       if: type = pull_request
       node_js: 12
       script:
@@ -72,14 +72,14 @@ jobs:
         - npm test -- -b
 
     # release target branch and version tags
-    - name: 'Lint, Unit Tests - Linux - Node.js v12'
+    - name: 'Lint, Unit Tests - Node.js v12'
       if: type != pull_request
       node_js: 12
       script:
         - npm run lint
         - npm test -- -b
 
-    - name: 'Unit Tests - Windows - Node.js v12'
+    - name: 'Unit Tests - Node.js v12'
       os: windows
       node_js: 12
       before_install:
@@ -91,13 +91,13 @@ jobs:
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
 
-    - name: 'Isolated Unit Tests, Package Integration Tests - Linux - Node.js v10'
+    - name: 'Isolated Unit Tests, Package Integration Tests - Node.js v10'
       node_js: 10
       script:
         - npm run test:isolated
         - npm run integration-test-run-package
 
-    - name: 'Unit Tests, Coverage - Linux - Node.js v8'
+    - name: 'Unit Tests, Coverage - Node.js v8'
       node_js: 8
       before_install:
         - npm install -g codecov
@@ -106,11 +106,11 @@ jobs:
         - codecov
         - rm -rf ./coverage
 
-    - name: 'Unit Tests - Linux - Node.js v6'
+    - name: 'Unit Tests - Node.js v6'
       node_js: 6
 
     - stage: Integration Test
-      name: 'Integration Tests - Linux - Node.js v12'
+      name: 'Integration Tests - Node.js v12'
       node_js: 12
       env:
         # AWS_ACCESS_KEY_ID
