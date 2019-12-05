@@ -53,6 +53,7 @@
   "scripts": {
     "commitlint": "commitlint -f HEAD@{15}",
     "commitlint:pull-request": "commitlint -f HEAD~1",
+    "prepare-release": "standard-version && prettier --write CHANGELOG.md",
     "test": "mocha \"!(node_modules)/**/*.test.js\"",
     "test-ci": "npm run prettier-check-updated && npm run lint-updated && npm run test-isolated",
     "test-isolated": "mocha-isolated",
@@ -107,6 +108,12 @@
       "text-summary"
     ]
   },
+  "standard-version": {
+    "skip": {
+      "commit": true,
+      "tag": true
+    }
+  },
   "devDependencies": {
     "@serverless/eslint-config": "^1.2.1",
     "@serverless/test": "^2.5.0",
@@ -128,6 +135,7 @@
     "proxyquire": "^2.1.3",
     "sinon": "^7.5.0",
     "sinon-chai": "^3.3.0",
+    "standard-version": "^7.0.1",
     "strip-ansi": "^5.2.0",
     "ws": "^7.2.0"
   },
