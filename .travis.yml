@@ -32,8 +32,9 @@ env:
 
 stages:
   - name: Test
+    if: tag IS NOT present
   - name: Integration Test
-    if: branch = master AND type = push
+    if: branch IN (master, release-fast-track) AND type = push
   - name: Deploy
     if: tag =~ ^v\d+\.\d+\.\d+$
 
@@ -60,6 +61,13 @@ jobs:
         - npm run lint:updated
         - npm run commitlint:pull-request
         - npm test -- -b
+        # If a release PR, confirm we have a changelog
+        - |
+          tagName=`git diff master package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
+          if [ -n "$tagName" ];
+          then
+            npx dump-release-notes-from-cc-changelog $tagName
+          fi
 
     # PR's from forks
     # Do not validate commit messages,
@@ -108,9 +116,11 @@ jobs:
       node_js: 6
 
     - stage: Integration Test
-      name: 'Integration Tests - Node.js v12'
+      name: 'Integration Tests, Tag on version bump - Node.js v12'
       node_js: 12
       env:
+        # GITHUB_TOKEN
+        - secure: tKC+34Pvwvzs1ZNC1d7WfBoYlT9nYzMIhwhfG9/J6PBCpuDITQ5+VNDTVh3Lo1JxR6ZuERPauQCnHcrvEHJhEi/fp1qb550V5uYXhn/7X8h+rW8IZ7tJl333UBIACW0jh2JOBeB2ubpIwITv/l7sn6NFothIQE2r1ogLHyBdcipImDKx2RY7R20xCRq7nbg6LWZg11kMaHkdNWi6odXzrhO1FwIcVtWYWmeuJQDdjQuusehNh8/qcZFFXTEDzj+xSAecxSLSeZcDO7x/J5jNuG3khhdkHMAIFuKviFsgNUcGmNuXIB9TEPKhf4YBY00Cle/KNvHori8RplbWqxeyQbtpWMWF5v988qPvSeOqLH60PBeQRqSbYGumXooCClCRn73tYr14WZfUmf2fOTDHe7y5Rnk9jnGW/aPu+Py1hWBkTakn0/hoI3IRqFEGkC2YTtwroyLK8GSUC7W2yexoNfEykvMFlo9h8kiMSCd91mA6MFHruN+bhA4iwGpTWU2CQgq3gUq4aLwO/NXvmisn7Cf7NI3u3zj9e/e9i/qAFEP81mkTowjPgCR5vS8eI2TCvKFjNcANvMq+YHw9E5CGcKon42X6aUKnmdQSpzswKFSratmo7K+TWmbUCg5LL2sbvecm4wbsdJn9VcRZLQRZ6ZvRfjt4oymVvJdI0qrWmQ4=
         # AWS_ACCESS_KEY_ID
         - secure: Ia2nYzOeYvTE6qOP7DBKX3BO7s/U7TXdsvB2nlc3kOPFi//IbTVD0/cLKCAE5XqTzrrliHINSVsFcJNSfjCwmDSRmgoIGrHj5CJkWpkI6FEPageo3mdqFQYEc8CZeAjsPBNaHe6Ewzg0Ev/sjTByLSJYVqokzDCF1QostSxx1Ss6SGt1zjxeP/Hp4yOJn52VAm9IHAKYn7Y62nMAFTaaTPUQHvW0mJj6m2Z8TWyPU+2Bx6mliO65gTPFGs+PdHGwHtmSF/4IcUO504x+HjDuwzW2itomLXZmIOFfGDcFYadKWzVMAfJzoRWOcVKF4jXdMoSCOviWpHGtK35E7K956MTXkroVoWCS7V0knQDovbRZj8c8td8mS4tdprUA+TzgZoHet2atWNtMuTh79rdmwoAO+IAWJegYj62Tdfy3ycESzY+KxSaV8kysG9sR3PRFoWjZerA7MhLZEzQMORXDGjJlgwLaZfYVqjlsGe5p5etFBUTd0WbFgSwOKLoA2U/fm7WzqItkjs3UWaHuvFVvwYixGxjEVmVczS6wa2cdGpHtVD9H7km4fPEzljHqQ26v0P5e8eylgqLF2IB6mL7UqGFrAtrMvAgN/M3gnq4dTs/wq1AJIOxEP7YW7kc0NAldk8vUz6t5GzCPNcuukxAku91Awnh0twxgUywatgJLZPY=
         # AWS_SECRET_ACCESS_KEY
@@ -119,12 +129,38 @@ jobs:
         - npm run integration-test-run-basic || { npm run integration-test-cleanup; exit 1; }
         - npm run integration-test-run-all || { npm run integration-test-cleanup; exit 1; }
         - npm run integration-test-cleanup
+        - |
+          tagName=`git diff HEAD^ package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
+          if [ -n "$tagName" ]
+          then
+            git tag v$tagName
+            git push https://$GITHUB_TOKEN@github.com/serverless/serverless --tags
+            if [ $TRAVIS_BRANCH = master ]
+            then
+              # Ensure `release-fast-track` branch points latest release
+              git push -f https://$GITHUB_TOKEN@github.com/serverless/serverless master:release-fast-track
+            elif [ $TRAVIS_BRANCH = release-fast-track ]
+            then
+              # Fast forward to `master`
+              git fetch --unshallow
+              git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+              git fetch origin master
+              git rebase origin/master
+              git checkout master
+              git merge release-fast-track
+              git push https://$GITHUB_TOKEN@github.com/serverless/serverless
+            fi
+          fi
 
     - stage: Deploy
       node_js: 12
+      env:
+        # GITHUB_TOKEN
+        - secure: tKC+34Pvwvzs1ZNC1d7WfBoYlT9nYzMIhwhfG9/J6PBCpuDITQ5+VNDTVh3Lo1JxR6ZuERPauQCnHcrvEHJhEi/fp1qb550V5uYXhn/7X8h+rW8IZ7tJl333UBIACW0jh2JOBeB2ubpIwITv/l7sn6NFothIQE2r1ogLHyBdcipImDKx2RY7R20xCRq7nbg6LWZg11kMaHkdNWi6odXzrhO1FwIcVtWYWmeuJQDdjQuusehNh8/qcZFFXTEDzj+xSAecxSLSeZcDO7x/J5jNuG3khhdkHMAIFuKviFsgNUcGmNuXIB9TEPKhf4YBY00Cle/KNvHori8RplbWqxeyQbtpWMWF5v988qPvSeOqLH60PBeQRqSbYGumXooCClCRn73tYr14WZfUmf2fOTDHe7y5Rnk9jnGW/aPu+Py1hWBkTakn0/hoI3IRqFEGkC2YTtwroyLK8GSUC7W2yexoNfEykvMFlo9h8kiMSCd91mA6MFHruN+bhA4iwGpTWU2CQgq3gUq4aLwO/NXvmisn7Cf7NI3u3zj9e/e9i/qAFEP81mkTowjPgCR5vS8eI2TCvKFjNcANvMq+YHw9E5CGcKon42X6aUKnmdQSpzswKFSratmo7K+TWmbUCg5LL2sbvecm4wbsdJn9VcRZLQRZ6ZvRfjt4oymVvJdI0qrWmQ4=
       script: skip
       # Ensure to fail build if deploy fails, Travis doesn't ensure that: https://github.com/travis-ci/travis-ci/issues/921
       before_deploy:
+        - set -e
         # Remove eventual old npm logs
         - rm -rf ~/.npm/_logs
       after_deploy:
@@ -135,6 +171,7 @@ jobs:
             # Undocumented way to force Travis build to fail
             travis_terminate 1
           fi
+        - npx github-release-from-cc-changelog $TRAVIS_TAG
       deploy:
         provider: npm
         email: services@serverless.com
