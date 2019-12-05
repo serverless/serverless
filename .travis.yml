@@ -73,12 +73,9 @@ jobs:
         - npm test -- -b
 
     # master or release-fast-track branch
-    - name: 'Lint, Unit Tests - Node.js v12'
+    - name: 'Unit Tests - Node.js v12'
       if: type != pull_request
       node_js: 12
-      script:
-        - npm run lint
-        - npm test -- -b
 
     - name: 'Unit Tests - Node.js v12'
       os: windows
