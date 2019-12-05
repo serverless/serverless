@@ -97,20 +97,23 @@ jobs:
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
 
-    - name: 'Isolated Unit Tests, Package Integration Tests - Node.js v10'
-      node_js: 10
+    - name: 'Isolated Unit Tests, Package Integration Tests - Node.js v13'
+      node_js: 13
       script:
         - npm run test:isolated
         - npm run integration-test-run-package
 
-    - name: 'Unit Tests, Coverage - Node.js v8'
-      node_js: 8
+    - name: 'Unit Tests, Coverage - Node.js v10'
+      node_js: 10
       before_install:
         - npm install -g codecov
       script: npm run coverage
       after_success:
         - codecov
         - rm -rf ./coverage
+
+    - name: 'Unit Tests - Node.js v8'
+      node_js: 8
 
     - name: 'Unit Tests - Node.js v6'
       node_js: 6
