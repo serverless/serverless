@@ -20,9 +20,9 @@ install:
   - npm update --save-dev --no-save # Updates just devDependencies
 
 branches:
-  only:
-    - master # Do not build PR branches
-    - release-fast-track # Do not build PR branches
+  only: # Do not build PR branches
+    - master
+    - release-fast-track
     - /^v\d+\.\d+\.\d+$/ # Ensure to build release tags
 
 env:
