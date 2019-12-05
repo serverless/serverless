@@ -68,7 +68,7 @@ jobs:
       node_js: 12
       script:
         - npm run prettier-check-updated
-        - npm run lint-updated
+        - npm run lint:updated
         - npm test -- -b
 
     # release target branch and version tags
