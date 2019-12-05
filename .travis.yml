@@ -71,7 +71,7 @@ jobs:
         - npm run lint:updated
         - npm test -- -b
 
-    # release target branch and version tags
+    # Release target branch and version tags
     - name: 'Lint, Unit Tests - Node.js v12'
       if: type != pull_request
       node_js: 12
