@@ -67,7 +67,7 @@ jobs:
       if: type = pull_request
       node_js: 12
       script:
-        - npm run prettier-check-updated
+        - npm run prettier-check:updated
         - npm run lint:updated
         - npm test -- -b
 
