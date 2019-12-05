@@ -51,6 +51,8 @@
     "sls": "./bin/serverless.js"
   },
   "scripts": {
+    "commitlint": "commitlint -f HEAD@{15}",
+    "commitlint:pull-request": "commitlint -f HEAD~1",
     "test": "mocha \"!(node_modules)/**/*.test.js\"",
     "test-ci": "npm run prettier-check-updated && npm run lint-updated && npm run test-isolated",
     "test-isolated": "mocha-isolated",
@@ -112,6 +114,7 @@
     "chai-as-promised": "^7.1.1",
     "child-process-ext": "^2.1.0",
     "cli-progress-footer": "^1.1.1",
+    "commitlint": "^8.2.0",
     "eslint": "^6.7.2",
     "eslint-plugin-import": "^2.18.2",
     "git-list-updated": "^1.2.1",
