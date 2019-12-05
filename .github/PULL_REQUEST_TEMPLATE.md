@@ -19,7 +19,7 @@ Closes #XXXXX
 - `npm run test:ci` --> Run all validation checks on proposed changes
 - `npm run lint:updated` --> Lint all the updated files
 - `npm run lint:fix` --> Automatically fix lint problems (if possible)
-- `npm run prettier-check-updated` --> Check if updated files adhere to Prettier config
+- `npm run prettier-check:updated` --> Check if updated files adhere to Prettier config
 - `npm run prettify-updated` --> Prettify all the updated files
 
 </details>

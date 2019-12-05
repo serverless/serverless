@@ -55,7 +55,7 @@
     "commitlint:pull-request": "commitlint -f HEAD~1",
     "prepare-release": "standard-version && prettier --write CHANGELOG.md",
     "test": "mocha \"!(node_modules)/**/*.test.js\"",
-    "test:ci": "npm run prettier-check-updated && npm run lint:updated && npm run test:isolated",
+    "test:ci": "npm run prettier-check:updated && npm run lint:updated && npm run test:isolated",
     "test:isolated": "mocha-isolated",
     "coverage": "nyc npm test",
     "lint": "eslint . --cache",
@@ -67,7 +67,7 @@
     "integration-test-cleanup": "node tests/utils/aws-cleanup.js",
     "postinstall": "node ./scripts/postinstall.js",
     "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
-    "prettier-check-updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier -c",
+    "prettier-check:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier -c",
     "prettify": "prettier --write --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
     "prettify-updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier --write"
   },
