@@ -21,9 +21,11 @@ install:
 
 branches:
   only: # Do not build PR branches
+    # Release branches
     - master
     - release-fast-track
-    - /^v\d+\.\d+\.\d+$/ # Ensure to build release tags
+    # Release tags
+    - /^v\d+\.\d+\.\d+$/
 
 env:
   global:
