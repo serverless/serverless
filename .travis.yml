@@ -62,9 +62,22 @@ jobs:
     # In most cases it's best to configure one job per Platform & Node.js version combination
     # (job boot & setup takes ca 1 minute, one task run usually lasts seconds)
 
-    # PR's
+    # PR's from branches
+    # Ensure commit messages follow CC, and confirm on changelog in case of release PR's
+    - name: 'Prettier check updated, Lint updated, Commitlint, Changelog confirm (on release), Unit Tests - Node.js v12'
+      if: type = pull_request AND fork = false
+      node_js: 12
+      script:
+        - npm run prettier-check:updated
+        - npm run lint:updated
+        - npm run commitlint:pull-request
+        - npm test -- -b
+
+    # PR's from forks
+    # Do not validate commit messages,
+    # (if user didn't ensure CC, PR should be squash merged with a valid CC commit message)
     - name: 'Prettier check updated, Lint updated, Unit Tests - Node.js v12'
-      if: type = pull_request
+      if: type = pull_request AND fork = true
       node_js: 12
       script:
         - npm run prettier-check:updated
