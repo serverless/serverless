@@ -2,6 +2,7 @@
 
 const AWS = require('aws-sdk');
 const awsLog = require('log').get('aws');
+const log = require('log').get('serverless:test');
 const { region, persistentRequest } = require('../misc');
 
 function createUserPool(name, config = {}) {
@@ -38,6 +39,7 @@ function findUserPoolByName(name) {
     MaxResults: 60,
   };
 
+  const pools = [];
   function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
     return cognito
@@ -45,12 +47,17 @@ function findUserPoolByName(name) {
       .promise()
       .then(result => {
         awsLog.debug('cognito.listUserPools %j', result);
-        const matches = result.UserPools.filter(pool => pool.Name === name);
-        if (matches.length) {
-          return matches.shift();
-        }
+        pools.push(...result.UserPools.filter(pool => pool.Name === name));
         if (result.NextToken) return recursiveFind(result.NextToken);
-        return null;
+        log.debug('found pools %o', pools);
+        switch (pools.length) {
+          case 0:
+            return null;
+          case 1:
+            return pools[0];
+          default:
+            throw new Error(`Found more than one pool named '${name}'`);
+        }
       });
   }
 
