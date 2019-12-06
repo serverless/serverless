@@ -86,6 +86,9 @@ jobs:
     - name: 'Unit Tests - Node.js v12'
       if: type != pull_request
       node_js: 12
+      env:
+        # GITHUB_TOKEN
+        - secure: tKC+34Pvwvzs1ZNC1d7WfBoYlT9nYzMIhwhfG9/J6PBCpuDITQ5+VNDTVh3Lo1JxR6ZuERPauQCnHcrvEHJhEi/fp1qb550V5uYXhn/7X8h+rW8IZ7tJl333UBIACW0jh2JOBeB2ubpIwITv/l7sn6NFothIQE2r1ogLHyBdcipImDKx2RY7R20xCRq7nbg6LWZg11kMaHkdNWi6odXzrhO1FwIcVtWYWmeuJQDdjQuusehNh8/qcZFFXTEDzj+xSAecxSLSeZcDO7x/J5jNuG3khhdkHMAIFuKviFsgNUcGmNuXIB9TEPKhf4YBY00Cle/KNvHori8RplbWqxeyQbtpWMWF5v988qPvSeOqLH60PBeQRqSbYGumXooCClCRn73tYr14WZfUmf2fOTDHe7y5Rnk9jnGW/aPu+Py1hWBkTakn0/hoI3IRqFEGkC2YTtwroyLK8GSUC7W2yexoNfEykvMFlo9h8kiMSCd91mA6MFHruN+bhA4iwGpTWU2CQgq3gUq4aLwO/NXvmisn7Cf7NI3u3zj9e/e9i/qAFEP81mkTowjPgCR5vS8eI2TCvKFjNcANvMq+YHw9E5CGcKon42X6aUKnmdQSpzswKFSratmo7K+TWmbUCg5LL2sbvecm4wbsdJn9VcRZLQRZ6ZvRfjt4oymVvJdI0qrWmQ4=
       script:
         - |
           if [ $TRAVIS_BRANCH = master ]
