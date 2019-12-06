@@ -44,6 +44,8 @@ before_script:
   # Fail build right after first script fails. Travis doesn't ensure that: https://github.com/travis-ci/travis-ci/issues/1066
   # More info on below line: https://www.davidpashley.com/articles/writing-robust-shell-scripts/#idm5413512
   - set -e
+  - git config --global user.email "platform@serverless.com"
+  - git config --global user.name "Serverless CI"
 
 script:
   - npm test -- -b # Bail after first fail
