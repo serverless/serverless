@@ -167,9 +167,10 @@ jobs:
               git fetch --unshallow
               git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
               git fetch origin master
+              git checkout -b rebase-target
               git rebase origin/master
               git checkout master
-              git merge release-fast-track
+              git merge rebase-target
               git push https://$GITHUB_TOKEN@github.com/serverless/serverless
             fi
           fi
