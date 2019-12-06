@@ -156,22 +156,24 @@ jobs:
           if [ -n "$tagName" ]
           then
             git tag v$tagName
-            git push https://$GITHUB_TOKEN@github.com/serverless/serverless --tags
-            if [ $TRAVIS_BRANCH = master ]
+            if git push https://$GITHUB_TOKEN@github.com/serverless/serverless --tags
             then
-              # Ensure `release-fast-track` branch points latest release
-              git push -f https://$GITHUB_TOKEN@github.com/serverless/serverless master:release-fast-track
-            elif [ $TRAVIS_BRANCH = release-fast-track ]
-            then
-              # Fast forward to `master`
-              git fetch --unshallow
-              git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-              git fetch origin master
-              git checkout -b rebase-target
-              git rebase origin/master
-              git checkout master
-              git merge rebase-target
-              git push https://$GITHUB_TOKEN@github.com/serverless/serverless
+              if [ $TRAVIS_BRANCH = master ]
+              then
+                # Ensure `release-fast-track` branch points latest release
+                git push -f https://$GITHUB_TOKEN@github.com/serverless/serverless master:release-fast-track
+              elif [ $TRAVIS_BRANCH = release-fast-track ]
+              then
+                # Fast forward to `master`
+                git fetch --unshallow
+                git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+                git fetch origin master
+                git checkout -b rebase-target
+                git rebase origin/master
+                git checkout master
+                git merge rebase-target
+                git push https://$GITHUB_TOKEN@github.com/serverless/serverless
+              fi
             fi
           fi
 
