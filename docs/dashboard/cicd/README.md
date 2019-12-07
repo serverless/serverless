@@ -107,15 +107,10 @@ If you are not using the serverless-python-requirements plugin, then you can ins
 
 ```yaml
 {
-  "name": "demo-python",
-  "version": "1.0.0",
-  "scripts": {
-    "postinstall": "pip3 install -r requirements.txt",
-    "test": "pytest"
-  },
-  "devDependencies": {
-    "serverless-python-requirements": "^5.0.1"
-  }
+  'name': 'demo-python',
+  'version': '1.0.0',
+  'scripts': { 'postinstall': 'pip3 install -r requirements.txt', 'test': 'pytest' },
+  'devDependencies': { 'serverless-python-requirements': '^5.0.1' },
 }
 ```
 
@@ -137,21 +132,15 @@ For example, you can run scripts before/after install, and before/after a test.
 
 ```yaml
 {
-  "name": "demo-serverless",
-  "version": "1.0.0",
-  "scripts": {
-    "preinstall": "",
-    "postinstall": "",
-    "pretest": "",
-    "posttest": ""
-  }
+  'name': 'demo-serverless',
+  'version': '1.0.0',
+  'scripts': { 'preinstall': '', 'postinstall': '', 'pretest': '', 'posttest': '' },
 }
 ```
 
 Additional lifecycle hooks can be found in the `npm` documentation:
 
 [https://docs.npmjs.com/misc/scripts](https://docs.npmjs.com/misc/scripts)
-
 
 ## Deployment settings
 
