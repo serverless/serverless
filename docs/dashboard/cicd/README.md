@@ -131,9 +131,27 @@ Alternativley you can delete service via the CLI. To delete the service instance
 
 ## Custom scripts
 
-Custom scripts before or after a deployment are planned but not yet supported. If this is a requirement for you, please contact sales or support with your requirement.
+Custom scripts in the pipeline are supported using the standard `scripts` in the `package.json` file.
 
-Custom scripts before or after a test can be set by wrapping your test command in a new script and configuring the `test` script in `package.json` to use the wrapper script instead.
+For example, you can run scripts before/after install, and before/after a test.
+
+```yaml
+{
+  "name": "demo-serverless",
+  "version": "1.0.0",
+  "scripts": {
+    "preinstall": "",
+    "postinstall": "",
+    "pretest": "",
+    "posttest": ""
+  }
+}
+```
+
+Additional lifecycle hooks can be found in the `npm` documentation:
+
+[https://docs.npmjs.com/misc/scripts](https://docs.npmjs.com/misc/scripts)
+
 
 ## Deployment settings
 
