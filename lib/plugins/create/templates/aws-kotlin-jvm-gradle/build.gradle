@@ -12,8 +12,8 @@ version = 'dev'
 description = """hello"""
 
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
+sourceCompatibility = 11
+targetCompatibility = 11
 tasks.withType(JavaCompile) {
   options.encoding = 'UTF-8'
 }
@@ -45,3 +45,5 @@ dependencies {
 task deploy(type: Exec, dependsOn: 'shadowJar') {
   commandLine 'serverless', 'deploy'
 }
+
+build.finalizedBy(shadowJar)
