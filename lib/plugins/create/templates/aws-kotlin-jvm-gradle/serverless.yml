@@ -50,7 +50,7 @@ provider:
 
 # you can add packaging information here
 package:
-  artifact: build/libs/hello-dev.jar
+  artifact: build/libs/hello-dev-all.jar
 
 functions:
   hello:
