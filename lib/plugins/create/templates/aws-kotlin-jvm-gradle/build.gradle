@@ -20,7 +20,7 @@ tasks.withType(JavaCompile) {
 }
 
 repositories {
-  maven { url "http://repo.maven.apache.org/maven2" }
+  mavenCentral()
 }
 
 // If requiring AWS JDK, uncomment the dependencyManagement to use the bill of materials
