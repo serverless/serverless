@@ -27,7 +27,7 @@ repositories {
 //   https://aws.amazon.com/blogs/developer/managing-dependencies-with-aws-sdk-for-java-bill-of-materials-module-bom/
 //dependencyManagement {
 //    imports {
-//        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.206'
+//        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.688'
 //    }
 //}
 
