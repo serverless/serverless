@@ -22,7 +22,7 @@ Before you setup your CI/CD workflow, make sure you meet the following requireme
 1. **Deployment Profile must include an AWS Access Role**. When Serverless automatically deploys your service, it must be granted permission to your AWS account. This permission is granted by deploying to a stage which has an AWS Access Role configured in it’s deployment profile. This enables Serverless to automatically generate short-lived AWS Access Keys used to authenticate during the deployment. [Learn how to setup the AWS Access Role](/framework/docs/dashboard/access-roles/).
 2. **Must have your Serverless Framework project checked into Github**. Currently only Github is supported as a VCS provider. Your project, including the serverless.yml file, must be checked into the repo.
 3. **Must be deployed on AWS**. The dashboard currently only supports AWS as a cloud service provider. Other cloud service providers are a work in progress.
-4. **Must use the Node runtime**. Currently only Serverless Framework projects using the Node runtime are supported. Other runtimes are coming soon.
+4. **Must use the Node or Python runtime**. Currently only Serverless Framework projects using the Node or Python runtimes are supported. Other runtimes are coming soon.
 
 ## Connect to Github
 
@@ -93,6 +93,29 @@ The tests only run if a `test` script is present in the `package.json` file, lik
 
 The tests will be skipped if the `npm test` command returns `Error: no test specified`. This is the response from `npm` if no `test` script is defined. It is also the default value of the `test` script when you initialize a new package.json via `npm init`.
 
+### Running Node tests
+
+If you are using Node for your runtime, then all the dependencies will automatically be installed using `npm install` before tests are run.
+
+Update the `tests` script to run your node test suite (e.g. `mocha`).
+
+### Running Python tests
+
+If you are using Python we recommend using the [serverless-python-requirements](https://github.com/UnitedIncome/serverless-python-requirements) plugin to install the dependencies from `requirements.txt`.
+
+If you are not using the serverless-python-requirements plugin, then you can install the requirements by adding the `postinstall` script to `package.json`.
+
+```yaml
+{
+  'name': 'demo-python',
+  'version': '1.0.0',
+  'scripts': { 'postinstall': 'pip3 install -r requirements.txt', 'test': 'pytest' },
+  'devDependencies': { 'serverless-python-requirements': '^5.0.1' },
+}
+```
+
+You must update the `test` script in `package.json` to run your Python tests suite (e.g. `pytest`).
+
 ### Automatically deleting preview deployments (recommended)
 
 The recommended method for deleting preview service instances is to select "Destroy stage and resources when branch is deleted". If the changes in the PR are accepted then they will be merged and then the branch is deleted. If the changes are rejected the branch is also deleted. Whenever the branch is deleted, Serverless Framework Pro will automatically run `sls remove` on this service instance.
@@ -103,9 +126,21 @@ Alternativley you can delete service via the CLI. To delete the service instance
 
 ## Custom scripts
 
-Custom scripts before or after a deployment are planned but not yet supported. If this is a requirement for you, please contact sales or support with your requirement.
+Custom scripts in the pipeline are supported using the standard `scripts` in the `package.json` file.
 
-Custom scripts before or after a test can be set by wrapping your test command in a new script and configuring the `test` script in `package.json` to use the wrapper script instead.
+For example, you can run scripts before/after install, and before/after a test.
+
+```yaml
+{
+  'name': 'demo-serverless',
+  'version': '1.0.0',
+  'scripts': { 'preinstall': '', 'postinstall': '', 'pretest': '', 'posttest': '' },
+}
+```
+
+Additional lifecycle hooks can be found in the `npm` documentation:
+
+[https://docs.npmjs.com/misc/scripts](https://docs.npmjs.com/misc/scripts)
 
 ## Deployment settings
 
