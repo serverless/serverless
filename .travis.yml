@@ -21,6 +21,7 @@ install:
   #   Therefore we keep at 3 which should ensure most of dependencies are at latest versions
   # - Depth setting makes optional dependencies not optional (install error crashes process)
   #   Hence we skip install of optional dependencies completely, with --no-optional
+  #   Note: this patch works only for npm@5+
   # - npm documents --dev option for dev dependencies update, but it's only --save-dev that works
   - npm update --depth 3 --no-optional --no-save
   - npm update --depth 3 --save-dev --no-save
@@ -142,6 +143,10 @@ jobs:
 
     - name: 'Unit Tests - Node.js v6'
       node_js: 6
+      before_install:
+        # npm@3 doesn't seem handle `--no-optional` option of `npm update` command.
+        # Upgrade npm to version which is distributed with Node.js v8
+        - npm i -g npm@6.4.1
 
     - stage: Integration Test
       name: 'Integration Tests, Tag on version bump - Node.js v12'
