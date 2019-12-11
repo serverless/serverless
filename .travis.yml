@@ -18,10 +18,10 @@ install:
   # - There seems no way to update all project dependency groups in one run
   #   Hence different calls for prod and dev dependencies
   # - The bigger depth, the longer update takes (-9999 as proposed in npm docs hangs the process).
-  #   Therefore we keep at 4 which should ensure most of dependencies are at latest versions
+  #   Therefore we keep at 3 which should ensure most of dependencies are at latest versions
   # - npm documents --dev option for dev dependencies update, but it's only --save-dev that works
-  - npm update --depth 4 --no-save
-  - npm update --depth 4 --save-dev --no-save
+  - npm update --depth 3 --no-save
+  - npm update --depth 3 --save-dev --no-save
 
 branches:
   only: # Do not build PR branches
