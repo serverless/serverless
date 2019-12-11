@@ -19,8 +19,10 @@ install:
   #   Hence different calls for prod and dev dependencies
   # - The bigger depth, the longer update takes (-9999 as proposed in npm docs hangs the process).
   #   Therefore we keep at 3 which should ensure most of dependencies are at latest versions
+  # - Depth setting makes optional dependencies not optional (install error crashes process)
+  #   Hence we skip install of optional dependencies completely, with --no-optional
   # - npm documents --dev option for dev dependencies update, but it's only --save-dev that works
-  - npm update --depth 3 --no-save
+  - npm update --depth 3 --no-optional --no-save
   - npm update --depth 3 --save-dev --no-save
 
 branches:
