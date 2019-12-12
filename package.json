@@ -86,7 +86,8 @@
       "@serverless/test/setup/async-leaks-detector",
       "@serverless/test/setup/async-leaks-detector/bluebird-patch",
       "@serverless/test/setup/mock-homedir",
-      "@serverless/test/setup/restore-cwd"
+      "@serverless/test/setup/restore-cwd",
+      "@serverless/test/setup/restore-env"
     ],
     "timeout": 15000
   },
@@ -116,7 +117,7 @@
   },
   "devDependencies": {
     "@serverless/eslint-config": "^1.2.1",
-    "@serverless/test": "^3.0.0",
+    "@serverless/test": "^3.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-ext": "^2.1.0",
