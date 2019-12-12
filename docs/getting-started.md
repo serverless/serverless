@@ -21,6 +21,26 @@ menuItems:
 
 First things first, let's get the Serverless Framework open source CLI installed on your machine.
 
+## Installing as a standalone binary
+
+_(no Node.js or npm installation required)_
+
+### macOS & Linux
+
+Run following code in your terminal:
+
+```bash
+curl -o- -L https://slss.io/install | bash
+```
+
+To upgrade already installed version:
+
+```bash
+serverless upgrade
+```
+
+## Installing via npm
+
 ```bash
 # Install the serverless cli
 npm install -g serverless
@@ -30,6 +50,8 @@ npm update -g serverless
 ```
 
 If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to do that first.
+
+## Serverless Dashboard
 
 If you already registered for a [Serverless Framework Dashboard](https://dashboard.serverless.com) account, login to your account from the CLI.
 
