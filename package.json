@@ -63,7 +63,7 @@
     "lint:updated": "pipe-git-updated --ext=js -- eslint --cache",
     "integration-test-run-package": "mocha-isolated --skip-fs-cleanup-check tests/integration-package/**/*.tests.js",
     "integration-test-run-basic": "mocha tests/integration-basic/tests.js",
-    "integration-test-run-all": "mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check tests/integration-all/**/tests.js",
+    "integration-test-run-all": "mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 tests/integration-all/**/tests.js",
     "integration-test-cleanup": "node tests/utils/aws-cleanup.js",
     "postinstall": "node ./scripts/postinstall.js",
     "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
@@ -117,7 +117,7 @@
   },
   "devDependencies": {
     "@serverless/eslint-config": "^1.2.1",
-    "@serverless/test": "^3.1.0",
+    "@serverless/test": "^3.2.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-ext": "^2.1.0",
