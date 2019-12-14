@@ -56,24 +56,6 @@ Your service will now deploy from the master branch and you’ll see all the tes
 status, and deployment details.
 
 
-## Custom scripts
-
-Custom scripts in the pipeline are supported using the standard `scripts` in the `package.json` file.
-
-For example, you can run scripts before/after install, and before/after a test.
-
-```yaml
-{
-  'name': 'demo-serverless',
-  'version': '1.0.0',
-  'scripts': { 'preinstall': '', 'postinstall': '', 'pretest': '', 'posttest': '' },
-}
-```
-
-Additional lifecycle hooks can be found in the `npm` documentation:
-
-[https://docs.npmjs.com/misc/scripts](https://docs.npmjs.com/misc/scripts)
-
 ## Deployment settings
 
 If your services depends on settings which are different for each stage, we recommend using [deployment profiles](/framework/docs/dashboard/profiles/) to set different [parameters](https://serverless.com/framework/docs/dashboard/secrets/) for each stage.
