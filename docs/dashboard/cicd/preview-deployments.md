@@ -33,6 +33,8 @@ If you use the "use branch name as stage", you may also want to reference the br
 
 You must update the `test` script in `package.json` to run your Python tests suite (e.g. `pytest`).
 
+Branch names may also include charaters such as `/` which are invalid charachters for stage names. Invalid charcters are replaced with `-` in Serverless CI/CD. For example, a branch `feature/ph-api` will be normalized as `feature-ph-api`.
+
 ## Automatically deleting preview deployments (recommended)
 
 The recommended method for deleting preview service instances is to select "Destroy stage and resources when branch is deleted". If the changes in the PR are accepted then they will be merged and then the branch is deleted. If the changes are rejected the branch is also deleted. Whenever the branch is deleted, Serverless Framework Pro will automatically run `sls remove` on this service instance.
