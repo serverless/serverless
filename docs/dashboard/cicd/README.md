@@ -71,51 +71,6 @@ To avoid this collision, you have the convenient option to "use branch name as s
 
 If you use the "use branch name as stage", you may also want to reference the branch name in your configuration using [Variables](/framework/docs/providers/aws/guide/variables/). Since the stage name matches the branch name, you can use the `${self:provider.stage}` variable in your `serverless.yml` to reference the stage name, which will match the branch name.
 
-## Running Tests
-
-The Serverless Framework will automatically run tests for each deployment by running `npm test`. The tests must pass, return `0`, before the service is deployed. If the tests fail, then the service will not be deployed.
-
-The tests only run if a `test` script is present in the `package.json` file, like in the example below:
-
-```json
-{
-  "name": "my-serverless-project",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC"
-}
-```
-
-The tests will be skipped if the `npm test` command returns `Error: no test specified`. This is the response from `npm` if no `test` script is defined. It is also the default value of the `test` script when you initialize a new package.json via `npm init`.
-
-### Running Node tests
-
-If you are using Node for your runtime, then all the dependencies will automatically be installed using `npm install` before tests are run.
-
-Update the `tests` script to run your node test suite (e.g. `mocha`).
-
-### Running Python tests
-
-If you are using Python we recommend using the [serverless-python-requirements](https://github.com/UnitedIncome/serverless-python-requirements) plugin to install the dependencies from `requirements.txt`.
-
-If you are not using the serverless-python-requirements plugin, then you can install the requirements by adding the `postinstall` script to `package.json`.
-
-```yaml
-{
-  'name': 'demo-python',
-  'version': '1.0.0',
-  'scripts': { 'postinstall': 'pip3 install -r requirements.txt', 'test': 'pytest' },
-  'devDependencies': { 'serverless-python-requirements': '^5.0.1' },
-}
-```
-
-You must update the `test` script in `package.json` to run your Python tests suite (e.g. `pytest`).
-
 ### Automatically deleting preview deployments (recommended)
 
 The recommended method for deleting preview service instances is to select "Destroy stage and resources when branch is deleted". If the changes in the PR are accepted then they will be merged and then the branch is deleted. If the changes are rejected the branch is also deleted. Whenever the branch is deleted, Serverless Framework Pro will automatically run `sls remove` on this service instance.
