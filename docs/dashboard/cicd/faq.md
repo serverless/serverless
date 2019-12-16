@@ -45,9 +45,9 @@ Yes! Serverless CI/CD is designed around the Serverless Framework to provide a s
 Anything you can deploy with the Serverless Framework you can deploy with Serverless CI/CD. The Serverless Framework is
 extensible with Plugins , so it works with a broad range of services.
 
-## Is Serverless CI/CD also available for Enterprise?
+## Is Serverless CI/CD also available for Serverless Framework Pro Enterprise tier?
 
-Yes, Serverless CI/CD works with the Enterprise tier and it is available for self-hosting.
+Yes, Serverless CI/CD works with the Serverless Framework Pro Enterprise tier and it is available for self-hosting.
 
 ## Are all runtimes supported?
 
