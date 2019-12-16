@@ -147,7 +147,7 @@ Add `cfnRole` to your `serverless.yml`.
 
 This rule requires you to specify certain tags in the
 [`stackTags` option](https://serverless.com/framework/docs/providers/aws/guide/serverless.yml/)
-in your `serverless.yml`. It is configured with a mapping of keys to regexes. All the keys must be
+in your `serverless.yml`. It is configured with a mapping of keys to regex's. All the keys must be
 present and value must match the regex.
 
 ```yaml
@@ -176,7 +176,7 @@ https://serverless.com/framework/docs/providers/aws/guide/functions/#vpc-configu
 **ID: allowed-function-names**
 
 This rule allows you enforce naming conventions functions deployed to AWS lambda.
-It is confgured with a regular expression. It features one extra addition: variables for stage,
+It is configured with a regular expression. It features one extra addition: variables for stage,
 service and function(the key in the serverless yaml) names. See below for some examples.
 
 Require using Serverless's standard naming scheme:
@@ -236,7 +236,7 @@ This policy blocks deploys at certain times. It is configured with a list of obj
 time, duration and optional interval.
 
 ```yaml
-# no deploy specific holidiays, eg Rosh Hashanah 2019
+# no deploy specific holidays, eg Rosh Hashanah 2019
 - time: 2019-09-29T18:20 # ISO8601 date or datetime
   duration: P2D30M # IS8601 duration
 # no deploy a specific day but repeating, eg all future Christmases

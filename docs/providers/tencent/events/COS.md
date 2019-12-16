@@ -16,13 +16,13 @@ layout: Doc
 
 ## Event Definition
 
-This example sets up a `COS` event which will trigger the `function_one` function whenever an object is uploaded to the `cli-appid.cos.ap-beijing.myqcloud.com` under your account.
+This example sets up a `COS` event which will trigger the `hello_world` function whenever an object is uploaded to the `cli-appid.cos.ap-beijing.myqcloud.com` under your account.
 
 ```yml
 # serverless.yml
 
 functions:
-  function_one:
+  hello_world:
     handler: index.main_handler
     runtime: Nodejs8.9
 

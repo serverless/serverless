@@ -39,7 +39,7 @@ custom:
 
 ### Uploading Source Map
 
-The [New Error Alert](#new-error) and the [Error Metrics](#errors) can be used to view the stack trace for the occurence of an error. Tools like Webpack and Typescript generate the packaged code and therefore may obfuscate the stack trace. The Serverless Framework Enterprise Plugin and SDK support sourcemaps to properly generate the stack trace.
+The [New Error Alert](#new-error) and the [Error Metrics](#errors) can be used to view the stack trace for the occurrence of an error. Tools like Webpack and Typescript generate the packaged code and therefore may obfuscate the stack trace. The Serverless Framework Enterprise Plugin and SDK support sourcemaps to properly generate the stack trace.
 
 To use a sourcemap, ensure that your packaging directory includes the compiled source, original source, and the source maps.
 
@@ -101,7 +101,7 @@ in the dashboard.
 Serverless also instruments your lambdas to report the spans for HTTP & HTTPS requests. In NodeJS
 the `http` and `https` modules are instrumented, so any library built upon those will be captured.
 In Python, the `urllib3`(thus `requests`) and `urllib2`(in Python2) and `urlib.request`(in Python3)
-libraries are unstrumented to capture HTTP & HTTPS requests.
+libraries are instrumented to capture HTTP & HTTPS requests.
 
 By default, requests to AWS are not captured because of the above AWS SDK instrumentation which
 provides more insight into the request.

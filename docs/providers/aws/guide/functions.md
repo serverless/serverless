@@ -26,7 +26,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
@@ -41,6 +41,7 @@ functions:
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
+    provisionedConcurrency: 3 # optional, Count of provisioned lambda instances
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
     tracing: PassThrough # optional, overwrite, can be 'Active' or 'PassThrough'
 ```
@@ -61,7 +62,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   functionOne:
@@ -81,7 +82,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512 # will be inherited by all functions
 
 functions:
@@ -97,7 +98,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   functionOne:
@@ -133,7 +134,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   iamRoleStatements: # permissions for all of your functions can be set here
     - Effect: Allow
       Action: # Gives permission to DynamoDB tables in a specific region
@@ -252,7 +253,7 @@ The Lambda function execution role must have permissions to create, describe and
 
 **VPC Lambda Internet Access**
 
-By default, when a Lambda function is executed inside a VPC, it loses internet access and some resources inside AWS may become unavailable. In order for S3 resources and DynamoDB resources to be available for your Lambda function running inside the VPC, a VPC end point needs to be created. For more information please check [VPC Endpoint for Amazon S3](https://aws.amazon.com/blogs/aws/new-vpc-endpoint-for-amazon-s3/).
+By default, when a Lambda function is executed inside a VPC, it loses internet access and some resources inside AWS may become unavailable. In order for S3 resources and [DynamoDB](https://serverless.com/dynamodb/) resources to be available for your Lambda function running inside the VPC, a VPC end point needs to be created. For more information please check [VPC Endpoint for Amazon S3](https://aws.amazon.com/blogs/aws/new-vpc-endpoint-for-amazon-s3/).
 In order for other services such as Kinesis streams to be made available, a NAT Gateway needs to be configured inside the subnets that are being used to run the Lambda, for the VPC used to execute the Lambda. For more information, please check [Enable Outgoing Internet Access within VPC](https://medium.com/@philippholly/aws-lambda-enable-outgoing-internet-access-within-vpc-8dd250e11e12)
 
 ## Environment Variables
@@ -390,7 +391,7 @@ service: service
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   hello:
@@ -406,7 +407,7 @@ We're working on a fix so that SQS queue arns will be supported in the future.
 
 ## KMS Keys
 
-AWS Lambda uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
+[AWS Lambda](https://serverless.com/aws-lambda/) uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
 
 The `awsKmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
 
@@ -443,7 +444,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   tracing:
     lambda: true
 ```

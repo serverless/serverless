@@ -1,7 +1,8 @@
 'use strict';
 
 const AWS = require('aws-sdk');
-const log = require('log').get('aws');
+const awsLog = require('log').get('aws');
+const log = require('log').get('serverless:test');
 const { region, persistentRequest } = require('../misc');
 
 function createUserPool(name, config = {}) {
@@ -31,26 +32,32 @@ function deleteUserPool(name) {
 }
 
 function findUserPoolByName(name) {
-  log.debug('find cognito user pool by name %s', name);
+  awsLog.debug('find cognito user pool by name %s', name);
   const cognito = new AWS.CognitoIdentityServiceProvider({ region });
 
   const params = {
     MaxResults: 60,
   };
 
+  const pools = [];
   function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
     return cognito
       .listUserPools(params)
       .promise()
       .then(result => {
-        log.debug('cognito.listUserPools %j', result);
-        const matches = result.UserPools.filter(pool => pool.Name === name);
-        if (matches.length) {
-          return matches.shift();
-        }
+        awsLog.debug('cognito.listUserPools %j', result);
+        pools.push(...result.UserPools.filter(pool => pool.Name === name));
         if (result.NextToken) return recursiveFind(result.NextToken);
-        return null;
+        log.debug('found pools %o', pools);
+        switch (pools.length) {
+          case 0:
+            return null;
+          case 1:
+            return pools[0];
+          default:
+            throw new Error(`Found more than one pool named '${name}'`);
+        }
       });
   }
 
@@ -64,7 +71,7 @@ function describeUserPool(userPoolId) {
     .describeUserPool({ UserPoolId: userPoolId })
     .promise()
     .then(result => {
-      log.debug('cognito.describeUserPool %s %j', userPoolId, result);
+      awsLog.debug('cognito.describeUserPool %s %j', userPoolId, result);
       return result;
     });
 }

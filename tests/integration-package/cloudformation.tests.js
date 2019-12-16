@@ -44,7 +44,7 @@ describe('Integration test - Packaging', () => {
         Role: {
           'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
-        Runtime: 'nodejs10.x',
+        Runtime: 'nodejs12.x',
         Timeout: 6,
       },
       DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
@@ -75,7 +75,7 @@ describe('Integration test - Packaging', () => {
         Role: {
           'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
-        Runtime: 'nodejs10.x',
+        Runtime: 'nodejs12.x',
         Timeout: 6,
       },
       DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
@@ -109,7 +109,7 @@ describe('Integration test - Packaging', () => {
         Role: {
           'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
-        Runtime: 'nodejs10.x',
+        Runtime: 'nodejs12.x',
         Timeout: 6,
       },
       DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],

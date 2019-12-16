@@ -63,7 +63,7 @@ service: serverless-ws-test
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   websocketsApiName: custom-websockets-api-name
   websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
 
@@ -212,3 +212,16 @@ provider:
 ```
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.
+
+The default log level will be INFO. You can change this to error with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      level: ERROR
+```
+
+Valid values are INFO, ERROR.

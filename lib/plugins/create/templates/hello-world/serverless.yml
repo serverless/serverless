@@ -10,7 +10,7 @@ service: serverless-hello-world
 # The `provider` block defines where your service will be deployed
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 # The `functions` block defines what code to deploy
 functions:

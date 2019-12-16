@@ -55,7 +55,7 @@ If you do not wish to use the Serverless Framework Dashboard to set up an AWS Ac
 
 [Watch the video guide on setting up credentials](https://www.youtube.com/watch?v=KngM5bfpttA)
 
-Services in AWS, such as AWS Lambda, require that you provide credentials when you access them to ensure that you have permission to access the resources owned by that service. To accomplish this AWS recommends that you use AWS Identity and Access Management (IAM).
+Services in AWS, such as [AWS Lambda](https://serverless.com/aws-lambda/), require that you provide credentials when you access them to ensure that you have permission to access the resources owned by that service. To accomplish this AWS recommends that you use AWS Identity and Access Management (IAM).
 
 Follow these steps to create an IAM user for the Serverless Framework:
 
@@ -149,7 +149,7 @@ You can even set up different profiles for different accounts, which can be used
 service: new-service
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: dev
   profile: devProfile
 ```
@@ -194,7 +194,7 @@ This example `serverless.yml` snippet will load the profile depending upon the s
 service: new-service
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${opt:stage, self:custom.defaultStage}
   profile: ${self:custom.profiles.${self:provider.stage}}
 custom:

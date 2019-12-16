@@ -1,10 +1,114 @@
-# 1.56.1 (2019-10-31)
+# Changelog
 
-- [Fix deployment bucket policy handling with custom bucket ](https://github.com/serverless/serverless/pull/6909)
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [1.59.3](https://github.com/serverless/serverless/compare/v1.59.2...v1.59.3) (2019-12-09)
+
+### Bug Fixes
+
+- Do not set optional ParallelizationFactor when not explicitly set ([e74d1a0](https://github.com/serverless/serverless/commit/e74d1a0a6486fba1ca09c5eb54b36fcf552d60f4)), closes [#7049](https://github.com/serverless/serverless/issues/7049)
+- Fix provisioned concurrency support ([be0ebb7](https://github.com/serverless/serverless/commit/be0ebb76e7d3860587a986c9da48209870e7990d)), closes [#7059](https://github.com/serverless/serverless/issues/7059)
+
+### [1.59.2](https://github.com/serverless/serverless/compare/v1.59.1...v1.59.2) (2019-12-06)
+
+### Bug Fixes
+
+- Ensure to not create cognito pools marked as 'existing' ([fe546c5](https://github.com/serverless/serverless/commit/fe546c50d35b88b24556257182aacd9e24f07d1b))
+
+### [1.59.1](https://github.com/serverless/serverless/compare/v1.59.0...v1.59.1) (2019-12-05)
+
+### Bug Fixes
+
+- Fix mishandling of cachedCredentials in invokeLocal ([699e78d](https://github.com/serverless/serverless/commit/699e78d251b7cbb3e6553c6d8554c2bf568be1fb)), closes [#7050](https://github.com/serverless/serverless/issues/7050), regression introduced with [#7044](https://github.com/serverless/serverless/issues/7044)
+
+# 1.59.0 (2019-12-04)
+
+- [Fix spelling and typos in docs, code variables and code comments](https://github.com/serverless/serverless/pull/6986)
+- [Code cleanup and refactoring](https://github.com/serverless/serverless/pull/6990)
+- [Add support for contentHandling - Fixes gh-6949](https://github.com/serverless/serverless/pull/6987)
+- [Fix deployment bucket SSE documentation](https://github.com/serverless/serverless/pull/7000)
+- [Make authorizer type check from #6150 case insensitive](https://github.com/serverless/serverless/pull/7001)
+- [Govcloud custom resource fix](https://github.com/serverless/serverless/pull/6996)
+- [Lint and style patches](https://github.com/serverless/serverless/pull/7004)
+- [Fix/cors omit access control allow credentials on false](https://github.com/serverless/serverless/pull/6999)
+- [Fix: remove `$context.status` from websocket access log format](https://github.com/serverless/serverless/pull/7014)
+- [Clarifying Azure setup](https://github.com/serverless/serverless/pull/7015)
+- [Expose ParallelizationFactor prop for Kinesis Streams](https://github.com/serverless/serverless/pull/7024)
+- [Replace moment with dayjs](https://github.com/serverless/serverless/pull/7025)
+- [Update AWS SQS event docs regarding FIFO queue trigger for Lambda](https://github.com/serverless/serverless/pull/7029)
+- [Awsprovider - adding support for SDK sub-classes.](https://github.com/serverless/serverless/pull/7031)
+- [Provide backoff for retryable aws requests and the option to adjust the cf status check interval via an environment variable](https://github.com/serverless/serverless/pull/6981)
+- [Add page for best practices on CI/CD](https://github.com/serverless/serverless/pull/6988)
+- [Optimize custom resources generation](https://github.com/serverless/serverless/pull/7032)
+- [Update API GW stage settings only when explicitly set](https://github.com/serverless/serverless/pull/7033)
+- [Do not apply APIGW wide settings on externally referenced APIGW](https://github.com/serverless/serverless/pull/7034)
+- [Enable Content Trust checking when pulling lambci/lambda images](https://github.com/serverless/serverless/pull/6992)
+- [Fix resolution of user configured APIGW](https://github.com/serverless/serverless/pull/7039)
+- [Add option to change log level for websocket logs](https://github.com/serverless/serverless/pull/7035)
+- [Support lambda provisioned concurrency](https://github.com/serverless/serverless/pull/7043)
+- [Fix AWS creds handling](https://github.com/serverless/serverless/pull/7044)
+- [Fix lambda provisioned concurrency setup](https://github.com/serverless/serverless/pull/7045)
 
 ## Meta
 
-- [Comparison since last release](https://github.com/serverless/serverless/comparev1.56.0...v1.56.1)
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.58.0...v1.59.0)
+
+# 1.58.0 (2019-11-20)
+
+- [Fix missing ALB trigger in console](https://github.com/serverless/serverless/pull/6926)
+- [Add support for vpc link integration discussed as part of #5025](https://github.com/serverless/serverless/pull/6051)
+- [Setup Codecov](https://github.com/serverless/serverless/pull/6924)
+- [Fix handling of China region in S3 bucket policy](https://github.com/serverless/serverless/pull/6934)
+- [Fix policy definition](https://github.com/serverless/serverless/pull/6937)
+- [Fix typo in Tencent docs](https://github.com/serverless/serverless/pull/6935)
+- [Add Knative provider template](https://github.com/serverless/serverless/pull/6936)
+- [Add Knative documentation](https://github.com/serverless/serverless/pull/6930)
+- [PLAT-1798 - set env vars for AWS creds from cached credentials…](https://github.com/serverless/serverless/pull/6938)
+- [Add azure python to cli](https://github.com/serverless/serverless/pull/6945)
+- [updated providers menu order in docs](https://github.com/serverless/serverless/pull/6955)
+- [Update API Gateway tagging to use partition for deployed region](https://github.com/serverless/serverless/pull/6948)
+- [Fix: use normalized maps in zipService.js](https://github.com/serverless/serverless/pull/6705)
+- [Add support for multi-value headers in ALB events](https://github.com/serverless/serverless/pull/6940)
+- [Improve config error handling](https://github.com/serverless/serverless/pull/6962)
+- [sls-flask starter kit](https://github.com/serverless/serverless/pull/6967)
+- [Add variable completion report if variable progress was reported](https://github.com/serverless/serverless/pull/6966)
+- [Update docs links](https://github.com/serverless/serverless/pull/6975)
+- [Update documentation to include information about tags](https://github.com/serverless/serverless/pull/6982)
+- [Python3.8 support!](https://github.com/serverless/serverless/pull/6978)
+- [Updates to CI/CD settings for the beta](https://github.com/serverless/serverless/pull/6972)
+- [rename output variables to outputs](https://github.com/serverless/serverless/pull/6971)
+- [Fix Tencent Template and Readme](https://github.com/serverless/serverless/pull/6984)
+- [Default to Nodejs12.x runtime](https://github.com/serverless/serverless/pull/6983)
+- [#6162: Support multiple schemas, don't overwrite RequestModels for each](https://github.com/serverless/serverless/pull/6954)
+- [Support empty deploymentPrefix](https://github.com/serverless/serverless/pull/6941)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.57.0...v1.58.0)
+
+# 1.57.0 (2019-11-06)
+
+- [Note about how to move services to new apps](https://github.com/serverless/serverless/pull/6912)
+- [Allow casting to boolean in Serverless variables](https://github.com/serverless/serverless/pull/6869)
+- [Create distinct target groups for different ALBs](https://github.com/serverless/serverless/pull/6383)
+- [sls create --help improvements](https://github.com/serverless/serverless/pull/6919)
+- [Fix race conditions handling in stats requests](https://github.com/serverless/serverless/pull/6920)
+- [Update AWS Limits on Lambda@Edge](https://github.com/serverless/serverless/pull/6922)
+- [Fixes bug with sns-cross-region definition using psuedo params](https://github.com/serverless/serverless/pull/6879)
+- [Add tencent-plugins english version docs](https://github.com/serverless/serverless/pull/6916)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.56.1...v1.57.0)
+
+# 1.56.1 (2019-10-31)
+
+- [Fix deployment bucket policy handling with custom bucket ](https://github.com/serverless/serverless/pull/6909)
+- [Feat: aws-nodejs-typescript template improvements](https://github.com/serverless/serverless/pull/6904)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.56.0...v1.56.1)
 
 # 1.56.0 (2019-10-31)
 

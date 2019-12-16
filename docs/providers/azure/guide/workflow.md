@@ -20,7 +20,7 @@ Intro. Quick recommendations and tips for various processes.
 
 1. Write your functions
 2. Run function app locally by using `sls offline` and `npm start` (or `func host start`). See [quickstart](./quick-start).
-3. Use `serverless deploy` to deploy your function app (preferrably in a CI/CD environment)
+3. Use `serverless deploy` to deploy your function app (preferably in a CI/CD environment)
 4. Use `serverless invoke -f myFunction` to test your Azure Functions.
 
 ### Larger Projects
@@ -35,10 +35,18 @@ A handy list of commands to use when developing with the Serverless Framework.
 
 ##### Create A Function App:
 
-Install the boilerplate application.
+Install the boilerplate application:
+
+- with node:
 
 ```bash
 sls create -t azure-nodejs -p my-app
+```
+
+- with python:
+
+```bash
+sls create -t azure-python -p my-app
 ```
 
 ##### Install A Service

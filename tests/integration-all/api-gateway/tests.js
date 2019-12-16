@@ -4,6 +4,7 @@ const path = require('path');
 const AWS = require('aws-sdk');
 const _ = require('lodash');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { region, confirmCloudWatchLogs } = require('../../utils/misc');
@@ -29,6 +30,13 @@ describe('AWS - API Gateway Integration Test', function() {
   let apiKey;
   const stage = 'dev';
 
+  const resolveEndpoint = async () => {
+    const result = await CF.describeStacks({ StackName: stackName }).promise();
+    const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' })
+      .OutputValue;
+    endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+  };
+
   before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
@@ -46,23 +54,12 @@ describe('AWS - API Gateway Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
     await deployService(tmpDirPath);
+    return resolveEndpoint();
   });
 
   after(async () => {
     console.info('Removing service...');
     await removeService(tmpDirPath);
-  });
-
-  beforeEach(() => {
-    return CF.describeStacks({ StackName: stackName })
-      .promise()
-      .then(
-        result => _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' }).OutputValue
-      )
-      .then(endpointOutput => {
-        endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
-        endpoint = `${endpoint}`;
-      });
   });
 
   describe('Minimal Setup', () => {
@@ -117,7 +114,7 @@ describe('AWS - API Gateway Integration Test', function() {
         ].join(',');
         expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
-        expect(headers.get('access-control-allow-credentials')).to.equal('false');
+        expect(headers.get('access-control-allow-credentials')).to.equal(null);
         // TODO: for some reason this test fails for now...
         // expect(headers.get('access-control-allow-origin')).to.equal('*');
       });
@@ -147,7 +144,7 @@ describe('AWS - API Gateway Integration Test', function() {
   describe('Custom Authorizers', () => {
     let testEndpoint;
 
-    beforeEach(() => {
+    before(() => {
       testEndpoint = `${endpoint}/custom-auth`;
     });
 
@@ -178,23 +175,30 @@ describe('AWS - API Gateway Integration Test', function() {
 
   describe('API Keys', () => {
     let testEndpoint;
+    let startTime;
 
-    beforeEach(() => {
+    before(() => {
       testEndpoint = `${endpoint}/api-keys`;
+      startTime = Date.now();
+    });
+
+    it('should succeed if correct API key is given', async function self() {
+      const response = await fetch(testEndpoint, { headers: { 'X-API-Key': apiKey } });
+      const result = await response.json();
+      // API Key may take a moment to propagate, retry
+      if (response.status === 403 && startTime > Date.now() - 1000 * 60 * 3) {
+        log.notice('API Key rejected, retry');
+        return self();
+      }
+      expect(response.status).to.equal(200);
+      expect(result.message).to.equal('Hello from API Gateway! - (apiKeys)');
+      return null;
     });
 
     it('should reject a request with an invalid API Key', () => {
       return fetch(testEndpoint).then(response => {
         expect(response.status).to.equal(403);
       });
-    });
-
-    it('should succeed if correct API key is given', () => {
-      return fetch(testEndpoint, { headers: { 'X-API-Key': apiKey } })
-        .then(response => response.json())
-        .then(json => {
-          expect(json.message).to.equal('Hello from API Gateway! - (apiKeys)');
-        });
     });
   });
 
@@ -232,6 +236,13 @@ describe('AWS - API Gateway Integration Test', function() {
         // Confirm that CloudWatch logs for APIGW are written
       ).then(events => expect(events.length > 0).to.equal(true));
     });
+  });
+
+  describe('Integration Lambda Timeout', () => {
+    it('should result with 504 status code', () =>
+      fetch(`${endpoint}/integration-lambda-timeout`).then(response =>
+        expect(response.status).to.equal(504)
+      ));
   });
 
   // NOTE: this test should  be at the very end because we're using an external REST API here
@@ -273,6 +284,7 @@ describe('AWS - API Gateway Integration Test', function() {
       writeYamlFile(serverlessFilePath, serverless);
       console.info('Redeploying service (with external Rest API ID)...');
       await deployService(tmpDirPath);
+      return resolveEndpoint();
     });
 
     after(async () => {
@@ -296,12 +308,5 @@ describe('AWS - API Gateway Integration Test', function() {
         .then(response => response.json())
         .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
     });
-  });
-
-  describe('Integration Lambda Timeout', () => {
-    it('should result with 504 status code', () =>
-      fetch(`${endpoint}/integration-lambda-timeout`).then(response =>
-        expect(response.status).to.equal(504)
-      ));
   });
 });
