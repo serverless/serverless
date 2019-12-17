@@ -110,7 +110,7 @@ functions:
           batchWindow: 10
 ```
 
-## Setting the BisectBatchOnFunctionError
+## Setting BisectBatchOnFunctionError
 
 This configuration provides the ability to recursively split a failed batch and retry on a smaller subset of records, eventually isolating the metadata causing the error.
 
