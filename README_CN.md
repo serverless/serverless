@@ -153,39 +153,6 @@ The following are services you can instantly install and use by running `serverl
 - 交流 QQ 群：871445853
 - 微信社区群：serverlesscloud （加小助手拉群）
 
-<div id="qrcode">
-<table>
-<thead>
-<tr>
-<th>交流 QQ 群</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>群号：871445853</td>
-</tr>
-<tr>
-<td><img style="width:300px" src="https://main.qcloudimg.com/raw/47e4a71d8d057e6486625c17d57599a3.jpg" alt="交流 QQ 群"></td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr>
-<th>微信社区群</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>WeChat ID: serverlesscloud</td>
-</tr>
-<tr>
-<td><img style="width:300px" src="https://serverlesscn-1253970226.cos-website.ap-hongkong.myqcloud.com/static/wechat_qrcode-6c112b3032c65503a4b95e7cf9904de8.jpg" alt="微信社区群"></td>
-</tr>
-</tbody>
-</table>
-</div>
-
 ## <a name="licensing"></a>协议
 
 Serverless 是一个遵循 [MIT 协议](./LICENSE.txt)的开源项目。
