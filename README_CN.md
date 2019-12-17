@@ -10,7 +10,7 @@
 
 <p align="center">
   <span>简体中文</span> |
-  <a href="https://github.com/serverless/serverless">English</a>
+  <a href="./README.md">English</a>
 </p>
 
 [官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [邮件订阅](https://serverless.com/subscribe/) • [Gitter](https://gitter.im/serverless/serverless) • [论坛](http://forum.serverless.com) • [线下活动](https://www.meetup.com/pro/serverless/) • [体验 Pro 版本](https://dashboard.serverless.com)
