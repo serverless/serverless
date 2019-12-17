@@ -30,7 +30,7 @@ Serverless 是一个遵循 MIT 协议的开源项目，并且由全职的，有�
 
 ## Serverless Framework 介绍
 
-<img align="right" width="400" src="https://img.serverlesscloud.cn/20191216/1576511809949-ezgif-3-bc1ac768cb18.mp4" />
+<img align="right" width="400" src="https://img.serverlesscloud.cn/20191217/1576576146419-quick-start-gif.gif" />
 
 - [快速开始](#quick-start)
 - [例子](https://github.com/serverless/examples)
@@ -43,7 +43,7 @@ Serverless 是一个遵循 MIT 协议的开源项目，并且由全职的，有�
 
 ## <a name="quick-start"></a>快速开始
 
-[查看这里的视频](https://serverless.com/framework/) 或者跟着如下步骤，3分钟创建并且部署你的第一个 Serverless 应用。
+[查看这里的动图](https://serverless.com/framework/) 或者跟着如下步骤，3分钟创建并且部署你的第一个 Serverless 应用。
 
 1. **npm 安装：**
 
@@ -74,7 +74,7 @@ serverless deploy -v
 
 通过如下命令快速部署并且覆盖云端的 SCF 云函数，并且部署单个函数的速度更快。
 
-```bash
+```console
 serverless deploy function -f hello_world
 ```
 
@@ -142,7 +142,7 @@ The following are services you can instantly install and use by running `serverl
 
 我们非常欢迎开发者对项目进行贡献！可以了解我们的[贡献提交指南](CONTRIBUTING.md) 并且了解怎样向 Serverless Framework 提交贡献。
 
-欢迎查看我们的 [help wanted] 或者 [good first issue] 标签的 issue 列表，我们诚邀各位开发者参与和贡献，一起推动解决这些问题！
+欢迎查看我们的 [help wanted](https://github.com/serverless/serverless/labels/help%20wanted) 或者 [good first issue](https://github.com/serverless/serverless/labels/good%20first%20issue) 标签的 issue 列表，我们诚邀各位开发者参与和贡献，一起推动解决这些问题！
 
 ## <a name="community"></a> 开发者社区
 
@@ -152,6 +152,39 @@ The following are services you can instantly install and use by running `serverl
 - [Serverless 开发资源汇总](https://github.com/yugasun/awesome-serverless-framework)
 - 交流 QQ 群：871445853
 - 微信社区群：serverlesscloud （加小助手拉群）
+
+<div id="qrcode">
+<table>
+<thead>
+<tr>
+<th>交流 QQ 群</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>群号：871445853</td>
+</tr>
+<tr>
+<td><img src="https://main.qcloudimg.com/raw/47e4a71d8d057e6486625c17d57599a3.jpg" alt="交流 QQ 群"></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>微信社区群</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WeChat ID: serverlesscloud</td>
+</tr>
+<tr>
+<td><img src="https://serverlesscn-1253970226.cos-website.ap-hongkong.myqcloud.com/static/wechat_qrcode-6c112b3032c65503a4b95e7cf9904de8.jpg" alt="微信社区群"></td>
+</tr>
+</tbody>
+</table>
+</div>
 
 ## <a name="licensing"></a>协议
 
