@@ -165,7 +165,7 @@ The following are services you can instantly install and use by running `serverl
 <td>群号：871445853</td>
 </tr>
 <tr>
-<td><img src="https://main.qcloudimg.com/raw/47e4a71d8d057e6486625c17d57599a3.jpg" alt="交流 QQ 群"></td>
+<td><img style="width:300px" src="https://main.qcloudimg.com/raw/47e4a71d8d057e6486625c17d57599a3.jpg" alt="交流 QQ 群"></td>
 </tr>
 </tbody>
 </table>
@@ -180,7 +180,7 @@ The following are services you can instantly install and use by running `serverl
 <td>WeChat ID: serverlesscloud</td>
 </tr>
 <tr>
-<td><img src="https://serverlesscn-1253970226.cos-website.ap-hongkong.myqcloud.com/static/wechat_qrcode-6c112b3032c65503a4b95e7cf9904de8.jpg" alt="微信社区群"></td>
+<td><img style="width:300px" src="https://serverlesscn-1253970226.cos-website.ap-hongkong.myqcloud.com/static/wechat_qrcode-6c112b3032c65503a4b95e7cf9904de8.jpg" alt="微信社区群"></td>
 </tr>
 </tbody>
 </table>
