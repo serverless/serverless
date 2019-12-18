@@ -166,8 +166,7 @@ jobs:
           tagName=`git diff HEAD^ package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
           if [ -n "$tagName" ]
           then
-            git tag v$tagName
-            if git push https://$GITHUB_TOKEN@github.com/serverless/serverless --tags
+            if git tag v$tagName && git push https://$GITHUB_TOKEN@github.com/serverless/serverless --tags
             then
               if [ $TRAVIS_BRANCH = master ]
               then
