@@ -210,7 +210,7 @@ jobs:
             travis_terminate 1
           fi
         - npx github-release-from-cc-changelog $TRAVIS_TAG
-        - npm run pkg:upload
+        - npm run pkg:upload -- $TRAVIS_TAG
       deploy:
         provider: npm
         email: services@serverless.com
