@@ -117,9 +117,9 @@ jobs:
       before_install:
         # Ensure Python 2 in Windows enviroment (Ruby is already preinstalled)
         - |
-          if [ $TRAVIS_OS_NAME = windows ]
+          # Ignore eventual fail on choco side
+          if choco install python2
           then
-            choco install python2 &&
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
 
