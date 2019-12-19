@@ -1,13 +1,12 @@
 'use strict';
 
 const path = require('path');
-const AWS = require('aws-sdk');
 const _ = require('lodash');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const { region, confirmCloudWatchLogs } = require('../../utils/misc');
+const { confirmCloudWatchLogs, awsRequest } = require('../../utils/misc');
 const {
   createTestService,
   deployService,
@@ -15,8 +14,6 @@ const {
   fetch,
 } = require('../../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
-
-const CF = new AWS.CloudFormation({ region });
 
 describe('AWS - API Gateway Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
@@ -31,7 +28,7 @@ describe('AWS - API Gateway Integration Test', function() {
   const stage = 'dev';
 
   const resolveEndpoint = async () => {
-    const result = await CF.describeStacks({ StackName: stackName }).promise();
+    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
     const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' })
       .OutputValue;
     endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
