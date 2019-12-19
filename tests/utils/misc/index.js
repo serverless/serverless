@@ -1,11 +1,47 @@
 'use strict';
 
+const _ = require('lodash');
 const BbPromise = require('bluebird');
+const AWS = require('aws-sdk');
 const CloudWatchLogsSdk = require('aws-sdk/clients/cloudwatchlogs');
+const awsLog = require('log').get('aws');
 
 const logger = console;
 
 const region = 'us-east-1';
+
+const getServiceInstance = _.memoize(name => {
+  const Service = _.get(AWS, name);
+  return new Service({ region: 'us-east-1' });
+});
+
+let lastAwsRequestId = 0;
+function awsRequest(service, method, ...args) {
+  const requestId = ++lastAwsRequestId;
+  awsLog.debug('[%d] %o %s %O', requestId, service, method, args);
+  const instance = (() => {
+    if (!_.isObject(service)) return getServiceInstance(service);
+    const Service = _.get(AWS, service.name);
+    return new Service(Object.assign({ region: 'us-east-1' }, service.params));
+  })();
+  return instance[method](...args)
+    .promise()
+    .then(
+      result => {
+        awsLog.debug('[%d] %O', requestId, result);
+        return result;
+      },
+      error => {
+        awsLog.debug('[%d] %O', requestId, error);
+        if (error.statusCode !== 403 && error.retryable) {
+          awsLog.debug('[%d] retry', requestId);
+          return wait(4000 + Math.random() * 3000).then(() => awsRequest(service, method, ...args));
+        }
+        throw error;
+      }
+    );
+}
+
 const cloudWatchLogsSdk = new CloudWatchLogsSdk({ region });
 
 const testServiceIdentifier = 'integ-test';
@@ -83,6 +119,7 @@ function wait(ms) {
 }
 
 module.exports = {
+  awsRequest,
   confirmCloudWatchLogs,
   getServiceName,
   logger,
