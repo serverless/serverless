@@ -6,8 +6,6 @@ const awsLog = require('log').get('aws');
 
 const logger = console;
 
-const region = 'us-east-1';
-
 const getServiceInstance = _.memoize(name => {
   const Service = _.get(AWS, name);
   return new Service({ region: 'us-east-1' });
@@ -92,7 +90,6 @@ module.exports = {
   confirmCloudWatchLogs,
   getServiceName,
   logger,
-  region,
   replaceEnv,
   serviceNameRegex,
   testServiceIdentifier,
