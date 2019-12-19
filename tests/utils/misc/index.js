@@ -3,7 +3,6 @@
 const _ = require('lodash');
 const BbPromise = require('bluebird');
 const AWS = require('aws-sdk');
-const CloudWatchLogsSdk = require('aws-sdk/clients/cloudwatchlogs');
 const awsLog = require('log').get('aws');
 
 const logger = console;
@@ -42,8 +41,6 @@ function awsRequest(service, method, ...args) {
     );
 }
 
-const cloudWatchLogsSdk = new CloudWatchLogsSdk({ region });
-
 const testServiceIdentifier = 'integ-test';
 
 const serviceNameRegex = new RegExp(`${testServiceIdentifier}-d+`);
@@ -78,7 +75,7 @@ function replaceEnv(values) {
 function confirmCloudWatchLogs(logGroupName, trigger, timeout = 60000) {
   const startTime = Date.now();
   return trigger()
-    .then(() => cloudWatchLogsSdk.filterLogEvents({ logGroupName }).promise())
+    .then(() => awsRequest('CloudWatchLogs', 'filterLogEvents', { logGroupName }))
     .then(result => {
       if (result.events.length) return result.events;
       const duration = Date.now() - startTime;
