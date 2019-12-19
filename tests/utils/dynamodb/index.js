@@ -1,19 +1,16 @@
 'use strict';
 
-const AWS = require('aws-sdk');
-const { region, persistentRequest } = require('../misc');
+const { awsRequest } = require('../misc');
 
 function putDynamoDbItem(tableName, item) {
-  const Ddb = new AWS.DynamoDB.DocumentClient({ region });
-
   const params = {
     TableName: tableName,
     Item: item,
   };
 
-  return Ddb.put(params).promise();
+  return awsRequest('DynamoDB.DocumentClient', 'put', params);
 }
 
 module.exports = {
-  putDynamoDbItem: persistentRequest.bind(this, putDynamoDbItem),
+  putDynamoDbItem,
 };
