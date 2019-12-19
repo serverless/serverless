@@ -1,32 +1,25 @@
 'use strict';
 
-const AWS = require('aws-sdk');
-const { region, persistentRequest } = require('../misc');
+const { awsRequest } = require('../misc');
 
 function createEventBus(name) {
-  const eventBridge = new AWS.EventBridge({ region });
-
-  return eventBridge.createEventBus({ Name: name }).promise();
+  return awsRequest('EventBridge', 'createEventBus', { Name: name });
 }
 
 function deleteEventBus(name) {
-  const eventBridge = new AWS.EventBridge({ region });
-
-  return eventBridge.deleteEventBus({ Name: name }).promise();
+  return awsRequest('EventBridge', 'deleteEventBus', { Name: name });
 }
 
 function putEvents(EventBusName, Entries) {
-  const eventBridge = new AWS.EventBridge({ region });
-
   Entries.map(entry => (entry.EventBusName = EventBusName));
   const params = {
     Entries,
   };
-  return eventBridge.putEvents(params).promise();
+  return awsRequest('EventBridge', 'putEvents', params);
 }
 
 module.exports = {
-  createEventBus: persistentRequest.bind(this, createEventBus),
-  deleteEventBus: persistentRequest.bind(this, deleteEventBus),
-  putEvents: persistentRequest.bind(this, putEvents),
+  createEventBus,
+  deleteEventBus,
+  putEvents,
 };

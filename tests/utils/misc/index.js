@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const BbPromise = require('bluebird');
 const AWS = require('aws-sdk');
 const awsLog = require('log').get('aws');
 
@@ -84,33 +83,6 @@ function confirmCloudWatchLogs(logGroupName, trigger, timeout = 60000) {
     });
 }
 
-function persistentRequest(...args) {
-  const func = args[0];
-  const funcArgs = args.slice(1);
-  const MAX_TRIES = 5;
-  return new BbPromise((resolve, reject) => {
-    const doCall = numTry => {
-      return func.apply(this, funcArgs).then(resolve, e => {
-        if (
-          numTry < MAX_TRIES &&
-          ((e.providerError && e.providerError.retryable) || e.statusCode === 429)
-        ) {
-          logger.log(
-            [
-              `Recoverable error occurred (${e.message}), sleeping for 5 seconds.`,
-              `Try ${numTry + 1} of ${MAX_TRIES}`,
-            ].join(' ')
-          );
-          setTimeout(doCall, 5000, numTry + 1);
-        } else {
-          reject(e);
-        }
-      });
-    };
-    return doCall(0);
-  });
-}
-
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -120,7 +92,6 @@ module.exports = {
   confirmCloudWatchLogs,
   getServiceName,
   logger,
-  persistentRequest,
   region,
   replaceEnv,
   serviceNameRegex,
