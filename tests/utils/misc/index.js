@@ -83,13 +83,13 @@ function wait(ms) {
 }
 
 module.exports = {
-  logger,
-  region,
   confirmCloudWatchLogs,
-  testServiceIdentifier,
-  serviceNameRegex,
   getServiceName,
-  replaceEnv,
+  logger,
   persistentRequest,
+  region,
+  replaceEnv,
+  serviceNameRegex,
+  testServiceIdentifier,
   wait,
 };
