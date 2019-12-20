@@ -1,12 +1,13 @@
 <!--
 title: Serverless Dashboard - CI/CD Best Practices
 menuText: Best Practices
+menuOrder: 9
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/cicd/best-practices/)
+### [Read this on the main serverless docs site](https://serverless.com/framework/docs/dashboard/cicd/best-practices/)
 
 <!-- DOCS-SITE-LINK:END -->
 
