@@ -13,7 +13,7 @@
   <a href="./README.md">English</a>
 </p>
 
-[官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [邮件订阅](https://serverless.com/subscribe/) • [Gitter](https://gitter.im/serverless/serverless) • [论坛](http://forum.serverless.com) • [线下活动](https://www.meetup.com/pro/serverless/) • [体验 Pro 版本](https://dashboard.serverless.com)
+[官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [segmentfault](https://segmentfault.com/t/serverlessframework) • [中文论坛（即将上线）](http://forum.serverless.com) • [Components](https://github.com/serverless/components/blob/master/README_CN.md) • [体验 Pro 版本](https://dashboard.serverless.com)
 
 **The Serverless Framework** ——快速部署你的 Serverless 应用，支持事件触发，弹性扩缩容，并且按需付费。从而大大降低构建和维护应用的开销，供开发者专注业务逻辑。
 
@@ -25,8 +25,8 @@ Serverless 是一个遵循 MIT 协议的开源项目，并且由全职的，有�
 <a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Serverless Framework 入门视频</a>
 -->
 
-点此了解 Serverless Components
-[![serverless components notice](https://img.serverlesscloud.cn/20191216/1576511681715-announcement-serverless-components-3.gif)](https://github.com/serverless/components)
+点此了解 [Serverless Components](https://github.com/serverless/components/blob/master/README_CN.md)
+[![serverless components notice](https://img.serverlesscloud.cn/20191216/1576511681715-announcement-serverless-components-3.gif)](https://github.com/serverless/components/blob/master/README_CN.md)
 
 ## Serverless Framework 介绍
 
@@ -114,9 +114,9 @@ serverless remove
 serverless install -u https://github.com/your-url-to-the-serverless-service
 ```
 
-## <a name="services"></a>Services (V1.0)
+## <a name="services"></a>服务 (V1.0)
 
-The following are services you can instantly install and use by running `serverless install --url <service-github-url>`
+通过 `serverless install --url <service-github-url>` 你可以立即部署并使用如下几个服务：
 
 - [自动文本摘要](https://github.com/serverless-tencent/Plugin-Example/tree/master/TextSummarization) - 通过该例子实现自动文本摘要
 - [建立 Serverless 网站](https://github.com/serverless-tencent/Plugin-Example/tree/master/WebsitePage) - 通过云函数和网关实现 Serverless 网站
