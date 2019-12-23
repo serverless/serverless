@@ -4,7 +4,7 @@ git:
   # Minimize git history, but ensure to not break things:
   # - Merging multiple PR's around same time may introduce a case where it's not
   #   the last merge commit that is to be tested
-  depth: 10
+  depth: 30
 
 cache:
   # Not relying on 'npm' shortcut, as per Travis docs it's the only 'node_modules' that it'll cache
