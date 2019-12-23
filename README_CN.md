@@ -13,7 +13,7 @@
   <a href="./README.md">English</a>
 </p>
 
-[官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [思否](https://segmentfault.com/t/serverlessframework) • [中文论坛（即将上线）](http://forum.serverless.com) • [Components](https://github.com/serverless/components/blob/master/README_CN.md) • [体验 Pro 版本](https://dashboard.serverless.com) 
+[官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [思否](https://segmentfault.com/t/serverlessframework) • [中文论坛（即将上线）](http://forum.serverless.com) • [体验 Pro 版本](https://dashboard.serverless.com) 
 
 **The Serverless Framework** ——快速部署你的 Serverless 应用，支持事件触发，弹性扩缩容，并且按需付费。从而大大降低构建和维护应用的开销，供开发者专注业务逻辑。
 
