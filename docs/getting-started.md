@@ -33,6 +33,8 @@ Run following code in your terminal:
 curl -o- -L https://slss.io/install | bash
 ```
 
+_**Note**: To use newly installed binary you need to open another terminal window._
+
 To upgrade already installed version:
 
 ```bash
