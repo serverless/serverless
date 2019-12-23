@@ -13,7 +13,7 @@
   <a href="./README.md">English</a>
 </p>
 
-[官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [思否](https://segmentfault.com/t/serverlessframework) • [中文论坛(即将上线)](http://forum.serverless.com) • [体验 Pro 版本](https://dashboard.serverless.com) 
+[官网](http://www.serverless.com) • [文档](https://serverless.com/framework/docs/) • [中文社区](https://serverlesscloud.cn/) • [思否](https://segmentfault.com/t/serverlessframework) • [中文论坛(即将上线)](http://forum.serverless.com) • [体验 Pro 版本](https://dashboard.serverless.com)
 
 **The Serverless Framework** ——快速部署你的 Serverless 应用，支持事件触发，弹性扩缩容，并且按需付费。从而大大降低构建和维护应用的开销，供开发者专注业务逻辑。
 
@@ -43,7 +43,7 @@ Serverless 是一个遵循 MIT 协议的开源项目，并且由全职的，有�
 
 ## <a name="quick-start"></a>快速开始
 
-[查看这里的动图](https://serverless.com/framework/) 或者跟着如下步骤，3分钟创建并且部署你的第一个 Serverless 应用。
+[查看这里的动图](https://serverless.com/framework/) 或者跟着如下步骤，3 分钟创建并且部署你的第一个 Serverless 应用。
 
 1. **npm 安装：**
 
@@ -126,7 +126,7 @@ serverless install -u https://github.com/your-url-to-the-serverless-service
 
 ## <a name="features"></a>特性
 
-- 支持 Node.js, Python, Java, Go,和 PHP等语言
+- 支持 Node.js, Python, Java, Go,和 PHP 等语言
 - 全生命周期的 Serverless 应用管理（构建，部署，更新，删除）
 - 通过云厂商提供的能力，安全、快速的部署函数、事件和相关资源
 - 通过服务的维度对函数分组，更好的管理代码、函数和部署流程，支持大型项目开发和跨团队的协作。
