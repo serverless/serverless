@@ -12,7 +12,7 @@ layout: Doc
 
 # Serverless Infrastructure Providers
 
-提供多种CLI框架选择
+提供多种 CLI 框架选择
 
 <div class="providersSections">
   <a href="./tencent/">

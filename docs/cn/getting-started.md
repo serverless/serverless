@@ -19,7 +19,7 @@ menuItems:
 
 # Serverless Framework 快速开始
 
-首先，需要将 Serverless Framework 开源 CLI安装到本地环境。
+首先，需要将 Serverless Framework 开源 CLI 安装到本地环境。
 
 ```
 # 安装 serverless cli
@@ -31,7 +31,7 @@ npm update -g serverless
 
 如果你的环境中还没有安装 Node 8 或者更高的版本，那么你需要首先安装 [Node.js](https://nodejs.org/zh-cn/download/)
 
-Serverless Framework 安装完毕后，您可以直接运行如下命令，即可快速通过CLI部署你的第一个 Serverless应用。
+Serverless Framework 安装完毕后，您可以直接运行如下命令，即可快速通过 CLI 部署你的第一个 Serverless 应用。
 
 ```
 # 创建一个新的 serverless 服务
