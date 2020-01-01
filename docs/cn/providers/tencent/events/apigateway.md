@@ -33,6 +33,7 @@ functions:
             httpMethod: POST
             integratedResponse: true # enable integrated response
 ```
+
 以 Node.js 为例，对应的函数代码如下：
 
 ```javascript

@@ -20,33 +20,24 @@ layout: Doc
 $ serverless deploy function -f functionName
 ```
 
-
-
 #### 参数说明
 
 - `--function`或`-f`：部署函数名。
 - `--stage`或`-s`：目标部署环境，默认为`dev`。
 - `--region`或`-r`：目标部署区域，默认为`ap-guangzhou`。
 
-
-
 ## 示例
 
 - **默认部署**
-执行以下命令，将会部署函数至 stage（dev）和 region（ap-guangzhou）。
+  执行以下命令，将会部署函数至 stage（dev）和 region（ap-guangzhou）。
+
 ```
 $ serverless deploy function --function helloWorld
 ```
 
-
-
-
-
 - **指定区域和环境**
-执行以下命令，将会部署至 stage（pro）和 region（ap-shanghai）。
+  执行以下命令，将会部署至 stage（pro）和 region（ap-shanghai）。
+
 ```
 $ serverless deploy function --function helloWorld --stage pro --region ap-shanghai
 ```
-
-
-
