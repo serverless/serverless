@@ -11,16 +11,7 @@ module.exports = {
     'scope-enum': [
       2,
       'always',
-      [
-        '',
-        'AWS APIGW',
-        'AWS Lambda',
-        'Binary Installer',
-        'CLI',
-        'Plugins',
-        'User Config',
-        'Variables',
-      ],
+      ['', 'AWS APIGW', 'AWS Lambda', 'CLI', 'Plugins', 'Standalone', 'User Config', 'Variables'],
     ],
     'subject-case': [2, 'always', 'sentence-case'],
     'subject-empty': [2, 'never'],
