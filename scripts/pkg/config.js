@@ -11,6 +11,8 @@ module.exports = {
     '../../lib/plugins/aws/package/lib/*.json',
     // Service templates
     '../../lib/plugins/create/templates',
+    // Dashboard policies
+    '../../node_modules/@serverless/enterprise-plugin/lib/safeguards/policies',
     // Dashboard wrappers
     '../../node_modules/@serverless/enterprise-plugin/sdk-js/dist/index.js',
     '../../node_modules/@serverless/enterprise-plugin/sdk-py',
