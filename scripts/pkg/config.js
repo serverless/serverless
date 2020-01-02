@@ -11,6 +11,9 @@ module.exports = {
     '../../lib/plugins/aws/package/lib/*.json',
     // Service templates
     '../../lib/plugins/create/templates',
+    // Dashboard wrappers
+    '../../node_modules/@serverless/enterprise-plugin/sdk-js/dist/index.js',
+    '../../node_modules/@serverless/enterprise-plugin/sdk-py',
     // Ensure npm is bundled as a dependency
     '../../node_modules/npm/bin/npm-cli.js',
     // Below module is not automatically traced by pkg, we need to point it manually
