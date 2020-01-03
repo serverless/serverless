@@ -2,13 +2,14 @@
 
 'use strict';
 
-if (
-  process.argv[2] === 'binary-postinstall' &&
-  process.argv.length === 3 &&
-  require('../lib/utils/isStandaloneExecutable')
-) {
-  require('../scripts/postinstall');
-  return;
+const isStandaloneExecutable = require('../lib/utils/isStandaloneExecutable');
+
+if (isStandaloneExecutable) {
+  require('../lib/utils/standalone-patch');
+  if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
+    require('../scripts/postinstall');
+    return;
+  }
 }
 
 // global graceful-fs patch
