@@ -74,11 +74,21 @@ function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
   const timeout = options.timeout || 60000;
   return trigger()
     .then(() => awsRequest('CloudWatchLogs', 'filterLogEvents', { logGroupName }))
-    .then(result => {
-      if (result.events.length) return result.events;
+    .then(({ events }) => {
+      if (events.length) {
+        if (options.checkIsComplete) {
+          if (options.checkIsComplete(events)) return events;
+        } else {
+          return events;
+        }
+      }
       const duration = Date.now() - startTime;
       if (duration > timeout) return [];
-      return confirmCloudWatchLogs(logGroupName, trigger, { timeout: timeout - duration });
+      return confirmCloudWatchLogs(
+        logGroupName,
+        trigger,
+        Object.assign({}, options, { timeout: timeout - duration })
+      );
     });
 }
 
