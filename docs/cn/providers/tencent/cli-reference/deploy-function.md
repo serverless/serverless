@@ -16,7 +16,7 @@ layout: Doc
 
 您可以使用`sls deploy function`命令部署您的某个云函数，当您的云函数代码有变更，需要快速上传或者更新云函数配置时，可以使用该命令。
 
-```
+```bash
 $ serverless deploy function -f functionName
 ```
 
@@ -31,13 +31,13 @@ $ serverless deploy function -f functionName
 - **默认部署**
   执行以下命令，将会部署函数至 stage（dev）和 region（ap-guangzhou）。
 
-```
+```bash
 $ serverless deploy function --function helloWorld
 ```
 
 - **指定区域和环境**
   执行以下命令，将会部署至 stage（pro）和 region（ap-shanghai）。
 
-```
+```bash
 $ serverless deploy function --function helloWorld --stage pro --region ap-shanghai
 ```

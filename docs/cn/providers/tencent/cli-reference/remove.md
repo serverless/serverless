@@ -16,7 +16,7 @@ layout: Doc
 
 您可以使用`sls remove`命令删除您部署的服务。
 
-```
+```bash
 $ serverless remove
 ```
 
@@ -31,6 +31,6 @@ $ serverless remove
 
 执行以下命令，删除当前工作区定义的已部署至 stage（dev）和 region（ap-guangzhou）的服务。
 
-```
+```bash
 $ serverless remove --stage dev --region ap-guangzhou
 ```

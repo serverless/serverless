@@ -16,7 +16,7 @@ layout: Doc
 
 Serverless Framework 支持查看云端函数运行日志。
 
-```
+```bash
 $ serverless logs -f hello
 
 # 查看实时最新日志可以追加参数 -t
@@ -37,13 +37,13 @@ $ serverless logs -f hello -t
 - **获取默认日志**
   执行以下命令，获取云函数`hello`最近 10 分钟的调用日志。
 
-```
+```bash
 $ serverless logs -f hello
 ```
 
 - **实时日志**
   执行以下命令，获取 10 秒前的日志，并每 10 秒更新一次日志。
 
-```
+```bash
 $ serverless logs -f hello -t
 ```

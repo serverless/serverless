@@ -21,7 +21,7 @@ layout: Doc
 
 执行以下命令安装/更新 CLI ：
 
-```
+```bash
 # 安装 CLI
 $ npm install -g serverless
 ```
@@ -30,6 +30,6 @@ $ npm install -g serverless
 
 如果已安装过 CLI ，则可以执行以下命令更新：
 
-```
+```bash
 $ npm update -g serverless
 ```

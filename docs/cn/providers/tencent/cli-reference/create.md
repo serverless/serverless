@@ -20,7 +20,7 @@ layout: Doc
 
 - 在当前目录创建一个示例模板：
 
-```
+```bash
 $ serverless create --template tencent-nodejs
 ```
 
@@ -28,7 +28,7 @@ $ serverless create --template tencent-nodejs
 
 - 在指定目录创建示例模板：
 
-```
+```bash
 $ serverless create --template tencent-nodejs --path my-service
 ```
 
@@ -46,7 +46,7 @@ $ serverless create --template tencent-nodejs --path my-service
 
 创建新服务 ：
 
-```
+```bash
 $ serverless create --template tencent-nodejs --name test
 ```
 
@@ -55,13 +55,13 @@ $ serverless create --template tencent-nodejs --name test
 - **指定区域和环境**
   执行以下命令，将会部署至 stage（pro）和 region（ap-shanghai）。
 
-```
+```bash
 $ serverless deploy --stage pro --region ap-shanghai
 ```
 
 - **指定部署包**
   执行以下命令，将会跳过打包步骤，使用`/path/to/package/directory`下的部署包进行部署。
 
-```
+```bash
 $ serverless deploy --package /path/to/package/directory
 ```

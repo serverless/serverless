@@ -16,7 +16,7 @@ layout: Doc
 
 Serverless Framework 可以回滚已部署的服务版本。
 
-```
+```bash
 $ serverless rollback --timestamp timestamp
 ```
 
@@ -31,7 +31,7 @@ $ serverless rollback --timestamp timestamp
 
 您可以先执行`sls rollback -v` 获取您在 COS 里的历史部署版本，然后指定某一版本进行回滚。
 
-```
+```bash
 $ sls rollback -v
 $ sls rollback -t 1571240207
 ```
