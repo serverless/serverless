@@ -21,5 +21,6 @@ Have an example? Submit a PR or [open an issue](https://github.com/serverless/ex
 | [OpenWhisk PHP Simple](https://serverless.com/examples/openwhisk-php-simple/) <br/> Boilerplate project repository for OpenWhisk provider with Serverless Framework.       | php     |
 | [OpenWhisk Ruby Simple](https://serverless.com/examples/openwhisk-ruby-simple/) <br/> Boilerplate project repository for OpenWhisk provider with Serverless Framework.     | ruby    |
 | [OpenWhisk Swift Simple](https://serverless.com/examples/openwhisk-swift-simple/) <br/> Boilerplate project repository for OpenWhisk provider with Serverless Framework.   | swift   |
+| [OpenWhisk Java Simple](https://serverless.com/examples/openwhisk-java-simple/) <br/> Boilerplate project repository for OpenWhisk provider with Serverless Framework.     | java    |
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](https://forum.serverless.com/)
