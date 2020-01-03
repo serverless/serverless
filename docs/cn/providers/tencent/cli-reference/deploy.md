@@ -16,7 +16,7 @@ layout: Doc
 
 您可以使用`sls deploy`命令部署您的整个服务，当您的服务架构有更新时（例如，修改了 serverless.yaml）您可执行该命令。如果您的云函数代码有变更，您想快速上传或者您想更新云函数配置，您可以使用`serverless deploy function -f myFunction` 命令。
 
-```
+```bash
 $ serverless deploy
 ```
 
@@ -37,20 +37,20 @@ $ serverless deploy
 - **默认部署**
   执行以下命令，将会部署至 stage（dev）和 region（ap-guangzhou）。
 
-```
+```bash
 $ serverless deploy
 ```
 
 - **指定区域和环境**
   执行以下命令，将会部署至 stage（pro）和 region（ap-shanghai）。
 
-```
+```bash
 $ serverless deploy --stage pro --region ap-shanghai
 ```
 
 - **指定部署包**
   执行以下命令，将会跳过打包步骤，使用`/path/to/package/directory`下的部署包进行部署。
 
-```
+```bash
 $ serverless deploy --package /path/to/package/directory
 ```

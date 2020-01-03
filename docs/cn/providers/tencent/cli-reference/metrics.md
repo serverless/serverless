@@ -16,7 +16,7 @@ layout: Doc
 
 您可以通过以下命令查看云端函数运行数据。
 
-```
+```bash
 $ serverless metrics
 ```
 
@@ -35,27 +35,27 @@ $ serverless metrics
 - **获取默认运行数据**
   执行以下命令，获取服务最近 24 小时运行数据统计。
 
-```
+```bash
 $ serverless metrics
 ```
 
 - **获取指定时段运行数据**
   执行以下命令，获取 2019-01-01 至 2019-01-02 的服务运行数据。
 
-```
+```bash
 $ serverless metrics --startTime 2019-01-01 --endTime 2019-01-02
 ```
 
 - **获取函数运行数据**
   执行以下命令，获取最近 24 小时的函数`hello`运行数据。
 
-```
+```bash
 $ serverless metrics --function hello
 ```
 
 - **获取指定时段函数运行数据**
   执行以下命令，获取 2019-01-01 至 2019-01-02 的函数`hello`运行数据。
 
-```
+```bash
 $ serverless metrics --function hello --startTime 2019-01-01 --endTime 2019-01-02
 ```

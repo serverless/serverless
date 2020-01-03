@@ -31,13 +31,13 @@ layout: Doc
 - **部署列表**
   执行以下命令，您可以获取 COS Bucket 里的部署包信息。
 
-```
+```bash
 $ serverless deploy list
 ```
 
 - **部署函数列表**
   执行以下命令，您可以获取已部署的函数名和版本信息。
 
-```
+```bash
 $ serverless deploy list functions
 ```

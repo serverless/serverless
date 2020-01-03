@@ -16,7 +16,7 @@ layout: Doc
 
 Serverless Framework 调用已部署的云函数，支持发送测试数据到云函数，返回函数日志并展示其他调用关键信息。
 
-```
+```bash
 $ serverless invoke --function functionName
 ```
 
@@ -31,6 +31,6 @@ $ serverless invoke --function functionName
 **调用指定函数**
 执行以下命令，调用已部署至广州区域的`dev`环境下的`functionName`函数，调用结果将输出至终端。
 
-```
+```bash
 $ serverless invoke --function functionName --stage dev --region ap-guangzhou
 ```
