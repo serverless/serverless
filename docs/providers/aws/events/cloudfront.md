@@ -82,6 +82,33 @@ functions:
               OriginProtocolPolicy: match-viewer
 ```
 
+One of the CloudFront requirements is to include empty pathPattern in the setup.
+If there is no behavior with empty pathPattern in the serverless configuration, serverless will create additional behavior with empty pathPattern pointing to the defined origin.
+If there are more than one different origins, it needs to be defined as a default using `defaultOrigin` flag.
+
+```yaml
+functions:
+  myLambdaAtEdge:
+    handler: myLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          pathPattern: /files*
+          defaultOrigin: true
+          origin: s3://bucketname.s3.amazonaws.com/files
+  mySecondLambdaAtEdge:
+    handler: mySecondLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          pathPattern: /docs*
+          origin:
+            DomainName: serverless.com
+            OriginPath: /framework
+            CustomOriginConfig:
+              OriginProtocolPolicy: match-viewer
+```
+
 To define functions to each event type, the same origin joins the functions to the same behavior.
 
 ```yaml
@@ -126,6 +153,31 @@ functions:
             OriginPath: /framework
             CustomOriginConfig:
               OriginProtocolPolicy: match-viewer
+```
+
+For more specific behavior setup, behavior object can be set, which uses CloudFormation yaml syntax.
+
+```yaml
+functions:
+  myLambdaAtEdge:
+    handler: myLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          origin: s3://bucketname.s3.amazonaws.com/files
+          behavior:
+            AllowedMethods:
+              - "GET"
+              - "HEAD"
+              - "OPTIONS"
+              - "PUT"
+              - "PATCH"
+              - "POST"
+              - "DELETE"
+            CachedMethods:
+              - "GET"
+              - "HEAD"
+              - "OPTIONS"
 ```
 
 Amazon CloudFront distribution configurations can be set in the resources block of the serverless.yml, by defining `CloudFrontDistribution`.
