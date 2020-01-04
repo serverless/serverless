@@ -167,17 +167,17 @@ functions:
           origin: s3://bucketname.s3.amazonaws.com/files
           behavior:
             AllowedMethods:
-              - "GET"
-              - "HEAD"
-              - "OPTIONS"
-              - "PUT"
-              - "PATCH"
-              - "POST"
-              - "DELETE"
+              - 'GET'
+              - 'HEAD'
+              - 'OPTIONS'
+              - 'PUT'
+              - 'PATCH'
+              - 'POST'
+              - 'DELETE'
             CachedMethods:
-              - "GET"
-              - "HEAD"
-              - "OPTIONS"
+              - 'GET'
+              - 'HEAD'
+              - 'OPTIONS'
 ```
 
 Amazon CloudFront distribution configurations can be set in the resources block of the serverless.yml, by defining `CloudFrontDistribution`.
