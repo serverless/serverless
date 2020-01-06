@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - Troubleshooting CI/CD
 menuText: Troubleshooting
-menuOrder: 10
+menuOrder: 9
 layout: Doc
 -->
 
