@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - CI/CD Private Package Manager (NPM)
 menuText: Private Packages
-menuOrder: 6
+menuOrder: 5
 layout: Doc
 -->
 
