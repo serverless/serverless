@@ -13,7 +13,6 @@ layout: Doc
 
 # Custom scripts
 
-
 Serverless Framework Pro runs three primary operations on your repository when you have CI/CD configured: (1) install NPM packages via `npm install`, (2) run tests, if present, with `npm test`, and (3) deploy your service using `sls deploy`. You can run custom scripts before or after each of these steps if you need to customize the pipeline further.
 
 To run custom scripts before & after NPM install and running tests, use the lifecycle hooks built into `scripts` of your `package.json` file. The `preinstall`, `postinstall`, `pretest`, and `posttest`, scripts are run automatically at each of these steps.
@@ -28,10 +27,11 @@ To run a script before `npm install`, set the script in `preinstall` in your `pa
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
-  'scripts': { 'preinstall': '<your script>' },
+  'scripts': {
+    'preinstall': '<your script>'
+  }
 }
 ```
-
 
 **After npm install**
 
@@ -41,7 +41,9 @@ To run a script after `npm install`, set the script in `postinstall` in your `pa
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
-  'scripts': { 'postinstall': '<your script>' },
+  'scripts': {
+    'postinstall': '<your script>'
+  }
 }
 ```
 
@@ -53,7 +55,9 @@ To run a script before `npm test`, set the script in `pretest` in your `package.
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
-  'scripts': { 'pretest': '<your script>' },
+  'scripts': {
+    'pretest': '<your script>'
+  }
 }
 ```
 
@@ -65,7 +69,9 @@ To run a script after `npm test`, set the script in `posttest` in your `package.
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
-  'scripts': { 'posttest': '<your script>' },
+  'scripts': {
+    'posttest': '<your script>'
+  }
 }
 ```
 
@@ -98,6 +104,5 @@ custom:
 ## Additional lifecycle hooks
 
 NPM provide additional lifecycle hooks you can run as well, additional documentation can be found here, [https://docs.npmjs.com/misc/scripts](https://docs.npmjs.com/misc/scripts).
-
 
 Serverless Framework provides additional lifecycle hooks as “serverless deploy” is running, you can find more information about additional hooks in the [serverless-plugin-scripts](https://github.com/mvila/serverless-plugin-scripts) docs.
