@@ -696,7 +696,7 @@ A sample schema contained in `create_request.json` might look something like thi
 ```json
 {
   "definitions": {},
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "title": "The Root Schema",
   "required": ["username"],
@@ -712,7 +712,7 @@ A sample schema contained in `create_request.json` might look something like thi
 ```
 
 **NOTE:** schema validators are only applied to content types you specify. Other content types are
-not blocked.
+not blocked. Currently, API Gateway [supports](https://docs.aws.amazon.com/apigateway/latest/developerguide/models-mappings.html) JSON Schema draft-04.
 
 ### Setting source of API key for metering requests
 
