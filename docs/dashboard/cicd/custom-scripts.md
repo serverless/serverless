@@ -25,10 +25,10 @@ To run a script before `npm install`, set the script in `preinstall` in your `pa
 
 ```json
 {
-  'name': 'demo-serverless',
-  'version': '1.0.0',
-  'scripts': {
-    'preinstall': '<your script>'
+  "name": "demo-serverless",
+  "version": "1.0.0",
+  "scripts": {
+    "preinstall": "<your script>"
   }
 }
 ```
@@ -39,10 +39,10 @@ To run a script after `npm install`, set the script in `postinstall` in your `pa
 
 ```json
 {
-  'name': 'demo-serverless',
-  'version': '1.0.0',
-  'scripts': {
-    'postinstall': '<your script>'
+  "name": "demo-serverless",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "<your script>"
   }
 }
 ```
@@ -53,10 +53,10 @@ To run a script before `npm test`, set the script in `pretest` in your `package.
 
 ```json
 {
-  'name': 'demo-serverless',
-  'version': '1.0.0',
-  'scripts': {
-    'pretest': '<your script>'
+  "name": "demo-serverless",
+  "version": "1.0.0",
+  "scripts": {
+    "pretest": "<your script>"
   }
 }
 ```
@@ -67,10 +67,10 @@ To run a script after `npm test`, set the script in `posttest` in your `package.
 
 ```json
 {
-  'name': 'demo-serverless',
-  'version': '1.0.0',
-  'scripts': {
-    'posttest': '<your script>'
+  "name": "demo-serverless",
+  "version": "1.0.0",
+  "scripts": {
+    "posttest": "<your script>"
   }
 }
 ```
