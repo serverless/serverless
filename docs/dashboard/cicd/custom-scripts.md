@@ -23,7 +23,7 @@ To run custom scripts before or after deployment, you can use the [serverless-pl
 
 To run a script before `npm install`, set the script in `preinstall` in your `package.json`.
 
-```yaml
+```json
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
@@ -37,7 +37,7 @@ To run a script before `npm install`, set the script in `preinstall` in your `pa
 
 To run a script after `npm install`, set the script in `postinstall` in your `package.json`.
 
-```yaml
+```json
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
@@ -51,7 +51,7 @@ To run a script after `npm install`, set the script in `postinstall` in your `pa
 
 To run a script before `npm test`, set the script in `pretest` in your `package.json`.
 
-```yaml
+```json
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
@@ -65,7 +65,7 @@ To run a script before `npm test`, set the script in `pretest` in your `package.
 
 To run a script after `npm test`, set the script in `posttest` in your `package.json`.
 
-```yaml
+```json
 {
   'name': 'demo-serverless',
   'version': '1.0.0',
