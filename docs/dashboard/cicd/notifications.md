@@ -15,7 +15,7 @@ layout: Doc
 
 Serverless Framework Pro has integrated Slack, email, SNS and webhook notifications for CI/CD status updates.
 
-Notificaitons for CI/CD events are not setup by default, so you will not get notified of deployments starting,
+Notifications for CI/CD events are not setup by default, so you will not get notified of deployments starting,
 completing of failing. These notifications must be added manually.
 
 Notifications for CI/CD events are configured the same way as they are for [monitoring](/framework/docs/dashboard/monitoring/notifications/).
