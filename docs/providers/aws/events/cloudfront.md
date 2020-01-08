@@ -87,7 +87,7 @@ functions:
 
 One of the CloudFront requirements is to include empty pathPattern in the setup.
 If there is no behavior with empty pathPattern in the serverless configuration, serverless will create additional behavior with empty pathPattern pointing to the defined origin.
-If there are more than one different origins, it needs to be defined as a default using `defaultOrigin` flag.
+If there are more than one different origins, it needs to be defined as a default using `isDefaultOrigin` flag.
 
 ```yaml
 functions:
@@ -97,7 +97,7 @@ functions:
       - cloudFront:
           eventType: viewer-response
           pathPattern: /files*
-          defaultOrigin: true
+          isDefaultOrigin: true
           origin: s3://bucketname.s3.amazonaws.com/files
   mySecondLambdaAtEdge:
     handler: mySecondLambdaAtEdge.handler
