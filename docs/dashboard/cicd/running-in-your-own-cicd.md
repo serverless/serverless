@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - Running in your own CI/CD
 menuText: Deploy in your own CI/CD
-menuOrder: 5
+menuOrder: 8
 layout: Doc
 -->
 

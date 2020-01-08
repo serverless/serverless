@@ -110,6 +110,26 @@ functions:
           batchWindow: 10
 ```
 
+## Setting BisectBatchOnFunctionError
+
+This configuration provides the ability to recursively split a failed batch and retry on a smaller subset of records, eventually isolating the metadata causing the error.
+
+**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
+
+[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-bisectbatchonfunctionerror)
+
+**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          bisectBatchOnFunctionError: true
+```
+
 ## Setting the MaximumRetryAttempts
 
 This configuration sets up the maximum number of times to retry when the function returns an error.
