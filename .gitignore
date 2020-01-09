@@ -51,6 +51,8 @@ tracking-config.json
 # ESLint cache
 .eslintcache
 
+.vscode
+
 # Misc
 jest
 dist
