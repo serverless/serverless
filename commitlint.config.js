@@ -2,7 +2,7 @@
 
 module.exports = {
   parserOptions: {
-    ecmaVersion: 2017
+    ecmaVersion: 2017,
   },
   rules: {
     'body-leading-blank': [2, 'always'],
