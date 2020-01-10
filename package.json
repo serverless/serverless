@@ -166,6 +166,7 @@
     "chalk": "^2.4.2",
     "ci-info": "^1.6.0",
     "dayjs": "^1.8.18",
+    "decompress": "^4.2.0",
     "download": "^7.1.0",
     "essentials": "^1.1.1",
     "fast-levenshtein": "^2.0.6",
