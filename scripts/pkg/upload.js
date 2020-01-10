@@ -6,7 +6,7 @@
 
 require('essentials');
 
-const argv = require('minimist')(process.argv.slice(2), {
+const argv = require('yargs-parser')(process.argv.slice(2), {
   boolean: ['help'],
   alias: { help: 'h' },
 });

@@ -34,7 +34,7 @@ serverless invoke local --function functionName
 * `--env` or `-e` String representing an environment variable to set when invoking your function, in the form `<name>=<value>`. Can be repeated for more than one environment variable.
 * `--docker` Enable docker support for NodeJS/Python/Ruby/Java. Enabled by default for other
   runtimes.
-* `--docker-arg` Pass additional arguments to docker run command when `--docker` is option used. e.g. `--docker-arg '-p 9229:9229' --docker-arg '-v /var:/host_var'`
+* `--docker-arg` Pass additional arguments to docker run command when `--docker` is option used. e.g. `--docker-arg='-p 9229:9229' --docker-arg='-v /var:/host_var'`
 
 ## Environment
 
