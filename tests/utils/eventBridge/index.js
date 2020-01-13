@@ -1,6 +1,6 @@
 'use strict';
 
-const { awsRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function createEventBus(name) {
   return awsRequest('EventBridge', 'createEventBus', { Name: name });
