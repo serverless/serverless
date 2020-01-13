@@ -1,9 +1,6 @@
 'use strict';
 
 module.exports = {
-  parserOptions: {
-    ecmaVersion: 2017,
-  },
   rules: {
     'body-leading-blank': [2, 'always'],
     'body-max-line-length': [2, 'always', 72],
