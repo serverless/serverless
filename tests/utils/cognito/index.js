@@ -1,7 +1,7 @@
 'use strict';
 
 const awsLog = require('log').get('aws');
-const { awsRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function createUserPool(name, config = {}) {
   const params = Object.assign({}, { PoolName: name }, config);

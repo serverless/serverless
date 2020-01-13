@@ -1,7 +1,7 @@
 'use strict';
 
 const BbPromise = require('bluebird');
-const { awsRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function waitForKinesisStream(streamName) {
   const params = {
