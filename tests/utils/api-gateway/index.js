@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const { awsRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function createRestApi(name) {
   const params = {
