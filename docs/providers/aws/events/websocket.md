@@ -212,3 +212,16 @@ provider:
 ```
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.
+
+The default log level will be INFO. You can change this to error with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      level: ERROR
+```
+
+Valid values are INFO, ERROR.

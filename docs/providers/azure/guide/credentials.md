@@ -48,7 +48,7 @@ This will give you a code and prompt you to visit [aka.ms/devicelogin](https://a
 $ az account list
 {
   "cloudName": "AzureCloud",
-  "id": "c6e5c9a2-a4dd-4c05-81b4-6bed04f913ea",
+  "id": "<subscriptionId>",
   "isDefault": true,
   "name": "My Azure Subscription",
   "registeredProviders": [],

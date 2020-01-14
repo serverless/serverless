@@ -64,3 +64,11 @@ serverless deploy --package /path/to/package/directory
 ```
 
 With this example, the packaging step will be skipped and the framework will start deploying the package from the `/path/to/package/directory` directory.
+
+### Environment variables
+
+- `SLS_AWS_MONITORING_FREQUENCY` allows the adjustment of the deployment monitoring frequency time in ms, default is `5000`.
+
+```bash
+SLS_AWS_MONITORING_FREQUENCY=10000 serverless deploy
+```

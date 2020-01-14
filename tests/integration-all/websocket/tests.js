@@ -1,13 +1,12 @@
 'use strict';
 
 const path = require('path');
-const AWS = require('aws-sdk');
 const WebSocket = require('ws');
 const _ = require('lodash');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const { region, confirmCloudWatchLogs, wait } = require('../../utils/misc');
+const { awsRequest, confirmCloudWatchLogs, wait } = require('../../utils/misc');
 const { createTestService, deployService, removeService } = require('../../utils/integration');
 const {
   createApi,
@@ -16,8 +15,6 @@ const {
   createStage,
   deleteStage,
 } = require('../../utils/websocket');
-
-const CF = new AWS.CloudFormation({ region });
 
 describe('AWS - API Gateway Websocket Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
@@ -47,7 +44,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
   describe('Minimal Setup', () => {
     it('should expose an accessible websocket endpoint', async () => {
-      const result = await CF.describeStacks({ StackName: stackName }).promise();
+      const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
       const webSocketServerUrl = _.find(result.Stacks[0].Outputs, {
         OutputKey: 'ServiceEndpointWebsocket',
       }).OutputValue;

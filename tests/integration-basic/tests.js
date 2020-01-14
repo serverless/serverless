@@ -3,17 +3,14 @@
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
-const AWS = require('aws-sdk');
 const stripAnsi = require('strip-ansi');
 const { expect } = require('chai');
 const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const { getTmpDirPath } = require('../utils/fs');
-const { region, getServiceName } = require('../utils/misc');
+const { getServiceName, awsRequest } = require('../utils/misc');
 
 const serverlessExec = require('../serverless-binary');
-
-const CF = new AWS.CloudFormation({ region });
 
 describe('Service Lifecyle Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
@@ -39,7 +36,7 @@ describe('Service Lifecyle Integration Test', function() {
 
   after(async () => {
     try {
-      await CF.describeStacks({ StackName }).promise();
+      await awsRequest('CloudFormation', 'describeStacks', { StackName });
     } catch (error) {
       if (error.message.indexOf('does not exist') > -1) return;
       throw error;
@@ -60,7 +57,7 @@ describe('Service Lifecyle Integration Test', function() {
   it('should deploy service to aws', async () => {
     await spawn(serverlessExec, ['deploy'], { cwd: tmpDir, env });
 
-    const d = await CF.describeStacks({ StackName }).promise();
+    const d = await awsRequest('CloudFormation', 'describeStacks', { StackName });
     expect(d.Stacks[0].StackStatus).to.be.equal('UPDATE_COMPLETE');
   });
 
@@ -132,7 +129,7 @@ describe('Service Lifecyle Integration Test', function() {
 
     const d = await (async () => {
       try {
-        return await CF.describeStacks({ StackName }).promise();
+        return await awsRequest('CloudFormation', 'describeStacks', { StackName });
       } catch (error) {
         if (error.message.indexOf('does not exist') > -1) return null;
         throw error;

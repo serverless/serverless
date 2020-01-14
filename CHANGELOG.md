@@ -1,3 +1,152 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [1.61.0](https://github.com/serverless/serverless/compare/v1.60.5...v1.61.0) (2020-01-13)
+
+### Features
+
+- **Standalone:** Windows Chocolatey PM integration ([85b196f](https://github.com/serverless/serverless/commit/85b196ff4dd9fb64594bc1b362f882ee350dd01e))
+- Add support for plain .git template URLs ([3cfa750](https://github.com/serverless/serverless/commit/3cfa7502e233819d060140b356483d9fd8799800))
+- Enhance configuration options of cloudFront event ([#7170](https://github.com/serverless/serverless/issues/7170)) ([9591d5a](https://github.com/serverless/serverless/commit/9591d5a232c641155613d23b0f88ca05ea51b436)), closes [#7151](https://github.com/serverless/serverless/issues/7151), addresses [#6843](https://github.com/serverless/serverless/issues/6843) [#6785](https://github.com/serverless/serverless/issues/6785)
+- Support `BisectBatchOnFunctionError` option on event streams ([#7105](https://github.com/serverless/serverless/issues/7105)) ([560ceee](https://github.com/serverless/serverless/commit/560ceee5b3abf90999c61074b8a94d5ef31e967b))
+- support `RollbackConfiguration` in service config ([#7193](https://github.com/serverless/serverless/issues/7193)) ([5973c9f](https://github.com/serverless/serverless/commit/5973c9fd58631beaea45047345cac8d348e93911))
+
+### Bug Fixes
+
+- Fix CLI params resolution (switch to `yargs-parser`) ([#7187](https://github.com/serverless/serverless/issues/7187)) ([780fb46](https://github.com/serverless/serverless/commit/780fb46e726faf147ba16d190307bf1948ee53b3)), closes [#6083](https://github.com/serverless/serverless/issues/6083)
+- **AWS Lambda:** Do not break permission resource ([5e63cee](https://github.com/serverless/serverless/commit/5e63cee340591af5aaa65828a6907fca445d76e4)), closes [#7189](https://github.com/serverless/serverless/issues/7189)
+- Ensure CF stacks are deleted on failed creation attempt ([#7158](https://github.com/serverless/serverless/issues/7158)) ([53a18cb](https://github.com/serverless/serverless/commit/53a18cbff6d3d2d6698e98cf0dd8a7eba21fdf58)), closes [#6612](https://github.com/serverless/serverless/issues/6612)
+- Fix and improve openwhisk-java-maven templates ([#7164](https://github.com/serverless/serverless/issues/7164)) ([41d7d0b](https://github.com/serverless/serverless/commit/41d7d0bf0798188284f38e0f4e3effadad1f8d42))
+- Remove hard-coded AWS partitions ([#7175](https://github.com/serverless/serverless/issues/7175)) ([3236adb](https://github.com/serverless/serverless/commit/3236adb040f186cd606e5656cf85a05bd183e822))
+
+### [1.60.5](https://github.com/serverless/serverless/compare/v1.60.4...v1.60.5) (2020-01-03)
+
+### Bug Fixes
+
+- **Standalone**
+  - Ensure dashboard plugin policies are bundled ([4b5f531](https://github.com/serverless/serverless/commit/4b5f531d9ec293f1f228d572cd265361530135f7))
+  - Ensure dashboard wrapper is bundled ([994555d](https://github.com/serverless/serverless/commit/994555d7d6eb7bf960adceed4a59a4f667a9d92d))
+  - Workaround `pkg` [#420](https://github.com/zeit/pkg/issues/420) bug ([c94a614](https://github.com/serverless/serverless/commit/c94a6146762a2d50c9d746e70a699ffc9cffd9c8))
+- **AWS Lambda:** Fix provisioned concurrency setup issues (remove no longer needed AWS issue workaround) ([4821ad2](https://github.com/serverless/serverless/commit/4821ad21a5da5622a5686a7dc6eafdcd90ffe538)), closes [#7137](https://github.com/serverless/serverless/issues/7137)
+- **CLI**
+  - Fix ambiguity of `-v` option ([074647c](https://github.com/serverless/serverless/commit/074647c50244b11573e5ece1cfd7429da0a9bf2f))
+  - Recognize CLI aliases as documented ([7a804e1](https://github.com/serverless/serverless/commit/7a804e1c06b0991e2f9371b3bb794c660e2514d4)), closes [#7106](https://github.com/serverless/serverless/issues/7106)
+- **Plugins:** Fix resolution of config when installing plugin ([b5dbdaf](https://github.com/serverless/serverless/commit/b5dbdafe5b4b03608ebb10d024fb6587e1ea7a40)), closes [#7130](https://github.com/serverless/serverless/issues/7130)
+- **AWS APIGW:** Fix handling of removal of `resourcePolicy` setting ([e662a91](https://github.com/serverless/serverless/commit/e662a91d92651111c86b6e72eed57075be95decb)), closes [#6789](https://github.com/serverless/serverless/issues/6789)
+- **Variables:** Ensure no same object instances are shared across config ([4893f7d](https://github.com/serverless/serverless/commit/4893f7d0c2168d3aa39b04ac040cd1797ed31431)), closes [#7098](https://github.com/serverless/serverless/issues/7098)
+
+### [1.60.4](https://github.com/serverless/serverless/compare/v1.60.3...v1.60.4) (2019-12-23)
+
+### Bug Fixes
+
+- **AWS APIGW:** Fix handling of provisionedConcurrency: 0 setting ([efe6d02](https://github.com/serverless/serverless/commit/efe6d02e1ad9fa760a97f2c24d427e9791bcfd45)), closes [#7133](https://github.com/serverless/serverless/issues/7133)
+
+### [1.60.3](https://github.com/serverless/serverless/compare/v1.60.2...v1.60.3) (2019-12-23)
+
+### Bug Fixes
+
+- **AWS APIGW:** Fix Rest API id detection when no API GW involved ([81096ca](https://github.com/serverless/serverless/commit/81096caf3d8e98932cd4314495a4fc107fab297a)), regression introduced with [#7126](https://github.com/serverless/serverless/issues/7126)
+
+### [1.60.2](https://github.com/serverless/serverless/compare/v1.60.1...v1.60.2) (2019-12-23)
+
+### Bug Fixes
+
+- **AWS Lambda**
+  - **Fix provisioned concurrency setup (closes [#7059](https://github.com/serverless/serverless/issues/7059)):**
+    - Fix provisioned concurrency configuration. Configure on alias, and not on version. Thanks to that it can work with versioning enabled and changes to provisioned concurrency configuration are not immune to `Internal Failure` ([04a7657](https://github.com/serverless/serverless/commit/04a765715f3bb2cd5a41a9273b0623c2fe900691))
+    - Workaround AWS issue related to alias redeployments ([56b9d3d](https://github.com/serverless/serverless/commit/56b9d3d41213f0fc90a48af1bcaf92233854acbb))
+    - Ensure API Gateway endpoints point provisioned version ([67d27ed](https://github.com/serverless/serverless/commit/67d27edbfe420e5133d2acf970979bdfaa1d5905)),
+  - Fix CloudWatch logs creation access ([a2db989](https://github.com/serverless/serverless/commit/a2db9895398d90c42a613d0b1328f1b124aada0c)), closes [#6241](https://github.com/serverless/serverless/issues/6241) [#6692](https://github.com/serverless/serverless/issues/6692)
+- **AWS API Gateway:**
+  - Ensure to apply API GW stage settings in case of services having no endpoints configured ([e93e6f4](https://github.com/serverless/serverless/commit/e93e6f4028971b210310dc60dff04bf33ca1d3b9)), closes [#7036](https://github.com/serverless/serverless/issues/7036)
+- Fix custom resource lambda artifact generation ([7132af3](https://github.com/serverless/serverless/commit/7132af3217b6b46b5098bf6f2a96c50e27b588ef))
+
+### [1.60.1](https://github.com/serverless/serverless/compare/v1.60.0...v1.60.1) (2019-12-20)
+
+### Bug Fixes
+
+- Ensure necessary IAM role for handling existing cognito pools ([5c6de5c](https://github.com/serverless/serverless/commit/5c6de5c3ace69c1c5b91f1e1698d6e65f7a0e9af)), closes [#6579](https://github.com/serverless/serverless/issues/6579)
+- Fix support for relative plugins.localPath ([10ba8cb](https://github.com/serverless/serverless/commit/10ba8cbc46b751a63a7a604140ab28549d491b5c)), closes [#7117](https://github.com/serverless/serverless/issues/7117)
+- Support different AWS partitions ([f353144](https://github.com/serverless/serverless/commit/f3531445f82276ba0bc14044452b64d240df47e9))
+
+## [1.60.0](https://github.com/serverless/serverless/compare/v1.59.3...v1.60.0) (2019-12-18)
+
+### Features
+
+- **Binary installer**
+  - `uninstall` command for installed binaries ([53e596f](https://github.com/serverless/serverless/commit/53e596fa6708aa1c3a4359c5679a898cfbd406ec))
+  - `upgrade` command for installed binaries ([c4efd66](https://github.com/serverless/serverless/commit/c4efd66e4e9a808d8c79511af6cca7bc653bdec4))
+  - Configure binaries generation ([49f6e1e](https://github.com/serverless/serverless/commit/49f6e1e8a57929862c79b6fea90c7515469bca7c))
+  - Linux & macOS binary installer ([f0f9698](https://github.com/serverless/serverless/commit/f0f96980ee94727177f9306ab5bf31ac8e7e209b))
+  - Recognise as standalone ([59bea09](https://github.com/serverless/serverless/commit/59bea09dad12bd8484042e773e5a1c716aaec4a7))
+  - Script to upload generated binaries to GitHub release ([5563b28](https://github.com/serverless/serverless/commit/5563b284f265e20db5058922e65e08425e978efc))
+- Draw CLI boxes with `boxen` package ([80f9a65](https://github.com/serverless/serverless/commit/80f9a6570fc139da1da7b0e53778d7fdc1ff507b))
+- MaximumRetryAttempts config for stream ([998b6fd](https://github.com/serverless/serverless/commit/998b6fd296f54d5a05f1609b29cc09fbc541935f)), closes [#7012](https://github.com/serverless/serverless/issues/7012)
+- Memoize resolution of dev deps exclusion paths ([#7091](https://github.com/serverless/serverless/issues/7091)) ([5143c2a](https://github.com/serverless/serverless/commit/5143c2ad3af84e198fb256b8cebf585aac3886e6))
+- Support CF instructions in awsKmsKeyArn setting ([#7083](https://github.com/serverless/serverless/issues/7083)) ([f9b6507](https://github.com/serverless/serverless/commit/f9b650782539808e796c1544a9dc7f2d02603db1))
+- Unconditionally display browser url ([c900900](https://github.com/serverless/serverless/commit/c90090048847c4280081a7b7fb1a8c3171cc7771))
+- Update and improve aws-kotlin-jvm-gradle template ([#7072](https://github.com/serverless/serverless/issues/7072)) ([0b3a08a](https://github.com/serverless/serverless/commit/0b3a08afaaf520fe6c3d4ebaac1a12fbd83c1fe4))
+
+### Bug Fixes
+
+- Ensure not to autocomplete hidden commands ([3f7f532](https://github.com/serverless/serverless/commit/3f7f532b88c9bdcc25a2b53a93e11484131c28ab))
+- Fix AWS partition reference in APIGW CloudWatch role setup ([fc74c28](https://github.com/serverless/serverless/commit/fc74c287f68deb20266d011d9376d13117c11161)), closes [#7100](https://github.com/serverless/serverless/issues/7100)
+- Fix credentials validation in EC2 environment ([#6977](https://github.com/serverless/serverless/issues/6977)) ([f8ee027](https://github.com/serverless/serverless/commit/f8ee0279037ba35b4c32f5872fcff4e741898db1))
+- Prevent uncaught exception in case of `open` util issue ([f29d169](https://github.com/serverless/serverless/commit/f29d1697dd89a418ca4aacac23b64b928e68f643))
+- Recognize falsy values as CLI options defaults ([#7071](https://github.com/serverless/serverless/issues/7071)) ([7e0e903](https://github.com/serverless/serverless/commit/7e0e903c798cc6c5370a74048202cd0480e2be3d))
+
+### [1.59.3](https://github.com/serverless/serverless/compare/v1.59.2...v1.59.3) (2019-12-09)
+
+### Bug Fixes
+
+- Do not set optional ParallelizationFactor when not explicitly set ([e74d1a0](https://github.com/serverless/serverless/commit/e74d1a0a6486fba1ca09c5eb54b36fcf552d60f4)), closes [#7049](https://github.com/serverless/serverless/issues/7049)
+- Fix provisioned concurrency support ([be0ebb7](https://github.com/serverless/serverless/commit/be0ebb76e7d3860587a986c9da48209870e7990d)), closes [#7059](https://github.com/serverless/serverless/issues/7059)
+
+### [1.59.2](https://github.com/serverless/serverless/compare/v1.59.1...v1.59.2) (2019-12-06)
+
+### Bug Fixes
+
+- Ensure to not create cognito pools marked as 'existing' ([fe546c5](https://github.com/serverless/serverless/commit/fe546c50d35b88b24556257182aacd9e24f07d1b))
+
+### [1.59.1](https://github.com/serverless/serverless/compare/v1.59.0...v1.59.1) (2019-12-05)
+
+### Bug Fixes
+
+- Fix mishandling of cachedCredentials in invokeLocal ([699e78d](https://github.com/serverless/serverless/commit/699e78d251b7cbb3e6553c6d8554c2bf568be1fb)), closes [#7050](https://github.com/serverless/serverless/issues/7050), regression introduced with [#7044](https://github.com/serverless/serverless/issues/7044)
+
+# 1.59.0 (2019-12-04)
+
+- [Fix spelling and typos in docs, code variables and code comments](https://github.com/serverless/serverless/pull/6986)
+- [Code cleanup and refactoring](https://github.com/serverless/serverless/pull/6990)
+- [Add support for contentHandling - Fixes gh-6949](https://github.com/serverless/serverless/pull/6987)
+- [Fix deployment bucket SSE documentation](https://github.com/serverless/serverless/pull/7000)
+- [Make authorizer type check from #6150 case insensitive](https://github.com/serverless/serverless/pull/7001)
+- [Govcloud custom resource fix](https://github.com/serverless/serverless/pull/6996)
+- [Lint and style patches](https://github.com/serverless/serverless/pull/7004)
+- [Fix/cors omit access control allow credentials on false](https://github.com/serverless/serverless/pull/6999)
+- [Fix: remove `$context.status` from websocket access log format](https://github.com/serverless/serverless/pull/7014)
+- [Clarifying Azure setup](https://github.com/serverless/serverless/pull/7015)
+- [Expose ParallelizationFactor prop for Kinesis Streams](https://github.com/serverless/serverless/pull/7024)
+- [Replace moment with dayjs](https://github.com/serverless/serverless/pull/7025)
+- [Update AWS SQS event docs regarding FIFO queue trigger for Lambda](https://github.com/serverless/serverless/pull/7029)
+- [Awsprovider - adding support for SDK sub-classes.](https://github.com/serverless/serverless/pull/7031)
+- [Provide backoff for retryable aws requests and the option to adjust the cf status check interval via an environment variable](https://github.com/serverless/serverless/pull/6981)
+- [Add page for best practices on CI/CD](https://github.com/serverless/serverless/pull/6988)
+- [Optimize custom resources generation](https://github.com/serverless/serverless/pull/7032)
+- [Update API GW stage settings only when explicitly set](https://github.com/serverless/serverless/pull/7033)
+- [Do not apply APIGW wide settings on externally referenced APIGW](https://github.com/serverless/serverless/pull/7034)
+- [Enable Content Trust checking when pulling lambci/lambda images](https://github.com/serverless/serverless/pull/6992)
+- [Fix resolution of user configured APIGW](https://github.com/serverless/serverless/pull/7039)
+- [Add option to change log level for websocket logs](https://github.com/serverless/serverless/pull/7035)
+- [Support lambda provisioned concurrency](https://github.com/serverless/serverless/pull/7043)
+- [Fix AWS creds handling](https://github.com/serverless/serverless/pull/7044)
+- [Fix lambda provisioned concurrency setup](https://github.com/serverless/serverless/pull/7045)
+
+## Meta
+
+- [Comparison since last release](https://github.com/serverless/serverless/compare/v1.58.0...v1.59.0)
+
 # 1.58.0 (2019-11-20)
 
 - [Fix missing ALB trigger in console](https://github.com/serverless/serverless/pull/6926)

@@ -22,7 +22,7 @@ service: aws-kotlin-jvm-gradle # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: java8
+  runtime: java11
 
 # you can overwrite defaults here
 #  stage: dev

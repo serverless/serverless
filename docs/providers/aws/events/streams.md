@@ -80,6 +80,7 @@ functions:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
           startingPosition: LATEST
+          maximumRetryAttempts: 10
           enabled: false
 ```
 
@@ -107,4 +108,67 @@ functions:
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchWindow: 10
+```
+
+## Setting BisectBatchOnFunctionError
+
+This configuration provides the ability to recursively split a failed batch and retry on a smaller subset of records, eventually isolating the metadata causing the error.
+
+**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
+
+[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-bisectbatchonfunctionerror)
+
+**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          bisectBatchOnFunctionError: true
+```
+
+## Setting the MaximumRetryAttempts
+
+This configuration sets up the maximum number of times to retry when the function returns an error.
+
+**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
+
+[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumretryattempts)
+
+**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          batchSize: 100
+          maximumRetryAttempts: 10
+          startingPosition: LATEST
+          enabled: false
+```
+
+## Setting the ParallelizationFactor
+
+The configuration below sets up a Kinesis stream event for the `preprocess` function which has a parallelization factor of 10 (default is 1).
+
+The `parallelizationFactor` property specifies the number of concurrent Lambda invocations for each shard of the Kinesis Stream.
+
+For more information, read the [AWS release announcement](https://aws.amazon.com/blogs/compute/new-aws-lambda-scaling-controls-for-kinesis-and-dynamodb-event-sources/) for this property.
+
+**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          parallelizationFactor: 10
 ```

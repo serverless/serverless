@@ -14,7 +14,7 @@ const fixturePaths = {
   artifact: path.join(__dirname, 'fixtures/artifact'),
 };
 
-describe('Integration test - Packaging', () => {
+describe('Integration test - Packaging - CloudFormation', () => {
   let cwd;
   beforeEach(() => {
     cwd = getTmpDirPath();

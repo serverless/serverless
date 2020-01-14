@@ -4,14 +4,10 @@ const path = require('path');
 const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 const { createEventBus, putEvents, deleteEventBus } = require('../../utils/eventBridge');
 
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/integration');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Event Bridge Integration Test', function() {
@@ -78,13 +74,20 @@ describe('AWS - Event Bridge Integration Test', function() {
       const functionName = 'eventBusDefault';
       const markers = getMarkers(functionName);
 
-      return putEvents('default', putEventEntries)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => putEvents('default', putEventEntries),
+        {
+          checkIsComplete: events =>
+            events.find(event => event.message.includes(markers.start)) &&
+            events.find(event => event.message.includes(markers.end)),
+        }
+      ).then(events => {
+        const logs = events.map(event => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
+      });
     });
   });
 
@@ -93,13 +96,20 @@ describe('AWS - Event Bridge Integration Test', function() {
       const functionName = 'eventBusCustom';
       const markers = getMarkers(functionName);
 
-      return putEvents(namedEventBusName, putEventEntries)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => putEvents(namedEventBusName, putEventEntries),
+        {
+          checkIsComplete: events =>
+            events.find(event => event.message.includes(markers.start)) &&
+            events.find(event => event.message.includes(markers.end)),
+        }
+      ).then(events => {
+        const logs = events.map(event => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
+      });
     });
   });
 
@@ -108,13 +118,20 @@ describe('AWS - Event Bridge Integration Test', function() {
       const functionName = 'eventBusArn';
       const markers = getMarkers(functionName);
 
-      return putEvents(arnEventBusName, putEventEntries)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => putEvents(arnEventBusName, putEventEntries),
+        {
+          checkIsComplete: events =>
+            events.find(event => event.message.includes(markers.start)) &&
+            events.find(event => event.message.includes(markers.end)),
+        }
+      ).then(events => {
+        const logs = events.map(event => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
+      });
     });
   });
 });
