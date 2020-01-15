@@ -184,6 +184,7 @@
     "jszip": "^3.2.2",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.15",
+    "memoizee": "^0.4.14",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "nanomatch": "^1.2.13",
