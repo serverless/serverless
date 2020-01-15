@@ -2,6 +2,9 @@
 title: Serverless - Tencent SCF - Components 概述
 menuText: Components 概述
 layout: Doc
+menuItems:
+  - {menuText: 基础 Components , path: /framework/docs/providers/tencent/components/basic-components}
+  - {menuText: Components 最佳实践, path: /framework/docs/providers/tencent/components/high-level-components}
 -->
 
 Serverless Components 是支持多个云资源编排和组织的场景化解决方案，主要基于客户的具体场景，如 Express 框架支持、网站部署等。Serverless Components 可以有效简化云资源的配置和管理，将网关、COS 和 CAM 等产品联动起来，让客户更多关注场景和业务。
