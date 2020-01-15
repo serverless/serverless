@@ -1,0 +1,5 @@
+﻿From: https://github.com/serverless/serverless/blob/master/LICENSE.txt
+
+LICENSE
+
+TO_BE_GENERATED
