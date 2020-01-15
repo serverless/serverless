@@ -129,7 +129,7 @@
     }
   },
   "devDependencies": {
-    "@commitlint/cli": "^8.3.4",
+    "@commitlint/cli": "^8.3.5",
     "@serverless/eslint-config": "^1.2.1",
     "@serverless/test": "^3.4.0",
     "chai": "^4.2.0",
@@ -160,7 +160,7 @@
     "@serverless/enterprise-plugin": "^3.2.7",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
-    "aws-sdk": "^2.602.0",
+    "aws-sdk": "^2.603.0",
     "bluebird": "^3.7.2",
     "boxen": "^3.2.0",
     "cachedir": "^2.3.0",
