@@ -41,6 +41,20 @@ To upgrade already installed version:
 serverless upgrade
 ```
 
+### Windows
+
+Install with [Chocolatey](https://chocolatey.org/) package manager:
+
+```bash
+choco install serverless
+```
+
+To upgrade already installed version:
+
+```bash
+choco upgrade serverless
+```
+
 ## Installing via npm
 
 ```bash

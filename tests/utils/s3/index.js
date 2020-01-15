@@ -1,6 +1,6 @@
 'use strict';
 
-const { awsRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function createBucket(bucket) {
   return awsRequest('S3', 'createBucket', { Bucket: bucket });
