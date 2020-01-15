@@ -117,7 +117,7 @@ jobs:
       os: windows
       node_js: 12
       before_install:
-        # Ensure Python 2 in Windows enviroment (Ruby is already preinstalled)
+        # Ensure Python 2 in Windows environment (Ruby is already preinstalled)
         - |
           # Ignore eventual fail on choco side
           if choco install python2
