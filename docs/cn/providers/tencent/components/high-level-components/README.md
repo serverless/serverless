@@ -13,7 +13,6 @@ layout: Doc
 - - [x] **轻松复用 -** 你构建的每个 Component 都可复用，并且对外发布后，也可以支持他人使用。
 - - [x] **灵活组合 -** 可以通过 YAML 或者 Javascript 灵活组合不同的 Components。
 
-
 ## 快速开始
 
 通过 NPM 安装 [Serverless Framework](https://www.github.com/serverless/serverless) ：

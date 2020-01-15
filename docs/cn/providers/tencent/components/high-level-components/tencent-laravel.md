@@ -15,10 +15,9 @@ layout: Doc
 
 0. [准备](#0-准备)
 1. [安装](#1-安装)
-2. [配置](#2-配置)
-3. [部署](#3-部署)
-4. [移除](#4-移除)
-
+1. [配置](#2-配置)
+1. [部署](#3-部署)
+1. [移除](#4-移除)
 
 ### 0. 准备
 
@@ -77,9 +76,9 @@ $ touch serverless.yml
 # serverless.yml
 
 MyComponent:
-  component: "@serverless/tencent-laravel"
+  component: '@serverless/tencent-laravel'
   inputs:
-    region: ap-guangzhou 
+    region: ap-guangzhou
     functionName: laravel-function
     code: ./
     functionConf:

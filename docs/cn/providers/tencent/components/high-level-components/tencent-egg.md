@@ -7,7 +7,6 @@ layout: Doc
 
 [![Serverless Egg Tencent Cloud](https://img.serverlesscloud.cn/20191226/1577361751088-egg_width.png)](http://serverless.com)
 
-
 ## 简介
 
 腾讯云 [Egg.js](https://github.com/eggjs/egg) Serverless Component, 支持 Restful API 服务的部署。
@@ -16,10 +15,9 @@ layout: Doc
 
 0. [准备](#0-准备)
 1. [安装](#1-安装)
-2. [配置](#2-配置)
-3. [部署](#3-部署)
-4. [移除](#4-移除)
-
+1. [配置](#2-配置)
+1. [部署](#3-部署)
+1. [移除](#4-移除)
 
 ### 0. 准备
 
@@ -36,13 +34,13 @@ $ npm i
 由于云函数在执行时，只有 `/tmp` 可读写的，所以我们需要将 `egg.js` 框架运行尝试的日志写到该目录下，为此需要修改 `config/config.default.js` 中的配置如下：
 
 ```js
-const config = exports = {
+const config = (exports = {
   env: 'prod', // 推荐云函数的 egg 运行环境变量修改为 prod
   rundir: '/tmp',
   logger: {
     dir: '/tmp',
   },
-};
+});
 ```
 
 ### 1. 安装
@@ -65,9 +63,9 @@ $ touch serverless.yml
 # serverless.yml
 
 MyComponent:
-  component: "@serverless/tencent-egg"
+  component: '@serverless/tencent-egg'
   inputs:
-    region: ap-guangzhou 
+    region: ap-guangzhou
     functionName: egg-function
     code: ./
     functionConf:

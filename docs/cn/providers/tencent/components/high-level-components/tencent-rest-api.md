@@ -1,8 +1,10 @@
 ---
 link: /providers/tencent/templates/rest-api
 ---
+
 ## 简介
-REST API 模板使用 Tencent SCF 组件及其触发器能力，方便的在腾讯云创建，配置和管理一个REST API 应用。
+
+REST API 模板使用 Tencent SCF 组件及其触发器能力，方便的在腾讯云创建，配置和管理一个 REST API 应用。
 
 ## 快速开始
 
@@ -34,6 +36,7 @@ $ npm install -g serverless
 $ serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-python-rest-api
 
 ```
+
 ```
 .
 ├── code
@@ -42,7 +45,6 @@ $ serverless create --template-url https://github.com/serverless/components/tree
 ```
 
 查看 code/index.py 代码，可以看到接口的传参和返回逻辑：
-
 
 ```python
 # -*- coding: utf8 -*-

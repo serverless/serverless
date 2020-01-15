@@ -10,6 +10,7 @@ layout: Doc
 该组件是 serverless-tencent 组件库中的基础组件之一。通过对象存储 COS 组件，可以快速，方便的创建，配置和管理腾讯云的 COS 存储桶
 
 ## 快速开始
+
 &nbsp;
 
 通过 COS 组件，对一个 COS 存储桶进行完整的创建，配置，部署和删除等操作。支持命令如下：
@@ -23,7 +24,7 @@ layout: Doc
 
 ### 1. 安装
 
-通过 npm 安装 serverless 
+通过 npm 安装 serverless
 
 ```
 $ npm install -g serverless
@@ -45,10 +46,9 @@ myBucket:
   inputs:
     bucket: my-bucket
     region: ap-guangzhou
-
 ```
-* [点击此处查看配置文档](https://github.com/serverless-tencent/tencent-cos/blob/master/docs/configure.md)
 
+- [点击此处查看配置文档](https://github.com/serverless-tencent/tencent-cos/blob/master/docs/configure.md)
 
 ### 3. 部署
 
@@ -72,7 +72,7 @@ $ sls --debug
   DEBUG ─ Ensuring no CORS are set for "my-bucket-1300415943" bucket in the "ap-guangzhou" region.
   DEBUG ─ Ensuring no Tags are set for "my-bucket-1300415943" bucket in the "ap-guangzhou" region.
 
-  myBucket: 
+  myBucket:
     bucket: my-bucket-1300415943
     region: ap-guangzhou
 
@@ -94,15 +94,16 @@ $ sls remove --debug
   2s › myBucket › done
 ```
 
-####  账号配置（可选）
+#### 账号配置（可选）
 
-当前默认支持CLI扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
+当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
 ```
 $ touch .env # 腾讯云的配置信息
 ```
 
 在 `.env` 文件中配置腾讯云的 SecretId 和 SecretKey 信息并保存。
+
 ```env
 # .env
 TENCENT_SECRET_ID=123
@@ -110,8 +111,8 @@ TENCENT_SECRET_KEY=123
 ```
 
 > - 如果没有腾讯云账号，请先 [注册新账号](https://cloud.tencent.com/register)。
-> - 如果已有腾讯云账号，可以在 [API密钥管理
-](https://.cloud.tencent.com/cam/capi) 中获取 SecretId 和 SecretKey。
+> - 如果已有腾讯云账号，可以在 [API 密钥管理
+>   ](https://.cloud.tencent.com/cam/capi) 中获取 SecretId 和 SecretKey。
 
 ### 还支持哪些组件？
 

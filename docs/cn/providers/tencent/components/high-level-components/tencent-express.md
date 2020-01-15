@@ -54,15 +54,15 @@ $ npm i --save express  # 安装express
 创建一个 `app.js`文件，并在其中创建您的 Express App：
 
 ```js
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
 
 app.get('/', function(req, res) {
-  res.send('Hello Express')
-})
+  res.send('Hello Express');
+});
 
 // don't forget to export!
-module.exports = app
+module.exports = app;
 ```
 
 ### 3. 配置

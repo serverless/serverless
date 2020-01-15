@@ -9,7 +9,7 @@ layout: Doc
 
 &nbsp;
 
-通过 Serverless Website 组件快速构建一个 Serverless Hexo 站点 
+通过 Serverless Website 组件快速构建一个 Serverless Hexo 站点
 
 1. [安装](#1-安装)
 2. [配置](#2-配置)
