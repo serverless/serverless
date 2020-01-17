@@ -1,6 +1,6 @@
 'use strict';
 
-const { awsRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function publishIotData(topic, message) {
   return awsRequest('Iot', 'describeEndpoint').then(data => {
