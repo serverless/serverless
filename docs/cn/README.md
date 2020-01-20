@@ -21,4 +21,4 @@ Serverless Framework 可以帮您以更少的成本和开销, 快速构建 Serve
 
 Serverless Framework 包括一个开源的，支持多云部署的 CLI 插件，此外也支持 Dashboard 的展示，用于进一步简化 Serverless 应用的开发，部署和测试等体验，并且支持您更加方便的管控和监控 Serverless 应用（该功能即将支持）。
 
-无论您是刚开始接触 Serverless Framework，希望快速、便捷部署无服务器应用；还是您已经使用过 Serverless 开源 CLI，希望探索更多高级能力。都可以从这里[快速开始](./cn/quick-start)。
+无论您是刚开始接触 Serverless Framework，希望快速、便捷部署无服务器应用；还是您已经使用过 Serverless 开源 CLI，希望探索更多高级能力。都可以从这里[快速开始](./cn/getting-started)。
