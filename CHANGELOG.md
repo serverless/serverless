@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.61.2](https://github.com/serverless/serverless/compare/v1.61.1...v1.61.2) (2020-01-15)
+
+### Bug Fixes
+
+- Separate AWS region and credentials resolution concern ([91525e8](https://github.com/serverless/serverless/commit/91525e889f08eefe0451df65e1207d53978030ef)). Fixes [serverless/enterprise-plugin#340](https://github.com/serverless/enterprise-plugin/issues/340)
+
 ### [1.61.1](https://github.com/serverless/serverless/compare/v1.61.0...v1.61.1) (2020-01-14)
 
 ### Bug Fixes
