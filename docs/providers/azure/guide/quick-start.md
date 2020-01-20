@@ -82,7 +82,7 @@ $ sls invoke -f <functionName>
 After deploying template function app, run
 
 ```bash
-$ sls invoke -f hello '{"name": "Azure"}'
+$ sls invoke -f hello -d '{"name": "Azure"}'
 ```
 
 ### Roll Back Your Function App
