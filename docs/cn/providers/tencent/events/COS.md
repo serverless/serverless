@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework - Tencent-SCF 事件 - Cloud Object Storage
-menuText: cos
+menuText: COS
 menuOrder: 9
 description:  Setting up Cloud Object Storage Events with Tencent-SCF via the Serverless Framework
 layout: Doc

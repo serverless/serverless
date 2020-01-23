@@ -36,7 +36,6 @@ serverless invoke local --function functionName
   runtimes.
 * `--docker-arg` Pass additional arguments to docker run command when `--docker` is option used. e.g. `--docker-arg '-p 9229:9229' --docker-arg '-v /var:/host_var'`
 * `--skip-package`, will use the last packaged files from `.serverless` directory. This will speed up invocation significantly as we can skip the packaging of all files before every invoke
-
 ## Environment
 
 The invoke local command sets reasonable environment variables for the invoked function.
