@@ -252,6 +252,12 @@ functions:
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
+          filterPolicy:
+            pet:
+              - dog
+              - cat
+          redrivePolicy:
+            deadLetterTargetArn: arn:aws:sqs:region:XXXXXX:myDLQ
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
