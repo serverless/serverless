@@ -146,9 +146,10 @@ functions:
               - dog
               - cat
 ```
+
 ## Setting a redrive policy
 
-This event definition creates an SNS topic that sends messages to a Dead Letter Queue(defined by arn) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`
+This event definition creates an SNS topic that sends messages to a Dead Letter Queue (defined by its ARN) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`
 
 ```yml
 functions:
