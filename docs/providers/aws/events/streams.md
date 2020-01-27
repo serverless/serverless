@@ -200,27 +200,27 @@ functions:
                 type: sqs
 
   preprocess3:
-      handler: handler.preprocess
-      events:
-        - stream:
-            arn: arn:aws:kinesis:region:XXXXXX:stream/foo
-            batchSize: 100
-            maximumRetryAttempts: 10
-            startingPosition: LATEST
-            enabled: false
-            destinationConfig:
-              onFailure:
-                destination:
-                  arn:
-                    Fn::Join:
-                      - ':'
-                      - - arn
-                        - aws
-                        - kinesis
-                        - Ref: AWS::Region
-                        - Ref: AWS::AccountId
-                        - mySnsTopic
-                  type: sns            
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          batchSize: 100
+          maximumRetryAttempts: 10
+          startingPosition: LATEST
+          enabled: false
+          destinationConfig:
+            onFailure:
+              destination:
+                arn:
+                  Fn::Join:
+                    - ':'
+                    - - arn
+                      - aws
+                      - kinesis
+                      - Ref: AWS::Region
+                      - Ref: AWS::AccountId
+                      - mySnsTopic
+                type: sns
 ```
 
 ## Setting the ParallelizationFactor
