@@ -178,8 +178,7 @@ functions:
           enabled: false
           destinationConfig:
             onFailure:
-              destination:
-                arn: arn:aws:sqs:region:XXXXXX:queue
+              destination: arn:aws:sqs:region:XXXXXX:queue
 
   preprocess2:
     handler: handler.preprocess
