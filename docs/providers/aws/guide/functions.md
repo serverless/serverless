@@ -460,3 +460,18 @@ functions:
     handler: handler.goodbye
     tracing: PassThrough
 ```
+
+## Destinations
+
+When intention is to invoke function asynchronously you may want to configure [destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations) for it.
+
+Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN
+
+```yml
+functions:
+  asyncHello:
+    handler: handler.asyncHello
+    destinations:
+      onSuccess: otherFunctionInService
+      onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
+```
