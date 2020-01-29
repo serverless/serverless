@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.62.0](https://github.com/serverless/serverless/compare/v1.61.3...v1.62.0) (2020-01-29)
+
+### Features
+
+- Support `redrivePolicy` configuration on SNS events ([#7239](https://github.com/serverless/serverless/issues/7239)) ([4f27378](https://github.com/serverless/serverless/commit/4f273785f4b7cceaffd2fb6b9255e4187962d53c))
+- Ensure deterministic WebSockets deployment id (so deployments are skipped when no changes are detected) ([#7248](https://github.com/serverless/serverless/issues/7248)) ([9f0131f](https://github.com/serverless/serverless/commit/9f0131fedf60e9104f38702d01e103b9a3b0f629))
+- `azure-nodejs-typescript` template ([#7252](https://github.com/serverless/serverless/issues/7252)) ([0549d85](https://github.com/serverless/serverless/commit/0549d85bc0254a10d3314613892e335da2bc3722))
+
+### Bug Fixes
+
+- **Variables:** When resolving SSM parameter, ensure to retrieve status code from AWS error correctly ([bc5bbbe](https://github.com/serverless/serverless/commit/bc5bbbed3c050eb69262b3f9b6fbd53c563c9fb2)), closes [#7237](https://github.com/serverless/serverless/issues/7237)
+- Do not overwrite `go.mod` on `make` in Go template ([#7245](https://github.com/serverless/serverless/issues/7245)) ([1793cf8](https://github.com/serverless/serverless/commit/1793cf8d7a55b85fc6505ae493dcca2292e443d2))
+
 ### [1.61.3](https://github.com/serverless/serverless/compare/v1.61.2...v1.61.3) (2020-01-21)
 
 ### Improvements
