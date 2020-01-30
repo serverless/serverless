@@ -8,7 +8,11 @@ module.exports = {
     'footer-max-line-length': [2, 'always', 72],
     'header-max-length': [2, 'always', 72],
     'scope-case': [2, 'always', 'start-case'],
-    'scope-enum': [2, 'always', ['', 'Binary Installer', 'Plugins', 'Variables']],
+    'scope-enum': [
+      2,
+      'always',
+      ['', 'AWS APIGW', 'AWS Lambda', 'CLI', 'Plugins', 'Standalone', 'User Config', 'Variables'],
+    ],
     'subject-case': [2, 'always', 'sentence-case'],
     'subject-empty': [2, 'never'],
     'subject-full-stop': [2, 'never', '.'],

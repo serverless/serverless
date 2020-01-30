@@ -129,6 +129,13 @@ provider:
         IpAddress:
           aws:SourceIp:
             - '123.123.123.123'
+    rollbackConfiguration:
+      MonitoringTimeInMinutes: 20
+      RollbackTriggers:
+        - Arn: arn:aws:cloudwatch:us-east-1:000000000000:alarm:health
+          Type: AWS::CloudWatch::Alarm
+        - Arn: arn:aws:cloudwatch:us-east-1:000000000000:alarm:latency
+          Type: AWS::CloudWatch::Alarm
   tags: # Optional service wide function tags
     foo: bar
     baz: qux
@@ -245,6 +252,12 @@ functions:
       - sns:
           topicName: aggregate
           displayName: Data aggregation pipeline
+          filterPolicy:
+            pet:
+              - dog
+              - cat
+          redrivePolicy:
+            deadLetterTargetArn: arn:aws:sqs:region:XXXXXX:myDLQ
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10

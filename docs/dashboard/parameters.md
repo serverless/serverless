@@ -27,10 +27,28 @@ Create a new parameter by navigating to **profiles** in the [Serverless Framewor
 4. Repeat Step 3 for each parameter you would like to add.
 5. When done, click **save changes**.
 
-## Using a Parameter to deploy
+## Using a Parameter in serverless.yml
 
-To use a parameter, first make sure that the profile containing that parameter is configured as the **default deployment profile** for your application, or it is configured as the **profile** on the stage and application you are using.
+To use a parameter in the serverless.yml, first make sure that the profile containing that parameter is configured as the **default deployment profile** for your application, or it is configured as the **profile** on the stage and application you are using.
 
 In your `serverless.yml` file add the variable `${param:<key>}` anywhere you would like to use the parameter. The `<key>` references the parameter key configured in the profile.
 
 When you run `serverless deploy` the parameter values will be obtained, decrypted and used to replace the variables in the `serverless.yml` for the deployment.
+
+## Use parameters from the command line
+
+Parameters can also be accessed on the CLI. You can use this at development time to look up the parameters without opening the dashboard, or in your CI/CD pipeline to use the parameters in custom scripts.
+
+### List parameters
+
+`sls param list [--org <org>] [--app <app>] [--service <service>] [--stage <stage>]`
+
+If you are in a working directory with a `serverless.yml` then the parameters will be listed for the org, app, and service specified in the serverless.yml file.
+
+If you are not in a working directory, without a `serverless.yml`, or if you want to access parameters from another org, app, service, or stage, you can pass in the optional flags.
+
+### Get a parameter
+
+`sls param get --name <name> [--org <org>] [--app <app>] [--service <service>] [--stage <stage>]`
+
+Individual parameters can also be accessed from the CLI using the `param get` sub-command. This command requires the `--name <name>` flag to identify the parameter name. Like the `sls param list`, you can optionally specify a different org, app, service, or stage using flags.

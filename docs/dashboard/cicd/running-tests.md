@@ -45,12 +45,17 @@ If you are using Python we recommend using the [serverless-python-requirements](
 
 If you are not using the serverless-python-requirements plugin, then you can install the requirements by adding the `postinstall` script to `package.json`.
 
-```yaml
+```json
 {
-  'name': 'demo-python',
-  'version': '1.0.0',
-  'scripts': { 'postinstall': 'pip3 install -r requirements.txt', 'test': 'pytest' },
-  'devDependencies': { 'serverless-python-requirements': '^5.0.1' },
+  "name": "demo-python",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "pip3 install -r requirements.txt",
+    "test": "pytest"
+  },
+  "devDependencies": {
+    "serverless-python-requirements": "^5.0.1"
+  }
 }
 ```
 

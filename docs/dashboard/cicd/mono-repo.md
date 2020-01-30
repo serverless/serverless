@@ -17,15 +17,15 @@ When first getting started with a Serverless Framework project it is common to h
 
 As an example, you may end up with a directory structure like this:
 
-`/service1`
-`/service2`
-`/shared`
+- `/service1`
+- `/service2`
+- `/shared`
 
 In this case, there is a `/service/serverless.yml` and a `/service2/serverless.yml`. The services in those two directories may have a dependency on code defined in the `/shared` directory. We want to avoid redeploying ALL services every any of the files change. Instead, we want to run tests and redeploy when the relevant changes are made, in particular:
 
-If there is a change in `/service1` only deploy `/service1/serverless.yml`.
-If there is a change in `/service2` only deploy `/service2/serverless.yml`.
-If there is a change in `/shared` deploy both `/service1/serverless.yml` and `/service2/serverless.yml`.
+- If there is a change in `/service1` only deploy `/service1/serverless.yml`.
+- If there is a change in `/service2` only deploy `/service2/serverless.yml`.
+- If there is a change in `/shared` deploy both `/service1/serverless.yml` and `/service2/serverless.yml`.
 
 In your Serverless CI/CD settings there is a section called “Trigger Directories”. This enables you to limit the changes in a git commit which trigger a deployment by identifying the directories containing the relevant changes. A deployment will occur only if changes in the specified directories are identified. If the changes are in a different directory, the service will not be deployed.
 

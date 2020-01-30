@@ -1,0 +1,13 @@
+{
+  "name": "openwhisk-java",
+  "version": "1.0.0",
+  "description": "Sample OpenWhisk Java serverless framework service.",
+  "main": "target/demo-function.jar:com.example.FunctionApp",
+  "keywords": [
+    "serverless",
+    "openwhisk"
+  ],
+  "devDependencies": {
+    "serverless-openwhisk": ">=0.13.0"
+  }
+}

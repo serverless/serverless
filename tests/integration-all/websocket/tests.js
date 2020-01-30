@@ -4,9 +4,10 @@ const path = require('path');
 const WebSocket = require('ws');
 const _ = require('lodash');
 const { expect } = require('chai');
+const awsRequest = require('@serverless/test/aws-request');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const { awsRequest, confirmCloudWatchLogs, wait } = require('../../utils/misc');
+const { confirmCloudWatchLogs, wait } = require('../../utils/misc');
 const { createTestService, deployService, removeService } = require('../../utils/integration');
 const {
   createApi,
