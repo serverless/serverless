@@ -176,9 +176,8 @@ functions:
           maximumRetryAttempts: 10
           startingPosition: LATEST
           enabled: false
-          destinationConfig:
-            onFailure:
-              destination: arn:aws:sqs:region:XXXXXX:queue
+          destinations:
+            onFailure: arn:aws:sqs:region:XXXXXX:queue
 
   preprocess2:
     handler: handler.preprocess
@@ -189,14 +188,13 @@ functions:
           maximumRetryAttempts: 10
           startingPosition: LATEST
           enabled: false
-          destinationConfig:
+          destinations:
             onFailure:
-              destination:
-                arn:
-                  Fn::GetAtt:
-                    - MyQueue
-                    - Arn
-                type: sqs
+              arn:
+                Fn::GetAtt:
+                  - MyQueue
+                  - Arn
+              type: sqs
 
   preprocess3:
     handler: handler.preprocess
@@ -207,19 +205,18 @@ functions:
           maximumRetryAttempts: 10
           startingPosition: LATEST
           enabled: false
-          destinationConfig:
+          destinations:
             onFailure:
-              destination:
-                arn:
-                  Fn::Join:
-                    - ':'
-                    - - arn
-                      - aws
-                      - kinesis
-                      - Ref: AWS::Region
-                      - Ref: AWS::AccountId
-                      - mySnsTopic
-                type: sns
+              arn:
+                Fn::Join:
+                  - ':'
+                  - - arn
+                    - aws
+                    - kinesis
+                    - Ref: AWS::Region
+                    - Ref: AWS::AccountId
+                    - mySnsTopic
+              type: sns
 ```
 
 ## Setting the ParallelizationFactor
