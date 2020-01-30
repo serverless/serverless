@@ -6,7 +6,8 @@
 
 require('essentials');
 
-const argv = require('yargs-parser')(process.argv.slice(2), {
+// eslint-disable-next-line import/no-extraneous-dependencies
+const argv = require('minimist')(process.argv.slice(2), {
   boolean: ['help'],
   alias: { help: 'h' },
 });
