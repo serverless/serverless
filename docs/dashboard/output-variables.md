@@ -61,6 +61,28 @@ stage:
 ${output::dev::my-service.var-key}
 ```
 
+## Use outputs from the command line
+
+Outputs can also be accessed on the CLI. You can use this at development time to look up the outputs without opening the dashboard, or in your CI/CD pipeline to use the outputs in custom scripts.
+
+### List outputs
+
+`sls output list [--org <org>] [--app <app>] [--service <service>] [--stage <stage>] [--region <region>]`
+
+If you are in a working directory with a `serverless.yml` then the outputs will be listed for the org, app, and service specified in the serverless.yml file.
+
+If you are not in a working directory, without a `serverless.yml`, or if you want to access outputs from another org, app, service, or stage, you can pass in the optional flags.
+
+### Get an output
+
+`sls output get --name <name> [--org <org>] [--app <app>] [--service <service>] [--stage <stage>] [--region region]`
+
+Individual outputs can also be accessed from the CLI using the `output get` sub-command. This command requires the `--name <name>` flag to identify the output name.
+
+It is possible for the output value to be a json object, in which case, we recommend using a tool like [jq](https://stedolan.github.io/jq/) to parse the JSON.
+
+Like the `sls output list` command, you can optionally specify a different org, app, service, stage or region using flags.
+
 ## View outputs in the dashboard
 
 The outputs for a service are made available on two different pages of the Serverless Framework Dashboard.
