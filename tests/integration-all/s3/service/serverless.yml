@@ -4,6 +4,14 @@ provider:
   name: aws
   runtime: nodejs12.x
   versionFunctions: false
+  s3:
+    customBucket:
+      name: CHANGE_TO_UNIQUE_PER_RUN
+      publicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
 functions:
   minimal:
@@ -19,6 +27,12 @@ functions:
           rules:
             - prefix: photos/
             - suffix: .jpg
+  custom:
+    handler: core.custom
+    events:
+      - s3:
+          bucket: customBucket
+
   existing:
     handler: core.existing
     events:
