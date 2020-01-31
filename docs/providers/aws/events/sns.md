@@ -149,7 +149,7 @@ functions:
 
 ## Setting a redrive policy
 
-This event definition creates an SNS topic that sends messages to a Dead Letter Queue (defined by its ARN) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`
+This event definition creates an SNS topic that sends messages to a Dead Letter Queue (defined by its ARN) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`.
 
 ```yml
 functions:
@@ -159,7 +159,23 @@ functions:
       - sns:
           topicName: dispatcher
           redrivePolicy:
-            deadLetterTargetArn: !Ref myDLQ
+            deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
+```
+
+To define the Dead Letter Queue, you can use either use the `arn:` notation or the CloudFormation function `Fn::GetAtt`
+
+```yml
+functions:
+  dispatcher:
+    handler: dispatcher.handler
+    events:
+      - sns:
+          topicName: dispatcher
+          redrivePolicy:
+            deadLetterTargetArn:
+              Fn::GetAtt:
+                - myDLQ
+                - Arn
 
 resources:
   Resources:
