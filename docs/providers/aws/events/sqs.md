@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - SQS Queues
 menuText: SQS
-menuOrder: 7
+menuOrder: 8
 description:  Setting up AWS SQS Queue Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - ALB
 menuText: Application Load Balancer
-menuOrder: 8
+menuOrder: 9
 description: Setting up AWS Application Load Balancer events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
