@@ -78,6 +78,7 @@ layout: Doc
     <div class="docsProviderItems">
       <ul>
         <li><a href="./events/apigateway.md">API Gateway</a></li>
+        <li><a href="./events/http-api.md">HTTP API</a></li>
         <li><a href="./events/websocket.md">Websocket</a></li>
         <li><a href="./events/streams.md">Streams</a></li>
         <li><a href="./events/s3.md">S3</a></li>
