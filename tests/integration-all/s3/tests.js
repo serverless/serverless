@@ -21,6 +21,7 @@ describe('AWS - S3 Integration Test', function() {
   let tmpDirPath;
   let bucketMinimalSetup;
   let bucketExtendedSetup;
+  let bucketCustomName;
   let bucketExistingSimpleSetup;
   let bucketExistingComplexSetup;
   const stage = 'dev';
@@ -36,10 +37,12 @@ describe('AWS - S3 Integration Test', function() {
         config => {
           bucketMinimalSetup = `${config.service}-s3-minimal`;
           bucketExtendedSetup = `${config.service}-s3-extended`;
+          bucketCustomName = `${config.service}-custom-bucket-${stage}`;
           bucketExistingSimpleSetup = `${config.service}-s3-existing-simple`;
           bucketExistingComplexSetup = `${config.service}-s3-existing-complex`;
           config.functions.minimal.events[0].s3 = bucketMinimalSetup;
           config.functions.extended.events[0].s3.bucket = bucketExtendedSetup;
+          config.provider.s3.customBucket.name = bucketCustomName;
           config.functions.existing.events[0].s3.bucket = bucketExistingSimpleSetup;
           config.functions.existingCreated.events[0].s3.bucket = bucketExistingComplexSetup;
           config.functions.existingCreated.events[1].s3.bucket = bucketExistingComplexSetup;
@@ -98,6 +101,22 @@ describe('AWS - S3 Integration Test', function() {
         .then(logs => {
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);
+          expect(logs.includes(expectedMessage)).to.equal(true);
+        });
+    });
+  });
+
+  describe('Custom Setup', () => {
+    it('should invoke function when an object is created', () => {
+      const functionName = 'custom';
+      const markers = getMarkers(functionName);
+      const expectedMessage = `Hello from S3! - (${functionName})`;
+
+      return createAndRemoveInBucket(bucketCustomName)
+        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
+        .then(logs => {
+          expect(/aws:s3/g.test(logs)).to.equal(true);
+          expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
           expect(logs.includes(expectedMessage)).to.equal(true);
         });
     });
