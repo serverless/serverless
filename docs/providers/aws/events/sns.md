@@ -184,3 +184,19 @@ resources:
       Properties:
         QueueName: myDLQ
 ```
+
+Alternatively, you can specify both `deadLetterTargetArn` and `deadLetterTargetUrl` using strings or any supported CloudFormation function like `Fn::ImportValue`
+
+```yml
+functions:
+  dispatcher:
+    handler: dispatcher.handler
+    events:
+      - sns:
+          topicName: dispatcher
+          redrivePolicy:
+            deadLetterTargetArn:
+              'Fn::ImportValue': MyShared-DLQArn
+            deadLetterTargetUrl:
+              'Fn::ImportValue': MyShared-DLQUrl
+```

@@ -258,6 +258,7 @@ functions:
               - cat
           redrivePolicy:
             deadLetterTargetArn: arn:aws:sqs:region:XXXXXX:myDLQ
+            deadLetterTargetUrl: https://sqs.region.amazonaws.com/XXXXX/myDLQ
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
