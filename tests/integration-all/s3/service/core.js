@@ -30,6 +30,19 @@ function extended(event, context, callback) {
   return callback(null, response);
 }
 
+function custom(event, context, callback) {
+  const functionName = 'custom';
+  const response = { message: `Hello from S3! - (${functionName})`, event };
+  const message = [
+    event.Records[0].eventSource,
+    event.Records[0].eventName,
+    ' ',
+    response.message,
+  ].join('');
+  log(functionName, message);
+  return callback(null, response);
+}
+
 function existing(event, context, callback) {
   const functionName = 'existing';
   const response = { message: `Hello from S3! - (${functionName})`, event };
@@ -69,4 +82,4 @@ function existingRemoved(event, context, callback) {
   return callback(null, response);
 }
 
-module.exports = { minimal, extended, existing, existingCreated, existingRemoved };
+module.exports = { minimal, extended, existing, existingCreated, existingRemoved, custom };
