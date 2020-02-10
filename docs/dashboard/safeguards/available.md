@@ -154,6 +154,19 @@ present and value must match the regex.
 someTagName: '.*'
 ```
 
+### Required environment variables
+
+**ID: required-env-vars**
+
+This rule requires you to have certain environment varialbes set in the
+deployment environment. It is configured with a mapping of keys to regex's. All
+the keys must be present and value must match the regex. This does not check
+the environments defined on functions in the `serverless.yml` file.
+
+```yaml
+MY_ENV_VAR: '.*'
+```
+
 ### Require Global VPC
 
 **ID: require-global-vpc**
