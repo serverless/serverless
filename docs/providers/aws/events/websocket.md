@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Websocket
 menuText: Websocket
-menuOrder: 2
+menuOrder: 3
 description: Setting up AWS Websockets with AWS Lambda via the Serverless Framework
 layout: Doc
 -->

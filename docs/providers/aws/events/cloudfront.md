@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - CloudFront
 menuText: CloudFront
-menuOrder: 13
+menuOrder: 16
 description:  Setting up CloudFront with AWS Lambda@Edge via the Serverless Framework
 layout: Doc
 -->
