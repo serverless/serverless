@@ -104,8 +104,8 @@ $ sls --debug
   DEBUG ─ Uploading service package to cos[sls-cloudfunction-ap-beijing-code]. sls-cloudfunction-default-egg-function-1581335565.zip
   DEBUG ─ Uploaded package successful /Users/tina/Desktop/live/egg-proj/.serverless/egg-function.zip
   DEBUG ─ Creating function egg-function
-  DEBUG ─ Updating code... 
-  DEBUG ─ Updating configure... 
+  DEBUG ─ Updating code...
+  DEBUG ─ Updating configure...
   DEBUG ─ Created function egg-function successful
   DEBUG ─ Setting tags for function egg-function
   DEBUG ─ Creating trigger for function egg-function
@@ -116,7 +116,7 @@ $ sls --debug
   DEBUG ─ Deploying service with id service-n5m5e8x3.
   DEBUG ─ Deployment successful for the api named MyComponent.TencentApiGateway in the ap-beijing region.
 
-  MyComponent: 
+  MyComponent:
     region:              ap-beijing
     functionName:        egg-function
     apiGatewayServiceId: service-n5m5e8x3
