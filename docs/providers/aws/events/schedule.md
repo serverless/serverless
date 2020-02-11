@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Scheduled & Recurring
 menuText: Schedule
-menuOrder: 5
+menuOrder: 6
 description: Setting up Scheduled, Recurring, CRON Task Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->

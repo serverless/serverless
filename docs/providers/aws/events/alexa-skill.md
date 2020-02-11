@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Alexa Skill
 menuText: Alexa Skill
-menuOrder: 9
+menuOrder: 10
 description:  Setting up AWS Alexa Skill Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
