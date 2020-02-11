@@ -36,19 +36,19 @@ layout: Doc
 
 首先，通过如下命令安装 [Serverless Framework](https://www.github.com/serverless/serverless):
 
-```
+```bash
 $ npm i -g serverless
 ```
 
 之后可以新建一个空的文件夹，使用 `create --template-url`，安装相关 template。
 
-```
+```bash
 $ serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-fullstack-react-application
 ```
 
 使用`cd`命令，进入`templates\tencent-fullstack-react-application` 文件夹，可以查看到如下目录结构：
 
-```
+```bash
 |- api
 |- dashboard
 |- serverless.yml      # 使用项目中的 yml 文件
@@ -56,12 +56,12 @@ $ serverless create --template-url https://github.com/serverless/components/tree
 
 分别在`dashboard` 和 `api` 两个文件目录执行 NPM 依赖的安装，如下命令所示：
 
-```
+```bash
 $ cd dashboard
 $ npm i
 ```
 
-```
+```bash
 $ cd api
 $ npm i
 ```
@@ -70,7 +70,7 @@ $ npm i
 
 回到`tencent-fullstack-react-application`目录下，直接通过 `serverless` 命令来部署应用:
 
-```
+```bash
 $ serverless
 ```
 
@@ -80,7 +80,7 @@ $ serverless
 
 部署成功后，可以直接在浏览器中访问日志中返回的 dashboard url 地址，查看该全栈 Web app 的效果:
 
-```
+```bash
   dashboard:
     url: https://jcwm1l-myappid.cos-website.ap-guangzhou.myqcloud.com
     env:
@@ -100,21 +100,14 @@ $ serverless
 
 1. 首次部署成功后，也可以通过以下命令，在本地运行服务，并与后端腾讯云服务进行通讯：
 
-```
+```bash
 $ cd dashboard && npm run start
 ```
 
-2. 目前暂不支持淘宝等第三方 npm 源，如报错`Component "@serverless/tencent-express" was not found on NPM nor could it be resolved locally.`请设置并使用 npm 官方源体验：
-
-```
-$ npm config rm registry
-$ npm set registry https://registry.npmjs.org/
-```
-
-3. 腾讯云 Component 已支持二维码一键登录，如您希望使用配置秘钥的方式登录，也可以参考如下步骤：
+2. 腾讯云 Component 已支持二维码一键登录，如您希望使用配置秘钥的方式登录，也可以参考如下步骤：
    在`tencent-fullstack-react-application` 文件夹根目录创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 
