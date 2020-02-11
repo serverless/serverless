@@ -27,20 +27,20 @@ layout: Doc
 
 通过 npm 安装 serverless
 
-```
+```bash
 $ npm install -g serverless
 ```
 
 ### 2. 创建
 
-```
+```bash
 $ mkdir my-function
 $ cd my-function
 ```
 
 目录内容如下：
 
-```
+```bash
 |- code
   |- index.js
 |- serverless.yml
@@ -61,7 +61,7 @@ exports.main_handler = async (event, context, callback) => {
 
 本地创建 `serverless.yml` 文件，在其中进行如下配置
 
-```
+```bash
 $ touch serverless.yml
 ```
 
@@ -109,7 +109,7 @@ myFunction2:
 
 通过`sls`命令进行部署，并可以添加`--debug`参数查看部署过程中的信息
 
-```
+```bash
 $ sls --debug
 
   DEBUG ─ Resolving the template's static variables.
@@ -149,7 +149,7 @@ $ sls --debug
 
 ### 5. 移除
 
-```
+```bash
 $ sls remove --debug
 
   DEBUG ─ Flushing template state and removing all components.
@@ -163,7 +163,7 @@ $ sls remove --debug
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 
