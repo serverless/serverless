@@ -152,5 +152,5 @@ This feature comes with the following restrictions:
 ### Security
 
 Functions exposed through the API Gateway service are automatically converted
-into Web Actions during deployment. The framework [secures Web Actions for HTTP endpoints](https://github.com/apache/incubator-openwhisk/blob/master/docs/webactions.md#securing-web-actions) using the `require-whisk-auth` annotation. If the `require-whisk-auth`
+into Web Actions during deployment. The framework [secures Web Actions for HTTP endpoints](https://github.com/apache/openwhisk/blob/master/docs/webactions.md#securing-web-actions) using the `require-whisk-auth` annotation. If the `require-whisk-auth`
 annotation is manually configured, the existing annotation value is used, otherwise a random token is automatically generated.
