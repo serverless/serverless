@@ -26,7 +26,7 @@ layout: Doc
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
     - [Configuring endpoint types](#configuring-endpoint-types)
     - [Request Parameters](#request-parameters)
-    - [Request Schema Validation](#request-schema-validation)
+    - [Request Schema Validators](#request-schema-validators)
     - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
   - [Lambda Integration](#lambda-integration)
     - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
