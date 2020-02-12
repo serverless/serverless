@@ -48,7 +48,6 @@ provider:
     sseCustomerAlgorithim: AES256 # when using server-side encryption and custom keys
     sseCustomerKey: string # when using server-side encryption and custom keys
     sseCustomerKeyMD5: md5sum # when using server-side encryption and custom keys
-
     tags: # Tags that will be added to each of the deployment resources
       key1: value1
       key2: value2

@@ -26,7 +26,7 @@ layout: Doc
 
 通过 npm 安装 serverless
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -34,7 +34,7 @@ $ npm install -g serverless
 
 本地创建 `serverless.yml` 文件，在其中进行如下配置
 
-```
+```bash
 $ touch serverless.yml
 ```
 
@@ -63,7 +63,7 @@ restApi:
 
 通过`sls`命令进行部署，并可以添加`--debug`参数查看部署过程中的信息
 
-```
+```bash
 $ sls --debug
 
   DEBUG ─ Resolving the template's static variables.
@@ -99,7 +99,7 @@ $ sls --debug
 
 通过以下命令移除部署的 API 网关
 
-```
+```bash
 $ sls remove --debug
 
   DEBUG ─ Flushing template state and removing all components.
@@ -114,7 +114,7 @@ $ sls remove --debug
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 

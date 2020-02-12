@@ -25,7 +25,7 @@ layout: Doc
 
 在使用此组件之前，你需要先自己初始化一个 `laravel` 项目
 
-```
+```bash
 composer create-project --prefer-dist laravel/laravel serverless-laravel
 ```
 
@@ -60,7 +60,7 @@ APP_STORAGE=/tmp
 
 通过 npm 全局安装 [serverless cli](https://github.com/serverless/serverless)
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -68,7 +68,7 @@ $ npm install -g serverless
 
 在项目根目录，创建 `serverless.yml` 文件，在其中进行如下配置
 
-```
+```bash
 $ touch serverless.yml
 ```
 
@@ -103,7 +103,7 @@ MyComponent:
 
 通过 `sls` 命令进行部署，并可以添加 `--debug` 参数查看部署过程中的信息
 
-```
+```bash
 $ sls --debug
 ```
 
@@ -113,7 +113,7 @@ $ sls --debug
 
 通过以下命令移除部署的 API 网关
 
-```
+```bash
 $ sls remove --debug
 ```
 

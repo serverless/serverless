@@ -167,6 +167,7 @@
     "chalk": "^2.4.2",
     "child-process-ext": "^2.1.0",
     "ci-info": "^1.6.0",
+    "decompress": "^4.2.0",
     "d": "^1.0.1",
     "dayjs": "^1.8.19",
     "download": "^7.1.0",
