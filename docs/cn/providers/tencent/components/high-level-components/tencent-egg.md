@@ -23,7 +23,7 @@ layout: Doc
 
 #### 初始化 Egg 项目
 
-```
+```bash
 $ mkdir egg-example && cd egg-example
 $ npm init egg --type=simple
 $ npm i
@@ -47,7 +47,7 @@ const config = (exports = {
 
 通过 npm 全局安装 [serverless cli](https://github.com/serverless/serverless)
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -55,7 +55,7 @@ $ npm install -g serverless
 
 在项目根目录创建 `serverless.yml` 文件，在其中进行如下配置
 
-```
+```bash
 $ touch serverless.yml
 ```
 
@@ -65,7 +65,7 @@ $ touch serverless.yml
 MyComponent:
   component: '@serverless/tencent-egg'
   inputs:
-    region: ap-guangzhou
+    region: ap-beijing
     functionName: egg-function
     code: ./
     functionConf:
@@ -90,8 +90,39 @@ MyComponent:
 
 通过 `sls` 命令进行部署，并可以添加 `--debug` 参数查看部署过程中的信息
 
-```
+```bash
 $ sls --debug
+  DEBUG ─ Resolving the template's static variables.
+  DEBUG ─ Collecting components from the template.
+  DEBUG ─ Downloading any NPM components found in the template.
+  DEBUG ─ Analyzing the template's components dependencies.
+  DEBUG ─ Creating the template's components graph.
+  DEBUG ─ Syncing template state.
+  DEBUG ─ Executing the template's components graph.
+  DEBUG ─ Compressing function egg-function file to /Users/tina/Desktop/live/egg-proj/.serverless/egg-function.zip.
+  DEBUG ─ Compressed function egg-function file successful
+  DEBUG ─ Uploading service package to cos[sls-cloudfunction-ap-beijing-code]. sls-cloudfunction-default-egg-function-1581335565.zip
+  DEBUG ─ Uploaded package successful /Users/tina/Desktop/live/egg-proj/.serverless/egg-function.zip
+  DEBUG ─ Creating function egg-function
+  DEBUG ─ Updating code...
+  DEBUG ─ Updating configure...
+  DEBUG ─ Created function egg-function successful
+  DEBUG ─ Setting tags for function egg-function
+  DEBUG ─ Creating trigger for function egg-function
+  DEBUG ─ Deployed function egg-function successful
+  DEBUG ─ Starting API-Gateway deployment with name MyComponent.TencentApiGateway in the ap-beijing region
+  DEBUG ─ Service with ID service-n5m5e8x3 created.
+  DEBUG ─ API with id api-cmkhknda created.
+  DEBUG ─ Deploying service with id service-n5m5e8x3.
+  DEBUG ─ Deployment successful for the api named MyComponent.TencentApiGateway in the ap-beijing region.
+
+  MyComponent:
+    region:              ap-beijing
+    functionName:        egg-function
+    apiGatewayServiceId: service-n5m5e8x3
+    url:                 https://service-n5m5e8x3-1251971143.bj.apigw.tencentcs.com/release/
+
+  32s › MyComponent › done
 ```
 
 > 注意: `sls` 是 `serverless` 命令的简写。
@@ -100,7 +131,7 @@ $ sls --debug
 
 通过以下命令移除部署的 API 网关
 
-```
+```bash
 $ sls remove --debug
 ```
 
@@ -108,7 +139,7 @@ $ sls remove --debug
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 
