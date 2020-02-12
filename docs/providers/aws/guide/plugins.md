@@ -413,6 +413,55 @@ module.exports = MyPlugin;
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. If you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
 
+### Extending validation schemas
+
+If your plugin adds support for additional params in `serverless.yml` file, you should also adjust validation schemas. Otherwise, the Framework may place warnings to command output with validation errors about your params. 
+
+The Framework uses [@hapi/joi](https://hapi.dev/family/joi/) for config schema validation. You can extend any of [available](/lib/validationSchemas) schemas. In most cases, you would add your schema to existising schema by using Joi's [concat](https://hapi.dev/family/joi/api/?v=17.1.0#anyconcatschema) method.
+
+For example, if your plugin adds support for `newEvent`, then your plugin would look like this:
+
+```javascript
+const Joi = require('@hapi/joi');
+
+class NewEventPlugin {
+  constructor(serverless, options) {
+    this.serverless = serverless;
+
+    // Find the schema you want to extend at /lib/validationSchemas
+    const baseSchema = this.serverless.validationSchema.awsEvent;
+
+    // Schema for your event
+    const newEventSchema = Joi.object().keys({
+      newEvent: Joi.object().keys({
+        foo: Joi.string().required()
+      })
+    })
+
+    // Add `newEvent` schema to existing schema
+    this.serverless.validationSchema.awsEvent = baseSchema.concat(newEventSchema)
+  }
+}
+```
+In this case, plugin schema was added to [awsEvent.js](/lib/validationSchemas/awsEvent.js) schema.
+
+Here is another example. If your plugin extends `http` event by adding `cache` param, then you would do something like this:
+
+```javascript
+const baseHttpEventSchema = this.serverless.validationSchema.awsHttpEventAsObject;
+
+const newHttpEventParams = Joi.object().keys({
+  cache: Joi.object().keys({
+    enabled: Joi.object().boolean(),
+    cacheKeyParameters: Joi.array()
+  })
+})
+
+this.serverless.validationSchema.awsHttpEventAsObject = baseHttpEventSchema.concat(newHttpEventParams)
+```
+In this case, plugin schema was added to [awsHttpEventAsObject.js](/lib/validationSchemas/awsHttpEventAsObject.js) schema.
+
+
 ### Extending the `info` command
 
 The `info` command which is used to display information about the deployment has detailed `lifecycleEvents` you can hook into to add and display custom information.
