@@ -26,7 +26,7 @@ describe('HTTP API Integration Test', function() {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
     const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'HttpApiUrl' })
       .OutputValue;
-    endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+    endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com/)[0];
   };
 
   describe('Specific endpoints', () => {
@@ -53,7 +53,7 @@ describe('HTTP API Integration Test', function() {
 
       const response = await fetch(testEndpoint, { method: 'GET' });
       const json = await response.json();
-      expect(json).to.deep.equal({ method: 'GET', path: '/dev/foo' });
+      expect(json).to.deep.equal({ method: 'GET', path: '/foo' });
     });
 
     it('should expose an accessible POST HTTP endpoint', async () => {
@@ -61,7 +61,7 @@ describe('HTTP API Integration Test', function() {
 
       const response = await fetch(testEndpoint, { method: 'POST' });
       const json = await response.json();
-      expect(json).to.deep.equal({ method: 'POST', path: '/dev/some-post' });
+      expect(json).to.deep.equal({ method: 'POST', path: '/some-post' });
     });
 
     it('should expose an accessible paramed GET HTTP endpoint', async () => {
@@ -69,7 +69,7 @@ describe('HTTP API Integration Test', function() {
 
       const response = await fetch(testEndpoint, { method: 'GET' });
       const json = await response.json();
-      expect(json).to.deep.equal({ method: 'GET', path: '/dev/bar/whatever' });
+      expect(json).to.deep.equal({ method: 'GET', path: '/bar/whatever' });
     });
 
     it('should return 404 on not supported method', async () => {
@@ -111,7 +111,7 @@ describe('HTTP API Integration Test', function() {
 
       const response = await fetch(testEndpoint, { method: 'GET' });
       const json = await response.json();
-      expect(json).to.deep.equal({ method: 'GET', path: '/dev' });
+      expect(json).to.deep.equal({ method: 'GET', path: '/' });
     });
 
     it('should catch all whatever endpoint', async () => {
@@ -119,7 +119,7 @@ describe('HTTP API Integration Test', function() {
 
       const response = await fetch(testEndpoint, { method: 'PATCH' });
       const json = await response.json();
-      expect(json).to.deep.equal({ method: 'PATCH', path: '/dev/whatever' });
+      expect(json).to.deep.equal({ method: 'PATCH', path: '/whatever' });
     });
 
     it('should catch all methods on method catch all endpoint', async () => {
@@ -127,7 +127,7 @@ describe('HTTP API Integration Test', function() {
 
       const response = await fetch(testEndpoint, { method: 'PATCH' });
       const json = await response.json();
-      expect(json).to.deep.equal({ method: 'PATCH', path: '/dev/foo' });
+      expect(json).to.deep.equal({ method: 'PATCH', path: '/foo' });
     });
   });
 });
