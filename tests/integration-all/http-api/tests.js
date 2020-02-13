@@ -34,7 +34,7 @@ describe('HTTP API Integration Test', function() {
       tmpDirPath = getTmpDirPath();
       log.debug('temporary path %s', tmpDirPath);
       const serverlessConfig = await createTestService(tmpDirPath, {
-        templateDir: fixtures.map.httpApiNoCatchAll,
+        templateDir: fixtures.map.httpApi,
       });
       serviceName = serverlessConfig.service;
       stackName = `${serviceName}-${stage}`;
