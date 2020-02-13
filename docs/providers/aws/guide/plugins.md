@@ -415,7 +415,7 @@ Command names need to be unique. If we load two commands and both want to specif
 
 ### Extending validation schemas
 
-If your plugin adds support for additional params in `serverless.yml` file, you should also adjust validation schemas. Otherwise, the Framework may place warnings to command output with validation errors about your params. 
+If your plugin adds support for additional params in `serverless.yml` file, you should also adjust validation schemas. Otherwise, the Framework may place warnings to command output with validation errors about your params.
 
 The Framework uses [@hapi/joi](https://hapi.dev/family/joi/) for config schema validation. You can extend any of [available](/lib/validationSchemas) schemas. In most cases, you would add your schema to existising schema by using Joi's [concat](https://hapi.dev/family/joi/api/?v=17.1.0#anyconcatschema) method.
 
@@ -434,15 +434,16 @@ class NewEventPlugin {
     // Schema for your event
     const newEventSchema = Joi.object().keys({
       newEvent: Joi.object().keys({
-        foo: Joi.string().required()
-      })
-    })
+        foo: Joi.string().required(),
+      }),
+    });
 
     // Add `newEvent` schema to existing schema
-    this.serverless.validationSchema.awsEvent = baseSchema.concat(newEventSchema)
+    this.serverless.validationSchema.awsEvent = baseSchema.concat(newEventSchema);
   }
 }
 ```
+
 In this case, plugin schema was added to [awsEvent.js](/lib/validationSchemas/awsEvent.js) schema.
 
 Here is another example. If your plugin extends `http` event by adding `cache` param, then you would do something like this:
@@ -453,14 +454,16 @@ const baseHttpEventSchema = this.serverless.validationSchema.awsHttpEventAsObjec
 const newHttpEventParams = Joi.object().keys({
   cache: Joi.object().keys({
     enabled: Joi.object().boolean(),
-    cacheKeyParameters: Joi.array()
-  })
-})
+    cacheKeyParameters: Joi.array(),
+  }),
+});
 
-this.serverless.validationSchema.awsHttpEventAsObject = baseHttpEventSchema.concat(newHttpEventParams)
+this.serverless.validationSchema.awsHttpEventAsObject = baseHttpEventSchema.concat(
+  newHttpEventParams
+);
 ```
-In this case, plugin schema was added to [awsHttpEventAsObject.js](/lib/validationSchemas/awsHttpEventAsObject.js) schema.
 
+In this case, plugin schema was added to [awsHttpEventAsObject.js](/lib/validationSchemas/awsHttpEventAsObject.js) schema.
 
 ### Extending the `info` command
 
