@@ -26,7 +26,7 @@ layout: Doc
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
     - [Configuring endpoint types](#configuring-endpoint-types)
     - [Request Parameters](#request-parameters)
-    - [Request Schema Validation](#request-schema-validation)
+    - [Request Schema Validators](#request-schema-validators)
     - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
   - [Lambda Integration](#lambda-integration)
     - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
@@ -444,10 +444,31 @@ functions:
           method: post
           authorizer:
             arn: xxx:xxx:Lambda-Name
+            managedExternally: false
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
 ```
+
+If permissions for the Authorizer function are managed externally (for example, if the Authorizer function exists
+in a different AWS account), you can skip creating the permission for the function by setting `managedExternally: true`,
+as shown in the following example:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            arn: xxx:xxx:Lambda-Name
+            managedExternally: true
+```
+
+**IMPORTANT NOTE**: The permission allowing the authorizer function to be called by API Gateway must exist
+before deploying the stack, otherwise deployment will fail.
 
 You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for your policy cache. The default `type` is 'token'.
 
