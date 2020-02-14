@@ -63,3 +63,43 @@ functions:
           method: GET
           path: /get/for/any/{param}
 ```
+
+## CORS Setup
+
+With HTTP API we may configure CORS headers that'll be effective for all configured endpoints.
+
+Default CORS configuration can be turned on with:
+
+```yaml
+provider:
+  httpApi:
+    cors: true
+```
+
+It'll result with headers as:
+
+| Header                       | Value                                                                                       |
+| :--------------------------- | :------------------------------------------------------------------------------------------ |
+| Access-Control-Allow-Origin  | \*                                                                                          |
+| Access-Control-Allow-Headers | Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent) |
+| Access-Control-Allow-Methods | OPTIONS, _(...all defined in endpoints)_                                                    |
+
+If there's a need to fine tune CORS headers, then each can be configured individually as follows:
+
+```yaml
+provider:
+  httpApi:
+    cors:
+      allowedOrigins:
+        - https://url1.com
+        - https://url2.com
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+      allowCredentials: true
+      exposedResponseHeaders:
+        - Special-Response-Header
+      maxAge: 6000 # In seconds
+```
