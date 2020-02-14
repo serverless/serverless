@@ -75,6 +75,8 @@ provider:
     description: Some Description # Optional description for the API Gateway stage deployment
     binaryMediaTypes: # Optional binary media types the API might return
       - '*/*'
+  alb:
+    targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
   usagePlan: # Optional usage plan configuration
     quota:
       limit: 5000
