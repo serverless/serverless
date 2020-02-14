@@ -34,7 +34,9 @@ describe('HTTP API Integration Test', function() {
       tmpDirPath = getTmpDirPath();
       log.debug('temporary path %s', tmpDirPath);
       const serverlessConfig = await createTestService(tmpDirPath, {
-        templateDir: fixtures.map.httpApi,
+        templateDir: await fixtures.extend('httpApi', {
+          provider: { httpApi: { cors: { exposedResponseHeaders: 'X-foo' } } },
+        }),
       });
       serviceName = serverlessConfig.service;
       stackName = `${serviceName}-${stage}`;
@@ -84,6 +86,17 @@ describe('HTTP API Integration Test', function() {
 
       const response = await fetch(testEndpoint, { method: 'GET' });
       expect(response.status).to.equal(404);
+    });
+
+    it('should support CORS when indicated', async () => {
+      const testEndpoint = `${endpoint}/foo`;
+
+      const response = await fetch(testEndpoint, {
+        method: 'GET',
+        headers: { Origin: 'https://serverless.com' },
+      });
+      expect(response.headers.get('access-control-allow-origin')).to.equal('*');
+      expect(response.headers.get('access-control-expose-headers')).to.equal('x-foo');
     });
   });
 
