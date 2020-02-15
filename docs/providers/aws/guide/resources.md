@@ -121,3 +121,27 @@ resources:
       Properties:
         RetentionInDays: '30'
 ```
+
+## Making your API Gateway deployment depend on resources defined in the Resources section
+
+If you define API endpoints using the `functions` shorthand, they are automatically added as dependencies
+to the API Gateway `Deployment`. However, sometimes your API also depends on other resources that are
+defined in the `resources` section.
+
+You can ensure that your API deployment waits for those other resources to be created by listing them
+in the `provider.apiGateway.deployment.dependsOn` attribute.
+
+Here's an example:
+
+```yml
+provider:
+  name: aws
+  apiGateway:
+    deployment:
+      dependsOn:
+        - SampleResource
+
+resources:
+  Resources:
+    SampleResource: ...
+```
