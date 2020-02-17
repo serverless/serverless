@@ -124,6 +124,12 @@ jobs:
           then
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
+      install:
+        # Note: `--no-optional` seems to be ineffective (with `--depth`) on Windows in some cases
+        # See: https://travis-ci.org/serverless/serverless/jobs/651220714
+        # Therefore no deep install on Windows
+        - npm update --no-save
+        - npm update --save-dev --no-save
 
     - name: 'Isolated Unit Tests, Package Integration Tests - Node.js v13'
       node_js: 13
