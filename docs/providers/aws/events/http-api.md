@@ -103,3 +103,42 @@ provider:
         - Special-Response-Header
       maxAge: 6000 # In seconds
 ```
+
+## JWT Authorizers
+
+Currently the only way to restrict access to configured HTTP API endpoints is by setting up an JWT Authorizers.
+
+_For deep details on that follow [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-jwt-authorizer.html)_
+
+To ensure endpoints (as configured in `serverless.yml`) are backed with autorizers, follow below steps.
+
+### 1. Configure authorizers on `provider.httpApi.authorizers`
+
+```yaml
+provider:
+  httpApi:
+    authorizers:
+      someJwtAuthorizer:
+        identitySource: $request.header.Authorization
+        issuerUrl: https://cognito-idp.${region}.amazonaws.com/${cognitoPoolId}
+        audience:
+          - ${client1Id}
+          - ${client2Id}
+```
+
+### 2. Configure endpoints which are expected to have restricted access:
+
+```yaml
+functions:
+  someFunction:
+    handler: index.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /some-post
+          authorizer:
+            name: someJwtAuthorizer
+            scopes: # Optional
+              - user.id
+              - user.email
+```
