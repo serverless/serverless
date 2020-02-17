@@ -129,10 +129,18 @@ $ sls --debug
 
 ### 4. 移除
 
-通过以下命令移除部署的 API 网关
+通过以下命令移除部署的 API 网关和云函数
 
 ```bash
 $ sls remove --debug
+  DEBUG ─ Flushing template state and removing all components.
+  DEBUG ─ Removing function
+  DEBUG ─ Request id
+  DEBUG ─ Removed function egg-function successful
+  DEBUG ─ Removing any previously deployed API. api-cmkhknda
+  DEBUG ─ Removing any previously deployed service. service-n5m5e8x3
+
+  8s › MyComponent › done
 ```
 
 ### 账号配置（可选）
