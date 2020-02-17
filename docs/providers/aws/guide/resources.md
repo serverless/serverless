@@ -121,3 +121,40 @@ resources:
       Properties:
         RetentionInDays: '30'
 ```
+
+If you use the method above, be careful about which attributes you override. The merge that is done
+is simple, and you may not get what you expect if you try to override an attribute that is a list.
+
+For a safer extension mechanism, use `resources.extensions`, for example:
+
+```yml
+functions:
+  write-post:
+    handler: handler.writePost
+    events:
+      - http:
+          method: post
+          path: ${self:service}/api/posts/new
+          cors: true
+
+resources:
+  extensions:
+    WriteDashPostLogGroup:
+      Properties:
+        RetentionInDays: '30'
+```
+
+Here's how the extension logic is defined:
+
+| Resource attribute    | Operation                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `CreationPolicy`      | Set to extension value if present.                                                                                         |
+| `DeletionPolicy`      | Set to extension value if present.                                                                                         |
+| `DependsOn`           | Merge. The extension value will be added to the resource's `DependsOn` list.                                               |
+| `Metadata`            | Merge. If a metadata key with the same name exists in the resource, the value will be _replaced_ with the extension value. |
+| `Properties`          | Merge. If a property with the same name exists in the resource, the value will be _replaced_ with the extension value.     |
+| `UpdatePolicy`        | Set to extension value if present.                                                                                         |
+| `UpdateReplacePolicy` | Set to extension value if present.                                                                                         |
+| _other_               | Not supported. An error will be thrown if you try to extend an unsupported attribute.                                      |
+
+Extending using `resources.extensions` only works on the `Resources` part of the CloudFormation template.
