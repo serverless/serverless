@@ -162,7 +162,7 @@ functions:
             deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
 ```
 
-To define the Dead Letter Queue, you can use either use the `arn:` notation or the CloudFormation function `Fn::GetAtt`
+To define the Dead Letter Queue, you can alternatively use the the resource name with `deadLetterTargetRef`
 
 ```yml
 functions:
@@ -172,10 +172,7 @@ functions:
       - sns:
           topicName: dispatcher
           redrivePolicy:
-            deadLetterTargetArn:
-              Fn::GetAtt:
-                - myDLQ
-                - Arn
+            deadLetterTargetRef: myDLQ
 
 resources:
   Resources:
@@ -185,7 +182,8 @@ resources:
         QueueName: myDLQ
 ```
 
-Alternatively, you can specify both `deadLetterTargetArn` and `deadLetterTargetUrl` using strings or any supported CloudFormation function like `Fn::ImportValue`
+Or if you want to use values from other stacks, you can
+also use `deadLetterTargetImport` to define the DLQ url and arn with exported values
 
 ```yml
 functions:
@@ -195,8 +193,7 @@ functions:
       - sns:
           topicName: dispatcher
           redrivePolicy:
-            deadLetterTargetArn:
-              'Fn::ImportValue': MyShared-DLQArn
-            deadLetterTargetUrl:
-              'Fn::ImportValue': MyShared-DLQUrl
+            deadLetterTargetImport:
+              arn: MyShared-DLQArn
+              url: MyShared-DLQUrl
 ```
