@@ -152,7 +152,8 @@ provider:
       executionLogging: true # Optional configuration which enables or disables execution logging. Defaults to true.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
       fullExecutionData: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
-      role: arn:aws:iam::123456:role # Optional IAM role for ApiGateway to use when managing CloudWatch Logs
+      role: arn:aws:iam::123456:role # Existing IAM role for ApiGateway to use when managing CloudWatch Logs. If 'role' is not configured, a new role is automatically created.
+      roleManagedExternally: false # Specifies whether the ApiGateway CloudWatch Logs role setting is not managed by Serverless. Defaults to false.
     websocket: # Optional configuration which specifies if Websocket logs are used. This can either be set to `true` to use defaults, or configured via subproperties.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
