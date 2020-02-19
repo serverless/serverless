@@ -149,7 +149,7 @@ functions:
 
 ## Setting a redrive policy
 
-This event definition creates an SNS topic that sends messages to a Dead Letter Queue (defined by its ARN) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`
+This event definition creates an SNS topic that sends messages to a Dead Letter Queue (defined by its ARN) when the associated lambda is not available. In this example, messages that aren't delivered to the `dispatcher` Lambda (because the lambda service is down or irresponsive) will end in `myDLQ`.
 
 ```yml
 functions:
@@ -159,7 +159,20 @@ functions:
       - sns:
           topicName: dispatcher
           redrivePolicy:
-            deadLetterTargetArn: !Ref myDLQ
+            deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
+```
+
+To define the Dead Letter Queue, you can alternatively use the the resource name with `deadLetterTargetRef`
+
+```yml
+functions:
+  dispatcher:
+    handler: dispatcher.handler
+    events:
+      - sns:
+          topicName: dispatcher
+          redrivePolicy:
+            deadLetterTargetRef: myDLQ
 
 resources:
   Resources:
@@ -167,4 +180,20 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: myDLQ
+```
+
+Or if you want to use values from other stacks, you can
+also use `deadLetterTargetImport` to define the DLQ url and arn with exported values
+
+```yml
+functions:
+  dispatcher:
+    handler: dispatcher.handler
+    events:
+      - sns:
+          topicName: dispatcher
+          redrivePolicy:
+            deadLetterTargetImport:
+              arn: MyShared-DLQArn
+              url: MyShared-DLQUrl
 ```

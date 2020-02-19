@@ -261,7 +261,14 @@ functions:
               - dog
               - cat
           redrivePolicy:
-            deadLetterTargetArn: arn:aws:sqs:region:XXXXXX:myDLQ
+              # (1) ARN
+              deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
+              # (2) Ref (resource defined in same CF stack)
+              deadLetterTargetRef: myDLQ
+              # (3) Import (resource defined in outer CF stack)
+              deadLetterTargetImport:
+                arn: MyShared-DLQArn
+                url: MyShared-DLQUrl
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10

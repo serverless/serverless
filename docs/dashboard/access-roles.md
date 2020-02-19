@@ -26,9 +26,9 @@ If you do not use the Serverless Framework Dashboard to set up an AWS Access Rol
 1. Open the [Dashboard](https://dashboard.serverless.com/)
 2. Once logged in, click "**profiles**" near the top of the page.
 3. Navigate to the profile you would like to configure with the AWS Access Role.
-4. In the **AWS credential access role** tab, expand the "_how to add a role_".
-5. Follow the directions which will take you through creating an IAM Role for the Serverless Framework.
-6. Click "**save changes**" in the deployment profile to save the IAM Role ARN to the profile.
+4. In the **AWS account** tab, click **connect aws** button.
+5. Follow the instructions on AWS which will take you through creating an IAM Role for the Serverless Framework.
+6. Once the IAM Role is created, your profile will be automatically updated.
 
 ## Use the generated AWS Access Keys in your service
 
