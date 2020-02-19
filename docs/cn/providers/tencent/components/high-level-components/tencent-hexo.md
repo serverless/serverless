@@ -29,19 +29,19 @@ layout: Doc
 
 **安装 Serverless Framework**
 
-```
+```bash
 $ npm install -g serverless
 ```
 
 **安装 Hexo**
 
-```
+```bash
 $ npm install -g hexo-cli
 ```
 
 安装 Hexo 完成后，请执行下列命令，Hexo 将会在指定文件夹中新建所需要的文件。
 
-```
+```bash
 $ hexo init hexo   # 生成hexo目录
 $ cd hexo
 $ npm install
@@ -49,7 +49,7 @@ $ npm install
 
 新建完成后，指定文件夹的目录如下：
 
-```
+```bash
 .
 ├── _config.yml
 ├── package.json
@@ -62,13 +62,13 @@ $ npm install
 
 安装完成后，可以通过`hexo g`命令生成静态页面
 
-```
+```bash
 $ hexo g   # generate
 ```
 
 > 注：如果希望在本地查看效果，也可以运行下列命令，通过浏览器访问 `localhost:4000` 查看页面效果。
 
-```
+```bash
 $ hexo s   # server
 ```
 
@@ -76,7 +76,7 @@ $ hexo s   # server
 
 在`hexo`目录下，创建`serverless.yml`文件，在其中进行如下配置
 
-```
+```bash
 $ touch serverless.yml
 ```
 
@@ -96,7 +96,7 @@ myWebsite:
 
 配置完成后，文件目录如下：
 
-```
+```bash
 .
 ├── .serverless
 ├── hexo
@@ -114,7 +114,7 @@ myWebsite:
 
 如您的账号未[登陆](https://cloud.tencent.com/login)或[注册](https://cloud.tencent.com/register)腾讯云，您可以直接通过`微信`扫描命令行中的二维码进行授权登陆和注册。
 
-```
+```bash
 $ serverless --debug
 
   DEBUG ─ Resolving the template's static variables.
@@ -156,7 +156,7 @@ Login successful for TencentCloud
 
 可以通过以下命令移除 hexo 网站
 
-```console
+```bash
 $ sls remove --debug
 
   DEBUG ─ Flushing template state and removing all components.
@@ -175,7 +175,7 @@ $ sls remove --debug
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 

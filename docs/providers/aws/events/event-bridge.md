@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Event Bridge
 menuText: EventBridge Event
-menuOrder: 14
+menuOrder: 15
 description:  Setting up AWS EventBridge Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
