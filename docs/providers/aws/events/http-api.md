@@ -110,7 +110,7 @@ Currently the only way to restrict access to configured HTTP API endpoints is by
 
 _For deep details on that follow [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-jwt-authorizer.html)_
 
-To ensure endpoints (as configured in `serverless.yml`) are backed with autorizers, follow below steps.
+To ensure endpoints (as configured in `serverless.yml`) are backed with authorizers, follow below steps.
 
 ### 1. Configure authorizers on `provider.httpApi.authorizers`
 
