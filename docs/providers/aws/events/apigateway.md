@@ -1575,6 +1575,30 @@ provider:
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/api-gateway/{service}-{stage}`.
 
+To be able to write logs, API Gateway [needs a CloudWatch role configured](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html). This setting is per region, shared by all the APIs. There are three approaches for handling it:
+
+- Let Serverless create and assign an IAM role for you (default behavior). Note that since this is a shared setting, this role is not removed when you remove the deployment.
+- Let Serverless assign an existing IAM role that you created before the deployment, if not already assigned:
+
+  ```yml
+  # serverless.yml
+  provider:
+    logs:
+      restApi:
+        role: arn:aws:iam::123456:role
+  ```
+
+- Do not let Serverless manage the CloudWatch role configuration. In this case, you would create and assign the IAM role yourself, e.g. in a separate "account setup" deployment:
+
+  ```yml
+  provider:
+    logs:
+      restApi:
+        roleManagedExternally: true # disables automatic role creation/checks done by Serverless
+  ```
+
+**Note:** Serverless configures the API Gateway CloudWatch role setting using a custom resource lambda function. If you're using `cfnRole` to specify a limited-access IAM role for your serverless deployment, the custom resource lambda will assume this role during execution.
+
 By default, API Gateway access logs will use the following format:
 
 ```

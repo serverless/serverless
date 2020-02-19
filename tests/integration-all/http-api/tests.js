@@ -30,12 +30,64 @@ describe('HTTP API Integration Test', function() {
   };
 
   describe('Specific endpoints', () => {
+    let poolId;
+    let clientId;
+    const userName = 'test-http-api';
+    const userPassword = 'razDwa3!';
+
     before(async () => {
       tmpDirPath = getTmpDirPath();
       log.debug('temporary path %s', tmpDirPath);
+      poolId = (
+        await awsRequest('CognitoIdentityServiceProvider', 'createUserPool', {
+          PoolName: `test-http-api-${process.hrtime()[1]}`,
+        })
+      ).UserPool.Id;
+      [clientId] = await Promise.all([
+        awsRequest('CognitoIdentityServiceProvider', 'createUserPoolClient', {
+          ClientName: 'test-http-api',
+          UserPoolId: poolId,
+          ExplicitAuthFlows: ['ALLOW_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH'],
+          PreventUserExistenceErrors: 'ENABLED',
+        }).then(result => result.UserPoolClient.ClientId),
+        awsRequest('CognitoIdentityServiceProvider', 'adminCreateUser', {
+          UserPoolId: poolId,
+          Username: userName,
+        }).then(() =>
+          awsRequest('CognitoIdentityServiceProvider', 'adminSetUserPassword', {
+            UserPoolId: poolId,
+            Username: userName,
+            Password: userPassword,
+            Permanent: true,
+          })
+        ),
+      ]);
+
       const serverlessConfig = await createTestService(tmpDirPath, {
         templateDir: await fixtures.extend('httpApi', {
-          provider: { httpApi: { cors: { exposedResponseHeaders: 'X-foo' } } },
+          provider: {
+            httpApi: {
+              cors: { exposedResponseHeaders: 'X-foo' },
+              authorizers: {
+                someAuthorizer: {
+                  identitySource: '$request.header.Authorization',
+                  issuerUrl: `https://cognito-idp.us-east-1.amazonaws.com/${poolId}`,
+                  audience: clientId,
+                },
+              },
+            },
+          },
+          functions: {
+            foo: {
+              events: [
+                {
+                  httpApi: {
+                    authorizer: 'someAuthorizer',
+                  },
+                },
+              ],
+            },
+          },
         }),
       });
       serviceName = serverlessConfig.service;
@@ -46,16 +98,10 @@ describe('HTTP API Integration Test', function() {
     });
 
     after(async () => {
+      await awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: poolId });
+      if (!serviceName) return;
       log.notice('Removing service...');
       await removeService(tmpDirPath);
-    });
-
-    it('should expose an accessible GET HTTP endpoint', async () => {
-      const testEndpoint = `${endpoint}/foo`;
-
-      const response = await fetch(testEndpoint, { method: 'GET' });
-      const json = await response.json();
-      expect(json).to.deep.equal({ method: 'GET', path: '/foo' });
     });
 
     it('should expose an accessible POST HTTP endpoint', async () => {
@@ -89,7 +135,7 @@ describe('HTTP API Integration Test', function() {
     });
 
     it('should support CORS when indicated', async () => {
-      const testEndpoint = `${endpoint}/foo`;
+      const testEndpoint = `${endpoint}/bar/whatever`;
 
       const response = await fetch(testEndpoint, {
         method: 'GET',
@@ -97,6 +143,29 @@ describe('HTTP API Integration Test', function() {
       });
       expect(response.headers.get('access-control-allow-origin')).to.equal('*');
       expect(response.headers.get('access-control-expose-headers')).to.equal('x-foo');
+    });
+
+    it('should expose a GET HTTP endpoint backed by JWT authorization', async () => {
+      const testEndpoint = `${endpoint}/foo`;
+
+      const responseUnauthorized = await fetch(testEndpoint, {
+        method: 'GET',
+      });
+      expect(responseUnauthorized.status).to.equal(401);
+
+      const token = (
+        await awsRequest('CognitoIdentityServiceProvider', 'initiateAuth', {
+          AuthFlow: 'USER_PASSWORD_AUTH',
+          AuthParameters: { USERNAME: userName, PASSWORD: userPassword },
+          ClientId: clientId,
+        })
+      ).AuthenticationResult.IdToken;
+      const responseAuthorized = await fetch(testEndpoint, {
+        method: 'GET',
+        headers: { Authorization: token },
+      });
+      const json = await responseAuthorized.json();
+      expect(json).to.deep.equal({ method: 'GET', path: '/foo' });
     });
   });
 
