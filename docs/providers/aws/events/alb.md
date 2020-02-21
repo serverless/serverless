@@ -88,6 +88,7 @@ functions:
             sessionCookieName: '🍪' # The name of the cookie used to maintain session information. The default is AWSELBAuthSessionCookie
             sessionTimeout: 7000 # The maximum duration of the authentication session, in seconds. The default is 604800 seconds (7 days).
 ```
+
 ```yml
 functions:
   albEventConsumer:
@@ -106,7 +107,7 @@ functions:
             issuer: 'https://www.iamscam.com', # required. The OIDC issuer identifier of the IdP. This must be a full URL, including the HTTPS protocol, the domain, and the path
             tokenEndpoint: 'http://somewhere.org', # required
             userInfoEndpoint: 'https://another-example.com' # required
-            allowUnauthenticated: false # 
+            allowUnauthenticated: false
             requestExtraParams:
               prompt: 'login'
               redirect: false
