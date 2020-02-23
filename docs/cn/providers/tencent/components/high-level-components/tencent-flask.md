@@ -97,16 +97,61 @@ MyComponent:
 
 通过 `sls` 命令进行部署，并可以添加 `--debug` 参数查看部署过程中的信息
 
+> 注意: `sls` 是 `serverless` 命令的简写。
+
 ```bash
 $ sls --debug
+
+  DEBUG ─ Resolving the template's static variables.
+  DEBUG ─ Collecting components from the template.
+  DEBUG ─ Downloading any NPM components found in the template.
+  DEBUG ─ Analyzing the template's components dependencies.
+  DEBUG ─ Creating the template's components graph.
+  DEBUG ─ Syncing template state.
+  DEBUG ─ Executing the template's components graph.
+  DEBUG ─ Generated requirements from /Users/Downloads/myapp/requirements.txt in /Users/Downloads/myapp/.serverless/requirements.txt...
+  DEBUG ─ Installing requirements from /Users/Library/Caches/serverless-python-requirements/78f1b71bd84112bad004679c938bd8c63c80ddf8c468c5484e3de8214a52a8bc_slspyc/requirements.txt ...
+  DEBUG ─ Using download cache directory /Users/Library/Caches/serverless-python-requirements/downloadCacheslspyc
+  DEBUG ─ Running ...
+  DEBUG ─ Compressing function flask-function file to /Users/Downloads/myapp/.serverless/flask-function.zip.
+  DEBUG ─ Compressed function flask-function file successful
+  DEBUG ─ Uploading service package to cos[sls-cloudfunction-ap-guangzhou-code]. sls-cloudfunction-default-flask-function-1581890739.zip
+  DEBUG ─ Uploaded package successful /Users/Downloads/myapp/.serverless/flask-function.zip
+  DEBUG ─ Creating function flask-function
+  DEBUG ─ Created function flask-function successful
+  DEBUG ─ Setting tags for function flask-function
+  DEBUG ─ Creating trigger for function flask-function
+  DEBUG ─ Deployed function flask-function successful
+  DEBUG ─ Starting API-Gateway deployment with name MyComponent.TencentApiGateway in the ap-guangzhou region
+  DEBUG ─ Service with ID service-rf5pzbfy created.
+  DEBUG ─ API with id api-6i3uv432 created.
+  DEBUG ─ Deploying service with id service-rf5pzbfy.
+  DEBUG ─ Deployment successful for the api named MyComponent.TencentApiGateway in the ap-guangzhou region.
+
+  MyComponent:
+    region:              ap-guangzhou
+    functionName:        flask-function
+    apiGatewayServiceId: service-rf5pzbfy
+    url:                 http://service-rf5pzbfy-1258834142.gz.apigw.tencentcs.com/release/
+
+  75s › MyComponent › done
 ```
 
 ### 4. 移除
 
-通过以下命令移除部署的 API 网关
+通过以下命令移除部署的 API 网关和云函数
 
 ```bash
 $ sls remove --debug
+
+  DEBUG ─ Flushing template state and removing all components.
+  DEBUG ─ Removing function
+  DEBUG ─ Request id
+  DEBUG ─ Removed function flask-function successful
+  DEBUG ─ Removing any previously deployed API. api-6i3uv432
+  DEBUG ─ Removing any previously deployed service. service-rf5pzbfy
+
+  17s › MyComponent › done
 ```
 
 ### 账号配置（可选）
