@@ -413,6 +413,13 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+  extensions:
+    # override Properties or other attributes of Framework-created resources.
+    # See https://serverless.com/framework/docs/providers/aws/guide/resources#override-aws-cloudformation-resource for more details
+    UsersCreateLogGroup:
+      Properties:
+        RetentionInDays: '30'
+
   # The "Outputs" that your AWS CloudFormation Stack should produce.  This allows references between services.
   Outputs:
     UsersTableArn:
