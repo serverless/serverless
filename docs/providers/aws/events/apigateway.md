@@ -655,7 +655,7 @@ functions:
           method: get
 ```
 
-API Gateway also supports the association of VPC endpoints if you have an API Gateway REST API using the PRIVATE endpoint configuration. This feature simplifies the invocation of a private API through the generation of the following AWS Route 53 alias: 
+API Gateway also supports the association of VPC endpoints if you have an API Gateway REST API using the PRIVATE endpoint configuration. This feature simplifies the invocation of a private API through the generation of the following AWS Route 53 alias:
 
 ```
 https://<rest_api_id>-<vpc_endpoint_id>.execute-api.<aws_region>.amazonaws.com
