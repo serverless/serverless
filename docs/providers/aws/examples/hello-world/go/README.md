@@ -33,7 +33,7 @@ It is always good practice to organize your `go` projects within [GOPATH](https:
 
 ## 1. Create a service
 
-The Serverless Framework includes starter templates for various languages and providers. There are two templates for `go`.
+The Serverless Framework includes starter templates for various languages and providers. There are three templates for `go`.
 
 #### [aws-go](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/aws-go)
 
@@ -45,10 +45,18 @@ sls create --template aws-go --path myService
 
 #### [aws-go-dep](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/aws-go-dep)
 
-`aws-go-dep` uses [go dep](https://github.com/golang/dep) and requires your project to be in `$GOPATH/src`
+`aws-go-dep` uses [go dep](https://github.com/golang/dep) and requires your project to be in `$GOPATH/src`.
 
 ```
 sls create --template aws-go-dep --path myService
+```
+
+#### [aws-go-mod](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/aws-go-mod)
+
+`aws-go-mod` uses standard [Go modules](https://github.com/golang/go/wiki/Modules) and requires your project to be **outside** `$GOPATH` and to use Go 1.13+.
+
+```
+sls create --template aws-go-mod --path myService
 ```
 
 Using the `create` command we can specify one of the available [templates](https://serverless.com/framework/docs/providers/aws/cli-reference/create#available-templates). For this example use aws-go-dep with the `--template` or shorthand `-t` flag.
