@@ -31,7 +31,7 @@ if (userNodeVersion >= 8) {
     return;
   }
 
-  if (componentsV2.runningComponents()) {
+  if (componentsV2.runningComponents() || process.argv[2] === 'registry') {
     componentsV2.runComponents();
     return;
   }
