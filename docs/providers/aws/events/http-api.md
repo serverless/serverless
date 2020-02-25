@@ -142,3 +142,39 @@ functions:
               - user.id
               - user.email
 ```
+
+## Access logs
+
+Deployed stage can have acess logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
+
+```yaml
+provider:
+  logs:
+    httpApi: true
+```
+
+Default logs format is:
+
+```json
+{
+  "requestId": "$context.requestId",
+  "ip": "$context.identity.sourceIp",
+  "requestTime": "$context.requestTime",
+  "httpMethod": "$context.httpMethod",
+  "routeKey": "$context.routeKey",
+  "status": "$context.status",
+  "protocol": "$context.protocol",
+  "responseLength": "$context.responseLength"
+}
+```
+
+It can be overriden via `format` setting:
+
+```yaml
+provider:
+  logs:
+    httpApi:
+      format: '{ "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime" }'
+```
+
+See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) documentation for more info on variables that can be used
