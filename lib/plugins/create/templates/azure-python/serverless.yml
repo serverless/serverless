@@ -112,7 +112,7 @@ functions:
   #   events:
   #     - queue: queue-sample
   #       x-azure-settings:
-  #         name: message # Specifies which naem is available on `context`
+  #         name: message # Specifies which name is available on `context`
   #         connection: AzureWebJobsStorage
   # timer:
   #   handler: src/handlers/timer
