@@ -29,7 +29,7 @@ koa 组件通过使用 serverless-tencent 的基础组件如 API 网关组件，
 
 通过 npm 安装 serverless
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -37,20 +37,20 @@ $ npm install -g serverless
 
 本地创建 `serverless.yml` 文件和 `app.js`文件：
 
-```
+```bash
 $ touch serverless.yml
 ```
 
 初始化一个新的 npm 包，并安装 koa:
 
-```
+```bash
 npm init              # 创建后持续回车
 npm i --save koa  # 安装 koa
 ```
 
 创建一个 `app.js`文件，并在其中创建您的 koa App：
 
-```
+```bash
 $ touch app.js
 ```
 
@@ -88,7 +88,7 @@ koa:
 
 > 注：`sls`命令是`serverless`命令的缩写
 
-```
+```bash
 $ sls --debug
 
   DEBUG ─ Resolving the template's static variables.
@@ -129,7 +129,7 @@ $ sls --debug
 
 通过以下命令移除部署的存储桶
 
-```
+```bash
 $ sls remove --debug
 
   DEBUG ─ Flushing template state and removing all components.
@@ -144,7 +144,7 @@ $ sls remove --debug
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 

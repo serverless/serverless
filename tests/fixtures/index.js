@@ -3,7 +3,9 @@
 const path = require('path');
 const BbPromise = require('bluebird');
 const fse = BbPromise.promisifyAll(require('fs-extra'));
-const { memoize } = require('lodash');
+const { memoize, merge } = require('lodash');
+const { load: loadYaml, dump: saveYaml } = require('js-yaml');
+const provisionTmpDir = require('@serverless/test/provision-tmp-dir');
 
 const isFixtureConfigured = memoize(fixturePath => {
   let stats;
@@ -32,6 +34,25 @@ module.exports = {
       },
     }
   ),
+  extend: (fixtureName, extConfig) => {
+    const baseFixturePath = path.join(__dirname, fixtureName);
+    if (!isFixtureConfigured(baseFixturePath)) {
+      throw new Error(`No fixture configured at ${fixtureName}`);
+    }
+    return provisionTmpDir().then(fixturePath => {
+      return Promise.all([
+        fse.readFileAsync(path.join(baseFixturePath, 'serverless.yml')),
+        fse.copyAsync(baseFixturePath, fixturePath),
+      ])
+        .then(([yamlConfig]) =>
+          fse.writeFileAsync(
+            path.join(fixturePath, 'serverless.yml'),
+            saveYaml(merge(loadYaml(yamlConfig), extConfig))
+          )
+        )
+        .then(() => fixturePath);
+    });
+  },
   cleanup: (options = {}) =>
     Promise.all(
       Array.from(retrievedFixturesPaths, fixturePath => {

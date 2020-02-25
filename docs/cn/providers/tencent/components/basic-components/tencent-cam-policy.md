@@ -27,7 +27,7 @@ layout: Doc
 
 通过 npm 安装 serverless
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -35,7 +35,7 @@ $ npm install -g serverless
 
 本地创建 `serverless.yml` 和 `.env` 两个文件
 
-```
+```bash
 $ touch serverless.yml
 $ touch .env # 腾讯云的配置信息
 ```
@@ -79,7 +79,7 @@ myPolicy:
 
 通过如下命令进行部署，并查看部署过程中的信息
 
-```
+```bash
 $ sls --debug
 
   DEBUG ─ Resolving the template's static variables.
@@ -98,7 +98,7 @@ $ sls --debug
 
 ### 5. 移除
 
-```
+```bash
 $ sls remove --debug
 
   DEBUG ─ Flushing template state and removing all components.

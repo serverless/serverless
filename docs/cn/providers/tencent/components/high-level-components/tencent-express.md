@@ -32,7 +32,7 @@ Express 组件通过使用 serverless-tencent 的基础组件如 API 网关组�
 
 通过 npm 安装 serverless
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -40,13 +40,13 @@ $ npm install -g serverless
 
 本地创建 `serverless.yml` 文件：
 
-```
+```bash
 $ touch serverless.yml
 ```
 
 初始化一个新的 npm 包，并安装 Express：
 
-```
+```bash
 $ npm init              # 创建后持续回车
 $ npm i --save express  # 安装express
 ```
@@ -86,7 +86,7 @@ express:
 
 通过`sls`命令进行部署，并可以添加`--debug`参数查看部署过程中的信息
 
-```
+```bash
 $ sls --debug
 
   DEBUG ─ Resolving the template's static variables.
@@ -127,7 +127,7 @@ $ sls --debug
 
 通过以下命令移除部署的存储桶
 
-```
+```bash
 $ sls remove --debug
 
   DEBUG ─ Flushing template state and removing all components.
@@ -142,7 +142,7 @@ $ sls remove --debug
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 

@@ -62,6 +62,14 @@ functions:
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
                 - stream/MyOtherKinesisStream
+      - stream:
+          type: kinesis
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foobar
+          consumer: true
+      - stream:
+          type: kinesis
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foobar
+          consumer: preExistingName
 ```
 
 ## Setting the BatchSize and StartingPosition
@@ -238,3 +246,39 @@ functions:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           parallelizationFactor: 10
 ```
+
+## Using a Kinesis Data Streams Enhanced Fan-out
+
+This configuration controls the optional usage of Kinesis data streams enhanced fan-out. It can only be used for Kinesis data stream events.
+
+The `consumer` property can be used to put a [stream consumer](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesis-streamconsumer.html) between your function's [event source mapping](https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html) and the stream it consumes.
+
+The configuration below creates a new stream consumer.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          consumer: true
+```
+
+The configuration below uses the pre-existing stream consumer with the given ARN.
+
+**Note:** When you register a consumer, Kinesis Data Streams generates an ARN for it.
+If you delete a consumer and then create a new one with the same name, it won't have the same ARN.
+That's because consumer ARNs contain the creation timestamp.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          consumer: arn:aws:kinesis:region:XXXXXX:stream/foo/consumer/foobar:1558544531
+```
+
+For more information, read this [AWS blog post](https://aws.amazon.com/blogs/compute/increasing-real-time-stream-processing-performance-with-amazon-kinesis-data-streams-enhanced-fan-out-and-aws-lambda/) or this [AWS documentation](https://docs.aws.amazon.com/streams/latest/dev/introduction-to-enhanced-consumers.html).

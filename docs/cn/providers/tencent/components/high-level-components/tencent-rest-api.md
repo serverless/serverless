@@ -24,7 +24,7 @@ REST API 模板使用 Tencent SCF 组件及其触发器能力，方便的在腾�
 
 **安装 Serverless Framework**
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -32,12 +32,12 @@ $ npm install -g serverless
 
 通过如下命令直接下载该例子，目录结构如下：
 
-```
+```bash
 $ serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-python-rest-api
 
 ```
 
-```
+```bash
 .
 ├── code
 |   └── index.py
@@ -85,7 +85,7 @@ def main_handler(event, context):
 
 如您的账号未[登陆](https://cloud.tencent.com/login)或[注册](https://cloud.tencent.com/register)腾讯云，您可以直接通过`微信`扫描命令行中的二维码进行授权登陆和注册。
 
-```
+```bash
 $ serverless --debug
 
   DEBUG ─ Resolving the template's static variables.
@@ -134,13 +134,13 @@ $ serverless --debug
 
 > 注：如 windows 系统中未安装`curl`，也可以直接通过浏览器打开对应链接查看返回情况
 
-```
+```bash
 $ curl -XGET http://service-9t28e0tg-1250000000.sg.apigw.tencentcs.com/release/users/teacher/go
 
 {"result": "it is student_get action"}
 ```
 
-```
+```bash
 $ curl -PUT http://service-9t28e0tg-1250000000.sg.apigw.tencentcs.com/release/users/student/go
 
 {"result": "it is teacher_put action"}
@@ -150,7 +150,7 @@ $ curl -PUT http://service-9t28e0tg-1250000000.sg.apigw.tencentcs.com/release/us
 
 可以通过以下命令移除 REST API 应用
 
-```
+```bash
 $ sls remove --debug
 
   DEBUG ─ Flushing template state and removing all components.
@@ -167,7 +167,7 @@ $ sls remove --debug
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 
@@ -177,7 +177,7 @@ $ touch .env # 腾讯云的配置信息
 
 如果已有腾讯云账号，可以在[API 密钥管理](https://cloud.tencent.com/cam/capi)中获取 `SecretId` 和`SecretKey`.
 
-```
+```bash
 # .env
 TENCENT_SECRET_ID=123
 TENCENT_SECRET_KEY=123
