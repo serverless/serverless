@@ -77,6 +77,16 @@ provider:
       - '*/*'
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
+  httpApi:
+    cors: true # Implies default behavior, can be fine tuned with specficic options
+    authorizers:
+      # JWT authorizers to back HTTP API endpoints
+      someJwtAuthorizer:
+        identitySource: $request.header.Authorization
+        issuerUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxx
+        audience:
+          - xxxx
+          - xxxx
   usagePlan: # Optional usage plan configuration
     quota:
       limit: 5000
@@ -156,6 +166,9 @@ provider:
       roleManagedExternally: false # Specifies whether the ApiGateway CloudWatch Logs role setting is not managed by Serverless. Defaults to false.
     websocket: # Optional configuration which specifies if Websocket logs are used. This can either be set to `true` to use defaults, or configured via subproperties.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
+    httpApi: # Optional configuration which specifies if HTTP API logs are used. This can either be set to `true` (to use defaults as below) or specific log format configuraiton can be provided
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
 
 package: # Optional deployment packaging configuration
@@ -222,6 +235,14 @@ functions:
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
             type: token # token or request. Determines input to the authorizer function, called with the auth token or the entire request event. Defaults to token
+      - httpApi: # HTTP API endpoint
+          method: GET
+          path: /some-get-path/{param}
+          authorizer: # Optional
+            name: someJwtAuthorizer # References by name authorizer defined in provider.httpApi.authorizers section
+            scopes: # Optional
+              - user.id
+              - user.email
       - websocket:
           route: $connect
           authorizer:
