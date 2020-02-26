@@ -57,7 +57,7 @@ provider:
   iamManagedPolicies:
     - 'some:aws:arn:xxx:*:*'
     - 'someOther:aws:arn:xxx:*:*'
-    - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWSAccountId' }, 'some/path']] }
+    - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'some/path']] }
 ```
 
 ## Custom IAM Roles
