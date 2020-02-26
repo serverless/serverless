@@ -5,6 +5,7 @@ const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
 const fixtures = require('../../fixtures');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const {
@@ -76,6 +77,7 @@ describe('HTTP API Integration Test', function() {
                 },
               },
             },
+            logs: { httpApi: true },
           },
           functions: {
             foo: {
@@ -167,6 +169,14 @@ describe('HTTP API Integration Test', function() {
       const json = await responseAuthorized.json();
       expect(json).to.deep.equal({ method: 'GET', path: '/foo' });
     });
+
+    it('should expose access logs when configured to', () =>
+      confirmCloudWatchLogs(`/aws/http-api/${stackName}`, async () => {
+        const response = await fetch(`${endpoint}/some-post`, { method: 'POST' });
+        await response.json();
+      }).then(events => {
+        expect(events.length > 0).to.equal(true);
+      }));
   });
 
   describe('Catch-all endpoints', () => {

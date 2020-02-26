@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.64.1](https://github.com/serverless/serverless/compare/v1.64.0...v1.64.1) (2020-02-26)
+
+### Bug Fixes
+
+- **AWS HTTP API:** Configure default stage explicity ([#7383](https://github.com/serverless/serverless/issues/7383)) ([3d79a7a](https://github.com/serverless/serverless/commit/3d79a7a169fdc2c43c86d6b509f9151af32665dc)) ([Mariusz Nowak](https://github.com/medikoo))
+- Follow symlinks when writing a config ([#7374](https://github.com/serverless/serverless/issues/7374)) ([3e1e1f4](https://github.com/serverless/serverless/commit/3e1e1f486c4f6e283e172c99d9a38838bfbe2ab6)) ([Neil Locketz](https://github.com/c0d3d))
+- Service state path resolution ([#7388](https://github.com/serverless/serverless/issues/7388)) ([5017f03](https://github.com/serverless/serverless/commit/5017f038d6a8f35fc25ec7a239358a30ca15b745)) ([Arben Bakiu](https://github.com/arbbakbenny))
+- When packaging do not crash on deps with no package.json ([#7368](https://github.com/serverless/serverless/issues/7368)) ([8518000](https://github.com/serverless/serverless/commit/8518000d4fbf3a6cf0a6e2f81bd6421e017a1b5f)) ([darko1979](https://github.com/darko1979))
+
 ## [1.64.0](https://github.com/serverless/serverless/compare/v1.63.0...v1.64.0) (2020-02-18)
 
 ### Features
