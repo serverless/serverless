@@ -64,7 +64,7 @@ functions:
           path: /get/for/any/{param}
 ```
 
-## CORS Setup
+### CORS Setup
 
 With HTTP API we may configure CORS headers that'll be effective for all configured endpoints.
 
@@ -104,7 +104,7 @@ provider:
       maxAge: 6000 # In seconds
 ```
 
-## JWT Authorizers
+### JWT Authorizers
 
 Currently the only way to restrict access to configured HTTP API endpoints is by setting up an JWT Authorizers.
 
@@ -112,7 +112,7 @@ _For deep details on that follow [AWS documentation](https://docs.aws.amazon.com
 
 To ensure endpoints (as configured in `serverless.yml`) are backed with authorizers, follow below steps.
 
-### 1. Configure authorizers on `provider.httpApi.authorizers`
+#### 1. Configure authorizers on `provider.httpApi.authorizers`
 
 ```yaml
 provider:
@@ -126,7 +126,7 @@ provider:
           - ${client2Id}
 ```
 
-### 2. Configure endpoints which are expected to have restricted access:
+#### 2. Configure endpoints which are expected to have restricted access:
 
 ```yaml
 functions:
@@ -143,7 +143,7 @@ functions:
               - user.email
 ```
 
-## Access logs
+### Access logs
 
 Deployed stage can have acess logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
 
