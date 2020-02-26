@@ -64,6 +64,32 @@ functions:
           path: /get/for/any/{param}
 ```
 
+### Endpoints timeout
+
+By default HTTP API will timeout within 5 seconds. Timeout can be restricted to as low value as 50 milliseconds or lifted up to 29 seconds.
+
+To adjust timeout for all configured endpoints, outline desired value in `provider` settings:
+
+```yaml
+provider:
+  httpApi:
+    timeout: 0.5 # Restrict endpoints to timeout in 500ms
+```
+
+To adjust timeout for specific endpoint, outline it at `httpApi` event configuration:
+
+```yaml
+functions:
+  withCustomTimeout:
+    handler: handler.withCustomTimeout
+    events:
+      - httpApi:
+          ...
+          timeout: 29
+```
+
+**Note**: All `httpApi` events for same function should share same timeout setting.
+
 ### CORS Setup
 
 With HTTP API we may configure CORS headers that'll be effective for all configured endpoints.
