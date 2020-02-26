@@ -78,6 +78,7 @@ provider:
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
   httpApi:
+    id: # If we want to attach to externally created HTTP API its id should be provided here
     cors: true # Implies default behavior, can be fine tuned with specficic options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
