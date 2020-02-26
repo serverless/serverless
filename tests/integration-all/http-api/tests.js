@@ -222,4 +222,76 @@ describe('HTTP API Integration Test', function() {
       expect(json).to.deep.equal({ method: 'PATCH', path: '/foo' });
     });
   });
+
+  describe('Shared API', () => {
+    let exportServicePath;
+
+    before(async () => {
+      exportServicePath = getTmpDirPath();
+      log.debug('service #1 path %s', exportServicePath);
+
+      const exportServiceConfig = await createTestService(exportServicePath, {
+        templateDir: fixtures.map.httpApiExport,
+      });
+      log.notice('deploying %s service', exportServiceConfig.service);
+      await deployService(exportServicePath);
+      const httpApiId = (
+        await awsRequest('CloudFormation', 'describeStacks', {
+          StackName: `${exportServiceConfig.service}-${stage}`,
+        })
+      ).Stacks[0].Outputs[0].OutputValue;
+
+      tmpDirPath = getTmpDirPath();
+      log.debug('sevice #2 path %s', tmpDirPath);
+      const serverlessConfig = await createTestService(tmpDirPath, {
+        templateDir: await fixtures.extend('httpApi', {
+          provider: { httpApi: { id: httpApiId } },
+        }),
+      });
+      serviceName = serverlessConfig.service;
+      stackName = `${serviceName}-${stage}`;
+      log.notice('deploying %s service', serviceName);
+      await deployService(tmpDirPath);
+      endpoint = (await awsRequest('ApiGatewayV2', 'getApi', { ApiId: httpApiId })).ApiEndpoint;
+    });
+
+    after(async () => {
+      if (serviceName) {
+        log.notice('removing service #2');
+        await removeService(tmpDirPath);
+      }
+      log.notice('removing service #1');
+      await removeService(exportServicePath);
+    });
+
+    it('should expose an accessible POST HTTP endpoint', async () => {
+      const testEndpoint = `${endpoint}/some-post`;
+
+      const response = await fetch(testEndpoint, { method: 'POST' });
+      const json = await response.json();
+      expect(json).to.deep.equal({ method: 'POST', path: '/some-post' });
+    });
+
+    it('should expose an accessible paramed GET HTTP endpoint', async () => {
+      const testEndpoint = `${endpoint}/bar/whatever`;
+
+      const response = await fetch(testEndpoint, { method: 'GET' });
+      const json = await response.json();
+      expect(json).to.deep.equal({ method: 'GET', path: '/bar/whatever' });
+    });
+
+    it('should return 404 on not supported method', async () => {
+      const testEndpoint = `${endpoint}/foo`;
+
+      const response = await fetch(testEndpoint, { method: 'POST' });
+      expect(response.status).to.equal(404);
+    });
+
+    it('should return 404 on not configured path', async () => {
+      const testEndpoint = `${endpoint}/not-configured`;
+
+      const response = await fetch(testEndpoint, { method: 'GET' });
+      expect(response.status).to.equal(404);
+    });
+  });
 });

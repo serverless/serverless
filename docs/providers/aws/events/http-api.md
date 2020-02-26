@@ -178,3 +178,15 @@ provider:
 ```
 
 See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) documentation for more info on variables that can be used
+
+### Resuing HTTP API in different services
+
+We may attach configured endpoints to HTTP API creted externally. For that provide HTTP API id in provider settings as follows:
+
+```yaml
+provider:
+  httpApi:
+    id: xxxx # id of externally created HTTP API to which endpoints should be attached.
+```
+
+In such case no API and stage resources are created, therefore extending HTTP API with CORS or access logs settings is not supported.

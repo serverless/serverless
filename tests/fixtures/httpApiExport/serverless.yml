@@ -1,0 +1,24 @@
+service: service
+provider:
+  name: aws
+
+resources:
+  Resources:
+    HttpApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: dev-${self:service}
+        ProtocolType: HTTP
+    HttpApiStage:
+      Type: AWS::ApiGatewayV2::Stage
+      Properties:
+        ApiId:
+          Ref: HttpApi
+        StageName: $default
+        AutoDeploy: true
+  Outputs:
+    HttpApiId:
+      Value:
+        Ref: HttpApi
+      Export:
+        Name: TestHttpApiExportId
