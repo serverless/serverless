@@ -233,6 +233,12 @@ jobs:
       env:
         # CHOCO_API_KEY
         - secure: jKn6s5DvS0o2tepSVNC2KRm9GyT1GbAAg6t7O4AcuOTIm/0eYnXdsGHUQ1gZooqOvpkzujrhg4Cq0IFLdZfxkd1HPn9u1ggkZwMCPt27Dlm3EsQtGgWm6AZPnXfATWHafCINMVaqGlXBJYXTh2iZtqYyTkPiOa0V3RZCkQ2k+4ppbBt5hqYO/VOpl07lNoWiVaaEUc/M+OStXseqJZxVLINOXthbLVZrFW2S78qVO9EB1w9MR0Csqf9lYLtSsA8OMIGJGjar1XUvV4+kjUFUPcbZ7tcWjsxktfGn9umVo2PsZuHcJW1XTmAO4bJFKB4zYSMMmZRZl+4AYCNCF9So0ufk6z9qClTVqGi6wuTNhACHJli3tzqPyycU3Rb2E3GxNRV5zIe9F5QvVP3HBxTwegK/fYBUGSS2aaXO3obQTzf5auwcnPH/dj2V60ulJ34Ug2KNg1dkvN68+uIk7y+Tleu8iLqQK4dcbtfhF+MfAukLNMKM2W5hTzvAAmKJagO/jsnA3V8hA9skFUXNFzDkeRbVmBiPBsRfBCBhNfsu70NBc07i+asC8NH0b7qUJNgd3BujPD5uiLe5W9Gl1hvUYAtQRqh2+resqiG/BkWNZ5hkyPEu6gtF2z5aI3o9zNehYvBmM/fFYbry5TsLG1g7rwvOawz6J12kMc8IwefpLm4=
+      install:
+        # Note: `--no-optional` seems to be ineffective (with `--depth`) on Windows in some cases
+        # See: https://travis-ci.org/serverless/serverless/jobs/651220714
+        # Therefore no deep install on Windows
+        - npm update --no-save
+        - npm update --save-dev --no-save
       script:
         - cd `npm run pkg:generate-choco-package $TRAVIS_TAG | tail -1`
         - choco apikey --key $CHOCO_API_KEY --source https://push.chocolatey.org/

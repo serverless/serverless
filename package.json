@@ -157,6 +157,7 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.4.0",
+    "@serverless/components": "^2.22.3",
     "@serverless/enterprise-plugin": "^3.4.0",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
