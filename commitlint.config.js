@@ -3,9 +3,7 @@
 module.exports = {
   rules: {
     'body-leading-blank': [2, 'always'],
-    'body-max-line-length': [2, 'always', 72],
     'footer-leading-blank': [2, 'always'],
-    'footer-max-line-length': [2, 'always', 72],
     'header-max-length': [2, 'always', 72],
     'scope-case': [2, 'always', 'start-case'],
     'scope-enum': [
@@ -13,10 +11,20 @@ module.exports = {
       'always',
       [
         '',
-        'AWS APIGW',
-        'AWS Lambda',
-        'CLI',
+        'AWS ALB',
+        'AWS API Gateway',
+        'AWS CloudFormation',
+        'AWS Deploy',
+        'AWS EventBridge',
         'AWS HTTP API',
+        'AWS IAM',
+        'AWS Kinesis',
+        'AWS Lambda',
+        'AWS Local Invocation',
+        'AWS SNS',
+        'AWS Websocket',
+        'CLI',
+        'Components',
         'Plugins',
         'Standalone',
         'User Config',
