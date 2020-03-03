@@ -100,12 +100,18 @@ serverless create --template-url https://github.com/serverless/components/tree/m
 
 高阶组件：
 
+- [@serverless/tencent-nextjs](https://github.com/serverless-components/tencent-nextjs) - 快速部署基于 Next.js 框架到腾讯云函数的组件
 - [@serverless/tencent-express](https://github.com/serverless-components/tencent-express) - 快速部署基于 Express.js 的后端服务到腾讯云函数的组件
 - [@serverless/tencent-egg](https://github.com/serverless-components/tencent-egg) - 快速部署基于 Egg.js 的后端服务到腾讯云函数的组件
 - [@serverless/tencent-koa](https://github.com/serverless-components/tencent-koa) - 快速部署基于 Koa.js 的后端服务到腾讯云函数的组件
 - [@serverless/tencent-flask](https://github.com/serverless-components/tencent-flask) - 腾讯云 Python Flask RESTful API 组件
+- [@serverless/tencent-django](https://github.com/serverless-tencent/tencent-django) - 腾讯云 Python Django RESTful API 组件
+- [@serverless/tencent-tornado](https://github.com/serverless-tencent/tencent-tornado) - 腾讯云 Python Tornado RESTful API 组件
+- [@serverless/tencent-pyramid](https://github.com/serverless-tencent/tencent-pyramid) - 腾讯云 Python Pyramid RESTful API 组件
+- [@serverless/tencent-bottle](https://github.com/serverless-tencent/tencent-bottle) - 腾讯云 Python Bottle RESTful API 组件
 - [@serverless/tencent-laravel](https://github.com/serverless-components/tencent-laravel) - 腾讯云 PHP Laravel RESTful API 组件（任何支持 WSGI 的 Python 服务端框架都可以基于该组件进行部署，例如 Falcon 框架等。）
 - [@serverless/tencent-website](https://github.com/serverless-components/tencent-website) - 快速部署静态网站到腾讯云的组件
+- [@serverless/serverless-global](https://github.com/serverless-components/serverless-global) - 管理全局变量的组件
 
 第三方贡献：
 

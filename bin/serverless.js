@@ -23,9 +23,16 @@ const userNodeVersion = Number(process.version.split('.')[0].slice(1));
 
 // only check for components if user is running Node 8
 if (userNodeVersion >= 8) {
-  const serverlessCli = require('@serverless/cli');
-  if (serverlessCli.runningComponents()) {
-    serverlessCli.runComponents();
+  const componentsV1 = require('@serverless/cli');
+  const componentsV2 = require('@serverless/components');
+
+  if (componentsV1.runningComponents()) {
+    componentsV1.runComponents();
+    return;
+  }
+
+  if (componentsV2.runningComponents() || process.argv[2] === 'registry') {
+    componentsV2.runComponents();
     return;
   }
 }
