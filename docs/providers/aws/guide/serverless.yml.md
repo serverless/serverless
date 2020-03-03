@@ -77,6 +77,18 @@ provider:
       - '*/*'
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
+  httpApi:
+    id: # If we want to attach to externally created HTTP API its id should be provided here
+    timeout: 5 # Timeout setting for all endpoints, defaults to 5s, can be set to values ranging from 0.05s to 29s
+    cors: true # Implies default behavior, can be fine tuned with specficic options
+    authorizers:
+      # JWT authorizers to back HTTP API endpoints
+      someJwtAuthorizer:
+        identitySource: $request.header.Authorization
+        issuerUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxx
+        audience:
+          - xxxx
+          - xxxx
   usagePlan: # Optional usage plan configuration
     quota:
       limit: 5000
@@ -156,6 +168,9 @@ provider:
       roleManagedExternally: false # Specifies whether the ApiGateway CloudWatch Logs role setting is not managed by Serverless. Defaults to false.
     websocket: # Optional configuration which specifies if Websocket logs are used. This can either be set to `true` to use defaults, or configured via subproperties.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
+    httpApi: # Optional configuration which specifies if HTTP API logs are used. This can either be set to `true` (to use defaults as below) or specific log format configuraiton can be provided
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
 
 package: # Optional deployment packaging configuration
@@ -222,6 +237,17 @@ functions:
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
             type: token # token or request. Determines input to the authorizer function, called with the auth token or the entire request event. Defaults to token
+      - httpApi: # HTTP API endpoint
+          method: GET
+          path: /some-get-path/{param}
+          # Timeout setting for given endpoint. Defaults to 5s, can be set to values from 0.05s to 29s
+          # Note: All httpApi events for same function need to share same timeout setting
+          timeout: 5
+          authorizer: # Optional
+            name: someJwtAuthorizer # References by name authorizer defined in provider.httpApi.authorizers section
+            scopes: # Optional
+              - user.id
+              - user.email
       - websocket:
           route: $connect
           authorizer:
@@ -261,7 +287,14 @@ functions:
               - dog
               - cat
           redrivePolicy:
-            deadLetterTargetArn: arn:aws:sqs:region:XXXXXX:myDLQ
+              # (1) ARN
+              deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
+              # (2) Ref (resource defined in same CF stack)
+              deadLetterTargetRef: myDLQ
+              # (3) Import (resource defined in outer CF stack)
+              deadLetterTargetImport:
+                arn: MyShared-DLQArn
+                url: MyShared-DLQUrl
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
@@ -406,6 +439,13 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+  extensions:
+    # override Properties or other attributes of Framework-created resources.
+    # See https://serverless.com/framework/docs/providers/aws/guide/resources#override-aws-cloudformation-resource for more details
+    UsersCreateLogGroup:
+      Properties:
+        RetentionInDays: '30'
+
   # The "Outputs" that your AWS CloudFormation Stack should produce.  This allows references between services.
   Outputs:
     UsersTableArn:
