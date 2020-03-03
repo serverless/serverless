@@ -66,29 +66,7 @@ functions:
 
 ### Endpoints timeout
 
-By default HTTP API will timeout within 5 seconds. Timeout can be restricted to as low value as 50 milliseconds or lifted up to 29 seconds.
-
-To adjust timeout for all configured endpoints, outline desired value in `provider` settings:
-
-```yaml
-provider:
-  httpApi:
-    timeout: 0.5 # Restrict endpoints to timeout in 500ms
-```
-
-To adjust timeout for specific endpoint, outline it at `httpApi` event configuration:
-
-```yaml
-functions:
-  withCustomTimeout:
-    handler: handler.withCustomTimeout
-    events:
-      - httpApi:
-          ...
-          timeout: 29
-```
-
-**Note**: All `httpApi` events for same function should share same timeout setting.
+Framework ensures that function timeout setting (which defaults to 6 seconds) is respected in HTTP API endpoint configuration. Still note that maximum possible timeout for an endpoint is 29 seconds. Ensure to keep function timeout below that. Otherwise you may observe successful lambda invocations reported with `503` status code.
 
 ### CORS Setup
 
