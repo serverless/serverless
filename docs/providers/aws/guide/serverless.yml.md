@@ -79,7 +79,6 @@ provider:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
   httpApi:
     id: # If we want to attach to externally created HTTP API its id should be provided here
-    timeout: 5 # Timeout setting for all endpoints, defaults to 5s, can be set to values ranging from 0.05s to 29s
     cors: true # Implies default behavior, can be fine tuned with specficic options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
@@ -240,9 +239,6 @@ functions:
       - httpApi: # HTTP API endpoint
           method: GET
           path: /some-get-path/{param}
-          # Timeout setting for given endpoint. Defaults to 5s, can be set to values from 0.05s to 29s
-          # Note: All httpApi events for same function need to share same timeout setting
-          timeout: 5
           authorizer: # Optional
             name: someJwtAuthorizer # References by name authorizer defined in provider.httpApi.authorizers section
             scopes: # Optional
