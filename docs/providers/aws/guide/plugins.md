@@ -413,6 +413,102 @@ module.exports = MyPlugin;
 
 Command names need to be unique. If we load two commands and both want to specify the same command (e.g. we have an integrated command `deploy` and an external command also wants to use `deploy`) the Serverless CLI will print an error and exit. If you want to have your own `deploy` command you need to name it something different like `myCompanyDeploy` so they don't clash with existing plugins.
 
+### Extending validation schema
+
+If your plugin adds support for additional params in `serverless.yml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
+
+The Framework uses JSON-schema validation backed by [AJV](https://github.com/epoberezkin/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by modifying `serverless.configSchemaHandler.schema` property. Since the schema is a plain object dynamically loaded inside your plugin constuctor, you can modify it however you want. However in most cases you would want to use `defineCustomProperty` or `defineCustomEvent` helpers.
+
+#### `defineCustomProperty` helper
+
+Let's say your plugin depends on some properties defined in `custom` section of `serverless.yml` file.
+
+```
+// serverless.yml
+
+custom:
+  yourPlugin:
+    someProperty: foobar
+```
+
+To add validation rules to these properties, your plugin would look like this:
+
+```javascript
+class NewEventPlugin {
+  constructor(serverless) {
+    this.serverless = serverless;
+
+    // Create schema for your properties. For reference use https://github.com/epoberezkin/ajv
+    const newCustomPropSchema = {
+      type: 'object',
+      properties: {
+        someProperty: { type: 'string' },
+      },
+    };
+
+    // Attach your piece of schema to main schema
+    serverless.configSchemaHandler.defineCustomProperty('yourPlugin', newCustomPropSchema);
+
+    // Alternatively, you can directly modify serverless.configSchemaHandler.schema
+  }
+}
+```
+
+This way, if user sets `someProperty` by mistake to `false`, the Framework would display an error:
+
+```
+Serverless: Error: .custom.yourPlugin.someProperty should be string
+```
+
+#### `defineFunctionEvent` helper
+
+Let's say your plugin adds support to a new `yourPluginEvent` function event. To use this event, a user would need to have `serverless.yml` file like this:
+
+```
+// serverless.yml
+
+functions:
+  someFunc:
+    handler: handler.main
+    events:
+      - yourPluginEvent:
+          someProp: hello
+          anotherProp: 1
+```
+
+In this case your plugin should add validation rules inside your plugin constructor. Otherwise, the Framework would display an error message saying that your event is not supported:
+
+```
+Serverless: Unsupported function event 'yourPluginEvent'
+```
+
+To fix this error and more importantly to provide validation rules for your event, modify your plugin constructor with code like this:
+
+```javascript
+class NewEventPlugin {
+  constructor(serverless) {
+    this.serverless = serverless;
+
+    // Create schema for your properties. For reference use https://github.com/epoberezkin/ajv
+    serverless.configSchemaHandler.defineFunctionEvent('yourPluginEvent', {
+      type: 'object',
+      properties: {
+        someProp: { type: 'string' },
+        anotherProp: { type: 'number' },
+      },
+    });
+
+    // Alternatively, you can directly modify serverless.configSchemaHandler.schema
+  }
+}
+```
+
+This way, if user sets `anotherProp` by mistake to `some-string`, the Framework would display an error:
+
+```
+Serverless: Error: .functions['someFunc'].events[0].yourPluginEvent.anotherProp should be number
+```
+
 ### Extending the `info` command
 
 The `info` command which is used to display information about the deployment has detailed `lifecycleEvents` you can hook into to add and display custom information.
