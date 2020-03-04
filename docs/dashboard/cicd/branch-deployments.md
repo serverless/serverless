@@ -17,7 +17,7 @@ Branch deployments enable you to automatically deploy a service to a stage from 
 
 ## Adding a branch deployment
 
-To add a new branch deployment, in the "branch deploys" section of the CI/CD settings, select the Github branch containing the `serverless.yml` from the "source branch" column for each "target stage".  Commits from the "source branch" will automatically be deployed to the "target stage".
+To add a new branch deployment, in the "branch deploys" section of the CI/CD settings, select the Github branch containing the `serverless.yml` from the "source branch" column for each "target stage". Commits from the "source branch" will automatically be deployed to the "target stage".
 
 ## Add a stage to a branch deployment
 
