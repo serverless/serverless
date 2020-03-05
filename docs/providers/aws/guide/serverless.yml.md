@@ -29,6 +29,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
+  partition: ${opt:partition, 'aws'} # Overwrite the default partition used. Default is aws
   region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
   apiName: custom-api-name # Use a custom name for the API Gateway API
