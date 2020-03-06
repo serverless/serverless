@@ -64,7 +64,11 @@ functions:
           path: /get/for/any/{param}
 ```
 
-## CORS Setup
+### Endpoints timeout
+
+Framework ensures that function timeout setting (which defaults to 6 seconds) is respected in HTTP API endpoint configuration. Still note that maximum possible timeout for an endpoint is 29 seconds. Ensure to keep function timeout below that. Otherwise you may observe successful lambda invocations reported with `503` status code.
+
+### CORS Setup
 
 With HTTP API we may configure CORS headers that'll be effective for all configured endpoints.
 
@@ -104,15 +108,15 @@ provider:
       maxAge: 6000 # In seconds
 ```
 
-## JWT Authorizers
+### JWT Authorizers
 
 Currently the only way to restrict access to configured HTTP API endpoints is by setting up an JWT Authorizers.
 
 _For deep details on that follow [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-jwt-authorizer.html)_
 
-To ensure endpoints (as configured in `serverless.yml`) are backed with autorizers, follow below steps.
+To ensure endpoints (as configured in `serverless.yml`) are backed with authorizers, follow below steps.
 
-### 1. Configure authorizers on `provider.httpApi.authorizers`
+#### 1. Configure authorizers on `provider.httpApi.authorizers`
 
 ```yaml
 provider:
@@ -126,7 +130,7 @@ provider:
           - ${client2Id}
 ```
 
-### 2. Configure endpoints which are expected to have restricted access:
+#### 2. Configure endpoints which are expected to have restricted access:
 
 ```yaml
 functions:
@@ -142,3 +146,51 @@ functions:
               - user.id
               - user.email
 ```
+
+### Access logs
+
+Deployed stage can have acess logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
+
+```yaml
+provider:
+  logs:
+    httpApi: true
+```
+
+Default logs format is:
+
+```json
+{
+  "requestId": "$context.requestId",
+  "ip": "$context.identity.sourceIp",
+  "requestTime": "$context.requestTime",
+  "httpMethod": "$context.httpMethod",
+  "routeKey": "$context.routeKey",
+  "status": "$context.status",
+  "protocol": "$context.protocol",
+  "responseLength": "$context.responseLength"
+}
+```
+
+It can be overriden via `format` setting:
+
+```yaml
+provider:
+  logs:
+    httpApi:
+      format: '{ "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime" }'
+```
+
+See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) documentation for more info on variables that can be used
+
+### Resuing HTTP API in different services
+
+We may attach configured endpoints to HTTP API creted externally. For that provide HTTP API id in provider settings as follows:
+
+```yaml
+provider:
+  httpApi:
+    id: xxxx # id of externally created HTTP API to which endpoints should be attached.
+```
+
+In such case no API and stage resources are created, therefore extending HTTP API with CORS or access logs settings is not supported.
