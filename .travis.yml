@@ -17,14 +17,11 @@ install:
   # Note: `npm update` has issues which we need to workaround:
   # - There seems no way to update all project dependency groups in one run
   #   Hence different calls for prod and dev dependencies
-  # - The bigger depth, the longer update takes (-9999 as proposed in npm docs hangs the process).
-  #   Therefore we keep at 3 which should ensure most of dependencies are at latest versions
-  # - Depth setting makes optional dependencies not optional (install error crashes process)
-  #   Hence we skip install of optional dependencies completely, with --no-optional
-  #   Note: this patch works only for npm@5+
+  # - We were relying on "--depth 3", but depth setting makes optional dependencies not optional
+  #   and adding "--no-optional" proven to not be a reliable workaround (worked just in some cases)
   # - npm documents --dev option for dev dependencies update, but it's only --save-dev that works
-  - npm update --depth 3 --no-optional --no-save
-  - npm update --depth 3 --save-dev --no-save
+  - npm update --no-save
+  - npm update --save-dev --no-save
 
 branches:
   only: # Do not build PR branches
@@ -124,12 +121,6 @@ jobs:
           then
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
-      install:
-        # Note: `--no-optional` seems to be ineffective (with `--depth`) on Windows in some cases
-        # See: https://travis-ci.org/serverless/serverless/jobs/651220714
-        # Therefore no deep install on Windows
-        - npm update --no-save
-        - npm update --save-dev --no-save
 
     - name: 'Isolated Unit Tests, Package Integration Tests - Node.js v13'
       node_js: 13
@@ -151,10 +142,6 @@ jobs:
 
     - name: 'Unit Tests - Node.js v6'
       node_js: 6
-      before_install:
-        # npm@3 doesn't seem handle `--no-optional` option of `npm update` command.
-        # Upgrade npm to version which is distributed with Node.js v8
-        - npm i -g npm@6.4.1
 
     - stage: Integration Test
       name: 'Integration Tests, Tag on version bump - Node.js v12'
@@ -233,12 +220,6 @@ jobs:
       env:
         # CHOCO_API_KEY
         - secure: jKn6s5DvS0o2tepSVNC2KRm9GyT1GbAAg6t7O4AcuOTIm/0eYnXdsGHUQ1gZooqOvpkzujrhg4Cq0IFLdZfxkd1HPn9u1ggkZwMCPt27Dlm3EsQtGgWm6AZPnXfATWHafCINMVaqGlXBJYXTh2iZtqYyTkPiOa0V3RZCkQ2k+4ppbBt5hqYO/VOpl07lNoWiVaaEUc/M+OStXseqJZxVLINOXthbLVZrFW2S78qVO9EB1w9MR0Csqf9lYLtSsA8OMIGJGjar1XUvV4+kjUFUPcbZ7tcWjsxktfGn9umVo2PsZuHcJW1XTmAO4bJFKB4zYSMMmZRZl+4AYCNCF9So0ufk6z9qClTVqGi6wuTNhACHJli3tzqPyycU3Rb2E3GxNRV5zIe9F5QvVP3HBxTwegK/fYBUGSS2aaXO3obQTzf5auwcnPH/dj2V60ulJ34Ug2KNg1dkvN68+uIk7y+Tleu8iLqQK4dcbtfhF+MfAukLNMKM2W5hTzvAAmKJagO/jsnA3V8hA9skFUXNFzDkeRbVmBiPBsRfBCBhNfsu70NBc07i+asC8NH0b7qUJNgd3BujPD5uiLe5W9Gl1hvUYAtQRqh2+resqiG/BkWNZ5hkyPEu6gtF2z5aI3o9zNehYvBmM/fFYbry5TsLG1g7rwvOawz6J12kMc8IwefpLm4=
-      install:
-        # Note: `--no-optional` seems to be ineffective (with `--depth`) on Windows in some cases
-        # See: https://travis-ci.org/serverless/serverless/jobs/651220714
-        # Therefore no deep install on Windows
-        - npm update --no-save
-        - npm update --save-dev --no-save
       script:
         - cd `npm run pkg:generate-choco-package $TRAVIS_TAG | tail -1`
         - choco apikey --key $CHOCO_API_KEY --source https://push.chocolatey.org/
