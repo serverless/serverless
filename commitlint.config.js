@@ -22,6 +22,7 @@ module.exports = {
         'AWS Kinesis',
         'AWS Lambda',
         'AWS Local Invocation',
+        'AWS S3',
         'AWS SNS',
         'AWS Websocket',
         'CLI',
