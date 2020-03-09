@@ -1,0 +1,5 @@
+service: test
+provider:
+  name: test
+plugins:
+  - ./test-provider
