@@ -65,9 +65,8 @@ functions:
 ## Add cognito/custom idp provider authentication
 
 With AWS you can configure an Application Load Balancer to [securely authenticate](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html) users as they access your applications. To securely authenticate using Cognito or a identity provider (IdP) that is OpenID Connect (OIDC) compliant, follow below steps.
-simply add either the `authenticateCognito` or `authenticateOidc` objects to an alb event:
 
-#### 1. Declare "authenticateCognito" and/or "authenticateOidc" authorizers on `provider.alb.authorizers`
+#### 1. Declare an "authenticateCognito" and/or "authenticateOidc" object on `provider.alb.authorizers`
 
 ```yaml
 provider:
@@ -81,7 +80,7 @@ provider:
         requestExtraParams: # optional. The query parameters (up to 10) to include in the redirect request to the authorization endpoint
           prompt: 'login'
           redirect: false
-        scope: 'first_name age' # The set of user claims to be requested from the IdP. The default is openid
+        scope: 'first_name age' # Can be a combination of any system-reserved scopes or custom scopes associated with the client. The default is openid
         sessionCookieName: '🍪' # The name of the cookie used to maintain session information. The default is AWSELBAuthSessionCookie
         sessionTimeout: 7000 # The maximum duration of the authentication session, in seconds. The default is 604800 seconds (7 days).
       authenticateOidc:
