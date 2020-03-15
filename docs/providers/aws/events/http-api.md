@@ -185,7 +185,7 @@ See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/develop
 
 ### Reusing HTTP API in different services
 
-We may attach configured endpoints to HTTP API creted externally. For that provide HTTP API id in provider settings as follows:
+We may attach configured endpoints to HTTP API created externally. For that provide HTTP API id in provider settings as follows:
 
 ```yaml
 provider:
