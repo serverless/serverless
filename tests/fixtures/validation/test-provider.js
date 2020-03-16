@@ -2,9 +2,13 @@
 
 class TestProviderPlugin {
   constructor(serverless) {
-    serverless.configSchemaHandler.defineProvider('test');
-
-    serverless.configSchemaHandler.schema.properties.provider.additionalProperties = true;
+    serverless.configSchemaHandler.defineProvider('test', {
+      provider: { additionalProperties: true },
+      function: {
+        properties: { handler: { type: 'string' } },
+        additionalProperties: true,
+      },
+    });
   }
 }
 
