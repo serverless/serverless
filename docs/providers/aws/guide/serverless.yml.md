@@ -223,6 +223,9 @@ functions:
     dependsOn: # optional, appends these additional resources to the 'DependsOn' list
       - MyThing
       - MyOtherThing
+    destinations: # optional, destinations for async invocations
+      onSuccess: functionName # function name or ARN of a target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic)
+      onFailure: xxx:xxx:target # function name or ARN of a target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic)
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
@@ -246,6 +249,7 @@ functions:
               - user.email
       - websocket:
           route: $connect
+          routeResponseSelectionExpression: $default # optional, setting this enables callbacks on websocket requests for two-way communication
           authorizer:
             # name: auth    NOTE: you can either use "name" or arn" properties
             arn: arn:aws:lambda:us-east-1:1234567890:function:auth
