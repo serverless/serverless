@@ -29,6 +29,7 @@ module.exports = {
         'Components',
         'Plugins',
         'Standalone',
+        'Templates',
         'User Config',
         'Variables',
       ],
