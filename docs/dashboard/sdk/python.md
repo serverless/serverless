@@ -107,13 +107,21 @@ def hello(event, context):
     }
 ```
 
-# `set_endpoint`
+# Automatic route instrumentation with application middleware
 
 Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is typically accomplished by leveraging the [serverless-wsgi](https://github.com/logandk/serverless-wsgi) plugin to deploy existing WSGI applications (Flask/Django/Pyramid etc). Rolling your own custom router is another option as well.
 
 An unfortunate downside of this approach is the loss of visibility into the mapped route for invocations. Instead, you're left with either the catch-all API Gateway resource path (`/{proxy+}`) or the raw request url itself (e.g. `/org/foo/user/bar/orders`). Neither of which are conducive for exploration and debugging invocations. The former is obviously not very useful and the latter wouldn't let you group invocations by their routed endpoints to bubble up say, performance issues.
 
-To alleviate these issues, the `setEndpoint` SDK function allows you to explicitly set the application routed endpoint for an invocation. Once set, invocations can be explored and inspected by endpoint in the Dashboard. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverless_sdk`.
+To alleviate this issue, when deploying a [Flask](https://flask.palletsprojects.com/en/1.1.x/) application, the SDK will automatically instrument incoming invocations to set the routed endpoint. There's zero setup required!
+
+If your application is using a custom-built router, you can still work around this issue by calling the `set_endpoint` SDK function described below.
+
+Once set, invocations can be explored and inspected by endpoint in the Dashboard.
+
+# `set_endpoint`
+
+Allows the application to explicitly set the routed endpoint for an invocation. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverless_sdk`.
 
 ```python
 def handler(event, context):
@@ -129,5 +137,3 @@ def handler(event, context):
   set_endpoint('/api/foo')
   # application code...
 ```
-
-Furthermore, if you're using deploying a [Flask](https://flask.palletsprojects.com/en/1.1.x/) application, there's no explicit instrumentation needed - the SDK will set the endpoint for you automatically!
