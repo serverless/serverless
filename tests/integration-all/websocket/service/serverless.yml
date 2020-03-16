@@ -18,3 +18,9 @@ functions:
           route: $disconnect
       - websocket:
           route: $default
+  sayHello:
+    handler: core.sayHello
+    events:
+      - websocket:
+          route: hello
+          routeResponseSelectionExpression: $default
