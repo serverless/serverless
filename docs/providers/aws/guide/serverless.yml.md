@@ -249,6 +249,7 @@ functions:
               - user.email
       - websocket:
           route: $connect
+          routeResponseSelectionExpression: $default # optional, setting this enables callbacks on websocket requests for two-way communication
           authorizer:
             # name: auth    NOTE: you can either use "name" or arn" properties
             arn: arn:aws:lambda:us-east-1:1234567890:function:auth
