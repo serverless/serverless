@@ -128,3 +128,20 @@ module.exports.hello = async (event, context) => {
   };
 };
 ```
+
+# `setEndpoint`
+
+Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is usually accomplished either by leveraging plugins that extend popular application frameworks to play nicely with the Lambda runtime (e.g. [serverless-express](https://serverless.com/plugins/serverless-express/)), using a purpose-built one (like [lambda-api](https://github.com/jeremydaly/lambda-api)), or even rolling their own (via [lambda-router](https://github.com/trek10inc/lambda-router)).
+
+An unfortunate downside of this approach is the loss of visibility into the mapped route  for invocations. Instead, you're left with either the catch-all API Gateway resource path (`/{proxy+}`) or the raw request url itself (e.g. `/org/foo/user/bar/orders`). Neither of which are conducive for exploration and debugging invocations. The former is obviously not very useful and the latter wouldn't let you group invocations by their routed endpoints to bubble up say, performance issues.
+
+To alleviate these issues, the `setEndpoint` SDK function allows you to explicitly set the application routed endpoint for an invocation. Once set, invocations can be explored and inspected by endpoint in the Dashboard. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverlessSdk`, or can be imported manually from the base directory: `const { setEndpoint } = require('./serverless_sdk')`. Example usage:
+
+```javascript
+module.exports.api = async (event, context) => {
+  context.serverlessSdk.setEndpoint('/api/foo');
+  // application code...
+};
+```
+
+Furthermore, if you're using `serverless-express` or `lambda-api`, there's no explicit instrumentation needed - the SDK will set the endpoint for you automatically!
