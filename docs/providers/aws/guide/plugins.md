@@ -417,7 +417,7 @@ Command names need to be unique. If we load two commands and both want to specif
 
 If your plugin adds support for additional params in `serverless.yml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
 
-The Framework uses JSON-schema validation backed by [AJV](https://github.com/epoberezkin/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by modifying `serverless.configSchemaHandler.schema` property. Since the schema is a plain object dynamically loaded inside your plugin constuctor, you can modify it however you want. However in most cases you would want to use `defineCustomProperty` or `defineCustomEvent` helpers.
+The Framework uses JSON-schema validation backed by [AJV](https://github.com/epoberezkin/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperty`, `defineCustomEvent` or `defineProvider` helplers.
 
 #### `defineCustomProperty` helper
 
@@ -448,8 +448,6 @@ class NewEventPlugin {
 
     // Attach your piece of schema to main schema
     serverless.configSchemaHandler.defineCustomProperty('yourPlugin', newCustomPropSchema);
-
-    // Alternatively, you can directly modify serverless.configSchemaHandler.schema
   }
 }
 ```
@@ -497,8 +495,6 @@ class NewEventPlugin {
         anotherProp: { type: 'number' },
       },
     });
-
-    // Alternatively, you can directly modify serverless.configSchemaHandler.schema
   }
 }
 ```
@@ -507,6 +503,27 @@ This way, if user sets `anotherProp` by mistake to `some-string`, the Framework 
 
 ```
 Serverless: Error: .functions['someFunc'].events[0].yourPluginEvent.anotherProp should be number
+```
+
+#### `defineProvider' helper
+
+In case your plugin provides support for new provider, you would want to adjust validation schema. Here is example:
+
+```javascript
+class NewProviderPlugin {
+  constructor(serverless) {
+    this.serverless = serverless;
+
+    // Create schema for your provider. For reference use https://github.com/epoberezkin/ajv
+    serverless.configSchemaHandler.defineProvider('newProvider', {
+      provider: { additionalProperties: true },
+      function: {
+        properties: { handler: { type: 'string' } },
+        additionalProperties: true,
+      },
+    });
+  }
+}
 ```
 
 ### Extending the `info` command
