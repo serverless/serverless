@@ -128,3 +128,26 @@ module.exports.hello = async (event, context) => {
   };
 };
 ```
+
+# Automatic route instrumentation with application middleware
+
+Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is usually accomplished either by leveraging plugins that extend popular application frameworks to play nicely with the Lambda runtime (e.g. [serverless-express](https://serverless.com/plugins/serverless-express/)), using a purpose-built one (like [lambda-api](https://github.com/jeremydaly/lambda-api)), or even rolling their own (via [lambda-router](https://github.com/trek10inc/lambda-router)).
+
+An unfortunate downside of this approach is the loss of visibility into the mapped route for invocations. Instead, you're left with either the catch-all API Gateway resource path (`/{proxy+}`) or the raw request url itself (e.g. `/org/foo/user/bar/orders`). Neither of which are conducive for exploration and debugging invocations. The former is not very useful and the latter wouldn't let you group invocations by their routed endpoints to bubble up say, performance issues.
+
+To alleviate these issues, for an application using `serverless-express` or `lambda-api`, the SDK will automatically instrument incoming invocations to set the routed endpoint. There's zero setup required!
+
+If your application is using a custom-built router, you can still work around this issue by calling the `setEndpoint` SDK function described below.
+
+Once set, invocations can be explored and inspected by endpoint in the Dashboard.
+
+# `setEndpoint`
+
+Allows the application to explicitly set the routed endpoint for an invocation. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverlessSdk`, or can be imported manually from the base directory: `const { setEndpoint } = require('./serverless_sdk')`. Example usage:
+
+```javascript
+module.exports.api = async (event, context) => {
+  context.serverlessSdk.setEndpoint('/api/foo');
+  // application code...
+};
+```
