@@ -12,5 +12,5 @@ functions:
   someFunction:
     events:
       - someEvent:
-          someStringProp: some string
+          someRequiredStringProp: some string
           someNumberProp: 123

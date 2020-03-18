@@ -7,9 +7,11 @@ class SomeEventPlugin {
     serverless.configSchemaHandler.defineFunctionEvent('someEvent', {
       type: 'object',
       properties: {
-        someStringProp: { type: 'string' },
+        someRequiredStringProp: { type: 'string' },
         someNumberProp: { type: 'number' },
       },
+      required: ['someRequiredStringProp'],
+      additionalProperties: false,
     });
   }
 }
