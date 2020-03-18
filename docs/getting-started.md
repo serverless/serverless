@@ -31,19 +31,20 @@ Getting started with Serverless Framework’s Open Source CLI and AWS takes only
 curl -o- -L https://slss.io/install | bash
 ```
 
-2. After installation completes, open  another terminal window, then run this command:
+2. After installation completes, open another terminal window, then run this command:
 
 ```bash
 serverless
 ```
 
-3. Follow the prompts. 
+3. Follow the prompts.
 
-If you have a previously installed version, you can upgrade by running: 
+If you have a previously installed version, you can upgrade by running:
 
 ```bash
 serverless upgrade
 ```
+
 ### Windows
 
 Install with [Chocolatey](https://chocolatey.org/):
@@ -67,6 +68,7 @@ Install the serverless CLI
 ```bash
 npm install -g serverless
 ```
+
 Upgrade
 
 ```bash
