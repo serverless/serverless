@@ -1,0 +1,16 @@
+service: configSchemaExtensions
+provider:
+  name: someProvider
+plugins:
+  - ./someProviderPlugin
+  - ./someEventPlugin
+
+custom:
+  someCustomStringProp: can-be-string
+
+functions:
+  someFunction:
+    events:
+      - someEvent:
+          someStringProp: some string
+          someNumberProp: 123
