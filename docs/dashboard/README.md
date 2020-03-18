@@ -25,7 +25,7 @@ To take full advantage of the Serverless Framework Dashboard you must be using S
 Currently, the Serverless Framework Dashboard supports the following providers, runtimes and regions.
 
 - Provider: AWS
-- Runtimes: Node.js
+- Runtimes: Node.js, Python
 - Regions: us-east-1, us-east-2, us-west-2, eu-central-1, eu-west-1, eu-west-2, ap-northeast-1, ap-south-1, ap-southeast-1, ap-southeast-2
 
 Need unsupported providers, runtimes or regions? [Let us know](https://serverless.com/enterprise/) what you need. We are working hard to quickly expand our supported runtimes and regions.

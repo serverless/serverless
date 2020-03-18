@@ -23,10 +23,24 @@ layout: Doc
 
 #### 初始化 Egg 项目
 
-```
+```bash
 $ mkdir egg-example && cd egg-example
 $ npm init egg --type=simple
 $ npm i
+```
+
+#### 新增初始化文件
+
+在项目根目录下新建文件 `sls.js`，内容如下：
+
+```js
+const { Application } = require('egg');
+
+const app = new Application({
+  env: 'prod',
+});
+
+module.exports = app;
 ```
 
 #### 修改 Egg 配置
@@ -43,11 +57,44 @@ const config = (exports = {
 });
 ```
 
+#### 注意事项
+
+由于 `egg` 的 `egg-static` 静态资源插件是默认开启的，所以在启动应用时，会尝试创建 `app/public` 目录，但是云函数执行环境只有 `/tmp` 可读写，所以需要本地创建，并添加 `.gitkeep` 文件（为空就好）。
+
+但是如果你并不想使用静态资源，可以修改 `config/plugin.js` 来禁用它：
+
+```js
+module.exports = {
+  static: {
+    enable: false,
+  },
+};
+```
+
+如果需要开启静态资源功能，并且 public 已经存在，且里面包含静态资源。
+此时需要配置 `binaryTypes`，修改 `sls.js` 文件如下：
+
+```js
+const { Application } = require('egg');
+
+const app = new Application({
+  env: 'prod',
+});
+
+// 这里可以根据实际情况来配置
+// 如果你的站点开启gzip，那么所有返回类型都应该是二进制类型，所以应该是 `app.binaryTypes = ['*/*']`
+app.binaryTypes = ['image/*'];
+
+module.exports = app;
+```
+
+参考：[example](https://github.com/serverless-components/tencent-egg/blob/master/example/sls.js)
+
 ### 1. 安装
 
 通过 npm 全局安装 [serverless cli](https://github.com/serverless/serverless)
 
-```
+```bash
 $ npm install -g serverless
 ```
 
@@ -55,7 +102,7 @@ $ npm install -g serverless
 
 在项目根目录创建 `serverless.yml` 文件，在其中进行如下配置
 
-```
+```bash
 $ touch serverless.yml
 ```
 
@@ -65,7 +112,7 @@ $ touch serverless.yml
 MyComponent:
   component: '@serverless/tencent-egg'
   inputs:
-    region: ap-guangzhou
+    region: ap-beijing
     functionName: egg-function
     code: ./
     functionConf:
@@ -90,25 +137,64 @@ MyComponent:
 
 通过 `sls` 命令进行部署，并可以添加 `--debug` 参数查看部署过程中的信息
 
-```
+```bash
 $ sls --debug
+  DEBUG ─ Resolving the template's static variables.
+  DEBUG ─ Collecting components from the template.
+  DEBUG ─ Downloading any NPM components found in the template.
+  DEBUG ─ Analyzing the template's components dependencies.
+  DEBUG ─ Creating the template's components graph.
+  DEBUG ─ Syncing template state.
+  DEBUG ─ Executing the template's components graph.
+  DEBUG ─ Compressing function egg-function file to /Users/tina/Desktop/live/egg-proj/.serverless/egg-function.zip.
+  DEBUG ─ Compressed function egg-function file successful
+  DEBUG ─ Uploading service package to cos[sls-cloudfunction-ap-beijing-code]. sls-cloudfunction-default-egg-function-1581335565.zip
+  DEBUG ─ Uploaded package successful /Users/tina/Desktop/live/egg-proj/.serverless/egg-function.zip
+  DEBUG ─ Creating function egg-function
+  DEBUG ─ Updating code...
+  DEBUG ─ Updating configure...
+  DEBUG ─ Created function egg-function successful
+  DEBUG ─ Setting tags for function egg-function
+  DEBUG ─ Creating trigger for function egg-function
+  DEBUG ─ Deployed function egg-function successful
+  DEBUG ─ Starting API-Gateway deployment with name MyComponent.TencentApiGateway in the ap-beijing region
+  DEBUG ─ Service with ID service-n5m5e8x3 created.
+  DEBUG ─ API with id api-cmkhknda created.
+  DEBUG ─ Deploying service with id service-n5m5e8x3.
+  DEBUG ─ Deployment successful for the api named MyComponent.TencentApiGateway in the ap-beijing region.
+
+  MyComponent:
+    region:              ap-beijing
+    functionName:        egg-function
+    apiGatewayServiceId: service-n5m5e8x3
+    url:                 https://service-n5m5e8x3-1251971143.bj.apigw.tencentcs.com/release/
+
+  32s › MyComponent › done
 ```
 
 > 注意: `sls` 是 `serverless` 命令的简写。
 
 ### 4. 移除
 
-通过以下命令移除部署的 API 网关
+通过以下命令移除部署的 API 网关和云函数
 
-```
+```bash
 $ sls remove --debug
+  DEBUG ─ Flushing template state and removing all components.
+  DEBUG ─ Removing function
+  DEBUG ─ Request id
+  DEBUG ─ Removed function egg-function successful
+  DEBUG ─ Removing any previously deployed API. api-cmkhknda
+  DEBUG ─ Removing any previously deployed service. service-n5m5e8x3
+
+  8s › MyComponent › done
 ```
 
 ### 账号配置（可选）
 
 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以本地创建 `.env` 文件
 
-```
+```bash
 $ touch .env # 腾讯云的配置信息
 ```
 
