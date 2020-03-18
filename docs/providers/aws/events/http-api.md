@@ -14,7 +14,7 @@ layout: Doc
 
 # HTTP API
 
-HTTP APIs are a special flavored [API Gateway](https://aws.amazon.com/api-gateway/) implementation which offer more features and improved performance.
+HTTP APIs are a special flavored [API Gateway](https://aws.amazon.com/api-gateway/) implementation which offer lower latency and cost. To compare with REST APIs (which currently have more features) see [API Gateway Comparison Matrix](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
 
 The Serverless Framework makes it possible to setup [API Gateway](https://aws.amazon.com/api-gateway/) HTTP APIs via the `httpApi` event.
 
