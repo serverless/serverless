@@ -80,7 +80,7 @@ def handler(event, context):
 
 It also works as an async context manager for use with `async with`.
 
-# `tagEvent`
+# `tag_event`
 
 Busy applications can invoke hundreds of thousands of requests per minute! At these rates, finding specific invocations can be like
 searching for a needle in a haystack. We've felt this pain, which is why we've introduced tagged events.
@@ -88,17 +88,52 @@ Tagged Events are a simple way to identify invocations in the Serverless Dashboa
 all invocations associated with that tag. To provide extra context, you can specify a tag value to optionally filter on. If you're accustomed to
 logging out a debugging object, you can pass a third `custom` attribute that will be surfaced in the dashboard as well.
 
-The `tagEvent` function is available on either the `context.serverless_sdk` or on the
+The `tag_event` function is available on either the `context.serverless_sdk` or on the
 module imported from `'./serverless_sdk'`.
 
-Here is an example of how to use it from the `context.serverlessSdk` object:
+Here is an example of how to use it from the `context.serverless_sdk` object:
 
 ```python
 def hello(event, context):
     # ... set up some state/custom logic
-    context.serverless_sdk.tagEvent('customer-id', event.body.customerId, { 'demoUser': 'true', 'freeTrialExpires': '2020-09-01' })
+    context.serverless_sdk.tagEvent(
+        'customer-id',
+        event.body.customerId,
+        { 'demoUser': 'true', 'freeTrialExpires': '2020-09-01' }
+    )
     return {
         'statusCode': 500,
         'body': '{"name": "bob"}',
     }
+```
+
+# Automatic route instrumentation with application middleware
+
+Faced with practical considerations (a big one being CloudFormation stack resource limit), developers often reach for a single function solution with routing being handled by the application layer. This is typically accomplished by leveraging the [serverless-wsgi](https://github.com/logandk/serverless-wsgi) plugin to deploy existing WSGI applications (Flask/Django/Pyramid etc). Rolling your own custom router is another option as well.
+
+An unfortunate downside of this approach is the loss of visibility into the mapped route for invocations. Instead, you're left with either the catch-all API Gateway resource path (`/{proxy+}`) or the raw request url itself (e.g. `/org/foo/user/bar/orders`). Neither of which are conducive for exploration and debugging invocations. The former is not very useful and the latter wouldn't let you group invocations by their routed endpoints to bubble up say, performance issues.
+
+To alleviate this issue, when deploying a [Flask](https://flask.palletsprojects.com/en/1.1.x/) application, the SDK will automatically instrument incoming invocations to set the routed endpoint. There's zero setup required!
+
+If your application is using a custom-built router, you can still work around this issue by calling the `set_endpoint` SDK function described below.
+
+Once set, invocations can be explored and inspected by endpoint in the Dashboard.
+
+# `set_endpoint`
+
+Allows the application to explicitly set the routed endpoint for an invocation. Like the other SDK methods, `setEndpoint` is available on either the context object: `context.serverless_sdk`.
+
+```python
+def handler(event, context):
+  context.serverless_sdk.set_endpoint('/api/foo')
+  # application code...
+```
+
+You can also import the function from `serverless_sdk`
+
+```python
+from serverless_sdk import set_endpoint
+def handler(event, context):
+  set_endpoint('/api/foo')
+  # application code...
 ```

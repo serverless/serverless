@@ -6,6 +6,12 @@ function minimal(event, context, callback) {
   return callback(null, { statusCode: 200 });
 }
 
+function sayHello(event, context, callback) {
+  const body = JSON.parse(event.body);
+  return callback(null, { statusCode: 200, body: `Hello, ${body.name}` });
+}
+
 module.exports = {
   minimal,
+  sayHello,
 };

@@ -5,6 +5,7 @@ const WebSocket = require('ws');
 const _ = require('lodash');
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { confirmCloudWatchLogs, wait } = require('../../utils/misc');
@@ -27,14 +28,14 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.debug(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
     });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
-    console.info(`Deploying "${stackName}" service...`);
+    log.debug(`Deploying "${stackName}" service...`);
     return deployService(tmpDirPath);
   });
 
@@ -43,13 +44,55 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
     return removeService(tmpDirPath);
   });
 
+  async function getWebSocketServerUrl() {
+    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
+    const webSocketServerUrl = _.find(result.Stacks[0].Outputs, {
+      OutputKey: 'ServiceEndpointWebsocket',
+    }).OutputValue;
+
+    return webSocketServerUrl;
+  }
+
+  describe('Two-Way Setup', () => {
+    it('should expose a websocket route that can reply to a message', async () => {
+      const webSocketServerUrl = await getWebSocketServerUrl();
+
+      return new Promise((resolve, reject) => {
+        const ws = new WebSocket(webSocketServerUrl);
+        reject = (promiseReject => error => {
+          promiseReject(error);
+          try {
+            ws.close();
+          } catch (closeError) {
+            // safe to ignore
+          }
+        })(reject);
+
+        ws.on('error', reject);
+        ws.on('open', () => {
+          log.debug("Sending message to 'hello' route");
+          ws.send(JSON.stringify({ action: 'hello', name: 'serverless' }));
+        });
+
+        ws.on('close', resolve);
+
+        ws.on('message', event => {
+          try {
+            log.debug(`Received WebSocket message: ${event}`);
+            expect(event).to.equal('Hello, serverless');
+          } finally {
+            ws.close();
+          }
+        });
+      });
+    });
+  });
+
   describe('Minimal Setup', () => {
     it('should expose an accessible websocket endpoint', async () => {
-      const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-      const webSocketServerUrl = _.find(result.Stacks[0].Outputs, {
-        OutputKey: 'ServiceEndpointWebsocket',
-      }).OutputValue;
-      console.info('WebSocket Server URL', webSocketServerUrl);
+      const webSocketServerUrl = await getWebSocketServerUrl();
+
+      log.debug(`WebSocket Server URL ${webSocketServerUrl}`);
       expect(webSocketServerUrl).to.match(/wss:\/\/.+\.execute-api\..+\.amazonaws\.com.+/);
       return new Promise((resolve, reject) => {
         const ws = new WebSocket(webSocketServerUrl);
@@ -78,7 +121,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
         ws.on('close', resolve);
 
         ws.on('message', event => {
-          console.info('Unexpected WebSocket message', event);
+          log.debug('Unexpected WebSocket message', event);
           reject(new Error('Unexpected message'));
         });
       });
@@ -112,15 +155,15 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
         // otherwise CF will refuse to delete the deployment because a stage refers to that
         await deleteStage(websocketApiId, 'dev');
         // NOTE: deploying once again to get the stack into the original state
-        console.info('Redeploying service...');
+        log.debug('Redeploying service...');
         await deployService(tmpDirPath);
-        console.info('Deleting external websocket API...');
+        log.debug('Deleting external websocket API...');
         await deleteApi(websocketApiId);
       });
 
       it('should add the routes to the referenced API', async () => {
         const routes = await getRoutes(websocketApiId);
-        expect(routes.length).to.equal(3);
+        expect(routes.length).to.equal(4);
       });
     });
   });

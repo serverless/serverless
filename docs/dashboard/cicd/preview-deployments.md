@@ -23,7 +23,7 @@ You must also select the "target pull request branch", a branch from your Github
 
 Each deployment must target a specific stage and use a specific deployment profile. By default, the stage value will be set to the name of the branch.
 
-In the "preview deploys" section, under "advanced settings", you can change the "stage" option. The default is "use branch name as stage", but you can also select a specific stage to target as well. However, if you use any option other than "use branch name as stage", then two different pull requests will be deployed to the same stgae.
+In the "preview deploys" section, under "advanced settings", you can change the "stage" option. The default is "use branch name as stage", but you can also select a specific stage to target as well. However, if you use any option other than "use branch name as stage", then two different pull requests will be deployed to the same stage.
 
 The deployment profile associated with the "default" stage in your application will be used if you select "use branch name as stage". If you select a specific stage, then the deployment profile associated with that stage will be used.
 
