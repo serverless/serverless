@@ -59,25 +59,27 @@ Upgrade:
 choco upgrade serverless
 ```
 
-## Installing via npm
+## Install via npm
 
 If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to do that first.
 
-Install the serverless CLI
+Install the serverless CLI:
 
 ```bash
 npm install -g serverless
 ```
 
-Upgrade
+Upgrade:
 
 ```bash
 npm update -g serverless
 ```
 
-## Install through your Pro account
+## Set up your free Pro account
 
-If you’ve signed up for Serverless Framework Pro, login to your dashboard from the CLI:
+Learn more about [Serverless Framework Pro](https://serverless.com/pro/) and [sign up for free](https://dashboard.serverless.com).
+
+Once you’ve signed up for Pro, login to your Pro dashboard from the CLI:
 
 ```bash
 serverless login
@@ -88,7 +90,3 @@ You can either add a new service in your dashboard, or with the CLI, using the c
 ```bash
 serverless
 ```
-
-If you haven’t tried Serverless Framework Pro yet, [sign up for free](https://dashboard.serverless.com).
-
-Learn more about [Serverless Framework Pro](https://serverless.com/pro/).
