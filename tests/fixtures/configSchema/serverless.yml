@@ -1,5 +1,9 @@
 service: test
+
 provider:
   name: test
+
+configValidationMode: error
+
 plugins:
   - ./test-provider

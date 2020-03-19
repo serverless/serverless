@@ -1,9 +1,13 @@
 service: configSchemaExtensions
+
 provider:
   name: someProvider
+
 plugins:
   - ./someProviderPlugin
   - ./someEventPlugin
+
+configValidationMode: error
 
 custom:
   someCustomStringProp: can-be-string
