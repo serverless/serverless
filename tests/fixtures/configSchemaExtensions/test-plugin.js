@@ -1,7 +1,15 @@
 'use strict';
 
-class SomeEventPlugin {
+class TestPlugin {
   constructor(serverless) {
+    serverless.configSchemaHandler.defineProvider('someProvider', {
+      provider: { additionalProperties: true },
+      function: {
+        properties: { handler: { type: 'string' } },
+        additionalProperties: true,
+      },
+    });
+
     serverless.configSchemaHandler.defineCustomProperty('someCustomStringProp', { type: 'string' });
 
     serverless.configSchemaHandler.defineFunctionEvent('someEvent', {
@@ -13,7 +21,11 @@ class SomeEventPlugin {
       required: ['someRequiredStringProp'],
       additionalProperties: false,
     });
+
+    serverless.configSchemaHandler.defineTopLevelProperty('app', {
+      type: 'string',
+    });
   }
 }
 
-module.exports = SomeEventPlugin;
+module.exports = TestPlugin;

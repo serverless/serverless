@@ -4,8 +4,7 @@ provider:
   name: someProvider
 
 plugins:
-  - ./someProviderPlugin
-  - ./someEventPlugin
+  - ./test-plugin
 
 configValidationMode: error
 
