@@ -2,7 +2,7 @@
   "name": "serverless",
   "version": "1.67.0",
   "engines": {
-    "node": ">=10.0"
+    "node": ">=8.0"
   },
   "engineStrict": true,
   "preferGlobal": true,

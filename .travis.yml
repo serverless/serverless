@@ -140,9 +140,6 @@ jobs:
     - name: 'Unit Tests - Node.js v8'
       node_js: 8
 
-    - name: 'Unit Tests - Node.js v6'
-      node_js: 6
-
     - stage: Integration Test
       name: 'Integration Tests, Tag on version bump - Node.js v12'
       node_js: 12
