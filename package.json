@@ -189,7 +189,7 @@
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.15",
     "memoizee": "^0.4.14",
-    "mkdirp": "^0.5.3",
+    "mkdirp": "^1.0.3",
     "nanomatch": "^1.2.13",
     "ncjsm": "^4.0.1",
     "node-fetch": "^2.6.0",
