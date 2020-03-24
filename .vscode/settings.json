@@ -1,0 +1,10 @@
+{
+  "workbench.colorCustomizations": {
+    "list.inactiveSelectionForeground": "#ff0000",
+    "sideBarSectionHeader.background": "#555555",
+    "activityBar.background": "#2F2E21",
+    "titleBar.activeBackground": "#41412E",
+    "titleBar.activeForeground": "#FBFAF9"
+  },
+  "editor.formatOnSave": false
+}
