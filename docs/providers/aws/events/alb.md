@@ -66,24 +66,26 @@ functions:
 
 With AWS you can configure an Application Load Balancer to [securely authenticate](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html) users as they access your applications. To securely authenticate using Cognito or a identity provider (IdP) that is OpenID Connect (OIDC) compliant, follow below steps.
 
-#### 1. Declare an "authenticateCognito" and/or "authenticateOidc" object on `provider.alb.authorizers`
+#### 1. Declare authorizer objects either of type "cognito" or "oidc" on `provider.alb.authorizers`
 
 ```yaml
 provider:
   alb:
     authorizers:
-      authenticateCognito:
+      myFirstAuth:
+        type: 'cognito'
         userPoolArn: 'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341', # required
         userPoolClientId: '1h57kf5cpq17m0eml12EXAMPLE', # required
         userPoolDomain: 'your-test-domain' # required
-        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. If set to false a HTTP 401 Unauthorized error is returned
+        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
         requestExtraParams: # optional. The query parameters (up to 10) to include in the redirect request to the authorization endpoint
           prompt: 'login'
           redirect: false
         scope: 'first_name age' # Can be a combination of any system-reserved scopes or custom scopes associated with the client. The default is openid
         sessionCookieName: '🍪' # The name of the cookie used to maintain session information. The default is AWSELBAuthSessionCookie
         sessionTimeout: 7000 # The maximum duration of the authentication session, in seconds. The default is 604800 seconds (7 days).
-      authenticateOidc:
+      mySecondAuth:
+        type: 'oidc'
         authorizationEndpoint: 'https://example.com', # required. The authorization endpoint of the IdP. Must be a full URL, including the HTTPS protocol, the domain, and the path
         clientId: 'i-am-client', # required
         clientSecret: 'i-am-secret', # if creating a rule this is required. If modifying a rule, this can be omitted if you set useExistingClientSecret to true (as below)
@@ -91,7 +93,7 @@ provider:
         issuer: 'https://www.iamscam.com', # required. The OIDC issuer identifier of the IdP. This must be a full URL, including the HTTPS protocol, the domain, and the path
         tokenEndpoint: 'http://somewhere.org', # required
         userInfoEndpoint: 'https://another-example.com' # required
-        allowUnauthenticated: false
+        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
         requestExtraParams:
           prompt: 'login'
           redirect: false
@@ -112,7 +114,7 @@ functions:
           priority: 1
           conditions:
             path: /auth/cognito
-          authorizer: 'authenticateOidc'
+          authorizer: myFirstAuth
 ```
 
 ```yml
@@ -126,8 +128,8 @@ functions:
           conditions:
             path: /auth/idp
           authorizer:
-            - 'authenticateCognito'
-            - 'authenticateOidc'
+            - myFirstAuth
+            - mySecondAuth
 ```
 
 ## Enabling multi-value headers
