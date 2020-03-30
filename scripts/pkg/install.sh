@@ -38,7 +38,17 @@ BINARIES_DIR_PATH=$HOME/.serverless/bin
 BINARY_PATH=$BINARIES_DIR_PATH/serverless
 mkdir -p $BINARIES_DIR_PATH
 printf "$yellow Downloading binary...$reset\n"
-curl -L -o $BINARY_PATH https://github.com/serverless/serverless/releases/download/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+
+TIMEZONE_OFFSET=`date +"%Z %z"`
+if [[ $TIMEZONE_OFFSET == "CST +0800" ]]
+then
+	# In China download from location in China (Github API download is slow and times out)
+	BINARY_URL=https://binary.serverlesscloud.cn/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+else
+	BINARY_URL=https://github.com/serverless/serverless/releases/download/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+fi
+
+curl -L -o $BINARY_PATH $BINARY_URL
 chmod +x $BINARY_PATH
 
 # Ensure aliases
