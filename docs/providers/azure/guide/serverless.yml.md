@@ -27,7 +27,7 @@ provider:
   region: West US 2
   runtime: nodejs12.x
   prefix: sample # prefix of generated resource name
-  subscriptionId: A356AC8C-E310-44F4-BF85-C7F29044AF99
+  subscriptionId: 00000000-0000-0000-0000-000000000000
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   type: premium # optional, values include 'Developer', 'Standard', 'Premium', 'Basic', 'Consumption'
 
