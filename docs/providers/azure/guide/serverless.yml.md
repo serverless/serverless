@@ -158,6 +158,19 @@ package:
 functions:
   hello:
     handler: src/handlers/hello.sayHello
+    # API Management configuration for `hello` handler
+    apim:
+      # The API to attach this operation
+      api: products-api
+      # The Backend use for the operation
+      backend: products-backend
+      operations:
+        # GET operation for `getProducts` handler
+        - method: get
+          # URL path for accessing handler
+          urlTemplate: /
+          # Display name inside Azure Portal
+          displayName: GetProducts
     events:
       - http: true
         x-azure-settings:
