@@ -34,24 +34,56 @@ provider:
   environment: # these will be created as application settings
     VARIABLE_FOO: 'foo'
 
-  # you can define apim configuration here
+  # Start of your API Management configuration
   apim:
+    # API specifications
     apis:
-      - name: v1
-        subscriptionRequired: false # if true must provide an api key
-        displayName: v1
-        description: V1 sample app APIs
+        # Name of the API
+      - name: products-api
+        subscriptionRequired: false
+        # Display name
+        displayName: Products API
+        # Description of API
+        description: The Products REST API
+        # HTTP protocols allowed
         protocols:
           - https
-        path: v1
+        # Base path of API calls
+        path: products
+        # Tags for ARM resource
         tags:
           - tag1
           - tag2
-        authorization: none # not currently used
+        # No authorization
+        authorization: none
+        # Name of the API
+      - name: categories-api
+        subscriptionRequired: false
+        # Display name
+        displayName: Categories API
+        # Description of API
+        description: The Categories REST API
+        # HTTP protocols allowed
+        protocols:
+          - https
+        # Base path of API calls
+        path: categories
+        # Tags for ARM resource
+        tags:
+          - tag1
+          - tag2
+        # No authorization
+        authorization: none
+    backends:
+      - name: products-backend
+        url: api/products
+      - name: categories-backend
+        url: api/categories
+    # CORS Settings for APIM
     cors:
       allowCredentials: false
       allowedOrigins:
-        - '*'
+        - "*"
       allowedMethods:
         - GET
         - POST
@@ -59,9 +91,55 @@ provider:
         - DELETE
         - PATCH
       allowedHeaders:
-        - '*'
+        - "*"
       exposeHeaders:
-        - '*'
+        - "*"
+
+    # JWT validation APIM policy
+    jwtValidate:
+      headerName: authorization
+      scheme: bearer
+      failedStatusCode: 401
+      failedErrorMessage: "Authorization token is missing or invalid"
+      openId:
+        metadataUrl: "https://path/to/openid/metadata/config"
+      audiences:
+        - "audience1"
+        - "audience2"
+      issuers:
+        - "https://path/to/openid/issuer"
+
+    # Header validation APIM policy
+    checkHeaders:
+      - headerName: x-example-header-1
+        failedStatusCode: 400
+        failedErrorMessage: Not Authorized
+        values: # List of allowed values, otherwise returns error code/message
+          - value1
+          - value2
+      - headerName: x-example-header-2
+        failedStatusCode: 403
+        failedErrorMessage: Forbidden
+        values: # List of allowed values, otherwise returns error code/message
+          - value1
+          - value2
+
+    # IP Validation APIM policies
+    ipFilters:
+      - action: allow
+        addresses: # List of allowed IP addresses
+          - 1.1.1.1
+          - 2.2.2.2
+        addressRange: # Also optionally support range of IP addresses
+          from: 1.1.1.1
+          to: 2.2.2.2
+      - action: forbid
+        addresses: # List of forbidden IP addresses
+          - 3.3.3.3
+          - 4.4.4.4
+        addressRange: # Also optionally support range of IP addresses
+          from: 3.3.3.3
+          to: 4.4.4.4
 
 plugins:
   - serverless-azure-functions
