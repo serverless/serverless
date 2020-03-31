@@ -56,8 +56,6 @@ provider:
         # No authorization
         authorization: none
     backends:
-      - name: products-backend
-        url: api/products
       - name: categories-backend
         url: api/categories
     # CORS Settings for APIM
