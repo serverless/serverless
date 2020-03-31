@@ -38,25 +38,6 @@ provider:
   apim:
     # API specifications
     apis:
-        # Name of the API
-      - name: products-api
-        subscriptionRequired: false
-        # Display name
-        displayName: Products API
-        # Description of API
-        description: The Products REST API
-        # HTTP protocols allowed
-        protocols:
-          - https
-        # Base path of API calls
-        path: products
-        # Tags for ARM resource
-        tags:
-          - tag1
-          - tag2
-        # No authorization
-        authorization: none
-        # Name of the API
       - name: categories-api
         subscriptionRequired: false
         # Display name
