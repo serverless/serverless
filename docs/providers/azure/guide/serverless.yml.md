@@ -86,15 +86,6 @@ functions:
           methods:
             - GET
           authLevel: anonymous # can also be `function` or `admin`
-
-  goodbye:
-    handler: src/handlers/goodbye.sayGoodbye
-    events:
-      - http: true
-        x-azure-settings:
-          methods:
-            - GET
-          authLevel: anonymous
   # The following are a few examples of other events you can configure:
   storageBlob:
     handler: src/handlers/storageBlob.printMessage
