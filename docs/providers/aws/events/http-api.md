@@ -14,7 +14,7 @@ layout: Doc
 
 # HTTP API
 
-HTTP APIs are a special flavored [API Gateway](https://aws.amazon.com/api-gateway/) implementation which offer more features and improved performance.
+HTTP APIs are a special flavored [API Gateway](https://aws.amazon.com/api-gateway/) implementation which offer more features and improved performance. They have some benefits and drawbacks compared to the traditional API Gateway REST APIs. Read the differences in the [AWS Documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html).
 
 The Serverless Framework makes it possible to setup [API Gateway](https://aws.amazon.com/api-gateway/) HTTP APIs via the `httpApi` event.
 
@@ -66,29 +66,7 @@ functions:
 
 ### Endpoints timeout
 
-By default HTTP API will timeout within 5 seconds. Timeout can be restricted to as low value as 50 milliseconds or lifted up to 29 seconds.
-
-To adjust timeout for all configured endpoints, outline desired value in `provider` settings:
-
-```yaml
-provider:
-  httpApi:
-    timeout: 0.5 # Restrict endpoints to timeout in 500ms
-```
-
-To adjust timeout for specific endpoint, outline it at `httpApi` event configuration:
-
-```yaml
-functions:
-  withCustomTimeout:
-    handler: handler.withCustomTimeout
-    events:
-      - httpApi:
-          ...
-          timeout: 29
-```
-
-**Note**: All `httpApi` events for same function should share same timeout setting.
+Framework ensures that function timeout setting (which defaults to 6 seconds) is respected in HTTP API endpoint configuration. Still note that maximum possible timeout for an endpoint is 29 seconds. Ensure to keep function timeout below that. Otherwise you may observe successful lambda invocations reported with `503` status code.
 
 ### CORS Setup
 
@@ -205,9 +183,9 @@ provider:
 
 See [AWS HTTP API Logging](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-logging-variables.html) documentation for more info on variables that can be used
 
-### Resuing HTTP API in different services
+### Reusing HTTP API in different services
 
-We may attach configured endpoints to HTTP API creted externally. For that provide HTTP API id in provider settings as follows:
+We may attach configured endpoints to HTTP API created externally. For that provide HTTP API id in provider settings as follows:
 
 ```yaml
 provider:
