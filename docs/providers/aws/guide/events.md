@@ -64,6 +64,21 @@ functions:
 
 The Serverless Framework supports all of the AWS Lambda events and more. Instead of listing them here, we've put them in a separate section, since they have a lot of configurations and functionality. [Check out the events section for more information.](../events)
 
+## PathParameters
+
+HTTP events can be configured to pass in path parameters to your lambda function. [See the API Gateway event for more details.](../events/apigateway.md#request-parameters)
+
+```yml
+# 'functions' in serverless.yml
+functions:
+  createUser: # Function name
+    handler: handler.users # Reference to file handler.js & exported function 'users'
+    events: # All events associated with this function
+      - http:
+          path: users/{id}
+          method: get
+```
+
 ## Deploying
 
 To deploy or update your Functions, Events and Infrastructure, run `serverless deploy`.
