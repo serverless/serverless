@@ -62,7 +62,7 @@ provider:
     cors:
       allowCredentials: false
       allowedOrigins:
-        - "*"
+        - '*'
       allowedMethods:
         - GET
         - POST
@@ -70,23 +70,23 @@ provider:
         - DELETE
         - PATCH
       allowedHeaders:
-        - "*"
+        - '*'
       exposeHeaders:
-        - "*"
+        - '*'
 
     # JWT validation APIM policy
     jwtValidate:
       headerName: authorization
       scheme: bearer
       failedStatusCode: 401
-      failedErrorMessage: "Authorization token is missing or invalid"
+      failedErrorMessage: 'Authorization token is missing or invalid'
       openId:
-        metadataUrl: "https://path/to/openid/metadata/config"
+        metadataUrl: 'https://path/to/openid/metadata/config'
       audiences:
-        - "audience1"
-        - "audience2"
+        - 'audience1'
+        - 'audience2'
       issuers:
-        - "https://path/to/openid/issuer"
+        - 'https://path/to/openid/issuer'
 
     # Header validation APIM policy
     checkHeaders:
