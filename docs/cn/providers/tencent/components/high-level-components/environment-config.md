@@ -10,9 +10,10 @@ layout: Doc
 在使用 Serverless Components 时，会遇到配置一些全局变量。例如对于多个函数，需要配置相同的数据库等信息时，可以通过如下 serverless-global 组件进行变量的复用和管理。
 
 使用方式如下，首先在 Yaml 中增加全局配置的字段，然后在对应的 Components 中直接通过 `${Conf.mysql_host}`的方式引用即可。
+
 ```yaml
 Conf:
-  component: "serverless-global"
+  component: 'serverless-global'
   inputs:
     mysql_host: gz-cdb-mytest.sql.tencentcdb.com
     mysql_user: mytest
@@ -22,9 +23,8 @@ Conf:
     mini_program_app_id: mytest
     mini_program_app_secret: mytest
 
-
 Album_Login:
-  component: "@serverless/tencent-scf"
+  component: '@serverless/tencent-scf'
   inputs:
     name: Album_Login
     codeUri: ./album/login

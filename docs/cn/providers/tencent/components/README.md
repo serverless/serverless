@@ -88,6 +88,7 @@ serverless create --template-url https://github.com/serverless/components/tree/v
 如下所示，当前 Serverless Components 支持丰富的多语言开发框架和应用：
 
 **基础组件**：
+
 - [@serverless/tencent-postgresql](https://github.com/serverless-components/tencent-postgresql) - 腾讯云 PG DB Serverless 数据库组件
 - [@serverless/tencent-apigateway](https://github.com/serverless-components/tencent-apigateway) - 腾讯云 API 网关组件
 - [@serverless/tencent-cos](https://github.com/serverless-components/tencent-cos) - 腾讯云对象存储组件
@@ -98,9 +99,8 @@ serverless create --template-url https://github.com/serverless/components/tree/v
 - [@serverless/tencent-vpc](https://github.com/serverless-components/tencent-vpc) - 腾讯云 VPC 私有网络组件
 - [@serverless/tencent-ssl](https://github.com/serverless-tencent/tencent-ssl) - 腾讯云 SSL 证书组件
 
-
-
 **高阶组件**：
+
 - [@serverless/tencent-nextjs](https://github.com/serverless-components/tencent-nextjs) - 快速部署基于 Next.js 框架到腾讯云函数的组件
 - [@serverless/tencent-nuxtjs](https://github.com/serverless-components/tencent-nuxtjs) - 快速部署基于 Nuxt.js 框架到腾讯云函数的组件
 - [@serverless/tencent-express](https://github.com/serverless-components/tencent-express) - 快速部署基于 Express.js 的后端服务到腾讯云函数的组件
@@ -117,6 +117,7 @@ serverless create --template-url https://github.com/serverless/components/tree/v
 - [@serverless/serverless-global](https://github.com/serverless-tencent/serverless-global) - 管理全局变量的组件
 
 **第三方贡献**：
+
 - [@authing/serverless-oidc](https://github.com/Authing/serverless-oidc) - 快速部署基于 Authing 的身份认证组件
 - [@twn39/tencent-fastify](https://github.com/twn39/tencent-fastify) - 快速部署基于 fastify.js 的后端服务到腾讯云函数的组件
 - [@twn39/tencent-php-slim](https://github.com/twn39/tencent-php-slim) - 快速部署基于 Slim PHP 微框架的后端服务到腾讯云函数的组件

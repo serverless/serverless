@@ -25,29 +25,34 @@ menuItems:
 
 如果您的本地环境没有安装 Node.js，您可以直接使用二进制的方式进行安装：
 
-### MacOS/Linux 系统 
+### MacOS/Linux 系统
 
 打开命令行，输入以下命令：
+
 ```sh
 $ curl -o- -L https://slss.io/install | bash
 ```
 
 如果之前您已经安装过二进制版本，可以通过下列命令进行升级：
+
 ```sh
 $ serverless upgrade
 ```
 
-### Windows 系统 
+### Windows 系统
 
 Windows 系统支持通过 [chocolatey](https://chocolatey.org/) 进行安装。打开命令行，输入以下命令：
 
 ```sh
 $ choco install serverless
 ```
+
 如果之前您已经安装过二进制版本，可以通过下列命令进行升级：
+
 ```sh
 $ choco upgrade serverless
 ```
+
 ## 方式二：NPM 安装
 
 ```bash
