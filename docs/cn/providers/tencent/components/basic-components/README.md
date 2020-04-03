@@ -14,3 +14,5 @@ layout: Doc
 - [@serverless/tencent-cdn](./tencent-cdn.md) - 腾讯云 CDN 组件
 - [@serverless/tencent-cam-role](./tencent-cam-role.md) - 腾讯云 CAM 角色组件
 - [@serverless/tencent-cam-policy](./tencent-cam-policy.md) - 腾讯云 CAM 策略组件
+- [@serverless/tencent-ssl](./tencent-ssl.md) - 腾讯云 CAM 角色组件
+- [@serverless/tencent-vpc](./tencent-vpc.md) - 腾讯云 CAM 策略组件
