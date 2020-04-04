@@ -144,7 +144,7 @@ libraries are instrumented to capture HTTP & HTTPS requests.
 By default, requests to AWS are not captured because of the above AWS SDK instrumentation which
 provides more insight into the request.
 
-[Configuration docs](../sdk/README.md#configuring-http-spans)
+[Configuration docs](../sdk/#advanced-span-configuration)
 
 ## Custom function spans
 

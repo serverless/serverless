@@ -25,6 +25,16 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 [![serverless components notice](https://s3.amazonaws.com/assets.github.serverless/announcement-serverless-components-3.gif)](https://github.com/serverless/components)
 
+## Contributing
+
+We are always looking to promote good contributors to be maintainers and provide them a front-row seat to serverless innovation.
+
+If you would like to be a maintainer of this plugin, please get started with making code contributions and engaging with open issues/PRs. Also, please reach out to one of the active [Serverless organization](https://github.com/serverless) members to express your interest.
+
+We'd love to collaborate closely with amazing developers as we drive the development of this open technology into the future.
+
+Welcome, and thanks in advance for your help!
+
 ## Contents
 
 <img align="right" width="400" src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/email/sls-getting-started.gif" />
