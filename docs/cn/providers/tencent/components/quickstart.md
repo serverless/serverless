@@ -1,3 +1,10 @@
+<!--
+title: Serverless Framework - Component 快速开始
+menuText: Component 快速开始
+menuOrder: 2
+layout: Doc
+-->
+
 ## 操作场景
 
 该文档引导您通过 Serverless Framework Component，在腾讯云上快速创建、配置和部署一个云函数 + API 网关的服务。
