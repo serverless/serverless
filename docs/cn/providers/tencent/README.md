@@ -1,6 +1,6 @@
 <!--
-title: Tencent Cloud - 腾讯云函数 (SCF) CLI 文档
-menuText: Tencent CLI
+title: Tencent Cloud - 腾讯 Serverless Framework
+menuText: 腾讯 Serverless Framework
 menuOrder: 3
 layout: Doc
 -->
@@ -20,21 +20,21 @@ layout: Doc
     <div class="docsProviderItems">
       <ul>
         <li><a href="./components/README.md">Components 概述</a></li>
-        <li><a href="./components/high-level-components/tencent-egg.md">Egg.js 组件</a></li>
-        <li><a href="./components/high-level-components/tencent-express.md">Express 组件</a></li>
-        <li><a href="./components/high-level-components/tencent-koa.md">Koa 组件</a></li>
-        <li><a href="./components/high-level-components/tencent-flask.md"> Python Flask 组件</a></li>
-        <li><a href="./components/high-level-components/tencent-laravel.md"> PHP Laravel 组件</a></li>
-        <li><a href="./components/high-level-components/tencent-react-full-stack.md">部署 React 全栈应用</a></li>
-        <li><a href="./components/high-level-components/tencent-vue-full-stack.md">部署 Vue 全栈应用</a></li>
-        <li><a href="./components/high-level-components/tencent-hexo.md">搭建 Hexo 博客</a></li>
-        <li><a href="./components/high-level-components/tencent-website.md">搭建静态网站</a></li>
-        <li><a href="./components/basic-components/tencent-scf.md">云函数 SCF 组件</a></li>
-        <li><a href="./components/basic-components/tencent-apigateway.md">API网关组件</a></li>
-        <li><a href="./components/basic-components/tencent-cos.md">对象存储 COS 组件</a></li>
-        <li><a href="./components/basic-components/tencent-cdn.md">内容分发网络 CDN 组件</a></li>
-        <li><a href="./components/basic-components/tencent-cam-policy.md">访问管理 CAM 策略组件</a></li>
-        <li><a href="./components/basic-components/tencent-cam-role.md">访问管理 CAM 角色组件</a></li>
+        <li><a href="./components/high-level-components/tencent-egg">Egg.js 组件</a></li>
+        <li><a href="./components/high-level-components/tencent-express">Express 组件</a></li>
+        <li><a href="./components/high-level-components/tencent-koa">Koa 组件</a></li>
+        <li><a href="./components/high-level-components/tencent-flask"> Python Flask 组件</a></li>
+        <li><a href="./components/high-level-components/tencent-laravel"> PHP Laravel 组件</a></li>
+        <li><a href="./components/high-level-components/tencent-react-full-stack">部署 React 全栈应用</a></li>
+        <li><a href="./components/high-level-components/tencent-vue-full-stack">部署 Vue 全栈应用</a></li>
+        <li><a href="./components/high-level-components/tencent-hexo">搭建 Hexo 博客</a></li>
+        <li><a href="./components/high-level-components/tencent-website">搭建静态网站</a></li>
+        <li><a href="./components/basic-components/tencent-scf">云函数 SCF 组件</a></li>
+        <li><a href="./components/basic-components/tencent-apigateway">API网关组件</a></li>
+        <li><a href="./components/basic-components/tencent-cos">对象存储 COS 组件</a></li>
+        <li><a href="./components/basic-components/tencent-cdn">内容分发网络 CDN 组件</a></li>
+        <li><a href="./components/basic-components/tencent-cam-policy">访问管理 CAM 策略组件</a></li>
+        <li><a href="./components/basic-components/tencent-cam-role">访问管理 CAM 角色组件</a></li>
       </ul>
     </div>
   </div>
