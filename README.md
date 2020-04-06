@@ -23,7 +23,10 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 <a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Watch the video overview here.</a>
 
-[![serverless components notice](https://s3.amazonaws.com/assets.github.serverless/announcement-serverless-components-3.gif)](https://github.com/serverless/components)
+In 2020, the Serverless Framework began introducing advanced functionality for specific serverless use-cases, known as Serverless Framework Components.  Check out the Components featured below, [and more here](https://github.com/serverless-components).
+
+| [![serverless framework express.js](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-express.png)](https://github.com/serverless-components/express) | [![serverless framework website](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-website.png)](https://github.com/serverless-components/website) | [![serverless framework dynamodb](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-dynamodb.png)](https://github.com/serverless-components/aws-dynamodb) |
+| --- | --- | --- |
 
 ## Contents
 

@@ -1,6 +1,9 @@
----
-link: /providers/tencent/templates/rest-api
----
+<!--
+title: Serverless Framework - Components 最佳实践  - 部署 REST API
+menuText: 部署 REST API
+menuOrder: 7
+layout: Doc
+-->
 
 ## 简介
 
@@ -33,7 +36,7 @@ $ npm install -g serverless
 通过如下命令直接下载该例子，目录结构如下：
 
 ```bash
-$ serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-python-rest-api
+$ serverless create --template-url https://github.com/serverless/components/tree/v1/templates/tencent-python-rest-api
 
 ```
 

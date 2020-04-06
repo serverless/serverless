@@ -25,15 +25,3 @@ layout: Doc
 </div>
 <br/>
 <br/>
-
-## Connecting your provider
-
-To deploy functions, specify your provider in your service's `serverless.yml` file under the `provider` key and make sure your provider credentials are setup on your machine or CI/CD system.
-
-```yml
-# serverless.yml
-service: my-service-name
-
-provider:
-  name: tencent
-```

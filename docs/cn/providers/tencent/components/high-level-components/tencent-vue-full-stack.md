@@ -41,7 +41,7 @@ $ npm i -g serverless
 之后可以新建一个空的文件夹，使用 `create --template-url`，安装相关 template。
 
 ```bash
-$ serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-fullstack-vue-application
+$ serverless create --template-url https://github.com/serverless/components/tree/v1/templates/tencent-fullstack-vue-application
 ```
 
 使用`cd`命令，进入`templates\tencent-fullstack-vue-application` 文件夹，可以查看到如下目录结构：

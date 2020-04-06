@@ -35,10 +35,21 @@ menuItems:
 
 <!-- DOCS-SITE-LINK:END -->
 
-# Documentation
+# Serverless Framework Documentation
 
-The Serverless Framework helps you build serverless apps with radically less overhead and cost. It provides a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications.
+Develop, deploy, troubleshoot and secure your serverless applications with radically less overhead and cost by using the Serverless Framework. The Serverless Framework consists of an open source CLI and a hosted dashboard. Together, they provide you with full serverless application lifecycle management.
 
-The Serverless Framework consists of an open source [CLI](./providers/) that makes it easy to develop, deploy and test serverless apps across different cloud providers, as well as a hosted [Dashboard](./dashboard/) that includes features designed to further simplify serverless development, deployment, and testing, and enable you to easily secure and monitor your serverless apps.
+**Are you new to serverless application development?**
 
-If you are new to serverless and want to experience how fast and easy it is to build a serverless app, or if you are an experienced user of the Serverless Framework open source CLI and want to explore new features of the Framework, you can get started [here](./getting-started.md), for free.
+Sign up for our [hosted dashboard](https://dashboard.serverless.com) (it’s free) and we’ll help deploy your first serverless app in minutes.
+
+If you prefer to start on the CLI, use our [get started](https://serverless.com/framework/docs/getting-started/) guide.
+
+**If you are an experienced user of the Serverless Framework**
+
+Our [Pro dashboard](https://serverless.com/pro/) allows you to import existing projects. Track performance, troubleshoot, configure CI/CD and deployment policies, and get end-to-end serverless application lifecycle management.
+[Get started](https://dashboard.serverless.com) for free.
+
+Have questions? Visit our [Forum](https://forum.serverless.com/).
+
+For inspiration, check out [example code](https://serverless.com/examples/), [guides](https://serverless.com/blog/category/guides-and-tutorials/) and [use cases](https://serverless.com/learn/use-cases/).

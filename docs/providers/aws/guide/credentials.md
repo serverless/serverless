@@ -184,6 +184,10 @@ You can always specify the profile which should be used via the `aws-profile` op
 serverless deploy --aws-profile devProfile
 ```
 
+##### Using web identity token
+
+To use web identity token authentication the `AWS_WEB_IDENTITY_TOKEN_FILE` and `AWS_ROLE_ARN` environment need to be set. It is automatically set if you specify a service account in AWS EKS.
+
 #### Per Stage Profiles
 
 As an advanced use-case, you can deploy different stages to different accounts by using different profiles per stage. In order to use different profiles per stage, you must leverage [variables](https://serverless.com/framework/docs/providers/aws/guide/variables) and the provider profile setting.

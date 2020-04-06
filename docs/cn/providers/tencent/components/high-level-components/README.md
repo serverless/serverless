@@ -32,7 +32,7 @@ $ npm i -g serverless
 通过 Serverless Website 组件快速构建一个 Serverless Hexo 站点
 
 ```shell
-serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-hexo-blog
+serverless create --template-url https://github.com/serverless/components/tree/v1/templates/tencent-hexo-blog
 ```
 
 #### [快速构建 REST API](./tencent-rest-api.md)
@@ -40,7 +40,7 @@ serverless create --template-url https://github.com/serverless/components/tree/m
 通过 Serverless SCF 组件快速构建一个 REST API 应用，实现 GET/PUT 操作。
 
 ```shell
-serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-python-rest-api
+serverless create --template-url https://github.com/serverless/components/tree/v1/templates/tencent-python-rest-api
 ```
 
 #### [部署 Serverless 全栈 WEB 应用（React.js）](./tencent-react-full-stack.md)
@@ -48,7 +48,7 @@ serverless create --template-url https://github.com/serverless/components/tree/m
 本示例以 React 为前端，Express 框架作为后端，通过多个 Serverless Components 部署 Serverless 全栈应用程序。
 
 ```shell
-serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-fullstack-react-application
+serverless create --template-url https://github.com/serverless/components/tree/v1/templates/tencent-fullstack-react-application
 ```
 
 #### [部署 Serverless 全栈 WEB 应用（Vue.js）](./tencent-vue-full-stack.md)
@@ -56,9 +56,9 @@ serverless create --template-url https://github.com/serverless/components/tree/m
 本示例以 Vue 为前端，Express 框架作为后端，通过多个 Serverless Components 部署 Serverless 全栈应用程序。
 
 ```shell
-serverless create --template-url https://github.com/serverless/components/tree/master/templates/tencent-fullstack-vue-application
+serverless create --template-url https://github.com/serverless/components/tree/v1/templates/tencent-fullstack-vue-application
 ```
 
-#### [部署其他模板](./templates)
+#### [部署其他模板](https://github.com/serverless/components/tree/v1/templates)
 
-在这里查看所有预设的 [Components 模板](https://github.com/serverless/components/tree/master/templates)，你可以通过这些模板方便的部署*REST API*， 网站, *定时任务*等多种场景。每个模板都提供了清晰的 `README.md` 来说明怎样使用。
+在这里查看所有预设的 [Components 模板](https://github.com/serverless/components/tree/v1/templates)，你可以通过这些模板方便的部署*REST API*， 网站, *定时任务*等多种场景。每个模板都提供了清晰的 `README.md` 来说明怎样使用。
