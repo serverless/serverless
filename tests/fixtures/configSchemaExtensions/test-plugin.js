@@ -10,7 +10,12 @@ class TestPlugin {
       },
     });
 
-    serverless.configSchemaHandler.defineCustomProperty('someCustomStringProp', { type: 'string' });
+    serverless.configSchemaHandler.defineCustomProperties({
+      properties: {
+        someCustomStringProp: { type: 'string' },
+      },
+      required: ['someCustomStringProp'],
+    });
 
     serverless.configSchemaHandler.defineFunctionEvent('someEvent', {
       type: 'object',
