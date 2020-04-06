@@ -35,7 +35,7 @@ describe('Function destinations Integration Test', function() {
     await removeService(tmpDirPath);
   });
 
-  it('on async invoke should invoke destination target', async () => {
+  it('on async invoke should invoke destination target', async () =>
     confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-target`,
       async () => {
@@ -47,6 +47,5 @@ describe('Function destinations Integration Test', function() {
       { checkIsComplete: events => events.length }
     ).then(events => {
       expect(events.length > 0).to.equal(true);
-    });
-  });
+    }));
 });
