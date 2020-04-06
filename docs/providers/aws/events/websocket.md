@@ -45,6 +45,18 @@ functions:
           route: $disconnect
 ```
 
+This code will setup a [RouteResponse](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html), enabling you to respond to websocket messages by using the `body` parameter of your handler's callback response:
+
+```yml
+functions:
+  helloHandler:
+    handler: handler.helloHandler
+    events:
+      - websocket:
+          route: hello
+          routeResponseSelectionExpression: $default
+```
+
 ## Routes
 
 The API-Gateway provides [4 types of routes](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html) which relate to the lifecycle of a ws-client:
@@ -195,6 +207,30 @@ module.exports.defaultHandler = async (event, context) => {
 
   return {
     statusCode: 200,
+  };
+};
+```
+
+## Respond to a a ws-client message
+
+To respond to a websocket message from your handler function, [Route Responses](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html) can be used. Set the `routeResponseSelectionExpression` option to enable this. This option allows you to respond to a websocket message using the `body` parameter.
+
+```yml
+functions:
+  sayHelloHandler:
+    handler: handler.sayHello
+    events:
+      - websocket:
+          route: hello
+          routeResponseSelectionExpression: $default
+```
+
+```js
+module.exports.helloHandler = async (event, context) => {
+  const body = JSON.parse(event.body);
+  return {
+    statusCode: 200,
+    body: `Hello, ${body.name}`,
   };
 };
 ```

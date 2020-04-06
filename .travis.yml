@@ -17,14 +17,11 @@ install:
   # Note: `npm update` has issues which we need to workaround:
   # - There seems no way to update all project dependency groups in one run
   #   Hence different calls for prod and dev dependencies
-  # - The bigger depth, the longer update takes (-9999 as proposed in npm docs hangs the process).
-  #   Therefore we keep at 3 which should ensure most of dependencies are at latest versions
-  # - Depth setting makes optional dependencies not optional (install error crashes process)
-  #   Hence we skip install of optional dependencies completely, with --no-optional
-  #   Note: this patch works only for npm@5+
+  # - We were relying on "--depth 3", but depth setting makes optional dependencies not optional
+  #   and adding "--no-optional" proven to not be a reliable workaround (worked just in some cases)
   # - npm documents --dev option for dev dependencies update, but it's only --save-dev that works
-  - npm update --depth 3 --no-optional --no-save
-  - npm update --depth 3 --save-dev --no-save
+  - npm update --no-save
+  - npm update --save-dev --no-save
 
 branches:
   only: # Do not build PR branches
@@ -124,12 +121,6 @@ jobs:
           then
             export PATH="/c/Python27:/c/Python27/Scripts:$PATH"
           fi
-      install:
-        # Note: `--no-optional` seems to be ineffective (with `--depth`) on Windows in some cases
-        # See: https://travis-ci.org/serverless/serverless/jobs/651220714
-        # Therefore no deep install on Windows
-        - npm update --no-save
-        - npm update --save-dev --no-save
 
     - name: 'Isolated Unit Tests, Package Integration Tests - Node.js v13'
       node_js: 13
@@ -151,10 +142,6 @@ jobs:
 
     - name: 'Unit Tests - Node.js v6'
       node_js: 6
-      before_install:
-        # npm@3 doesn't seem handle `--no-optional` option of `npm update` command.
-        # Upgrade npm to version which is distributed with Node.js v8
-        - npm i -g npm@6.4.1
 
     - stage: Integration Test
       name: 'Integration Tests, Tag on version bump - Node.js v12'
@@ -219,6 +206,7 @@ jobs:
         - npx github-release-from-cc-changelog $TRAVIS_TAG
         - npm run pkg:upload -- $TRAVIS_TAG
       deploy:
+        edge: true # Workaround Travis regression: https://travis-ci.community/t/missing-api-key-when-deploying-to-github-releases/5761
         provider: npm
         email: services@serverless.com
         on:

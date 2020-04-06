@@ -77,6 +77,17 @@ provider:
       - '*/*'
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
+  httpApi:
+    id: # If we want to attach to externally created HTTP API its id should be provided here
+    cors: true # Implies default behavior, can be fine tuned with specficic options
+    authorizers:
+      # JWT authorizers to back HTTP API endpoints
+      someJwtAuthorizer:
+        identitySource: $request.header.Authorization
+        issuerUrl: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxx
+        audience:
+          - xxxx
+          - xxxx
   usagePlan: # Optional usage plan configuration
     quota:
       limit: 5000
@@ -152,9 +163,13 @@ provider:
       executionLogging: true # Optional configuration which enables or disables execution logging. Defaults to true.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
       fullExecutionData: true # Optional configuration which specifies whether or not to log full requests/responses for execution logging. Defaults to true.
-      role: arn:aws:iam::123456:role # Optional IAM role for ApiGateway to use when managing CloudWatch Logs
+      role: arn:aws:iam::123456:role # Existing IAM role for ApiGateway to use when managing CloudWatch Logs. If 'role' is not configured, a new role is automatically created.
+      roleManagedExternally: false # Specifies whether the ApiGateway CloudWatch Logs role setting is not managed by Serverless. Defaults to false.
     websocket: # Optional configuration which specifies if Websocket logs are used. This can either be set to `true` to use defaults, or configured via subproperties.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
+    httpApi: # Optional configuration which specifies if HTTP API logs are used. This can either be set to `true` (to use defaults as below) or specific log format configuraiton can be provided
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
 
 package: # Optional deployment packaging configuration
@@ -208,6 +223,9 @@ functions:
     dependsOn: # optional, appends these additional resources to the 'DependsOn' list
       - MyThing
       - MyOtherThing
+    destinations: # optional, destinations for async invocations
+      onSuccess: functionName # function name or ARN of a target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic)
+      onFailure: xxx:xxx:target # function name or ARN of a target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic)
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
@@ -221,8 +239,17 @@ functions:
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
             type: token # token or request. Determines input to the authorizer function, called with the auth token or the entire request event. Defaults to token
+      - httpApi: # HTTP API endpoint
+          method: GET
+          path: /some-get-path/{param}
+          authorizer: # Optional
+            name: someJwtAuthorizer # References by name authorizer defined in provider.httpApi.authorizers section
+            scopes: # Optional
+              - user.id
+              - user.email
       - websocket:
           route: $connect
+          routeResponseSelectionExpression: $default # optional, setting this enables callbacks on websocket requests for two-way communication
           authorizer:
             # name: auth    NOTE: you can either use "name" or arn" properties
             arn: arn:aws:lambda:us-east-1:1234567890:function:auth
@@ -260,7 +287,14 @@ functions:
               - dog
               - cat
           redrivePolicy:
-            deadLetterTargetArn: arn:aws:sqs:region:XXXXXX:myDLQ
+              # (1) ARN
+              deadLetterTargetArn: arn:aws:sqs:us-east-1:11111111111:myDLQ
+              # (2) Ref (resource defined in same CF stack)
+              deadLetterTargetRef: myDLQ
+              # (3) Import (resource defined in outer CF stack)
+              deadLetterTargetImport:
+                arn: MyShared-DLQArn
+                url: MyShared-DLQUrl
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
@@ -405,6 +439,13 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+  extensions:
+    # override Properties or other attributes of Framework-created resources.
+    # See https://serverless.com/framework/docs/providers/aws/guide/resources#override-aws-cloudformation-resource for more details
+    UsersCreateLogGroup:
+      Properties:
+        RetentionInDays: '30'
+
   # The "Outputs" that your AWS CloudFormation Stack should produce.  This allows references between services.
   Outputs:
     UsersTableArn:

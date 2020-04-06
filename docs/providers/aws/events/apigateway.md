@@ -655,6 +655,24 @@ functions:
           method: get
 ```
 
+API Gateway also supports the association of VPC endpoints if you have an API Gateway REST API using the PRIVATE endpoint configuration. This feature simplifies the invocation of a private API through the generation of the following AWS Route 53 alias:
+
+```
+https://<rest_api_id>-<vpc_endpoint_id>.execute-api.<aws_region>.amazonaws.com
+```
+
+Here's an example configuration:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  endpointType: PRIVATE
+  vpcEndpointIds:
+    - vpce-123
+    - vpce-456
+```
+
 ### Request Parameters
 
 To pass optional and required parameters to your functions, so you can use them in API Gateway tests and SDK generation, marking them as `true` will make them required, `false` will make them optional.
@@ -1574,6 +1592,30 @@ provider:
 ```
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/api-gateway/{service}-{stage}`.
+
+To be able to write logs, API Gateway [needs a CloudWatch role configured](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html). This setting is per region, shared by all the APIs. There are three approaches for handling it:
+
+- Let Serverless create and assign an IAM role for you (default behavior). Note that since this is a shared setting, this role is not removed when you remove the deployment.
+- Let Serverless assign an existing IAM role that you created before the deployment, if not already assigned:
+
+  ```yml
+  # serverless.yml
+  provider:
+    logs:
+      restApi:
+        role: arn:aws:iam::123456:role
+  ```
+
+- Do not let Serverless manage the CloudWatch role configuration. In this case, you would create and assign the IAM role yourself, e.g. in a separate "account setup" deployment:
+
+  ```yml
+  provider:
+    logs:
+      restApi:
+        roleManagedExternally: true # disables automatic role creation/checks done by Serverless
+  ```
+
+**Note:** Serverless configures the API Gateway CloudWatch role setting using a custom resource lambda function. If you're using `cfnRole` to specify a limited-access IAM role for your serverless deployment, the custom resource lambda will assume this role during execution.
 
 By default, API Gateway access logs will use the following format:
 
