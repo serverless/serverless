@@ -6,9 +6,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug Fixes
 
-- **Standalone:** Improve performance in China by supporting dedicated mirror for binary downloads ([8e85fe6](https://github.com/serverless/serverless/commit/8e85fe611b4b4d619e0ad4fd347d669af6418634))
-- **AWS ALB:** Fix handling of provisioned concurrency ([#7285](https://github.com/serverless/serverless/issues/7285)) ([3138ef1](https://github.com/serverless/serverless/commit/3138ef1771a31a52429777241f67dcf07a69bebd))
-- Recognize AWS Web Identify Credentials ([#7442](https://github.com/serverless/serverless/issues/7442)) ([001f56c](https://github.com/serverless/serverless/commit/001f56cf5a4c8b4ffeb6f9e9fcc27e73d2f10789))
+- **Standalone:** Improve performance in China by supporting dedicated mirror for binary downloads ([#7521](https://github.com/serverless/serverless/issues/7521)) ([8e85fe6](https://github.com/serverless/serverless/commit/8e85fe611b4b4d619e0ad4fd347d669af6418634)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS ALB:** Fix handling of provisioned concurrency ([#7285](https://github.com/serverless/serverless/issues/7285)) ([3138ef1](https://github.com/serverless/serverless/commit/3138ef1771a31a52429777241f67dcf07a69bebd)) ([Edward Goubely](https://github.com/cbm-egoubely))
+- Recognize AWS Web Identify Credentials ([#7442](https://github.com/serverless/serverless/issues/7442)) ([001f56c](https://github.com/serverless/serverless/commit/001f56cf5a4c8b4ffeb6f9e9fcc27e73d2f10789)) ([Thomas Schaaf](https://github.com/thomaschaaf))
 
 ## [1.67.0](https://github.com/serverless/serverless/compare/v1.66.0...v1.67.0) (2020-03-19)
 
