@@ -23,15 +23,15 @@ const userNodeVersion = Number(process.version.split('.')[0].slice(1));
 
 // only check for components if user is running Node 8
 if (userNodeVersion >= 8) {
-  const componentsV1 = require('@serverless/cli');
-  const componentsV2 = require('@serverless/components');
+  const componentsV1 = require('../lib/components-v1');
+  const componentsV2 = require('../lib/components-v2');
 
-  if (componentsV1.runningComponents()) {
+  if (componentsV1 && componentsV1.runningComponents()) {
     componentsV1.runComponents();
     return;
   }
 
-  if (componentsV2.runningComponents()) {
+  if (componentsV2 && componentsV2.runningComponents()) {
     componentsV2.runComponents();
     return;
   }
