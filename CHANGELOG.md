@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.67.3](https://github.com/serverless/serverless/compare/v1.67.2...v1.67.3) (2020-04-08)
+
+### Bug Fixes
+
+- **Components:** Handle gently initialization errors ([#7556](https://github.com/serverless/serverless/issues/7556)) ([7b0c18e](https://github.com/serverless/serverless/commit/7b0c18ededa149687942fb3318fefb26656e9e9d)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [1.67.2](https://github.com/serverless/serverless/compare/v1.67.1...v1.67.2) (2020-04-08)
 
 ## [1.67.1](https://github.com/serverless/serverless/compare/v1.67.0...v1.67.1) (2020-04-07)
