@@ -39,6 +39,10 @@ functions:
           methods:
             - POST
           authLevel: anonymous
+      - http: true
+        x-azure-settings:
+          direction: out
+          name: res
       - cosmosDB:
         x-azure-settings:
           direction: out
@@ -86,5 +90,10 @@ module.exports.write = async function(context, req) {
   context.bindings.record = output;
 
   context.log('Finish writing to CosmosDB');
+  
+  context.res = {
+    status: 201,
+    body: 'Created'
+  };
 };
 ```
