@@ -18,6 +18,7 @@ The Serverless framework provides a powerful variable system which allows you to
 
 - Reference & load variables from environment variables
 - Reference & load variables from CLI options
+- Reference & load variables from a file on Cloud Storage
 - Recursively reference properties of any type from the same `serverless.yml` file
 - Recursively reference properties of any type from other YAML / JSON files
 - Recursively nest variable references within each other for ultimate flexibility
@@ -204,6 +205,19 @@ resources:
   Resources: ${file(google-cloud-resources.json)}
 ```
 
+## Reference & load variables from a file on Cloud Storage
+
+You can reference GS values as the source of your variables to use in your service with the `gs:bucketName/key` syntax. For example:
+
+```yml
+service: new-service
+provider: google
+functions:
+  hello:
+    name: ${gs:myBucket/myKey}-hello
+    handler: handler.hello
+```
+
 The corresponding resources which are defined inside the `google-cloud-resources.json` file will be resolved and loaded into the `Resources` section.
 
 ## Migrating serverless.env.yml
@@ -217,3 +231,4 @@ Previously we used the `serverless.env.yml` file to track Serverless Variables. 
 **Using environment variables:** You can instead store your variables in environment variables and reference them with `env.someEnvVar`. For more info, you can check the environment variable reference section above.
 
 Now you don't need `serverless.env.yml` at all, but you can still use it if you want. It's just not required anymore. Migrating to the new variable system is easy and you just need to know how the new system works and make small adjustments to how you store & reference your variables.
+
