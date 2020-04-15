@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "serverless-azure-functions": "^1.0.2-19"
+    "serverless-azure-functions": "1.0.2-22"
   }
 }
