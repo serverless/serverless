@@ -35,8 +35,8 @@ When deploying, Serverless Framework will also create an IAM role in your accoun
 
 If you have an existing CloudWatch Logs Subscription on your Log Group, please see the section on [pull-based log ingestion](#pull-based-log-ingestion).
 
-If you wish to disable log collection, set the following options:
-=======
+# If you wish to disable log collection, set the following options:
+
 If you wish to disable log collection, set the following option:
 
 **serverless.yml**
