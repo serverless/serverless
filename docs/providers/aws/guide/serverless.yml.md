@@ -79,6 +79,7 @@ provider:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
   httpApi:
     id: # If we want to attach to externally created HTTP API its id should be provided here
+    name: # Use custom name for the API Gateway API, default is ${self:provider.stage}-${self:service}
     cors: true # Implies default behavior, can be fine tuned with specficic options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
