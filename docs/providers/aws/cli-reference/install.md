@@ -22,7 +22,7 @@ serverless install --url https://github.com/some/service
 
 ## Options
 
-- `--url` or `-u` The services GitHub URL. **Required**.
+- `--url` or `-u` The services Git URL (can be a plain Git or a Code Hosting Platform URL). **Required**.
 - `--name` or `-n` Name for the service.
 
 ## Provided lifecycle events
@@ -35,6 +35,7 @@ serverless install --url https://github.com/some/service
 - GitHub Enterprise
 - GitLab
 - BitBucket
+- BitBucket Server
 
 ## Examples
 

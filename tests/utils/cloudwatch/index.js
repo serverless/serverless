@@ -1,11 +1,8 @@
 'use strict';
 
-const AWS = require('aws-sdk');
-const { region, persistentRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function putCloudWatchEvents(sources) {
-  const cwe = new AWS.CloudWatchEvents({ region });
-
   const entries = sources.map(source => ({
     Source: source,
     DetailType: 'serverlessDetailType',
@@ -14,9 +11,9 @@ function putCloudWatchEvents(sources) {
   const params = {
     Entries: entries,
   };
-  return cwe.putEvents(params).promise();
+  return awsRequest('CloudWatchEvents', 'putEvents', params);
 }
 
 module.exports = {
-  putCloudWatchEvents: persistentRequest.bind(this, putCloudWatchEvents),
+  putCloudWatchEvents,
 };

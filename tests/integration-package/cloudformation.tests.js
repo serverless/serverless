@@ -2,9 +2,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const { expect } = require('chai');
 const fse = require('fs-extra');
 const { execSync } = require('../utils/child-process');
-const { serverlessExec } = require('../utils/misc');
+const serverlessExec = require('../serverless-binary');
 const { getTmpDirPath } = require('../utils/fs');
 
 const fixturePaths = {
@@ -13,7 +14,7 @@ const fixturePaths = {
   artifact: path.join(__dirname, 'fixtures/artifact'),
 };
 
-describe('Integration test - Packaging', () => {
+describe('Integration test - Packaging - CloudFormation', () => {
   let cwd;
   beforeEach(() => {
     cwd = getTmpDirPath();
@@ -25,11 +26,11 @@ describe('Integration test - Packaging', () => {
     const cfnTemplate = JSON.parse(
       fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
     );
-    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).toMatch(
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).to.match(
       /serverless\/aws-nodejs\/dev\/[^]*\/artifact.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
-    expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
+    expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
         Code: {
@@ -43,7 +44,7 @@ describe('Integration test - Packaging', () => {
         Role: {
           'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
-        Runtime: 'nodejs10.x',
+        Runtime: 'nodejs12.x',
         Timeout: 6,
       },
       DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
@@ -56,11 +57,11 @@ describe('Integration test - Packaging', () => {
     const cfnTemplate = JSON.parse(
       fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
     );
-    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).toMatch(
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).to.match(
       /serverless\/aws-nodejs\/dev\/[^]*\/aws-nodejs.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
-    expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
+    expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
         Code: {
@@ -74,7 +75,7 @@ describe('Integration test - Packaging', () => {
         Role: {
           'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
-        Runtime: 'nodejs10.x',
+        Runtime: 'nodejs12.x',
         Timeout: 6,
       },
       DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
@@ -87,14 +88,14 @@ describe('Integration test - Packaging', () => {
     const cfnTemplate = JSON.parse(
       fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
     );
-    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).toMatch(
+    expect(cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key).to.match(
       /serverless\/aws-nodejs\/dev\/[^]*\/hello.zip/
     );
-    expect(cfnTemplate.Resources.Hello2LambdaFunction.Properties.Code.S3Key).toMatch(
+    expect(cfnTemplate.Resources.Hello2LambdaFunction.Properties.Code.S3Key).to.match(
       /serverless\/aws-nodejs\/dev\/[^]*\/hello2.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
-    expect(cfnTemplate.Resources.HelloLambdaFunction).toEqual({
+    expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
         Code: {
@@ -108,7 +109,7 @@ describe('Integration test - Packaging', () => {
         Role: {
           'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'],
         },
-        Runtime: 'nodejs10.x',
+        Runtime: 'nodejs12.x',
         Timeout: 6,
       },
       DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
@@ -121,7 +122,7 @@ describe('Integration test - Packaging', () => {
     const cfnTemplate = JSON.parse(
       fs.readFileSync(path.join(cwd, '.serverless/cloudformation-template-update-stack.json'))
     );
-    expect(cfnTemplate.Resources.CustomDashnameLambdaFunction.Properties.FunctionName).toEqual(
+    expect(cfnTemplate.Resources.CustomDashnameLambdaFunction.Properties.FunctionName).to.equal(
       'aws-nodejs-us-east-1-custom-name'
     );
   });

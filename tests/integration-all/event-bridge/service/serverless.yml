@@ -1,0 +1,31 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  eventBusDefault:
+    handler: core.eventBusDefault
+    events:
+      - eventBridge:
+          pattern:
+            source:
+              - serverless.test
+  eventBusCustom:
+    handler: core.eventBusCustom
+    events:
+      - eventBridge:
+          eventBus: CHANGE_TO_UNIQUE_PER_RUN
+          pattern:
+            source:
+              - serverless.test
+  eventBusArn:
+    handler: core.eventBusArn
+    events:
+      - eventBridge:
+          eventBus: CHANGE_TO_UNIQUE_PER_RUN
+          pattern:
+            source:
+              - serverless.test

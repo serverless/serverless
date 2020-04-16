@@ -1,25 +1,22 @@
 'use strict';
 
-const AWS = require('aws-sdk');
-const { region, persistentRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function publishIotData(topic, message) {
-  const Iot = new AWS.Iot({ region });
+  return awsRequest('Iot', 'describeEndpoint').then(data => {
+    const params = {
+      topic,
+      payload: Buffer.from(message),
+    };
 
-  return Iot.describeEndpoint()
-    .promise()
-    .then(data => {
-      const IotData = new AWS.IotData({ region, endpoint: data.endpointAddress });
-
-      const params = {
-        topic,
-        payload: Buffer.from(message),
-      };
-
-      return IotData.publish(params).promise();
-    });
+    return awsRequest(
+      { name: 'IotData', params: { endpoint: data.endpointAddress } },
+      'publish',
+      params
+    );
+  });
 }
 
 module.exports = {
-  publishIotData: persistentRequest.bind(this, publishIotData),
+  publishIotData,
 };

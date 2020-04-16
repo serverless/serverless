@@ -1,0 +1,49 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  streamDynamoDb:
+    handler: core.streamDynamoDb
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [DynamoDbTable, StreamArn]
+          batchWindow: 10
+  streamKinesis:
+    handler: core.streamKinesis
+    events:
+      - stream:
+          type: kinesis
+          arn:
+            Fn::Join:
+              - ':'
+              - - arn
+                - aws
+                - kinesis
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - stream/CHANGE_TO_UNIQUE_PER_RUN
+          batchSize: 100
+          startingPosition: TRIM_HORIZON
+          batchWindow: 1
+
+resources:
+  Resources:
+    DynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        BillingMode: 'PAY_PER_REQUEST'
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        StreamSpecification:
+          StreamViewType: KEYS_ONLY
+        TableName: CHANGE_TO_UNIQUE_PER_RUN

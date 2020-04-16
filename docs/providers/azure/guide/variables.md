@@ -186,39 +186,23 @@ module.exports.schedule = () => {
 
 ## Multiple Configuration Files
 
-Adding many custom resources to your `serverless.yml` file could bloat the whole
-file, so you can use the Serverless Variable syntax to split this up.
+Adding many custom resources to your `serverless.yml` file could bloat the whole file, so you can use the Serverless Variable syntax to split this up.
 
 ```yml
 resources:
   Resources: ${file(azure-resources.json)}
 ```
 
-The corresponding resources which are defined inside the `azure-resources.json`
-file will be resolved and loaded into the `Resources` section.
+The corresponding resources which are defined inside the `azure-resources.json` file will be resolved and loaded into the `Resources` section.
 
 ## Migrating serverless.env.yml
 
-Previously we used the `serverless.env.yml` file to track Serverless Variables.
-It was a completely different system with different concepts. To migrate your
-variables from `serverless.env.yml`, you'll need to decide where you want to
-store your variables.
+Previously we used the `serverless.env.yml` file to track Serverless Variables. It was a completely different system with different concepts. To migrate your variables from `serverless.env.yml`, you'll need to decide where you want to store your variables.
 
-**Using a config file:** You can still use `serverless.env.yml`, but the
-difference now is that you can structure the file however you want, and you'll
-need to reference each variable/property correctly in `serverless.yml`. For more
-info, you can check the file reference section above.
+**Using a config file:** You can still use `serverless.env.yml`, but the difference now is that you can structure the file however you want, and you'll need to reference each variable/property correctly in `serverless.yml`. For more info,you can check the file reference section above.
 
-**Using the same `serverless.yml` file:** You can store your variables in
-`serverless.yml` if they don't contain sensitive data, and then reference them
-elsewhere in the file using `self:someProperty`. For more info, you can check the
-self reference section above.
+**Using the same `serverless.yml` file:** You can store your variables in `serverless.yml` if they don't contain sensitive data, and then reference them elsewhere in the file using `self:someProperty`. For more info, you can check the self reference section above.
 
-**Using environment variables:** You can instead store your variables in
-environment variables and reference them with `env.someEnvVar`. For more info,
-you can check the environment variable reference section above.
+**Using environment variables:** You can instead store your variables in environment variables and reference them with `env.someEnvVar`. For more info, you can check the environment variable reference section above.
 
-Now you don't need `serverless.env.yml` at all, but you can still use it if you
-want. It's just not required anymore. Migrating to the new variable system is
-easy and you just need to know how the new system works and make small
-adjustments to how you store & reference your variables.
+Now you don't need `serverless.env.yml` at all, but you can still use it if you want. It's just not required anymore. Migrating to the new variable system is easy and you just need to know how the new system works and make small adjustments to how you store & reference your variables.

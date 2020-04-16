@@ -1,0 +1,16 @@
+{
+  "name": "twilio-nodejs-runtime-example",
+  "version": "1.0.0",
+  "description": "Twilio Functions sample for the Serverless framework",
+  "scripts": {
+    "test": "echo \"No tests yet...\""
+  },
+  "keywords": [
+    "twilio",
+    "serverless"
+  ],
+  "dependencies": {
+    "@twilio-labs/serverless-twilio-runtime": "^1.0.0"
+  },
+  "devDependencies": {}
+}

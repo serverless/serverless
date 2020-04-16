@@ -1,6 +1,6 @@
 <!--
 title: Hello World Javas8 Example
-menuText: Hello World Java8 Example
+menuText: Java8
 description: Create a Java8 Hello World function
 layout: Doc
 -->

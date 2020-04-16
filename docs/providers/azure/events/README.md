@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Azure Functions - Events
-menuText: Azure Events
+menuText: Events
 layout: Doc
 -->
 

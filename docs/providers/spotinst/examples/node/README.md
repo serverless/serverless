@@ -1,6 +1,6 @@
 <!--
 title: Hello World Javascript Example
-menuText: Hello World JavaScript Example
+menuText: JavaScript
 description: Create a JavaScript Hello World function
 layout: Doc
 -->

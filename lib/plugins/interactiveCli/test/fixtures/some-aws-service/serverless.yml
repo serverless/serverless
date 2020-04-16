@@ -1,0 +1,2 @@
+service: 'some-aws-service'
+provider: 'aws'

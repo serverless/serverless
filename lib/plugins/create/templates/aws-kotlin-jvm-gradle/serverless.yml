@@ -12,8 +12,9 @@
 # Happy Coding!
 
 service: aws-kotlin-jvm-gradle # NOTE: update this with your service name
+# app and org for use with dashboard.serverless.com
 #app: your-app-name
-#tenant: your-tenant-name
+#org: your-org-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -21,7 +22,7 @@ service: aws-kotlin-jvm-gradle # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: java8
+  runtime: java11
 
 # you can overwrite defaults here
 #  stage: dev

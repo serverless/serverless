@@ -1,14 +1,19 @@
-[![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/assets.github.serverless/readme-serverless-framework.jpg)](http://serverless.com)
+[![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/assets.github.serverless/readme-serverless-framework.gif)](http://serverless.com)
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![Build Status](https://travis-ci.org/serverless/serverless.svg?branch=master)](https://travis-ci.org/serverless/serverless)
 [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
-[![Coverage Status](https://coveralls.io/repos/github/serverless/serverless/badge.svg?branch=master)](https://coveralls.io/github/serverless/serverless?branch=master)
+[![codecov](https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg)](https://codecov.io/gh/serverless/serverless)
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
 [![Known Vulnerabilities](https://snyk.io/test/github/serverless/serverless/badge.svg)](https://snyk.io/test/github/serverless/serverless)
 [![license](https://img.shields.io/npm/l/serverless.svg)](https://www.npmjs.com/package/serverless)
 
-[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](https://serverless.com/subscribe/) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://github.com/serverless/meetups) • [Twitter](https://twitter.com/goserverless) • [We're Hiring](https://serverless.com/company/jobs/) • [Enterprise](https://serverless.com/enterprise/)
+<p align="center">
+  <span>English</span> |
+  <a href="./README_CN.md">简体中文</a>
+</p>
+
+[Website](http://www.serverless.com) • [Docs](https://serverless.com/framework/docs/) • [Newsletter](https://serverless.com/subscribe/) • [Swag](https://teespring.com/stores/serverless) • [Gitter](https://gitter.im/serverless/serverless) • [Forum](http://forum.serverless.com) • [Meetups](https://www.meetup.com/pro/serverless/) • [Twitter](https://twitter.com/goserverless) • [We're Hiring](https://serverless.com/company/jobs/) • [Try Pro](https://dashboard.serverless.com)
 
 **The Serverless Framework** – Build applications comprised of microservices that run in response to events, auto-scale for you, and only charge you when they run. This lowers the total cost of maintaining your apps, enabling you to build more logic, faster.
 
@@ -16,9 +21,12 @@ The Framework uses new event-driven compute services, like AWS Lambda, Google Cl
 
 Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
 
-<a href="https://www.youtube.com/watch?v=bFHmgqbAh4M" target="_blank">Watch the video guide here.</a>
+<a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Watch the video overview here.</a>
 
-<a href="https://goo.gl/forms/4AvkCrSf5oDOytDv1" target="_blank">Serverless Framework Feedback Survey</a>
+In 2020, the Serverless Framework began introducing advanced functionality for specific serverless use-cases, known as Serverless Framework Components.  Check out the Components featured below, [and more here](https://github.com/serverless-components).
+
+| [![serverless framework express.js](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-express.png)](https://github.com/serverless-components/express) | [![serverless framework website](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-website.png)](https://github.com/serverless-components/website) | [![serverless framework dynamodb](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-dynamodb.png)](https://github.com/serverless-components/aws-dynamodb) |
+| --- | --- | --- |
 
 ## Contents
 
@@ -124,6 +132,7 @@ The following are services you can instantly install and use by running `serverl
 - [CRUD](https://github.com/pmuens/serverless-crud) - CRUD service, [Scala Port](https://github.com/jahangirmohammed/serverless-crud-scala)
 - [CRUD with FaunaDB](https://github.com/faunadb/serverless-crud) - CRUD service using FaunaDB
 - [CRUD with S3](https://github.com/tscanlin/serverless-s3-crud) - CRUD service using S3
+- [CRUD with Flask and SQLAlchemy](https://github.com/jetbridge/sls-flask) - Python [CRUD API service](https://blog.jetbridge.com/framework/) with Flask, SQLAlchemy and Swagger
 - [GraphQL Boilerplate](https://github.com/serverless/serverless-graphql) - GraphQL application Boilerplate service
 - [Authentication](https://github.com/laardee/serverless-authentication-boilerplate) - Authentication boilerplate service
 - [Mailer](https://github.com/eahefnawy/serverless-mailer) - Service for sending emails
@@ -184,7 +193,7 @@ These consultants use the Serverless Framework and can help you build your serve
 - [Trek10](https://www.trek10.com/)
 - [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
 - [Geniusee](https://geniusee.com)
-- [SC5 Online](https://sc5.io)
+- [Nordcloud](https://nordcloud.com) - they created [several plugins](https://github.com/nordcloud?utf8=%E2%9C%93&q=serverless&type=&language=), sponsor [Serverless Days Helsinki](https://helsinki.serverlessdays.io/) and regularly host [Serverless Finland](https://www.meetup.com/Serverless-Finland/) Meetups.
 - [Carrot Creative](https://carrot.is)
 - [microapps](http://microapps.com)
 - [Apiwise](http://www.apiwise.nl)
@@ -206,6 +215,8 @@ These consultants use the Serverless Framework and can help you build your serve
 - [superluminar](https://superluminar.io) - runs serverlessdays Hamburg and Serverless Meetup Hamburg
 - [Onica](https://www.onica.com/aws-cloud-native-developers/) - AWS Premier Consulting Partner for Cloud Native Development and host of [eleven regional Meetup groups](https://www.onica.com/events/).
 - [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
+- [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
+- [JetBridge](https://jetbridge.com) - cloud-native and serverless application development services.
 
 ---
 

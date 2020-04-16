@@ -4,14 +4,14 @@ import sbtrelease.Version
 name := "hello"
 
 resolvers += Resolver.sonatypeRepo("public")
-scalaVersion := "2.13.0"
+scalaVersion := "2.13.1"
 releaseNextVersion := { ver =>
   Version(ver).map(_.bumpMinor.string).getOrElse("Error")
 }
 assemblyJarName in assembly := "hello.jar"
 
 libraryDependencies ++= Seq(
-  "com.amazonaws" % "aws-lambda-java-events" % "2.2.6",
+  "com.amazonaws" % "aws-lambda-java-events" % "2.2.7",
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0"
 )

@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Infrastructure & Compute Providers
-menuText: Providers
+menuText: Provider CLI References
 layout: Doc
 -->
 
@@ -12,90 +12,86 @@ layout: Doc
 
 # Serverless Infrastructure Providers
 
-Under the hood, the serverless framework is deploying your code to a cloud provider like AWS, Microsoft Azure, Apache OpenWhisk or Google Cloud functions.
+Under the hood, the Serverless Framework is deploying your code to a cloud provider like AWS, Microsoft Azure, Google Cloud Platform, Apache OpenWhisk, Cloudflare Workers, or a Kubernetes-based solution like Kubeless. Click on your provider for detailed Serverless Framework CLI user guides and references.
 
-<div class="docsSections">
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./aws/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/aws-black.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./aws/">AWS Docs</a>
+<div class="providersSections">
+  <a href="./aws/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/aws-logo.svg" width="250" draggable="false" class='aws-logo' />
     </div>
   </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./azure/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/azure-black.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./azure/">Azure Functions Docs</a>
+  </a>
+  <a href="./azure/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/azure-logo.svg" width="250" draggable="false" class='azure-logo'/>
     </div>
   </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./openwhisk/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/openwhisk-black.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./openwhisk/">OpenWhisk Docs</a>
+  </a>
+  <a href="./tencent/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/tencent-cloud-logo.png" width="250" draggable="false" class='tencent-logo'/>
     </div>
   </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./google/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/gcf-black.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./google/">Cloud Functions Docs</a>
+  </a>
+  <a href="./google/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/google-logo.png" width="250" draggable="false" class='google-logo'/>
     </div>
   </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./kubeless/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless-logos-black.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./kubeless/">Kubeless Docs</a>
+  </a>
+  <a href="./knative/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/knative-logo.svg" width="250" draggable="false" class='knative-logo'/>
     </div>
   </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./spotinst/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./spotinst/">Spotinst Docs</a>
+  </a>
+  <a href="./aliyun/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/alibaba-cloud-logo-gray.png" width="250" draggable="false" class='aliyun-logo'/>
     </div>
   </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./fn/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./fn/">Fn Docs</a>
+  </a>
+  <a href="./cloudflare/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/cloudflare-logo.svg" width="250" draggable="false" class='cloudflare-logo'/>
     </div>
   </div>
-  <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./cloudflare/">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png" width="250" draggable="false"/>
-      </a>
-    </div>
-    <div style="text-align:center;">
-      <a href="./cloudflare/">Cloudflare Workers Docs</a>
+  </a>
+  <a href="./fn/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/fn-logo.svg" width="250" draggable="false" class='fn-logo'/>
     </div>
   </div>
-
+  </a>
+  <a href="./kubeless/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/kubeless-logo.svg" width="250" draggable="false" class='kubeless-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./openwhisk/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/openwhisk-logo.svg" width="250" draggable="false" class='openwhisk-logo'/>
+    </div>
+  </div>
+  </a>
+  <a href="./spotinst/">
+  <div class="providerSection">
+    <div class="providerSectionHeader">
+        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs/spotinst-logo.svg" width="250" draggable="false" class='spotinst-logo'/>
+    </div>
+  </div>
+  </a>
 </div>
 <br/>
 <br/>

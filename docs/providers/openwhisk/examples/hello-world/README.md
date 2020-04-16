@@ -1,6 +1,6 @@
 <!--
 title: Hello World Example
-menuText: Hello World Example
+menuText: Hello World
 description: Example of creating Hello World functions with the Serverless framework
 layout: Doc
 -->

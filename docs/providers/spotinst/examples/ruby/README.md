@@ -1,6 +1,6 @@
 <!--
 title: Hello World Ruby Example
-menuText: Hello World Ruby Example
+menuText: Ruby
 description: Create a Ruby Hello World function
 layout: Doc
 -->

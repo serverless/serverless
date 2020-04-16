@@ -1,0 +1,2 @@
+service: 'some-other-service'
+provider: 'other'

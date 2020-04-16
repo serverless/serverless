@@ -105,7 +105,7 @@ public class InvokeBridge {
 
   private Method findHandlerMethod(Class clazz, String handlerName) throws Exception {
     Method candidateMethod = null;
-    for(Method method: clazz.getDeclaredMethods()) {
+    for(Method method: clazz.getMethods()) {
       if (method.getName().equals(handlerName) && !method.isBridge()) {
         // Select the method with the largest number of parameters
         // If two or more methods have the same number of parameters, AWS Lambda selects the method that has

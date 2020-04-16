@@ -1,0 +1,14 @@
+{
+  "name": "aliyun-nodejs",
+  "version": "1.0.0",
+  "description": "Aliyun example using nodejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "alibabacloud.com",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless-aliyun-function-compute": "*"
+  }
+}

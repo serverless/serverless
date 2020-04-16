@@ -1,6 +1,7 @@
 <!--
 title: Serverless - Google Cloud Functions Documentation
 menuText: Google
+menuOrder: 4
 layout: Doc
 -->
 
@@ -20,12 +21,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
 
 <div class="docsSections">
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_guide_google.jpg" alt="Serverless Framework Google Cloud Functions Guide" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Guides</h4>
     </div>
-    <div class="test">
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
         <li><a href="./guide/quick-start.md">Quickstart</a></li>
@@ -44,12 +43,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_cli_google.jpg" alt="Serverless Framework Google Cloud Functions CLI Reference" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>CLI References</h4>
     </div>
-    <div>
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./cli-reference/create.md">Create</a></li>
         <li><a href="./cli-reference/install.md">Install</a></li>
@@ -70,12 +67,10 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_events_google.jpg" alt="Serverless Framework Google Cloud Functions EventsEvents"  width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Events</h4>
     </div>
-    <div>
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./events/http.md">HTTP</a></li>
         <li><a href="./events/event.md">Event</a></li>
@@ -84,13 +79,11 @@ If you have any questions, [search the forums](https://forum.serverless.com?utm_
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/docs_examples_google.jpg" alt="Serverless Framework Microsoft Google Cloud Functions Examples" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Examples</h4>
     </div>
     <div>
-      <div>
+      <div class="docsProviderItems">
         <ul>
           <li><a href="./examples/hello-world">Hello World</a></li>
         </ul>

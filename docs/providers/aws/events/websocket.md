@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework - AWS Lambda Events - Websocket
 menuText: Websocket
-menuOrder: 2
+menuOrder: 3
 description: Setting up AWS Websockets with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
@@ -45,6 +45,18 @@ functions:
           route: $disconnect
 ```
 
+This code will setup a [RouteResponse](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html), enabling you to respond to websocket messages by using the `body` parameter of your handler's callback response:
+
+```yml
+functions:
+  helloHandler:
+    handler: handler.helloHandler
+    events:
+      - websocket:
+          route: hello
+          routeResponseSelectionExpression: $default
+```
+
 ## Routes
 
 The API-Gateway provides [4 types of routes](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html) which relate to the lifecycle of a ws-client:
@@ -63,7 +75,7 @@ service: serverless-ws-test
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   websocketsApiName: custom-websockets-api-name
   websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
 
@@ -199,6 +211,30 @@ module.exports.defaultHandler = async (event, context) => {
 };
 ```
 
+## Respond to a a ws-client message
+
+To respond to a websocket message from your handler function, [Route Responses](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html) can be used. Set the `routeResponseSelectionExpression` option to enable this. This option allows you to respond to a websocket message using the `body` parameter.
+
+```yml
+functions:
+  sayHelloHandler:
+    handler: handler.sayHello
+    events:
+      - websocket:
+          route: hello
+          routeResponseSelectionExpression: $default
+```
+
+```js
+module.exports.helloHandler = async (event, context) => {
+  const body = JSON.parse(event.body);
+  return {
+    statusCode: 200,
+    body: `Hello, ${body.name}`,
+  };
+};
+```
+
 ## Logs
 
 Use the following configuration to enable Websocket logs:
@@ -212,3 +248,16 @@ provider:
 ```
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/websocket/{service}-{stage}`.
+
+The default log level will be INFO. You can change this to error with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websocket:
+      level: ERROR
+```
+
+Valid values are INFO, ERROR.

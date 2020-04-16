@@ -14,6 +14,6 @@ layout: Doc
 
 Welcome to the Serverless Kubeless Guide!
 
-Get started with the **[Introduction to the Serverless framework](./intro.md)**
+Get started with the [Introduction to the Serverless framework](./intro.md)
 
 If you have questions, join the [chat in gitter](https://gitter.im/serverless/serverless) or [post over on the forums](http://forum.serverless.com/)

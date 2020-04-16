@@ -2,7 +2,7 @@
 title: Serverless Framework Commands - Azure Functions - Create
 menuText: create
 menuOrder: 1
-description: Creates a new Service in your current working directory
+description: Creates a new Function App in your current working directory
 layout: Doc
 -->
 
@@ -14,28 +14,28 @@ layout: Doc
 
 # Azure - Create
 
-Creates a new service in the current working directory based on the specified
+Creates a new Function App in the current working directory based on the specified
 template.
 
-**Create service in current working directory:**
+**Create Function App in current working directory:**
 
 ```bash
 serverless create --template azure-nodejs
 ```
 
-**Create service in new folder:**
+**Create Function App in new folder:**
 
 ```bash
-serverless create --template azure-nodejs --path myService
+serverless create --template azure-nodejs --path myFunctionApp
 ```
 
 ## Options
 
 - `--template` or `-t` The name of one of the available templates. **Required if --template-url and --template-path are not present**.
-- `--template-url` or `-u` The name of one of the available templates. **Required if --template and --template-path are not present**.
+- `--template-url` or `-u` A URL pointing to a remotely hosted template. **Required if --template and --template-path are not present**.
 - `--template-path` The local path of your template. **Required if --template and --template-url are not present**.
-- `--path` or `-p` The path where the service should be created.
-- `--name` or `-n` the name of the service in `serverless.yml`.
+- `--path` or `-p` The path where the Function App should be created.
+- `--name` or `-n` the name of the Function App in `serverless.yml`.
 
 ## Provided lifecycle events
 
@@ -47,43 +47,44 @@ To see a list of available templates run `serverless create --help`
 
 Most commonly used templates:
 
-- azure-nodejs
+- [azure-nodejs](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/azure-nodejs)
+- [azure-python](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/azure-python)
 
 ## Examples
 
-### Creating a new service
+### Creating a new Function App
 
 ```bash
-serverless create --template azure-nodejs --name my-special-service
+serverless create --template azure-nodejs --name my-function-app
 ```
 
-This example will generate scaffolding for a service with `Azure` as a provider
+This example will generate scaffolding for a Function App with `Azure` as a provider
 and `nodejs` as runtime. The scaffolding will be generated in the current working
 directory.
 
-### Creating a named service in a (new) directory
+### Creating a named Function App in a (new) directory
 
 ```bash
-serverless create --template azure-nodejs --path my-new-service
+serverless create --template azure-nodejs --path my-function-app
 ```
 
-This example will generate scaffolding for a service with `Azure` as a provider
-and `nodejs` as runtime. The scaffolding will be generated in the `my-new- service` directory. This directory will be created if not present. Otherwise
+This example will generate scaffolding for a Function App with `Azure` as a provider
+and `nodejs` as runtime. The scaffolding will be generated in the `my-function-app` directory. This directory will be created if not present. Otherwise
 Serverless will use the already present directory.
 
-Additionally Serverless will rename the service according to the path you
-provide. In this example the service will be renamed to `my-new-service`.
+Additionally Serverless will rename the Function App according to the path you
+provide. In this example the Function App will be renamed to `my-function-app`.
 
-### Creating a new service using a local template
+### Creating a new Function App using a local template
 
 ```bash
-serverless create --template-path path/to/my/template/folder --path path/to/my/service --name my-new-service
+serverless create --template-path path/to/my/template/folder --path path/to/my/app --name my-function-app
 ```
 
-This will copy the `path/to/my/template/folder` folder into `path/to/my/service` and rename the service to `my-new-service`.
+This will copy the `path/to/my/template/folder` folder into `path/to/my/app` and rename the Function App to `my-function-app`.
 
-### Create service in new folder using a custom template
+### Create Function App in new folder using a custom template
 
 ```bash
-serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/azure-nodejs --path myService
+serverless create --template-url https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/azure-nodejs --path myFunction App
 ```

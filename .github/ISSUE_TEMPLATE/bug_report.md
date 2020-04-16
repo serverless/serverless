@@ -1,33 +1,21 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: '🐛 Bug report'
+about: Create a bug report
 ---
 
-<!--
-1. If you have a question and not a bug report please ask first at http://forum.serverless.com
-2. Please check if an issue already exists. This bug may have already been documented
-3. Check out and follow our Guidelines: https://github.com/serverless/serverless/blob/master/CONTRIBUTING.md
-4. Fill out the whole template so we have a good overview on the issue
-5. Do not remove any section of the template. If something is not applicable leave it empty but leave it in the Issue
-6. Please follow the template, otherwise we'll have to ask you to update it
--->
-
-# This is a Bug Report
+# Bug Report
 
 ## Description
 
-- What went wrong?
-- What did you expect should have happened?
-- What was the config you used?
-- What stacktrace or error message from your provider did you see?
+<!-- Please use https://forum.serverless.com, StackOverflow or other forums for Q&A -->
+<!-- Please answer ALL the question below. Otherwise we probably have to close the issue due to missing information -->
+
+1. What did you do?
+1. What happened?
+1. What should've happened?
+1. What's the content of your `serverless.yml` file?
+1. What's the output you get when you use the `SLS_DEBUG=*` environment variable (e.g. `SLS_DEBUG=* serverless deploy`)
 
 Similar or dependent issues:
 
 - #12345
-
-## Additional Data
-
-- **_Serverless Framework Version you're using_**:
-- **_Operating System_**:
-- **_Stack Trace_**:
-- **_Provider Error messages_**:

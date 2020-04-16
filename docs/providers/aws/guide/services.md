@@ -103,7 +103,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: dev # Set the default stage used. Default is dev
   region: us-east-1 # Overwrite the default region used. Default is us-east-1
   stackName: my-custom-stack-name-${self:provider.stage} # Overwrite default CloudFormation stack name. Default is ${self:service}-${self:provider.stage}
@@ -212,7 +212,7 @@ The removal process will only remove the service on your provider's infrastructu
 
 ## Version Pinning
 
-The Serverless framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your services.
+The Serverless Framework is usually installed globally via `npm install -g serverless`. This way you have the Serverless CLI available for all your services.
 
 Installing tools globally has the downside that the version can't be pinned inside package.json. This can lead to issues if you upgrade Serverless, but your colleagues or CI system don't. You can now use a new feature in your serverless.yml which is available only in the latest version without worrying that your CI system will deploy with an old version of Serverless.
 
@@ -233,7 +233,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512
 
 …
@@ -250,7 +250,7 @@ service: users
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512
 
 …

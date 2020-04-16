@@ -1,55 +1,47 @@
 'use strict';
 
-const AWS = require('aws-sdk');
-const { region, persistentRequest } = require('../misc');
+const awsRequest = require('@serverless/test/aws-request');
 
 function createSnsTopic(topicName) {
-  const SNS = new AWS.SNS({ region });
-
   const params = {
     Name: topicName,
   };
 
-  return SNS.createTopic(params).promise();
+  return awsRequest('SNS', 'createTopic', params);
 }
 
 function removeSnsTopic(topicName) {
-  const SNS = new AWS.SNS({ region });
+  return awsRequest('SNS', 'listTopics').then(data => {
+    const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
+      .TopicArn;
 
-  return SNS.listTopics()
-    .promise()
-    .then(data => {
-      const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
-        .TopicArn;
+    const params = {
+      TopicArn: topicArn,
+    };
 
-      const params = {
-        TopicArn: topicArn,
-      };
-
-      return SNS.deleteTopic(params).promise();
-    });
+    return awsRequest('SNS', 'deleteTopic', params);
+  });
 }
 
-function publishSnsMessage(topicName, message) {
-  const SNS = new AWS.SNS({ region });
+function publishSnsMessage(topicName, message, messageAttributes = null) {
+  return awsRequest('SNS', 'listTopics').then(data => {
+    const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
+      .TopicArn;
 
-  return SNS.listTopics()
-    .promise()
-    .then(data => {
-      const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
-        .TopicArn;
+    const params = {
+      Message: message,
+      TopicArn: topicArn,
+    };
+    if (messageAttributes) {
+      params.MessageAttributes = messageAttributes;
+    }
 
-      const params = {
-        Message: message,
-        TopicArn: topicArn,
-      };
-
-      return SNS.publish(params).promise();
-    });
+    return awsRequest('SNS', 'publish', params);
+  });
 }
 
 module.exports = {
-  createSnsTopic: persistentRequest.bind(this, createSnsTopic),
-  removeSnsTopic: persistentRequest.bind(this, removeSnsTopic),
-  publishSnsMessage: persistentRequest.bind(this, publishSnsMessage),
+  createSnsTopic,
+  removeSnsTopic,
+  publishSnsMessage,
 };

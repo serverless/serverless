@@ -1,0 +1,44 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  snsMinimal:
+    handler: core.snsMinimal
+    events:
+      - sns: CHANGE_TO_UNIQUE_PER_RUN
+
+  snsMultipleFilteredLeft:
+    handler: core.snsMultipleFilteredLeft
+    events:
+      - sns:
+          topicName: CHANGE_TO_UNIQUE_PER_RUN
+          displayName: CHANGE_TO_UNIQUE_PER_RUN
+          filterPolicy:
+            side:
+              - left
+  snsMultipleFilteredRight:
+    handler: core.snsMultipleFilteredRight
+    events:
+      - sns:
+          topicName: CHANGE_TO_UNIQUE_PER_RUN
+          displayName: CHANGE_TO_UNIQUE_PER_RUN
+          filterPolicy:
+            side:
+              - right
+
+  snsExisting:
+    handler: core.snsExisting
+    events:
+      - sns:
+          arn:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:sns'
+                - Ref: 'AWS::Region'
+                - Ref: 'AWS::AccountId'
+                - CHANGE_TO_UNIQUE_PER_RUN
+          topicName: CHANGE_TO_UNIQUE_PER_RUN

@@ -14,7 +14,7 @@ layout: Doc
 
 # Login
 
-The `login` command logs users into the serverless platform.
+The `login` command logs users into the serverless dashboard.
 
 It will create a new serverless platform account if one doesn't already exist.
 

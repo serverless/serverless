@@ -88,7 +88,7 @@ provider:
 
 `stage`: meant to be the stage of your project (`dev`, `prod`..). Will be used in the [`name`](#name) of the scripts on deployed to Cloudflare. If unset defaults to `dev`.
 
-`environment`: variables that can be referenced in your throughout your worker scripts. These will get added to every function. If a [`function`](#function) defines the same variable, the function defintion will overwrite the provider block definition.
+`environment`: variables that can be referenced in your throughout your worker scripts. These will get added to every function. If a [`function`](#function) defines the same variable, the function definition will overwrite the provider block definition.
 
 `name`: the name of the cloud provider, in this case `cloudflare`
 

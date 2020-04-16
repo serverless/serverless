@@ -1,0 +1,21 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  scheduleMinimal:
+    handler: core.scheduleMinimal
+    events:
+      - schedule: rate(1 minute)
+  scheduleExtended:
+    handler: core.scheduleExtended
+    events:
+      - schedule:
+          rate: cron(* * * * ? *)
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"time": <eventTime>, "name": "transformedInput"}'

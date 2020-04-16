@@ -12,8 +12,9 @@
 # Happy Coding!
 
 service: aws-groovy-gradle # NOTE: update this with your service name
+# app and org for use with dashboard.serverless.com
 #app: your-app-name
-#tenant: your-tenant-name
+#org: your-org-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details

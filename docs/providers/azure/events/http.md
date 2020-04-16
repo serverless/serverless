@@ -42,7 +42,7 @@ functions:
     events:
       - http: true
         x-azure-settings:
-          name: req #<string>, default - "req", specifies which name it's available on `context.bindings`
+          name: req #<string>, default - "req", specifies which name is available on `context.bindings`
           methods: #<array> [GET, POST, PUT, DELETE], default - all
             - get
           route: example/hello #<string>, default - <function name>
@@ -100,7 +100,13 @@ module.exports.hello = function(context, req) {
 };
 ```
 
-Note, if you specify WebHook, you'll get passed the body as the second argument
+#### Webhook
+
+> NOTE: Webhook is a version 1.x feature. Version 2.x runtime
+> no longer include
+> built-in support for webhook providers.
+
+If you specify WebHook, you'll get passed the body as the second argument
 to your Function, not the request object. You can still access the request object
 on the context object (i.e. `context.req`)
 

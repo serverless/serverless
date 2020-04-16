@@ -1,0 +1,13 @@
+{
+  "name": "knative-docker",
+  "version": "1.0.0",
+  "description": "Knative Provider integration",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "serverless.com",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless-knative": "^0.5.0"
+  }
+}

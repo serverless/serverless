@@ -1,6 +1,6 @@
 <!--
 title: Serverless Framework Commands - AWS Lambda - Print
-menuText: Print
+menuText: print
 menuOrder: 21
 description: Print your config with all variables resolved for debugging
 layout: Doc
@@ -44,7 +44,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${opt:stage, "dev"}
 
 functions:
@@ -68,7 +68,7 @@ custom:
   bucketName: test
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: dev # <-- Resolved
 functions:
   hello:

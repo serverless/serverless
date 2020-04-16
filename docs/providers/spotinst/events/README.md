@@ -1,6 +1,6 @@
 <!--
 title: Serverless - Spotinst Functions - Events
-menuText: Spotinst Events
+menuText: Events
 layout: Doc
 menuOrder: 3
 -->

@@ -1,35 +1,102 @@
 'use strict';
 
-const AWS = require('aws-sdk');
-const { region, persistentRequest } = require('../misc');
+const awsLog = require('log').get('aws');
+const awsRequest = require('@serverless/test/aws-request');
 
-function getCognitoUserPoolId(userPoolName) {
-  const cisp = new AWS.CognitoIdentityServiceProvider({ region });
-
-  const params = {
-    MaxResults: 50,
-  };
-
-  return cisp
-    .listUserPools(params)
-    .promise()
-    .then(
-      data => data.UserPools.find(userPool => RegExp(userPoolName, 'g').test(userPool.Name)).Id
-    );
+function createUserPool(name, config = {}) {
+  const params = Object.assign({}, { PoolName: name }, config);
+  return awsRequest('CognitoIdentityServiceProvider', 'createUserPool', params);
 }
 
-function createCognitoUser(userPoolId, username, password) {
-  const cisp = new AWS.CognitoIdentityServiceProvider({ region });
+function createUserPoolClient(name, userPoolId) {
+  const params = {
+    ClientName: name,
+    UserPoolId: userPoolId,
+    ExplicitAuthFlows: ['USER_PASSWORD_AUTH'],
+  };
+  return awsRequest('CognitoIdentityServiceProvider', 'createUserPoolClient', params);
+}
 
+function deleteUserPool(name) {
+  return findUserPoolByName(name).then(pool =>
+    awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: pool.Id })
+  );
+}
+
+function findUserPoolByName(name) {
+  awsLog.debug('find cognito user pool by name %s', name);
+
+  const params = {
+    MaxResults: 60,
+  };
+
+  const pools = [];
+  function recursiveFind(nextToken) {
+    if (nextToken) params.NextToken = nextToken;
+    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then(result => {
+      pools.push(...result.UserPools.filter(pool => pool.Name === name));
+      if (result.NextToken) return recursiveFind(result.NextToken);
+      switch (pools.length) {
+        case 0:
+          return null;
+        case 1:
+          return pools[0];
+        default:
+          throw new Error(`Found more than one pool named '${name}'`);
+      }
+    });
+  }
+
+  return recursiveFind();
+}
+
+function describeUserPool(userPoolId) {
+  return awsRequest('CognitoIdentityServiceProvider', 'describeUserPool', {
+    UserPoolId: userPoolId,
+  }).then(result => {
+    awsLog.debug('cognito.describeUserPool %s %j', userPoolId, result);
+    return result;
+  });
+}
+
+function createUser(userPoolId, username, password) {
   const params = {
     UserPoolId: userPoolId,
     Username: username,
     TemporaryPassword: password,
   };
-  return cisp.adminCreateUser(params).promise();
+  return awsRequest('CognitoIdentityServiceProvider', 'adminCreateUser', params);
+}
+
+function setUserPassword(userPoolId, username, password) {
+  const params = {
+    UserPoolId: userPoolId,
+    Username: username,
+    Password: password,
+    Permanent: true,
+  };
+  return awsRequest('CognitoIdentityServiceProvider', 'adminSetUserPassword', params);
+}
+
+function initiateAuth(clientId, username, password) {
+  const params = {
+    ClientId: clientId,
+    AuthFlow: 'USER_PASSWORD_AUTH',
+    AuthParameters: {
+      USERNAME: username,
+      PASSWORD: password,
+    },
+  };
+  return awsRequest('CognitoIdentityServiceProvider', 'initiateAuth', params);
 }
 
 module.exports = {
-  getCognitoUserPoolId: persistentRequest.bind(this, getCognitoUserPoolId),
-  createCognitoUser: persistentRequest.bind(this, createCognitoUser),
+  createUserPool,
+  deleteUserPool,
+  findUserPoolByName,
+  describeUserPool,
+  createUserPoolClient,
+  createUser,
+  setUserPassword,
+  initiateAuth,
 };

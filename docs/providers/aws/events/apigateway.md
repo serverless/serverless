@@ -26,7 +26,7 @@ layout: Doc
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
     - [Configuring endpoint types](#configuring-endpoint-types)
     - [Request Parameters](#request-parameters)
-    - [Request Schema Validation](#request-schema-validation)
+    - [Request Schema Validators](#request-schema-validators)
     - [Setting source of API key for metering requests](#setting-source-of-api-key-for-metering-requests)
   - [Lambda Integration](#lambda-integration)
     - [Example "LAMBDA" event (before customization)](#example-lambda-event-before-customization)
@@ -42,6 +42,8 @@ layout: Doc
       - [Using Status Codes](#using-status-codes)
       - [Custom Status Codes](#custom-status-codes)
   - [Setting an HTTP Proxy on API Gateway](#setting-an-http-proxy-on-api-gateway)
+  - [Accessing private resources using VPC Link](#accessing-private-resources-using-vpc-link)
+  - [Mock Integration](#mock-integration)
   - [Share API Gateway and API Resources](#share-api-gateway-and-api-resources)
     - [Easiest and CI/CD friendly example of using shared API Gateway and API Resources.](#easiest-and-cicd-friendly-example-of-using-shared-api-gateway-and-api-resources)
     - [Manually Configuring shared API Gateway](#manually-configuring-shared-api-gateway)
@@ -282,6 +284,8 @@ Please note that since you can't send multiple values for [Access-Control-Allow-
 
 Configuring the `cors` property sets [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
 
+Please note that the [Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)-Header is omitted when not explicitly set to `true`.
+
 To enable the `Access-Control-Max-Age` preflight response header, set the `maxAge` property in the `cors` object:
 
 ```yml
@@ -440,10 +444,31 @@ functions:
           method: post
           authorizer:
             arn: xxx:xxx:Lambda-Name
+            managedExternally: false
             resultTtlInSeconds: 0
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
 ```
+
+If permissions for the Authorizer function are managed externally (for example, if the Authorizer function exists
+in a different AWS account), you can skip creating the permission for the function by setting `managedExternally: true`,
+as shown in the following example:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          authorizer:
+            arn: xxx:xxx:Lambda-Name
+            managedExternally: true
+```
+
+**IMPORTANT NOTE**: The permission allowing the authorizer function to be called by API Gateway must exist
+before deploying the stack, otherwise deployment will fail.
 
 You can also use the Request Type Authorizer by setting the `type` property. In this case, your `identitySource` could contain multiple entries for your policy cache. The default `type` is 'token'.
 
@@ -630,6 +655,24 @@ functions:
           method: get
 ```
 
+API Gateway also supports the association of VPC endpoints if you have an API Gateway REST API using the PRIVATE endpoint configuration. This feature simplifies the invocation of a private API through the generation of the following AWS Route 53 alias:
+
+```
+https://<rest_api_id>-<vpc_endpoint_id>.execute-api.<aws_region>.amazonaws.com
+```
+
+Here's an example configuration:
+
+```yml
+service: my-service
+provider:
+  name: aws
+  endpointType: PRIVATE
+  vpcEndpointIds:
+    - vpce-123
+    - vpce-456
+```
+
 ### Request Parameters
 
 To pass optional and required parameters to your functions, so you can use them in API Gateway tests and SDK generation, marking them as `true` will make them required, `false` will make them optional.
@@ -692,7 +735,7 @@ A sample schema contained in `create_request.json` might look something like thi
 ```json
 {
   "definitions": {},
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "title": "The Root Schema",
   "required": ["username"],
@@ -708,7 +751,7 @@ A sample schema contained in `create_request.json` might look something like thi
 ```
 
 **NOTE:** schema validators are only applied to content types you specify. Other content types are
-not blocked.
+not blocked. Currently, API Gateway [supports](https://docs.aws.amazon.com/apigateway/latest/developerguide/models-mappings.html) JSON Schema draft-04.
 
 ### Setting source of API key for metering requests
 
@@ -798,7 +841,8 @@ This method is more complicated and involves a lot more configuration of the `ht
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
     "user": ""
   },
-  "stageVariables": {}
+  "stageVariables": {},
+  "requestPath": "/request/path"
 }
 ```
 
@@ -822,6 +866,7 @@ Both templates give you access to the following properties you can access with t
 - path
 - identity
 - stageVariables
+- requestPath
 
 #### Custom Request Templates
 
@@ -869,7 +914,7 @@ If you want to spread a string into multiple lines, you can use the `>` or `|` s
 
 #### Pass Through Behavior
 
-API Gateway provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates. When this happens, the request payload will either be passed through the integration request _without transformation_ or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
+[API Gateway](https://serverless.com/amazon-api-gateway/) provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates. When this happens, the request payload will either be passed through the integration request _without transformation_ or rejected with a `415 - Unsupported Media Type`, depending on the configuration.
 
 You can define this behaviour as follows (if not specified, a value of **NEVER** will be used):
 
@@ -1094,6 +1139,49 @@ endpoint of your proxy, and the URI you want to set a proxy to.
 Now that you have these two CloudFormation templates defined in your `serverless.yml` file, you can simply run
 `serverless deploy` and that will deploy these custom resources for you along with your service and set up a proxy on your Rest API.
 
+## Accessing private resources using VPC Link
+
+If you have an Edge Optimized or Regional API Gateway, you can access the internal VPC resources using VPC Link. Please refer [AWS documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-private-integration.html) to know more about API Gateway private integration.
+
+We can use following configuration to have an http-proxy vpc-link integration.
+
+```yml
+- http:
+    path: v1/repository
+    method: get
+    integration: http-proxy
+    connectionType: vpc-link
+    connectionId: '{your-vpc-link-id}'
+    cors: true
+    request:
+      uri: http://www.github.com/v1/repository
+      method: get
+```
+
+## Mock Integration
+
+Mocks allow developers to offer simulated methods for an API, with this, responses can be defined directly, without the need for a integration backend. A simple mock response example is provided below:
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          cors: true
+          method: get
+          integration: mock
+          request:
+            template:
+              application/json: '{"statusCode": 200}'
+          response:
+            template: $input.path('$')
+            statusCodes:
+              201:
+                pattern: ''
+```
+
 ## Share API Gateway and API Resources
 
 As your application grows, you will likely need to break it out into multiple, smaller services. By default, each Serverless project generates a new API Gateway. However, you can share the same API Gateway between multiple projects by referencing its REST API ID and Root Resource ID in `serverless.yml` as follows:
@@ -1105,7 +1193,7 @@ provider:
   apiGateway:
     restApiId: xxxxxxxxxx # REST API resource ID. Default is generated by the framework
     restApiRootResourceId: xxxxxxxxxx # Root resource, represent as / path
-    websocketApiId: xxxxxxxxxx # Websocket API resource ID. Default is generated by the framewok
+    websocketApiId: xxxxxxxxxx # Websocket API resource ID. Default is generated by the framework
     description: Some Description # optional - description of deployment history
 
 functions: ...
@@ -1219,7 +1307,7 @@ service: my-api
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: dev
   region: eu-west-2
 
@@ -1407,7 +1495,7 @@ Resource policies are policy documents that are used to control the invocation o
 ```yml
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
   resourcePolicy:
     - Effect: Allow
@@ -1446,6 +1534,22 @@ provider:
 ```
 
 In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
+
+To convert the request or response payload, you can set the [contentHandling](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html) property.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            contentHandling: CONVERT_TO_TEXT
+          response:
+            contentHandling: CONVERT_TO_TEXT
+```
 
 ## AWS X-Ray Tracing
 
@@ -1489,6 +1593,30 @@ provider:
 
 The log streams will be generated in a dedicated log group which follows the naming schema `/aws/api-gateway/{service}-{stage}`.
 
+To be able to write logs, API Gateway [needs a CloudWatch role configured](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html). This setting is per region, shared by all the APIs. There are three approaches for handling it:
+
+- Let Serverless create and assign an IAM role for you (default behavior). Note that since this is a shared setting, this role is not removed when you remove the deployment.
+- Let Serverless assign an existing IAM role that you created before the deployment, if not already assigned:
+
+  ```yml
+  # serverless.yml
+  provider:
+    logs:
+      restApi:
+        role: arn:aws:iam::123456:role
+  ```
+
+- Do not let Serverless manage the CloudWatch role configuration. In this case, you would create and assign the IAM role yourself, e.g. in a separate "account setup" deployment:
+
+  ```yml
+  provider:
+    logs:
+      restApi:
+        roleManagedExternally: true # disables automatic role creation/checks done by Serverless
+  ```
+
+**Note:** Serverless configures the API Gateway CloudWatch role setting using a custom resource lambda function. If you're using `cfnRole` to specify a limited-access IAM role for your serverless deployment, the custom resource lambda will assume this role during execution.
+
 By default, API Gateway access logs will use the following format:
 
 ```
@@ -1505,3 +1633,16 @@ provider:
     restApi:
       format: '{ "requestId":"$context.requestId",   "ip": "$context.identity.sourceIp" }'
 ```
+
+The default API Gateway log level will be INFO. You can change this to error with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      level: ERROR
+```
+
+Valid values are INFO, ERROR.

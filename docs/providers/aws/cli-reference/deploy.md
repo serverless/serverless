@@ -22,7 +22,7 @@ serverless deploy
 
 ## Options
 
-- `--config` or `-c` Path to your conifguration file, if other than `serverless.yml|.yaml|.js|.json`.
+- `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
 - `--stage` or `-s` The stage in your service that you want to deploy to.
 - `--region` or `-r` The region in that stage that you want to deploy to.
 - `--package` or `-p` path to a pre-packaged directory and skip packaging step.
@@ -64,3 +64,11 @@ serverless deploy --package /path/to/package/directory
 ```
 
 With this example, the packaging step will be skipped and the framework will start deploying the package from the `/path/to/package/directory` directory.
+
+### Environment variables
+
+- `SLS_AWS_MONITORING_FREQUENCY` allows the adjustment of the deployment monitoring frequency time in ms, default is `5000`.
+
+```bash
+SLS_AWS_MONITORING_FREQUENCY=10000 serverless deploy
+```

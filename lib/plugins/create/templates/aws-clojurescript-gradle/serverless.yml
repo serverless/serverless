@@ -12,8 +12,9 @@
 # Happy Coding!
 
 service: aws-clojurescript-gradle
+# app and org for use with dashboard.serverless.com
 #app: your-app-name
-#tenant: your-tenant-name
+#org: your-org-name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -21,7 +22,7 @@ service: aws-clojurescript-gradle
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 # you can overwrite defaults here
 #  stage: dev

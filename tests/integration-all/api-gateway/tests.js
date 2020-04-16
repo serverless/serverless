@@ -1,18 +1,23 @@
 'use strict';
 
 const path = require('path');
-const AWS = require('aws-sdk');
 const _ = require('lodash');
-const fetch = require('node-fetch');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
+const awsRequest = require('@serverless/test/aws-request');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const { region, createTestService, deployService, removeService } = require('../../utils/misc');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
+const {
+  createTestService,
+  deployService,
+  removeService,
+  fetch,
+} = require('../../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
-const CF = new AWS.CloudFormation({ region });
-
-describe('AWS - API Gateway Integration Test', () => {
+describe('AWS - API Gateway Integration Test', function() {
+  this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let endpoint;
   let stackName;
@@ -23,11 +28,18 @@ describe('AWS - API Gateway Integration Test', () => {
   let apiKey;
   const stage = 'dev';
 
-  beforeAll(() => {
+  const resolveEndpoint = async () => {
+    const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
+    const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' })
+      .OutputValue;
+    endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
+  };
+
+  before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    const serverlessConfig = createTestService(tmpDirPath, {
+    const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       serverlessConfigHook:
         // Ensure unique API key for each test (to avoid collision among concurrent CI runs)
@@ -39,48 +51,13 @@ describe('AWS - API Gateway Integration Test', () => {
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
-    deployService();
-    // create an external REST API
-    const externalRestApiName = `${stage}-${serviceName}-ext-api`;
-    return createRestApi(externalRestApiName)
-      .then(restApiMeta => {
-        restApiId = restApiMeta.id;
-        return getResources(restApiId);
-      })
-      .then(resources => {
-        restApiRootResourceId = resources[0].id;
-        console.info(
-          'Created external rest API ' +
-            `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
-        );
-      });
+    await deployService(tmpDirPath);
+    return resolveEndpoint();
   });
 
-  afterAll(() => {
-    // NOTE: deleting the references to the old, external REST API
-    const serverless = readYamlFile(serverlessFilePath);
-    delete serverless.provider.apiGateway.restApiId;
-    delete serverless.provider.apiGateway.restApiRootResourceId;
-    writeYamlFile(serverlessFilePath, serverless);
-    // NOTE: deploying once again to get the stack into the original state
-    console.info('Redeploying service...');
-    deployService();
+  after(async () => {
     console.info('Removing service...');
-    removeService();
-    console.info('Deleting external rest API...');
-    return deleteRestApi(restApiId);
-  });
-
-  beforeEach(() => {
-    return CF.describeStacks({ StackName: stackName })
-      .promise()
-      .then(
-        result => _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' }).OutputValue
-      )
-      .then(endpointOutput => {
-        endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
-        endpoint = `${endpoint}`;
-      });
+    await removeService(tmpDirPath);
   });
 
   describe('Minimal Setup', () => {
@@ -135,7 +112,7 @@ describe('AWS - API Gateway Integration Test', () => {
         ].join(',');
         expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
-        expect(headers.get('access-control-allow-credentials')).to.equal('false');
+        expect(headers.get('access-control-allow-credentials')).to.equal(null);
         // TODO: for some reason this test fails for now...
         // expect(headers.get('access-control-allow-origin')).to.equal('*');
       });
@@ -165,7 +142,7 @@ describe('AWS - API Gateway Integration Test', () => {
   describe('Custom Authorizers', () => {
     let testEndpoint;
 
-    beforeEach(() => {
+    before(() => {
       testEndpoint = `${endpoint}/custom-auth`;
     });
 
@@ -196,9 +173,24 @@ describe('AWS - API Gateway Integration Test', () => {
 
   describe('API Keys', () => {
     let testEndpoint;
+    let startTime;
 
-    beforeEach(() => {
+    before(() => {
       testEndpoint = `${endpoint}/api-keys`;
+      startTime = Date.now();
+    });
+
+    it('should succeed if correct API key is given', async function self() {
+      const response = await fetch(testEndpoint, { headers: { 'X-API-Key': apiKey } });
+      const result = await response.json();
+      // API Key may take a moment to propagate, retry
+      if (response.status === 403 && startTime > Date.now() - 1000 * 60 * 3) {
+        log.notice('API Key rejected, retry');
+        return self();
+      }
+      expect(response.status).to.equal(200);
+      expect(result.message).to.equal('Hello from API Gateway! - (apiKeys)');
+      return null;
     });
 
     it('should reject a request with an invalid API Key', () => {
@@ -206,18 +198,10 @@ describe('AWS - API Gateway Integration Test', () => {
         expect(response.status).to.equal(403);
       });
     });
-
-    it('should succeed if correct API key is given', () => {
-      return fetch(testEndpoint, { headers: { 'X-API-Key': apiKey } })
-        .then(response => response.json())
-        .then(json => {
-          expect(json.message).to.equal('Hello from API Gateway! - (apiKeys)');
-        });
-    });
   });
 
   describe('Using stage specific configuration', () => {
-    beforeAll(() => {
+    before(async () => {
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
@@ -233,22 +217,50 @@ describe('AWS - API Gateway Integration Test', () => {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService();
+      await deployService(tmpDirPath);
     });
 
     it('should update the stage without service interruptions', () => {
       // re-using the endpoint from the "minimal" test case
       const testEndpoint = `${endpoint}`;
 
-      return fetch(testEndpoint, { method: 'GET' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
+      return confirmCloudWatchLogs(
+        `/aws/api-gateway/${stackName}`,
+        () =>
+          fetch(`${testEndpoint}`, { method: 'GET' })
+            .then(response => response.json())
+            // Confirm that APIGW responds as expected
+            .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'))
+        // Confirm that CloudWatch logs for APIGW are written
+      ).then(events => expect(events.length > 0).to.equal(true));
     });
+  });
+
+  describe('Integration Lambda Timeout', () => {
+    it('should result with 504 status code', () =>
+      fetch(`${endpoint}/integration-lambda-timeout`).then(response =>
+        expect(response.status).to.equal(504)
+      ));
   });
 
   // NOTE: this test should  be at the very end because we're using an external REST API here
   describe('when using an existing REST API with stage specific configuration', () => {
-    beforeAll(() => {
+    before(async () => {
+      // create an external REST API
+      const externalRestApiName = `${stage}-${serviceName}-ext-api`;
+      await createRestApi(externalRestApiName)
+        .then(restApiMeta => {
+          restApiId = restApiMeta.id;
+          return getResources(restApiId);
+        })
+        .then(resources => {
+          restApiRootResourceId = resources[0].id;
+          console.info(
+            'Created external rest API ' +
+              `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
+          );
+        });
+
       const serverless = readYamlFile(serverlessFilePath);
       // enable Logs, Tags and Tracing
       _.merge(serverless.provider, {
@@ -268,7 +280,22 @@ describe('AWS - API Gateway Integration Test', () => {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      deployService();
+      console.info('Redeploying service (with external Rest API ID)...');
+      await deployService(tmpDirPath);
+      return resolveEndpoint();
+    });
+
+    after(async () => {
+      // NOTE: deleting the references to the old, external REST API
+      const serverless = readYamlFile(serverlessFilePath);
+      delete serverless.provider.apiGateway.restApiId;
+      delete serverless.provider.apiGateway.restApiRootResourceId;
+      writeYamlFile(serverlessFilePath, serverless);
+      // NOTE: deploying once again to get the stack into the original state
+      console.info('Redeploying service (without external Rest API ID)...');
+      await deployService(tmpDirPath);
+      console.info('Deleting external rest API...');
+      return deleteRestApi(restApiId);
     });
 
     it('should update the stage without service interruptions', () => {
@@ -279,12 +306,5 @@ describe('AWS - API Gateway Integration Test', () => {
         .then(response => response.json())
         .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
     });
-  });
-
-  describe('Integration Lambda Timeout', () => {
-    it('should result with 504 status code', () =>
-      fetch(`${endpoint}/integration-lambda-timeout`).then(response =>
-        expect(response.status).to.equal(504)
-      ));
   });
 });

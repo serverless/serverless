@@ -1,6 +1,6 @@
 plugins {
   id "gradle-clojure.clojure" version "0.4.0"
-  id 'com.github.johnrengelman.shadow' version '2.0.2'
+  id 'com.github.johnrengelman.shadow' version '5.1.0'
 }
 
 sourceCompatibility = 1.8
@@ -39,7 +39,3 @@ task(buildJson) {
 
 shadowJar.finalizedBy(buildJson)
 build.dependsOn shadowJar
-
-task wrapper(type: Wrapper) {
-  gradleVersion = '4.9'
-}

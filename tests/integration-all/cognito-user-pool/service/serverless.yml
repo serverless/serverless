@@ -1,0 +1,33 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  basic:
+    handler: core.basic
+    events:
+      - cognitoUserPool:
+          pool: CHANGE_TO_UNIQUE_PER_RUN
+          trigger: PreSignUp
+  existingSimple:
+    handler: core.existingSimple
+    events:
+      - cognitoUserPool:
+          pool: CHANGE_TO_UNIQUE_PER_RUN
+          trigger: PreSignUp
+          existing: true
+  # testing if two functions share one cognito user pool with multiple configs
+  existingMulti:
+    handler: core.existingMulti
+    events:
+      - cognitoUserPool:
+          pool: CHANGE_TO_UNIQUE_PER_RUN
+          trigger: PreSignUp
+          existing: true
+      - cognitoUserPool:
+          pool: CHANGE_TO_UNIQUE_PER_RUN
+          trigger: PreAuthentication
+          existing: true

@@ -1,6 +1,6 @@
 <!--
 title: Serverless Getting Started Guide
-menuText: Getting Started
+menuText: Get Started
 layout: Doc
 menuOrder: 0
 menuItems:
@@ -9,113 +9,84 @@ menuItems:
   - {menuText: Apache OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
+  - {menuText: Knative Guide, path: /framework/docs/providers/knative/guide/quick-start}
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
   - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
   - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
+  - {menuText: Alibaba Guide , path: /framework/docs/providers/aliyun/guide/quick-start}
+  - {menuText: Tencent Guide , path: /framework/docs/providers/tencent/guide/quick-start}
 -->
 
-# Getting Started with Serverless
+# Get started with Serverless Framework Open Source & AWS
 
-First things first, let's get the Serverless framework installed on your machine.
+Getting started with Serverless Framework’s Open Source CLI and AWS takes only a few minutes. Install as a standalone binary, or with npm.
+
+## Install as a standalone binary
+
+### MacOS/Linux
+
+1. Run this command in your terminal:
 
 ```bash
-# Installing the serverless cli
+curl -o- -L https://slss.io/install | bash
+```
+
+2. After installation completes, open another terminal window, then run this command:
+
+```bash
+serverless
+```
+
+3. Follow the prompts.
+
+If you have a previously installed version, you can upgrade by running:
+
+```bash
+serverless upgrade
+```
+
+### Windows
+
+Install with [Chocolatey](https://chocolatey.org/):
+
+```bash
+choco install serverless
+```
+
+Upgrade:
+
+```bash
+choco upgrade serverless
+```
+
+## Install via npm
+
+If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to do that first.
+
+Install the serverless CLI:
+
+```bash
 npm install -g serverless
-# Updating serverless from a previous version of serverless
+```
+
+Upgrade:
+
+```bash
 npm update -g serverless
 ```
 
-Next up, it's time to choose where you'd like your serverless service to run.
+## Set up your free Pro account
 
-## Choose your compute provider
+Learn more about [Serverless Framework Pro](https://serverless.com/pro/) and [sign up for free](https://dashboard.serverless.com).
 
-<div class="docsSections">
-  <a href="/framework/docs/providers/aws/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/aws-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Amazon Web Services<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/azure/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/azure-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Azure Functions<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/openwhisk/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/openwhisk-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Apache OpenWhisk<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/google/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/gcf-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Google Cloud Functions<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/kubeless/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/kubeless-logos-black.png"
-          width="250" draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Kubeless<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/spotinst/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/spotinst-logos-black-small.png"
-          width="250" draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Spotinst<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/fn/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/fn-logo-black.png" width="250"
-          draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Fn<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-  <a href="/framework/docs/providers/cloudflare/guide/quick-start">
-    <div class="docsSection">
-      <div class="docsSectionHeader">
-        <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/docs/cloudflare/cf-logo-v-dark-gray.png"
-          width="250" draggable="false" />
-      </div>
-      <div style="text-align:center;">
-        <span>Cloudflare Workers<br />Quick Start Guide</span>
-      </div>
-    </div>
-  </a>
-</div>
+Once you’ve signed up for Pro, login to your Pro dashboard from the CLI:
+
+```bash
+serverless login
+```
+
+You can either add a new service in your dashboard, or with the CLI, using the command:
+
+```bash
+serverless
+```

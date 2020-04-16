@@ -34,10 +34,11 @@ layers:
     name: ${self:provider.stage}-layerName # optional, Deployed Lambda layer name
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
-      - python3.7
+      - python3.8
     licenseInfo: GPLv3 # optional, a string specifying license information
-    allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
-      - '*'
+    # allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
+    #   - '*'
+    # note: uncommenting this will give all AWS users access to this layer unconditionally.
     retain: false # optional, false by default. If true, layer versions are not deleted as new ones are created
 ```
 

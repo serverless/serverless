@@ -2,7 +2,7 @@
 
 For the framework we follow Semantic Versioning as defined on [http://semver.org/](http://semver.org).
 
-## Intepretation of SemVer for the Framework
+## Interpretation of SemVer for the Framework
 
 ### PATCH
 

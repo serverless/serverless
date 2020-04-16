@@ -60,7 +60,7 @@ services:
     volumes:
       - ./tmp/serverless-integration-test-aws-groovy-gradle:/app
   aws-scala-sbt:
-    image: hseeberger/scala-sbt:8u181_2.12.8_1.2.8
+    image: hseeberger/scala-sbt:8u222_1.3.2_2.13.1
     volumes:
       - ./tmp/serverless-integration-test-aws-scala-sbt:/app
   aws-csharp:
@@ -123,3 +123,11 @@ services:
     image: maven:3-jdk-8
     volumes:
       - ./tmp/serverless-integration-test-spotinst-java8:/app
+  twilio-nodejs:
+    image: node:8.16.0
+    volumes:
+      - ./tmp/serverless-integration-test-twilio-nodejs:/app
+  aliyun-nodejs:
+    image: node:8
+    volumes:
+      - ./tmp/serverless-integration-test-aliyun-nodejs:/app

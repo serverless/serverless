@@ -38,7 +38,7 @@ functions:
     events:
       - http: true
         x-azure-settings:
-          authLevel: anonymous
+          authLevel: anonymous # can also be `function` or `admin`
 ```
 
 The `handler` property points to the file (default filename: handler.js) and
@@ -80,4 +80,34 @@ getFoo:
   handler: handler.foo
 deleteFoo:
   handler: handler.foo
+```
+
+```yml
+#bar-functions-yml
+getBar:
+  handler: handler.bar
+deleteBar:
+  handler: handler.bar
+```
+
+Handlers can also be referenced by a file path relative to the root. If your directory structure were something like:
+
+```yml
+serverless.yml
+src/
+  handlers/
+    foo.js # exported `handler` function
+    bar.js # exported `handler` function
+```
+
+Your `serverless.yml` would look something like:
+
+```yml
+# serverless.yml
+---
+functions:
+  foo:
+    handler: src/handlers/foo.handler
+  bar:
+    handler: src/handlers/bar.handler
 ```

@@ -1,0 +1,23 @@
+service: aws-nodejs
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  hello:
+    handler: handler.hello
+    package:
+      individually: true
+      include:
+        - handler.js
+      exclude:
+        - handler2.js
+  hello2:
+    handler: handler2.hello
+    package:
+      individually: true
+      include:
+        - handler2.js
+      exclude:
+        - handler.js
