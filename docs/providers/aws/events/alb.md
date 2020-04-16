@@ -64,9 +64,9 @@ functions:
 
 ## Add cognito/custom idp provider authentication
 
-With AWS you can configure an Application Load Balancer to [securely authenticate](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html) users as they access your applications. To securely authenticate using Cognito or a identity provider (IdP) that is OpenID Connect (OIDC) compliant, follow below steps.
+With AWS you can configure an Application Load Balancer to [securely authenticate](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html) users as they access your applications. To securely authenticate using Cognito and/or a identity provider (IdP) that is OpenID Connect (OIDC) compliant, follow below steps.
 
-#### 1. Declare authorizer objects either of type "cognito" or "oidc" on `provider.alb.authorizers`
+#### 1. Declare authorizer objects either of type "cognito" and/or "oidc" on `provider.alb.authorizers`
 
 ```yaml
 provider:
