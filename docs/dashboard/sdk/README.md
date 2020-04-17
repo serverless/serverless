@@ -23,9 +23,13 @@ Dashboard without causing your lambda to error and custom function spans.
 
 [Python Documentation](../sdk/python.md)
 
-## Configuring HTTP spans
+## Advanced Span Configuration
 
-You can configure the HTTP spans with the following environment variables
+For most of the SDK configuration, like turning on/off span collection, follow the
+[Monitoring Configuration](../monitoring/#configuration) instructions to modify your
+serverless.yml appropriately.
+
+If needed, you can configure HTTP span collection with the following environment variables
 
 - `SERVERLESS_ENTERPRISE_SPANS_CAPTURE_HOSTS` - `*` by default. Set to a comma delimited list of
   host names to capture.
