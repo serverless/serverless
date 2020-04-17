@@ -77,6 +77,35 @@ provider:
       - '*/*'
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
+    authorizers:
+      myFirstAuth:
+        type: 'cognito'
+        userPoolArn: 'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341', # required
+        userPoolClientId: '1h57kf5cpq17m0eml12EXAMPLE', # required
+        userPoolDomain: 'your-test-domain' # required
+        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
+        requestExtraParams: # optional. The query parameters (up to 10) to include in the redirect request to the authorization endpoint
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age' # Can be a combination of any system-reserved scopes or custom scopes associated with the client. The default is openid
+        sessionCookieName: '🍪' # The name of the cookie used to maintain session information. The default is AWSELBAuthSessionCookie
+        sessionTimeout: 7000 # The maximum duration of the authentication session, in seconds. The default is 604800 seconds (7 days).
+      mySecondAuth:
+        type: 'oidc'
+        authorizationEndpoint: 'https://example.com', # required. The authorization endpoint of the IdP. Must be a full URL, including the HTTPS protocol, the domain, and the path
+        clientId: 'i-am-client', # required
+        clientSecret: 'i-am-secret', # if creating a rule this is required. If modifying a rule, this can be omitted if you set useExistingClientSecret to true (as below)
+        useExistingClientSecret: true # only required if clientSecret is omitted
+        issuer: 'https://www.iamscam.com', # required. The OIDC issuer identifier of the IdP. This must be a full URL, including the HTTPS protocol, the domain, and the path
+        tokenEndpoint: 'http://somewhere.org', # required
+        userInfoEndpoint: 'https://another-example.com' # required
+        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
+        requestExtraParams:
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age'
+        sessionCookieName: '🍪'
+        sessionTimeout: 7000
   httpApi:
     id: # If we want to attach to externally created HTTP API its id should be provided here
     name: # Use custom name for the API Gateway API, default is ${self:provider.stage}-${self:service}
