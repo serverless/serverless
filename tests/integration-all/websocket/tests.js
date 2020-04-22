@@ -68,15 +68,20 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
           }
         })(reject);
 
-        ws.on('error', reject);
-        ws.on('open', () => {
+        let timeoutId;
+        const sendMessage = () => {
           log.debug("Sending message to 'hello' route");
           ws.send(JSON.stringify({ action: 'hello', name: 'serverless' }));
-        });
+          timeoutId = setTimeout(sendMessage, 1000);
+        };
+
+        ws.on('error', reject);
+        ws.on('open', sendMessage);
 
         ws.on('close', resolve);
 
         ws.on('message', event => {
+          clearTimeout(timeoutId);
           try {
             log.debug(`Received WebSocket message: ${event}`);
             expect(event).to.equal('Hello, serverless');
