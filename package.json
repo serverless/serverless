@@ -157,9 +157,9 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.4.0",
-    "ajv": "^6.12.0",
     "@serverless/components": "^2.29.0",
     "@serverless/enterprise-plugin": "^3.6.3",
+    "ajv": "^6.12.0",
     "archiver": "^1.3.0",
     "async": "^1.5.2",
     "aws-sdk": "^2.655.0",
