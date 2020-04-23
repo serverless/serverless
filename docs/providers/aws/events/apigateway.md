@@ -531,7 +531,7 @@ functions:
 
 ### HTTP Endpoints with `operationId`
 
-Include `operationId` when you want to provide a name for the method endpoint.  This will set `OperationName` inside `AWS::ApiGateway::Method` accordingly.  One common use case for this is customizing method names in some code generators (e.g., swagger).
+Include `operationId` when you want to provide a name for the method endpoint. This will set `OperationName` inside `AWS::ApiGateway::Method` accordingly. One common use case for this is customizing method names in some code generators (e.g., swagger).
 
 ```yml
 functions:
