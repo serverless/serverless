@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: tabarlow-azure-python # NOTE: update this with your service name
+service: azure-python # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -20,7 +20,7 @@ service: tabarlow-azure-python # NOTE: update this with your service name
 provider:
   name: azure
   region: West Europe
-  runtime: python3.6
+  runtime: python3.6 # python3.7 or python3.8 available
   # prefix: "sample"  # prefix of generated resource name
   # subscriptionId: A356AC8C-E310-44F4-BF85-C7F29044AF99
   # stage: dev
@@ -69,16 +69,18 @@ package:
   exclude:
     - env/**
     - .env/**
-  #   # - exclude-me.py
-  #   # - exclude-me-dir/**
-  #   - local.settings.json
-  #   - .vscode/**
-  #   - node_modules/**
-  #   - .gitignore
-  #   - .git/**
-  #   - env/**
-  #   - package.json
-  #   - package-lock.json
+    - local.settings.json
+    - .vscode/**
+    - __pycache__/**
+    - node_modules/**
+    - .python_packages/**
+    - .funcignore
+    - package.json
+    - package-lock.json
+    - .gitignore
+    - .git/**
+  # - exclude-me.py
+  # - exclude-me-dir/**
 
 functions:
   hello:

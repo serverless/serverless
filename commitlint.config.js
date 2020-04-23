@@ -24,6 +24,8 @@ module.exports = {
         'AWS Local Invocation',
         'AWS S3',
         'AWS SNS',
+        'AWS SQS',
+        'AWS Stream',
         'AWS Websocket',
         'CLI',
         'Components',

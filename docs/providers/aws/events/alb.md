@@ -62,6 +62,76 @@ functions:
               - 192.168.0.1/0
 ```
 
+## Add cognito/custom idp provider authentication
+
+With AWS you can configure an Application Load Balancer to [securely authenticate](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html) users as they access your applications. To securely authenticate using Cognito and/or a identity provider (IdP) that is OpenID Connect (OIDC) compliant, follow below steps.
+
+#### 1. Declare authorizer objects either of type "cognito" and/or "oidc" on `provider.alb.authorizers`
+
+```yaml
+provider:
+  alb:
+    authorizers:
+      myFirstAuth:
+        type: 'cognito'
+        userPoolArn: 'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341', # required
+        userPoolClientId: '1h57kf5cpq17m0eml12EXAMPLE', # required
+        userPoolDomain: 'your-test-domain' # required
+        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
+        requestExtraParams: # optional. The query parameters (up to 10) to include in the redirect request to the authorization endpoint
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age' # Can be a combination of any system-reserved scopes or custom scopes associated with the client. The default is openid
+        sessionCookieName: '🍪' # The name of the cookie used to maintain session information. The default is AWSELBAuthSessionCookie
+        sessionTimeout: 7000 # The maximum duration of the authentication session, in seconds. The default is 604800 seconds (7 days).
+      mySecondAuth:
+        type: 'oidc'
+        authorizationEndpoint: 'https://example.com', # required. The authorization endpoint of the IdP. Must be a full URL, including the HTTPS protocol, the domain, and the path
+        clientId: 'i-am-client', # required
+        clientSecret: 'i-am-secret', # if creating a rule this is required. If modifying a rule, this can be omitted if you set useExistingClientSecret to true (as below)
+        useExistingClientSecret: true # only required if clientSecret is omitted
+        issuer: 'https://www.iamscam.com', # required. The OIDC issuer identifier of the IdP. This must be a full URL, including the HTTPS protocol, the domain, and the path
+        tokenEndpoint: 'http://somewhere.org', # required
+        userInfoEndpoint: 'https://another-example.com' # required
+        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
+        requestExtraParams:
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age'
+        sessionCookieName: '🍪'
+        sessionTimeout: 7000
+```
+
+#### 2. Configure endpoints which are expected to have restricted access with "authorizer" parameter:
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.auth
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            path: /auth/cognito
+          authorizer: myFirstAuth
+```
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.auth
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            path: /auth/idp
+          authorizer:
+            - myFirstAuth
+            - mySecondAuth
+```
+
 ## Enabling multi-value headers
 
 By default when the request contains a duplicate header field name or query parameter key, the load balancer uses the last value sent by the client.

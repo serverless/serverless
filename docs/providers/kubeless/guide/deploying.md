@@ -95,7 +95,7 @@ provider:
       endpoint: http://minio.local
       bucket: workbench
       region: eu-central-1
-      s3ForcePathStyle: True
+      s3ForcePathStyle: true
 ```
 
 ## Deploy Function

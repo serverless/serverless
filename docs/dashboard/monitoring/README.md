@@ -33,6 +33,10 @@ Serverless Framework Pro will enable log collection by adding a CloudWatch Logs 
 
 When deploying, Serverless Framework will also create an IAM role in your account that allows the Serverless Framework backend to call FilterLogEvents on the CloudWatch Log Groups that are created in the Service being deployed. This is used to display the CloudWatch logs error details views alongside the stack trace.
 
+If you have an existing CloudWatch Logs Subscription on your Log Group, please see the section on [pull-based log ingestion](#pull-based-log-ingestion).
+
+# If you wish to disable log collection, set the following options:
+
 If you wish to disable log collection, set the following option:
 
 **serverless.yml**
@@ -165,3 +169,21 @@ module.exports.handler = async (event, context) => {
 [Full NodeJS Documentation](../sdk/nodejs.md#span)
 
 [Full Python Documentation](../sdk/python.md#span)
+
+## Pull-based log ingestion
+
+The default monitoring path for the Serverless Framework Pro involves setting up a Subscription Filter on your CloudWatch Log Group to send selected logs to the Serverless Framework Pro ingestion system.
+
+AWS currently has a hard limit of one Subscription Filter per Log Group. If you try to deploy with the Serverless Framework Pro plugin, you'll get an error saying the resource limit was exceeded.
+
+If you want to keep your existing Subscription while still adding Serverless Framework Pro support, you can enable pull-based log ingestion using the following syntax in your `serverless.yml`:
+
+```yaml
+custom:
+  enterprise:
+    logIngestMode: pull
+```
+
+With pull-based ingestion, the Serverless Framework Pro infrastructure will periodically request logs from your CloudWatch Log Group and send them into our system.
+
+Please note that using the pull-based log ingestion method will result in delays in ingesting your logs. This delay is usually between 30 and 120 seconds. As such, we recommend only using the pull-based log ingestion method in a development environment or when testing the features of Serverless Framework Pro.
