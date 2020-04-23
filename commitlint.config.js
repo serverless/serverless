@@ -25,6 +25,7 @@ module.exports = {
         'AWS S3',
         'AWS SNS',
         'AWS SQS',
+        'AWS Stream',
         'AWS Websocket',
         'CLI',
         'Components',
