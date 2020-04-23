@@ -809,6 +809,24 @@ functions:
               application/json: ${file(create_request.json)}
 ```
 
+Additionally, API Gateway models can be customized by
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schema:
+              application/json: 
+                definition: ${file(create_request.json)}
+                name: PostCreateModel
+                description: "Validation model for Creating Posts"
+```
+
 A sample schema contained in `create_request.json` might look something like this:
 
 ```json
