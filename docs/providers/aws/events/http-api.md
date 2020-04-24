@@ -194,3 +194,15 @@ provider:
 ```
 
 In such case no API and stage resources are created, therefore extending HTTP API with CORS or access logs settings is not supported.
+
+### Event / payload format
+
+HTTP API offers only a 'proxy' option for Lambda integration where an event submitted to the function contains the details of HTTP request such as headers, query string parameters etc.
+There are however two formats for this event (see [Working with AWS Lambda proxy integrations for HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html)) where the default one (1.0) is the same as for REST API / Lambda proxy integration which makes it easy to migrate from REST API to HTTP API.
+The payload version could be configured globally as:
+
+```yaml
+provider:
+  httpApi:
+    payload: '2.0'
+```
