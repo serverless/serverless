@@ -62,7 +62,6 @@ functions:
           maximumRetryAttempts: 2
 ```
 
-
 ## Setting the MaximumRetryAttempts
 
 This configuration sets up the maximum number of times to retry when the function returns an error.
