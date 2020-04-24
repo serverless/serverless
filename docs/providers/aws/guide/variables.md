@@ -602,6 +602,7 @@ provider:
 custom:
   myStage: ${opt:stage, self:provider.stage}
   myRegion: ${opt:region, 'us-west-1'}
+  enabled: ${opt:enabled, strToBool(true)}
 
 functions:
   hello:
@@ -684,3 +685,5 @@ ${strToBool(2)} => Error
 ${strToBool(null)} => Error
 ${strToBool(anything)} => Error
 ```
+
+`strToBool` can also be used as an overwrite as in `${opt:myBool, strToBool(true)}`.
