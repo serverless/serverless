@@ -77,7 +77,8 @@ describe('HTTP API Integration Test', function() {
                 },
               },
             },
-            logs: { httpApi: true },
+            // TODO: Bring back after resolving permissions issue on AWS side
+            // logs: { httpApi: true },
           },
           functions: {
             foo: {
@@ -186,7 +187,8 @@ describe('HTTP API Integration Test', function() {
       expect(json).to.deep.equal({ method: 'GET', path: '/foo' });
     });
 
-    it('should expose access logs when configured to', () =>
+    // TODO: Bring back after resolving permissions issue on AWS side
+    it.skip('should expose access logs when configured to', () =>
       confirmCloudWatchLogs(`/aws/http-api/${stackName}`, async () => {
         const response = await fetch(`${endpoint}/some-post`, { method: 'POST' });
         await response.json();
