@@ -809,7 +809,7 @@ functions:
               application/json: ${file(create_request.json)}
 ```
 
-Additionally, API Gateway models can be customized by
+API Gateway models can be customized by inline properties
 
 ```yml
 functions:
@@ -825,6 +825,31 @@ functions:
                 definition: ${file(create_request.json)}
                 name: PostCreateModel
                 description: "Validation model for Creating Posts"
+```
+
+API Gateway models can be references by global models in the provider. The same structure exist
+for models defined in the provider as inline functions. Provider models default to `application/json`
+
+```yml
+provider:
+    ...
+    apiGateway:
+      schemas:
+        post-create-model:
+          name: PostCreateModel
+          schema: ${file(api_schema/user_add_schema.json)}
+          description: "A Model validation for adding users"
+
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schema:
+              application/json: post-create-model
 ```
 
 A sample schema contained in `create_request.json` might look something like this:
