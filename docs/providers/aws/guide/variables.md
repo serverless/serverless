@@ -265,6 +265,7 @@ functions:
 ```
 
 In the above example, the value for `myKey` in the `myBucket` S3 bucket will be looked up and used to populate the variable.
+Buckets from all regions can be used without any additional specification due to AWS S3 global strategy.
 
 ## Reference Variables using the SSM Parameter Store
 
@@ -308,6 +309,18 @@ functions:
     handler: handler.hello
 custom:
   myArrayVar: ${ssm:/path/to/stringlistparam~split}
+```
+
+You can also reference SSM Parameters in another region with the `ssm.REGION:/path/to/param` syntax. For example:
+
+```yml
+service: ${ssm.us-west-2:/path/to/service/id}-service
+provider:
+  name: aws
+functions:
+  hello:
+    name: ${ssm.ap-northeast-1:/path/to/service/myParam}-hello
+    handler: handler.hello
 ```
 
 ## Reference Variables using AWS Secrets Manager
