@@ -821,10 +821,10 @@ functions:
           method: post
           request:
             schema:
-              application/json: 
+              application/json:
                 definition: ${file(create_request.json)}
                 name: PostCreateModel
-                description: "Validation model for Creating Posts"
+                description: 'Validation model for Creating Posts'
 ```
 
 API Gateway models can be references by global models in the provider. The same structure exist
