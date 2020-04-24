@@ -22,6 +22,7 @@ layout: Doc
     - [Enabling CORS](#enabling-cors)
     - [HTTP Endpoints with `AWS_IAM` Authorizers](#http-endpoints-with-aws_iam-authorizers)
     - [HTTP Endpoints with Custom Authorizers](#http-endpoints-with-custom-authorizers)
+    - [HTTP Endpoints with `operationId`](#http-endpoints-with-operationId)
     - [Catching Exceptions In Your Lambda Function](#catching-exceptions-in-your-lambda-function)
     - [Setting API keys for your Rest API](#setting-api-keys-for-your-rest-api)
     - [Configuring endpoint types](#configuring-endpoint-types)
@@ -526,6 +527,21 @@ functions:
             claims:
               - email
               - nickname
+```
+
+### HTTP Endpoints with `operationId`
+
+Include `operationId` when you want to provide a name for the method endpoint. This will set `OperationName` inside `AWS::ApiGateway::Method` accordingly. One common use case for this is customizing method names in some code generators (e.g., swagger).
+
+```yml
+functions:
+  create:
+    handler: users.create
+    events:
+      - http:
+          path: users/create
+          method: post
+          operationId: createUser
 ```
 
 ### Using asynchronous integration
