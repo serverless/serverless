@@ -19,6 +19,7 @@ module.exports = {
         'AWS EventBridge',
         'AWS HTTP API',
         'AWS IAM',
+        'AWS Info',
         'AWS Kinesis',
         'AWS Lambda',
         'AWS Local Invocation',
