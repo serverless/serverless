@@ -54,6 +54,9 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   }
 
   describe('Two-Way Setup', () => {
+    let timeoutId;
+    after(() => clearTimeout(timeoutId));
+
     it('should expose a websocket route that can reply to a message', async () => {
       const webSocketServerUrl = await getWebSocketServerUrl();
 
@@ -68,7 +71,6 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
           }
         })(reject);
 
-        let timeoutId;
         const sendMessage = () => {
           log.debug("Sending message to 'hello' route");
           ws.send(JSON.stringify({ action: 'hello', name: 'serverless' }));
@@ -89,7 +91,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
             ws.close();
           }
         });
-      });
+      }).finally(() => clearTimeout(timeoutId));
     });
   });
 
