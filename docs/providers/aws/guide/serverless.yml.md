@@ -134,6 +134,11 @@ provider:
       throttle:
         burstLimit: 200
         rateLimit: 100
+    requestSchemas:
+      global-model:
+        name: GlobalModel
+        schema: ${file(schema.json)}
+        description: "A global model that can be referenced in functions"
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
     authorizers:
@@ -336,6 +341,13 @@ functions:
             template: # Optional custom request mapping templates that overwrite default templates
               application/json: '{ "httpMethod" : "$context.httpMethod" }'
             passThrough: NEVER # Optional define pass through behavior when content-type does not match any of the specified mapping templates
+          schema:
+            application/json: ${file(model_schema.json)}
+          requestSchema:
+            application/json:
+                name: ModelName
+                description: "Some description"
+                schema: ${file(model_schema.json)}
       - httpApi: # HTTP API endpoint
           method: GET
           path: /some-get-path/{param}

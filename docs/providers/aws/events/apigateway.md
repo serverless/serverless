@@ -817,14 +817,13 @@ functions:
     handler: posts.create
     events:
       - http:
-          path: posts/create
-          method: post
-          request:
-            schema:
-              application/json:
-                definition: ${file(create_request.json)}
-                name: PostCreateModel
-                description: 'Validation model for Creating Posts'
+         path: posts/create
+         method: post
+         requestSchema:
+           application/json:
+             definition: ${file(create_request.json)}
+             name: PostCreateModel
+             description: 'Validation model for Creating Posts'
 ```
 
 API Gateway models can be references by global models in the provider. The same structure exist
@@ -834,11 +833,11 @@ for models defined in the provider as inline functions. Provider models default 
 provider:
     ...
     apiGateway:
-      schemas:
+      requestSchemas:
         post-create-model:
           name: PostCreateModel
-          schema: ${file(api_schema/user_add_schema.json)}
-          description: "A Model validation for adding users"
+          schema: ${file(api_schema/post_add_schema.json)}
+          description: "A Model validation for adding posts"
 
 functions:
   create:
@@ -847,8 +846,7 @@ functions:
       - http:
           path: posts/create
           method: post
-          request:
-            schema:
+          requestSchema:
               application/json: post-create-model
 ```
 
