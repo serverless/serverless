@@ -576,6 +576,9 @@ When setting the value, you need to be aware that changing value will require re
 two API keys with the same name. It means that you need to change the name also when changing the value. If you don't care
 about the name of the key, it is recommended only to set the value and let CloudFormation name the key.
 
+**NOTE:** When setting the value, you will also need to be aware that AWS requires the value to be **greater than 20 characters** in length.
+Serverless will return an error message stating that the template is invalid when the API key value does not meet this requirement.
+
 Here's an example configuration for setting API keys for your service Rest API:
 
 ```yml
@@ -587,8 +590,8 @@ provider:
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
     - name: myThirdKey
-      value: myThirdKeyValue
-    - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
+      value: myThirdKeyValueGreaterThanTwentyCharacters
+    - value: myFourthKeyValueGreaterThanTwentyCharacters # let cloudformation name the key (recommended when setting api key value)
       description: Api key description # Optional
   usagePlan:
     quota:
@@ -621,6 +624,8 @@ provider:
     - free:
         - myFreeKey
         - ${opt:stage}-myFreeKey
+        - name: anotherOfMyFreeKeys
+          value: valueGreaterThanTwentyCharacters
     - paid:
         - myPaidKey
         - ${opt:stage}-myPaidKey
