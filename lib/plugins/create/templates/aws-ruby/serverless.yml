@@ -22,7 +22,7 @@ service: aws-ruby # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: ruby2.5
+  runtime: ruby2.7
 
 # you can overwrite defaults here
 #  stage: dev

@@ -29,7 +29,7 @@ Commands
 
 You should also have [go](https://golang.org/doc/install) and [make](https://www.gnu.org/software/make/)
 
-It is always good practice to organize your `go` projects within [GOPATH](https://golang.org/doc/code.html#GOPATH), to maximize the benefits of go tooling.
+It is good practice to organize your `go` projects within [GOPATH](https://golang.org/doc/code.html#GOPATH), unless using [Go modules], to maximize the benefits of go tooling.
 
 ## 1. Create a service
 
@@ -53,7 +53,7 @@ sls create --template aws-go-dep --path myService
 
 #### [aws-go-mod](https://github.com/serverless/serverless/tree/master/lib/plugins/create/templates/aws-go-mod)
 
-`aws-go-mod` uses standard [Go modules](https://github.com/golang/go/wiki/Modules) and requires your project to be **outside** `$GOPATH` and to use Go 1.13+.
+`aws-go-mod` uses standard [Go modules] and requires your project to be **outside** `$GOPATH` and to use Go 1.13+.
 
 ```
 sls create --template aws-go-mod --path myService
@@ -123,3 +123,5 @@ serverless invoke -f world
 ```
 
 Congrats you have deployed and ran your Hello World function!
+
+[go modules]: https://github.com/golang/go/wiki/Modules

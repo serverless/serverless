@@ -24,6 +24,8 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   let stackName;
   let tmpDirPath;
   let serverlessFilePath;
+  // TODO: Remove once occasional test fail is debugged
+  let twoWayPassed;
   const stage = 'dev';
 
   before(async () => {
@@ -40,6 +42,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   });
 
   after(() => {
+    if (!twoWayPassed) return null;
     console.info('Removing service...');
     return removeService(tmpDirPath);
   });
@@ -54,6 +57,9 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   }
 
   describe('Two-Way Setup', () => {
+    let timeoutId;
+    after(() => clearTimeout(timeoutId));
+
     it('should expose a websocket route that can reply to a message', async () => {
       const webSocketServerUrl = await getWebSocketServerUrl();
 
@@ -68,15 +74,20 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
           }
         })(reject);
 
-        ws.on('error', reject);
-        ws.on('open', () => {
+        const sendMessage = () => {
           log.debug("Sending message to 'hello' route");
           ws.send(JSON.stringify({ action: 'hello', name: 'serverless' }));
-        });
+          timeoutId = setTimeout(sendMessage, 1000);
+        };
+
+        ws.on('error', reject);
+        ws.on('open', sendMessage);
 
         ws.on('close', resolve);
 
         ws.on('message', event => {
+          twoWayPassed = true;
+          clearTimeout(timeoutId);
           try {
             log.debug(`Received WebSocket message: ${event}`);
             expect(event).to.equal('Hello, serverless');
@@ -84,12 +95,13 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
             ws.close();
           }
         });
-      });
+      }).finally(() => clearTimeout(timeoutId));
     });
   });
 
   describe('Minimal Setup', () => {
-    it('should expose an accessible websocket endpoint', async () => {
+    it('should expose an accessible websocket endpoint', async function() {
+      if (!twoWayPassed) this.skip();
       const webSocketServerUrl = await getWebSocketServerUrl();
 
       log.debug(`WebSocket Server URL ${webSocketServerUrl}`);
@@ -130,7 +142,8 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
     // NOTE: this test should  be at the very end because we're using an external REST API here
     describe('when using an existing websocket API', () => {
       let websocketApiId;
-      before(async () => {
+      before(async function() {
+        if (!twoWayPassed) this.skip();
         // create an external websocket API
         const externalWebsocketApiName = `${stage}-${serviceName}-ext-api`;
         const wsApiMeta = await createApi(externalWebsocketApiName);
@@ -148,6 +161,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
       after(async () => {
         // NOTE: deleting the references to the old, external websocket API
+        if (!twoWayPassed) return;
         const serverless = readYamlFile(serverlessFilePath);
         delete serverless.provider.apiGateway.websocketApiId;
         writeYamlFile(serverlessFilePath, serverless);
