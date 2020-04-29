@@ -33,7 +33,7 @@ serverless install --url https://github.com/pmuens/serverless-knative-example
 serverless install --url https://github.com/pmuens/serverless-knative-example
 ```
 
-This example will download the .zip file of the `servlerless-knative-example` service from GitHub, create a new directory with the name `serverless-knative-example` in the current working directory and unzips the files in this directory.
+This example will download the .zip file of the `serverless-knative-example` service from GitHub, create a new directory with the name `serverless-knative-example` in the current working directory and unzips the files in this directory.
 
 ### Installing a service from a GitHub URL with a new service name
 

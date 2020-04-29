@@ -133,7 +133,7 @@ For installing dependencies the standard dependency file should be placed in the
 - For Nodejs functions, `dependencies` in the `package.json` file will be installed
 - For Ruby functions, it will use the file `Gemfile.rb`
 
-If one of the above files is found, the depencies will be installed using a [`Init Container`](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
+If one of the above files is found, the dependencies will be installed using a [`Init Container`](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
 
 ## Environment Variables
 

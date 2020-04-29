@@ -96,7 +96,7 @@ module.exports.handler = function(params) {
 The body of the incoming request is parsed as JSON and passed as the
 `params` argument to the function handler.
 
-The returned JavaScript object will be serialised as JSON and returned in the
+The returned JavaScript object will be serialized as JSON and returned in the
 HTTP response body.
 
 ### HTTP Endpoint with Extended Options
