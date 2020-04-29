@@ -117,7 +117,7 @@ For more details, check out our [rollback docs](https://github.com/serverless/se
 
 ## Deleting Your Function App
 
-If at any point you no longer need your service, you can run the following command to delete the resource group containing your Azure Function App and other depoloyed resources using:
+If at any point you no longer need your service, you can run the following command to delete the resource group containing your Azure Function App and other deployed resources using:
 
 ```bash
 $ sls remove

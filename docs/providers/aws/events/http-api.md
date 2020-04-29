@@ -149,7 +149,7 @@ functions:
 
 ### Access logs
 
-Deployed stage can have acess logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
+Deployed stage can have access logging enabled, for that just turn on logs for HTTP API in provider settings as follows:
 
 ```yaml
 provider:
@@ -172,7 +172,7 @@ Default logs format is:
 }
 ```
 
-It can be overriden via `format` setting:
+It can be overridden via `format` setting:
 
 ```yaml
 provider:
