@@ -817,13 +817,13 @@ functions:
     handler: posts.create
     events:
       - http:
-         path: posts/create
-         method: post
-         requestSchema:
-           application/json:
-             definition: ${file(create_request.json)}
-             name: PostCreateModel
-             description: 'Validation model for Creating Posts'
+          path: posts/create
+          method: post
+          requestSchema:
+            application/json:
+              definition: ${file(create_request.json)}
+              name: PostCreateModel
+              description: 'Validation model for Creating Posts'
 ```
 
 API Gateway models can be references by global models in the provider. The same structure exist

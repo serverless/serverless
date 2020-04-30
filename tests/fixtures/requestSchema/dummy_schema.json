@@ -1,0 +1,14 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Test Validation Schema",
+  "required": ["id"],
+  "properties": {
+    "id": {
+      "type": "number",
+      "title": "ID for object",
+      "pattern": "[0-9]+"
+    }
+  }
+}

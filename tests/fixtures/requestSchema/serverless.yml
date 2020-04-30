@@ -1,0 +1,54 @@
+service: service
+
+provider:
+  name: aws
+  apiGateway:
+    requestSchemas:
+      test-model:
+        name: 'TestModel'
+        description: 'Test Description'
+        schema: '${file(dummy_schema.json)}'
+      test-model-simple:
+        schema: '${file(dummy_schema.json)}'
+
+functions:
+  target:
+    handler: target.handler
+    events:
+      - http:
+          path: test
+          method: get
+          requestSchema:
+            application/json: test-model
+      - http:
+          path: test2
+          method: get
+          requestSchema:
+            application/json: ${file(dummy_schema.json)}
+      - http:
+          path: test3
+          method: get
+          requestSchema:
+            application/json:
+              name: TestMethodModel
+              description: 'Test Method Model Desc'
+              schema: ${file(dummy_schema.json)}
+      - http:
+          path: test4
+          method: get
+          request:
+            schema:
+              application/json: ${file(dummy_schema.json)}
+      - http:
+          path: test5
+          method: get
+          requestSchema:
+            application/json: ${file(dummy_schema.json)}
+            text/plain: 'foo'
+      - http:
+          path: test6
+          method: get
+          request:
+            schema:
+              application/json: ${file(dummy_schema.json)}
+              text/plain: 'foo'
