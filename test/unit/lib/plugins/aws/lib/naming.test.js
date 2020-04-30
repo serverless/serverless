@@ -410,16 +410,24 @@ describe('#naming()', () => {
 
   describe('#getValidatorLogicalId()', () => {
     it('', () => {
-      expect(sdk.naming.getValidatorLogicalId('ResourceId', 'get')).to.equal(
-        'ApiGatewayMethodResourceIdGetValidator'
+      expect(sdk.naming.getValidatorLogicalId('ApiGatewayMethodResourceId')).to.equal(
+        'ApiGatewayMethodResourceIdValidator'
       );
     });
   });
 
-  describe('#getModelLogicalId()', () => {
+  describe('#getEndpointModelLogicalId()', () => {
     it('', () => {
-      expect(sdk.naming.getModelLogicalId('ResourceId', 'get', 'application/json')).to.equal(
-        'ApiGatewayMethodResourceIdGetApplicationJsonModel'
+      expect(
+        sdk.naming.getEndpointModelLogicalId('ResourceId', 'get', 'application/json')
+      ).to.equal('ApiGatewayMethodResourceIdGetApplicationJsonModel');
+    });
+  });
+
+  describe('#getEndpointValidatorLogicalId()', () => {
+    it('', () => {
+      expect(sdk.naming.getEndpointValidatorLogicalId('ResourceId', 'get')).to.equal(
+        'ApiGatewayMethodResourceIdGetValidator'
       );
       expect(
         sdk.naming.getModelLogicalId('Example', 'post', 'application/x-www-form-urlencoded')
