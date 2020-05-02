@@ -615,6 +615,8 @@ provider:
 custom:
   myStage: ${opt:stage, self:provider.stage}
   myRegion: ${opt:region, 'us-west-1'}
+  myCfnRole: ${opt:role, false}
+  myLambdaMemory: ${opt:memory, 1024}
 
 functions:
   hello:
