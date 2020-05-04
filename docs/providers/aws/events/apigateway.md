@@ -329,6 +329,20 @@ functions:
             cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
 ```
 
+CORS header accepts single value too
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            headers: '*'
+```
+
 If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:
 
 ```javascript
