@@ -68,11 +68,11 @@ functions:
 ```javascript
 // src/handlers/cosmos.js
 
-'use strict';
-const uuidv4 = require('uuid/v4');
+"use strict";
+const uuidv4 = require("uuid/v4");
 
 module.exports.write = async function(context, req) {
-  context.log('JavaScript HTTP trigger function processed a request.');
+  context.log("JavaScript HTTP trigger function processed a request.");
 
   const input = req.body;
 
@@ -84,16 +84,16 @@ module.exports.write = async function(context, req) {
     name: input.name,
     employeeId: input.employeeId,
     address: input.address,
-    timestamp: timestamp,
+    timestamp: timestamp
   });
 
   context.bindings.record = output;
 
-  context.log('Finish writing to CosmosDB');
-  
+  context.log("Finish writing to CosmosDB");
+
   context.res = {
     status: 201,
-    body: 'Created'
+    body: "Created"
   };
 };
 ```
