@@ -436,6 +436,7 @@ functions:
             inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
       - cloudFront:
           eventType: viewer-response
+          includeBody: true
           pathPattern: /docs*
           origin:
             DomainName: serverless.com
