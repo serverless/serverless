@@ -1,33 +1,41 @@
-<!-- Please fill out THE WHOLE PR TEMPLATE. Otherwise we probably have to close the PR due to missing information -->
+<!-- ⚠️⚠️ Do not propose PR's without prior agreement on solution in corresponding issue -->
+<!-- ⚠️⚠️ Unless, it's a documentation update or obvious bug fix, it's fine to go without issue -->
 
-## What did you implement
+<!-- ⚠️⚠️ Acknowledge ALL below remarks -->
+<!-- ⚠️⚠️ PR will not be processed if it doesn't meet outlined criteria -->
 
-<!-- Briefly describe the scope of your PR -->
+<!--
+⚠️⚠️ Ensure to follow code style guidelines
+https://github.com/serverless/serverless/blob/master/CONTRIBUTING.md#code-style
+-->
 
-Closes #XXXXX
+<!--
+⚠️⚠️ Ensure to cover changes with tests written according to test guidelines
+https://github.com/serverless/serverless/blob/master/tests/README.md
+-->
 
-## How can we verify it
+<!-- ⚠️⚠️ Ensure that support for Node.js v6 is maintained. -->
 
-<!-- A copy-and-pasteable `serverless.yml` file with optional steps to verify the implementation -->
+<!--
+⚠️⚠️ Ensure that proposed change passes CI. Confirm on that by running following scripts:
+• npm run prettier-check
+• npm run lint
+• npm test
+-->
 
-## Todos
+<!--
+⚠️⚠️ If proposed change touches integration with AWS services, confirm integration tests pass:
+https://github.com/serverless/serverless/blob/master/tests/README.md#aws-integration-tests
+-->
 
-<details>
-<summary>Useful Scripts</summary>
-<!-- You might want to use the following scripts to streamline your development workflow -->
+<!-- ⚠️⚠️ After your PR is submitted, review the final CI status and address eventual failure -->
 
-- `npm run test:ci` --> Run all validation checks on proposed changes
-- `npm run lint:updated` --> Lint all the updated files
-- `npm run lint:fix` --> Automatically fix lint problems (if possible)
-- `npm run prettier-check:updated` --> Check if updated files adhere to Prettier config
-- `npm run prettify:updated` --> Prettify all the updated files
+<!-- ⚠️⚠️ Answer below questions -->
 
-</details>
+<!--
+Q1: Provide link to corresponding issue
 
-- [ ] Write and run all tests
-- [ ] Write documentation
-- [ ] Enable "Allow edits from maintainers" for this PR
-- [ ] Update the messages below
+Note: Remove this section if it's documentation update or obvious bug fix that has no corresponding issue. In such case provide a short description of made changes
+-->
 
-**_Is this ready for review?:_** NO
-**_Is it a breaking change?:_** NO
+Closes: #{ISSUE_NUMBER}
