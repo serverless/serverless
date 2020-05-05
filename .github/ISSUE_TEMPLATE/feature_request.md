@@ -3,16 +3,26 @@ name: '🎉 Feature request'
 about: Suggest an idea
 ---
 
-# Feature Proposal
+<!-- ⚠️⚠️ Search existing issues to avoid creating duplicates  -->
+<!-- ⚠️⚠️ Plugin enhancements should be proposed at plugin repository, not here -->
 
-## Description
+<!-- ⚠️⚠️ Answer ALL required questions below -->
+<!-- ⚠️⚠️ Request will likely not be processed if some of the answers are missing -->
 
-<!-- Please use https://forum.serverless.com, StackOverflow or other forums for Q&A -->
-<!-- Please answer ALL the question below. Otherwise we probably have to close the issue due to missing information -->
+<!--
+Q1: Describe the problem (use case) that needs to be solved
+-->
 
-1. What is the use case that should be solved. The more detail you describe this in the easier it is to understand for us.
-1. **Optional:** If there is additional config how would it look
+### Use case description
 
-Similar or dependent issues:
+⚠️⚠️ REPLACE WITH DESCRIPTION
 
-- #12345
+<!--
+Q2: Propose solution (e.g. provide configuration example)
+
+Note: This is optional, remove this section if you do not wish to propose anything at this point
+-->
+
+### Proposed solution
+
+⚠️⚠️ REPLACE WITH PROPOSAL
