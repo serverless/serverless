@@ -30,6 +30,8 @@ provider:
   subscriptionId: 00000000-0000-0000-0000-000000000000
   stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
   type: premium # optional, values include 'Developer', 'Standard', 'Premium', 'Basic', 'Consumption'
+  armTemplate:
+    file: myTemplate.json
 
   environment: # these will be created as application settings
     VARIABLE_FOO: 'foo'
