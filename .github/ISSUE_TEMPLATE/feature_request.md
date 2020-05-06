@@ -3,11 +3,13 @@ name: '🎉 Feature request'
 about: Suggest an idea
 ---
 
+<!-- ⚠️⚠️ Acknowledge ALL below remarks -->
+<!-- ⚠️⚠️ Request may not be processed if it doesn't meet outlined criteria -->
+
 <!-- ⚠️⚠️ Search existing issues to avoid creating duplicates  -->
 <!-- ⚠️⚠️ Plugin enhancements should be proposed at plugin repository, not here -->
 
 <!-- ⚠️⚠️ Answer ALL required questions below -->
-<!-- ⚠️⚠️ Request will likely not be processed if some of the answers are missing -->
 
 <!--
 Q1: Describe the problem (use case) that needs to be solved

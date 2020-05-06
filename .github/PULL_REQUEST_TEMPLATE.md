@@ -1,8 +1,8 @@
-<!-- ⚠️⚠️ Do not propose PR's without prior agreement on solution in corresponding issue -->
-<!-- ⚠️⚠️ Unless, it's a documentation update or obvious bug fix, it's fine to go without issue -->
-
 <!-- ⚠️⚠️ Acknowledge ALL below remarks -->
 <!-- ⚠️⚠️ PR will not be processed if it doesn't meet outlined criteria -->
+
+<!-- ⚠️⚠️ Do not propose PR's without prior agreement on solution in corresponding issue -->
+<!-- ⚠️⚠️ Only documentation updates or obvious bug fixes are welcome without it -->
 
 <!--
 ⚠️⚠️ Ensure to follow code style guidelines

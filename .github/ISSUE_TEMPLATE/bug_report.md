@@ -3,13 +3,15 @@ name: '🐛 Bug report'
 about: Create a bug report
 ---
 
+<!-- ⚠️⚠️ Acknowledge ALL below remarks -->
+<!-- ⚠️⚠️ Request may not be processed if it doesn't meet outlined criteria -->
+
 <!-- ⚠️⚠️ Ensure you're using *latest* version of a Framework -->
 <!-- ⚠️⚠️ If you're uncertain you deal with a bug, ask first at https://forum.serverless.com -->
 <!-- ⚠️⚠️ If your issue is influenced by a plugin, report at plugin repository, not here -->
 <!-- ⚠️⚠️ Search existing issues to avoid creating duplicates  -->
 
 <!-- ⚠️⚠️ Answer ALL the questions below -->
-<!-- ⚠️⚠️ Request may not be processed if some of the answers are missing -->
 
 <!--
 Q1: Describe the issue
