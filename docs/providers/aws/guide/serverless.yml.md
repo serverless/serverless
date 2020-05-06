@@ -466,7 +466,7 @@ resources:
     ParameterName:
       Type: String | Number | List | CommaDelimitedList | etc.
       NoEcho: true | false # used to mask the parameter's value
-      
+
   Resources:
     usersTable:
       Type: AWS::DynamoDB::Table
