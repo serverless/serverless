@@ -177,7 +177,7 @@
     "fast-levenshtein": "^2.0.6",
     "filesize": "^3.6.1",
     "fs-extra": "^0.30.0",
-    "get-stdin": "^5.0.1",
+    "get-stdin": "^6.0.0",
     "globby": "^6.1.0",
     "graceful-fs": "^4.2.4",
     "https-proxy-agent": "^4.0.0",
