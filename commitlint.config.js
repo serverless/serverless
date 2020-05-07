@@ -13,6 +13,7 @@ module.exports = {
         'AWS ALB',
         'AWS API Gateway',
         'AWS CloudFormation',
+        'AWS CloudFront',
         'AWS Cognito',
         'AWS Deploy',
         'AWS EventBridge',
