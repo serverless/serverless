@@ -110,15 +110,15 @@ async function fetch(url, options) {
     throw error;
   }
 
-  /* eslint-disable no-underscore-dangle */
-  logFetch.debug('[%d] %d %j', requestId, response.status, response.headers._headers);
-  const responseDecodeResult = response._decode();
-  response._decode = () => responseDecodeResult;
+  logFetch.debug('[%d] %d %j', requestId, response.status, response.headers.raw());
   /* eslint-enable */
-  responseDecodeResult.then(
-    buffer => logFetch.debug('[%d] %s', requestId, String(buffer)),
-    error => logFetch.error('[%d] response resolution error: %o', requestId, error)
-  );
+  response
+    .clone()
+    .buffer()
+    .then(
+      buffer => logFetch.debug('[%d] %s', requestId, String(buffer)),
+      error => logFetch.error('[%d] response resolution error: %o', requestId, error)
+    );
   return response;
 }
 
