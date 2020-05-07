@@ -200,7 +200,7 @@
     "rc": "^1.2.8",
     "replaceall": "^0.1.6",
     "semver": "^5.7.1",
-    "semver-regex": "^1.0.0",
+    "semver-regex": "^2.0.0",
     "stream-promise": "^3.2.0",
     "tabtab": "^3.0.2",
     "untildify": "^3.0.3",
