@@ -208,6 +208,6 @@
     "uuid": "^2.0.3",
     "write-file-atomic": "^2.4.3",
     "yaml-ast-parser": "0.0.43",
-    "yargs-parser": "^16.1.0"
+    "yargs-parser": "^18.1.3"
   }
 }
