@@ -193,7 +193,7 @@
     "mkdirp": "^0.5.4",
     "nanomatch": "^1.2.13",
     "ncjsm": "^4.0.1",
-    "node-fetch": "^1.7.3",
+    "node-fetch": "^2.6.0",
     "object-hash": "^2.0.3",
     "p-limit": "^2.3.0",
     "promise-queue": "^2.2.5",
