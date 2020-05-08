@@ -18,7 +18,7 @@ Q1: Describe the issue
 -->
 
 <!--
-Q2: Provide (in below placeholder) content of serverless.yml, ensuring that:
+Q2: Provide (in below placeholder) FULL content of serverless.yml, ensuring that:
 • It consistently reproduces described issue
 • It's as minimal as possible
 • There's no plugins involved (plugin related issues need to be reported at plugin repositories)
@@ -29,21 +29,21 @@ Q2: Provide (in below placeholder) content of serverless.yml, ensuring that:
 <summary><code>serverless.yml</code></summary>
 
 ```yaml
-# ⚠️⚠️ REPLACE THIS COMMENT WITH serverless.yml CONTENT
+# ⚠️⚠️ REPLACE THIS COMMENT WITH FULL serverless.yml CONTENT
 ```
 
 </details>
 
 <!--
-Q3: Provide (in below placeholder) output of serverless command that exposes the problem.
+Q3: Provide (in below placeholder) FULL name and output of command that exposes the problem.
        Note: Ensure SLS_DEBUG=* env var for verbose debug output
 -->
 
 <details>
-<summary><b>CLI output</b></summary>
+<summary><b><code>REPLACE WITH FULL COMMAND NAME</code> output</b></summary>
 
 ```
-⚠️⚠️ REPLACE WITH `serverless ..`  OUTPUT
+⚠️⚠️ REPLACE WITH FULL COMMAND OUTPUT
 ```
 
 </details>
