@@ -32,6 +32,10 @@ provider:
   type: premium # optional, values include 'Developer', 'Standard', 'Premium', 'Basic', 'Consumption'
   armTemplate:
     file: myTemplate.json
+    parameters:
+      paramName:
+        type: string
+        defaultValue: value
 
   environment: # these will be created as application settings
     VARIABLE_FOO: 'foo'
