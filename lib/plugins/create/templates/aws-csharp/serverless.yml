@@ -57,7 +57,7 @@ functions:
 
     # you can add packaging information here
     package:
-      artifact: bin/release/netcoreapp3.1/hello.zip
+      artifact: bin/Release/netcoreapp3.1/hello.zip
     #  exclude:
     #    - exclude-me.js
     #    - exclude-me-dir/**
