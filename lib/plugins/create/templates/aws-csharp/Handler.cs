@@ -1,8 +1,6 @@
 using Amazon.Lambda.Core;
-using System;
 
-[assembly:LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
-
+[assembly:LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 namespace AwsDotnetCsharp
 {
     public class Handler
