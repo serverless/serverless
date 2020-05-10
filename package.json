@@ -160,7 +160,7 @@
     "@serverless/cli": "^1.4.0",
     "@serverless/components": "^2.30.10",
     "@serverless/enterprise-plugin": "^3.6.11",
-    "archiver": "^1.3.0",
+    "archiver": "^3.1.1",
     "async": "^1.5.2",
     "aws-sdk": "^2.671.0",
     "bluebird": "^3.7.2",
