@@ -460,13 +460,6 @@ layers:
 
 # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 resources:
-  Parameters:
-    # Parameters have all the attributes available from cloudformation parameter's capabilities
-    # To see more options: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html
-    ParameterName:
-      Type: String | Number | List | CommaDelimitedList | etc.
-      NoEcho: true | false # used to mask the parameter's value
-
   Resources:
     usersTable:
       Type: AWS::DynamoDB::Table
