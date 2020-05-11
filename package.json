@@ -205,7 +205,7 @@
     "tabtab": "^3.0.2",
     "untildify": "^3.0.3",
     "update-notifier": "^2.5.0",
-    "uuid": "^2.0.3",
+    "uuid": "^8.0.0",
     "write-file-atomic": "^2.4.3",
     "yaml-ast-parser": "0.0.43",
     "yargs-parser": "^18.1.3"
