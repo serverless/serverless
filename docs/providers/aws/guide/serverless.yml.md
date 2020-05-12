@@ -164,6 +164,9 @@ provider:
       - subnetId2
   notificationArns: # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
+  stackParameters:
+    - ParameterKey: 'Keyname'
+      ParameterValue: 'Value'
   resourcePolicy:
     - Effect: Allow
       Principal: '*'
