@@ -1,0 +1,14 @@
+service: service
+provider:
+  name: aws
+functions:
+  withDisableLogsTrue:
+    handler: index.handler
+    disableLogs: true
+
+  withDisableLogsFalse:
+    handler: index.handler
+    disableLogs: false
+
+  withoutDisableLogs:
+    handler: index.handler
