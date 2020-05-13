@@ -59,9 +59,9 @@ module.exports = {
         if (options.extraPaths) {
           pathsToRemove.push(...options.extraPaths.map(dirname => path.join(fixturePath, dirname)));
         }
-        return Promise.all(
-          pathsToRemove.map(pathToRemove => fse.remove(pathToRemove))
-        ).then(() => retrievedFixturesPaths.delete(fixturePath));
+        return Promise.all(pathsToRemove.map(pathToRemove => fse.remove(pathToRemove))).then(() =>
+          retrievedFixturesPaths.delete(fixturePath)
+        );
       })
     ),
 };

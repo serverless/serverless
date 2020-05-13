@@ -100,7 +100,8 @@ const chocoPackageTemplatePath = path.join(__dirname, 'choco-package-template');
       ])
     ),
     // Download binary into package tools folder
-    fse.ensureDir(chocoPackageToolsPath)
+    fse
+      .ensureDir(chocoPackageToolsPath)
       .then(() => fetch(binaryUrl))
       .then(response => {
         if (response.status >= 400) {
