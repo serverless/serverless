@@ -153,7 +153,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cli-progress-footer": "^1.1.1",
-    "eslint": "^6.8.0",
+    "eslint": "^7.0.0",
     "eslint-plugin-import": "^2.20.2",
     "git-list-updated": "^1.2.1",
     "github-release-from-cc-changelog": "^2.2.0",
