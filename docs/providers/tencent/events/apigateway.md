@@ -35,7 +35,7 @@ functions:
           name: hello_world_apigw
           parameters:
             stageName: release
-            serviceId: # if you don't specify an exsiting serviceId, a new service will be created by default.
+            serviceId: # if you don't specify an existing serviceId, a new service will be created by default.
             httpMethod: POST
             integratedResponse: true # enable integrated response
 ```

@@ -5,7 +5,6 @@ module.exports = {
     'body-leading-blank': [2, 'always'],
     'footer-leading-blank': [2, 'always'],
     'header-max-length': [2, 'always', 72],
-    'scope-case': [2, 'always', 'start-case'],
     'scope-enum': [
       2,
       'always',
@@ -14,6 +13,7 @@ module.exports = {
         'AWS ALB',
         'AWS API Gateway',
         'AWS CloudFormation',
+        'AWS CloudFront',
         'AWS Cognito',
         'AWS Deploy',
         'AWS EventBridge',

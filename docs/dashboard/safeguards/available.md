@@ -66,7 +66,7 @@ zero events, have an attached [Dead Letter Queue](https://docs.aws.amazon.com/la
 - alexaSkill
 - iot
 - cloudwachEvent
-- coudwatchLog
+- cloudwatchLog
 - cognitoUserPool
 - alexaHomeSkill
 

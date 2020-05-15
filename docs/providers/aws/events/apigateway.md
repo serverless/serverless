@@ -285,6 +285,8 @@ Please note that since you can't send multiple values for [Access-Control-Allow-
 
 Configuring the `cors` property sets [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin), [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers), [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods),[Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials) headers in the CORS preflight response.
 
+If you use the lambda integration, the Access-Control-Allow-Origin and Access-Control-Allow-Credentials will also be provided to the method and integration responses.
+
 Please note that the [Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)-Header is omitted when not explicitly set to `true`.
 
 To enable the `Access-Control-Max-Age` preflight response header, set the `maxAge` property in the `cors` object:
@@ -325,6 +327,20 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: false
             cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+```
+
+CORS header accepts single value too
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors:
+            headers: '*'
 ```
 
 If you want to use CORS with the lambda-proxy integration, remember to include the `Access-Control-Allow-*` headers in your headers object, like this:

@@ -77,8 +77,7 @@ describe('HTTP API Integration Test', function() {
                 },
               },
             },
-            // TODO: Bring back after resolving permissions issue on AWS side
-            // logs: { httpApi: true },
+            logs: { httpApi: true },
           },
           functions: {
             foo: {
@@ -187,8 +186,7 @@ describe('HTTP API Integration Test', function() {
       expect(json).to.deep.equal({ method: 'GET', path: '/foo' });
     });
 
-    // TODO: Bring back after resolving permissions issue on AWS side
-    it.skip('should expose access logs when configured to', () =>
+    it('should expose access logs when configured to', () =>
       confirmCloudWatchLogs(`/aws/http-api/${stackName}`, async () => {
         const response = await fetch(`${endpoint}/some-post`, { method: 'POST' });
         await response.json();
@@ -211,7 +209,10 @@ describe('HTTP API Integration Test', function() {
       return resolveEndpoint();
     });
 
-    after(async () => {
+    after(async function() {
+      // Added temporarily to inspect random fails
+      // TODO: Remove once properly diagnosed
+      if (this.test.parent.tests.some(test => test.state === 'failed')) return;
       log.notice('Removing service...');
       await removeService(tmpDirPath);
     });
