@@ -66,44 +66,43 @@ const chocoPackageTemplatePath = path.join(__dirname, 'choco-package-template');
     'https://github.com/serverless/serverless/releases/download/' +
     `${versionTag}/serverless-win-x64.exe`;
 
-  await Promise.all([
-    // Copy package template to temporary package directory
-    fse.copy(chocoPackageTemplatePath, chocoPackagePath).then(() =>
-      Promise.all([
-        // Copy LICENSE
-        (async () => {
-          const [packagedLicenseTemplateContent, licenseContent] = await deferredLicenseContent;
-          return writeFile(
-            path.join(chocoPackageToolsPath, 'LICENSE.txt'),
-            packagedLicenseTemplateContent.replace('TO_BE_GENERATED', licenseContent)
-          );
-        })(),
-        (async () => {
-          // Autogenerate meta data
-          const nuspecPath = path.join(chocoPackagePath, 'serverless.nuspec');
-          const data = await xmlToJson(await readFile(nuspecPath));
-          const {
-            metadata: [metadata],
-          } = data.package;
-          metadata.version[0] = versionTag.slice(1);
-          metadata.releaseNotes[0] = `https://github.com/serverless/serverless/releases/tag/${versionTag}`;
-          metadata.copyright[0] = `${new Date().getFullYear()}, Serverless Inc.`;
-          metadata.tags[0] = packageMeta.keywords
-            .filter(keyword => !keyword.includes(' '))
-            .join(' ');
-          metadata.summary[0] = packageMeta.description;
-          metadata.description[0] = packageMeta.description;
-          const xmlBuilder = new xml2js.Builder();
-          const result = xmlBuilder.buildObject(data);
-          return writeFile(nuspecPath, result);
-        })(),
-      ])
-    ),
-    // Download binary into package tools folder
-    fse
-      .ensureDir(chocoPackageToolsPath)
-      .then(() => fetch(binaryUrl))
-      .then(response => {
+  await fse.ensureDir(chocoPackageToolsPath).then(() =>
+    Promise.all([
+      // Copy package template to temporary package directory
+      fse.copy(chocoPackageTemplatePath, chocoPackagePath).then(() =>
+        Promise.all([
+          // Copy LICENSE
+          (async () => {
+            const [packagedLicenseTemplateContent, licenseContent] = await deferredLicenseContent;
+            return writeFile(
+              path.join(chocoPackageToolsPath, 'LICENSE.txt'),
+              packagedLicenseTemplateContent.replace('TO_BE_GENERATED', licenseContent)
+            );
+          })(),
+          (async () => {
+            // Autogenerate meta data
+            const nuspecPath = path.join(chocoPackagePath, 'serverless.nuspec');
+            const data = await xmlToJson(await readFile(nuspecPath));
+            const {
+              metadata: [metadata],
+            } = data.package;
+            metadata.version[0] = versionTag.slice(1);
+            metadata.releaseNotes[0] = `https://github.com/serverless/serverless/releases/tag/${versionTag}`;
+            metadata.copyright[0] = `${new Date().getFullYear()}, Serverless Inc.`;
+            metadata.tags[0] = packageMeta.keywords
+              .filter(keyword => !keyword.includes(' '))
+              .join(' ');
+            metadata.summary[0] = packageMeta.description;
+            metadata.description[0] = packageMeta.description;
+            const xmlBuilder = new xml2js.Builder();
+            const result = xmlBuilder.buildObject(data);
+            return writeFile(nuspecPath, result);
+          })(),
+        ])
+      ),
+
+      // Download binary into package tools folder
+      fetch(binaryUrl).then(response => {
         if (response.status >= 400) {
           throw new Error(`${response.status}: Request to ${binaryUrl} was rejected`);
         }
@@ -112,7 +111,8 @@ const chocoPackageTemplatePath = path.join(__dirname, 'choco-package-template');
           fs.createWriteStream(path.join(chocoPackageToolsPath, 'serverless.exe'))
         );
       }),
-  ]);
+    ])
+  );
 
   process.stdout.write(`${chocoPackagePath}\n`);
 })();
