@@ -142,6 +142,10 @@ jobs:
 
     - name: 'Unit Tests - Node.js v6'
       node_js: 6
+      before_install:
+        # npm@3 seems to crash on some peer dependency issues (in dev deps setup)
+        # Upgrade npm to version which is distributed with Node.js v8
+        - npm i -g npm@6.13.4
 
     - stage: Integration Test
       name: 'Integration Tests, Tag on version bump - Node.js v12'
