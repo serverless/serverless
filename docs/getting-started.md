@@ -25,25 +25,13 @@ Getting started with Serverless Framework’s Open Source CLI and AWS takes only
 
 ### MacOS/Linux
 
-1. Run this command in your terminal:
+Run this command in your terminal:
 
 ```bash
 curl -o- -L https://slss.io/install | bash
 ```
 
-2. After installation completes, open another terminal window, then run this command:
-
-```bash
-serverless
-```
-
-3. Follow the prompts.
-
-If you have a previously installed version, you can upgrade by running:
-
-```bash
-serverless upgrade
-```
+Then open another terminal window to run `serverless` program.
 
 ### Windows
 
@@ -53,15 +41,9 @@ Install with [Chocolatey](https://chocolatey.org/):
 choco install serverless
 ```
 
-Upgrade:
+### via npm
 
-```bash
-choco upgrade serverless
-```
-
-## Install via npm
-
-If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to do that first.
+_Note: If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to install it first._
 
 Install the serverless CLI:
 
@@ -69,7 +51,31 @@ Install the serverless CLI:
 npm install -g serverless
 ```
 
-Upgrade:
+## Initial setup
+
+Run below command and follow the prompts
+
+```bash
+serverless
+```
+
+_Note: Users in China are presented with setup centered around chinese [Tencent](https://intl.cloud.tencent.com/) provider. If you're based in China and prefer to be presented with steps as outside of China ensure `SERVERLESS_PLATFORM_VENDOR=aws` in your environment_
+
+## Upgrade
+
+### MacOS/Linux
+
+```bash
+serverless upgrade
+```
+
+### Windows
+
+```bash
+choco upgrade serverless
+```
+
+### via npm
 
 ```bash
 npm update -g serverless

@@ -1,0 +1,10 @@
+service: service
+provider:
+  name: aws
+functions:
+  foo:
+    handler: index.handler
+    events:
+      - cloudFront:
+          eventType: origin-request
+          origin: https://example.com

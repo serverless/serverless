@@ -1,8 +1,7 @@
 'use strict';
 
 const path = require('path');
-const BbPromise = require('bluebird');
-const fse = BbPromise.promisifyAll(require('fs-extra'));
+const fse = require('fs-extra');
 const { memoize, merge } = require('lodash');
 const { load: loadYaml, dump: saveYaml } = require('js-yaml');
 const provisionTmpDir = require('@serverless/test/provision-tmp-dir');
@@ -41,11 +40,11 @@ module.exports = {
     }
     return provisionTmpDir().then(fixturePath => {
       return Promise.all([
-        fse.readFileAsync(path.join(baseFixturePath, 'serverless.yml')),
-        fse.copyAsync(baseFixturePath, fixturePath),
+        fse.readFile(path.join(baseFixturePath, 'serverless.yml')),
+        fse.copy(baseFixturePath, fixturePath),
       ])
         .then(([yamlConfig]) =>
-          fse.writeFileAsync(
+          fse.writeFile(
             path.join(fixturePath, 'serverless.yml'),
             saveYaml(merge(loadYaml(yamlConfig), extConfig))
           )
@@ -60,9 +59,9 @@ module.exports = {
         if (options.extraPaths) {
           pathsToRemove.push(...options.extraPaths.map(dirname => path.join(fixturePath, dirname)));
         }
-        return Promise.all(
-          pathsToRemove.map(pathToRemove => fse.removeAsync(pathToRemove))
-        ).then(() => retrievedFixturesPaths.delete(fixturePath));
+        return Promise.all(pathsToRemove.map(pathToRemove => fse.remove(pathToRemove))).then(() =>
+          retrievedFixturesPaths.delete(fixturePath)
+        );
       })
     ),
 };

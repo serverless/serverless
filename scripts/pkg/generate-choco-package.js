@@ -51,8 +51,6 @@ const xml2js = require('xml2js');
 const packageMeta = require('../../package');
 
 const xmlToJson = promisify(xml2js.parseString);
-const ensureDir = promisify(fse.ensureDir);
-const copy = promisify(fse.copy);
 const { readFile, writeFile } = fs.promises;
 const serverlessPath = path.join(__dirname, '../../');
 const chocoPackageTemplatePath = path.join(__dirname, 'choco-package-template');
@@ -70,7 +68,7 @@ const chocoPackageTemplatePath = path.join(__dirname, 'choco-package-template');
 
   await Promise.all([
     // Copy package template to temporary package directory
-    copy(chocoPackageTemplatePath, chocoPackagePath).then(() =>
+    fse.copy(chocoPackageTemplatePath, chocoPackagePath).then(() =>
       Promise.all([
         // Copy LICENSE
         (async () => {
@@ -102,7 +100,8 @@ const chocoPackageTemplatePath = path.join(__dirname, 'choco-package-template');
       ])
     ),
     // Download binary into package tools folder
-    ensureDir(chocoPackageToolsPath)
+    fse
+      .ensureDir(chocoPackageToolsPath)
       .then(() => fetch(binaryUrl))
       .then(response => {
         if (response.status >= 400) {
