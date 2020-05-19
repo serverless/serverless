@@ -179,7 +179,6 @@
     "@serverless/components": "^2.30.10",
     "@serverless/enterprise-plugin": "^3.6.12",
     "archiver": "^3.1.1",
-    "async": "^1.5.2",
     "aws-sdk": "^2.677.0",
     "bluebird": "^3.7.2",
     "boxen": "^3.2.0",
