@@ -18,6 +18,14 @@ Welcome, and thanks in advance for your help!
 - If there isn't, please open an issue so we can talk about it before you invest time into the implementation
 - When creating an issue follow the guide that GitHub shows so we have enough information about your proposal
 
+**Note:** There are situations in which it's fine if you submit PR without a corresponding issue, e.g. following qualify as such:
+
+- Documentation update
+- Obvious bug fix
+- Maintanance improvement
+
+**Note:** Do not submit draft PR's. Submit only finalized work which is ready for merge. If you have any doubts related to implementation work please discuss in corresponding issue.
+
 ## When you want to work on an existing issue
 
 **Note:** Please write a quick comment in the corresponding issue and ask if the feature is still relevant and that you want to jump into the implementation.
