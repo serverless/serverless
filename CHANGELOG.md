@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.71.2](https://github.com/serverless/serverless/compare/v1.71.1...v1.71.2) (2020-05-20)
+
+### Bug Fixes
+
+- **AWS CloudFront:** Fix merge of template configuration ([#7739](https://github.com/serverless/serverless/issues/7739)) ([304a502](https://github.com/serverless/serverless/commit/304a50261dbccfe73b7eb9f6e6210209f63051ad)) ([Antonio Caiazzo](https://github.com/antoniocaiazzo))
+- **AWS Local Invocation:** Ensure to mount as read only in docker ([#7622](https://github.com/serverless/serverless/issues/7622)) ([4252422](https://github.com/serverless/serverless/commit/4252422a94857eb3b446562ba3b24188f0116f19)) ([Alex Soto](https://github.com/apsoto))
+- **AWS Deploy:** Fix changes detection when user package artifact is involved ([#7742](https://github.com/serverless/serverless/issues/7742)) ([05499e6](https://github.com/serverless/serverless/commit/05499e6083d4b36ba9b80b271b2becf4249dbbc6)) ([Tatsuno Yasuhiro](https://github.com/exoego))
+
+### Performance Improvements
+
+- **AWS Deploy:** Do not re-upload unchanged lambda layers ([#7680](https://github.com/serverless/serverless/issues/7680)) ([2b9f63e](https://github.com/serverless/serverless/commit/2b9f63e3329d6e28c0a87d58658b0afde557053e)) ([Tatsuno Yasuhiro](https://github.com/exoego))
+
+### Maintanance Improvements
+
+- Replace `_.{startsWith,endsWith,includes}` with native methods ([#7715](https://github.com/serverless/serverless/issues/7715)) ([8bb5517](https://github.com/serverless/serverless/commit/8bb55174562c379ae14e5d1b90db3ed2b25038bd)) ([Tatsuno Yasuhiro](https://github.com/exoego))
+- Upgrade `globby` to v9 ([#7750](https://github.com/serverless/serverless/issues/7750)) ([b245596](https://github.com/serverless/serverless/commit/b245596dbb76e6cdea081e3c6510976587e7e82f)) ([Nguyễn Việt Đức](https://github.com/vietduc01100001))
+
 ### [1.71.1](https://github.com/serverless/serverless/compare/v1.71.0...v1.71.1) (2020-05-15)
 
 ### Bug Fixes
