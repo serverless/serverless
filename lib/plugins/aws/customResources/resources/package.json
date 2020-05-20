@@ -6,6 +6,11 @@
     "url": "https://github.com/serverless/serverless"
   },
   "dependencies": {
-    "aws-sdk": "^2.495.0"
+    "@aws-sdk/client-api-gateway": "^1.0.0-beta.5",
+    "@aws-sdk/client-cognito-identity-provider": "^1.0.0-beta.5",
+    "@aws-sdk/client-eventbridge": "^1.0.0-beta.5",
+    "@aws-sdk/client-iam": "^1.0.0-beta.5",
+    "@aws-sdk/client-lambda": "^1.0.0-beta.5",
+    "@aws-sdk/client-s3": "^1.0.0-beta.5"
   }
 }
