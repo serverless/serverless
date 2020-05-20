@@ -174,9 +174,11 @@
     "ws": "^7.3.0",
     "xml2js": "^0.4.23"
   },
+  "optionalDependencies": {
+    "@serverless/components": "^2.30.11"
+  },
   "dependencies": {
     "@serverless/cli": "^1.4.0",
-    "@serverless/components": "^2.30.11",
     "@serverless/enterprise-plugin": "^3.6.12",
     "archiver": "^3.1.1",
     "async": "^1.5.2",
