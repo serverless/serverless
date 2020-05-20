@@ -176,11 +176,11 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.4.0",
-    "@serverless/components": "^2.30.10",
+    "@serverless/components": "^2.30.11",
     "@serverless/enterprise-plugin": "^3.6.12",
     "archiver": "^3.1.1",
     "async": "^1.5.2",
-    "aws-sdk": "^2.677.0",
+    "aws-sdk": "^2.680.0",
     "bluebird": "^3.7.2",
     "boxen": "^3.2.0",
     "cachedir": "^2.3.0",
