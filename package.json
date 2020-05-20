@@ -196,7 +196,7 @@
     "filesize": "^3.6.1",
     "fs-extra": "^8.1.0",
     "get-stdin": "^6.0.0",
-    "globby": "^6.1.0",
+    "globby": "^9.2.0",
     "graceful-fs": "^4.2.4",
     "https-proxy-agent": "^5.0.0",
     "inquirer": "^6.5.2",
