@@ -12,19 +12,19 @@ Welcome, and thanks in advance for your help!
 
 ## When you propose a new feature or bug fix
 
-**Note:** Please make sure to write an issue first and get enough feedback before jumping into a Pull Request!
+Please make sure there is an open issue discussing your contribution before jumping into a Pull Request!
 
-- Please make sure there is an open issue discussing your contribution
-- If there isn't, please open an issue so we can talk about it before you invest time into the implementation
-- When creating an issue follow the guide that GitHub shows so we have enough information about your proposal
-
-**Note:** There are situations in which it's fine if you submit PR without a corresponding issue, e.g. following qualify as such:
+There are just few situations (listed below) in which it is fine to submit PR without a corresponding issue:
 
 - Documentation update
 - Obvious bug fix
 - Maintanance improvement
 
-**Note:** Do not submit draft PR's. Submit only finalized work which is ready for merge. If you have any doubts related to implementation work please discuss in corresponding issue.
+In all other cases please check if there's an open an issue discussing given proposal, if there is not, create an issue respecting all its template remarks.
+
+Do not submit draft PR's. Submit only finalized work which is ready for merge. If you have any doubts related to implementation work please discuss in corresponding issue.
+
+Once PR was reviewed and some changes were suggested, please ensure to re-request review after all new changes were pushed. It's the best, noiseless way to inform maintainers that your work is ready to be checked again
 
 ## When you want to work on an existing issue
 
