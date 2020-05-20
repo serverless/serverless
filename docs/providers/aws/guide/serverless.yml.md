@@ -26,7 +26,7 @@ service:
 frameworkVersion: '>=1.0.0 <2.0.0'
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
-  - code1 # Deprecation code to disable
+  - DEP_CODE_1 # Deprecation code to disable
   - '*' # Disable all deprecation messages
 
 provider:
