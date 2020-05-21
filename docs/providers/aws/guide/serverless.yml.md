@@ -25,6 +25,10 @@ service:
 
 frameworkVersion: '>=1.0.0 <2.0.0'
 
+disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
+  - DEP_CODE_1 # Deprecation code to disable
+  - '*' # Disable all deprecation messages
+
 provider:
   name: aws
   runtime: nodejs12.x
