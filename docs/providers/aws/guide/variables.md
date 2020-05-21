@@ -441,16 +441,13 @@ functions:
 
 You can reference JavaScript files to add dynamic data into your variables.
 
-References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`. The first argument to your export will be a reference to the Serverless object, containing your configuration.
+References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`. If you export a function, the first argument will be a reference to the Serverless object, containing your configuration.
 
-Here are other examples:
+Here are some examples:
 
 ```js
 // scheduleConfig.js
-module.exports.rate = () => {
-  // Code that generates dynamic data
-  return 'rate (10 minutes)';
-};
+module.exports.rate = 'rate(10 minutes)';
 ```
 
 ```js
