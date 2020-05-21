@@ -204,7 +204,7 @@
     "is-wsl": "^2.2.0",
     "js-yaml": "^3.13.1",
     "json-cycle": "^1.3.0",
-    "json-refs": "^2.1.7",
+    "json-refs": "^3.0.15",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.15",
     "memoizee": "^0.4.14",
