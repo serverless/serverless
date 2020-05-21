@@ -1567,7 +1567,7 @@ provider:
 
 In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
 
-To convert the request or response payload, you can set the [contentHandling](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html) property.
+To convert the request or response payload, you can set the [contentHandling](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html) property (if set, the response contentHandling property will be passed to integration responses with 2XXs method response statuses).
 
 ```yml
 functions:
