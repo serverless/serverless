@@ -1583,6 +1583,22 @@ functions:
             contentHandling: CONVERT_TO_TEXT
 ```
 
+If needed, you can set the contentHandling property for integration responses with specific status codes.
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          response:
+            statusCodes:
+              200:
+                contentHandling: CONVERT_TO_TEXT
+```
+
 ## AWS X-Ray Tracing
 
 API Gateway supports a form of out of the box distributed tracing via [AWS X-Ray](https://aws.amazon.com/xray/) though enabling [active tracing](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-xray.html). To enable this feature for your serverless application's API Gateway add the following to your `serverless.yml`
