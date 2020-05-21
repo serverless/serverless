@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: azure-python # NOTE: update this with your service name
+service: azure-dotnet # NOTE: update this with your service name
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -20,8 +20,8 @@ service: azure-python # NOTE: update this with your service name
 provider:
   name: azure
   region: West Europe
-  runtime: python3.6 # python3.7 or python3.8 also available
-  # os: linux  # linux is the only operating system available for python
+  runtime: dotnet3.1 # dotnet3.1 or dotnet2.2 available
+  # os: windows # windows is default, linux is available
   # prefix: "sample"  # prefix of generated resource name
   # subscriptionId: A356AC8C-E310-44F4-BF85-C7F29044AF99
   # stage: dev
@@ -61,27 +61,6 @@ provider:
 
 plugins: # look for additional plugins in the community plugins repo: https://github.com/serverless/plugins
   - serverless-azure-functions
-
-# you can add packaging information here
-package:
-  # include:
-  #   - include-me.py
-  #   - include-me-dir/**
-  exclude:
-    - env/**
-    - .env/**
-    - local.settings.json
-    - .vscode/**
-    - __pycache__/**
-    - node_modules/**
-    - .python_packages/**
-    - .funcignore
-    - package.json
-    - package-lock.json
-    - .gitignore
-    - .git/**
-  # - exclude-me.py
-  # - exclude-me-dir/**
 
 functions:
   hello:
