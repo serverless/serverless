@@ -8,16 +8,19 @@ layout: Doc
 
 # Azure Functions - Quickstart
 
-## Pre-requisites
+We try to keep this page up to date, but the **most** up to date documentation can be found in our [README](https://github.com/serverless/serverless-azure-functions#azure-functions-serverless-plugin)
 
-1. Node.js v6.5.0+ _(this is the runtime version supported by Azure Functions)_
+### Pre-requisites
+
+1. Node.js 8.x or above
 2. Serverless CLI `v1.9.0+`. You can run `npm i -g serverless` if you don't already have it.
 3. An Azure account. If you don't already have one, you can sign up for a [free trial](https://azure.microsoft.com/en-us/free/) that includes \$200 of free credit.
 
-## Create a new Azure Function App
+### Create a new Azure Function App
 
 ```bash
 # Create Azure Function App from template
+# Templates include: azure-nodejs, azure-python, azure-dotnet
 $ sls create -t azure-nodejs -p <appName>
 # Move into project directory
 $ cd <appName>
@@ -25,34 +28,65 @@ $ cd <appName>
 $ npm install
 ```
 
-## Running Function App Locally (`offline` plugin)
+The `serverless.yml` file contains the configuration for your service. For more details on its configuration, see [the docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/CONFIG.md).
 
-In order to run a Azure Function App locally, the `azure-functions-core-tools` package needs to be installed from NPM. Since it is only used for local development, we did not include it in the `devDependencies` of `package.json`. To install globally, run:
+### Running Function App Locally (`offline` plugin)
 
-```bash
-$ npm i azure-functions-core-tools -g
-```
-
-Then, at the root of your project directory, run:
+At the root of your project directory, run:
 
 ```bash
-# Builds necessary function bindings files
+# Builds necessary function bindings files and starts the function app
 $ sls offline
-# Starts the function app
-$ npm start
 ```
 
 The `offline` process will generate a directory for each of your functions, which will contain a file titled `function.json`. This will contain a relative reference to your handler file & exported function from that file as long as they are referenced correctly in `serverless.yml`.
 
-The `npm start` script just runs `func host start`, but we included the `npm` script for ease of use.
+After the necessary files are generated, it will start the function app from within the same shell. For HTTP functions, the local URLs will be displayed in the console when the function app is initialized.
 
-To clean up files generated from the build, you can simply run:
+To build the files _without_ spawning the process to start the function app, run:
 
 ```bash
-sls offline cleanup
+$ sls offline build
 ```
 
-## Deploy Your Function App
+To simply start the function app _without_ building the files, run:
+
+```bash
+$ sls offline start
+```
+
+To clean up files generated from the build, run:
+
+```bash
+$ sls offline cleanup
+```
+
+To pass additional arguments to the spawned `func host start` process, add them as the option `spawnargs` (shortcut `a`). Example:
+
+```bash
+$ sls offline -a "--cors *"
+```
+
+This works for `sls offline` or `sls offline start`
+
+### Dry-Run Deployment
+
+Before you deploy your new function app, you may want to double check the resources that will be created, their generated names and other basic configuration info. You can run:
+
+```bash
+# -d is short for --dryrun
+$ sls deploy --dryrun
+```
+
+This will print out a basic summary of what your deployed service will look like.
+
+For a more detailed look into the generated ARM template for your resource group, add the `--arm` (or `-a`) flag:
+
+```bash
+$ sls deploy --dryrun --arm
+```
+
+### Deploy Your Function App
 
 Deploy your new service to Azure! The first time you do this, you will be asked to authenticate with your Azure account, so the `serverless` CLI can manage Functions on your behalf. Simply follow the provided instructions, and the deployment will continue as soon as the authentication process is completed.
 
@@ -62,7 +96,27 @@ $ sls deploy
 
 For more advanced deployment scenarios, see our [deployment docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/DEPLOY.md)
 
-## Test Your Function App
+### Get a Summary of Your Deployed Function App
+
+To see a basic summary of your application (same format as the dry-run summary above), run:
+
+```bash
+$ sls info
+```
+
+To look at the ARM template for the last successful deployment, add the `--arm` (or `-a`) flag:
+
+```bash
+$ sls info --arm
+```
+
+You can also get information services with different stages, regions or resource groups by passing any of those flags. Example:
+
+```bash
+$ sls info --stage prod --region westus2
+```
+
+### Test Your Function App
 
 Invoke your HTTP functions without ever leaving the CLI using:
 
@@ -83,6 +137,24 @@ After deploying template function app, run
 
 ```bash
 $ sls invoke -f hello -d '{"name": "Azure"}'
+```
+
+If you have a JSON object in a file, you could run
+
+```bash
+$ sls invoke -f hello -p data.json
+```
+
+If you have your service running locally (in another terminal), you can run:
+
+```bash
+$ sls invoke local -f hello -p data.json
+```
+
+If you configured your function app to [run with APIM](./docs/examples/apim.md), you can run:
+
+```bash
+$ sls invoke apim -f hello -p data.json
 ```
 
 ### Roll Back Your Function App
@@ -113,17 +185,25 @@ $ sls rollback -t 1561479506
 
 This will update the app code and infrastructure to the selected previous deployment.
 
-For more details, check out our [rollback docs](https://github.com/serverless/serverless-azure-functions/blob/dev/docs/DEPLOY.md).
+For more details, check out our [rollback docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/ROLLBACK.md).
 
-## Deleting Your Function App
+### Deleting Your Function App
 
-If at any point you no longer need your service, you can run the following command to delete the resource group containing your Azure Function App and other deployed resources using:
+If at any point you no longer need your service, you can run the following command to delete the resource group containing your Azure Function App and other depoloyed resources using:
 
 ```bash
 $ sls remove
 ```
 
-## Creating or removing Azure Functions
+You will then be prompted to enter the full name of the resource group as an extra safety before deleting the entire resource group.
+
+You can bypass this check by running:
+
+```bash
+$ sls remove --force
+```
+
+### Creating or removing Azure Functions
 
 To create a new Azure Function within your function app, run the following command from within your app's directory:
 
@@ -145,7 +225,7 @@ This will remove the `{functionName}.js` handler and remove the function from `s
 
 \*Note: Add & remove currently only support HTTP triggered functions. For other triggers, you will need to update `serverless.yml` manually
 
-## Advanced Authentication
+### Advanced Authentication
 
 The getting started walkthrough illustrates the interactive login experience, which is recommended when getting started. However, for more robust use, a [service principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals) is recommended for authentication.
 
@@ -156,32 +236,13 @@ The getting started walkthrough illustrates the interactive login experience, wh
    ```bash
    # Login to Azure
    $ az login
-   ```
-   This will yield something like:
-   ```json
-   [
-     {
-       "cloudName": "<cloudName>",
-       "id": "<subscription-id>",
-       "isDefault": true,
-       "name": "<name>",
-       "state": "<state>",
-       "tenantId": "<tenantId>",
-       "user": {
-         "name": "<name>",
-         "type": "<user>"
-       }
-     }
-   ]
-   ```
-3. Set Azure Subscription for which to create Service Principal
-   ```bash
+   # Set Azure Subscription for which to create Service Principal
    $ az account set -s <subscription-id>
    ```
-4. Generate Service Principal for Azure Subscription
+3. Generate Service Principal for Azure Subscription
    ```bash
    # Create SP with unique name
-   $ az ad sp create-for-rbac --name <name>
+   $ az ad sp create-for-rbac --name <my-unique-name>
    ```
    This will yield something like:
    ```json
@@ -193,12 +254,12 @@ The getting started walkthrough illustrates the interactive login experience, wh
      "tenant": "<tenantId>"
    }
    ```
-5. Set environment variables
+4. Set environment variables **with values from above service principal**
 
    **Bash**
 
    ```bash
-   $ export AZURE_SUBSCRIPTION_ID='<subscriptionId>'
+   $ export AZURE_SUBSCRIPTION_ID='<subscriptionId (see above, step 2)>'
    $ export AZURE_TENANT_ID='<tenantId>'
    $ export AZURE_CLIENT_ID='<servicePrincipalId>'
    $ export AZURE_CLIENT_SECRET='<password>'
@@ -207,8 +268,23 @@ The getting started walkthrough illustrates the interactive login experience, wh
    **Powershell**
 
    ```powershell
-   $env:AZURE_SUBSCRIPTION_ID='<subscriptionId>'
+   $env:AZURE_SUBSCRIPTION_ID='<subscriptionId (see above, step 2)>'
    $env:AZURE_TENANT_ID='<tenantId>'
-   $env:AZURE_CLIENT_ID='<servicePrincipalName>'
+   $env:AZURE_CLIENT_ID='<servicePrincipalId>'
    $env:AZURE_CLIENT_SECRET='<password>'
    ```
+
+### Example Usage
+
+- **[Visit our sample repos](https://github.com/serverless/serverless-azure-functions/blob/master/docs/examples/samples.md) for full projects with different use cases**
+- Check out our [integration test configurations](https://github.com/serverless/serverless-azure-functions/tree/master/integrationTests/configurations). We use these to validate that we can package, deploy, invoke and remove function apps of all the major runtime configurations that we support, so these are a pretty good example of things that should work
+- [Configuring API Management](https://github.com/serverless/serverless-azure-functions/blob/master/docs/examples/apim.md) that sits in front of function app
+
+### Logging Verbosity
+
+You can set the logging verbosity with the `--verbose` flag. If the `--verbose` flag is set with no value, logging will be as verbose as possible (debug mode). You can also provide a value with the flag to set the verbosity to a specific level:
+
+- `--verbose error` - Only error messages printed
+- `--verbose warn` - Only error and warning messages printed
+- `--verbose info` - Only error, warning and info messages printed
+- `--verbose debug` - All messages printed

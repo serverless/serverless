@@ -22,10 +22,16 @@ serverless invoke --function functionName
 
 ## Options
 
+- `--resourceGroup` or `-g` - Specify the resource group name
+- `--stage` or `-s` - Specify stage name
+- `--region` or `-r` - Specify region name
+- `--subscriptionId` or `-i` - Specify subscription ID
 - `--config` or `-c` Name of your configuration file, if other than `serverless.yml|.yaml|.js|.json`.
 - `--function` or `-f` The name of the function in your service that you want to invoke. **Required**.
 - `--path` or `-p` The path to a json file with input data to be passed to the invoked function. This path is relative to the root directory of the service.
 - `--data` or `-d` Stringified JSON data to be used as input to the function
+
+You can also run `invoke local` to invoke a locally running function app or `invoke apim` to invoke a function via the configured APIM endpoint.
 
 ## Provided lifecycle events
 
@@ -34,7 +40,18 @@ serverless invoke --function functionName
 ## Examples
 
 ```bash
+# Invoke function directly
 serverless invoke --function functionName
+```
+
+```bash
+# Invoke function running locally
+$ serverless invoke local --function functionName
+```
+
+```bash
+# Invoke function via configured APIM endpoint
+$ serverless invoke apim --function functionName
 ```
 
 This example will invoke your deployed function on the configured platform endpoint. This will output the result of the invocation in your terminal.

@@ -41,12 +41,11 @@ functions:
     handler: handler.hello
     events:
       - http: true
-        x-azure-settings:
-          name: req #<string>, default - "req", specifies which name is available on `context.bindings`
-          methods: #<array> [GET, POST, PUT, DELETE], default - all
-            - get
-          route: example/hello #<string>, default - <function name>
-          authLevel: anonymous #<enum - anonymous|function (default)|admin>
+        name: req #<string>, default - "req", specifies which name is available on `context.bindings`
+        methods: #<array> [GET, POST, PUT, DELETE], default - all
+          - get
+        route: example/hello #<string>, default - <function name>
+        authLevel: anonymous #<enum - anonymous|function (default)|admin>
 ```
 
 URL paths for the serverless functions are prefixed with "api" by default, e.g.
