@@ -48,7 +48,7 @@ The `--path` or shorthand `-p` is the location to be created with the template s
 
 ```
 # Windows PowerShell
-./build.cmd
+.\build.cmd
 ```
 
 ## 3. Deploy
