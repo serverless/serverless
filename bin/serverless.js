@@ -2,6 +2,10 @@
 
 'use strict';
 
+// Instantiate log-node writer listning log package events
+require("log-node")({
+  defaultNamespace: 'severless',
+});
 const isStandaloneExecutable = require('../lib/utils/isStandaloneExecutable');
 
 if (isStandaloneExecutable) {
