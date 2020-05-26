@@ -6,4 +6,9 @@
 
 'use strict';
 
+require('../lib/utils/logDeprecation')(
+  'BIN_SERVERLESS',
+  'bin/serverless is deprecated, use bin/serverless.js instead'
+);
+
 require('./serverless.js');
