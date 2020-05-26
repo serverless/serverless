@@ -112,9 +112,9 @@ provider:
         sessionCookieName: '🍪'
         sessionTimeout: 7000
   httpApi:
-    id: # If we want to attach to externally created HTTP API its id should be provided here
-    name: # Use custom name for the API Gateway API, default is ${self:provider.stage}-${self:service}
-    payload: # Specify payload format version for Lambda integration (1.0 or 2.0), default is 1.0
+    id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
+    name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${self:provider.stage}-${self:service}
+    payload: '1.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '1.0'
     cors: true # Implies default behavior, can be fine tuned with specficic options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
