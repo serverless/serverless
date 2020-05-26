@@ -24,29 +24,7 @@ The Serverless Framework translates all syntax in `serverless.yml` to an [Azure 
 - The code of your Functions is then packaged into a directory and zipped.
 - Resources are deployed in the following order: _ARM template, Functions_
 
-### Deployment Approach #1 - Upload Package to Function App
-
-> Note: Recommended for Function Apps running on Windows
-
-Current default behavior. To set explicitly in `serverless.yml`, add this section:
-
-```yaml
-deploy:
-  runFromBlobUrl: false
-```
-
-### Deployment Approach #2 - Run from Package in Blob Storage
-
-> Note: Not currently recommended for Function Apps running on Windows
-
-To set in `serverless.yml`, add this section:
-
-```yaml
-deploy:
-  runFromBlobUrl: true
-```
-
-Visit the [docs](https://docs.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package#enabling-functions-to-run-from-a-package) for more detail on the two approaches to deployment.
+For more detail on deployment, visit our [docs](https://github.com/serverless/serverless-azure-functions/blob/master/docs/DEPLOY.md)
 
 ### Rollback
 
