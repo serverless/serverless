@@ -15,7 +15,7 @@ const {
   fetch,
 } = require('../../utils/integration');
 
-describe('HTTP API Integration Test', function () {
+describe('HTTP API Integration Test', function() {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
   let serviceName;
   let endpoint;
@@ -210,7 +210,7 @@ describe('HTTP API Integration Test', function () {
       return resolveEndpoint();
     });
 
-    after(async function () {
+    after(async function() {
       // Added temporarily to inspect random fails
       // TODO: Remove once properly diagnosed
       if (this.test.parent.tests.some(test => test.state === 'failed')) return;

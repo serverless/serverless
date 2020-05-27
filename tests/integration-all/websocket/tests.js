@@ -18,7 +18,7 @@ const {
   deleteStage,
 } = require('../../utils/websocket');
 
-describe('AWS - API Gateway Websocket Integration Test', function () {
+describe('AWS - API Gateway Websocket Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let stackName;
@@ -99,7 +99,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
   });
 
   describe('Minimal Setup', () => {
-    it('should expose an accessible websocket endpoint', async function () {
+    it('should expose an accessible websocket endpoint', async function() {
       if (!twoWayPassed) this.skip();
       const webSocketServerUrl = await getWebSocketServerUrl();
 
@@ -141,7 +141,7 @@ describe('AWS - API Gateway Websocket Integration Test', function () {
     // NOTE: this test should  be at the very end because we're using an external REST API here
     describe('when using an existing websocket API', () => {
       let websocketApiId;
-      before(async function () {
+      before(async function() {
         if (!twoWayPassed) this.skip();
         // create an external websocket API
         const externalWebsocketApiName = `${stage}-${serviceName}-ext-api`;
