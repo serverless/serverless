@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
