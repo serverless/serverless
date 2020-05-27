@@ -16,7 +16,7 @@ const {
 } = require('../../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
-describe('AWS - API Gateway Integration Test', function() {
+describe('AWS - API Gateway Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let endpoint;
@@ -30,8 +30,9 @@ describe('AWS - API Gateway Integration Test', function() {
 
   const resolveEndpoint = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-    const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' })
-      .OutputValue;
+    const endpointOutput = result.Stacks[0].Outputs.find(
+      output => output.OutputKey === 'ServiceEndpoint'
+    ).OutputValue;
     endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
   };
 
@@ -256,7 +257,7 @@ describe('AWS - API Gateway Integration Test', function() {
           restApiRootResourceId = resources[0].id;
           console.info(
             'Created external rest API ' +
-              `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
+            `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
           );
         });
 

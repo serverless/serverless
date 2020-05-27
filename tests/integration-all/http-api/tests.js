@@ -15,7 +15,7 @@ const {
   fetch,
 } = require('../../utils/integration');
 
-describe('HTTP API Integration Test', function() {
+describe('HTTP API Integration Test', function () {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
   let serviceName;
   let endpoint;
@@ -25,8 +25,9 @@ describe('HTTP API Integration Test', function() {
 
   const resolveEndpoint = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-    const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'HttpApiUrl' })
-      .OutputValue;
+    const endpointOutput = result.Stacks[0].Outputs.find(
+      output => output.OutputKey === 'HttpApiUrl'
+    ).OutputValue;
     endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com/)[0];
   };
 
@@ -209,7 +210,7 @@ describe('HTTP API Integration Test', function() {
       return resolveEndpoint();
     });
 
-    after(async function() {
+    after(async function () {
       // Added temporarily to inspect random fails
       // TODO: Remove once properly diagnosed
       if (this.test.parent.tests.some(test => test.state === 'failed')) return;
