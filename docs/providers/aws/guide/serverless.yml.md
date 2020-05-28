@@ -66,6 +66,9 @@ provider:
   endpointType: regional # Optional endpoint configuration for API Gateway REST API. Default is Edge.
   apiKeys: # List of API keys to be used by your service API Gateway REST API
     - myFirstKey
+      value: myFirstKeyValue
+      description: myFirstKeyDescription
+      customerId: myFirstKeyCustomerId
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
   apiGateway: # Optional API Gateway global config

@@ -606,6 +606,7 @@ provider:
       value: myThirdKeyValue
     - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
       description: Api key description # Optional
+      customerId: A string that will be set as the customerID for the key # Optional
   usagePlan:
     quota:
       limit: 5000
