@@ -1,8 +1,8 @@
 <!--
-title: Serverless Framework Commands - AWS Lambda - Deploy List
+title: Serverless Framework Commands - Azure Functions - Deploy List
 menuText: deploy list
 menuOrder: 3
-description: List your previous CloudFormation deployments
+description: List your previous ARM deployments
 layout: Doc
 -->
 

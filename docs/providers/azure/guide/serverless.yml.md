@@ -158,8 +158,7 @@ functions:
           displayName: GetProducts
     events:
       - http: true
-        x-azure-settings:
-          methods:
+        methods:
             - GET
           authLevel: anonymous # can also be `function` or `admin`
   # The following are a few examples of other events you can configure:
@@ -167,29 +166,25 @@ functions:
     handler: src/handlers/storageBlob.printMessage
     events:
       - blob:
-        x-azure-settings:
-          name: blob # Specifies which name is available on `context`
+        name: blob # Specifies which name is available on `context`
           path: blob-sample/{blobName}
           connection: AzureWebJobsStorage # App Setting/environment variable which contains Storage Account Connection String
   storageQueue:
     handler: src/handlers/storageQueue.printMessage
     events:
       - queue: queue-sample
-        x-azure-settings:
-          name: message # Specifies which naem is available on `context`
+        name: message # Specifies which naem is available on `context`
           connection: AzureWebJobsStorage
   timer:
     handler: src/handlers/timer.printMessage
     events:
       - timer:
-        x-azure-settings:
-          schedule: '*/10 * * * * *'
+        schedule: '*/10 * * * * *'
   eventhub:
     handler: src/handlers/eventHub.printMessage
     events:
       - eventHub:
-        x-azure-settings:
-          name: eventHubMessages # Specifies which name it's available on `context`
+        name: eventHubMessages # Specifies which name it's available on `context`
           eventHubName: sample-hub # Specifies the Name of the Event Hub
           consumerGroup: $Default # Specifies the consumerGroup to listen with
           connection: EVENT_HUBS_CONNECTION # App Setting/environment variable which contains Event Hubs Namespace Connection String
@@ -197,16 +192,14 @@ functions:
     handler: src/handlers/serviceBusQueue.printMessage
     events:
       - serviceBus:
-        x-azure-settings:
-          name: message # Specifies which name is available on `context`
+        name: message # Specifies which name is available on `context`
           queueName: sample-queue # Name of the service bus queue to consume
           connection: SERVICE_BUS_CONNECTION # App Setting/environment variable variable which contains Service Bus Namespace Connection String
   serviceBusTopic:
     handler: src/handlers/serviceBusTopic.printMessage
     events:
       - serviceBus:
-        x-azure-settings:
-          name: message # Specifies which name it's available on `context`
+        name: message # Specifies which name it's available on `context`
           topicName: sample-topic # Name of the service bus topic to consume
           subscriptionName: sample-subscription # Name of the topic subscription to retrieve from
           connection: SERVICE_BUS_CONNECTION # App Setting/environment variable variable which contains Service Bus Namespace Connection String

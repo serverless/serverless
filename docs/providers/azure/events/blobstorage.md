@@ -36,10 +36,9 @@ functions:
     handler: handler.hello
     events:
       - blob:
-        x-azure-settings:
-          name: item #<string>, default - "myBlob", specifies which name is available on `context.bindings`
-          path: hello/{name}
-          connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", App Setting/environment variable which contains Storage Account Connection String
+        name: item #<string>, default - "myBlob", specifies which name is available on `context.bindings`
+        path: hello/{name}
+        connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", App Setting/environment variable which contains Storage Account Connection String
 ```
 
 ```javascript

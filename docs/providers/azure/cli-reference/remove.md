@@ -21,6 +21,14 @@ current working directory, from the provider.
 serverless remove
 ```
 
+## Options
+
+- `--resourceGroup` or `-g` - Specify the resource group name
+- `--stage` or `-s` - Specify stage name
+- `--region` or `-r` - Specify region name
+- `--subscriptionId` or `-i` - Specify subscription ID
+- `--force` - Bypass delete check
+
 ## Provided lifecycle events
 
 - `remove:remove`
