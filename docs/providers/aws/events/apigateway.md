@@ -53,6 +53,7 @@ layout: Doc
   - [Resource Policy](#resource-policy)
   - [Compression](#compression)
   - [Binary Media Types](#binary-media-types)
+  - [Detailed CloudWatch Metrics](#detailed-cloudwatch-metrics)
   - [AWS X-Ray Tracing](#aws-x-ray-tracing)
   - [Tags / Stack Tags](#tags--stack-tags)
   - [Logs](#logs)
@@ -1582,6 +1583,16 @@ functions:
             contentHandling: CONVERT_TO_TEXT
           response:
             contentHandling: CONVERT_TO_TEXT
+```
+
+## Detailed CloudWatch Metrics
+
+Use the following configuration to enable detailed CloudWatch Metrics:
+
+```yml
+provider:
+  apiGateway:
+    metrics: true
 ```
 
 ## AWS X-Ray Tracing

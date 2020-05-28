@@ -83,6 +83,7 @@ provider:
     description: Some Description # Optional description for the API Gateway stage deployment
     binaryMediaTypes: # Optional binary media types the API might return
       - '*/*'
+    metrics:  false # Optional detailed Cloud Watch Metrics
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
     authorizers:
