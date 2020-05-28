@@ -43,7 +43,7 @@ choco install serverless
 
 ### via npm
 
-_Note: If you don’t already have [Node 6](https://nodejs.org/en/download/package-manager/) or higher on your machine, you’ll need to install it first._
+_Note: If you don’t already have [Node](https://nodejs.org/en/download/package-manager/) on your machine, you’ll need to install it first. We suggest using the latest LTS version of NodeJS._
 
 Install the serverless CLI:
 
