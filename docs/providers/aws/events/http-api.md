@@ -130,7 +130,7 @@ provider:
           - ${client2Id}
 ```
 
-#### 2. Configure endpoints which are expected to have restricted access
+#### 2. Configure endpoints which are expected to have restricted access:
 
 ```yaml
 functions:
