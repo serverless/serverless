@@ -193,7 +193,64 @@ provider:
     id: xxxx # id of externally created HTTP API to which endpoints should be attached.
 ```
 
-In such case no API and stage resources are created, therefore extending HTTP API with CORS or access logs settings is not supported.
+In such case no API and stage resources are created, therefore extending HTTP API with CORS, access logs settings or authorizers is not supported.
+
+## Shared Authorizer
+
+For external HTTP API you can use shared authorizer in similar manner to RestApi. Example configuration could look like:
+
+```yml
+httpApi:
+    id: xxxx # Required
+
+functions:
+  createUser:
+     ...
+    events:
+      - httpApi:
+          path: /users
+          ...
+          authorizer:
+            # Provide authorizerId
+            id:
+              Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
+            scopes: # Optional - List of Oauth2 scopes
+              - myapp/myscope
+
+  deleteUser:
+     ...
+    events:
+      - httpApi:
+          path: /users/{userId}
+          ...
+          authorizer:
+            # Provide authorizerId
+            id:
+              Ref: ApiGatewayAuthorizer  # or hard-code Authorizer ID
+            scopes: # Optional - List of Oauth2 scopes
+              - myapp/anotherscope
+
+resources:
+  Resources:
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGatewayV2::Authorizer
+      Properties:
+        ApiId:
+          Ref: YourApiGatewayName
+        AuthorizerType: JWT
+        IdentitySource:
+          - $request.header.Authorization
+        JwtConfiguration:
+          Audience:
+            - Ref: YourCognitoUserPoolClientName
+          Issuer:
+            Fn::Join:
+              - ""
+              - - "https://cognito-idp."
+                - "${opt:region, self:provider.region}"
+                - ".amazonaws.com/"
+                - Ref: YourCognitoUserPoolName
+```
 
 ### Event / payload format
 
