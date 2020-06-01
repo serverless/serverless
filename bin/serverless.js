@@ -61,7 +61,7 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
 }
 
 let resolveServerlessExecutionSpan;
-require('../lib/utils/tracking').sendPending({
+require('../lib/utils/analytics').sendPending({
   serverlessExecutionSpan: new BbPromise(resolve => (resolveServerlessExecutionSpan = resolve)),
 });
 
