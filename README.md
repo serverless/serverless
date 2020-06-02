@@ -1,3 +1,11 @@
+👋🏾  **Please consider donating to these organizations to help fund an education in *technology*, *entrepreneurship* and *leadership* for POC. #BLM**
+
+- [Hidden Genius Project](https://www.hiddengeniusproject.org/donate/)
+- [Black Girls Who Code](https://www.blackgirlscode.com/)
+- [Code2040](https://code2040-2020.funraise.org/)
+
+---
+
 [![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/assets.github.serverless/readme-serverless-framework.gif)](http://serverless.com)
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
