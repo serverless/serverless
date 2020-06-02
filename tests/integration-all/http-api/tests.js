@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
@@ -25,8 +24,9 @@ describe('HTTP API Integration Test', function() {
 
   const resolveEndpoint = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-    const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'HttpApiUrl' })
-      .OutputValue;
+    const endpointOutput = result.Stacks[0].Outputs.find(
+      output => output.OutputKey === 'HttpApiUrl'
+    ).OutputValue;
     endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com/)[0];
   };
 

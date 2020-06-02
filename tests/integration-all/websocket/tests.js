@@ -49,10 +49,9 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
   async function getWebSocketServerUrl() {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-    const webSocketServerUrl = _.find(result.Stacks[0].Outputs, {
-      OutputKey: 'ServiceEndpointWebsocket',
-    }).OutputValue;
-
+    const webSocketServerUrl = result.Stacks[0].Outputs.find(
+      output => output.OutputKey === 'ServiceEndpointWebsocket'
+    ).OutputValue;
     return webSocketServerUrl;
   }
 
