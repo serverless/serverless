@@ -59,6 +59,28 @@ functions:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
+          maximumRetryAttempts: 2
+```
+
+## Setting the MaximumRetryAttempts
+
+This configuration sets up the maximum number of times to retry when the function returns an error.
+
+**Note:** Serverless only sets this property if you explicitly add it to the sqs configuration (see example below).
+
+[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumretryattempts)
+
+**Note:** The `sqs` event will hook up your existing sqs to a Lambda function. Serverless won't create a new sqs for you.
+
+```yml
+functions:
+  compute:
+    handler: handler.compute
+    events:
+      - sqs:
+          arn: arn:aws:sqs:region:XXXXXX:stream/foo
+          batchSize: 10
+          maximumRetryAttempts: 10
 ```
 
 ## IAM Permissions

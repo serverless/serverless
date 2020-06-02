@@ -20,16 +20,4 @@ Lets you watch the logs of a specific function.
 serverless logs -f hello
 ```
 
-## Options
-
-- `--function` or `-f` The function you want to fetch the logs for. **Required**
-
-## Examples
-
-### Azure Functions
-
-```bash
-serverless logs -f hello
-```
-
-This will stream all future logs for a given Function.
+**NOT CURRENTLY SUPPORTED**

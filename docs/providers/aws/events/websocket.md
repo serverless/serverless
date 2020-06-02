@@ -211,7 +211,7 @@ module.exports.defaultHandler = async (event, context) => {
 };
 ```
 
-## Respond to a a ws-client message
+## Respond to a ws-client message
 
 To respond to a websocket message from your handler function, [Route Responses](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-route-response.html) can be used. Set the `routeResponseSelectionExpression` option to enable this. This option allows you to respond to a websocket message using the `body` parameter.
 

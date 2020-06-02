@@ -14,10 +14,6 @@ layout: Doc
 
 ## Other Bindings
 
-The Azure Functions plugin also supports additional input and output bindings.
-These work by setting the direction explicitly. The properties go under the
-`x-azure-settings` property and match the same properties expected in the
-`function.json`, with the exception of "type" which is the first property's key.
+The Azure Functions plugin also supports additional input and output bindings. These work by setting the direction explicitly. The properties go under the name of the trigger and match the same properties expected in the `function.json`, with the exception of "type" which is the first property's key.
 
-You can learn about all the bindings Azure has to offer here on the
-[official documentation](https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings).
+You can learn about all the bindings Azure has to offer here on the [official documentation](https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings).

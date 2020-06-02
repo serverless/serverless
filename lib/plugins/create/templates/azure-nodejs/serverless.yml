@@ -21,6 +21,7 @@ provider:
   name: azure
   region: West US 2
   runtime: nodejs12.x
+  # os: windows  # windows is default, linux is available
   # prefix: "sample"  # prefix of generated resource name
   # subscriptionId: A356AC8C-E310-44F4-BF85-C7F29044AF99
   # stage: dev
@@ -77,19 +78,17 @@ functions:
     handler: src/handlers/hello.sayHello
     events:
       - http: true
-        x-azure-settings:
-          methods:
-            - GET
-          authLevel: anonymous # can also be `function` or `admin`
+        methods:
+          - GET
+        authLevel: anonymous # can also be `function` or `admin`
 
   goodbye:
     handler: src/handlers/goodbye.sayGoodbye
     events:
       - http: true
-        x-azure-settings:
-          methods:
-            - GET
-          authLevel: anonymous
+        methods:
+          - GET
+        authLevel: anonymous
   # The following are a few examples of other events you can configure:
   # storageBlob:
   #   handler: src/handlers/storageBlob.printMessage

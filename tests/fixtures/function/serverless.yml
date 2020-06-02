@@ -1,0 +1,9 @@
+service: service
+provider:
+  name: aws
+
+functions:
+  foo:
+    handler: index.handler
+  other:
+    handler: index.handler

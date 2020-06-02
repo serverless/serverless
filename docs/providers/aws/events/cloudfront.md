@@ -147,6 +147,7 @@ functions:
     events:
       - cloudFront:
           eventType: viewer-response
+          includeBody: true
           origin: s3://bucketname.s3.amazonaws.com/files
       - cloudFront:
           eventType: viewer-response

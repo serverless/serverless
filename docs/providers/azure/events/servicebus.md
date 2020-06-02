@@ -33,11 +33,10 @@ functions:
     handler: handler.hello
     events:
       - serviceBus:
-        x-azure-settings:
-          name: item #<string>, default - "mySbMsg", specifies which name is available on `context.bindings`
-          queueName: hello #<string>, specifies the queue name to listen on
-          accessRights: manage #<enum manage|listen>, specifies the permission to use when listening on the queue (manage will create queue if not exists)
-          connection: ServiceBusConnection #<string>, environment variable which contains Service Bus Namespace Connection String
+        name: item #<string>, default - "mySbMsg", specifies which name is available on `context.bindings`
+        queueName: hello #<string>, specifies the queue name to listen on
+        accessRights: manage #<enum manage|listen>, specifies the permission to use when listening on the queue (manage will create queue if not exists)
+        connection: ServiceBusConnection #<string>, environment variable which contains Service Bus Namespace Connection String
 ```
 
 ```javascript
@@ -66,11 +65,10 @@ functions:
     handler: handler.hello
     events:
       - serviceBus:
-        x-azure-settings:
-          name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings`
-          topicName: 'hello' #<string>, topic to listen on
-          subscriptionName: 'hello' #<string>, subscription to listen on
-          connection: ServiceBusConnection #<string>, environment variable which contains Service Bus Namespace Connection String
+        name: item #<string>, default - "mySbMsg", specifies which name it's available on `context.bindings`
+        topicName: 'hello' #<string>, topic to listen on
+        subscriptionName: 'hello' #<string>, subscription to listen on
+        connection: ServiceBusConnection #<string>, environment variable which contains Service Bus Namespace Connection String
 ```
 
 ```javascript

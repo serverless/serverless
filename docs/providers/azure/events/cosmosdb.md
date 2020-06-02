@@ -35,18 +35,16 @@ functions:
     handler: src/handlers/cosmos.write
     events:
       - http: true
-        x-azure-settings:
-          methods:
-            - POST
-          authLevel: anonymous
+        methods:
+          - POST
+        authLevel: anonymous
       - cosmosDB:
-        x-azure-settings:
-          direction: out
-          name: record # name of input parameter in function signature
-          databaseName: sampleDB
-          collectionName: sampleCollection
-          connectionStringSetting: COSMOS_DB_CONNECTION # name of appsetting with the connection string
-          createIfNotExists: true # A boolean value to indicate whether the collection is created when it doesn't exist.
+        direction: out
+        name: record # name of input parameter in function signature
+        databaseName: sampleDB
+        collectionName: sampleCollection
+        connectionStringSetting: COSMOS_DB_CONNECTION # name of appsetting with the connection string
+        createIfNotExists: true # A boolean value to indicate whether the collection is created when it doesn't exist.
 ```
 
 ## Sample post data

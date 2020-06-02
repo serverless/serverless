@@ -43,10 +43,10 @@ You need to enable the following APIs so that Serverless can create the correspo
 
 Go to the <a href="https://console.cloud.google.com/apis/dashboard" target="_blank">API dashboard</a>, select your project and enable the following APIs (if not already enabled):
 
-- Google Cloud Functions
-- Google Cloud Deployment Manager
-- Google Cloud Storage
-- Stackdriver Logging
+- Cloud Functions API
+- Cloud Deployment Manager V2 API
+- Cloud Storage
+- Cloud Logging API
 
 ## Get credentials & assign roles
 

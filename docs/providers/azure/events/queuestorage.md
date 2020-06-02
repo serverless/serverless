@@ -35,9 +35,8 @@ functions:
     handler: handler.hello
     events:
       - queue: hello
-        x-azure-settings:
-          name: item #<string>, default - "myQueueItem", specifies which name is available on `context.bindings`
-          connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", environment variable which contains Storage Account Connection String
+        name: item #<string>, default - "myQueueItem", specifies which name is available on `context.bindings`
+        connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", environment variable which contains Storage Account Connection String
 ```
 
 ```javascript

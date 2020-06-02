@@ -23,4 +23,4 @@ authentication using environment variables in a CI/CD environment.
 
 To set an environment variable use the [Parameters](/framework/docs/dashboard/parameters/) feature and create a variable called
 `NPM_TOKEN` containing your private registry token. Parameters defined in the deployment profiles associated with the
-application and stage are loaded in the Servelress CI/CD service as environment variables.
+application and stage are loaded in the Serverless CI/CD service as environment variables.

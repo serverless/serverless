@@ -87,22 +87,18 @@ functions:
     handler: hello.handler
     events:
       - http: true
-        x-azure-settings:
-          authLevel: anonymous
+        authLevel: anonymous
       - http: true
-        x-azure-settings:
-          direction: out
+        direction: out
           name: res
   goodbye:
     handler: goodbye.handler
     events:
       - http: true
-        x-azure-settings:
-          authLevel: anonymous
+        authLevel: anonymous
       - http: true
-        x-azure-settings:
-          direction: out
-          name: res
+        direction: out
+        name: res
 ```
 
 ### hello.js and goodbye.js

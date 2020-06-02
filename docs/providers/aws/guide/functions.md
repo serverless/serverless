@@ -361,6 +361,15 @@ To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
 
 By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
 
+You can opt out of the default behavior by setting `disableLogs: true`
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    disableLogs: true
+```
+
 ## Versioning Deployed Functions
 
 By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.

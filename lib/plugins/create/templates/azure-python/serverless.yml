@@ -20,7 +20,8 @@ service: azure-python # NOTE: update this with your service name
 provider:
   name: azure
   region: West Europe
-  runtime: python3.6 # python3.7 or python3.8 available
+  runtime: python3.6 # python3.7 or python3.8 also available
+  # os: linux  # linux is the only operating system available for python
   # prefix: "sample"  # prefix of generated resource name
   # subscriptionId: A356AC8C-E310-44F4-BF85-C7F29044AF99
   # stage: dev
@@ -87,19 +88,17 @@ functions:
     handler: src/handlers/hello.main
     events:
       - http: true
-        x-azure-settings:
-          methods:
-            - GET
-          authLevel: anonymous
+        methods:
+          - GET
+        authLevel: anonymous
 
   goodbye:
     handler: src/handlers/goodbye.main
     events:
       - http: true
-        x-azure-settings:
-          methods:
-            - GET
-          authLevel: anonymous
+        methods:
+          - GET
+        authLevel: anonymous
   # The following are a few examples of other events you can configure:
   # storageBlob:
   #   handler: src/handlers/storageBlob
