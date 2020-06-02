@@ -546,6 +546,32 @@ functions:
               - nickname
 ```
 
+If you are creating the Cognito User Pool in the `resources` section of the same template, you can refer to the ARN using the `Fn::GetAtt` attribute from CloudFormation. To do so, you _must_ give your authorizer a name and specify a type of `COGNITO_USER_POOLS`:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          integration: lambda
+          authorizer:
+            name: MyAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt:
+                - CognitoUserPool
+                - Arn
+---
+resources:
+  Resources:
+    CognitoUserPool:
+      Type: 'AWS::Cognito::UserPool'
+      Properties: ...
+```
+
 ### HTTP Endpoints with `operationId`
 
 Include `operationId` when you want to provide a name for the method endpoint. This will set `OperationName` inside `AWS::ApiGateway::Method` accordingly. One common use case for this is customizing method names in some code generators (e.g., swagger).
