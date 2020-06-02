@@ -59,7 +59,6 @@
     "integration-test-run-basic": "mocha tests/integration-basic/tests.js",
     "integration-test-run-package": "mocha-isolated --skip-fs-cleanup-check tests/integration-package/**/*.tests.js",
     "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
     "lint:updated": "pipe-git-updated --ext=js -- eslint",
     "pkg:build": "node ./scripts/pkg/build.js",
     "pkg:generate-choco-package": "node ./scripts/pkg/generate-choco-package.js",
