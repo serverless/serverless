@@ -35,7 +35,8 @@ https://github.com/serverless/serverless/blob/master/tests/README.md#aws-integra
 <!--
 Q1: Provide link to corresponding issue
 
-Note: Remove this section if it's documentation update or obvious bug fix that has no corresponding issue. In such case provide a short description of made changes
+• If PR *partially* addresses issue, ensure to rename "Closes" to "Addresses" ("Closes" term will automatically close an issue on PR merge)
+• If it's a documentation update or obvious bug fix that has no corresponding issue, replace this line with short description of made changes
 -->
 
 Closes: #{ISSUE_NUMBER}
