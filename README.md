@@ -1,4 +1,4 @@
-👋🏾  **Please consider donating to these organizations to help fund an education in *technology*, *entrepreneurship* and *leadership* for POC. #BLM**
+👋🏾 **Please consider donating to these organizations to help fund an education in _technology_, _entrepreneurship_ and _leadership_ for POC. #BLM**
 
 - [Hidden Genius Project](https://www.hiddengeniusproject.org/donate/)
 - [Black Girls Who Code](https://www.blackgirlscode.com/)
