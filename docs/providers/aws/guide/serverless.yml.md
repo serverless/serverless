@@ -140,6 +140,13 @@ provider:
     key: value
   iamManagedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
     - arn:aws:iam:*****:policy/some-managed-policy
+  iamRoleStatementsName: # Optional override of the IAM role statements name, can be used to avoid the 64 characters limit on the field
+    Fn::Join:
+      - '-'
+      - - ${self:service}
+        - ${self:provider.stage}
+        - ${self:provider.region}
+        - 'lambdaRole'
   iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
     - Effect: 'Allow'
       Action:
