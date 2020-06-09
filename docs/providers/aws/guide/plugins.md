@@ -419,7 +419,7 @@ If your plugin adds support for additional params in `serverless.yaml` file, you
 
 The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperty`, `defineCustomEvent` or `defineProvider` helplers.
 
-We'll walk though those heplers. You may also want to check out examples from (helpers tests)[tests/fixtures/configSchemaExtensions/test-plugin.js]
+We'll walk though those heplers. You may also want to check out examples from [helpers tests](tests/fixtures/configSchemaExtensions/test-plugin.js)
 
 #### `defineCustomProperty` helper
 
@@ -510,7 +510,7 @@ This way, if user sets `anotherProp` by mistake to `some-string`, the Framework 
 Serverless: Configuration error: functions['someFunc'].events[0].yourPluginEvent.anotherProp should be number
 ```
 
-#### `defineProvider' helper
+#### `defineProvider` helper
 
 In case your plugin provides support for new provider, you would want to adjust validation schema. Here is example:
 
