@@ -415,16 +415,18 @@ Command names need to be unique. If we load two commands and both want to specif
 
 ### Extending validation schema
 
-If your plugin adds support for additional params in `serverless.yml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
+If your plugin adds support for additional params in `serverless.yaml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
 
-The Framework uses JSON-schema validation backed by [AJV](https://github.com/epoberezkin/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperty`, `defineCustomEvent` or `defineProvider` helplers.
+The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperty`, `defineCustomEvent` or `defineProvider` helplers.
+
+We'll walk though those heplers. You may also want to check out examples from (helpers tests)[tests/fixtures/configSchemaExtensions/test-plugin.js]
 
 #### `defineCustomProperty` helper
 
-Let's say your plugin depends on some properties defined in `custom` section of `serverless.yml` file.
+Let's say your plugin depends on some properties defined in `custom` section of `serverless.yaml` file.
 
 ```
-// serverless.yml
+// serverless.yaml
 
 custom:
   yourPlugin:
@@ -438,12 +440,13 @@ class NewEventPlugin {
   constructor(serverless) {
     this.serverless = serverless;
 
-    // Create schema for your properties. For reference use https://github.com/epoberezkin/ajv
+    // Create schema for your properties. For reference use https://github.com/ajv-validator/ajv
     const newCustomPropSchema = {
       type: 'object',
       properties: {
         someProperty: { type: 'string' },
       },
+      required: ['someProperty'],
     };
 
     // Attach your piece of schema to main schema
@@ -455,15 +458,15 @@ class NewEventPlugin {
 This way, if user sets `someProperty` by mistake to `false`, the Framework would display an error:
 
 ```
-Serverless: Error: .custom.yourPlugin.someProperty should be string
+Serverless: Configuration error: custom.yourPlugin.someProperty should be string
 ```
 
 #### `defineFunctionEvent` helper
 
-Let's say your plugin adds support to a new `yourPluginEvent` function event. To use this event, a user would need to have `serverless.yml` file like this:
+Let's say your plugin adds support to a new `yourPluginEvent` function event. To use this event, a user would need to have `serverless.yaml` file like this:
 
 ```
-// serverless.yml
+// serverless.yaml
 
 functions:
   someFunc:
@@ -477,7 +480,7 @@ functions:
 In this case your plugin should add validation rules inside your plugin constructor. Otherwise, the Framework would display an error message saying that your event is not supported:
 
 ```
-Serverless: Unsupported function event 'yourPluginEvent'
+Serverless: Configuration error: Unsupported function event 'yourPluginEvent'
 ```
 
 To fix this error and more importantly to provide validation rules for your event, modify your plugin constructor with code like this:
@@ -487,13 +490,15 @@ class NewEventPlugin {
   constructor(serverless) {
     this.serverless = serverless;
 
-    // Create schema for your properties. For reference use https://github.com/epoberezkin/ajv
+    // Create schema for your properties. For reference use https://github.com/ajv-validator/ajv
     serverless.configSchemaHandler.defineFunctionEvent('yourPluginEvent', {
       type: 'object',
       properties: {
         someProp: { type: 'string' },
         anotherProp: { type: 'number' },
       },
+      required: ['someProp'],
+      additionalProperties: false,
     });
   }
 }
@@ -502,7 +507,7 @@ class NewEventPlugin {
 This way, if user sets `anotherProp` by mistake to `some-string`, the Framework would display an error:
 
 ```
-Serverless: Error: .functions['someFunc'].events[0].yourPluginEvent.anotherProp should be number
+Serverless: Configuration error: functions['someFunc'].events[0].yourPluginEvent.anotherProp should be number
 ```
 
 #### `defineProvider' helper
@@ -514,9 +519,14 @@ class NewProviderPlugin {
   constructor(serverless) {
     this.serverless = serverless;
 
-    // Create schema for your provider. For reference use https://github.com/epoberezkin/ajv
+    // Create schema for your provider. For reference use https://github.com/ajv-validator/ajv
     serverless.configSchemaHandler.defineProvider('newProvider', {
-      provider: { additionalProperties: true },
+      provider: {
+        properties: {
+          stage: { type: 'string' },
+          remoteFunctionData: { type: 'null' },
+        },
+      },
       function: {
         properties: { handler: { type: 'string' } },
         additionalProperties: true,
