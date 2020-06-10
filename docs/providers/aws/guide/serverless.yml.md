@@ -345,6 +345,7 @@ functions:
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
+          maximumRecordAgeInSeconds: 120
           startingPosition: LATEST
           enabled: false
       - alexaSkill:
