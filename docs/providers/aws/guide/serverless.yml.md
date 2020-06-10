@@ -341,7 +341,6 @@ functions:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
-          maximumRetryAttempts: 5
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
