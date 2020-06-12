@@ -62,3 +62,14 @@ Only AWS is supported at this time; however, support for other cloud service pro
 
 Nope! Serverless CI/CD is a 100% SaaS and managed for you. If you prefer to self-host, that is available as an option
 with the Enterprise tier.
+
+## How can I run Cypress integration tests?
+
+Cypress comes pre-installed in the build environment. Just add the following command to the appropriate stage (usually, `test`)
+in your `package.json`:
+
+```json
+"scripts": {
+  "test": "npx cypress run --record --key <record_key>"
+}
+```

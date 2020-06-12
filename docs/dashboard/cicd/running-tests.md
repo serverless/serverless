@@ -41,16 +41,16 @@ Update the `tests` script to run your node test suite (e.g. `mocha`).
 
 ## Running Python tests
 
-If you are using Python we recommend using the [serverless-python-requirements](https://github.com/UnitedIncome/serverless-python-requirements) plugin to install the dependencies from `requirements.txt`.
+If a `requirements-test.txt` is found in the base build directory, listed dependencies will be installed automatically.
+Invoke your choice of Python test suite by specifying it in the `test` script of `package.json` (e.g. `pytest`).
 
-If you are not using the serverless-python-requirements plugin, then you can install the requirements by adding the `postinstall` script to `package.json`.
 
 ```json
 {
   "name": "demo-python",
   "version": "1.0.0",
   "scripts": {
-    "postinstall": "pip3 install -r requirements.txt",
+    "postinstall": "pip install -r requirements.txt",
     "test": "pytest"
   },
   "devDependencies": {
@@ -59,4 +59,4 @@ If you are not using the serverless-python-requirements plugin, then you can ins
 }
 ```
 
-You must update the `test` script in `package.json` to run your Python tests suite (e.g. `pytest`).
+The above snippet also shows an alternate way to install test dependencies by hooking into the `postinstall` npm stage.
