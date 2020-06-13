@@ -16,4 +16,4 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 
 ## AWS ALB `allowUnauthenticated`
 
-Please use `onUnauthenticatedRequest` instead `allowUnauthenticated` will be removed with v2.0.0
+Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be removed with v2.0.0
