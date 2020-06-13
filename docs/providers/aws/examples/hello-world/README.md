@@ -22,5 +22,6 @@ Pick your language of choice:
 - [C#](./csharp)
 - [F#](./fsharp)
 - [Go](./go)
+- [Ruby](./ruby)
 
 [View all examples](https://www.serverless.com/framework/docs/providers/aws/examples/)
