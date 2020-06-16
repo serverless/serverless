@@ -61,15 +61,15 @@ provider:
   name: aws
   stage: ${opt:stage, 'dev'}
   environment:
-    MY_SECRET: ${file(./config.${self:provider.stage}.json):CREDS}
+    MY_SECRET: ${file(./config.${opt:stage, self:provider.stage, 'dev'}.json):CREDS}
 ```
 
-If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${self:provider.stage}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined.
+If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${file(./config.${opt:stage, self:provider.stage, 'dev'}.json):CREDS}` variable and it will resolve the `config.qa.json` file and use the `CREDS` key defined.
 
 **How that works:**
 
 1. stage is set to `qa` from the option supplied to the `sls deploy --stage qa` command
-2. `${self:provider.stage}` resolves to `qa` and is used in `${file(./config.${self:provider.stage}.json):CREDS}`
+2. `${opt:stage, self:provider.stage, 'dev'}` resolves to `qa` and is used in `${file(./config.${opt:stage, self:provider.stage, 'dev'}.json):CREDS}`
 3. `${file(./config.qa.json):CREDS}` is found & the `CREDS` value is read
 4. `MY_SECRET` value is set
 

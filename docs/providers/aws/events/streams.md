@@ -161,6 +161,26 @@ functions:
           enabled: false
 ```
 
+## Setting the MaximumRecordAgeInSeconds
+
+This configuration sets up the maximum age of a record that Lambda sends to a function for processing.
+
+**Note:** Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
+
+[Related AWS documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html#cfn-lambda-eventsourcemapping-maximumrecordageinseconds)
+
+**Note:** The `stream` event will hook up your existing streams to a Lambda function. Serverless won't create a new stream for you.
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:kinesis:region:XXXXXX:stream/foo
+          maximumRecordAgeInSeconds: 120
+```
+
 ## Setting the OnFailure destination
 
 This configuration sets up the onFailure location for events to be sent to once it has reached the maximum number of times to retry when the function returns an error.
