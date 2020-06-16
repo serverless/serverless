@@ -1718,6 +1718,7 @@ provider:
 Valid values are INFO, ERROR.
 
 If you want to disable access logging completly you can do with the following:
+
 ```yml
 # serverless.yml
 provider:
@@ -1728,6 +1729,7 @@ provider:
 ```
 
 By default, the full requests and responses data will be logged. If you want to disable like so:
+
 ```yml
 # serverless.yml
 provider:
@@ -1738,6 +1740,7 @@ provider:
 ```
 
 Websockets have the same configuration options as the the REST API. Example:
+
 ```yml
 # serverless.yml
 provider:
