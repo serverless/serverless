@@ -3,14 +3,6 @@
 class TestPlugin {
   constructor(serverless) {
     serverless.configSchemaHandler.defineProvider('someProvider', {
-      provider: {
-        properties: {
-          stage: { type: 'string' },
-          variableSyntax: { type: 'string' },
-          versionFunctions: { type: 'boolean' },
-          remoteFunctionData: { type: 'null' },
-        },
-      },
       function: {
         properties: {
           handler: { type: 'string' },
