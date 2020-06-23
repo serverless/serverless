@@ -87,8 +87,8 @@
     ]
   },
   "eslintIgnore": [
-    "lib/plugins/create/templates/**",
-    "lib/plugins/aws/customResources/node_modules/**"
+    "/lib/plugins/create/templates/**",
+    "/lib/plugins/aws/customResources/node_modules/**"
   ],
   "mocha": {
     "reporter": "./tests/mocha-reporter",
