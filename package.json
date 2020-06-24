@@ -51,7 +51,6 @@
   },
   "scripts": {
     "commitlint": "commitlint -f HEAD@{15}",
-    "commitlint:pull-request": "commitlint -f HEAD~1",
     "coverage": "nyc npm test",
     "integration-test-cleanup": "node tests/utils/aws-cleanup.js",
     "integration-test-run-all": "mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 tests/integration-all/**/tests.js",
@@ -87,6 +86,7 @@
     ]
   },
   "eslintIgnore": [
+    "!/.github",
     "/lib/plugins/create/templates/**",
     "/lib/plugins/aws/customResources/node_modules/**"
   ],
@@ -160,7 +160,7 @@
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@serverless/eslint-config": "^1.2.1",
-    "@serverless/test": "^3.8.0",
+    "@serverless/test": "^3.8.1",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cli-progress-footer": "^1.1.1",

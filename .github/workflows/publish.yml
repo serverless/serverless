@@ -1,0 +1,95 @@
+# Version tags only
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  npmPublish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    env:
+      # It'll work with secrets.GITHUB_TOKEN (which is provided by GitHub unconditionally)
+      # Still then release author would be "github-actions". It's better if it's dedicated repo bot
+      GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v14-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+          registry-url: https://registry.npmjs.org
+
+      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
+      #       same `package.json` as stored with recent `master `build
+
+      - name: Publish new version
+        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
+        #       as it appears actions/setup-node sets own value
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
+
+      - name: Publish release notes
+        run: |
+          TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
+          TAG=${TEMP_ARRAY[@]: -1}
+          npx github-release-from-cc-changelog $TAG
+
+      - name: Build standalone artifacts
+        run: npm run pkg:build
+
+      - name: Publish standalone artifacts
+        run: |
+          TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
+          TAG=${TEMP_ARRAY[@]: -1}
+          run pkg:upload -- $TAG
+
+  chocoPublish:
+    name: Publish to Chocolatey
+    needs: npmPublish
+    runs-on: windows-latest
+    env:
+      CHOCO_API_KEY: ${{ secrets.USER_GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v14-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+          registry-url: https://registry.npmjs.org
+
+      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
+      #       same `package.json` as stored with recent `master `build
+
+      - name: Publish to Chocolatey
+        run: |
+          TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
+          TAG=${TEMP_ARRAY[@]: -1}
+          cd `npm run pkg:generate-choco-package $TAG | tail -1`
+          choco apikey --key $CHOCO_API_KEY --source https://push.chocolatey.org/
+          choco pack
+          choco push serverless.${TAG:1}.nupkg

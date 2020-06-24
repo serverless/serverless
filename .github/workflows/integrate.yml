@@ -1,0 +1,340 @@
+# master only
+
+name: Integrate
+
+on:
+  push:
+    branches: [master]
+
+env:
+  SLS_IGNORE_WARNING: '*'
+  FORCE_COLOR: 1
+
+jobs:
+  resolveLastValidatedCommmitHash:
+    name: Resolve last validated commit hash
+    runs-on: ubuntu-latest
+    env:
+      # See https://github.com/serverlessinc/setup-cicd-resources
+      GET_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.GET_LAST_VALIDATED_COMMIT_HASH_URL }}
+      PUT_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.PUT_LAST_VALIDATED_COMMIT_HASH_URL }}
+    steps:
+      - name: Resolve last validated commit hash (for `git diff` purposes)
+        run: |
+          curl -f "$GET_LAST_VALIDATED_COMMIT_HASH_URL" -o /home/runner/last-validated-commit-hash || :
+          curl -v -X PUT -H "User-Agent:" -H "Accept:" -H "Content-Type:" -d "$GITHUB_SHA" "$PUT_LAST_VALIDATED_COMMIT_HASH_URL"
+      - name: Store last validated commit hash (as it's to be used in other job)
+        uses: actions/upload-artifact@v2
+        with:
+          name: last-validated-commit-hash
+          path: /home/runner/last-validated-commit-hash
+
+  linuxNode14:
+    name: '[Linux] Node.js 14: Unit tests & Publish canary'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Publish canary
+        run: |
+          ./.github/prepare-canary.js
+          npm publish --tag canary
+          git checkout .
+        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
+        #       as it appears actions/setup-node sets own value
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # 01dd......71cc
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v14-${{ runner.os }}-${{ github.ref }}-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v14-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+
+  windowsNode14:
+    name: '[Windows] Node.js v14: Unit tests'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v14-${{ runner.os }}-${{ github.ref }}-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v14-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test-- -b"
+
+  linuxNode12:
+    name: '[Linux] Node.js 12: Isolated unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v12-${{ runner.os }}-${{ github.ref }}-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v12-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run test:isolated -- -b"
+
+  linuxNode10:
+    name: '[Linux] Node.js v10: Unit tests with coverage'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v10-${{ runner.os }}-${{ github.ref }}-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v10-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+      - name: Push coverage
+        # TODO: Remove inline token, once support for GA is added on Codecov side
+        # See: https://github.com/codecov/codecov-node/issues/118
+        env:
+          CODECOV_TOKEN: 3898f3e1-f317-453e-a3a9-0462390f93c5
+        run: npx codecov
+
+  linuxNode8:
+    name: '[Linux] Node.js v8: Unit & packaging tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v8-${{ runner.os }}-${{ github.ref }}-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v8-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 8.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+      - name: Packaging tests
+        run: npm run integration-test-run-package
+
+  linuxNode6:
+    name: '[Linux] Node.js v6: Unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v6-${{ runner.os }}-${{ github.ref }}-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v6-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 6.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+
+  integrate:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    needs:
+      [
+        resolveLastValidatedCommmitHash,
+        linuxNode14,
+        windowsNode14,
+        linuxNode12,
+        linuxNode10,
+        linuxNode8,
+        linuxNode6,
+      ]
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          # Ensure to have complete history of commits pushed with given push operation
+          # It's loose and imperfect assumption that no more than 30 commits will be pushed at once
+          fetch-depth: 30
+          # Tag needs to be pushed with real user token, otherwise pushed tag won't trigger the actions workflow
+          # Hence we're passing 'serverless-ci' user authentication token
+          token: ${{ secrets.USER_GITHUB_TOKEN }}
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: npm-v14-${{ runner.os }}-${{ github.ref }}-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: node-modules-v14-${{ runner.os }}-${{ github.ref }}-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+
+      - name: Basic integration tests
+        run: npm run integration-test-run-basic
+      - name: Full integration tests
+        run: npm run integration-test-run-all
+
+      - name: Resolve last validated commit hash (for `git diff` purposes)
+        uses: actions/download-artifact@v2
+        continue-on-error: true
+        with:
+          name: last-validated-commit-hash
+          path: /home/runner
+      - name: Tag if new version
+        run: |
+          LAST_VALIDATED_COMMIT_HASH=`cat /home/runner/last-validated-commit-hash` || :
+          if [ -n "$LAST_VALIDATED_COMMIT_HASH" ];
+          then
+            NEW_VERSION=`git diff -U0 $LAST_VALIDATED_COMMIT_HASH package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
+            if [ -n "$NEW_VERSION" ];
+            then
+              git tag v$NEW_VERSION
+              git push --tags
+            fi
+          fi
