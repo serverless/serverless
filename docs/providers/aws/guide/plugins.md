@@ -532,8 +532,8 @@ class NewProviderPlugin {
       },
 
       // You can define event schemas here or via `defineFunctionEvent` helper
-      functionEvents: [
-        {
+      functionEvents: {
+        someEvent: {
           name: 'someEvent',
           schema: {
             type: 'object',
@@ -545,7 +545,7 @@ class NewProviderPlugin {
             additionalProperties: false,
           },
         },
-      ],
+      },
     });
   }
 }
