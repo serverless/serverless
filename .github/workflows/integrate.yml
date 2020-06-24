@@ -110,7 +110,7 @@ jobs:
       - name: Unit tests
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm test-- -b"
+        run: script -e -c "npm test -- -b"
 
   linuxNode12:
     name: '[Linux] Node.js 12: Isolated unit tests'
