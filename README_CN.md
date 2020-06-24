@@ -1,7 +1,7 @@
 [![Serverless Application Framework Tencent Cloud](https://img.serverlesscloud.cn/20191216/1576510505204-readme-serverless-framework.gif)](http://serverless.com)
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
-[![Build Status](https://travis-ci.org/serverless/serverless.svg?branch=master)](https://travis-ci.org/serverless/serverless)
+[![Build Status](https://github.com/serverless/serverless/workflows/Integrate/badge.svg)](https://github.com/serverless/serverless/actions?query=workflow%3AIntegrate)
 [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
 [![codecov](https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg)](https://codecov.io/gh/serverless/serverless)
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
