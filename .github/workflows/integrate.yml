@@ -265,7 +265,7 @@ jobs:
         run: script -e -c "npm test -- -b"
 
   integrate:
-    name: Integration tests
+    name: Integrate
     runs-on: ubuntu-latest
     needs:
       [
