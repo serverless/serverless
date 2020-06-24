@@ -40,16 +40,17 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14.x
+          registry-url: https://registry.npmjs.org
 
       - name: Publish canary
-        run: |
-          ./.github/prepare-canary.js
-          npm publish --tag canary
-          git checkout .
         # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
         #       as it appears actions/setup-node sets own value
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # 01dd......71cc
+        run: |
+          ./.github/prepare-canary.js
+          npm publish --tag canary
+          git checkout .
 
       - name: Retrieve ~/.npm from cache
         uses: actions/cache@v1
