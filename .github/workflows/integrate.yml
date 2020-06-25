@@ -291,12 +291,6 @@ jobs:
           # Hence we're passing 'serverless-ci' user authentication token
           token: ${{ secrets.USER_GITHUB_TOKEN }}
 
-      - name: Retrieve ~/.npm from cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.npm
-          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: npm-v14-${{ runner.os }}-${{ github.ref }}-
       - name: Retrieve node_modules from cache
         id: cacheNodeModules
         uses: actions/cache@v1
@@ -310,11 +304,8 @@ jobs:
         with:
           node-version: 14.x
 
-      - name: Install dependencies
-        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
-        run: |
-          npm update --no-save
-          npm update --save-dev --no-save
+      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
+      #       same `package.json` as stored with previous job
 
       - name: Basic integration tests
         run: npm run integration-test-run-basic
