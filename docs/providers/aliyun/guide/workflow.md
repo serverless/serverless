@@ -76,7 +76,7 @@ serverless deploy
 Invokes an Alibaba Cloud Function
 
 ```
-serverless invoke function --function [FUNCTION NAME]
+serverless invoke --function [FUNCTION NAME]
 ```
 
 ### Logs

@@ -92,8 +92,10 @@ If the function is triggered by a HTTP event without the `bodyFormat` specified,
   data: [ ... ]
 }
 
-// `JSON.parse(Buffer.from(event.data).toString())`
-// would yield an object similar to the one below (with `bodyFormat` specified)
+
+// let objEvent = JSON.parse(Buffer.from(event).toString());
+// let objBody = Base64.decode(objEvent.body);  use a Base64 decoder
+// This will give a string of the data. JSON.parse() if you need to turn it into a string
 ```
 
 If the `bodyFormat` is specified, the `event` passed to the handler will be something like this:
