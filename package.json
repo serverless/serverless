@@ -158,7 +158,7 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "^8.3.5",
+    "@commitlint/cli": "^9.0.1",
     "@serverless/eslint-config": "^1.2.1",
     "@serverless/test": "^3.8.1",
     "chai": "^4.2.0",
