@@ -56,7 +56,7 @@ jobs:
         run: |
           TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
           TAG=${TEMP_ARRAY[@]: -1}
-          run pkg:upload -- $TAG
+          npm run pkg:upload -- $TAG
 
   chocoPublish:
     name: Publish to Chocolatey
