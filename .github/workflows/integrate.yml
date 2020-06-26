@@ -104,8 +104,6 @@ jobs:
           npm update --no-save
           npm update --save-dev --no-save
       - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: npm test -- -b
 
   linuxNode12:
