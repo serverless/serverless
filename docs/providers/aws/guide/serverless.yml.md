@@ -91,7 +91,7 @@ provider:
         userPoolArn: 'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341', # required
         userPoolClientId: '1h57kf5cpq17m0eml12EXAMPLE', # required
         userPoolDomain: 'your-test-domain' # required
-        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
+        onUnauthenticatedRequest: 'deny' # If set to 'allow' this allows the request to be forwarded to the target when user is not authenticated. When omitted it defaults 'deny' which makes a HTTP 401 Unauthorized error be returned. Alternatively configure to 'authenticate' to redirect request to IdP authorization endpoint.
         requestExtraParams: # optional. The query parameters (up to 10) to include in the redirect request to the authorization endpoint
           prompt: 'login'
           redirect: false
@@ -107,7 +107,7 @@ provider:
         issuer: 'https://www.iamscam.com', # required. The OIDC issuer identifier of the IdP. This must be a full URL, including the HTTPS protocol, the domain, and the path
         tokenEndpoint: 'http://somewhere.org', # required
         userInfoEndpoint: 'https://another-example.com' # required
-        allowUnauthenticated: true # If set to true this allows the request to be forwarded to the target when user is not authenticated. Omit this parameter to make a HTTP 401 Unauthorized error be returned instead
+        onUnauthenticatedRequest: 'deny' # If set to 'allow' this allows the request to be forwarded to the target when user is not authenticated. Omit or set to 'deny' (default) to make a HTTP 401 Unauthorized error be returned instead. Alternatively configure to 'authenticate' to redirect request to IdP authorization endpoint.
         requestExtraParams:
           prompt: 'login'
           redirect: false
