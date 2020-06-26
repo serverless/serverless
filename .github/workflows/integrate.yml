@@ -176,7 +176,7 @@ jobs:
       - name: Unit tests
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm test -- -b"
+        run: script -e -c "npm run coverage"
       - name: Push coverage
         # TODO: Remove inline token, once support for GA is added on Codecov side
         # See: https://github.com/codecov/codecov-node/issues/118
