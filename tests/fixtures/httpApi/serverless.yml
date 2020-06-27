@@ -1,6 +1,7 @@
 service: service
 provider:
   name: aws
+  logRetentionInDays: 14
 
 functions:
   foo:

@@ -1,0 +1,283 @@
+# PR's only
+
+name: Validate
+
+on:
+  pull_request:
+    branches: [master]
+
+env:
+  SLS_IGNORE_WARNING: '*'
+  FORCE_COLOR: 1
+
+jobs:
+  linuxNode14:
+    name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Eventual Changelog & Unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          # For commitlint purpose ensure to have complete list of PR commits
+          # It's loose and imperfect assumption that PR has no more than 30 commits
+          fetch-depth: 30
+
+      - name: Retrieve last master commit (for `git diff` purposes)
+        run: |
+          git checkout -b pr
+          git fetch --prune --depth=30 origin +refs/heads/master:refs/remotes/origin/master
+          git checkout master
+          git checkout pr
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v14-${{ runner.os }}-${{ github.ref }}-
+            npm-v14-${{ runner.os }}-refs/heads/master-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            node-modules-v14-${{ runner.os }}-${{ github.ref }}-
+            node-modules-v14-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Validate formatting
+        run: npm run prettier-check:updated
+      - name: Validate lint rules
+        run: npm run lint:updated
+      - name: Validate commit messages
+        if: github.event.pull_request.base.repo.id == github.event.pull_request.head.repo.id
+        run: npx commitlint -f master
+      - name: Validate changelog (if new version)
+        run: |
+          NEW_VERSION=`git diff -U0 master package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
+          if [ -n "$NEW_VERSION" ];
+          then
+            npx dump-release-notes-from-cc-changelog $NEW_VERSION
+          fi
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+
+  windowsNode14:
+    name: '[Windows] Node.js v14: Unit tests'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v14-${{ runner.os }}-${{ github.ref }}-
+            npm-v14-${{ runner.os }}-refs/heads/master-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            node-modules-v14-${{ runner.os }}-${{ github.ref }}-
+            node-modules-v14-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        run: npm test -- -b
+
+  linuxNode12:
+    name: '[Linux] Node.js 12: Isolated unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v12-${{ runner.os }}-${{ github.ref }}-
+            npm-v12-${{ runner.os }}-refs/heads/master-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            node-modules-v12-${{ runner.os }}-${{ github.ref }}-
+            node-modules-v12-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run test:isolated -- -b"
+
+  linuxNode10:
+    name: '[Linux] Node.js v10: Unit tests with coverage'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v10-${{ runner.os }}-${{ github.ref }}-
+            npm-v10-${{ runner.os }}-refs/heads/master-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            node-modules-v10-${{ runner.os }}-${{ github.ref }}-
+            node-modules-v10-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm run coverage"
+      - name: Push coverage
+        # TODO: Remove inline token, once support for GA is added on Codecov side
+        # See: https://github.com/codecov/codecov-node/issues/118
+        env:
+          CODECOV_TOKEN: 3898f3e1-f317-453e-a3a9-0462390f93c5
+        run: npx codecov
+
+  linuxNode8:
+    name: '[Linux] Node.js v8: Unit & packaging tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v8-${{ runner.os }}-${{ github.ref }}-
+            npm-v8-${{ runner.os }}-refs/heads/master-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            node-modules-v8-${{ runner.os }}-${{ github.ref }}-
+            node-modules-v8-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 8.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"
+      - name: Packaging tests
+        run: npm run integration-test-run-package
+
+  linuxNode6:
+    name: '[Linux] Node.js v6: Unit tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve ~/.npm from cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: npm-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-v6-${{ runner.os }}-${{ github.ref }}-
+            npm-v6-${{ runner.os }}-refs/heads/master-
+      - name: Retrieve node_modules from cache
+        id: cacheNodeModules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            node-modules-v6-${{ runner.os }}-${{ github.ref }}-
+            node-modules-v6-${{ runner.os }}-refs/heads/master-
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 6.x
+
+      - name: Install dependencies
+        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+      - name: Unit tests
+        # Some tests depend on TTY support, which is missing in GA runner
+        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
+        run: script -e -c "npm test -- -b"

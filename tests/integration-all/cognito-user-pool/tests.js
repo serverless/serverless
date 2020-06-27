@@ -71,7 +71,9 @@ describe('AWS - Cognito User Pool Integration Test', function() {
     });
   });
 
-  after(async () => {
+  after(async function() {
+    // Do not clean on fail, to allow further state investigation
+    if (this.test.parent.tests.some(test => test.state === 'failed')) return null;
     console.info('Removing service...');
     await removeService(tmpDirPath);
     console.info('Deleting Cognito User Pools');

@@ -1716,3 +1716,37 @@ provider:
 ```
 
 Valid values are INFO, ERROR.
+
+If you want to disable access logging completly you can do with the following:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      accessLogging: true
+```
+
+By default, the full requests and responses data will be logged. If you want to disable like so:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    restApi:
+      fullExecutionData: false
+```
+
+Websockets have the same configuration options as the the REST API. Example:
+
+```yml
+# serverless.yml
+provider:
+  name: aws
+  logs:
+    websoocket:
+      level: INFO
+      fullExecutionData: false
+```
