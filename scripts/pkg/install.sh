@@ -39,8 +39,21 @@ BINARY_PATH=$BINARIES_DIR_PATH/serverless
 mkdir -p $BINARIES_DIR_PATH
 printf "$yellow Downloading binary...$reset\n"
 
-TIMEZONE_OFFSET=`date +"%Z %z"`
-if [[ $TIMEZONE_OFFSET == "CST +0800" ]]
+if [ -n "$SLS_GEO_LOCATION" ]
+then
+  if [[ $SLS_GEO_LOCATION == "cn" ]]
+  then
+    IS_IN_CHINA=1
+  fi
+else
+  TIMEZONE_OFFSET=`date +"%Z %z"`
+  if [[ $TIMEZONE_OFFSET == "CST +0800" ]]
+  then
+    IS_IN_CHINA=1
+  fi
+fi
+
+if [[ $IS_IN_CHINA == "1" ]]
 then
 	# In China download from location in China (Github API download is slow and times out)
 	BINARY_URL=https://binary.serverlesscloud.cn/$LATEST_TAG/serverless-$PLATFORM-$ARCH
