@@ -13,7 +13,7 @@ const argv = require('yargs-parser')(process.argv.slice(2), {
 
 const [versionTag] = argv._;
 
-const usage = `Usage: ./scripts/pkg/upload-executables [-h | --help] <versionTag>
+const usage = `Usage: ./scripts/pkg/upload.js [-h | --help] <versionTag>
 
 Uploads binary files found in ./dist folder into GitHub release.
 Github OAuth token is expected to be exposed at GITHUB_TOKEN env var
