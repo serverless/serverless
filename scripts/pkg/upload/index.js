@@ -41,3 +41,4 @@ if (!/^v\d+\.\d+\.\d+$/.test(versionTag)) {
 }
 
 require('./world')(versionTag);
+require('./china')(versionTag);
