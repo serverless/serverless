@@ -51,6 +51,9 @@ jobs:
           npx github-release-from-cc-changelog $TAG
 
       - name: Publish standalone artifacts
+        env:
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+          TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
         run: |
           TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
           TAG=${TEMP_ARRAY[@]: -1}
