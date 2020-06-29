@@ -20,12 +20,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Retrieve node_modules from cache
-        id: cacheNodeModules
         uses: actions/cache@v1
         with:
           path: node_modules
           key: node-modules-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
-          restore-keys: node-modules-v14-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -43,14 +41,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish
 
+      - name: Build standalone artifacts
+        run: npm run pkg:build
+
       - name: Publish release notes
         run: |
           TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
           TAG=${TEMP_ARRAY[@]: -1}
           npx github-release-from-cc-changelog $TAG
-
-      - name: Build standalone artifacts
-        run: npm run pkg:build
 
       - name: Publish standalone artifacts
         run: |
@@ -69,12 +67,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Retrieve node_modules from cache
-        id: cacheNodeModules
         uses: actions/cache@v1
         with:
           path: node_modules
           key: node-modules-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
-          restore-keys: node-modules-v14-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1

@@ -277,12 +277,10 @@ jobs:
           token: ${{ secrets.USER_GITHUB_TOKEN }}
 
       - name: Retrieve node_modules from cache
-        id: cacheNodeModules
         uses: actions/cache@v1
         with:
           path: node_modules
           key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: node-modules-v14-${{ runner.os }}-${{ github.ref }}-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
