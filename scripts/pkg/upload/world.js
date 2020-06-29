@@ -67,7 +67,7 @@ module.exports = async versionTag => {
           },
         }
       );
-      process.stdout.write(chalk.green(`${targetBinaryName} uploaded\n`));
+      process.stdout.write(chalk.green(`${targetBinaryName} uploaded to GiHub\n`));
     })
   );
 };
