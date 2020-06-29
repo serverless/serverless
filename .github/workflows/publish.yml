@@ -85,6 +85,7 @@ jobs:
       #       same `package.json` as stored with recent `master `build
 
       - name: Publish to Chocolatey
+        shell: bash
         run: |
           TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
           TAG=${TEMP_ARRAY[@]: -1}
