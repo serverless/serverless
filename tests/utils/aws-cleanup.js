@@ -7,6 +7,7 @@ const { logger, testServiceIdentifier } = require('./misc');
 const { findStacks, deleteStack, listStackResources } = require('./cloudformation');
 const { findRestApis, deleteRestApi } = require('./api-gateway');
 const { deleteBucket } = require('./s3');
+const { findUserPools, deleteUserPoolById } = require('./cognito');
 
 async function findDeploymentBuckets(stacks) {
   const buckets = [];
@@ -36,14 +37,17 @@ async function cleanup() {
   ];
 
   // find all the resources
-  const [stacks, apis] = await Promise.all([
+  const [stacks, apis, userPools] = await Promise.all([
     findStacks(testServiceIdentifier, status),
     findRestApis(testServiceIdentifier),
+    findUserPools(),
   ]);
 
   let bucketsToRemove = [];
   const stacksToRemove = stacks.filter(stack => +new Date(stack.CreationTime) < yesterday);
   const apisToRemove = apis.filter(api => +new Date(api.createdDate) < yesterday);
+  const userPoolsToRemove = userPools.filter(userPool => userPool.CreationDate < yesterday);
+
   if (stacksToRemove) {
     bucketsToRemove = await findDeploymentBuckets(stacksToRemove);
   }
@@ -51,6 +55,7 @@ async function cleanup() {
   logger.log(`${bucketsToRemove.length} Buckets to remove...`);
   logger.log(`${stacksToRemove.length} Stacks to remove...`);
   logger.log(`${apisToRemove.length} APIs to remove...`);
+  logger.log(`${userPoolsToRemove.length} User pools to remove...`);
 
   if (bucketsToRemove.length) {
     logger.log('Removing Buckets...');
@@ -75,6 +80,16 @@ async function cleanup() {
   if (apisToRemove.length) {
     logger.log('Removing APIs...');
     const promises = apisToRemove.map(api => deleteRestApi(api.id));
+    try {
+      await Promise.all(promises);
+    } catch (error) {
+      // do nothing... try to continue with cleanup
+    }
+  }
+
+  if (userPoolsToRemove.length) {
+    logger.log('Removing User Pools...');
+    const promises = userPoolsToRemove.map(userPool => deleteUserPoolById(userPool.Id));
     try {
       await Promise.all(promises);
     } catch (error) {
