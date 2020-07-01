@@ -265,6 +265,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      SLS_AWS_REQUEST_MAX_RETRIES: 21 #Increase number of retries, do to observed "Rate exceeded" fails
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
