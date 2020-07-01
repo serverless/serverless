@@ -36,8 +36,10 @@ async function cleanup() {
   ];
 
   // find all the resources
-  const stacks = await findStacks(testServiceIdentifier, status);
-  const apis = await findRestApis(testServiceIdentifier);
+  const [stacks, apis] = await Promise.all([
+    findStacks(testServiceIdentifier, status),
+    findRestApis(testServiceIdentifier),
+  ]);
 
   let bucketsToRemove = [];
   const stacksToRemove = stacks.filter(stack => +new Date(stack.CreationTime) < yesterday);
