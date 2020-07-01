@@ -20,5 +20,3 @@ resources:
     HttpApiId:
       Value:
         Ref: HttpApi
-      Export:
-        Name: TestHttpApiExportId
