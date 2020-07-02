@@ -771,7 +771,7 @@ functions:
                 id: true
 ```
 
-To map different values for request parameters, defines the `required` and `mappedValue` properties of the request parameter.
+To map different values for request parameters, define the `required` and `mappedValue` properties of the request parameter.
 
 ```yml
 functions:
@@ -786,7 +786,9 @@ functions:
               paths:
                 id: true
               headers:
-                custom-header: context.requestId
+                custom-header:
+                  required: true
+                  mappedValue: context.requestId
 ```
 
 For a list of acceptable values, see the [AWS Documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/request-response-data-mappings.html)
