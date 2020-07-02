@@ -289,9 +289,9 @@ functions:
                 paramName: true # mark path parameter as required
               headers:
                 headerName: true # mark header required
-                anotherParam:
+                custom-header: # Optional add a new header to the request
                   required: true
-                  custom-header: context.requestId # map the header to a static value or integration request variable
+                  mappedValue: context.requestId # map the header to a static value or integration request variable
               querystrings:
                 paramName: true # mark query string
             schema: # Optional request schema validation; mapped by content type
