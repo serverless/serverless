@@ -67,6 +67,13 @@ require('../lib/utils/analytics').sendPending({
 
 const invocationId = uuid.v4();
 
+if (nodeVersion < 10) {
+  require('../lib/utils/logDeprecation')(
+    'OUTDATED_NODEJS',
+    'Support for Node.js versions below v10 will be dropped with next major release. Please upgrade at https://nodejs.org/en/'
+  );
+}
+
 // requiring here so that if anything went wrong,
 // during require, it will be caught.
 const Serverless = require('../lib/Serverless');
