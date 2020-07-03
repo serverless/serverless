@@ -7,7 +7,7 @@ Please follow this document as the only guideline, it also provides links to tes
 
 ## Unit tests
 
-Run via:
+Tests are configured with [Mocha](https://mochajs.org/) test framework, and can be run with following command
 
 ```
 npm test
