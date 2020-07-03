@@ -28,6 +28,10 @@ Example of test files fully backed by `runServerless`:
 
 - [lib/plugins/aws/package/compile/events/httpApi/index.test.js](https://github.com/serverless/serverless/blob/master/lib/plugins/aws/package/compile/events/httpApi/index.test.js)
 
+If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/73107822945a878abbdebe2309e8e9d87cc2858a/lib/plugins/aws/package/compile/functions/index.test.js#L2624))
+
+_Note: PR's with rewrite existing tests into new method are very welcome!_
+
 ### Coverage
 
 We aim for a (near) 100% test coverage, so make sure your tests cover as much of your code as possible.
