@@ -19,10 +19,10 @@ const gracefulFs = require('graceful-fs');
 
 gracefulFs.gracefulify(realFs);
 
-const userNodeVersion = Number(process.version.split('.')[0].slice(1));
+const nodeVersion = Number(process.version.split('.')[0].slice(1));
 
 // only check for components if user is running Node 8
-if (userNodeVersion >= 8) {
+if (nodeVersion >= 8) {
   const componentsV1 = require('../lib/components-v1');
   const componentsV2 = require('../lib/components-v2');
 
