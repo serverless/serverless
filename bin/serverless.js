@@ -19,10 +19,10 @@ const gracefulFs = require('graceful-fs');
 
 gracefulFs.gracefulify(realFs);
 
-const userNodeVersion = Number(process.version.split('.')[0].slice(1));
+const nodeVersion = Number(process.version.split('.')[0].slice(1));
 
 // only check for components if user is running Node 8
-if (userNodeVersion >= 8) {
+if (nodeVersion >= 8) {
   const componentsV1 = require('../lib/components-v1');
   const componentsV2 = require('../lib/components-v2');
 
@@ -66,6 +66,13 @@ require('../lib/utils/analytics').sendPending({
 });
 
 const invocationId = uuid.v4();
+
+if (nodeVersion < 10) {
+  require('../lib/utils/logDeprecation')(
+    'OUTDATED_NODEJS',
+    'Support for Node.js versions below v10 will be dropped with next major release. Please upgrade at https://nodejs.org/en/'
+  );
+}
 
 // requiring here so that if anything went wrong,
 // during require, it will be caught.

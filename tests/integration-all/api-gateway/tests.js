@@ -26,6 +26,7 @@ describe('AWS - API Gateway Integration Test', function() {
   let restApiId;
   let restApiRootResourceId;
   let apiKey;
+  let isDeployed = false;
   const stage = 'dev';
 
   const resolveEndpoint = async () => {
@@ -53,10 +54,12 @@ describe('AWS - API Gateway Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
     await deployService(tmpDirPath);
+    isDeployed = true;
     return resolveEndpoint();
   });
 
   after(async () => {
+    if (!isDeployed) return;
     console.info('Removing service...');
     await removeService(tmpDirPath);
   });

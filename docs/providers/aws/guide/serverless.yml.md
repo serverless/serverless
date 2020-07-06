@@ -282,6 +282,23 @@ functions:
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
             type: token # token or request. Determines input to the authorizer function, called with the auth token or the entire request event. Defaults to token
+          request: # configure method request and integration request settings
+            uri: http://url/{paramName} # Define http endpoint URL and map path parameters for HTTP and HTTP_PROXY requests
+            parameters: # Optional request parameter configuration
+              paths:
+                paramName: true # mark path parameter as required
+              headers:
+                headerName: true # mark header required
+                custom-header: # Optional add a new header to the request
+                  required: true
+                  mappedValue: context.requestId # map the header to a static value or integration request variable
+              querystrings:
+                paramName: true # mark query string
+            schema: # Optional request schema validation; mapped by content type
+              application/json: ${file(create_request.json)} # define the valid JSON Schema for a content-type
+            template: # Optional custom request mapping templates that overwrite default templates
+              application/json: '{ "httpMethod" : "$context.httpMethod" }'
+            passThrough: NEVER # Optional define pass through behavior when content-type does not match any of the specified mapping templates
       - httpApi: # HTTP API endpoint
           method: GET
           path: /some-get-path/{param}

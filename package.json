@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.74.0",
+  "version": "1.74.1",
   "engines": {
     "node": ">=6.0"
   },
@@ -60,7 +60,7 @@
     "lint:updated": "pipe-git-updated --ext=js -- eslint",
     "pkg:build": "node ./scripts/pkg/build.js",
     "pkg:generate-choco-package": "node ./scripts/pkg/generate-choco-package.js",
-    "pkg:upload": "node ./scripts/pkg/upload.js",
+    "pkg:upload": "node ./scripts/pkg/upload/index.js",
     "postinstall": "node ./scripts/postinstall.js",
     "prepare-release": "standard-version && prettier --write CHANGELOG.md",
     "prettier-check": "prettier -c --ignore-path .gitignore \"**/*.{css,html,js,json,md,yaml,yml}\"",
@@ -77,7 +77,7 @@
     "overrides": [
       {
         "files": [
-          "scripts/pkg/*"
+          "scripts/pkg/**"
         ],
         "parserOptions": {
           "ecmaVersion": 2018
@@ -160,12 +160,13 @@
   "devDependencies": {
     "@commitlint/cli": "^9.0.1",
     "@serverless/eslint-config": "^1.2.1",
-    "@serverless/test": "^3.8.1",
+    "@serverless/test": "^3.9.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cli-progress-footer": "^1.1.1",
+    "cos-nodejs-sdk-v5": "^2.6.2",
     "eslint": "^7.3.1",
-    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-import": "^2.22.0",
     "git-list-updated": "^1.2.1",
     "github-release-from-cc-changelog": "^2.2.0",
     "husky": "^4.2.5",
@@ -176,7 +177,7 @@
     "mocha-lcov-reporter": "^1.3.0",
     "mock-require": "^3.0.3",
     "nyc": "^15.1.0",
-    "pkg": "^4.4.8",
+    "pkg": "^4.4.9",
     "prettier": "^1.19.1",
     "process-utils": "^3.1.0",
     "proxyquire": "^2.1.3",
@@ -189,14 +190,14 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.5.1",
-    "@serverless/components": "^2.31.4",
-    "@serverless/enterprise-plugin": "^3.6.13",
+    "@serverless/components": "^2.31.6",
+    "@serverless/enterprise-plugin": "^3.6.14",
     "@serverless/inquirer": "^1.1.2",
     "@serverless/utils": "^1.2.0",
     "ajv": "^6.12.0",
     "archiver": "^3.1.1",
     "async": "^1.5.2",
-    "aws-sdk": "^2.705.0",
+    "aws-sdk": "^2.706.0",
     "bluebird": "^3.7.2",
     "boxen": "^3.2.0",
     "cachedir": "^2.3.0",

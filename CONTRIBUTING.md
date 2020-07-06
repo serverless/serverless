@@ -10,6 +10,14 @@ Welcome, and thanks in advance for your help!
 
 # How to contribute to Serverless
 
+## Setup
+
+Once you've cloned forked repository, all is needed is to run `npm install` at its root folder
+
+## Anatomy of a Framework
+
+Check [docs/anatomy.md](./docs/anatomy.md)
+
 ## When you propose a new feature or bug fix
 
 Please make sure there is an open issue discussing your contribution before jumping into a Pull Request!
