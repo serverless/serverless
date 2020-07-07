@@ -20,6 +20,12 @@ Please upgrade to use at least Node.js v10 (It's recommended to use LTS version,
 
 Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be removed with v2.0.0
 
+<a name="AWS_HTTP_API_VERSION"><div>&nbsp;</div></a>
+
+## AWS HTTP API payload format
+
+Default HTTP API Payload version will be switched to 2.0 with next major release. Please configure `payload` explicitly.
+
 <a name="BIN_SERVERLESS"><div>&nbsp;</div></a>
 
 ## `bin/serverless`
