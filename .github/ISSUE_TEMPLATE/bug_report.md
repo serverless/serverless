@@ -17,6 +17,8 @@ about: Create a bug report
 Q1: Describe the issue
 -->
 
+⚠️⚠️ REPLACE WITH DESCRIPTION
+
 <!--
 Q2: Provide (in below placeholder) FULL content of serverless.yml, ensuring that:
 • It consistently reproduces described issue
@@ -40,7 +42,7 @@ Q3: Provide (in below placeholder) FULL name and output of command that exposes 
 -->
 
 <details>
-<summary><b><code>REPLACE WITH FULL COMMAND NAME</code> output</b></summary>
+<summary><b><code>⚠️⚠️ REPLACE WITH FULL COMMAND NAME</code> output</b></summary>
 
 ```
 ⚠️⚠️ REPLACE WITH FULL COMMAND OUTPUT
