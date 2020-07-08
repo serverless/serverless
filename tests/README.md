@@ -30,7 +30,7 @@ Example of test files fully backed by `runServerless`:
 
 If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/73107822945a878abbdebe2309e8e9d87cc2858a/lib/plugins/aws/package/compile/functions/index.test.js#L2624))
 
-_Note: PR's with rewrite existing tests into new method are very welcome!_
+_Note: PR's which rewrite existing tests into new method are very welcome! (but, ideally each PR should cover single test file rewrite)_
 
 ### Coverage
 
