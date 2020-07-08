@@ -92,7 +92,7 @@ Dprecation log can be configured with following steps:
 - `code` (e.g. `DEPRECATED_FEATURE_NAME`). Created to identify log programmatically, also used to construct link on documentation page
 - `mesage` Deprecation message to be displayed to user
 
-2. Document introduced deprecation at `docs/depreactions.md` (follow format of other documented deprecations)
+2. Document introduced deprecation at `docs/depreactions.md` (new deprecation should be listed as first, follow format of other documented deprecations)
 
 # Testing
 
