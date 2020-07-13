@@ -67,8 +67,10 @@ describe('AWS - Stream Integration Test', function() {
       const functionName = 'streamKinesis';
       const message = 'Hello from Kinesis!';
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        putKinesisRecord(streamName, message)
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => putKinesisRecord(streamName, message),
+        { timeout: 120 * 1000 }
       ).then(events => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
