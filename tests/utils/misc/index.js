@@ -49,7 +49,7 @@ function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
         }
       }
       const duration = Date.now() - startTime;
-      if (duration > timeout) return [];
+      if (duration > timeout) throw new Error('Log items not found');
       return confirmCloudWatchLogs(
         logGroupName,
         trigger,
