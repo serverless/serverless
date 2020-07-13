@@ -10,13 +10,8 @@ const {
   putKinesisRecord,
 } = require('../../utils/kinesis');
 const { putDynamoDbItem } = require('../../utils/dynamodb');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/integration');
-const { getMarkers } = require('../shared/utils');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 
 describe('AWS - Stream Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
@@ -70,32 +65,32 @@ describe('AWS - Stream Integration Test', function() {
   describe('Kinesis Streams', () => {
     it('should invoke on kinesis messages from the trim horizon', () => {
       const functionName = 'streamKinesis';
-      const markers = getMarkers(functionName);
       const message = 'Hello from Kinesis!';
 
-      return putKinesisRecord(streamName, message)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(functionName);
-          expect(logs).to.include(message);
-          expect(logs).to.include(historicStreamMessage);
-        });
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
+        putKinesisRecord(streamName, message)
+      ).then(events => {
+        const logs = events.reduce((data, event) => data + event.message, '');
+        expect(logs).to.include(functionName);
+        expect(logs).to.include(message);
+        expect(logs).to.include(historicStreamMessage);
+      });
     });
   });
 
   describe('DynamoDB Streams', () => {
     it('should invoke on dynamodb messages from the latest position', () => {
       const functionName = 'streamDynamoDb';
-      const markers = getMarkers(functionName);
       const item = { id: 'message', hello: 'from dynamo!' };
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
+        putDynamoDbItem(tableName, item)
+      ).then(events => {
+        const logs = events.reduce((data, event) => data + event.message, '');
 
-      return putDynamoDbItem(tableName, item)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(functionName);
-          expect(logs).to.include('INSERT');
-          expect(logs).to.include(item.id);
-        });
+        expect(logs).to.include(functionName);
+        expect(logs).to.include('INSERT');
+        expect(logs).to.include(item.id);
+      });
     });
   });
 });
