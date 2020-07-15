@@ -87,7 +87,7 @@ Ideally all breaking changes should be first (before being shipped with next maj
 
 Dprecation log can be configured with following steps:
 
-1. At logic point where deprecate feature is being used, write a deprecation log with `lib/utils/logDeprecation` util. It accepts two arguments:
+1. At logic point where deprecate feature is being used, write a deprecation log with `serverless._logDeprecation` util. It accepts two arguments:
 
 - `code` (e.g. `DEPRECATED_FEATURE_NAME`). Created to identify log programmatically, also used to construct link on documentation page
 - `mesage` Deprecation message to be displayed to user
