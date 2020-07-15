@@ -41,7 +41,7 @@ When using the the Serverless Framework open-source CLI with Serverless Framewor
 
 Follow these steps to create an access token:
 
-1. Login to the dashboard at https://dashboard.serverless.com/
+1. Login to the dashboard at https://app.serverless.com/
 2. Open the username dropdown in the upper-right corner.
 3. Select "personal access keys" from the dropdown.
 4. Click “+ add” button.

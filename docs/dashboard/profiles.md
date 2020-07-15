@@ -17,11 +17,11 @@ Deployment Profiles enable each stage of your Serverless application to use a un
 
 ## Use Deployment Profiles
 
-Deployment profiles are managed in the [Serverless Framework Dashboard](https://dashboard.serverless.com). When you run `serverless deploy`, the CLI obtains the Safeguard policies, Parameters, and the generated AWS Credentials.
+Deployment profiles are managed in the [Serverless Framework Dashboard](https://app.serverless.com). When you run `serverless deploy`, the CLI obtains the Safeguard policies, Parameters, and the generated AWS Credentials.
 
 ### Creating a new Deployment Profile
 
-Create a new deployment profile by navigating to **profiles** in the [Serverless Framework Dashboard](https://dashboard.serverless.com) and click **add**.
+Create a new deployment profile by navigating to **profiles** in the [Serverless Framework Dashboard](https://app.serverless.com) and click **add**.
 
 #### name
 
@@ -41,7 +41,7 @@ Access Roles, Parameters and Safeguards have individual configuration guides:
 
 ### Add a deployment profile to your application and stage
 
-Create a new stage by navigating to **applications** in the [Serverless Framework Dashboard](https://dashboard.serverless.com).
+Create a new stage by navigating to **applications** in the [Serverless Framework Dashboard](https://app.serverless.com).
 
 1. Expand the application and click into the **stages** tab.
 2. Click **add stage** in the tab

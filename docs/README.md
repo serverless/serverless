@@ -41,14 +41,14 @@ Develop, deploy, troubleshoot and secure your serverless applications with radic
 
 **Are you new to serverless application development?**
 
-Sign up for our [hosted dashboard](https://dashboard.serverless.com) (it’s free) and we’ll help deploy your first serverless app in minutes.
+Sign up for our [hosted dashboard](https://app.serverless.com) (it’s free) and we’ll help deploy your first serverless app in minutes.
 
 If you prefer to start on the CLI, use our [get started](https://serverless.com/framework/docs/getting-started/) guide.
 
 **If you are an experienced user of the Serverless Framework**
 
 Our [Pro dashboard](https://serverless.com/pro/) allows you to import existing projects. Track performance, troubleshoot, configure CI/CD and deployment policies, and get end-to-end serverless application lifecycle management.
-[Get started](https://dashboard.serverless.com) for free.
+[Get started](https://app.serverless.com) for free.
 
 Have questions? Visit our [Forum](https://forum.serverless.com/).
 

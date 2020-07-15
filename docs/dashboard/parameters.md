@@ -13,13 +13,13 @@ layout: Doc
 
 # Parameters
 
-The Serverless Framework Dashboard enables you to create and manage parameters, helping you to configure and secure your services by securely storing parameters used by your Serverless Framework services. The [Serverless Framework Dashboard](https://dashboard.serverless.com/) provides an interface to store and encrypt parameters and manage access to those parameters from your services. The Serverless Framework loads the parameters when the service is deployed.
+The Serverless Framework Dashboard enables you to create and manage parameters, helping you to configure and secure your services by securely storing parameters used by your Serverless Framework services. The [Serverless Framework Dashboard](https://app.serverless.com/) provides an interface to store and encrypt parameters and manage access to those parameters from your services. The Serverless Framework loads the parameters when the service is deployed.
 
 All parameters are treated as sensitive values, therefore they are not visible in the dashboard once saved, they are always encrypted at rest, and only decrypted during deployment.
 
 ## Creating a new Parameters
 
-Create a new parameter by navigating to **profiles** in the [Serverless Framework Dashboard](https://dashboard.serverless.com).
+Create a new parameter by navigating to **profiles** in the [Serverless Framework Dashboard](https://app.serverless.com).
 
 1. Navigate into the profile you would like to use for the Parameter.
 2. Navigate into the **parameters** tab.
