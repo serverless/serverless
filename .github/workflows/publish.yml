@@ -64,7 +64,7 @@ jobs:
     needs: npmPublish
     runs-on: windows-latest
     env:
-      CHOCO_API_KEY: ${{ secrets.USER_GITHUB_TOKEN }}
+      CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
