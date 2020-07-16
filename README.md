@@ -198,6 +198,7 @@ Check out our [help wanted](https://github.com/serverless/serverless/labels/help
 
 These consultants use the Serverless Framework and can help you build your serverless projects.
 
+- [Evren Cakir](mailto:escape@gmail.com?body=re:https://github.com/serverless/serverless) - Independent consultant specializing in serverless and [Next generation real-time data pipelines](https://www.youtube.com/watch?v=x1m-4F2mzkc)
 - [Andrew Griffiths](https://www.andrewgriffithsonline.com/) - Independent consultant specialising in serverless technology
 - [Trek10](https://www.trek10.com/)
 - [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
