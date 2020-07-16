@@ -200,7 +200,7 @@ functions:
 
 Health checks for target groups with a _lambda_ target type are disabled by default.
 
-To simply enable the health check on a target group associated with an alb event, set the alb event's `healthCheck` property to `true`.
+To enable the health check on a target group associated with an alb event, set the alb event's `healthCheck` property to `true`.
 
 ```yml
 functions:
@@ -214,8 +214,6 @@ functions:
             path: /hello
           healthCheck: true
 ```
-
-Once enabled, a target group health check can be disabled by explicitly setting the alb event's `healthCheck` setting to `false`.
 
 If you need to configure advanced health check settings, you can provide additional health check configuration.
 
@@ -240,8 +238,7 @@ functions:
 ```
 
 All advanced health check settings are optional. If any advanced health check settings are present, the target group's health check will be enabled.
+The target group's health check will use default values for any undefined settings.
+
 Read the [AWS target group health checks documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html)
 for setting descriptions, constraints, and default values.
-
-Any health check settings not configured explicitly will fall back on CloudFormation's default behavior for creating
-a stack or applying a change set where these values are not present.

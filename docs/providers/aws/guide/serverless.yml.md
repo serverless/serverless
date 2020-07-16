@@ -392,6 +392,14 @@ functions:
           conditions:
             host: example.com
             path: /hello
+          healthCheck: # optional, can also be set using a boolean value
+            path: / # optional
+            intervalSeconds: 35 # optional
+            timeoutSeconds: 30 # optional
+            healthyThresholdCount: 5 # optional, must equal unhealthyThresholdCount
+            unhealthyThresholdCount: 5 # optional, must equal healthyThresholdCount
+            matcher: # optional
+              httpCode: '200'
       - eventBridge:
           # using the default AWS event bus
           schedule: rate(10 minutes)
