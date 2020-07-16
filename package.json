@@ -196,7 +196,7 @@
     "@serverless/utils": "^1.2.0",
     "archiver": "^3.1.1",
     "async": "^1.5.2",
-    "aws-sdk": "^2.713.0",
+    "aws-sdk": "^2.714.0",
     "bluebird": "^3.7.2",
     "boxen": "^3.2.0",
     "cachedir": "^2.3.0",
