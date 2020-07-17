@@ -209,6 +209,8 @@ We recommend the following professional services organizations who are experts i
 - [superluminar](https://superluminar.io) - runs serverlessdays Hamburg and Serverless Meetup Hamburg
 - [JetBridge](https://jetbridge.com) - cloud-native and serverless application development services.
 
+If you'd like to be featured here, [please contact us](mailto:hello@serverless.com).
+
 ---
 
 ## <a name="licensing"></a>Licensing
