@@ -1,0 +1,34 @@
+{
+  "context": {},
+  "event": {
+    "invocationId": "EXAMPLEINVOCATIONID",
+    "deliveryStreamArn": "aws:lambda:events",
+    "region": "ap-northeast-1",
+    "records": [
+      {
+        "data": "SGVsbG9cIQo=",
+        "recordId": "EXAMPLEID1",
+        "approximateArrivalTimestamp": 1595693582000,
+        "kinesisRecordMetadata": {
+          "shardId": "shardId-000000000000",
+          "partitionKey": "EXAMPLE-PARTITION-KEY",
+          "approximateArrivalTimestamp": "2020-07-26T16:13:02.000",
+          "sequenceNumber": "0123456789001234567890012345678900123456789001234567890",
+          "subsequenceNumber": ""
+        }
+      },
+      {
+        "data": "SGVsbG8gV29ybGRcIQo=",
+        "recordId": "EXAMPLEID2",
+        "approximateArrivalTimestamp": 159569358400,
+        "kinesisRecordMetadata": {
+          "shardId": "shardId-000000000001",
+          "partitionKey": "EXAMPLE-PARTITION-KEY",
+          "approximateArrivalTimestamp": "2020-07-25T16:13:04.000",
+          "sequenceNumber": "0123456789001234567890012345678900123456789001234567891",
+          "subsequenceNumber": ""
+        }
+      }
+    ]
+  }
+}

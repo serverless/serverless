@@ -1,0 +1,8 @@
+{
+  "context": {},
+  "event": {
+    "serialNumber": "EXAMPLESIRIALNUMBER",
+    "batteryVoltage": "1200mV",
+    "clickType": "SINGLE"
+  }
+}

@@ -20,7 +20,7 @@ public class RequestStreamHandler implements com.amazonaws.services.lambda.runti
   }
 
   static private class TestPojo implements Serializable {
-    private final static Long serialVersionUID = 1L;
+    private final static long serialVersionUID = 1L;
     private final String message;
 
     public TestPojo(String message) {

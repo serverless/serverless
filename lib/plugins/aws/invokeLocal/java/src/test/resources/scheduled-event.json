@@ -1,0 +1,21 @@
+{
+  "context": {},
+  "event": {
+    "version": "0",
+    "id": "EXAMPLEID",
+    "detail-type": "RDS DB Instance Event",
+    "source": "aws.rds",
+    "account": "EXAMPLEACCOUNTID",
+    "time": "2020-07-19T07:20:20Z",
+    "region": "ap-northeast-1",
+    "resources": ["arn:aws:rds:ap-northeast-1:EXAMPLEACCOUNTID:db:EXAMPLEDBID"],
+    "detail": {
+      "EventCategories": ["backup"],
+      "SourceType": "DB_INSTANCE",
+      "SourceArn": "arn:aws:rds:ap-northeast-1:EXAMPLEACCOUNTID:db:EXAMPLEDBID",
+      "Date": "2020-07-19T07:20:20.112Z",
+      "Message": "Finished DB Instance backup",
+      "SourceIdentifier": "EXAMPLESOURCEID"
+    }
+  }
+}

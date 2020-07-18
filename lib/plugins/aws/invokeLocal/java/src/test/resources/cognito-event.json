@@ -1,0 +1,18 @@
+{
+  "context": {},
+  "event": {
+    "datasetName": "MYDATASET",
+    "eventType": "SyncTrigger",
+    "region": "ap-northeast-1",
+    "identityId": "MYID",
+    "datasetRecords": {
+      "key1": {
+        "newValue": "v2",
+        "oldValue": "v1",
+        "op": "replace"
+      }
+    },
+    "identityPoolId": "MYIDPOOLID",
+    "version": 2
+  }
+}

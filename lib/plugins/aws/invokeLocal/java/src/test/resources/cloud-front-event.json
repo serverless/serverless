@@ -1,0 +1,33 @@
+{
+  "context": {},
+  "event": {
+    "Records": [
+      {
+        "cf": {
+          "config": {
+            "distributionId": "EXAMPLEDISTID"
+          },
+          "request": {
+            "clientIp": "192.168.0.1",
+            "method": "GET",
+            "uri": "/picture.jpg",
+            "headers": {
+              "host": [
+                {
+                  "key": "Host",
+                  "value": "MYCFHOST.cloudfront.net"
+                }
+              ],
+              "user-agent": [
+                {
+                  "key": "User-Agent",
+                  "value": "curl/7.64.1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

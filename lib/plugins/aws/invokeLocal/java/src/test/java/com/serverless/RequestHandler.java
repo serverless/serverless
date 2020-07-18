@@ -11,6 +11,7 @@ public class RequestHandler
   @Override
   public Object handleRequest(Map<String, Object> stringObjectMap, Context context) {
     input = stringObjectMap;
-    return "Complete.";
+    System.out.println("Input received:" + input);
+    return "RequestHandler invoke Complete.";
   }
 }

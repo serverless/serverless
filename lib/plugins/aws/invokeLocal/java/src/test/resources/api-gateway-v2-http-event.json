@@ -1,0 +1,54 @@
+{
+  "context": {},
+  "event": {
+    "version": "2.0",
+    "routeKey": "$default",
+    "rawPath": "/path/to/resource",
+    "rawQueryString": "p1=v1&p1=v2&p2=v2",
+    "cookies": ["c1", "c2"],
+    "headers": {
+      "H1": "hv1",
+      "H2": "hv1,hv2"
+    },
+    "queryStringParameters": {
+      "p1": "v1,v2",
+      "p2": "v2"
+    },
+    "requestContext": {
+      "accountId": "EXAMPLEACCOUNTID",
+      "apiId": "EXAMPLE-API-ID",
+      "authorizer": {
+        "jwt": {
+          "claims": {
+            "c1": "cv1",
+            "c2": "cv2"
+          },
+          "scopes": ["s1", "s2"]
+        }
+      },
+      "domainName": "MYHOST.execute-api.ap-northeast-1.amazonaws.com",
+      "domainPrefix": "MYHOST",
+      "http": {
+        "method": "POST",
+        "path": "/path/to/resource",
+        "protocol": "HTTP/1.1",
+        "sourceIp": "EXAMPLEIPADDRESS",
+        "userAgent": "curl/7.64.1"
+      },
+      "requestId": "EXAMPLEREQUESTID",
+      "routeKey": "$default",
+      "stage": "$default",
+      "time": "25/Jul/2020:14:20:00 +0000",
+      "timeEpoch": 1595686800000
+    },
+    "body": "Hello!",
+    "pathParameters": {
+      "pp": "ppv1"
+    },
+    "isBase64Encoded": false,
+    "stageVariables": {
+      "sv1": "svv1",
+      "sv2": "svv2"
+    }
+  }
+}

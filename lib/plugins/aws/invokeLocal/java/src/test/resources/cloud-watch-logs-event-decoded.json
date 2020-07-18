@@ -1,0 +1,14 @@
+{
+  "messageType": "DATA_MESSAGE",
+  "owner": "123456789012",
+  "logGroup": "/aws/lambda/hello",
+  "logStream": "2020/07/19/[$LATEST]1234567890abcded1234567890abcdef",
+  "subscriptionFilters": ["LambdaStream_cloudwatchlogs-hello"],
+  "logEvents": [
+    {
+      "id": "12345678901234567890123456789012345678901234567890123456",
+      "timestamp": 1595030400,
+      "message": "Hello"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "context": {},
+  "event": {
+    "requestContext": {
+      "elb": {
+        "targetGroupArn": "arn:aws:elasticloadbalancing:ap-northeast-1:123456789012:targetgroup/lambda-01234567890abcde/01234567890abcde"
+      }
+    },
+    "httpMethod": "GET",
+    "path": "/hello",
+    "queryStringParameters": {
+      "q": "0123456789ABCDE"
+    },
+    "headers": {
+      "accept": "application/json",
+      "accept-encoding": "gzip",
+      "connection": "keep-alive",
+      "host": "MYHOST.ap-northeast-1.elb.amazonaws.com",
+      "upgrade-insecure-requests": "1",
+      "user-agent": "curl/7.64.1",
+      "x-amzn-trace-id": "Root=EXAMPLE-AMZN-TRACE-ID",
+      "x-forwarded-for": "192.168.0.1",
+      "x-forwarded-port": "80",
+      "x-forwarded-proto": "http",
+      "x-imforwards": "20"
+    },
+    "body": "",
+    "isBase64Encoded": false
+  }
+}
