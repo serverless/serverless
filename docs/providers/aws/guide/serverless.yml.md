@@ -40,7 +40,6 @@ provider:
   websocketsApiRouteSelectionExpression: $request.body.route # custom route selection expression
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
-  reservedConcurrency: 5 # optional, Overwrite the default reserved concurrency limit. By default, AWS uses account concurrency limit
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
   logRetentionInDays: 14 # Set the default RetentionInDays for a CloudWatch LogGroup
   deploymentBucket:
@@ -282,6 +281,23 @@ functions:
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
             type: token # token or request. Determines input to the authorizer function, called with the auth token or the entire request event. Defaults to token
+          request: # configure method request and integration request settings
+            uri: http://url/{paramName} # Define http endpoint URL and map path parameters for HTTP and HTTP_PROXY requests
+            parameters: # Optional request parameter configuration
+              paths:
+                paramName: true # mark path parameter as required
+              headers:
+                headerName: true # mark header required
+                custom-header: # Optional add a new header to the request
+                  required: true
+                  mappedValue: context.requestId # map the header to a static value or integration request variable
+              querystrings:
+                paramName: true # mark query string
+            schema: # Optional request schema validation; mapped by content type
+              application/json: ${file(create_request.json)} # define the valid JSON Schema for a content-type
+            template: # Optional custom request mapping templates that overwrite default templates
+              application/json: '{ "httpMethod" : "$context.httpMethod" }'
+            passThrough: NEVER # Optional define pass through behavior when content-type does not match any of the specified mapping templates
       - httpApi: # HTTP API endpoint
           method: GET
           path: /some-get-path/{param}

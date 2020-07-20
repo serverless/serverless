@@ -30,23 +30,35 @@ else
   exit 1
 fi
 
-# Resolve latest tag
-LATEST_TAG=`curl -L --silent https://api.github.com/repos/serverless/serverless/releases/latest 2>&1 | grep 'tag_name' | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"`
+if [ -n "$SLS_GEO_LOCATION" ]
+then
+  if [[ $SLS_GEO_LOCATION == "cn" ]]
+  then
+    IS_IN_CHINA=1
+  fi
+else
+  TIMEZONE_OFFSET=`date +"%Z %z"`
+  if [[ $TIMEZONE_OFFSET == "CST +0800" ]]
+  then
+    IS_IN_CHINA=1
+  fi
+fi
+
+if [[ $IS_IN_CHINA == "1" ]]
+then
+	# In China download from location in China (Github API download is slow and times out)
+  LATEST_TAG=`curl -L --silent https://sls-standalone-1300963013.cos.ap-shanghai.myqcloud.com/latest-tag`
+	BINARY_URL=https://sls-standalone-1300963013.cos.ap-shanghai.myqcloud.com/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+else
+  LATEST_TAG=`curl -L --silent https://api.github.com/repos/serverless/serverless/releases/latest 2>&1 | grep 'tag_name' | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"`
+	BINARY_URL=https://github.com/serverless/serverless/releases/download/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+fi
 
 # Dowload binary
 BINARIES_DIR_PATH=$HOME/.serverless/bin
 BINARY_PATH=$BINARIES_DIR_PATH/serverless
 mkdir -p $BINARIES_DIR_PATH
 printf "$yellow Downloading binary...$reset\n"
-
-TIMEZONE_OFFSET=`date +"%Z %z"`
-if [[ $TIMEZONE_OFFSET == "CST +0800" ]]
-then
-	# In China download from location in China (Github API download is slow and times out)
-	BINARY_URL=https://binary.serverlesscloud.cn/$LATEST_TAG/serverless-$PLATFORM-$ARCH
-else
-	BINARY_URL=https://github.com/serverless/serverless/releases/download/$LATEST_TAG/serverless-$PLATFORM-$ARCH
-fi
 
 curl -L -o $BINARY_PATH $BINARY_URL
 chmod +x $BINARY_PATH

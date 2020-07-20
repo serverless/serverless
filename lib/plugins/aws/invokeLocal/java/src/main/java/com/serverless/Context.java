@@ -81,6 +81,6 @@ public class Context implements com.amazonaws.services.lambda.runtime.Context {
   }
 
   public LambdaLogger getLogger() {
-    return System.out::println;
+	  return new com.serverless.LambdaLogger();
   }
 }

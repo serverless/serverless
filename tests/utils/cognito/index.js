@@ -23,6 +23,10 @@ function deleteUserPool(name) {
   );
 }
 
+function deleteUserPoolById(poolId) {
+  return awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: poolId });
+}
+
 function findUserPoolByName(name) {
   awsLog.debug('find cognito user pool by name %s', name);
 
@@ -48,6 +52,22 @@ function findUserPoolByName(name) {
   }
 
   return recursiveFind();
+}
+
+async function findUserPools() {
+  const params = { MaxResults: 60 };
+
+  const pools = [];
+  async function recursiveFind(nextToken) {
+    if (nextToken) params.NextToken = nextToken;
+    const result = await awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params);
+    pools.push(...result.UserPools.filter(pool => pool.Name.includes(' CUP ')));
+    if (result.NextToken) await recursiveFind(result.NextToken);
+  }
+
+  await recursiveFind();
+
+  return pools;
 }
 
 function describeUserPool(userPoolId) {
@@ -93,7 +113,9 @@ function initiateAuth(clientId, username, password) {
 module.exports = {
   createUserPool,
   deleteUserPool,
+  deleteUserPoolById,
   findUserPoolByName,
+  findUserPools,
   describeUserPool,
   createUserPoolClient,
   createUser,

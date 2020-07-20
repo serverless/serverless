@@ -771,6 +771,28 @@ functions:
                 id: true
 ```
 
+To map different values for request parameters, define the `required` and `mappedValue` properties of the request parameter.
+
+```yml
+functions:
+  create:
+    handler: posts.post_detail
+    events:
+      - http:
+          path: posts/{id}
+          method: get
+          request:
+            parameters:
+              paths:
+                id: true
+              headers:
+                custom-header:
+                  required: true
+                  mappedValue: context.requestId
+```
+
+For a list of acceptable values, see the [AWS Documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/request-response-data-mappings.html)
+
 ### Request Schema Validators
 
 To use request schema validation with API gateway, add the [JSON Schema](https://json-schema.org/)
