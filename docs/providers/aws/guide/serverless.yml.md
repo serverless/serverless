@@ -40,7 +40,6 @@ provider:
   websocketsApiRouteSelectionExpression: $request.body.route # custom route selection expression
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
-  reservedConcurrency: 5 # optional, Overwrite the default reserved concurrency limit. By default, AWS uses account concurrency limit
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
   logRetentionInDays: 14 # Set the default RetentionInDays for a CloudWatch LogGroup
   deploymentBucket:

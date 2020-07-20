@@ -37,7 +37,7 @@ function replaceEnv(values) {
  */
 function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
   const startTime = Date.now();
-  const timeout = options.timeout || 60000;
+  const timeout = options.timeout || 60 * 1000;
   return trigger()
     .then(() => awsRequest('CloudWatchLogs', 'filterLogEvents', { logGroupName }))
     .then(({ events }) => {
@@ -49,7 +49,7 @@ function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
         }
       }
       const duration = Date.now() - startTime;
-      if (duration > timeout) return [];
+      if (duration > timeout) throw new Error('Log items not found');
       return confirmCloudWatchLogs(
         logGroupName,
         trigger,

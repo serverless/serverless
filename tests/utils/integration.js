@@ -90,11 +90,19 @@ async function getFunctionLogs(cwd, functionName) {
   return String(logs);
 }
 
-async function waitForFunctionLogs(cwd, functionName, startMarker, endMarker) {
+const defaultTimeout = 60000;
+
+async function waitForFunctionLogs(cwd, functionName, startMarker, endMarker, options = {}) {
+  const timeout = options.timeout || defaultTimeout;
+  const startTime = Date.now();
   await wait(2000);
   const logs = await getFunctionLogs(cwd, functionName);
   if (logs && logs.includes(startMarker) && logs.includes(endMarker)) return logs;
-  return waitForFunctionLogs(cwd, functionName, startMarker, endMarker);
+  const timeSpan = Date.now() - startTime;
+  if (timeSpan > timeout) throw new Error('Cannot find function logs');
+  return waitForFunctionLogs(cwd, functionName, startMarker, endMarker, {
+    timeout: timeout - timeSpan,
+  });
 }
 
 let lastRequestId = 0;

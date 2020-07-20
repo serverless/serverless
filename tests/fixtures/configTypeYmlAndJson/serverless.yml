@@ -1,0 +1,2 @@
+service: 'yml-service'
+provider: 'yml-provider'

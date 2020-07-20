@@ -5,13 +5,8 @@ const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../../utils/sqs');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/integration');
-const { getMarkers } = require('../shared/utils');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 
 describe('AWS - SQS Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
@@ -55,15 +50,15 @@ describe('AWS - SQS Integration Test', function() {
   describe('Basic Setup', () => {
     it('should invoke on queue message(s)', () => {
       const functionName = 'sqsBasic';
-      const markers = getMarkers(functionName);
       const message = 'Hello from SQS!';
 
-      return sendSqsMessage(queueName, message)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(functionName);
-          expect(logs).to.include(message);
-        });
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
+        sendSqsMessage(queueName, message)
+      ).then(events => {
+        const logs = events.reduce((data, event) => data + event.message, '');
+        expect(logs).to.include(functionName);
+        expect(logs).to.include(message);
+      });
     });
   });
 });

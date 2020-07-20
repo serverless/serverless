@@ -1,0 +1,2 @@
+service: 'yaml-service'
+provider: 'yaml-provider'

@@ -65,6 +65,7 @@ public class InvokeBridge {
   private Object getInstance() throws Exception {
     URL[] urls = {this.artifact.toURI().toURL()};
     URLClassLoader child = new URLClassLoader(urls, this.getClass().getClassLoader());
+    Thread.currentThread().setContextClassLoader(child);
 
     this.clazz = Class.forName(this.className, true, child);
 
