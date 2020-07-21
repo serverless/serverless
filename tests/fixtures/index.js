@@ -1,6 +1,8 @@
 'use strict';
 
 const path = require('path');
+const ensureString = require('type/string/ensure');
+const ensurePlainObject = require('type/plain-object/ensure');
 const fse = require('fs-extra');
 const { memoize, merge } = require('lodash');
 const { load: loadYaml, dump: saveYaml } = require('js-yaml');
@@ -34,10 +36,11 @@ module.exports = {
     }
   ),
   extend: (fixtureName, extConfig) => {
-    const baseFixturePath = path.join(__dirname, fixtureName);
+    const baseFixturePath = path.join(__dirname, ensureString(fixtureName));
     if (!isFixtureConfigured(baseFixturePath)) {
       throw new Error(`No fixture configured at ${fixtureName}`);
     }
+    ensurePlainObject(extConfig);
     return provisionTmpDir().then(fixturePath => {
       return Promise.all([
         fse.readFile(path.join(baseFixturePath, 'serverless.yml')),
