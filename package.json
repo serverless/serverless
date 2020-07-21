@@ -106,6 +106,7 @@
     "all": true,
     "exclude": [
       "**/*.test.js",
+      ".github",
       "bin/**",
       "coverage/**",
       "dist/**",
