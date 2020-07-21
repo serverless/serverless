@@ -13,7 +13,7 @@ layout: Doc
 # List of all available safeguards
 
 The following policies are included and configurable in the [Serverless
-Framework Dashboard](https://dashboard.serverless.com/).
+Framework Dashboard](https://app.serverless.com/).
 
 ### No "\*" in IAM Role statements
 
