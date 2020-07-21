@@ -4,8 +4,6 @@
 
 require('essentials');
 
-process.noDeprecation = true;
-
 // global graceful-fs patch
 // https://github.com/isaacs/node-graceful-fs#global-patching
 require('graceful-fs').gracefulify(require('fs'));
