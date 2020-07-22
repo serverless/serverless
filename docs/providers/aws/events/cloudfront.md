@@ -35,7 +35,7 @@ Lambda@Edge has four options when the Lambda function is triggered
 
 **MEMORY AND TIMEOUT LIMITS:** According to [AWS Limits on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html#limits-lambda-at-edge) the limits for viewer-request and viewer-response are 128MB memory and 5 seconds timeout and for origin-request and origin-response are 3008MB memory and 30 seconds timeout.
 
-**RUNTIME LIMITS:** According to [AWS Requirements on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html) the runtimes supported by Lambda@Edge functions are: `Python 3.7`, `Node.js 10.x`, `Node.js 8.10`.
+**RUNTIME LIMITS:** According to [AWS Requirements on Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html) the runtimes supported by Lambda@Edge functions are: `Python 3.8`, `Python 3.7`, `Node.js 12.x`, `Node.js 10.x`.
 
 ## Simple event definition
 
