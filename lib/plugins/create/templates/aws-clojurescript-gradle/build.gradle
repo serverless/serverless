@@ -1,5 +1,5 @@
 plugins {
-  id 'gradle-clojure.clojurescript' version '0.4.0'
+  id 'dev.clojurephant.clojurescript' version '0.5.0'
 }
 
 group = 'serverless'
@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.clojure:clojurescript:1.10.312'
+  implementation 'org.clojure:clojurescript:1.10.773'
   devImplementation 'org.clojure:java.classpath'
 }
 
