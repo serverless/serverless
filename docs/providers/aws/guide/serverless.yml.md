@@ -412,8 +412,8 @@ functions:
             path: / # optional
             intervalSeconds: 35 # optional
             timeoutSeconds: 30 # optional
-            healthyThresholdCount: 5 # optional, must equal unhealthyThresholdCount
-            unhealthyThresholdCount: 5 # optional, must equal healthyThresholdCount
+            healthyThresholdCount: 5 # optional
+            unhealthyThresholdCount: 5 # optional
             matcher: # optional
               httpCode: '200'
       - eventBridge:
