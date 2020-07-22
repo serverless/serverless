@@ -12,11 +12,7 @@ module.exports = {
     // Service templates
     '../../lib/plugins/create/templates',
     // Local invocation artifacts
-    '../../lib/plugins/aws/invokeLocal/invoke.py',
-    '../../lib/plugins/aws/invokeLocal/invoke.rb',
-    '../../lib/plugins/aws/invokeLocal/java/src/main',
-    '../../lib/plugins/aws/invokeLocal/java/MANIFEST.mf',
-    '../../lib/plugins/aws/invokeLocal/java/pom.xml',
+    '../../lib/plugins/aws/invokeLocal/runtimeWrappers',
     // Dashboard policies
     '../../node_modules/@serverless/enterprise-plugin/lib/safeguards/policies',
     // Dashboard wrappers
