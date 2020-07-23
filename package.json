@@ -38,6 +38,7 @@
     "lib",
     "scripts/postinstall.js",
     "scripts/pre-release.js",
+    "scripts/serverless.js",
     "package.json",
     "README.md",
     "LICENSE.txt",
