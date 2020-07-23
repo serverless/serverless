@@ -14,7 +14,7 @@ layout: Doc
 
 # Knative - Introduction
 
-The Serverless Framework helps you develop and deploy your [Knative Serving](https://knative.dev/docs/serving) services, along with the [Knative Eventing](https://knative.dev/docs/eventing) configurations as event sources. It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [functions](#functions) and [fvents](#events).
+The Serverless Framework helps you develop and deploy your [Knative Serving](https://knative.dev/docs/serving) services, along with the [Knative Eventing](https://knative.dev/docs/eventing) configurations as event sources. It's a CLI that offers structure, automation and best practices out-of-the-box, allowing you to focus on building sophisticated, event-driven, serverless architectures, comprised of [functions](#functions) and [events](#events).
 
 The Serverless Framework is different from other application frameworks because:
 

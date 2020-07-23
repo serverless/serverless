@@ -5,14 +5,9 @@ const BbPromise = require('bluebird');
 const { expect } = require('chai');
 
 const { getTmpDirPath } = require('../../utils/fs');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 const { createSnsTopic, removeSnsTopic, publishSnsMessage } = require('../../utils/sns');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/integration');
-const { getMarkers } = require('../shared/utils');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
 
 describe('AWS - SNS Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
@@ -67,24 +62,22 @@ describe('AWS - SNS Integration Test', function() {
   describe('Minimal Setup', () => {
     it('should invoke on a topic message', () => {
       const functionName = 'snsMinimal';
-      const markers = getMarkers(functionName);
       const message = 'Hello from SNS!';
 
-      return publishSnsMessage(minimalTopicName, message)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(functionName);
-          expect(logs).to.include(message);
-        });
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
+        publishSnsMessage(minimalTopicName, message)
+      ).then(events => {
+        const logs = events.reduce((data, event) => data + event.message, '');
+        expect(logs).to.include(functionName);
+        expect(logs).to.include(message);
+      });
     });
   });
 
   describe('Multiple and Filtered Setup', () => {
     it('should invoke on a topic message that matches filter', () => {
       const leftFunctionName = 'snsMultipleFilteredLeft';
-      const leftMarkers = getMarkers(leftFunctionName);
       const rightFunctionName = 'snsMultipleFilteredRight';
-      const rightMarkers = getMarkers(rightFunctionName);
       const leftMessage = 'Hello to the left-side from SNS!';
       const rightMessage = 'Hello to the right-side from SNS!';
       const middleMessage = 'Hello to the middle-side from SNS!';
@@ -93,51 +86,42 @@ describe('AWS - SNS Integration Test', function() {
       const rightAttributes = { side: { DataType: 'String', StringValue: 'right' } };
 
       return BbPromise.all([
-        publishSnsMessage(filteredTopicName, leftMessage, leftAttributes),
-        publishSnsMessage(filteredTopicName, middleMessage, middleAttributes),
-        publishSnsMessage(filteredTopicName, rightMessage, rightAttributes),
-      ])
-        .then(() =>
-          BbPromise.all([
-            waitForFunctionLogs(tmpDirPath, leftFunctionName, leftMarkers.start, leftMarkers.end),
-            waitForFunctionLogs(
-              tmpDirPath,
-              rightFunctionName,
-              rightMarkers.start,
-              rightMarkers.end
-            ),
-          ])
-        )
-        .then(logs => {
-          const leftLogs = logs[0];
-          const rightLogs = logs[1];
-          // left side is filtered to only get "left" messages from topic:
-          expect(leftLogs).to.include(leftFunctionName);
-          expect(leftLogs).to.include(leftMessage);
-          expect(leftLogs).not.to.include(middleMessage);
-          expect(leftLogs).not.to.include(rightMessage);
-          // right side is filtered to only get "right" messages from topic:
-          expect(rightLogs).to.include(rightFunctionName);
-          expect(rightLogs).not.to.include(leftMessage);
-          expect(rightLogs).not.to.include(middleMessage);
-          expect(rightLogs).to.include(rightMessage);
-          // "middle" messages will not cause an invocation.
-        });
+        confirmCloudWatchLogs(`/aws/lambda/${stackName}-${leftFunctionName}`, async () => {
+          await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
+          await publishSnsMessage(filteredTopicName, leftMessage, leftAttributes);
+        }).then(events => {
+          const logs = events.reduce((data, event) => data + event.message, '');
+          expect(logs).to.include(leftFunctionName);
+          expect(logs).to.include(leftMessage);
+          expect(logs).not.to.include(middleMessage);
+          expect(logs).not.to.include(rightMessage);
+        }),
+        confirmCloudWatchLogs(`/aws/lambda/${stackName}-${rightFunctionName}`, async () => {
+          await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
+          await publishSnsMessage(filteredTopicName, rightMessage, rightAttributes);
+        }).then(events => {
+          const logs = events.reduce((data, event) => data + event.message, '');
+          expect(logs).to.include(rightFunctionName);
+          expect(logs).not.to.include(leftMessage);
+          expect(logs).not.to.include(middleMessage);
+          expect(logs).to.include(rightMessage);
+        }),
+      ]);
     });
   });
 
   describe('Existing Setup', () => {
     it('should invoke on an existing topic message', () => {
       const functionName = 'snsExisting';
-      const markers = getMarkers(functionName);
       const message = 'Hello from an existing SNS!';
 
-      return publishSnsMessage(existingTopicName, message)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(functionName);
-          expect(logs).to.include(message);
-        });
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
+        publishSnsMessage(existingTopicName, message)
+      ).then(events => {
+        const logs = events.reduce((data, event) => data + event.message, '');
+        expect(logs).to.include(functionName);
+        expect(logs).to.include(message);
+      });
     });
   });
 });

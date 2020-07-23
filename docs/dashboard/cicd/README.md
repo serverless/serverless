@@ -31,7 +31,7 @@ As is the case with deployments from the Serverless Framework CLI, Serverless CI
 
 If you’ve already setup an AWS Access Role in a Profile you can skip this step.
 
-1. To setup the AWS Access Role, login to [https://dashboard.serverless.com/](https://dashboard.serverless.com/) and navigate to the “profiles” tab.
+1. To setup the AWS Access Role, login to [https://app.serverless.com/](https://app.serverless.com/) and navigate to the “profiles” tab.
 2. Select the “default” profile, and go to the “AWS Access Role” tab.
 3. Follow the provided instructions, supply the AWS Access Role ARN, and save your changes.
 
@@ -45,7 +45,7 @@ You can add more stages and profiles later.
 
 ### Step 2: Connect to Github
 
-1. Login to [https://dashboard.serverless.com/](https://dashboard.serverless.com/).
+1. Login to [https://app.serverless.com/](https://app.serverless.com/).
 2. Navigate to the app which contains the service you want to deploy.
 3. Next to the service name, you’ll see the status “Automatic deployments are disabled”; click “enable”.
 4. In the “repository connection” section, click “connect to Github” and follow the instructions to authenticate with Github and install the Serverless Framework app.

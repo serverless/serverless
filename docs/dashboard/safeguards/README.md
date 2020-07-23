@@ -17,7 +17,7 @@ Safeguards performs a series of policy checks when running the `serverless deplo
 
 ## Configuring Policies
 
-Safeguard policies are managed in the [Serverless Framework Dashboard](https://dashboard.serverless.com/). When you run `serverless deploy`, the CLI obtains the latest list of Safeguard policies and performs the checks before any resources are provisioned or deployed.
+Safeguard policies are managed in the [Serverless Framework Dashboard](https://app.serverless.com/). When you run `serverless deploy`, the CLI obtains the latest list of Safeguard policies and performs the checks before any resources are provisioned or deployed.
 
 The list of available Safeguards can be found by navigating to the "profiles" page, selecting the individual profile and opening the "safeguards" tab. The guide on [using deployment profiles to deploy](/framework/docs/dashboard/profiles#using-a-deployment-profile-to-deploy) provides instructions to identify the profile used by your application and stage.
 

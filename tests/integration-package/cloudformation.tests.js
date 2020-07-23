@@ -47,7 +47,7 @@ describe('Integration test - Packaging - CloudFormation', () => {
         Runtime: 'nodejs12.x',
         Timeout: 6,
       },
-      DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
+      DependsOn: ['HelloLogGroup'],
     });
   });
 
@@ -78,7 +78,7 @@ describe('Integration test - Packaging - CloudFormation', () => {
         Runtime: 'nodejs12.x',
         Timeout: 6,
       },
-      DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
+      DependsOn: ['HelloLogGroup'],
     });
   });
 
@@ -112,7 +112,7 @@ describe('Integration test - Packaging - CloudFormation', () => {
         Runtime: 'nodejs12.x',
         Timeout: 6,
       },
-      DependsOn: ['HelloLogGroup', 'IamRoleLambdaExecution'],
+      DependsOn: ['HelloLogGroup'],
     });
   });
 

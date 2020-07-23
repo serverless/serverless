@@ -66,7 +66,7 @@ if __FILE__ == $0
 
   # handler name is either a global method or a static method in a class
   # my_method or MyModule::MyClass.my_method
-  handler_method, handler_class = handler_name.split(".").reverse
+  handler_method, handler_class = handler_name.split('.').reverse
   handler_class ||= "Kernel"
 
   attach_tty

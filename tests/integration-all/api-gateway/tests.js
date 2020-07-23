@@ -26,12 +26,14 @@ describe('AWS - API Gateway Integration Test', function() {
   let restApiId;
   let restApiRootResourceId;
   let apiKey;
+  let isDeployed = false;
   const stage = 'dev';
 
   const resolveEndpoint = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-    const endpointOutput = _.find(result.Stacks[0].Outputs, { OutputKey: 'ServiceEndpoint' })
-      .OutputValue;
+    const endpointOutput = result.Stacks[0].Outputs.find(
+      output => output.OutputKey === 'ServiceEndpoint'
+    ).OutputValue;
     endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
   };
 
@@ -52,10 +54,12 @@ describe('AWS - API Gateway Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
     await deployService(tmpDirPath);
+    isDeployed = true;
     return resolveEndpoint();
   });
 
   after(async () => {
+    if (!isDeployed) return;
     console.info('Removing service...');
     await removeService(tmpDirPath);
   });
@@ -113,8 +117,7 @@ describe('AWS - API Gateway Integration Test', function() {
         expect(headers.get('access-control-allow-headers')).to.equal(allowHeaders);
         expect(headers.get('access-control-allow-methods')).to.equal('OPTIONS,GET');
         expect(headers.get('access-control-allow-credentials')).to.equal(null);
-        // TODO: for some reason this test fails for now...
-        // expect(headers.get('access-control-allow-origin')).to.equal('*');
+        expect(headers.get('access-control-allow-origin')).to.equal('*');
       });
     });
 

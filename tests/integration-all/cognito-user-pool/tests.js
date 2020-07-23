@@ -3,6 +3,7 @@
 const path = require('path');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
+const hasFailed = require('@serverless/test/has-failed');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const {
@@ -71,7 +72,9 @@ describe('AWS - Cognito User Pool Integration Test', function() {
     });
   });
 
-  after(async () => {
+  after(async function() {
+    // Do not clean on fail, to allow further state investigation
+    if (hasFailed(this.test.parent)) return null;
     console.info('Removing service...');
     await removeService(tmpDirPath);
     console.info('Deleting Cognito User Pools');

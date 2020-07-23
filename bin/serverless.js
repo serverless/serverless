@@ -2,9 +2,7 @@
 
 'use strict';
 
-const isStandaloneExecutable = require('../lib/utils/isStandaloneExecutable');
-
-if (isStandaloneExecutable) {
+if (require('../lib/utils/isStandaloneExecutable')) {
   require('../lib/utils/standalone-patch');
   if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
     require('../scripts/postinstall');
@@ -12,98 +10,32 @@ if (isStandaloneExecutable) {
   }
 }
 
-// global graceful-fs patch
-// https://github.com/isaacs/node-graceful-fs#global-patching
-const realFs = require('fs');
-const gracefulFs = require('graceful-fs');
+const nodeVersion = Number(process.version.split('.')[0].slice(1));
 
-gracefulFs.gracefulify(realFs);
+// CLI Triage
+// Serverless Components work only in Node.js v8+
+if (nodeVersion >= 8) {
+  try {
+    const componentsV1 = require('@serverless/cli');
+    const componentsV2 = require('@serverless/components');
 
-const userNodeVersion = Number(process.version.split('.')[0].slice(1));
+    if (componentsV1.runningComponents()) {
+      // Serverless Components v1 CLI (deprecated)
+      componentsV1.runComponents();
+      return;
+    }
 
-// only check for components if user is running Node 8
-if (userNodeVersion >= 8) {
-  const componentsV1 = require('../lib/components-v1');
-  const componentsV2 = require('../lib/components-v2');
-
-  if (componentsV1 && componentsV1.runningComponents()) {
-    componentsV1.runComponents();
-    return;
+    if (componentsV2.runningComponents()) {
+      // Serverless Components CLI
+      componentsV2.runComponents();
+      return;
+    }
+  } catch (error) {
+    if (process.env.SLS_DEBUG) {
+      require('../lib/classes/Error').logWarning(`CLI triage crashed with: ${error.stack}`);
+    }
   }
-
-  if (componentsV2 && componentsV2.runningComponents()) {
-    componentsV2.runComponents();
-    return;
-  }
 }
 
-require('essentials');
-
-const autocomplete = require('../lib/utils/autocomplete');
-const BbPromise = require('bluebird');
-const logError = require('../lib/classes/Error').logError;
-const uuid = require('uuid');
-const initializeErrorReporter = require('../lib/utils/sentry').initializeErrorReporter;
-
-if (process.env.SLS_DEBUG) {
-  // For performance reasons enabled only in SLS_DEBUG mode
-  BbPromise.config({
-    longStackTraces: true,
-  });
-}
-
-process.on('uncaughtException', error => logError(error, { forceExit: true }));
-
-process.noDeprecation = true;
-
-if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'completion') {
-  autocomplete();
-  return;
-}
-
-let resolveServerlessExecutionSpan;
-require('../lib/utils/tracking').sendPending({
-  serverlessExecutionSpan: new BbPromise(resolve => (resolveServerlessExecutionSpan = resolve)),
-});
-
-const invocationId = uuid.v4();
-initializeErrorReporter(invocationId)
-  .then(() => {
-    // requiring here so that if anything went wrong,
-    // during require, it will be caught.
-    const Serverless = require('../lib/Serverless');
-
-    const serverless = new Serverless();
-
-    serverless.invocationId = invocationId;
-
-    return serverless
-      .init()
-      .then(() => serverless.run())
-      .then(() => resolveServerlessExecutionSpan())
-      .catch(err => {
-        resolveServerlessExecutionSpan();
-        // If Enterprise Plugin, capture error
-        let enterpriseErrorHandler = null;
-        serverless.pluginManager.plugins.forEach(p => {
-          if (p.enterprise && p.enterprise.errorHandler) {
-            enterpriseErrorHandler = p.enterprise.errorHandler;
-          }
-        });
-        if (!enterpriseErrorHandler) {
-          logError(err);
-          return null;
-        }
-        return enterpriseErrorHandler(err, invocationId)
-          .catch(error => {
-            process.stdout.write(`${error.stack}\n`);
-          })
-          .then(() => {
-            logError(err);
-          });
-      });
-  })
-  .catch(error => {
-    resolveServerlessExecutionSpan();
-    throw error;
-  });
+// Serverless Framework CLI
+require('../scripts/serverless');

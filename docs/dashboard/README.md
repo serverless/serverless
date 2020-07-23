@@ -12,7 +12,7 @@ layout: Doc
 
 # Serverless Dashboard
 
-The [Serverless Framework Dashboard](https://dashboard.serverless.com/) is a SaaS solution that augments the Serverless Framework open source CLI to provide a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications.
+The [Serverless Framework Dashboard](https://app.serverless.com/) is a SaaS solution that augments the Serverless Framework open source CLI to provide a powerful, unified experience to develop, deploy, test, secure and monitor your serverless applications.
 
 The Serverless Framework free tier gives developers full access to all features included in the Serverless Framework Dashboard, but is limited to 1,000,000 function invocations per month. If you are interested in expanding your usage of the Serverless Framework beyond the free tier [contact us](https://serverless.com/enterprise/contact/) for details re available plans and pricing.
 
@@ -26,7 +26,7 @@ Currently, the Serverless Framework Dashboard supports the following providers, 
 
 - Provider: AWS
 - Runtimes: Node.js, Python
-- Regions: us-east-1, us-east-2, us-west-2, eu-central-1, eu-west-1, eu-west-2, ap-northeast-1, ap-south-1, ap-southeast-1, ap-southeast-2
+- Regions: us-east-1, us-east-2, us-west-1, us-west-2, eu-central-1, eu-west-1, eu-west-2, eu-west-3, ap-northeast-1, ap-south-1, ap-southeast-1, ap-southeast-2, sa-east-1, ca-central-1
 
 Need unsupported providers, runtimes or regions? [Let us know](https://serverless.com/enterprise/) what you need. We are working hard to quickly expand our supported runtimes and regions.
 
@@ -38,7 +38,7 @@ To get started with the Serverless Framework Dashboard, follow the [Getting Star
 
 If you have an existing Serverless Framework service, it is incredibly easy to enable the Serverless Framework Dashboard features. Just follow the [Getting Started with the Serverless Framework and AWS](/framework/docs/getting-started/) guide to install update the Serverless Framework to the latest release.
 
-If you don't already have a Serverless account, create a new account at [https://dashboard.serverless.com](https://dashboard.serverless.com).
+If you don't already have a Serverless account, create a new account at [https://app.serverless.com](https://app.serverless.com).
 
 After you create your account, run `serverless login` on the CLI to authenticate your CLI with the dashboard.
 

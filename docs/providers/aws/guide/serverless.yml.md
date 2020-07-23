@@ -25,6 +25,10 @@ service:
 
 frameworkVersion: '>=1.0.0 <2.0.0'
 
+disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
+  - DEP_CODE_1 # Deprecation code to disable
+  - '*' # Disable all deprecation messages
+
 provider:
   name: aws
   runtime: nodejs12.x
@@ -36,7 +40,6 @@ provider:
   websocketsApiRouteSelectionExpression: $request.body.route # custom route selection expression
   profile: production # The default profile to use with this service
   memorySize: 512 # Overwrite the default memory size. Default is 1024
-  reservedConcurrency: 5 # optional, Overwrite the default reserved concurrency limit. By default, AWS uses account concurrency limit
   timeout: 10 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
   logRetentionInDays: 14 # Set the default RetentionInDays for a CloudWatch LogGroup
   deploymentBucket:
@@ -61,6 +64,9 @@ provider:
   endpointType: regional # Optional endpoint configuration for API Gateway REST API. Default is Edge.
   apiKeys: # List of API keys to be used by your service API Gateway REST API
     - myFirstKey
+      value: myFirstKeyValue
+      description: myFirstKeyDescription
+      customerId: myFirstKeyCustomerId
     - ${opt:stage}-myFirstKey
     - ${env:MY_API_KEY} # you can hide it in a serverless variable
   apiGateway: # Optional API Gateway global config
@@ -75,10 +81,42 @@ provider:
     description: Some Description # Optional description for the API Gateway stage deployment
     binaryMediaTypes: # Optional binary media types the API might return
       - '*/*'
+    metrics:  false # Optional detailed Cloud Watch Metrics
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
+    authorizers:
+      myFirstAuth:
+        type: 'cognito'
+        userPoolArn: 'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341', # required
+        userPoolClientId: '1h57kf5cpq17m0eml12EXAMPLE', # required
+        userPoolDomain: 'your-test-domain' # required
+        onUnauthenticatedRequest: 'deny' # If set to 'allow' this allows the request to be forwarded to the target when user is not authenticated. When omitted it defaults 'deny' which makes a HTTP 401 Unauthorized error be returned. Alternatively configure to 'authenticate' to redirect request to IdP authorization endpoint.
+        requestExtraParams: # optional. The query parameters (up to 10) to include in the redirect request to the authorization endpoint
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age' # Can be a combination of any system-reserved scopes or custom scopes associated with the client. The default is openid
+        sessionCookieName: '🍪' # The name of the cookie used to maintain session information. The default is AWSELBAuthSessionCookie
+        sessionTimeout: 7000 # The maximum duration of the authentication session, in seconds. The default is 604800 seconds (7 days).
+      mySecondAuth:
+        type: 'oidc'
+        authorizationEndpoint: 'https://example.com', # required. The authorization endpoint of the IdP. Must be a full URL, including the HTTPS protocol, the domain, and the path
+        clientId: 'i-am-client', # required
+        clientSecret: 'i-am-secret', # if creating a rule this is required. If modifying a rule, this can be omitted if you set useExistingClientSecret to true (as below)
+        useExistingClientSecret: true # only required if clientSecret is omitted
+        issuer: 'https://www.iamscam.com', # required. The OIDC issuer identifier of the IdP. This must be a full URL, including the HTTPS protocol, the domain, and the path
+        tokenEndpoint: 'http://somewhere.org', # required
+        userInfoEndpoint: 'https://another-example.com' # required
+        onUnauthenticatedRequest: 'deny' # If set to 'allow' this allows the request to be forwarded to the target when user is not authenticated. Omit or set to 'deny' (default) to make a HTTP 401 Unauthorized error be returned instead. Alternatively configure to 'authenticate' to redirect request to IdP authorization endpoint.
+        requestExtraParams:
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age'
+        sessionCookieName: '🍪'
+        sessionTimeout: 7000
   httpApi:
-    id: # If we want to attach to externally created HTTP API its id should be provided here
+    id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
+    name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${opt:stage, self:provider.stage, 'dev'}-${self:service}
+    payload: '1.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '1.0'
     cors: true # Implies default behavior, can be fine tuned with specficic options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
@@ -133,6 +171,9 @@ provider:
       - subnetId2
   notificationArns: # List of existing Amazon SNS topics in the same region where notifications about stack events are sent.
     - 'arn:aws:sns:us-east-1:XXXXXX:mytopic'
+  stackParameters:
+    - ParameterKey: 'Keyname'
+      ParameterValue: 'Value'
   resourcePolicy:
     - Effect: Allow
       Principal: '*'
@@ -167,7 +208,7 @@ provider:
       roleManagedExternally: false # Specifies whether the ApiGateway CloudWatch Logs role setting is not managed by Serverless. Defaults to false.
     websocket: # Optional configuration which specifies if Websocket logs are used. This can either be set to `true` to use defaults, or configured via subproperties.
       level: INFO # Optional configuration which specifies the log level to use for execution logging. May be set to either INFO or ERROR.
-    httpApi: # Optional configuration which specifies if HTTP API logs are used. This can either be set to `true` (to use defaults as below) or specific log format configuraiton can be provided
+    httpApi: # Optional configuration which specifies if HTTP API logs are used. This can either be set to `true` (to use defaults as below) or specific log format configuration can be provided
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
 
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
@@ -186,7 +227,7 @@ package: # Optional deployment packaging configuration
 functions:
   usersCreate: # A Function
     handler: users.create # The file and module for this specific function.
-    name: ${self:provider.stage}-lambdaName # optional, Deployed Lambda name
+    name: ${opt:stage, self:provider.stage, 'dev'}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
@@ -196,6 +237,7 @@ functions:
     role: arn:aws:iam::XXXXXX:role/role # IAM role which will be used for this function
     onError: arn:aws:sns:us-east-1:XXXXXX:sns-topic # Optional SNS topic / SQS arn (Ref, Fn::GetAtt and Fn::ImportValue are supported as well) which will be used for the DeadLetterConfig
     awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption (overwrites the one defined on the service level)
+    disableLogs: false # Disables creation of CloudWatch Log Group
     environment: # Function level environment variables
       functionEnvVar: 12345678
     tags: # Function specific tags
@@ -239,6 +281,23 @@ functions:
             identitySource: method.request.header.Authorization
             identityValidationExpression: someRegex
             type: token # token or request. Determines input to the authorizer function, called with the auth token or the entire request event. Defaults to token
+          request: # configure method request and integration request settings
+            uri: http://url/{paramName} # Define http endpoint URL and map path parameters for HTTP and HTTP_PROXY requests
+            parameters: # Optional request parameter configuration
+              paths:
+                paramName: true # mark path parameter as required
+              headers:
+                headerName: true # mark header required
+                custom-header: # Optional add a new header to the request
+                  required: true
+                  mappedValue: context.requestId # map the header to a static value or integration request variable
+              querystrings:
+                paramName: true # mark query string
+            schema: # Optional request schema validation; mapped by content type
+              application/json: ${file(create_request.json)} # define the valid JSON Schema for a content-type
+            template: # Optional custom request mapping templates that overwrite default templates
+              application/json: '{ "httpMethod" : "$context.httpMethod" }'
+            passThrough: NEVER # Optional define pass through behavior when content-type does not match any of the specified mapping templates
       - httpApi: # HTTP API endpoint
           method: GET
           path: /some-get-path/{param}
@@ -301,6 +360,7 @@ functions:
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
           batchSize: 100
+          maximumRecordAgeInSeconds: 120
           startingPosition: LATEST
           enabled: false
       - alexaSkill:
@@ -348,6 +408,14 @@ functions:
           conditions:
             host: example.com
             path: /hello
+          healthCheck: # optional, can also be set using a boolean value
+            path: / # optional
+            intervalSeconds: 35 # optional
+            timeoutSeconds: 30 # optional
+            healthyThresholdCount: 5 # optional
+            unhealthyThresholdCount: 5 # optional
+            matcher: # optional
+              httpCode: '200'
       - eventBridge:
           # using the default AWS event bus
           schedule: rate(10 minutes)
@@ -404,6 +472,7 @@ functions:
             inputTemplate: '{"time": <eventTime>, "key1": "value1"}'
       - cloudFront:
           eventType: viewer-response
+          includeBody: true
           pathPattern: /docs*
           origin:
             DomainName: serverless.com
@@ -414,7 +483,7 @@ functions:
 layers:
   hello: # A Lambda layer
     path: layer-dir # required, path to layer contents on disk
-    name: ${self:provider.stage}-layerName # optional, Deployed Lambda layer name
+    name: ${opt:stage, self:provider.stage, 'dev'}-layerName # optional, Deployed Lambda layer name
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
       - python3.8

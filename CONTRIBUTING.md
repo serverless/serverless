@@ -10,13 +10,29 @@ Welcome, and thanks in advance for your help!
 
 # How to contribute to Serverless
 
+## Setup
+
+Once you've cloned forked repository, all is needed is to run `npm install` at its root folder
+
+## Anatomy of a Framework
+
+Check [docs/anatomy.md](./docs/anatomy.md)
+
 ## When you propose a new feature or bug fix
 
-**Note:** Please make sure to write an issue first and get enough feedback before jumping into a Pull Request!
+Please make sure there is an open issue discussing your contribution before jumping into a Pull Request!
 
-- Please make sure there is an open issue discussing your contribution
-- If there isn't, please open an issue so we can talk about it before you invest time into the implementation
-- When creating an issue follow the guide that GitHub shows so we have enough information about your proposal
+There are just few situations (listed below) in which it is fine to submit PR without a corresponding issue:
+
+- Documentation update
+- Obvious bug fix
+- Maintanance improvement
+
+In all other cases please check if there's an open an issue discussing given proposal, if there is not, create an issue respecting all its template remarks.
+
+Do not submit draft PR's. Submit only finalized work which is ready for merge. If you have any doubts related to implementation work please discuss in corresponding issue.
+
+Once PR was reviewed and some changes were suggested, please ensure to re-request review after all new changes were pushed. It's the best, noiseless way to inform maintainers that your work is ready to be checked again
 
 ## When you want to work on an existing issue
 
@@ -44,7 +60,15 @@ You can do that by replying to [issues on Github](https://github.com/serverless/
 
 # Code Style
 
-We aim for clean, consistent code style. We're using ESlint to check for codestyle issues using the Airbnb preset.
+We aim for clean, consistent code style. We're using [Prettier](https://prettier.io/) to confirm on one code formatting style and [ESlint](https://eslint.org/) helps us to stay away from obvious issues that can be picked via static analisys.
+
+Ideally you should have Prettier and ESlint integrated into your code editor, that will help you not think about specific rules and be sure you submit the code that follows guidelines.
+
+## Verifying prettier formatting
+
+```
+npm run prettier-check
+```
 
 ## Verifying linting style
 
@@ -52,53 +76,27 @@ We aim for clean, consistent code style. We're using ESlint to check for codesty
 npm run lint
 ```
 
-## Fixing lint issues
+## Other guideliness
 
-```
-npm run lint:fix
-```
+- Minimize [lodash](https://lodash.com/) usage - resort to it, only if given part of logic cannot be expressed easily with native language constructs
+- Do not rely on custom [Bluebird](http://bluebirdjs.com) functions methods (aside of `Bluebird.try`) - we're looking forward to drop this dependency with next major.
 
-To help reduce the effort of creating contributions with this style, an [.editorconfig file](http://editorconfig.org/) is provided that your editor may use to override any conflicting global defaults and automate a subset of the style settings.
+### Configuring deprecations
+
+Ideally all breaking changes should be first (before being shipped with next major) communicated with deprecation logs.
+
+Dprecation log can be configured with following steps:
+
+1. At logic point where deprecate feature is being used, write a deprecation log with `serverless._logDeprecation` util. It accepts two arguments:
+
+- `code` (e.g. `DEPRECATED_FEATURE_NAME`). Created to identify log programmatically, also used to construct link on documentation page
+- `mesage` Deprecation message to be displayed to user
+
+2. Document introduced deprecation at `docs/depreactions.md` (new deprecation should be listed as first, follow format of other documented deprecations)
 
 # Testing
 
-We aim for a (near) 100% test coverage, so make sure your tests cover as much of your code as possible.
-
-## Test coverage
-
-During development, you can easily check coverage by running `npm run coverage`, then opening the `index.html` file inside the `coverage` directory.
-
-Please follow these Testing guidelines when writing your unit tests:
-
-- Include a top-level `describe('ClassName')` block, with the name of the class you are testing
-- Inside that top-level `describe()` block, create another `describe('#methodOne()')` block for each class method you might create or modify
-- For each method, include an `it('should do something')` test case for each logical edge case in your changes
-- As you write tests, check the code coverage and make sure all lines of code are covered. If not, just add more test cases until everything is covered
-- For reference and inspiration, please check our `tests` directory
-
-## Testing templates
-
-If you add a new template or want to test a template after changing it you can run the template integration tests. Make sure you have `docker` and `docker-compose` installed as they are required. The `docker` containers we're using through compose are automatically including your `$HOME/.aws` folder so you can deploy to AWS.
-
-To run all integration tests run:
-
-```
-./tests/templates/test-all-templates
-```
-
-To run only a specific integration test run:
-
-```
-tests/templates/integration-test-template TEMPLATE_NAME BUILD_COMMAND
-```
-
-so for example:
-
-```
-tests/templates/integration-test-template aws-java-maven mvn package
-```
-
-If you add a new template make sure to add it to the `test-all-templates` file and configure the `docker-compose.yml` file for your template.
+See [tests/README](tests/README.md)
 
 # Our Code of Conduct
 

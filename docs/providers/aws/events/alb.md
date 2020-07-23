@@ -62,6 +62,76 @@ functions:
               - 192.168.0.1/0
 ```
 
+## Add cognito/custom idp provider authentication
+
+With AWS you can configure an Application Load Balancer to [securely authenticate](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html) users as they access your applications. To securely authenticate using Cognito and/or a identity provider (IdP) that is OpenID Connect (OIDC) compliant, follow below steps.
+
+#### 1. Declare authorizer objects either of type "cognito" and/or "oidc" on `provider.alb.authorizers`
+
+```yaml
+provider:
+  alb:
+    authorizers:
+      myFirstAuth:
+        type: 'cognito'
+        userPoolArn: 'arn:aws:cognito-idp:us-east-1:123412341234:userpool/us-east-1_123412341', # required
+        userPoolClientId: '1h57kf5cpq17m0eml12EXAMPLE', # required
+        userPoolDomain: 'your-test-domain' # required
+        onUnauthenticatedRequest: 'deny' # If set to 'allow' this allows the request to be forwarded to the target when user is not authenticated. When omitted it defaults 'deny' which makes a HTTP 401 Unauthorized error be returned. Alternatively configure to 'authenticate' to redirect request to IdP authorization endpoint.
+        requestExtraParams: # optional. The query parameters (up to 10) to include in the redirect request to the authorization endpoint
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age' # Can be a combination of any system-reserved scopes or custom scopes associated with the client. The default is openid
+        sessionCookieName: '🍪' # The name of the cookie used to maintain session information. The default is AWSELBAuthSessionCookie
+        sessionTimeout: 7000 # The maximum duration of the authentication session, in seconds. The default is 604800 seconds (7 days).
+      mySecondAuth:
+        type: 'oidc'
+        authorizationEndpoint: 'https://example.com', # required. The authorization endpoint of the IdP. Must be a full URL, including the HTTPS protocol, the domain, and the path
+        clientId: 'i-am-client', # required
+        clientSecret: 'i-am-secret', # if creating a rule this is required. If modifying a rule, this can be omitted if you set useExistingClientSecret to true (as below)
+        useExistingClientSecret: true # only required if clientSecret is omitted
+        issuer: 'https://www.iamscam.com', # required. The OIDC issuer identifier of the IdP. This must be a full URL, including the HTTPS protocol, the domain, and the path
+        tokenEndpoint: 'http://somewhere.org', # required
+        userInfoEndpoint: 'https://another-example.com' # required
+        onUnauthenticatedRequest: 'deny' # If set to 'allow' this allows the request to be forwarded to the target when user is not authenticated. When omitted it defaults 'deny' which makes a HTTP 401 Unauthorized error be returned. Alternatively configure to 'authenticate' to redirect request to IdP authorization endpoint.
+        requestExtraParams:
+          prompt: 'login'
+          redirect: false
+        scope: 'first_name age'
+        sessionCookieName: '🍪'
+        sessionTimeout: 7000
+```
+
+#### 2. Configure endpoints which are expected to have restricted access with "authorizer" parameter:
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.auth
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            path: /auth/cognito
+          authorizer: myFirstAuth
+```
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.auth
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            path: /auth/idp
+          authorizer:
+            - myFirstAuth
+            - mySecondAuth
+```
+
 ## Enabling multi-value headers
 
 By default when the request contains a duplicate header field name or query parameter key, the load balancer uses the last value sent by the client.
@@ -125,3 +195,50 @@ functions:
           conditions:
             path: /hello
 ```
+
+## Configuring Health Checks
+
+Health checks for target groups with a _lambda_ target type are disabled by default.
+
+To enable the health check on a target group associated with an alb event, set the alb event's `healthCheck` property to `true`.
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.hello
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            path: /hello
+          healthCheck: true
+```
+
+If you need to configure advanced health check settings, you can provide additional health check configuration.
+
+```yml
+functions:
+  albEventConsumer:
+    handler: handler.hello
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:us-east-1:12345:listener/app/my-load-balancer/50dc6c495c0c9188/
+          priority: 1
+          conditions:
+            path: /hello
+          healthCheck:
+            path: /health
+            intervalSeconds: 35
+            timeoutSeconds: 30
+            healthyThresholdCount: 2
+            unhealthyThresholdCount: 2
+            matcher:
+              httpCode: 200,201
+```
+
+All advanced health check settings are optional. If any advanced health check settings are present, the target group's health check will be enabled.
+The target group's health check will use default values for any undefined settings.
+
+Read the [AWS target group health checks documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html)
+for setting descriptions, constraints, and default values.

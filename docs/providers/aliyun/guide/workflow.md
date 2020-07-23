@@ -49,7 +49,7 @@ cd my-service
 npm install
 ```
 
-3. Update `serverlesss.yml`
+3. Update `serverless.yml`
 
 Update `credentials` in your projects `serverless.yml`
 
@@ -76,7 +76,7 @@ serverless deploy
 Invokes an Alibaba Cloud Function
 
 ```
-serverless invoke function --function [FUNCTION NAME]
+serverless invoke --function [FUNCTION NAME]
 ```
 
 ### Logs

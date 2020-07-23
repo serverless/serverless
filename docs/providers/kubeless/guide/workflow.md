@@ -57,7 +57,7 @@ serverless deploy
 
 ##### Deploy Function
 
-Use this to quickly overwrite your Kubeless Functinos, allowing you to develop faster.
+Use this to quickly overwrite your Kubeless Functions, allowing you to develop faster.
 
 ```
 serverless deploy function -f [FUNCTION NAME]

@@ -56,16 +56,14 @@ functions: # Your "Functions"
   usersCreate:
     events: # The "Events" that trigger this function
       - http: true
-        x-azure-settings:
-          name: req
+        name: req
           methods:
             - post
           route: /users/create
   usersDelete:
     events:
       - http: true
-        x-azure-settings:
-          name: req
+        name: req
           methods:
             - delete
           route: /users/delete

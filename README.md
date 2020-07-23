@@ -1,7 +1,15 @@
+👋🏾 **Please consider donating to these organizations to help fund an education in _technology_, _entrepreneurship_ and _leadership_ for POC. #BLM**
+
+- [Hidden Genius Project](https://www.hiddengeniusproject.org/donate/)
+- [Black Girls Who Code](https://www.blackgirlscode.com/)
+- [Code2040](https://code2040-2020.funraise.org/)
+
+---
+
 [![Serverless Application Framework AWS Lambda API Gateway](https://s3.amazonaws.com/assets.github.serverless/readme-serverless-framework.gif)](http://serverless.com)
 
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
-[![Build Status](https://travis-ci.org/serverless/serverless.svg?branch=master)](https://travis-ci.org/serverless/serverless)
+[![Build Status](https://github.com/serverless/serverless/workflows/Integrate/badge.svg)](https://github.com/serverless/serverless/actions?query=workflow%3AIntegrate)
 [![npm version](https://badge.fury.io/js/serverless.svg)](https://badge.fury.io/js/serverless)
 [![codecov](https://codecov.io/gh/serverless/serverless/branch/master/graph/badge.svg)](https://codecov.io/gh/serverless/serverless)
 [![gitter](https://img.shields.io/gitter/room/serverless/serverless.svg)](https://gitter.im/serverless/serverless)
@@ -23,10 +31,11 @@ Serverless is an MIT open-source project, actively maintained by a full-time, ve
 
 <a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Watch the video overview here.</a>
 
-In 2020, the Serverless Framework began introducing advanced functionality for specific serverless use-cases, known as Serverless Framework Components.  Check out the Components featured below, [and more here](https://github.com/serverless-components).
+In 2020, the Serverless Framework began introducing advanced functionality for specific serverless use-cases, known as Serverless Framework Components. Check out the Components featured below, [and more here](https://github.com/serverless-components).
 
-| [![serverless framework express.js](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-express.png)](https://github.com/serverless-components/express) | [![serverless framework website](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-website.png)](https://github.com/serverless-components/website) | [![serverless framework dynamodb](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-dynamodb.png)](https://github.com/serverless-components/aws-dynamodb) |
-| --- | --- | --- |
+| [![serverless framework fullstack application](https://s3.amazonaws.com/assets.github.serverless/components/ad-components-fullstack.png)](https://github.com/serverless-components/fullstack-app) | [![serverless framework express.js](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-express.png)](https://github.com/serverless-components/express) | [![serverless framework website](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-website.png)](https://github.com/serverless-components/website) | [![serverless framework dynamodb](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-dynamodb.png)](https://github.com/serverless-components/aws-dynamodb) |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+
 
 ## Contents
 
@@ -187,36 +196,20 @@ Check out our [help wanted](https://github.com/serverless/serverless/labels/help
 
 ## <a name="consultants"></a>Consultants
 
-These consultants use the Serverless Framework and can help you build your serverless projects.
+We recommend the following professional services organizations who are experts in serverless development:
 
-- [Andrew Griffiths](https://www.andrewgriffithsonline.com/) - Independent consultant specialising in serverless technology
-- [Trek10](https://www.trek10.com/)
-- [Parallax](https://parall.ax/) – they also built the [David Guetta Campaign](https://serverlesscode.com/post/david-guetta-online-recording-with-lambda/)
-- [Geniusee](https://geniusee.com)
+- [Serverless Guru](https://www.antstack.io/)
+- [Antstack](https://www.antstack.io/)
+- [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
+- [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
 - [Nordcloud](https://nordcloud.com) - they created [several plugins](https://github.com/nordcloud?utf8=%E2%9C%93&q=serverless&type=&language=), sponsor [Serverless Days Helsinki](https://helsinki.serverlessdays.io/) and regularly host [Serverless Finland](https://www.meetup.com/Serverless-Finland/) Meetups.
-- [Carrot Creative](https://carrot.is)
-- [microapps](http://microapps.com)
-- [Apiwise](http://www.apiwise.nl)
-- [Useful IO](http://useful.io) - and [Hail Messaging](http://hail.io)
-- [WhaleTech](https://whaletech.co/)
-- [Hop Labs](http://www.hoplabs.com)
-- [Webscale](https://webscale.fi/briefly-in-english/)
 - [API talent](http://www.apitalent.co.nz) - who also run [Serverless-Auckland Meetup](http://www.meetup.com/Serverless-Auckland)
-- [Branded Crate](https://www.brandedcrate.com/)
-- [cloudonaut](https://cloudonaut.io/serverless-consulting/)
-- [PromptWorks](https://www.promptworks.com/serverless/)
-- [Craftship](https://craftship.io)
 - [EPX Labs](http://www.epxlabs.com/) - runs [Serverless NYC Meetup](https://www.meetup.com/Serverless-NYC/)
-- [Red Badger](https://red-badger.com)
-- [Langa](http://langa.io/?utm_source=gh-serverless&utm_medium=github) - They built [Trails.js](http://github.com/trailsjs/trails)
-- [Emerging Technology Advisors](https://www.emergingtechnologyadvisors.com)
-- [OneSpeed](https://onespeed.io/)
 - [Seraro](http://www.seraro.com/) - Who also runs Atlanta Serverless Meetup (https://www.meetup.com/Atlanta-CABI-Camp-Cloud-AI-Blockchain-IOT) and Delhi Serverless Meetup (https://www.meetup.com/Delhi-NCR-Serverless-Architecture-Meetup/)
 - [superluminar](https://superluminar.io) - runs serverlessdays Hamburg and Serverless Meetup Hamburg
-- [Onica](https://www.onica.com/aws-cloud-native-developers/) - AWS Premier Consulting Partner for Cloud Native Development and host of [eleven regional Meetup groups](https://www.onica.com/events/).
-- [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
-- [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
 - [JetBridge](https://jetbridge.com) - cloud-native and serverless application development services.
+
+If you'd like to be featured here, [please contact us](mailto:hello@serverless.com).
 
 ---
 

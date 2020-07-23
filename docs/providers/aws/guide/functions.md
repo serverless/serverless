@@ -36,7 +36,7 @@ provider:
 functions:
   hello:
     handler: handler.hello # required, handler set in AWS Lambda
-    name: ${self:provider.stage}-lambdaName # optional, Deployed Lambda name
+    name: ${opt:stage, self:provider.stage, 'dev'}-lambdaName # optional, Deployed Lambda name
     description: Description of what the lambda function does # optional, Description to publish to AWS
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, in MB, default is 1024
@@ -360,6 +360,15 @@ To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
 ## Log Group Resources
 
 By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
+
+You can opt out of the default behavior by setting `disableLogs: true`
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    disableLogs: true
+```
 
 ## Versioning Deployed Functions
 
