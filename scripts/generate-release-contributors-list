@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# Generates a list with all contributors between two tags
-# generate-release-contributors-list <tag-1> <tag-2>
-#
-# Example
-# $ ./generate-release-contributors-list v1.4.0 v1.5.0
-
-git log $1..$2 --format='%aN' | sort | uniq > $2-contributors
