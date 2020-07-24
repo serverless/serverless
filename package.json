@@ -33,16 +33,6 @@
     "internet of things",
     "serverless.com"
   ],
-  "files": [
-    "bin",
-    "lib",
-    "scripts/postinstall.js",
-    "scripts/serverless.js",
-    "package.json",
-    "README.md",
-    "LICENSE.txt",
-    "CHANGELOG.md"
-  ],
   "main": "lib/Serverless.js",
   "bin": {
     "serverless": "./bin/serverless.js",
