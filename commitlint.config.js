@@ -24,6 +24,7 @@ module.exports = {
         'AWS Lambda',
         'AWS Local Invocation',
         'AWS S3',
+        'AWS Schedule',
         'AWS SNS',
         'AWS SQS',
         'AWS Stream',
