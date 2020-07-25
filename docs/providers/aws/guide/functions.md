@@ -484,3 +484,18 @@ functions:
       onSuccess: otherFunctionInService
       onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
 ```
+
+## Maximum Event Age and Maximum Retry Attempts for Asynchronous Invocations
+
+When intention is to invoke function asynchronously you may want to configure `maximumRetryAttempts` and/or `maximumEventAge` for it.
+
+`maximumEventAge` accepts values between 60 seconds and 6 hours, provided in seconds.
+`maximumRetryAttempts` accepts values between 0 and 2.
+
+```yml
+functions:
+  asyncHello:
+    handler: handler.asyncHello
+    maximumEventAge: 7200
+    maximumRetryAttempts: 1
+```
