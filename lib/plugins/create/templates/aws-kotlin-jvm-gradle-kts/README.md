@@ -1,6 +1,6 @@
-# aws-kotlin-jvm-gradle
+# aws-kotlin-jvm-gradle-kts
 
-AWS Lambda with Kotlin, Java 11, and Gradle 6.0.
+AWS Lambda with Kotlin and Gradle 6.0 with Kotlin DSL.
 
 ## build
 
