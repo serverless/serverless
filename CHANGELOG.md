@@ -16,11 +16,6 @@ All notable changes to this project will be documented in this file. See [standa
 - Recognize final DELETE_COMPLETE event with verbose flag ([#7979](https://github.com/serverless/serverless/issues/7979)) ([e980625](https://github.com/serverless/serverless/commit/e980625f586f55da4559b362a9dcd7275e9001bb)) ([devops hipster in training.](https://github.com/herebebogans))
 - **AWS API Gateway:** Ensure correct type for StatusCode property ([#7977](https://github.com/serverless/serverless/issues/7977)) ([d0edb5d](https://github.com/serverless/serverless/commit/d0edb5d85991bd6563610c768da80e0791735bc8)) ([Lucas Astrada](https://github.com/Undre4m))
 
-### Maintanance Improvements
-
-- Seclude generic version artifacts handlers ([c872c14](https://github.com/serverless/serverless/commit/c872c143ba11f58fdc0f77420437f4a6e6205464))
-- **AWS Local Invocation:** Seclude runtime wrapping logic ([50bfd22](https://github.com/serverless/serverless/commit/50bfd22096a0d3be58a5e2bac28c17325e2ba9df))
-
 ### [1.76.1](https://github.com/serverless/serverless/compare/v1.76.0...v1.76.1) (2020-07-23)
 
 ### Bug Fixes
