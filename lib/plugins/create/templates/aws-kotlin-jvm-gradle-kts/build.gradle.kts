@@ -4,7 +4,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     kotlin("jvm") version "1.3.71"
-    java
     `maven-publish`
     id("io.spring.dependency-management") version ("1.0.9.RELEASE")
     id("com.github.johnrengelman.shadow") version ("6.0.0")
