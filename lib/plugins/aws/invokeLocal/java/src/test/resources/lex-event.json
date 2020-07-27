@@ -1,0 +1,27 @@
+{
+  "context": {},
+  "event": {
+    "messageVersion": "1.0",
+    "invocationSource": "FulfillmentCodeHook",
+    "userId": "EXAMPLEUSERID",
+    "sessionAttributes": {
+      "sk1": "sv1",
+      "sk2": "sv2"
+    },
+    "bot": {
+      "name": "MyBot",
+      "alias": "dev",
+      "version": "1"
+    },
+    "outputDialogMode": "Text",
+    "currentIntent": {
+      "name": "MyBot",
+      "slots": {
+        "ProductType": "Bento",
+        "PickupDate": "2020-07-20",
+        "PickupTime": "18:00"
+      },
+      "confirmationStatus": "Confirmed"
+    }
+  }
+}

@@ -1,13 +1,6 @@
 package com.serverless;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -18,12 +11,18 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serverless.mapper.Mapper;
+import com.serverless.mapper.MapperFactory;
+
 public class InvokeBridge {
   private File artifact;
   private String className;
   private String handlerName;
   private Object instance;
-  private Class clazz;
+  private Class<?> clazz;
 
   private InvokeBridge() {
     this.artifact = new File(new File("."), System.getProperty("artifactPath"));
@@ -74,21 +73,9 @@ public class InvokeBridge {
 
   private Object invoke(HashMap<String, Object> event, Context context) throws Exception {
     Method method = findHandlerMethod(this.clazz, this.handlerName);
-    Class requestClass = method.getParameterTypes()[0];
-
-    Object request = event;
-    if (!requestClass.isAssignableFrom(event.getClass())
-        && !requestClass.isAssignableFrom(InputStream.class)) {
-      request = requestClass.newInstance();
-      PropertyDescriptor[] properties = Introspector.getBeanInfo(requestClass).getPropertyDescriptors();
-      for(int i=0; i < properties.length; i++) {
-        if (properties[i].getWriteMethod() == null) continue;
-        String propertyName = properties[i].getName();
-        if (event.containsKey(propertyName)) {
-          properties[i].getWriteMethod().invoke(request, event.get(propertyName));
-        }
-      }
-    }
+    Class<?> requestClass = method.getParameterTypes()[0];
+    Mapper mapper = MapperFactory.getMapper(requestClass);
+    Object request = mapper.read(event);
 
     if (method.getParameterCount() == 1) {
       return method.invoke(this.instance, request);
@@ -96,15 +83,14 @@ public class InvokeBridge {
       return method.invoke(this.instance, request, context);
     } else if (method.getParameterCount() == 3 && requestClass.isAssignableFrom(InputStream.class)) {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      ByteArrayInputStream inputStream = new ByteArrayInputStream(new ObjectMapper().writeValueAsBytes(event));
-      method.invoke(this.instance, inputStream, outputStream, context);
+      method.invoke(this.instance, request, outputStream, context);
       return outputStream;
     } else {
       throw new NoSuchMethodException("Handler should take 1, 2, or 3 (com.amazonaws.services.lambda.runtime.RequestStreamHandler compatible handlers) arguments: " + method);
     }
   }
 
-  private Method findHandlerMethod(Class clazz, String handlerName) throws Exception {
+  private Method findHandlerMethod(Class<?> clazz, String handlerName) throws Exception {
     Method candidateMethod = null;
     for(Method method: clazz.getMethods()) {
       if (method.getName().equals(handlerName) && !method.isBridge()) {

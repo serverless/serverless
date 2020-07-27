@@ -1,0 +1,42 @@
+{
+  "context": {},
+  "event": {
+    "Records": [
+      {
+        "eventVersion": "2.2",
+        "eventSource": "aws:s3",
+        "awsRegion": "ap-northeast-1",
+        "eventTime": "2020-07-18T00:00:00.000Z",
+        "eventName": "ObjectCreated:Put",
+        "userIdentity": {
+          "principalId": "EXAMPLEPRINCIPALID"
+        },
+        "requestParameters": {
+          "sourceIPAddress": "127.0.0.1"
+        },
+        "responseElements": {
+          "x-amz-request-id": "EXAMPLEREQUESTID",
+          "x-amz-id-2": "EXAMPLEAMZID2"
+        },
+        "s3": {
+          "s3SchemaVersion": "1.0",
+          "configurationId": "EXAMPLECONFIGID",
+          "bucket": {
+            "name": "my-bucket",
+            "ownerIdentity": {
+              "principalId": "EXAMPLEOWNERPRINCIPALID"
+            },
+            "arn": "arn:aws:s3:::my-bucket"
+          },
+          "object": {
+            "key": "my-photo.jpg",
+            "size": 1024,
+            "eTag": "EXAMPLEETAG",
+            "versionId": null,
+            "sequencer": "EXAMPLESEQ"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "context": {},
+  "event": {
+    "invokingEvent": "{\"configurationItem\":{\"configurationItemCaptureTime\":\"2020-07-25T15:07:00.000Z\",\"awsAccountId\":\"EXAMPLEACCOUNID\",\"configurationItemStatus\":\"OK\",\"resourceId\":\"EXAMPLERESOURCEID\",\"ARN\":\"arn:aws:ec2:ap-northeast-1:0123456789abcde:instance/00000000\",\"awsRegion\":\"ap-northeast-1\",\"availabilityZone\":\"ap-northeast-1\",\"resourceType\":\"AWS::EC2::Instance\",\"tags\":{\"mytag\":\"tagvalue\"},\"relationships\":[{\"resourceId\":\"eipalloc-00000000\",\"resourceType\":\"AWS::EC2::EIP\",\"name\":\"Is attached to ElasticIp\"}],\"configuration\":{\"key\":\"value\"}},\"messageType\":\"ConfigurationItemChangeNotification\"}",
+    "ruleParameters": "{\"pk\":\"pv\"}",
+    "resultToken": "EXAMPLERESULTTOKEN",
+    "eventLeftScope": false,
+    "executionRoleArn": "arn:aws:iam::012345678912:role/config-role",
+    "configRuleArn": "arn:aws:config:ap-northeast-1:012345678912:config-rule/config-rule-0123456",
+    "configRuleName": "change-triggered-config-rule",
+    "configRuleId": "config-rule-0123456789",
+    "accountId": "EXAMPLEACCOUNDID",
+    "version": "1.0"
+  }
+}

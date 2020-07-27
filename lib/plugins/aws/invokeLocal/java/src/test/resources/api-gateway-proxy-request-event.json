@@ -1,0 +1,30 @@
+{
+  "context": {},
+  "event": {
+    "resource": "/{proxy+}",
+    "path": "/hello",
+    "httpMethod": "GET",
+    "requestContext": {
+      "resourcePath": "/{proxy+}",
+      "httpMethod": "GET",
+      "path": "hello"
+    },
+    "headers": {
+      "accept": "application/json",
+      "accept-encoding": "gzip, deflate",
+      "Host": "MYHOST.execute-api.ap-northeast-1.amazonaws.com",
+      "User-Agent": "curl/7.64.1",
+      "X-Amzn-Trace-Id": "Root=EXAMPLE-AMZN-TRACE-ID"
+    },
+    "multiValueHeaders": {
+      "accept": ["application/json"],
+      "accept-encoding": ["gzip, deflate"]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "body": null,
+    "isBase64Encoded": false
+  }
+}

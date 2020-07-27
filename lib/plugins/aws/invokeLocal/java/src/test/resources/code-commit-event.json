@@ -1,0 +1,29 @@
+{
+  "context": {},
+  "event": {
+    "Records": [
+      {
+        "awsRegion": "ap-northeast-1",
+        "codecommit": {
+          "references": [
+            {
+              "commit": "EXAMPLECOMMITID",
+              "ref": "refs/heads/master"
+            }
+          ]
+        },
+        "eventId": "EXAMPLE-EVENT-ID",
+        "eventName": "ReferenceChanges",
+        "eventPartNumber": 1,
+        "eventSource": "aws:codecommit",
+        "eventSourceARN": "arn:aws:codecommit:ap-northeast-1:0123456789012:my-repo",
+        "eventTime": "2020-07-25T14:47:00.000+0000",
+        "eventTotalParts": 1,
+        "eventTriggerConfigId": "EXAMPLE-CONFIG-ID",
+        "eventTriggerName": "index.handler",
+        "eventVersion": "1.0",
+        "userIdentityARN": "arn:aws:iam::0123456789012:user/developer1"
+      }
+    ]
+  }
+}
