@@ -5,7 +5,12 @@ const { expect } = require('chai');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
-const { createEventBus, putEvents, deleteEventBus } = require('../../utils/eventBridge');
+const {
+  createEventBus,
+  putEvents,
+  deleteEventBus,
+  describeEventBus,
+} = require('../../utils/eventBridge');
 
 const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { getMarkers } = require('../shared/utils');
@@ -31,6 +36,10 @@ describe('AWS - Event Bridge Integration Test', function() {
   before(async () => {
     tmpDirPath = getTmpDirPath();
     console.info(`Temporary path: ${tmpDirPath}`);
+
+    // get default event bus ARN
+    const defaultEventBusArn = (await describeEventBus('default')).Arn;
+
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
@@ -40,6 +49,7 @@ describe('AWS - Event Bridge Integration Test', function() {
           namedEventBusName = `${config.service}-named-event-bus`;
           arnEventBusName = `${config.service}-arn-event-bus`;
           config.functions.eventBusCustom.events[0].eventBridge.eventBus = namedEventBusName;
+          config.functions.eventBusDefaultArn.events[0].eventBridge.eventBus = defaultEventBusArn;
         },
     });
 

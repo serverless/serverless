@@ -10,6 +10,10 @@ function deleteEventBus(name) {
   return awsRequest('EventBridge', 'deleteEventBus', { Name: name });
 }
 
+function describeEventBus(name) {
+  return awsRequest('EventBridge', 'describeEventBus', { Name: name });
+}
+
 function putEvents(EventBusName, Entries) {
   Entries.map(entry => (entry.EventBusName = EventBusName));
   const params = {
@@ -21,5 +25,6 @@ function putEvents(EventBusName, Entries) {
 module.exports = {
   createEventBus,
   deleteEventBus,
+  describeEventBus,
   putEvents,
 };
