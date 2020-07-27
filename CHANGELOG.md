@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.77.0](https://github.com/serverless/serverless/compare/v1.76.1...v1.77.0) (2020-07-27)
+
+### Features
+
+- **Templates:** Add `aws-kotlin-jvm-gradle-kts` template ([#7992](https://github.com/serverless/serverless/issues/7992)) ([4727216](https://github.com/serverless/serverless/commit/4727216760e16d5a11402f74fdcf38c70a8634be)) ([Diego Marzo](https://github.com/diegomarzo))
+
+### Bug Fixes
+
+- **Standalone:** Ensure local invocation wrappers are accessible ([#7982](https://github.com/serverless/serverless/issues/7982)) ([527233d](https://github.com/serverless/serverless/commit/527233d2637977544169e6799d9359c86425de18)) ([Mariusz Nowak](https://github.com/medikoo))
+- Fix aws-sdk workaround ([#7984](https://github.com/serverless/serverless/issues/7984)) ([de38640](https://github.com/serverless/serverless/commit/de386405b206d3ebace105992e9c7eb7ad6d7f94)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Templates:** Add aws-lambda-java-events support to Java ([#7986](https://github.com/serverless/serverless/issues/7986)) ([ab99b65](https://github.com/serverless/serverless/commit/ab99b657a3c613b3e9ba072e084d159f5ac6c073)) ([Yuji Yamano](https://github.com/yyamano))
+- Recognize final DELETE_COMPLETE event with verbose flag ([#7979](https://github.com/serverless/serverless/issues/7979)) ([e980625](https://github.com/serverless/serverless/commit/e980625f586f55da4559b362a9dcd7275e9001bb)) ([devops hipster in training.](https://github.com/herebebogans))
+- **AWS API Gateway:** Ensure correct type for StatusCode property ([#7977](https://github.com/serverless/serverless/issues/7977)) ([d0edb5d](https://github.com/serverless/serverless/commit/d0edb5d85991bd6563610c768da80e0791735bc8)) ([Lucas Astrada](https://github.com/Undre4m))
+
+### Maintanance Improvements
+
+- Seclude generic version artifacts handlers ([c872c14](https://github.com/serverless/serverless/commit/c872c143ba11f58fdc0f77420437f4a6e6205464))
+- **AWS Local Invocation:** Seclude runtime wrapping logic ([50bfd22](https://github.com/serverless/serverless/commit/50bfd22096a0d3be58a5e2bac28c17325e2ba9df))
+
 ### [1.76.1](https://github.com/serverless/serverless/compare/v1.76.0...v1.76.1) (2020-07-23)
 
 ### Bug Fixes
