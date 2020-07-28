@@ -470,7 +470,9 @@ functions:
     tracing: PassThrough
 ```
 
-## Destinations
+## Asynchronous invocation
+
+### Destinations
 
 When intention is to invoke function asynchronously you may want to configure [destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations) for it.
 
@@ -485,7 +487,7 @@ functions:
       onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
 ```
 
-## Maximum Event Age and Maximum Retry Attempts for Asynchronous Invocations
+### Maximum Event Age and Maximum Retry Attempts for Asynchronous Invocations
 
 When intention is to invoke function asynchronously you may want to configure `maximumRetryAttempts` and/or `maximumEventAge` for it.
 
