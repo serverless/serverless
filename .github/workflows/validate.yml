@@ -5,6 +5,9 @@ name: Validate
 on:
   pull_request:
     branches: [master]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
 
 env:
   SLS_IGNORE_WARNING: '*'
