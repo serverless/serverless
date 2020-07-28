@@ -21,7 +21,7 @@ Check documentation of `runServerless` at [@serverless/test/docs/run-serverless]
 
 - [Run against config passed inline](https://github.com/serverless/serverless/blob/73107822945a878abbdebe2309e8e9d87cc2858a/lib/plugins/aws/package/lib/generateCoreTemplate.test.js#L11-L14)
 - [Run against preprepared fixture](https://github.com/serverless/serverless/blob/73107822945a878abbdebe2309e8e9d87cc2858a/lib/plugins/aws/package/compile/functions/index.test.js#L2629-L2632)
-  - Fixtures can be [extended](https://github.com/serverless/serverless/blob/4c2a52d1bf8fdb15683c09a8db800aa0e5842950/lib/plugins/aws/package/compile/events/httpApi/index.test.js#L119) on spot.
+  - Fixtures can be [extended](https://github.com/serverless/serverless/blob/4c2a52d1bf8fdb15683c09a8db800aa0e5842950/lib/plugins/aws/package/compile/events/httpApi/index.test.js#L119) on spot. Whenever possible it's better to extend existing fixture (e.g. basic `function`) instead of creating new one (check [ALB health check tests](https://github.com/serverless/serverless/blob/04d463f4e438d02fef958fce34677a06645fee82/lib/plugins/aws/package/compile/events/alb/lib/healthCheck.test.js) for good example on such approach)
   - If needed introduce new test fixtures at [tests/fixtures](./fixtures)
 
 Example of test files fully backed by `runServerless`:
