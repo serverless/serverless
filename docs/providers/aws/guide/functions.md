@@ -470,9 +470,13 @@ functions:
     tracing: PassThrough
 ```
 
-## Destinations
+## Asynchronous invocation
 
-When intention is to invoke function asynchronously you may want to configure [destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations) for it.
+When intention is to invoke function asynchronously you may want to configure following additional settings:
+
+### Destinations
+
+[destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations)
 
 Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN
 
@@ -483,4 +487,17 @@ functions:
     destinations:
       onSuccess: otherFunctionInService
       onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
+```
+
+### Maximum Event Age and Maximum Retry Attempts
+
+`maximumEventAge` accepts values between 60 seconds and 6 hours, provided in seconds.
+`maximumRetryAttempts` accepts values between 0 and 2.
+
+```yml
+functions:
+  asyncHello:
+    handler: handler.asyncHello
+    maximumEventAge: 7200
+    maximumRetryAttempts: 1
 ```
