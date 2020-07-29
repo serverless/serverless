@@ -52,7 +52,7 @@ Ideally any feature that integrates with AWS functionality should be backed by i
 
 Check existing set of AWS integration tests at [tests/integration-all](./integration-all)
 
-### Runing specific integration test
+### Running specific integration test
 
 Pass test file to Mocha directly as follows
 
