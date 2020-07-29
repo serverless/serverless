@@ -15,6 +15,7 @@ module.exports = {
         'AWS CloudFormation',
         'AWS CloudFront',
         'AWS Cognito',
+        'AWS Credentials',
         'AWS Deploy',
         'AWS EventBridge',
         'AWS HTTP API',

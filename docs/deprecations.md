@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="AWS_FUNCTION_DESTINATIONS_ASYNC_CONFIG"><div>&nbsp;</div></a>
+
+## AWS Lambda Function Destinations `maximumEventAge` & `maximumRetryAttempts`
+
+`maximumEventAge` and `maximumRetryAttempts` should be defined directly at function level. Support for those settings on `destinations` level, will be removed with v2.0.0
+
 <a name="AWS_HTTP_API_VERSION"><div>&nbsp;</div></a>
 
 ## AWS HTTP API payload format
