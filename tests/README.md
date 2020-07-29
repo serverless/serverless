@@ -40,7 +40,7 @@ During development, you can easily check coverage by running `npm run coverage`,
 
 ## AWS Integration tests
 
-Run via:
+Run all tests via:
 
 ```
 AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npm run integration-test-run-all
@@ -51,6 +51,14 @@ _Note: Home folder is mocked for test run, therefore relying on `AWS_PROFILE` wo
 Ideally any feature that integrates with AWS functionality should be backed by integration test.
 
 Check existing set of AWS integration tests at [tests/integration-all](./integration-all)
+
+### Runing specific integration test
+
+Pass test file to Mocha directly as follows
+
+```
+AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha tests/integration-all/{chosen-test}/tests.js
+```
 
 ## Testing templates
 
