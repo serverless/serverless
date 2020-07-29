@@ -1,0 +1,39 @@
+{
+  "context": {},
+  "event": {
+    "Records": [
+      {
+        "messageId": "EXAMPLE-MESSAGE-ID-1",
+        "receiptHandle": "EXAMPLE-RECEIPT-HANDLE-1",
+        "body": "Hello!",
+        "attributes": {
+          "ApproximateReceiveCount": "1",
+          "SentTimestamp": "1595128419",
+          "SenderId": "EXAMPLESENDERID1",
+          "ApproximateFirstReceiveTimestamp": "1595128419"
+        },
+        "messageAttributes": {},
+        "md5OfBody": "43cf6bed092184ac7478f5ab0f4c1c47",
+        "eventSource": "aws:sqs",
+        "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:my-queue",
+        "awsRegion": "ap-northeast-1"
+      },
+      {
+        "messageId": "EXAMPLE-MESSAGE-ID-2",
+        "receiptHandle": "EXAMPLE-RECEIPT-HANDLE-1",
+        "body": "Hello!",
+        "attributes": {
+          "ApproximateReceiveCount": "1",
+          "SentTimestamp": "1595128420",
+          "SenderId": "EXAMPLESENDERID2",
+          "ApproximateFirstReceiveTimestamp": "1595128420"
+        },
+        "messageAttributes": {},
+        "md5OfBody": "43cf6bed092184ac7478f5ab0f4c1c47",
+        "eventSource": "aws:sqs",
+        "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:my-queue",
+        "awsRegion": "ap-northeast-1"
+      }
+    ]
+  }
+}

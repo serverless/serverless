@@ -83,7 +83,7 @@ npm update -g serverless
 
 ## Set up your free Pro account
 
-Learn more about [Serverless Framework Pro](https://serverless.com/pro/) and [sign up for free](https://dashboard.serverless.com).
+Learn more about [Serverless Framework Pro](https://serverless.com/pro/) and [sign up for free](https://app.serverless.com).
 
 Once you’ve signed up for Pro, login to your Pro dashboard from the CLI:
 

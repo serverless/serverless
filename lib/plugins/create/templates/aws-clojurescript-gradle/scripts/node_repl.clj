@@ -9,7 +9,7 @@
                        :optimizations :none,
                        :target :nodejs,
                        :verbose true
-                       :npm-deps {"moment" "2.22.2"}})
+                       :npm-deps {"dayjs" "1.8.17"}})
 
 (cljs.repl/repl (cljs.repl.node/repl-env)
                 :watch "src"

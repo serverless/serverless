@@ -1,0 +1,60 @@
+{
+  "context": {},
+  "event": {
+    "resource": "/",
+    "path": "/",
+    "httpMethod": "POST",
+    "headers": {
+      "Accept": "application/json",
+      "Accept-Encoding": "gzip, deflate",
+      "cache-control": "max-age=0",
+      "CloudFront-Forwarded-Proto": "https",
+      "CloudFront-Is-Desktop-Viewer": "true",
+      "CloudFront-Is-Mobile-Viewer": "false",
+      "CloudFront-Is-SmartTV-Viewer": "false",
+      "CloudFront-Is-Tablet-Viewer": "false",
+      "CloudFront-Viewer-Country": "JP",
+      "content-type": "application/json",
+      "Host": "MYHOST.execute-api.ap-northeast-1.amazonaws.com",
+      "origin": "https://MYHOST.execute-api.ap-northeast-1.amazonaws.com",
+      "Referer": "https://MYHOST.execute-api.ap-northeast-1.amazonaws.com/dev/",
+      "upgrade-insecure-requests": "1",
+      "User-Agent": "curl/7.64.1",
+      "Via": "2.0 MYCFHOST.cloudfront.net (CloudFront)",
+      "X-Amz-Cf-Id": "EXAMPLEAMZCFID",
+      "X-Amzn-Trace-Id": "Root=EXAMPLE-AMZN-TRACE-ID",
+      "X-Forwarded-For": "192.168.1.1, 172.16.0.1",
+      "X-Forwarded-Port": "443",
+      "X-Forwarded-Proto": "https"
+    },
+    "queryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+      "path": "/dev/",
+      "accountId": "EXAMPLEACCOUNTID",
+      "resourceId": "EXAMPLERESOURCEID",
+      "stage": "dev",
+      "requestId": "EXAMPLE-REQUEST-ID-",
+      "identity": {
+        "cognitoIdentityPoolId": null,
+        "accountId": null,
+        "cognitoIdentityId": null,
+        "caller": null,
+        "apiKey": "",
+        "sourceIp": "10.0.0.1",
+        "accessKey": null,
+        "cognitoAuthenticationType": null,
+        "cognitoAuthenticationProvider": null,
+        "userArn": null,
+        "userAgent": "curl/7.64.1",
+        "user": null
+      },
+      "resourcePath": "/",
+      "httpMethod": "POST",
+      "apiId": "EXAMPLE-API-ID"
+    },
+    "body": "{\"message\": \"hello\"}",
+    "isBase64Encoded": false
+  }
+}

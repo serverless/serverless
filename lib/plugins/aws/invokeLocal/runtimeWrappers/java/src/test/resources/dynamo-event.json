@@ -1,0 +1,67 @@
+{
+  "context": {},
+  "event": {
+    "Records": [
+      {
+        "eventID": "EXAMPLEEVENTID1",
+        "eventVersion": "1.0",
+        "dynamodb": {
+          "Keys": {
+            "Id": {
+              "N": "100"
+            }
+          },
+          "NewImage": {
+            "Message": {
+              "S": "Hello!"
+            },
+            "Id": {
+              "N": "100"
+            }
+          },
+          "StreamViewType": "NEW_AND_OLD_IMAGES",
+          "SequenceNumber": "101",
+          "SizeBytes": 26
+        },
+        "awsRegion": "ap-northeast-1",
+        "eventName": "INSERT",
+        "eventSourceARN": "eventsourcearn",
+        "eventSource": "aws:dynamodb"
+      },
+      {
+        "eventID": "EXAMPLEEVENTID2",
+        "eventVersion": "1.0",
+        "dynamodb": {
+          "OldImage": {
+            "Message": {
+              "S": "Hello!"
+            },
+            "Id": {
+              "N": "100"
+            }
+          },
+          "SequenceNumber": "201",
+          "Keys": {
+            "Id": {
+              "N": "100"
+            }
+          },
+          "SizeBytes": 59,
+          "NewImage": {
+            "Message": {
+              "S": "Hello World!"
+            },
+            "Id": {
+              "N": "100"
+            }
+          },
+          "StreamViewType": "NEW_AND_OLD_IMAGES"
+        },
+        "awsRegion": "ap-northeast-1",
+        "eventName": "MODIFY",
+        "eventSourceARN": "sourcearn",
+        "eventSource": "aws:dynamodb"
+      }
+    ]
+  }
+}
