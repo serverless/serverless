@@ -44,6 +44,8 @@ dependencies {
     api("com.fasterxml.jackson.core:jackson-databind:2.11.0")
     api("com.fasterxml.jackson.core:jackson-annotations:2.11.0")
     api("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.0")
+
+    testImplementation(kotlin("test-junit"))
 }
 
 tasks.build {
