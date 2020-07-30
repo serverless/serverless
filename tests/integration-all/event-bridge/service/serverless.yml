@@ -13,6 +13,14 @@ functions:
           pattern:
             source:
               - serverless.test
+  eventBusDefaultArn:
+    handler: core.eventBusDefaultArn
+    events:
+      - eventBridge:
+          eventBus: CHANGE_TO_UNIQUE_PER_RUN
+          pattern:
+            source:
+              - serverless.test
   eventBusCustom:
     handler: core.eventBusCustom
     events:
