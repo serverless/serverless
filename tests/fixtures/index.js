@@ -3,6 +3,7 @@
 const path = require('path');
 const ensureString = require('type/string/ensure');
 const ensurePlainObject = require('type/plain-object/ensure');
+const BbPromise = require('bluebird');
 const fse = require('fs-extra');
 const { memoize, merge } = require('lodash');
 const { load: loadYaml, dump: saveYaml } = require('js-yaml');
@@ -35,26 +36,27 @@ module.exports = {
       },
     }
   ),
-  extend: (fixtureName, extConfig) => {
-    const baseFixturePath = path.join(__dirname, ensureString(fixtureName));
-    if (!isFixtureConfigured(baseFixturePath)) {
-      throw new Error(`No fixture configured at ${fixtureName}`);
-    }
-    ensurePlainObject(extConfig);
-    return provisionTmpDir().then(fixturePath => {
-      return Promise.all([
-        fse.readFile(path.join(baseFixturePath, 'serverless.yml')),
-        fse.copy(baseFixturePath, fixturePath),
-      ])
-        .then(([yamlConfig]) =>
-          fse.writeFile(
-            path.join(fixturePath, 'serverless.yml'),
-            saveYaml(merge(loadYaml(yamlConfig), extConfig))
+  extend: (fixtureName, extConfig) =>
+    BbPromise.try(() => {
+      const baseFixturePath = path.join(__dirname, ensureString(fixtureName));
+      if (!isFixtureConfigured(baseFixturePath)) {
+        throw new Error(`No fixture configured at ${fixtureName}`);
+      }
+      ensurePlainObject(extConfig);
+      return provisionTmpDir().then(fixturePath => {
+        return Promise.all([
+          fse.readFile(path.join(baseFixturePath, 'serverless.yml')),
+          fse.copy(baseFixturePath, fixturePath),
+        ])
+          .then(([yamlConfig]) =>
+            fse.writeFile(
+              path.join(fixturePath, 'serverless.yml'),
+              saveYaml(merge(loadYaml(yamlConfig), extConfig))
+            )
           )
-        )
-        .then(() => fixturePath);
-    });
-  },
+          .then(() => fixturePath);
+      });
+    }),
   cleanup: (options = {}) =>
     Promise.all(
       Array.from(retrievedFixturesPaths, fixturePath => {
