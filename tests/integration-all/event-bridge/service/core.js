@@ -10,6 +10,12 @@ function eventBusDefault(event, context, callback) {
   return callback(null, event);
 }
 
+function eventBusDefaultArn(event, context, callback) {
+  const functionName = 'eventBusDefaultArn';
+  log(functionName, JSON.stringify(event));
+  return callback(null, event);
+}
+
 function eventBusCustom(event, context, callback) {
   const functionName = 'eventBusCustom';
   log(functionName, JSON.stringify(event));
@@ -22,4 +28,4 @@ function eventBusArn(event, context, callback) {
   return callback(null, event);
 }
 
-module.exports = { eventBusDefault, eventBusCustom, eventBusArn };
+module.exports = { eventBusDefault, eventBusDefaultArn, eventBusCustom, eventBusArn };
