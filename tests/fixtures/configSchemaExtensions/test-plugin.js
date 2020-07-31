@@ -27,7 +27,7 @@ class TestPlugin {
       additionalProperties: false,
     });
 
-    serverless.configSchemaHandler.defineTopLevelProperty('app', {
+    serverless.configSchemaHandler.defineTopLevelProperty('top', {
       type: 'string',
     });
   }
