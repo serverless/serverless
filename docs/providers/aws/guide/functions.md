@@ -501,3 +501,25 @@ functions:
     maximumEventAge: 7200
     maximumRetryAttempts: 1
 ```
+
+## EFS Configuration
+
+You can add EFS configuration to specific function in `serverless.yml` by adding a `fileSystemConfig` property in the function configuration. It should be a list of objects that contain the `arn` and `localMountPath` properties. The `arn` property should reference an existing EFS Access Point, where the `localMountPath` should specifiy the absolute path under which the file system will be mounted. Currently, you can specify at most one `fileSystemConfig`. Here's an example configuration:
+
+```yml
+# serverless.yml
+service: service-name
+provider: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    fileSystemConfigs:
+      - localMountPath: /mnt/example
+        arn: arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-0d0d0d0d0d0d0d0d0
+    vpc:
+      securityGroupIds:
+        - securityGroupId1
+      subnetIds:
+        - subnetId1
+```
