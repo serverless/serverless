@@ -480,6 +480,8 @@ functions:
             CustomOriginConfig:
               OriginProtocolPolicy: match-viewer
 
+configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
+
 layers:
   hello: # A Lambda layer
     path: layer-dir # required, path to layer contents on disk

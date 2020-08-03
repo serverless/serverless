@@ -1,0 +1,19 @@
+service: configSchemaExtensions
+
+provider:
+  name: someProvider
+
+plugins:
+  - ./test-plugin
+
+configValidationMode: error
+
+custom:
+  someCustomStringProp: can-be-string
+
+functions:
+  someFunction:
+    events:
+      - someEvent:
+          someRequiredStringProp: some string
+          someNumberProp: 123
