@@ -63,13 +63,12 @@ describe('AWS - Cognito User Pool Integration Test', function() {
     };
     // NOTE: deployment can only be done once the Cognito User Pools are created
     console.info('Creating Cognito User Pools');
-    return BbPromise.all([
+    await BbPromise.all([
       createUserPool(poolExistingSimpleSetup, poolExistingSimpleSetupConfig),
       createUserPool(poolExistingMultiSetup),
-    ]).then(() => {
-      console.info(`Deploying "${stackName}" service...`);
-      return deployService(tmpDirPath);
-    });
+    ]);
+    console.info(`Deploying "${stackName}" service...`);
+    return deployService(tmpDirPath);
   });
 
   after(async function() {
@@ -85,85 +84,75 @@ describe('AWS - Cognito User Pool Integration Test', function() {
   });
 
   describe('Basic Setup', () => {
-    it('should invoke function when a user is created', () => {
-      let userPoolId;
+    it('should invoke function when a user is created', async () => {
       const functionName = 'basic';
       const markers = getMarkers(functionName);
 
-      return findUserPoolByName(poolBasicSetup)
-        .then(pool => {
-          userPoolId = pool.Id;
-          return createUser(userPoolId, 'johndoe', '!!!wAsD123456wAsD!!!');
-        })
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-        .then(logs => {
-          expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
-          expect(logs).to.include('"userName":"johndoe"');
-          expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
-        });
+      const { Id: userPoolId } = await findUserPoolByName(poolBasicSetup);
+      await createUser(userPoolId, 'johndoe', '!!!wAsD123456wAsD!!!');
+      const logs = await waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end);
+      expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
+      expect(logs).to.include('"userName":"johndoe"');
+      expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
     });
   });
 
   describe('Existing Setup', () => {
     describe('single function / single pool setup', () => {
-      it('should invoke function when a user is created', () => {
-        let userPoolId;
+      it('should invoke function when a user is created', async () => {
         const functionName = 'existingSimple';
         const markers = getMarkers(functionName);
 
-        return findUserPoolByName(poolExistingSimpleSetup)
-          .then(pool => {
-            userPoolId = pool.Id;
-            return createUser(userPoolId, 'janedoe', '!!!wAsD123456wAsD!!!');
-          })
-          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-          .then(logs => {
-            expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
-            expect(logs).to.include('"userName":"janedoe"');
-            expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
-          });
+        const { Id: userPoolId } = await findUserPoolByName(poolExistingSimpleSetup);
+        await createUser(userPoolId, 'janedoe', '!!!wAsD123456wAsD!!!');
+
+        const logs = await waitForFunctionLogs(
+          tmpDirPath,
+          functionName,
+          markers.start,
+          markers.end
+        );
+        expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
+        expect(logs).to.include('"userName":"janedoe"');
+        expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
       });
 
-      it('should not overwrite existing User Pool configurations', () => {
-        return findUserPoolByName(poolExistingSimpleSetup).then(pool => {
-          return describeUserPool(pool.Id).then(config => {
-            expect(config.UserPool.EmailVerificationMessage).to.equal(
-              poolExistingSimpleSetupConfig.EmailVerificationMessage
-            );
-            expect(config.UserPool.EmailVerificationSubject).to.equal(
-              poolExistingSimpleSetupConfig.EmailVerificationSubject
-            );
-          });
-        });
+      it('should not overwrite existing User Pool configurations', async () => {
+        const { Id: userPoolId } = await findUserPoolByName(poolExistingSimpleSetup);
+        const config = await describeUserPool(userPoolId);
+        expect(config.UserPool.EmailVerificationMessage).to.equal(
+          poolExistingSimpleSetupConfig.EmailVerificationMessage
+        );
+        expect(config.UserPool.EmailVerificationSubject).to.equal(
+          poolExistingSimpleSetupConfig.EmailVerificationSubject
+        );
       });
     });
 
     describe('single function / multi pool setup', () => {
-      it('should invoke function when a user inits auth after being created', () => {
-        let userPoolId;
-        let clientId;
+      it('should invoke function when a user inits auth after being created', async () => {
         const functionName = 'existingMulti';
         const markers = getMarkers(functionName);
         const username = 'janedoe';
         const password = '!!!wAsD123456wAsD!!!';
 
-        return findUserPoolByName(poolExistingMultiSetup)
-          .then(pool => {
-            userPoolId = pool.Id;
-            return createUserPoolClient('myClient', userPoolId).then(client => {
-              clientId = client.UserPoolClient.ClientId;
-              return createUser(userPoolId, username, password)
-                .then(() => setUserPassword(userPoolId, username, password))
-                .then(() => initiateAuth(clientId, username, password));
-            });
-          })
-          .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
-          .then(logs => {
-            expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
-            expect(logs).to.include(`"userName":"${username}"`);
-            expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
-            expect(logs).to.include('"triggerSource":"PreAuthentication_Authentication"');
-          });
+        const { Id: userPoolId } = await findUserPoolByName(poolExistingMultiSetup);
+        const client = await createUserPoolClient('myClient', userPoolId);
+        const clientId = client.UserPoolClient.ClientId;
+        await createUser(userPoolId, username, password);
+        await setUserPassword(userPoolId, username, password);
+        await initiateAuth(clientId, username, password);
+
+        const logs = await waitForFunctionLogs(
+          tmpDirPath,
+          functionName,
+          markers.start,
+          markers.end
+        );
+        expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
+        expect(logs).to.include(`"userName":"${username}"`);
+        expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
+        expect(logs).to.include('"triggerSource":"PreAuthentication_Authentication"');
       });
     });
   });
