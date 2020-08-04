@@ -32,6 +32,7 @@ module.exports = {
         'AWS Websocket',
         'CLI',
         'Components',
+        'Config Schema',
         'Plugins',
         'Standalone',
         'Templates',
