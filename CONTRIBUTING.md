@@ -30,6 +30,8 @@ There are just few situations (listed below) in which it is fine to submit PR wi
 
 In all other cases please check if there's an open an issue discussing given proposal, if there is not, create an issue respecting all its template remarks.
 
+In non trivial cases please propose and let us review an implementation spec (in corresponding issue) before jumping into implementation.
+
 Do not submit draft PR's. Submit only finalized work which is ready for merge. If you have any doubts related to implementation work please discuss in corresponding issue.
 
 Once PR was reviewed and some changes were suggested, please ensure to re-request review after all new changes were pushed. It's the best, noiseless way to inform maintainers that your work is ready to be checked again
