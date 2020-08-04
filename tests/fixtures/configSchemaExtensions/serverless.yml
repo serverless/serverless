@@ -1,5 +1,9 @@
 service: configSchemaExtensions
 
+frameworkVersion: ^1.70.0
+disabledDeprecations:
+  - SOME_DEP_ERROR
+
 provider:
   name: someProvider
 
