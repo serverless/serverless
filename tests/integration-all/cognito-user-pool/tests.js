@@ -16,13 +16,8 @@ const {
   setUserPassword,
   initiateAuth,
 } = require('../../utils/cognito');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  waitForFunctionLogs,
-} = require('../../utils/integration');
-const { getMarkers } = require('../shared/utils');
+const { createTestService, deployService, removeService } = require('../../utils/integration');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 
 describe('AWS - Cognito User Pool Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
@@ -86,11 +81,14 @@ describe('AWS - Cognito User Pool Integration Test', function() {
   describe('Basic Setup', () => {
     it('should invoke function when a user is created', async () => {
       const functionName = 'basic';
-      const markers = getMarkers(functionName);
 
       const { Id: userPoolId } = await findUserPoolByName(poolBasicSetup);
       await createUser(userPoolId, 'johndoe', '!!!wAsD123456wAsD!!!');
-      const logs = await waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end);
+      const events = await confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        async () => {}
+      );
+      const logs = events.reduce((data, event) => data + event.message, '');
       expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
       expect(logs).to.include('"userName":"johndoe"');
       expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
@@ -101,17 +99,15 @@ describe('AWS - Cognito User Pool Integration Test', function() {
     describe('single function / single pool setup', () => {
       it('should invoke function when a user is created', async () => {
         const functionName = 'existingSimple';
-        const markers = getMarkers(functionName);
 
         const { Id: userPoolId } = await findUserPoolByName(poolExistingSimpleSetup);
         await createUser(userPoolId, 'janedoe', '!!!wAsD123456wAsD!!!');
-
-        const logs = await waitForFunctionLogs(
-          tmpDirPath,
-          functionName,
-          markers.start,
-          markers.end
+        const events = await confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          async () => {}
         );
+        const logs = events.reduce((data, event) => data + event.message, '');
+
         expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
         expect(logs).to.include('"userName":"janedoe"');
         expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
@@ -132,7 +128,6 @@ describe('AWS - Cognito User Pool Integration Test', function() {
     describe('single function / multi pool setup', () => {
       it('should invoke function when a user inits auth after being created', async () => {
         const functionName = 'existingMulti';
-        const markers = getMarkers(functionName);
         const username = 'janedoe';
         const password = '!!!wAsD123456wAsD!!!';
 
@@ -142,13 +137,18 @@ describe('AWS - Cognito User Pool Integration Test', function() {
         await createUser(userPoolId, username, password);
         await setUserPassword(userPoolId, username, password);
         await initiateAuth(clientId, username, password);
-
-        const logs = await waitForFunctionLogs(
-          tmpDirPath,
-          functionName,
-          markers.start,
-          markers.end
+        const events = await confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          async () => {},
+          {
+            checkIsComplete: soFarEvents =>
+              soFarEvents
+                .reduce((data, event) => data + event.message, '')
+                .includes('PreAuthentication_Authentication'),
+          }
         );
+        const logs = events.reduce((data, event) => data + event.message, '');
+
         expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
         expect(logs).to.include(`"userName":"${username}"`);
         expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
