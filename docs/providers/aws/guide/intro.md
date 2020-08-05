@@ -137,7 +137,7 @@ _serverless.ts_
 
 ```ts
 // Requiring @types/serverless in your project package.json
-import { Serverless } from 'serverless/plugins/aws/provider/awsProvider';
+import type { Serverless } from 'serverless/aws';
 
 const serverlessConfiguration: Serverless = {
   service: 'users',
