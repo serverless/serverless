@@ -33,6 +33,7 @@ module.exports = {
         'CLI',
         'Components',
         'Config Schema',
+        'Dashboard',
         'Plugins',
         'Standalone',
         'Templates',
