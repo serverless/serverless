@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { expect } = require('chai');
+const hasFailed = require('@serverless/test/has-failed');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../../utils/sqs');
@@ -40,7 +41,8 @@ describe('AWS - SQS Integration Test', function() {
     });
   });
 
-  after(async () => {
+  after(async function() {
+    if (hasFailed(this.test.parent)) return null;
     console.info('Removing service...');
     await removeService(tmpDirPath);
     console.info('Deleting SQS queue');
