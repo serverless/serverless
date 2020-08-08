@@ -61,11 +61,11 @@ The Serverless Framework not only deploys your Functions and the Events that tri
 
 ### Services
 
-A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions, the Events that trigger them, and the Resources your Functions use, all in one file entitled `serverless.yml` (or `serverless.json` or `serverless.js` or `serverless.ts`). It looks like this:
+A **Service** is the Framework's unit of organization. You can think of it as a project file, though you can have multiple services for a single application. It's where you define your Functions, the Events that trigger them, and the Resources your Functions use. A service can be described in YAML or JSON format, using respectively a file named `serverless.yml` or `serverless.json` at the root directory of the project. It looks like this:
+
+_serverless.yml_
 
 ```yml
-# serverless.yml
-
 service: users
 
 functions: # Your "Functions"
@@ -79,7 +79,93 @@ functions: # Your "Functions"
 resources: # The "Resources" your "Functions" use.  Raw AWS CloudFormation goes in here.
 ```
 
-When you deploy with the Framework by running `serverless deploy`, everything in `serverless.yml` is deployed at once.
+_serverless.json_
+
+```json
+{
+  "service": "users",
+  "functions": {
+    "usersCreate": {
+      "events": [
+        {
+          "http": "post users/create"
+        }
+      ]
+    },
+    "usersDelete": {
+      "events": [
+        {
+          "http": "delete users/delete"
+        }
+      ]
+    }
+  },
+  "resources": {}
+}
+```
+
+The Framework also handles natively exporting JSON object from a Javascript file `serverless.js` or from a Typescript file `serverless.ts` at the root directory of the project. While the Framework is language-agnostic, projects written in Node.js will highly benefit from using the same language for the service definition file. Such service file looks like this:
+
+_serverless.js_
+
+```js
+'use strict';
+
+module.exports = {
+  service: 'users',
+  functions: {
+    usersCreate: {
+      events: [
+        {
+          http: 'post users/create',
+        },
+      ],
+    },
+    usersDelete: {
+      events: [
+        {
+          http: 'delete users/delete',
+        },
+      ],
+    },
+  },
+  resources: {},
+};
+```
+
+_serverless.ts_
+
+```ts
+// Requiring @types/serverless in your project package.json
+import type { Serverless } from 'serverless/aws';
+
+const serverlessConfiguration: Serverless = {
+  service: 'users',
+  functions: {
+    usersCreate: {
+      events: [
+        {
+          http: 'post users/create',
+        },
+      ],
+    },
+    usersDelete: {
+      events: [
+        {
+          http: 'delete users/delete',
+        },
+      ],
+    },
+  },
+  resources: {},
+};
+
+module.exports = serverlessConfiguration;
+```
+
+When you deploy with the Framework by running `serverless deploy`, everything in the service configuration file is deployed at once.
+
+> For the sake of simplicity, most code snippet detailed in this documentation only refer to the `serverless.yml` YAML service file format. However, all functionalities work as well in the other available service file formats.
 
 ### Plugins
 
