@@ -49,6 +49,7 @@
     "globby": "^9.2.0",
     "graceful-fs": "^4.2.4",
     "https-proxy-agent": "^5.0.0",
+    "interpret": "^2.2.0",
     "is-docker": "^1.1.0",
     "is-wsl": "^2.2.0",
     "js-yaml": "^3.14.0",
