@@ -287,12 +287,13 @@ functions:
               paths:
                 paramName: true # mark path parameter as required
               headers:
-                headerName: true # mark header required
+                headerName: true # mark header as required
                 custom-header: # Optional add a new header to the request
                   required: true
                   mappedValue: context.requestId # map the header to a static value or integration request variable
               querystrings:
-                paramName: true # mark query string
+                paramName: true # mark query string as required
+                anotherParamName: false # mark query string as optional
             schema: # Optional request schema validation; mapped by content type
               application/json: ${file(create_request.json)} # define the valid JSON Schema for a content-type
             template: # Optional custom request mapping templates that overwrite default templates
