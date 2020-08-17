@@ -12,7 +12,7 @@ on:
 env:
   SLS_IGNORE_WARNING: '*'
   FORCE_COLOR: 1
-  NOT_ALL_MD: ${{ ./.github/verify_md_only_change.sh }}
+  NOT_ALL_MD: ${{ bash ./.github/verify_md_only_change.sh || false }}
 
 jobs:
   linuxNode14:
