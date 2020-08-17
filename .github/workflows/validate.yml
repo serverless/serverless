@@ -5,16 +5,22 @@ name: Validate
 on:
   pull_request:
     branches: [master]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
 
 env:
   SLS_IGNORE_WARNING: '*'
   FORCE_COLOR: 1
-  NOT_ALL_MD: ${{ bash ./.github/verify_md_only_change.sh || false }}
+  NOT_ALL_MD: ${{ needs.more_than_md.outputs.NOT_ALL_MD }}
+  # : ${{ bash ./.github/verify_md_only_change.sh || false }}
 
 jobs:
+  more_than_md:
+    runs-on: ubuntu-latest
+    outputs:
+      NOT_ALL_MD: ${{ steps.verify.outputs.NOT_ALL_MD}}
+    steps:
+      - id: verify
+        run: ./.github/verify_md_only_change.sh; echo "::set-output name=NOT_ALL_MD::$?"
+
   linuxNode14:
     name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Eventual Changelog & Unit tests'
     runs-on: ubuntu-latest
