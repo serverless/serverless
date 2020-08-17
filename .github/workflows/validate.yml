@@ -9,8 +9,6 @@ on:
 env:
   SLS_IGNORE_WARNING: '*'
   FORCE_COLOR: 1
-  NOT_ALL_MD: ${{ needs.more_than_md.outputs.NOT_ALL_MD }}
-  # : ${{ bash ./.github/verify_md_only_change.sh || false }}
 
 jobs:
   more_than_md:
@@ -18,12 +16,17 @@ jobs:
     outputs:
       NOT_ALL_MD: ${{ steps.verify.outputs.NOT_ALL_MD}}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        run: |
+          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
       - id: verify
         run: ./.github/verify_md_only_change.sh; echo "::set-output name=NOT_ALL_MD::$?"
 
   linuxNode14:
     name: '[Linux] Node.js 14: Lint, Formatting, Eventual Commitlint, Eventual Changelog & Unit tests'
     runs-on: ubuntu-latest
+    needs: more_than_md
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -85,7 +88,7 @@ jobs:
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm test -- -b"
-        if: ${{ $NOT_ALL_MD }}
+        if: ${{ needs.more_than_md.outputs.NOT_ALL_MD }}
 
   windowsNode14:
     name: '[Windows] Node.js v14: Unit tests'
@@ -124,12 +127,12 @@ jobs:
           npm update --save-dev --no-save
       - name: Unit tests
         run: npm test -- -b
-        if: ${{ $NOT_ALL_MD }}
+        # if: ${{ $NOT_ALL_MD }}
 
   linuxNode12:
     name: '[Linux] Node.js 12: Isolated unit tests'
     runs-on: ubuntu-latest
-    if: ${{ $NOT_ALL_MD }}
+    # if: ${{ $NOT_ALL_MD }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -170,7 +173,7 @@ jobs:
   linuxNode10:
     name: '[Linux] Node.js v10: Unit tests with coverage'
     runs-on: ubuntu-latest
-    if: ${{ $NOT_ALL_MD }}
+    # if: ${{ $NOT_ALL_MD }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -217,7 +220,7 @@ jobs:
   linuxNode8:
     name: '[Linux] Node.js v8: Unit & packaging tests'
     runs-on: ubuntu-latest
-    if: ${{ $NOT_ALL_MD }}
+    # if: ${{ $NOT_ALL_MD }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -260,7 +263,7 @@ jobs:
   linuxNode6:
     name: '[Linux] Node.js v6: Unit tests'
     runs-on: ubuntu-latest
-    if: ${{ $NOT_ALL_MD }}
+    # if: ${{ $NOT_ALL_MD }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
