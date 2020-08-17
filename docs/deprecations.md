@@ -4,14 +4,13 @@ menuText: Deprecations
 layout: Doc
 -->
 
-
 # Serverless Framework Deprecations
 
 <a name="AWS_HTTP_API_TIMEOUT"><div>&nbsp;</div></a>
 
 ## AWS HTTP API payload format
-`provider.httpApi.timeout` is deprecated.HTTP API endpoints are configured to follow timeout setting as set for functions.(For more details see [http-api](https://www.serverless.com/framework/docs/providers/aws/events/http-api/))
 
+`provider.httpApi.timeout` is deprecated.HTTP API endpoints are configured to follow timeout setting as set for functions.(For more details see [http-api](https://www.serverless.com/framework/docs/providers/aws/events/http-api/))
 
 <a name="AWS_FUNCTION_DESTINATIONS_ASYNC_CONFIG"><div>&nbsp;</div></a>
 
