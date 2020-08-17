@@ -17,7 +17,7 @@
 set -eou pipefail
 
 
-CHANGED_FILES=`git diff --name-only origin/master HEAD`
+CHANGED_FILES=$(git diff --name-only origin/master HEAD)
 
 # No changes return error/false
 [[ -z $CHANGED_FILES ]] && exit 1
