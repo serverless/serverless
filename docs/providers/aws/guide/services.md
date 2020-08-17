@@ -71,6 +71,7 @@ Here are the available templates for AWS Lambda:
 - aws-fsharp
 - aws-go
 - aws-go-dep
+- aws-go-mod
 
 Check out the [create command docs](../cli-reference/create) for all the details and options.
 
