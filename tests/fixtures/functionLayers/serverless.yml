@@ -1,0 +1,16 @@
+service: service
+provider:
+  name: aws
+
+layers:
+  testLayer:
+    path: testLayer
+    description: 'test layer'
+
+functions:
+  foo:
+    handler: index.handler
+    layers:
+      - { '!Ref': 'TestLayerLambdaLayer' }
+  bar:
+    handler: index.handler
