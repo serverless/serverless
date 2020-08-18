@@ -1,4 +1,5 @@
 {
   "service": "json-service",
-  "provider": "json-provider"
+  "provider": "json-provider",
+  "configValidationMode": "error"
 }

@@ -3,6 +3,7 @@
 module.exports = {
   service: 'serverless-ts-service',
   provider: {
-    name: 'aws'
-  }
+    name: 'aws',
+  },
+  configValidationMode: 'error',
 };
