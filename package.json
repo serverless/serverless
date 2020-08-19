@@ -29,6 +29,7 @@
     "@serverless/inquirer": "^1.1.2",
     "@serverless/utils": "^1.2.0",
     "ajv": "^6.12.3",
+    "ajv-keywords": "^3.5.2",
     "archiver": "^3.1.1",
     "async": "^1.5.2",
     "aws-sdk": "^2.726.0",
