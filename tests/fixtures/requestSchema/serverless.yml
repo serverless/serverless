@@ -10,6 +10,10 @@ provider:
         schema: '${file(dummySchema.json)}'
       test-model-simple:
         schema: '${file(dummySchema.json)}'
+      unused-model:
+        name: 'UnusedModel'
+        description: 'I should not be created'
+        schema: '${file(dummySchema.json)}'
 
 functions:
   target:
@@ -20,6 +24,11 @@ functions:
           method: get
           requestSchema:
             application/json: test-model
+      - http:
+          path: testSimple
+          method: get
+          requestSchema:
+            application/json: test-model-simple
       - http:
           path: test2
           method: get
