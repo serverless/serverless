@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.79.0](https://github.com/serverless/serverless/compare/v1.78.1...v1.79.0) (2020-08-19)
+
+### Features
+
+- **Config Schema:**
+  - AWS HTTP API schema ([#8068](https://github.com/serverless/serverless/issues/8068)) ([f091c07](https://github.com/serverless/serverless/commit/f091c07992a414f2534c9de80caf76faf2744367)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+  - Schema for AWS API Gateway's `provider.resourcePolicy` ([#8051](https://github.com/serverless/serverless/issues/8051)) ([20d9c64](https://github.com/serverless/serverless/commit/20d9c6414af9a06e2479d203e62aa6427a80f87f)) ([Geoff Baskwill](https://github.com/glb))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Fix referencing provisioned authorizers ([#8059](https://github.com/serverless/serverless/issues/8059)) ([5a691f4](https://github.com/serverless/serverless/commit/5a691f44573180e1dd5a833aeae196b89a24b697)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS SQS:** Fix referencing lambdas with provisioned concurrency ([#8059](https://github.com/serverless/serverless/issues/8059)) ([2abb9ad](https://github.com/serverless/serverless/commit/2abb9ad8552d4edc77df5fe1c542373997443950)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Credentials:** Fix authentication error message resolution ([#8062](https://github.com/serverless/serverless/issues/8062)) ([2faa20e](https://github.com/serverless/serverless/commit/2faa20e8354d65eed767f88f52919e47edd32866)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Lambda:** Ensure to respect `maximumRetryAttempts` set to `0` ([#8048](https://github.com/serverless/serverless/issues/8048)) ([bab0d56](https://github.com/serverless/serverless/commit/bab0d56bd9be6ba1afe0eef352c8732dd7fe4f73)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:**
+  - Report configuration errors as warnings (so it's less confusing) ([#8101](https://github.com/serverless/serverless/issues/8101)) ([e1ee0dc](https://github.com/serverless/serverless/commit/e1ee0dc6f9cf03c872e65d1e258e1162e2d6071e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize catch-all pattern in `disabledDeprecations` property ([#8091](https://github.com/serverless/serverless/issues/8091)) ([c9ee6d5](https://github.com/serverless/serverless/commit/c9ee6d53b688561a154b55dc4fd4fca648ff2ab1)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Mark `help` as command that doesn't depend on external plugins ([#8056](https://github.com/serverless/serverless/issues/8056)) ([4660acd](https://github.com/serverless/serverless/commit/4660acd324cfa6c786245ea581691a23758ce960)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Dashboard:** Ensure service independent commands work unconditionally ([#8056](https://github.com/serverless/serverless/issues/8056)) ([d8a73b8](https://github.com/serverless/serverless/commit/d8a73b8326825b3020fa238057072c837d188d3c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Templates:**
+  - Ensure ES7+ support in `aws-nodejs-ecma-script` ([#8064](https://github.com/serverless/serverless/issues/8064)) ([e7efca4](https://github.com/serverless/serverless/commit/e7efca4b421f19b65d88b4bfe973ce5a9ab14d3c)) ([Sam Hulick](https://github.com/ffxsam))
+  - Fix `SystemTextJson` initialization in `aws-sharp` ([#8092](https://github.com/serverless/serverless/issues/8092)) ([0490e8b](https://github.com/serverless/serverless/commit/0490e8be2024cd705bbece379897381b88f87148)) ([Matt Davis](https://github.com/mattsonlyattack))
+- **Variabless:** Show promises resolution status less frequently (to not interfere with eventual MFA input) ([#8062](https://github.com/serverless/serverless/issues/8062)) ([516603a](https://github.com/serverless/serverless/commit/516603af90b9e1260433c615f8f8f2ad2c68b41d)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [1.78.1](https://github.com/serverless/serverless/compare/v1.78.0...v1.78.1) (2020-08-04)
 
 ### Bug Fixes

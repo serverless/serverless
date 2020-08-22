@@ -1,3 +1,6 @@
 service: service
+
+configValidationMode: error
+
 provider:
   name: aws

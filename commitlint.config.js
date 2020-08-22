@@ -34,6 +34,7 @@ module.exports = {
         'Components',
         'Config Schema',
         'Dashboard',
+        'Packaging',
         'Plugins',
         'Standalone',
         'Templates',
