@@ -14,3 +14,6 @@ functions:
       - { '!Ref': 'TestLayerLambdaLayer' }
   bar:
     handler: index.handler
+  fooBar:
+    handler: index.handler
+    reservedConcurrency: 1
