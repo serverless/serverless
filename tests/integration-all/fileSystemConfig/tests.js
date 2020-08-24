@@ -9,7 +9,7 @@ const { getTmpDirPath } = require('../../utils/fs');
 const crypto = require('crypto');
 const { createTestService, deployService, removeService } = require('../../utils/integration');
 
-describe('AWS - FileSystemConfigs Integration Test', function() {
+describe('AWS - FileSystemConfig Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let serviceName;
   let stackName;
@@ -40,7 +40,6 @@ describe('AWS - FileSystemConfigs Integration Test', function() {
 
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
-      filesToAdd: [path.join(__dirname, '..', 'shared')],
       serverlessConfigHook: config => {
         const fileSystemConfig = {
           localMountPath: '/mnt/testing',
@@ -50,8 +49,8 @@ describe('AWS - FileSystemConfigs Integration Test', function() {
           subnetIds: [outputMap.Subnet],
           securityGroupIds: [outputMap.SecurityGroup],
         };
-        config.functions.writer.fileSystemConfigs = [fileSystemConfig];
-        config.functions.reader.fileSystemConfigs = [fileSystemConfig];
+        config.functions.writer.fileSystemConfig = fileSystemConfig;
+        config.functions.reader.fileSystemConfig = fileSystemConfig;
       },
     });
     serviceName = serverlessConfig.service;
@@ -71,11 +70,27 @@ describe('AWS - FileSystemConfigs Integration Test', function() {
   });
 
   describe('Basic Setup', () => {
-    it('should be able to write to efs and read from it in a separate function', async () => {
-      await awsRequest('Lambda', 'invoke', {
-        FunctionName: `${stackName}-writer`,
-        InvocationType: 'RequestResponse',
-      });
+    let startTime;
+
+    before(() => {
+      startTime = Date.now();
+    });
+
+    it('should be able to write to efs and read from it in a separate function', async function self() {
+      try {
+        await awsRequest('Lambda', 'invoke', {
+          FunctionName: `${stackName}-writer`,
+          InvocationType: 'RequestResponse',
+        });
+      } catch (e) {
+        // Sometimes EFS is not available right away which causes invoke to fail,
+        // here we retry it to avoid that issue
+        if (e.code === 'EFSMountFailureException' && startTime > Date.now() - 1000 * 60) {
+          console.info('Failed to invoke, retry');
+          return self();
+        }
+        throw e;
+      }
 
       const readerResult = await awsRequest('Lambda', 'invoke', {
         FunctionName: `${stackName}-reader`,
@@ -84,6 +99,7 @@ describe('AWS - FileSystemConfigs Integration Test', function() {
       const payload = JSON.parse(readerResult.Payload);
 
       expect(payload).to.deep.equal({ result: 'fromlambda' });
+      return null;
     });
   });
 });
