@@ -11,7 +11,7 @@ functions:
   foo:
     handler: index.handler
     layers:
-      - { '!Ref': 'TestLayerLambdaLayer' }
+      - { Ref: TestLayerLambdaLayer }
   bar:
     handler: index.handler
   fooBar:
