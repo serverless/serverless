@@ -504,7 +504,7 @@ functions:
 
 ## EFS Configuration
 
-You can use [Amazon EFS with Lambda](https://docs.aws.amazon.com/lambda/latest/dg/services-efs.html) by adding a `fileSystemConfigs` property in the function configuration in `serverless.yml`. `fileSystemConfigs` should be a list of objects that contain the `arn` and `localMountPath` properties. The `arn` property should reference an existing EFS Access Point, where the `localMountPath` should specifiy the absolute path under which the file system will be mounted. Currently, you can specify at most one `fileSystemConfig`. Here's an example configuration:
+You can use [Amazon EFS with Lambda](https://docs.aws.amazon.com/lambda/latest/dg/services-efs.html) by adding a `fileSystemConfig` property in the function configuration in `serverless.yml`. `fileSystemConfig` should be an object that contains the `arn` and `localMountPath` properties. The `arn` property should reference an existing EFS Access Point, where the `localMountPath` should specifiy the absolute path under which the file system will be mounted. Here's an example configuration:
 
 ```yml
 # serverless.yml
@@ -514,9 +514,9 @@ provider: aws
 functions:
   hello:
     handler: handler.hello
-    fileSystemConfigs:
-      - localMountPath: /mnt/example
-        arn: arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-0d0d0d0d0d0d0d0d0
+    fileSystemConfig:
+      localMountPath: /mnt/example
+      arn: arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-0d0d0d0d0d0d0d0d0
     vpc:
       securityGroupIds:
         - securityGroupId1
