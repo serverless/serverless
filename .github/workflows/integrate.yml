@@ -12,7 +12,7 @@ env:
 
 jobs:
   linuxNode14:
-    name: '[Linux] Node.js 14: Unit tests & Publish canary'
+    name: '[Linux] Node.js 14: Publish canary, Unit & packaging tests '
     runs-on: ubuntu-latest
     steps:
       - name: Resolve last validated commit hash (for `git diff` purposes)
@@ -67,6 +67,8 @@ jobs:
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
         run: script -e -c "npm test -- -b"
+      - name: Packaging tests
+        run: npm run integration-test-run-package
 
   windowsNode14:
     name: '[Windows] Node.js v14: Unit tests'
@@ -167,72 +169,6 @@ jobs:
         env:
           CODECOV_TOKEN: 3898f3e1-f317-453e-a3a9-0462390f93c5
         run: npx codecov
-
-  linuxNode8:
-    name: '[Linux] Node.js v8: Unit & packaging tests'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Retrieve dependencies from cache
-        id: cacheNpm
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: npm-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: npm-v8-${{ runner.os }}-${{ github.ref }}-
-
-      - name: Install Node.js and npm
-        uses: actions/setup-node@v1
-        with:
-          node-version: 8.x
-
-      - name: Install dependencies
-        if: steps.cacheNpm.outputs.cache-hit != 'true'
-        run: |
-          npm update --no-save
-          npm update --save-dev --no-save
-      - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm test -- -b"
-      - name: Packaging tests
-        run: npm run integration-test-run-package
-
-  linuxNode6:
-    name: '[Linux] Node.js v6: Unit tests'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Retrieve dependencies from cache
-        id: cacheNpm
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: npm-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: npm-v6-${{ runner.os }}-${{ github.ref }}-
-
-      - name: Install Node.js and npm
-        uses: actions/setup-node@v1
-        with:
-          node-version: 6.x
-
-      - name: Install dependencies
-        if: steps.cacheNpm.outputs.cache-hit != 'true'
-        run: |
-          npm update --no-save
-          npm update --save-dev --no-save
-      - name: Unit tests
-        # Some tests depend on TTY support, which is missing in GA runner
-        # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
-        run: script -e -c "npm test -- -b"
 
   integrate:
     name: Integrate
