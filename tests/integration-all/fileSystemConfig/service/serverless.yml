@@ -1,0 +1,12 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  writer:
+    handler: core.writer
+  reader:
+    handler: core.reader
