@@ -19,10 +19,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve node_modules from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        uses: actions/cache@v2
         with:
-          path: node_modules
+          path: |
+            ~/.npm
+            node_modules
           key: node-modules-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
 
       - name: Install Node.js and npm
@@ -69,10 +71,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve node_modules from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        uses: actions/cache@v2
         with:
-          path: node_modules
+          path: |
+            ~/.npm
+            node_modules
           key: node-modules-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
 
       - name: Install Node.js and npm
