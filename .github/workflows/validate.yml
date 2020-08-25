@@ -29,23 +29,17 @@ jobs:
           git checkout master
           git checkout pr
 
-      - name: Retrieve ~/.npm from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ~/.npm
+            node_modules
           key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v14-${{ runner.os }}-${{ github.ref }}-
             npm-v14-${{ runner.os }}-refs/heads/master-
-      - name: Retrieve node_modules from cache
-        id: cacheNodeModules
-        uses: actions/cache@v1
-        with:
-          path: node_modules
-          key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            node-modules-v14-${{ runner.os }}-${{ github.ref }}-
-            node-modules-v14-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -53,7 +47,7 @@ jobs:
           node-version: 14.x
 
       - name: Install dependencies
-        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
         run: |
           npm update --no-save
           npm update --save-dev --no-save
@@ -83,23 +77,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve ~/.npm from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ~/.npm
+            node_modules
           key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v14-${{ runner.os }}-${{ github.ref }}-
             npm-v14-${{ runner.os }}-refs/heads/master-
-      - name: Retrieve node_modules from cache
-        id: cacheNodeModules
-        uses: actions/cache@v1
-        with:
-          path: node_modules
-          key: node-modules-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            node-modules-v14-${{ runner.os }}-${{ github.ref }}-
-            node-modules-v14-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -107,7 +95,7 @@ jobs:
           node-version: 14.x
 
       - name: Install dependencies
-        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
         run: |
           npm update --no-save
           npm update --save-dev --no-save
@@ -121,23 +109,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve ~/.npm from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ~/.npm
+            node_modules
           key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v12-${{ runner.os }}-${{ github.ref }}-
             npm-v12-${{ runner.os }}-refs/heads/master-
-      - name: Retrieve node_modules from cache
-        id: cacheNodeModules
-        uses: actions/cache@v1
-        with:
-          path: node_modules
-          key: node-modules-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            node-modules-v12-${{ runner.os }}-${{ github.ref }}-
-            node-modules-v12-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -145,7 +127,7 @@ jobs:
           node-version: 12.x
 
       - name: Install dependencies
-        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
         run: |
           npm update --no-save
           npm update --save-dev --no-save
@@ -161,23 +143,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve ~/.npm from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ~/.npm
+            node_modules
           key: npm-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v10-${{ runner.os }}-${{ github.ref }}-
             npm-v10-${{ runner.os }}-refs/heads/master-
-      - name: Retrieve node_modules from cache
-        id: cacheNodeModules
-        uses: actions/cache@v1
-        with:
-          path: node_modules
-          key: node-modules-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            node-modules-v10-${{ runner.os }}-${{ github.ref }}-
-            node-modules-v10-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -185,7 +161,7 @@ jobs:
           node-version: 10.x
 
       - name: Install dependencies
-        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
         run: |
           npm update --no-save
           npm update --save-dev --no-save
@@ -207,23 +183,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve ~/.npm from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ~/.npm
+            node_modules
           key: npm-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v8-${{ runner.os }}-${{ github.ref }}-
             npm-v8-${{ runner.os }}-refs/heads/master-
-      - name: Retrieve node_modules from cache
-        id: cacheNodeModules
-        uses: actions/cache@v1
-        with:
-          path: node_modules
-          key: node-modules-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            node-modules-v8-${{ runner.os }}-${{ github.ref }}-
-            node-modules-v8-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -231,7 +201,7 @@ jobs:
           node-version: 8.x
 
       - name: Install dependencies
-        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
         run: |
           npm update --no-save
           npm update --save-dev --no-save
@@ -249,23 +219,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Retrieve ~/.npm from cache
-        uses: actions/cache@v1
+      - name: Retrieve dependencies from cache
+        id: cacheNpm
+        uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: |
+            ~/.npm
+            node_modules
           key: npm-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v6-${{ runner.os }}-${{ github.ref }}-
             npm-v6-${{ runner.os }}-refs/heads/master-
-      - name: Retrieve node_modules from cache
-        id: cacheNodeModules
-        uses: actions/cache@v1
-        with:
-          path: node_modules
-          key: node-modules-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            node-modules-v6-${{ runner.os }}-${{ github.ref }}-
-            node-modules-v6-${{ runner.os }}-refs/heads/master-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -273,7 +237,7 @@ jobs:
           node-version: 6.x
 
       - name: Install dependencies
-        if: steps.cacheNodeModules.outputs.cache-hit != 'true'
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
         run: |
           npm update --no-save
           npm update --save-dev --no-save
