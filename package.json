@@ -219,7 +219,7 @@
     "test:isolated": "mocha-isolated \"!(test|node_modules)/**/*.test.js\""
   },
   "engines": {
-    "node": ">=6.0"
+    "node": ">=10.0"
   },
   "license": "MIT"
 }

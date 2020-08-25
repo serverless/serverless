@@ -4,6 +4,17 @@
 
 require('essentials');
 
+const nodeVersion = Number(process.version.split('.')[0].slice(1));
+
+if (nodeVersion < 10) {
+  const serverlessVersion = Number(require('../package.json').version.split('.')[0]);
+  process.stdout.write(
+    `Serverless: \x1b[91mInitialization error: Node.js v${nodeVersion} is not supported by ` +
+      `Serverless Framework v${serverlessVersion}. Please upgrade\x1b[39m\n`
+  );
+  process.exit(1);
+}
+
 // global graceful-fs patch
 // https://github.com/isaacs/node-graceful-fs#global-patching
 require('graceful-fs').gracefulify(require('fs'));
@@ -17,7 +28,6 @@ const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 
-const nodeVersion = Number(process.version.split('.')[0].slice(1));
 const invocationId = uuid.v4();
 
 let serverless;
@@ -29,13 +39,6 @@ if (process.env.SLS_DEBUG) {
   BbPromise.config({
     longStackTraces: true,
   });
-}
-
-if (nodeVersion < 10) {
-  require('../lib/utils/logDeprecation')(
-    'OUTDATED_NODEJS',
-    'Support for Node.js versions below v10 will be dropped with next major release. Please upgrade at https://nodejs.org/en/'
-  );
 }
 
 const Serverless = require('../lib/Serverless');
