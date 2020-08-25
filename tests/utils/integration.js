@@ -14,6 +14,7 @@ const { readYamlFile, writeYamlFile } = require('./fs');
 const serverlessExec = require('../serverless-binary');
 
 const env = resolveAwsEnv();
+env.SLS_DEBUG = '1';
 
 async function createTestService(
   tmpDir,
