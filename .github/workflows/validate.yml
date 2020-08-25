@@ -4,7 +4,7 @@ name: Validate
 
 on:
   pull_request:
-    branches: [master]
+    branches: [v2]
 
 env:
   SLS_IGNORE_WARNING: '*'
@@ -22,11 +22,11 @@ jobs:
           # It's loose and imperfect assumption that PR has no more than 30 commits
           fetch-depth: 30
 
-      - name: Retrieve last master commit (for `git diff` purposes)
+      - name: Retrieve last v2 commit (for `git diff` purposes)
         run: |
           git checkout -b pr
-          git fetch --prune --depth=30 origin +refs/heads/master:refs/remotes/origin/master
-          git checkout master
+          git fetch --prune --depth=30 origin +refs/heads/v2:refs/remotes/origin/v2
+          git checkout v2
           git checkout pr
 
       - name: Retrieve dependencies from cache
@@ -39,7 +39,7 @@ jobs:
           key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v14-${{ runner.os }}-${{ github.ref }}-
-            npm-v14-${{ runner.os }}-refs/heads/master-
+            npm-v14-${{ runner.os }}-refs/heads/v2-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -57,14 +57,7 @@ jobs:
         run: npm run lint:updated
       - name: Validate commit messages
         if: github.event.pull_request.base.repo.id == github.event.pull_request.head.repo.id
-        run: npx commitlint -f master
-      - name: Validate changelog (if new version)
-        run: |
-          NEW_VERSION=`git diff -U0 master package.json | grep '"version": "' | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+"` || :
-          if [ -n "$NEW_VERSION" ];
-          then
-            npx dump-release-notes-from-cc-changelog $NEW_VERSION
-          fi
+        run: npx commitlint -f v2
       - name: Unit tests
         # Some tests depend on TTY support, which is missing in GA runner
         # Workaround taken from https://github.com/actions/runner/issues/241#issuecomment-577360161
@@ -87,7 +80,7 @@ jobs:
           key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v14-${{ runner.os }}-${{ github.ref }}-
-            npm-v14-${{ runner.os }}-refs/heads/master-
+            npm-v14-${{ runner.os }}-refs/heads/v2-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -119,7 +112,7 @@ jobs:
           key: npm-v12-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v12-${{ runner.os }}-${{ github.ref }}-
-            npm-v12-${{ runner.os }}-refs/heads/master-
+            npm-v12-${{ runner.os }}-refs/heads/v2-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -153,7 +146,7 @@ jobs:
           key: npm-v10-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v10-${{ runner.os }}-${{ github.ref }}-
-            npm-v10-${{ runner.os }}-refs/heads/master-
+            npm-v10-${{ runner.os }}-refs/heads/v2-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -193,7 +186,7 @@ jobs:
           key: npm-v8-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v8-${{ runner.os }}-${{ github.ref }}-
-            npm-v8-${{ runner.os }}-refs/heads/master-
+            npm-v8-${{ runner.os }}-refs/heads/v2-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
@@ -229,7 +222,7 @@ jobs:
           key: npm-v6-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
             npm-v6-${{ runner.os }}-${{ github.ref }}-
-            npm-v6-${{ runner.os }}-refs/heads/master-
+            npm-v6-${{ runner.os }}-refs/heads/v2-
 
       - name: Install Node.js and npm
         uses: actions/setup-node@v1
