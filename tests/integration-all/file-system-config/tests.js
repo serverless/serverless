@@ -9,10 +9,13 @@ const { getTmpDirPath } = require('../../utils/fs');
 const crypto = require('crypto');
 const { createTestService, deployService, removeService } = require('../../utils/integration');
 
+const EFS_MAX_PROPAGATION_TIME = 1000 * 60 * 5;
+
 describe('AWS - FileSystemConfig Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let serviceName;
   let stackName;
+  let startTime;
   let tmpDirPath;
   const stage = 'dev';
   const resourcesStackName = `efs-integration-tests-deps-stack-${crypto
@@ -56,7 +59,8 @@ describe('AWS - FileSystemConfig Integration Test', function() {
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
     console.info(`Deploying "${stackName}" service...`);
-    return deployService(tmpDirPath);
+    await deployService(tmpDirPath);
+    startTime = Date.now();
   });
 
   after(async () => {
@@ -69,37 +73,32 @@ describe('AWS - FileSystemConfig Integration Test', function() {
     });
   });
 
-  describe('Basic Setup', () => {
-    let startTime;
-
-    before(() => {
-      startTime = Date.now();
-    });
-
-    it('should be able to write to efs and read from it in a separate function', async function self() {
-      try {
-        await awsRequest('Lambda', 'invoke', {
-          FunctionName: `${stackName}-writer`,
-          InvocationType: 'RequestResponse',
-        });
-      } catch (e) {
-        // Sometimes EFS is not available right away which causes invoke to fail,
-        // here we retry it to avoid that issue
-        if (e.code === 'EFSMountFailureException' && startTime > Date.now() - 1000 * 60) {
-          console.info('Failed to invoke, retry');
-          return self();
-        }
-        throw e;
-      }
-
-      const readerResult = await awsRequest('Lambda', 'invoke', {
-        FunctionName: `${stackName}-reader`,
+  it('should be able to write to efs and read from it in a separate function', async function self() {
+    try {
+      await awsRequest('Lambda', 'invoke', {
+        FunctionName: `${stackName}-writer`,
         InvocationType: 'RequestResponse',
       });
-      const payload = JSON.parse(readerResult.Payload);
+    } catch (e) {
+      // Sometimes EFS is not available right away which causes invoke to fail,
+      // here we retry it to avoid that issue
+      if (
+        e.code === 'EFSMountFailureException' &&
+        Date.now() - startTime > EFS_MAX_PROPAGATION_TIME
+      ) {
+        console.info('Failed to invoke, retry');
+        return self();
+      }
+      throw e;
+    }
 
-      expect(payload).to.deep.equal({ result: 'fromlambda' });
-      return null;
+    const readerResult = await awsRequest('Lambda', 'invoke', {
+      FunctionName: `${stackName}-reader`,
+      InvocationType: 'RequestResponse',
     });
+    const payload = JSON.parse(readerResult.Payload);
+
+    expect(payload).to.deep.equal({ result: 'fromlambda' });
+    return null;
   });
 });
