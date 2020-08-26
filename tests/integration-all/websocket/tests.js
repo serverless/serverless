@@ -43,7 +43,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
   after(() => {
     if (!twoWayPassed) return null;
-    console.info('Removing service...');
+    log.notice('Removing service...');
     return removeService(tmpDirPath);
   });
 
