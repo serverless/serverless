@@ -84,7 +84,7 @@ describe('AWS - FileSystemConfig Integration Test', function() {
       // here we retry it to avoid that issue
       if (
         e.code === 'EFSMountFailureException' &&
-        Date.now() - startTime > EFS_MAX_PROPAGATION_TIME
+        Date.now() - startTime < EFS_MAX_PROPAGATION_TIME
       ) {
         console.info('Failed to invoke, retry');
         return self();
