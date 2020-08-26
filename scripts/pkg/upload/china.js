@@ -51,7 +51,7 @@ module.exports = async versionTag => {
         ...bucketConf,
       })
       .then(() => {
-        process.stdout.write(chalk.green("'serverless-linux' uploaded to Tencent\n"));
+        process.stdout.write(chalk.green("'serverless-linux-x64' uploaded to Tencent\n"));
       }),
     cos
       .putObjectAsync({
@@ -60,7 +60,7 @@ module.exports = async versionTag => {
         ...bucketConf,
       })
       .then(() => {
-        process.stdout.write(chalk.green("'serverless-macos' uploaded to Tencent\n"));
+        process.stdout.write(chalk.green("'serverless-macos-x64' uploaded to Tencent\n"));
       }),
   ]);
 };
