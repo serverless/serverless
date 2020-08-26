@@ -10,6 +10,7 @@ module.exports = {
       'always',
       [
         '',
+        'Analytics',
         'AWS ALB',
         'AWS API Gateway',
         'AWS CloudFormation',
