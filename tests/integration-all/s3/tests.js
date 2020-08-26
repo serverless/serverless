@@ -3,6 +3,7 @@
 const path = require('path');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createBucket, createAndRemoveInBucket, deleteBucket } = require('../../utils/s3');
@@ -23,7 +24,7 @@ describe('AWS - S3 Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
@@ -49,20 +50,20 @@ describe('AWS - S3 Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     // create external S3 buckets
     // NOTE: deployment can only be done once the S3 buckets are created
-    console.info('Creating S3 buckets...');
+    log.notice('Creating S3 buckets...');
     return BbPromise.all([
       createBucket(bucketExistingSimpleSetup),
       createBucket(bucketExistingComplexSetup),
     ]).then(() => {
-      console.info(`Deploying "${stackName}" service...`);
+      log.notice(`Deploying "${stackName}" service...`);
       return deployService(tmpDirPath);
     });
   });
 
   after(async () => {
-    console.info('Removing service...');
+    log.notice('Removing service...');
     await removeService(tmpDirPath);
-    console.info('Deleting S3 buckets');
+    log.notice('Deleting S3 buckets');
     return BbPromise.all([
       deleteBucket(bucketExistingSimpleSetup),
       deleteBucket(bucketExistingComplexSetup),

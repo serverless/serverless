@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { publishIotData } = require('../../utils/iot');
@@ -23,7 +24,7 @@ describe('AWS - IoT Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
@@ -36,13 +37,13 @@ describe('AWS - IoT Integration Test', function() {
     });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
-    console.info(`Deploying "${stackName}" service...`);
+    log.notice(`Deploying "${stackName}" service...`);
     return deployService(tmpDirPath);
   });
 
   after(() => {
     // Topics are ephemeral and IoT endpoint is part of the account
-    console.info('Removing service...');
+    log.notice('Removing service...');
     return removeService(tmpDirPath);
   });
 

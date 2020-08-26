@@ -5,6 +5,7 @@ const fs = require('fs');
 const fse = require('fs-extra');
 const stripAnsi = require('strip-ansi');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const awsRequest = require('@serverless/test/aws-request');
@@ -31,7 +32,7 @@ describe('Service Lifecyle Integration Test', function() {
   before(() => {
     serviceName = getServiceName();
     StackName = `${serviceName}-dev`;
-    console.info(`Temporary path: ${tmpDir}`);
+    log.notice(`Temporary path: ${tmpDir}`);
     fse.mkdirsSync(tmpDir);
   });
 

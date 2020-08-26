@@ -39,7 +39,7 @@ describe('AWS - API Gateway Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
@@ -52,7 +52,7 @@ describe('AWS - API Gateway Integration Test', function() {
     });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
-    console.info(`Deploying "${stackName}" service...`);
+    log.notice(`Deploying "${stackName}" service...`);
     await deployService(tmpDirPath);
     isDeployed = true;
     return resolveEndpoint();
@@ -60,7 +60,7 @@ describe('AWS - API Gateway Integration Test', function() {
 
   after(async () => {
     if (!isDeployed) return;
-    console.info('Removing service...');
+    log.notice('Removing service...');
     await removeService(tmpDirPath);
   });
 
@@ -258,7 +258,7 @@ describe('AWS - API Gateway Integration Test', function() {
         })
         .then(resources => {
           restApiRootResourceId = resources[0].id;
-          console.info(
+          log.notice(
             'Created external rest API ' +
               `(id: ${restApiId}, root resource id: ${restApiRootResourceId})`
           );
@@ -283,7 +283,7 @@ describe('AWS - API Gateway Integration Test', function() {
         },
       });
       writeYamlFile(serverlessFilePath, serverless);
-      console.info('Redeploying service (with external Rest API ID)...');
+      log.notice('Redeploying service (with external Rest API ID)...');
       await deployService(tmpDirPath);
       return resolveEndpoint();
     });
@@ -295,9 +295,9 @@ describe('AWS - API Gateway Integration Test', function() {
       delete serverless.provider.apiGateway.restApiRootResourceId;
       writeYamlFile(serverlessFilePath, serverless);
       // NOTE: deploying once again to get the stack into the original state
-      console.info('Redeploying service (without external Rest API ID)...');
+      log.notice('Redeploying service (without external Rest API ID)...');
       await deployService(tmpDirPath);
-      console.info('Deleting external rest API...');
+      log.notice('Deleting external rest API...');
       return deleteRestApi(restApiId);
     });
 

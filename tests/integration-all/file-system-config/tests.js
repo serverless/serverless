@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 
 const awsRequest = require('@serverless/test/aws-request');
 const fs = require('fs');
@@ -24,10 +25,10 @@ describe('AWS - FileSystemConfig Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     const cfnTemplate = fs.readFileSync(path.join(__dirname, 'cloudformation.yml'), 'utf8');
 
-    console.info('Deploying CloudFormation stack with required resources...');
+    log.notice('Deploying CloudFormation stack with required resources...');
     await awsRequest('CloudFormation', 'createStack', {
       StackName: resourcesStackName,
       TemplateBody: cfnTemplate,
@@ -58,15 +59,15 @@ describe('AWS - FileSystemConfig Integration Test', function() {
     });
     serviceName = serverlessConfig.service;
     stackName = `${serviceName}-${stage}`;
-    console.info(`Deploying "${stackName}" service...`);
+    log.notice(`Deploying "${stackName}" service...`);
     await deployService(tmpDirPath);
     startTime = Date.now();
   });
 
   after(async () => {
-    console.info('Removing service...');
+    log.notice('Removing service...');
     await removeService(tmpDirPath);
-    console.info('Removing CloudFormation stack with required resources...');
+    log.notice('Removing CloudFormation stack with required resources...');
     await awsRequest('CloudFormation', 'deleteStack', { StackName: resourcesStackName });
     return awsRequest('CloudFormation', 'waitFor', 'stackDeleteComplete', {
       StackName: resourcesStackName,
@@ -86,7 +87,7 @@ describe('AWS - FileSystemConfig Integration Test', function() {
         e.code === 'EFSMountFailureException' &&
         Date.now() - startTime < EFS_MAX_PROPAGATION_TIME
       ) {
-        console.info('Failed to invoke, retry');
+        log.warn('Failed to invoke, retry');
         return self();
       }
       throw e;

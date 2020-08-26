@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const {
@@ -25,7 +26,7 @@ describe('AWS - Stream Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
@@ -44,11 +45,11 @@ describe('AWS - Stream Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     // create existing SQS queue
     // NOTE: deployment can only be done once the SQS queue is created
-    console.info(`Creating Kinesis stream "${streamName}"...`);
+    log.notice(`Creating Kinesis stream "${streamName}"...`);
     return createKinesisStream(streamName)
       .then(() => putKinesisRecord(streamName, historicStreamMessage))
       .then(() => {
-        console.info(
+        log.notice(
           `Deploying "${stackName}" service with DynamoDB table resource "${tableName}"...`
         );
         return deployService(tmpDirPath);
@@ -56,9 +57,9 @@ describe('AWS - Stream Integration Test', function() {
   });
 
   after(async () => {
-    console.info(`Removing service (and DynamoDB table resource "${tableName}")...`);
+    log.notice(`Removing service (and DynamoDB table resource "${tableName}")...`);
     await removeService(tmpDirPath);
-    console.info('Deleting Kinesis stream');
+    log.notice('Deleting Kinesis stream');
     return deleteKinesisStream(streamName);
   });
 
