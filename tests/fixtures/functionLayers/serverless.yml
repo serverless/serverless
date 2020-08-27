@@ -7,6 +7,10 @@ layers:
     path: testLayer
     description: 'test layer'
 
+package:
+  exclude:
+    - extra_layers/**
+
 functions:
   foo:
     handler: index.handler

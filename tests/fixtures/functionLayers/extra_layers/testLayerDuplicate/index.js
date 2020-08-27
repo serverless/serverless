@@ -1,6 +1,5 @@
 'use strict';
 
 module.exports.layer = (foo, bar) => {
-  const newVal = 10;
-  return foo + bar + newVal;
+  return foo + bar;
 };
