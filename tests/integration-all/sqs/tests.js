@@ -3,6 +3,7 @@
 const path = require('path');
 const { expect } = require('chai');
 const hasFailed = require('@serverless/test/has-failed');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../../utils/sqs');
@@ -19,7 +20,7 @@ describe('AWS - SQS Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
@@ -34,18 +35,18 @@ describe('AWS - SQS Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     // create existing SQS queue
     // NOTE: deployment can only be done once the SQS queue is created
-    console.info(`Creating SQS queue "${queueName}"...`);
+    log.notice(`Creating SQS queue "${queueName}"...`);
     return createSqsQueue(queueName).then(() => {
-      console.info(`Deploying "${stackName}" service...`);
+      log.notice(`Deploying "${stackName}" service...`);
       return deployService(tmpDirPath);
     });
   });
 
   after(async function() {
     if (hasFailed(this.test.parent)) return null;
-    console.info('Removing service...');
+    log.notice('Removing service...');
     await removeService(tmpDirPath);
-    console.info('Deleting SQS queue');
+    log.notice('Deleting SQS queue');
     return deleteSqsQueue(queueName);
   });
 

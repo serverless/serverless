@@ -3,6 +3,7 @@
 const path = require('path');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 const hasFailed = require('@serverless/test/has-failed');
 
 const { getTmpDirPath } = require('../../utils/fs');
@@ -32,7 +33,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
@@ -57,21 +58,21 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       EmailVerificationSubject: 'email{####}subject',
     };
     // NOTE: deployment can only be done once the Cognito User Pools are created
-    console.info('Creating Cognito User Pools');
+    log.notice('Creating Cognito User Pools');
     await BbPromise.all([
       createUserPool(poolExistingSimpleSetup, poolExistingSimpleSetupConfig),
       createUserPool(poolExistingMultiSetup),
     ]);
-    console.info(`Deploying "${stackName}" service...`);
+    log.notice(`Deploying "${stackName}" service...`);
     return deployService(tmpDirPath);
   });
 
   after(async function() {
     // Do not clean on fail, to allow further state investigation
     if (hasFailed(this.test.parent)) return null;
-    console.info('Removing service...');
+    log.notice('Removing service...');
     await removeService(tmpDirPath);
-    console.info('Deleting Cognito User Pools');
+    log.notice('Deleting Cognito User Pools');
     return BbPromise.all([
       deleteUserPool(poolExistingSimpleSetup),
       deleteUserPool(poolExistingMultiSetup),

@@ -3,6 +3,7 @@
 const path = require('path');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
@@ -21,7 +22,7 @@ describe('AWS - SNS Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
     const serverlessConfig = await createTestService(tmpDirPath, {
       templateDir: path.join(__dirname, 'service'),
       filesToAdd: [path.join(__dirname, '..', 'shared')],
@@ -45,17 +46,17 @@ describe('AWS - SNS Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     // create "existing" SNS topics
     // NOTE: deployment can only be done once the SNS topics are created
-    console.info(`Creating SNS topic "${existingTopicName}"...`);
+    log.notice(`Creating SNS topic "${existingTopicName}"...`);
     return createSnsTopic(existingTopicName).then(() => {
-      console.info(`Deploying "${stackName}" service...`);
+      log.notice(`Deploying "${stackName}" service...`);
       return deployService(tmpDirPath);
     });
   });
 
   after(async () => {
-    console.info('Removing service...');
+    log.notice('Removing service...');
     await removeService(tmpDirPath);
-    console.info('Deleting SNS topics');
+    log.notice('Deleting SNS topics');
     return removeSnsTopic(existingTopicName);
   });
 

@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { expect } = require('chai');
+const log = require('log').get('serverless:test');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
@@ -35,7 +36,7 @@ describe('AWS - Event Bridge Integration Test', function() {
 
   before(async () => {
     tmpDirPath = getTmpDirPath();
-    console.info(`Temporary path: ${tmpDirPath}`);
+    log.notice(`Temporary path: ${tmpDirPath}`);
 
     // get default event bus ARN
     const defaultEventBusArn = (await describeEventBus('default')).Arn;
@@ -57,25 +58,25 @@ describe('AWS - Event Bridge Integration Test', function() {
     stackName = `${serviceName}-${stage}`;
     // create an external Event Bus
     // NOTE: deployment can only be done once the Event Bus is created
-    console.info(`Creating Event Bus "${arnEventBusName}"...`);
+    log.notice(`Creating Event Bus "${arnEventBusName}"...`);
     return createEventBus(arnEventBusName).then(data => {
       arnEventBusArn = data.EventBusArn;
       // update the YAML file with the arn
-      console.info(`Updating serverless.yml with Event Bus arn "${arnEventBusArn}"`);
+      log.notice(`Updating serverless.yml with Event Bus arn "${arnEventBusArn}"`);
       const serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
       const config = readYamlFile(serverlessFilePath);
       config.functions.eventBusArn.events[0].eventBridge.eventBus = arnEventBusArn;
       writeYamlFile(serverlessFilePath, config);
       // deploy the service
-      console.info(`Deploying "${stackName}" service...`);
+      log.notice(`Deploying "${stackName}" service...`);
       return deployService(tmpDirPath);
     });
   });
 
   after(async () => {
-    console.info('Removing service...');
+    log.notice('Removing service...');
     await removeService(tmpDirPath);
-    console.info(`Deleting Event Bus "${arnEventBusName}"...`);
+    log.notice(`Deleting Event Bus "${arnEventBusName}"...`);
     return deleteEventBus(arnEventBusName);
   });
 

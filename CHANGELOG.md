@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.80.0](https://github.com/serverless/serverless/compare/v1.79.0...v1.80.0) (2020-08-26)
+
+### Features
+
+- **AWS Lambda:** Support EFS mounts ([#8042](https://github.com/serverless/serverless/issues/8042)) ([149f64a](https://github.com/serverless/serverless/commit/149f64ad1c8cec41bfc72ceebcb7c8095b2f8c5c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Config Schema:**
+  - Schema for AWS `eventBridge` event ([#8114](https://github.com/serverless/serverless/issues/8114)) ([796ce0b](https://github.com/serverless/serverless/commit/796ce0b5ddaf893878912b5edeeec54718bf04ad)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+  - Schema for AWS `cognitoPool` event ([#8105](https://github.com/serverless/serverless/issues/8105)) ([184cb48](https://github.com/serverless/serverless/commit/184cb48033ce92f771188c27c0ad3e541adab528)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- **Plugins:** Fallback plugins search to global installation folder ([#8038](https://github.com/serverless/serverless/issues/8038)) ([82f6db7](https://github.com/serverless/serverless/commit/82f6db7a1fcd27cd723b9100538355dd297774d5)) ([Derek Kulinski](https://github.com/takeda))
+
+### Bug Fixes
+
+- **Config Schema:** Fix recognition of some required properties ([#8108](https://github.com/serverless/serverless/issues/8108)) ([1dd42b0](https://github.com/serverless/serverless/commit/1dd42b0c62d6eb0cc6036fe1529e85e05c616a09)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Performance Improvements
+
+- **Packaging:** Exclude `aws-sdk` dependency (as it's provided in AWS environment unconditionally) ([#8103](https://github.com/serverless/serverless/issues/8103)) ([f45da3c](https://github.com/serverless/serverless/commit/f45da3c7b168d34e7d3c520068dc24364753a74a)) ([Yogendra Sharma](https://github.com/Yogendra0Sharma))
+- **Packaging:** Remove `aws-sdk` installation step when packaging custom resource lambda ([#8110](https://github.com/serverless/serverless/issues/8110)) ([258c692](https://github.com/serverless/serverless/commit/258c692c47c911d77efe880f41134801bdea314a)) ([Sedat Can Yalçın](https://github.com/sedat))
+
+### Maintanance Improvements
+
+- **AWS Deploy:** Refactor out `async` dependency in CloudFormation stack deployment monitoring logic ([#8132](https://github.com/serverless/serverless/issues/8132)) ([f9bcaae](https://github.com/serverless/serverless/commit/f9bcaaead90fd8691a85941f4d5216d5357037ad)) ([Mariusz Nowak](https://github.com/medikoo))
+- Adjust deprecation logs to reflect warning format ([#8108](https://github.com/serverless/serverless/issues/8108)) ([b0938c7](https://github.com/serverless/serverless/commit/b0938c7d9bd946c5c9af6bae99ae6f7931242ba6)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [1.79.0](https://github.com/serverless/serverless/compare/v1.78.1...v1.79.0) (2020-08-19)
 
 ### Features
