@@ -4,8 +4,16 @@ provider:
 
 layers:
   testLayer:
+    name: default_test_layer
     path: testLayer
     description: 'test layer'
+
+  TestLayerWithCapitals:
+    name: capitalized_test_layer
+    path: testLayer
+
+  testLayerWithNoName:
+    path: testLayer
 
 package:
   exclude:
@@ -21,3 +29,11 @@ functions:
   fooBar:
     handler: index.handler
     reservedConcurrency: 1
+  capitalLayerFunc:
+    handler: index.handler
+    layers:
+      - { Ref: TestLayerWithCapitalsLambdaLayer }
+  noNameLayerFunc:
+    handler: index.handler
+    layers:
+      - { Ref: TestLayerWithNoNameLambdaLayer }
