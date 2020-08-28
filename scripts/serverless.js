@@ -4,17 +4,6 @@
 
 require('essentials');
 
-const nodeVersion = Number(process.version.split('.')[0].slice(1));
-
-if (nodeVersion < 10) {
-  const serverlessVersion = Number(require('../package.json').version.split('.')[0]);
-  process.stdout.write(
-    `Serverless: \x1b[91mInitialization error: Node.js v${nodeVersion} is not supported by ` +
-      `Serverless Framework v${serverlessVersion}. Please upgrade\x1b[39m\n`
-  );
-  process.exit(1);
-}
-
 // global graceful-fs patch
 // https://github.com/isaacs/node-graceful-fs#global-patching
 require('graceful-fs').gracefulify(require('fs'));
