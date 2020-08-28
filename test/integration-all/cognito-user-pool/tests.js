@@ -5,6 +5,7 @@ const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const hasFailed = require('@serverless/test/has-failed');
+const wait = require('timers-ext/promise/sleep');
 
 const { getTmpDirPath } = require('../../utils/fs');
 const {
@@ -19,6 +20,8 @@ const {
 } = require('../../utils/cognito');
 const { createTestService, deployService, removeService } = require('../../utils/integration');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
+
+const waitASec = () => wait(1000);
 
 describe('AWS - Cognito User Pool Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
@@ -87,7 +90,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       await createUser(userPoolId, 'johndoe', '!!!wAsD123456wAsD!!!');
       const events = await confirmCloudWatchLogs(
         `/aws/lambda/${stackName}-${functionName}`,
-        async () => {}
+        waitASec
       );
       const logs = events.reduce((data, event) => data + event.message, '');
       expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
@@ -105,7 +108,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
         await createUser(userPoolId, 'janedoe', '!!!wAsD123456wAsD!!!');
         const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
-          async () => {}
+          waitASec
         );
         const logs = events.reduce((data, event) => data + event.message, '');
 
@@ -140,7 +143,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
         await initiateAuth(clientId, username, password);
         const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
-          async () => {},
+          waitASec,
           {
             checkIsComplete: soFarEvents =>
               soFarEvents
