@@ -29,11 +29,6 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-let resolveServerlessExecutionSpan;
-require('../lib/utils/analytics').sendPending({
-  serverlessExecutionSpan: new BbPromise(resolve => (resolveServerlessExecutionSpan = resolve)),
-});
-
 if (nodeVersion < 10) {
   require('../lib/utils/logDeprecation')(
     'OUTDATED_NODEJS',
@@ -47,15 +42,21 @@ const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless();
 
+let resolveOnExitPromise;
+serverless.onExitPromise = new Promise(resolve => (resolveOnExitPromise = resolve));
 serverless.invocationId = invocationId;
+
+require('../lib/utils/analytics').sendPending({
+  serverlessExecutionSpan: serverless.onExitPromise,
+});
 
 serverless
   .init()
   .then(() => serverless.run())
   .then(
-    () => resolveServerlessExecutionSpan(),
+    () => resolveOnExitPromise(),
     err => {
-      resolveServerlessExecutionSpan();
+      resolveOnExitPromise();
       // If Enterprise Plugin, capture error
       let enterpriseErrorHandler = null;
       serverless.pluginManager.plugins.forEach(p => {
