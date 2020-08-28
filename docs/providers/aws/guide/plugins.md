@@ -554,6 +554,14 @@ class NewProviderPlugin {
           },
         },
       },
+
+      // Definition for eventual top level "resources" section
+      resources: {
+        type: 'object',
+        properties: {
+          // ...
+        },
+      },
     });
   }
 }
