@@ -1,14 +1,15 @@
 'use strict';
 
 module.exports.handler = (event, context, callback) => {
+  const httpData = event.requestContext.http;
   const resolve = () =>
     callback(null, {
       statusCode: 200,
       body: JSON.stringify({
-        path: event.path,
-        method: event.httpMethod,
+        path: httpData.path,
+        method: httpData.method,
       }),
     });
-  if (event.path === '/bar/timeout') setTimeout(resolve, 2000);
+  if (httpData.path === '/bar/timeout') setTimeout(resolve, 2000);
   else resolve();
 };
