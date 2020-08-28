@@ -25,7 +25,7 @@
   "dependencies": {
     "@serverless/cli": "^1.5.2",
     "@serverless/components": "^3.0.0",
-    "@serverless/enterprise-plugin": "^3.8.4",
+    "@serverless/enterprise-plugin": "^4.0.0",
     "@serverless/inquirer": "^1.1.2",
     "@serverless/utils": "^1.2.0",
     "ajv": "^6.12.4",
