@@ -2,6 +2,17 @@
 
 'use strict';
 
+const nodeVersion = Number(process.version.split('.')[0].slice(1));
+
+if (nodeVersion < 10) {
+  const serverlessVersion = Number(require('../package.json').version.split('.')[0]);
+  process.stdout.write(
+    `Serverless: \x1b[91mInitialization error: Node.js v${nodeVersion} is not supported by ` +
+      `Serverless Framework v${serverlessVersion}. Please upgrade\x1b[39m\n`
+  );
+  process.exit(1);
+}
+
 if (require('../lib/utils/isStandaloneExecutable')) {
   require('../lib/utils/standalone-patch');
   if (process.argv[2] === 'binary-postinstall' && process.argv.length === 3) {
