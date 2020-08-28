@@ -67,7 +67,7 @@ If you add a new template or want to test a template after changing it you can r
 To run all integration tests run:
 
 ```
-./tests/templates/test-all-templates
+./test/templates/test-all-templates
 ```
 
 To run only a specific integration test run:
