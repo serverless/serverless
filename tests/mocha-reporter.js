@@ -6,6 +6,12 @@ const { _ensureArtifact } = require('../lib/utils/getEnsureArtifact');
 
 disableServerlessStatsRequests(path.resolve(__dirname, '..'));
 
+const BbPromise = require('bluebird');
+
+BbPromise.config({
+  longStackTraces: true,
+});
+
 module.exports = require('@serverless/test/setup/mocha-reporter');
 
 module.exports.deferredRunner.then(runner => {
