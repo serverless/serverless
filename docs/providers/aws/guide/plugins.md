@@ -521,6 +521,11 @@ class NewProviderPlugin {
 
     // Create schema for your provider. For reference use https://github.com/ajv-validator/ajv
     serverless.configSchemaHandler.defineProvider('newProvider', {
+      // Eventual reusable schema definitions (will be put to top level "definitions" object)
+      definitions: {
+        // ...
+      },
+
       // Top level "provider" properties
       provider: {
         properties: {
