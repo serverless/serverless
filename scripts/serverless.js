@@ -39,26 +39,27 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-let resolveServerlessExecutionSpan;
-require('../lib/utils/analytics').sendPending({
-  serverlessExecutionSpan: new BbPromise(resolve => (resolveServerlessExecutionSpan = resolve)),
-});
-
 // requiring here so that if anything went wrong,
 // during require, it will be caught.
 const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless();
 
+let resolveOnExitPromise;
+serverless.onExitPromise = new Promise(resolve => (resolveOnExitPromise = resolve));
 serverless.invocationId = invocationId;
+
+require('../lib/utils/analytics').sendPending({
+  serverlessExecutionSpan: serverless.onExitPromise,
+});
 
 serverless
   .init()
   .then(() => serverless.run())
   .then(
-    () => resolveServerlessExecutionSpan(),
+    () => resolveOnExitPromise(),
     err => {
-      resolveServerlessExecutionSpan();
+      resolveOnExitPromise();
       // If Enterprise Plugin, capture error
       let enterpriseErrorHandler = null;
       serverless.pluginManager.plugins.forEach(p => {
