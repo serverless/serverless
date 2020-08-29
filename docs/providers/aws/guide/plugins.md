@@ -521,17 +521,25 @@ class NewProviderPlugin {
 
     // Create schema for your provider. For reference use https://github.com/ajv-validator/ajv
     serverless.configSchemaHandler.defineProvider('newProvider', {
+      // Eventual reusable schema definitions (will be put to top level "definitions" object)
+      definitions: {
+        // ...
+      },
+
+      // Top level "provider" properties
       provider: {
         properties: {
           stage: { type: 'string' },
           remoteFunctionData: { type: 'null' },
         },
       },
+
+      // Function level properties
       function: {
         properties: { handler: { type: 'string' } },
       },
 
-      // You can define event schemas here or via `defineFunctionEvent` helper
+      // Function events definitions (can be defined here or via `defineFunctionEvent` helper)
       functionEvents: {
         someEvent: {
           name: 'someEvent',
@@ -544,6 +552,14 @@ class NewProviderPlugin {
             required: ['someRequiredStringProp'],
             additionalProperties: false,
           },
+        },
+      },
+
+      // Definition for eventual top level "resources" section
+      resources: {
+        type: 'object',
+        properties: {
+          // ...
         },
       },
     });

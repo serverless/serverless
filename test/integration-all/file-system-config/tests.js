@@ -12,6 +12,8 @@ const { createTestService, deployService, removeService } = require('../../utils
 
 const EFS_MAX_PROPAGATION_TIME = 1000 * 60 * 5;
 
+const retryableMountErrors = new Set(['EFSMountFailureException', 'EFSMountTimeoutException']);
+
 describe('AWS - FileSystemConfig Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let serviceName;
@@ -83,10 +85,7 @@ describe('AWS - FileSystemConfig Integration Test', function() {
     } catch (e) {
       // Sometimes EFS is not available right away which causes invoke to fail,
       // here we retry it to avoid that issue
-      if (
-        e.code === 'EFSMountFailureException' &&
-        Date.now() - startTime < EFS_MAX_PROPAGATION_TIME
-      ) {
+      if (retryableMountErrors.has(e.code) && Date.now() - startTime < EFS_MAX_PROPAGATION_TIME) {
         log.warn('Failed to invoke, retry');
         return self();
       }
