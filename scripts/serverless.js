@@ -36,13 +36,6 @@ if (nodeVersion < 10) {
   );
 }
 
-if (/slss$/i.test(process.argv[1])) {
-  require('../lib/utils/logDeprecation')(
-    'DEPRECATED_ALIAS',
-    'Please use sls or serverless commands. Support for slss command will be removed with v2.0.0'
-  );
-}
-
 // requiring here so that if anything went wrong,
 // during require, it will be caught.
 const Serverless = require('../lib/Serverless');

@@ -39,3 +39,9 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 ## `bin/serverless`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
+
+<a name="DEPRECATED_ALIAS_SLSS"><div>&nbsp;</div></a>
+
+## `slss` alias
+
+Support for `slss` command will be removed with v2.0.0. Use `sls` or `serverless` instead.
