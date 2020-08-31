@@ -28,8 +28,6 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-// requiring here so that if anything went wrong,
-// during require, it will be caught.
 const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless();
