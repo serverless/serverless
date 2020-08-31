@@ -36,8 +36,6 @@ if (nodeVersion < 10) {
   );
 }
 
-// requiring here so that if anything went wrong,
-// during require, it will be caught.
 const Serverless = require('../lib/Serverless');
 
 const serverless = new Serverless();
