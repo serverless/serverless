@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="SLSS_CLI_ALIAS"><div>&nbsp;</div></a>
+
+## `slss` alias
+
+Support for `slss` command will be removed with v2.0.0. Use `sls` or `serverless` instead.
+
 <a name="AWS_FUNCTION_DESTINATIONS_ASYNC_CONFIG"><div>&nbsp;</div></a>
 
 ## AWS Lambda Function Destinations `maximumEventAge` & `maximumRetryAttempts`
@@ -39,9 +45,3 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 ## `bin/serverless`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
-
-<a name="DEPRECATED_ALIAS_SLSS"><div>&nbsp;</div></a>
-
-## `slss` alias
-
-Support for `slss` command will be removed with v2.0.0. Use `sls` or `serverless` instead.
