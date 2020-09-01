@@ -19,7 +19,6 @@
   "main": "lib/Serverless.js",
   "bin": {
     "serverless": "./bin/serverless.js",
-    "slss": "./bin/slss.js",
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
