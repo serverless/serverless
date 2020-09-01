@@ -38,7 +38,7 @@ if (nodeVersion < 10) {
 
 const Serverless = require('../lib/Serverless');
 
-const serverless = new Serverless();
+let serverless = new Serverless();
 
 let resolveOnExitPromise;
 serverless.onExitPromise = new Promise(resolve => (resolveOnExitPromise = resolve));
@@ -50,6 +50,9 @@ require('../lib/utils/analytics').sendPending({
 
 serverless
   .init()
+  .then(() => {
+    if (serverless.invokedInstance) serverless = serverless.invokedInstance;
+  })
   .then(() => serverless.run())
   .then(
     () => resolveOnExitPromise(),
