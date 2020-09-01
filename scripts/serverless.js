@@ -20,7 +20,9 @@ const uuid = require('uuid');
 const nodeVersion = Number(process.version.split('.')[0].slice(1));
 const invocationId = uuid.v4();
 
-process.on('uncaughtException', error => logError(error, { forceExit: true }));
+let serverless;
+
+process.on('uncaughtException', error => logError(error, { forceExit: true, serverless }));
 
 if (process.env.SLS_DEBUG) {
   // For performance reasons enabled only in SLS_DEBUG mode
@@ -38,7 +40,7 @@ if (nodeVersion < 10) {
 
 const Serverless = require('../lib/Serverless');
 
-let serverless = new Serverless();
+serverless = new Serverless();
 
 let resolveOnExitPromise;
 serverless.onExitPromise = new Promise(resolve => (resolveOnExitPromise = resolve));
@@ -66,7 +68,7 @@ serverless
         }
       });
       if (!enterpriseErrorHandler) {
-        logError(err);
+        logError(err, { serverless });
         return null;
       }
       return enterpriseErrorHandler(err, invocationId)
@@ -74,7 +76,7 @@ serverless
           process.stdout.write(`${error.stack}\n`);
         })
         .then(() => {
-          logError(err);
+          logError(err, { serverless });
         });
     }
   );
