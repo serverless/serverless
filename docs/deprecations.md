@@ -22,14 +22,6 @@ You may adapt to this behavior now by setting `enableLocalInstallationFallback: 
 
 Endpoints are configured to automatically follow timeout setting as configured on functions (with extra margin needed to process HTTP request on AWS side)
 
-<a name="MISSING_FRAMEWORK_VERSION"><div>&nbsp;</div></a>
-
-## Missing `frameworkVersion` in service configuration
-
-Starting from v2.0.0 `frameworkVersion` will be a required in service configuration, when relying on a globally installed `serverless` package.
-
-It's to ensure that major release upgrades do not accidentally break service deployments (and new major releases are planned to be published more frequently that it was in a past)
-
 <a name="SLSS_CLI_ALIAS"><div>&nbsp;</div></a>
 
 ## `slss` alias
