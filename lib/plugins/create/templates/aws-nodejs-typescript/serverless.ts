@@ -7,7 +7,7 @@ const serverlessConfiguration: Serverless = {
     // app: your-app-name,
     // org: your-org-name,
   },
-  frameworkVersion: '1',
+  frameworkVersion: '2',
   custom: {
     webpack: {
       webpackConfig: './webpack.config.js',
