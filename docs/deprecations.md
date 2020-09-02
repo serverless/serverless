@@ -6,6 +6,14 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="LOCAL_INSTALLATION_FALLBACK"><div>&nbsp;</div></a>
+
+## Fallback to service local `serverless` installation
+
+Starting with v2.0.0, instead of globally installed version, CLI will by default run service local installation of `serverless` if it's found.
+
+You may adapt to this behavior now by setting `enableLocalInstallationFallback: true` in your service config. Alternatively you may opt-out by setting it to `false` (still that'll be ineffective starting from v3.0.0 where support for this setting will be dropped, and CLI will unconditionally favor locally installed `serverless` installations)
+
 <a name="AWS_HTTP_API_TIMEOUT"><div>&nbsp;</div></a>
 
 ## AWS HTTP API `timeout`
