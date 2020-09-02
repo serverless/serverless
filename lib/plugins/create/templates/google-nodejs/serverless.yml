@@ -12,6 +12,8 @@ provider:
   # the path to the credentials file needs to be absolute
   credentials: ~/.gcloud/keyfile.json
 
+frameworkVersion: '1'
+
 plugins:
   - serverless-google-cloudfunctions
 

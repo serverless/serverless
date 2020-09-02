@@ -1,5 +1,7 @@
 service: knative
 
+frameworkVersion: '1'
+
 provider:
   name: knative
   # optional Docker Hub credentials you need if you're using local Dockerfiles as function handlers
