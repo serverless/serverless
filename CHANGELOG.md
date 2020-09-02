@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.81.1](https://github.com/serverless/serverless/compare/v1.81.0...v1.81.1) (2020-09-02)
+
+### Bug Fixes
+
+- Revert from `frameworkVersion` requirement plan ([#8178](https://github.com/serverless/serverless/issues/8178)) ([6dd0596](https://github.com/serverless/serverless/commit/6dd0596286666b242b921847ffdeb6628baf3b26)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [1.81.0](https://github.com/serverless/serverless/compare/v1.80.0...v1.81.0) (2020-09-02)
 
 ### Features
