@@ -12,7 +12,11 @@ const { createTestService, deployService, removeService } = require('../../utils
 
 const EFS_MAX_PROPAGATION_TIME = 1000 * 60 * 5;
 
-const retryableMountErrors = new Set(['EFSMountFailureException', 'EFSMountTimeoutException']);
+const retryableMountErrors = new Set([
+  'EFSMountFailureException',
+  'EFSMountTimeoutException',
+  'EFSIOException',
+]);
 
 describe('AWS - FileSystemConfig Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
