@@ -1,5 +1,6 @@
 service:
   name: hello-world
+frameworkVersion: '1'
 
 provider:
   name: cloudflare
