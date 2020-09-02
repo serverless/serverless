@@ -6,6 +6,14 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="AWS_HTTP_API_TIMEOUT"><div>&nbsp;</div></a>
+
+## AWS HTTP API `timeout`
+
+`provider.httpApi.timeout` and `functions[].events[].httpApi.timeout` settings will no longer be recognized with v2.0.0.
+
+Endpoints are configured to automatically follow timeout setting as configured on functions (with extra margin needed to process HTTP request on AWS side)
+
 <a name="MISSING_FRAMEWORK_VERSION"><div>&nbsp;</div></a>
 
 ## Missing `frameworkVersion` in service configuration
