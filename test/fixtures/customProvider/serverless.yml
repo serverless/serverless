@@ -1,5 +1,7 @@
 service: custom
 
+frameworkVersion: '*'
+
 provider:
   name: customProvider
   runtime: foo
