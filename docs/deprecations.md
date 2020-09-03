@@ -8,11 +8,11 @@ layout: Doc
 
 <a name="LOCAL_INSTALLATION_FALLBACK"><div>&nbsp;</div></a>
 
-## Fallback to service local `serverless` installation
+## Fallback to a service local `serverless` installation
 
-Starting with v2.0.0, instead of globally installed version, CLI will by default run service local installation of `serverless` if it's found.
+Starting with v2.0.0, instead of globally installed version, CLI will by default run service local installation of `serverless`(if it's found.
 
-You may adapt to this behavior now by setting `enableLocalInstallationFallback: true` in your service config. Alternatively you may opt-out by setting it to `false` (still that'll be ineffective starting from v3.0.0 where support for this setting will be dropped, and CLI will unconditionally favor locally installed `serverless` installations)
+Adapt to this behavior now by adding `enableLocalInstallationFallback: true` to service configuration. Alternatively you may opt-out by setting it to `false` (note that'll be ineffective starting from v3.0.0, where support for this setting will be dropped, and CLI will unconditionally favor locally installed `serverless` installations when found)
 
 <a name="AWS_HTTP_API_TIMEOUT"><div>&nbsp;</div></a>
 
@@ -46,9 +46,9 @@ Configure `httpApi.payload` explicitly to ensure seamless migration.
 
 ## Outdated Node.js version
 
-It appears you rely on no longer maintained Node.js version.
+Support for Node.js v6 and v8 will be dropped with v2.0.0 release
 
-Please upgrade to use at least Node.js v10 (It's recommended to use LTS version, as listed at https://nodejs.org/en/)
+Ensure to rely on at least Node.js v10 (It's recommended to use LTS version, as listed at https://nodejs.org/en/)
 
 <a name="AWS_ALB_ALLOW_UNAUTHENTICATED"><div>&nbsp;</div></a>
 
