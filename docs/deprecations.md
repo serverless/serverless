@@ -10,7 +10,7 @@ layout: Doc
 
 ## Fallback to a service local `serverless` installation
 
-Starting with v2.0.0, instead of globally installed version, CLI will by default run service local installation of `serverless`(if it's found.
+Starting with v2.0.0, globally installed CLI will by default run (fallback to) service local installation of `serverless` if it's found.
 
 Adapt to this behavior now by adding `enableLocalInstallationFallback: true` to service configuration. Alternatively you may opt-out by setting it to `false` (note that'll be ineffective starting from v3.0.0, where support for this setting will be dropped, and CLI will unconditionally favor locally installed `serverless` installations when found)
 
