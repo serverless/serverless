@@ -67,5 +67,4 @@ module.exports = {
   replaceEnv,
   serviceNameRegex,
   testServiceIdentifier,
-  wait,
 };
