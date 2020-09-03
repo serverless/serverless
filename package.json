@@ -79,7 +79,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^9.1.2",
-    "@serverless/eslint-config": "^2.2.0",
+    "@serverless/eslint-config": "^3.0.0",
     "@serverless/test": "^5.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
@@ -109,18 +109,8 @@
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
-    "extends": "@serverless/eslint-config/node/6",
-    "root": true,
-    "overrides": [
-      {
-        "files": [
-          "scripts/pkg/**"
-        ],
-        "parserOptions": {
-          "ecmaVersion": 2018
-        }
-      }
-    ]
+    "extends": "@serverless/eslint-config/node",
+    "root": true
   },
   "eslintIgnore": [
     "!/.github",
