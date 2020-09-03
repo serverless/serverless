@@ -994,6 +994,22 @@ functions:
 You can then access the query string `https://example.com/dev/whatever?bar=123` by `event.foo` in the lambda function.
 If you want to spread a string into multiple lines, you can use the `>` or `|` syntax, but the following strings have to be all indented with the same amount, [read more about `>` syntax](http://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines).
 
+In order to remove one of the default request templates you just need to pass it as null, as follows:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          method: get
+          path: whatever
+          integration: lambda
+          request:
+            template:
+              application/x-www-form-urlencoded: null
+```
+
 #### Pass Through Behavior
 
 [API Gateway](https://serverless.com/amazon-api-gateway/) provides multiple ways to handle requests where the Content-Type header does not match any of the specified mapping templates. When this happens, the request payload will either be passed through the integration request _without transformation_ or rejected with a `415 - Unsupported Media Type`, depending on the configuration.

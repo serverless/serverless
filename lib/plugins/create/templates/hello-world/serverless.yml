@@ -7,6 +7,8 @@
 # The `service` block is the name of the service
 service: serverless-hello-world
 
+frameworkVersion: '1'
+
 # The `provider` block defines where your service will be deployed
 provider:
   name: aws

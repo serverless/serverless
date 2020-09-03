@@ -6,6 +6,28 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="LOCAL_INSTALLATION_FALLBACK"><div>&nbsp;</div></a>
+
+## Fallback to a service local `serverless` installation
+
+Starting with v2.0.0, globally installed CLI will by default run (fallback to) service local installation of `serverless` if it's found.
+
+Adapt to this behavior now by adding `enableLocalInstallationFallback: true` to service configuration. Alternatively you may opt-out by setting it to `false` (note that'll be ineffective starting from v3.0.0, where support for this setting will be dropped, and CLI will unconditionally favor locally installed `serverless` installations when found)
+
+<a name="AWS_HTTP_API_TIMEOUT"><div>&nbsp;</div></a>
+
+## AWS HTTP API `timeout`
+
+`provider.httpApi.timeout` and `functions[].events[].httpApi.timeout` settings will no longer be recognized with v2.0.0.
+
+Endpoints are configured to automatically follow timeout setting as configured on functions (with extra margin needed to process HTTP request on AWS side)
+
+<a name="SLSS_CLI_ALIAS"><div>&nbsp;</div></a>
+
+## `slss` alias
+
+Support for `slss` command will be removed with v2.0.0. Use `sls` or `serverless` instead.
+
 <a name="AWS_FUNCTION_DESTINATIONS_ASYNC_CONFIG"><div>&nbsp;</div></a>
 
 ## AWS Lambda Function Destinations `maximumEventAge` & `maximumRetryAttempts`
@@ -24,9 +46,9 @@ Configure `httpApi.payload` explicitly to ensure seamless migration.
 
 ## Outdated Node.js version
 
-It appears you rely on no longer maintained Node.js version.
+Support for Node.js v6 and v8 will be dropped with v2.0.0 release
 
-Please upgrade to use at least Node.js v10 (It's recommended to use LTS version, as listed at https://nodejs.org/en/)
+Ensure to rely on at least Node.js v10 (It's recommended to use LTS version, as listed at https://nodejs.org/en/)
 
 <a name="AWS_ALB_ALLOW_UNAUTHENTICATED"><div>&nbsp;</div></a>
 

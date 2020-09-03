@@ -193,6 +193,15 @@ provider:
     id: xxxx # id of externally created HTTP API to which endpoints should be attached.
 ```
 
+You can use AWS Fn::ImportValue function as well to reference an HTTP API created within another Cloud Formation stack and whose id is exported.
+
+```yaml
+provider:
+  httpApi:
+    id:
+      Fn::ImportValue: xxxx # name of the exported value representing the external HTTP API id
+```
+
 In such case no API and stage resources are created, therefore extending HTTP API with CORS, access logs settings or authorizers is not supported.
 
 ## Shared Authorizer

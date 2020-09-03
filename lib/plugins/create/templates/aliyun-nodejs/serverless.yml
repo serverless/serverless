@@ -11,6 +11,8 @@
 
 service: aliyun-nodejs
 
+frameworkVersion: '1'
+
 provider:
   name: aliyun
   runtime: nodejs8

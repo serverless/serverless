@@ -4,6 +4,8 @@ service:
 #app: your-app-name
 #org: your-org-name
 
+frameworkVersion: '1'
+
 plugins:
   - serverless-webpack
   - serverless-alexa-skills

@@ -7,8 +7,9 @@ const fse = require('fs-extra');
 const spawn = require('child-process-ext/spawn');
 const nodeFetch = require('node-fetch');
 const logFetch = require('log').get('fetch');
+const wait = require('timers-ext/promise/sleep');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
-const { getServiceName, wait } = require('./misc');
+const { getServiceName } = require('./misc');
 const { readYamlFile, writeYamlFile } = require('./fs');
 
 const serverlessExec = require('../serverless-binary');

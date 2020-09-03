@@ -10,6 +10,8 @@ service:
 #    config:
 #        some: 'val'
 
+frameworkVersion: '1'
+
 # The `provider` block defines where your service will be deployed
 provider:
   name: fn

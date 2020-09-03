@@ -84,10 +84,15 @@ describe('AWS - Stream Integration Test', function() {
   describe('DynamoDB Streams', () => {
     it('should invoke on dynamodb messages from the latest position', () => {
       const functionName = 'streamDynamoDb';
-      const item = { id: 'message', hello: 'from dynamo!' };
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        putDynamoDbItem(tableName, item)
-      ).then(events => {
+      const item = {
+        id: 'message',
+      };
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () => {
+        item.hello = `from dynamo!${Math.random()
+          .toString(36)
+          .slice(2)}`;
+        return putDynamoDbItem(tableName, item);
+      }).then(events => {
         const logs = events.reduce((data, event) => data + event.message, '');
 
         expect(logs).to.include(functionName);

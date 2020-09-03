@@ -3,7 +3,6 @@
 const path = require('path');
 const disableServerlessStatsRequests = require('@serverless/test/disable-serverless-stats-requests');
 const { _ensureArtifact } = require('../lib/utils/getEnsureArtifact');
-const { triggeredDeprecations } = require('../lib/utils/logDeprecation');
 
 disableServerlessStatsRequests(path.resolve(__dirname, '..'));
 
@@ -23,7 +22,5 @@ module.exports.deferredRunner.then(runner => {
     // Reason is that homedir is automatically cleaned for each test,
     // therefore eventually built custom resource file is also removed
     _ensureArtifact.clear();
-    // Ensure to reset information on triggered deprecations, after each test file is run
-    triggeredDeprecations.clear();
   });
 });

@@ -6,9 +6,10 @@ const _ = require('lodash');
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
 const log = require('log').get('serverless:test');
+const wait = require('timers-ext/promise/sleep');
 
 const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
-const { confirmCloudWatchLogs, wait } = require('../../utils/misc');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 const { createTestService, deployService, removeService } = require('../../utils/integration');
 const {
   createApi,
