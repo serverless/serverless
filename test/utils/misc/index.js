@@ -1,6 +1,7 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const wait = require('timers-ext/promise/sleep');
 
 const logger = console;
 
@@ -56,10 +57,6 @@ function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
         Object.assign({}, options, { timeout: timeout - duration })
       );
     });
-}
-
-function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = {
