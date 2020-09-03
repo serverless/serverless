@@ -40,6 +40,7 @@ function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
   const startTime = Date.now();
   const timeout = options.timeout || 60 * 1000;
   return trigger()
+    .then(() => wait(1000))
     .then(() => awsRequest('CloudWatchLogs', 'filterLogEvents', { logGroupName }))
     .then(({ events }) => {
       if (events.length) {
