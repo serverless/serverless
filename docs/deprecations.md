@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING"><div>&nbsp;</div></a>
+
+## Support for `enableLocalInstallationFallback` setting is to be removed
+
+Starting with v3.0.0, framework will unconditionally run service local installation of `serverless` if its found.
+
 <a name="LOCAL_INSTALLATION_FALLBACK"><div>&nbsp;</div></a>
 
 ## Fallback to a service local `serverless` installation
