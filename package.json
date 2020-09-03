@@ -72,7 +72,7 @@
     "timers-ext": "^0.1.7",
     "type": "^2.1.0",
     "untildify": "^3.0.3",
-    "update-notifier": "^2.5.0",
+    "update-notifier": "^4.1.1",
     "uuid": "^3.4.0",
     "write-file-atomic": "^2.4.3",
     "yaml-ast-parser": "0.0.43",
