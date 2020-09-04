@@ -81,7 +81,7 @@
   "devDependencies": {
     "@commitlint/cli": "^9.1.2",
     "@serverless/eslint-config": "^2.2.0",
-    "@serverless/test": "^4.8.0",
+    "@serverless/test": "^4.9.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cli-progress-footer": "^1.1.1",
