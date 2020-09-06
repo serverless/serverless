@@ -37,6 +37,10 @@ class FakeLambdaContext
     return Time.now.strftime('%Y/%m/%d') +'/[$' + function_version + ']58419525dade4d17a495dceeeed44708'
   end
 
+  def deadline_ms
+    (@created_time + @timeout).to_i * 1000
+  end
+
   def log(message)
     puts message
   end
