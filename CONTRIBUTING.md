@@ -97,7 +97,7 @@ Deprecation log can be configured with the following steps:
 
 # Testing
 
-See [tests/README](tests/README.md)
+See [test/README](test/README.md)
 
 # Our Code of Conduct
 
