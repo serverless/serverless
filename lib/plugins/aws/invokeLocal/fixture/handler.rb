@@ -6,6 +6,10 @@ def withRemainingTime(event:, context:)
   {"start" => start, "stop" => stop}
 end
 
+def withDeadlineMs(event:, context:)
+  {"deadlineMs" => context.deadline_ms}
+end
+
 module MyModule
   class MyClass
     def self.my_class_method(event:, context:)
