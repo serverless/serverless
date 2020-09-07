@@ -10,11 +10,20 @@ function createSnsTopic(topicName) {
   return awsRequest('SNS', 'createTopic', params);
 }
 
-function removeSnsTopic(topicName) {
-  return awsRequest('SNS', 'listTopics').then(data => {
+function resolveTopicArn(topicName, nextToken = null) {
+  return awsRequest('SNS', 'listTopics', { NextToken: nextToken }).then(data => {
     const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
       .TopicArn;
 
+    if (topicArn) return topicArn;
+
+    if (data.NextToken) return resolveTopicArn(topicName, data.NextToken);
+    return null;
+  });
+}
+
+function removeSnsTopic(topicName) {
+  return resolveTopicArn(topicName).then(topicArn => {
     const params = {
       TopicArn: topicArn,
     };
@@ -24,10 +33,7 @@ function removeSnsTopic(topicName) {
 }
 
 function publishSnsMessage(topicName, message, messageAttributes = null) {
-  return awsRequest('SNS', 'listTopics').then(data => {
-    const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
-      .TopicArn;
-
+  return resolveTopicArn(topicName).then(topicArn => {
     const params = {
       Message: message,
       TopicArn: topicArn,
