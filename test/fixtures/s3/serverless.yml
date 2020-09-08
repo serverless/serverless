@@ -1,4 +1,4 @@
-service: CHANGE_TO_UNIQUE_PER_RUN
+service: service
 
 configValidationMode: error
 
@@ -8,7 +8,7 @@ provider:
   versionFunctions: false
   s3:
     customBucket:
-      name: CHANGE_TO_UNIQUE_PER_RUN
+      name: ${self:service.name}-custom-bucket-${opt:stage, 'dev'}
       publicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -19,12 +19,12 @@ functions:
   minimal:
     handler: core.minimal
     events:
-      - s3: CHANGE_TO_UNIQUE_PER_RUN
+      - s3: ${self:service.name}-s3-minimal
   extended:
     handler: core.extended
     events:
       - s3:
-          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          bucket: ${self:service.name}-s3-extended
           event: s3:ObjectRemoved:*
           rules:
             - prefix: photos/
@@ -39,7 +39,7 @@ functions:
     handler: core.existing
     events:
       - s3:
-          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          bucket: ${self:service.name}-s3-existing-simple
           event: s3:ObjectCreated:*
           rules:
             - prefix: Files/
@@ -50,14 +50,14 @@ functions:
     handler: core.existingCreated
     events:
       - s3:
-          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          bucket: ${self:service.name}-s3-existing-complex
           event: s3:ObjectCreated:*
           rules:
             - prefix: photos
             - suffix: .jpg
           existing: true
       - s3:
-          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          bucket: ${self:service.name}-s3-existing-complex
           event: s3:ObjectCreated:*
           rules:
             - prefix: photos
@@ -67,14 +67,14 @@ functions:
     handler: core.existingRemoved
     events:
       - s3:
-          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          bucket: ${self:service.name}-s3-existing-complex
           event: s3:ObjectRemoved:*
           rules:
             - prefix: photos
             - suffix: .jpg
           existing: true
       - s3:
-          bucket: CHANGE_TO_UNIQUE_PER_RUN
+          bucket: ${self:service.name}-s3-existing-complex
           event: s3:ObjectRemoved:*
           rules:
             - prefix: photos

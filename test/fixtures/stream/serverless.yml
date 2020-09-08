@@ -1,4 +1,4 @@
-service: CHANGE_TO_UNIQUE_PER_RUN
+service: service
 
 configValidationMode: error
 
@@ -29,7 +29,7 @@ functions:
                 - kinesis
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
-                - stream/CHANGE_TO_UNIQUE_PER_RUN
+                - stream/${self:service.name}-kinesis
           batchSize: 100
           startingPosition: TRIM_HORIZON
           batchWindow: 1
@@ -48,4 +48,4 @@ resources:
             KeyType: HASH
         StreamSpecification:
           StreamViewType: KEYS_ONLY
-        TableName: CHANGE_TO_UNIQUE_PER_RUN
+        TableName: ${self:service.name}-table

@@ -1,16 +1,14 @@
 'use strict';
 
-const path = require('path');
 const WebSocket = require('ws');
-const _ = require('lodash');
 const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
 const log = require('log').get('serverless:test');
 const wait = require('timers-ext/promise/sleep');
+const fixtures = require('../../fixtures');
 
-const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const { deployService, removeService } = require('../../utils/integration');
 const {
   createApi,
   deleteApi,
@@ -21,31 +19,25 @@ const {
 
 describe('AWS - API Gateway Websocket Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
-  let serviceName;
   let stackName;
-  let tmpDirPath;
-  let serverlessFilePath;
+  let serviceName;
+  let servicePath;
+  let updateConfig;
   // TODO: Remove once occasional test fail is debugged
   let twoWayPassed;
   const stage = 'dev';
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.debug(`Temporary path: ${tmpDirPath}`);
-    serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: path.join(__dirname, 'service'),
-    });
-    serviceName = serverlessConfig.service;
+    const serviceData = await fixtures.setup('websocket');
+    ({ servicePath, updateConfig } = serviceData);
+    serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    log.debug(`Deploying "${stackName}" service...`);
-    return deployService(tmpDirPath);
+    return deployService(servicePath);
   });
 
   after(() => {
     if (!twoWayPassed) return null;
-    log.notice('Removing service...');
-    return removeService(tmpDirPath);
+    return removeService(servicePath);
   });
 
   async function getWebSocketServerUrl() {
@@ -149,28 +141,27 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
         const wsApiMeta = await createApi(externalWebsocketApiName);
         websocketApiId = wsApiMeta.ApiId;
         await createStage(websocketApiId, 'dev');
-        const serverless = readYamlFile(serverlessFilePath);
-        _.merge(serverless.provider, {
-          apiGateway: {
-            websocketApiId,
+        await updateConfig({
+          provider: {
+            apiGateway: { websocketApiId },
           },
         });
-        writeYamlFile(serverlessFilePath, serverless);
-        return deployService(tmpDirPath);
+        return deployService(servicePath);
       });
 
       after(async () => {
         // NOTE: deleting the references to the old, external websocket API
         if (!twoWayPassed) return;
-        const serverless = readYamlFile(serverlessFilePath);
-        delete serverless.provider.apiGateway.websocketApiId;
-        writeYamlFile(serverlessFilePath, serverless);
+        await updateConfig({
+          provider: {
+            apiGateway: { websocketApiId: null },
+          },
+        });
         // NOTE: we need to delete the stage before deleting the stack
         // otherwise CF will refuse to delete the deployment because a stage refers to that
         await deleteStage(websocketApiId, 'dev');
         // NOTE: deploying once again to get the stack into the original state
-        log.debug('Redeploying service...');
-        await deployService(tmpDirPath);
+        await deployService(servicePath);
         log.debug('Deleting external websocket API...');
         await deleteApi(websocketApiId);
       });

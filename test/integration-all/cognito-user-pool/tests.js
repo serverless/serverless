@@ -1,12 +1,11 @@
 'use strict';
 
-const path = require('path');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const hasFailed = require('@serverless/test/has-failed');
+const fixtures = require('../../fixtures');
 
-const { getTmpDirPath } = require('../../utils/fs');
 const {
   createUserPool,
   deleteUserPool,
@@ -17,14 +16,13 @@ const {
   setUserPassword,
   initiateAuth,
 } = require('../../utils/cognito');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const { deployService, removeService } = require('../../utils/integration');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
 
 describe('AWS - Cognito User Pool Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
-  let serviceName;
   let stackName;
-  let tmpDirPath;
+  let servicePath;
   let poolBasicSetup;
   let poolExistingSimpleSetup;
   let poolExistingMultiSetup;
@@ -32,25 +30,15 @@ describe('AWS - Cognito User Pool Integration Test', function() {
   const stage = 'dev';
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.notice(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: path.join(__dirname, 'service'),
-      filesToAdd: [path.join(__dirname, '..', 'shared')],
-      serverlessConfigHook:
-        // Ensure unique user pool names for each test (to avoid collision among concurrent CI runs)
-        config => {
-          poolBasicSetup = `${config.service} CUP Basic`;
-          poolExistingSimpleSetup = `${config.service} CUP Existing Simple`;
-          poolExistingMultiSetup = `${config.service} CUP Existing Multi`;
-          config.functions.basic.events[0].cognitoUserPool.pool = poolBasicSetup;
-          config.functions.existingSimple.events[0].cognitoUserPool.pool = poolExistingSimpleSetup;
-          config.functions.existingMulti.events[0].cognitoUserPool.pool = poolExistingMultiSetup;
-          config.functions.existingMulti.events[1].cognitoUserPool.pool = poolExistingMultiSetup;
-        },
-    });
-    serviceName = serverlessConfig.service;
+    const serviceData = await fixtures.setup('cognitoUserPool');
+    ({ servicePath } = serviceData);
+    const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
+
+    poolBasicSetup = `${serviceName} CUP Basic`;
+    poolExistingSimpleSetup = `${serviceName} CUP Existing Simple`;
+    poolExistingMultiSetup = `${serviceName} CUP Existing Multi`;
+
     // create external Cognito User Pools
     // the simple pool setup has some additional configuration when we set it up
     poolExistingSimpleSetupConfig = {
@@ -63,15 +51,15 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       createUserPool(poolExistingSimpleSetup, poolExistingSimpleSetupConfig),
       createUserPool(poolExistingMultiSetup),
     ]);
-    log.notice(`Deploying "${stackName}" service...`);
-    return deployService(tmpDirPath);
+    return deployService(servicePath);
   });
 
   after(async function() {
+    if (!servicePath) return null;
     // Do not clean on fail, to allow further state investigation
     if (hasFailed(this.test.parent)) return null;
     log.notice('Removing service...');
-    await removeService(tmpDirPath);
+    await removeService(servicePath);
     log.notice('Deleting Cognito User Pools');
     return BbPromise.all([
       deleteUserPool(poolExistingSimpleSetup),

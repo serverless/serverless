@@ -1,14 +1,15 @@
-service: CHANGE_TO_UNIQUE_PER_RUN
+service: service
 
 configValidationMode: error
+frameworkVersion: '*'
 
 provider:
   name: aws
   runtime: nodejs12.x
   versionFunctions: false
   apiKeys:
-    - name: CHANGE_TO_UNIQUE_PER_RUN
-      value: CHANGE_TO_UNIQUE_PER_RUN
+    - name: ${self:service.name}-api-key-1
+      value: ${self:service.name}-api-key-1
 
 functions:
   # core functions

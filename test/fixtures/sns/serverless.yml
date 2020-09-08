@@ -1,4 +1,4 @@
-service: CHANGE_TO_UNIQUE_PER_RUN
+service: service
 
 configValidationMode: error
 
@@ -11,14 +11,14 @@ functions:
   snsMinimal:
     handler: core.snsMinimal
     events:
-      - sns: CHANGE_TO_UNIQUE_PER_RUN
+      - sns: ${self:service.name}-minimal
 
   snsMultipleFilteredLeft:
     handler: core.snsMultipleFilteredLeft
     events:
       - sns:
-          topicName: CHANGE_TO_UNIQUE_PER_RUN
-          displayName: CHANGE_TO_UNIQUE_PER_RUN
+          topicName: ${self:service.name}-filtered
+          displayName: 'Integration Test: ${self:service.name}-filtered'
           filterPolicy:
             side:
               - left
@@ -26,8 +26,8 @@ functions:
     handler: core.snsMultipleFilteredRight
     events:
       - sns:
-          topicName: CHANGE_TO_UNIQUE_PER_RUN
-          displayName: CHANGE_TO_UNIQUE_PER_RUN
+          topicName: ${self:service.name}-filtered
+          displayName: 'Integration Test: ${self:service.name}-filtered'
           filterPolicy:
             side:
               - right
@@ -42,5 +42,5 @@ functions:
               - - 'arn:aws:sns'
                 - Ref: 'AWS::Region'
                 - Ref: 'AWS::AccountId'
-                - CHANGE_TO_UNIQUE_PER_RUN
-          topicName: CHANGE_TO_UNIQUE_PER_RUN
+                - ${self:service.name}-existing
+          topicName: ${self:service.name}-existing

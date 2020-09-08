@@ -1,4 +1,4 @@
-service: CHANGE_TO_UNIQUE_PER_RUN
+service: service
 
 configValidationMode: error
 
@@ -12,13 +12,13 @@ functions:
     handler: core.basic
     events:
       - cognitoUserPool:
-          pool: CHANGE_TO_UNIQUE_PER_RUN
+          pool: ${self:service.name} CUP Basic
           trigger: PreSignUp
   existingSimple:
     handler: core.existingSimple
     events:
       - cognitoUserPool:
-          pool: CHANGE_TO_UNIQUE_PER_RUN
+          pool: ${self:service.name} CUP Existing Simple
           trigger: PreSignUp
           existing: true
   # testing if two functions share one cognito user pool with multiple configs
@@ -26,10 +26,10 @@ functions:
     handler: core.existingMulti
     events:
       - cognitoUserPool:
-          pool: CHANGE_TO_UNIQUE_PER_RUN
+          pool: ${self:service.name} CUP Existing Multi
           trigger: PreSignUp
           existing: true
       - cognitoUserPool:
-          pool: CHANGE_TO_UNIQUE_PER_RUN
+          pool: ${self:service.name} CUP Existing Multi
           trigger: PreAuthentication
           existing: true

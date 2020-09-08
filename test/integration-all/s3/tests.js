@@ -1,20 +1,18 @@
 'use strict';
 
-const path = require('path');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
+const fixtures = require('../../fixtures');
 
-const { getTmpDirPath } = require('../../utils/fs');
 const { createBucket, createAndRemoveInBucket, deleteBucket } = require('../../utils/s3');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const { deployService, removeService } = require('../../utils/integration');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
 
 describe('AWS - S3 Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
-  let serviceName;
   let stackName;
-  let tmpDirPath;
+  let servicePath;
   let bucketMinimalSetup;
   let bucketExtendedSetup;
   let bucketCustomName;
@@ -23,30 +21,14 @@ describe('AWS - S3 Integration Test', function() {
   const stage = 'dev';
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.notice(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: path.join(__dirname, 'service'),
-      filesToAdd: [path.join(__dirname, '..', 'shared')],
-      serverlessConfigHook:
-        // Ensure unique S3 bucket names for each test (to avoid collision among concurrent CI runs)
-        config => {
-          bucketMinimalSetup = `${config.service}-s3-minimal`;
-          bucketExtendedSetup = `${config.service}-s3-extended`;
-          bucketCustomName = `${config.service}-custom-bucket-${stage}`;
-          bucketExistingSimpleSetup = `${config.service}-s3-existing-simple`;
-          bucketExistingComplexSetup = `${config.service}-s3-existing-complex`;
-          config.functions.minimal.events[0].s3 = bucketMinimalSetup;
-          config.functions.extended.events[0].s3.bucket = bucketExtendedSetup;
-          config.provider.s3.customBucket.name = bucketCustomName;
-          config.functions.existing.events[0].s3.bucket = bucketExistingSimpleSetup;
-          config.functions.existingCreated.events[0].s3.bucket = bucketExistingComplexSetup;
-          config.functions.existingCreated.events[1].s3.bucket = bucketExistingComplexSetup;
-          config.functions.existingRemoved.events[0].s3.bucket = bucketExistingComplexSetup;
-          config.functions.existingRemoved.events[1].s3.bucket = bucketExistingComplexSetup;
-        },
-    });
-    serviceName = serverlessConfig.service;
+    const serviceData = await fixtures.setup('s3');
+    ({ servicePath } = serviceData);
+    const serviceName = serviceData.serviceConfig.service;
+    bucketMinimalSetup = `${serviceName}-s3-minimal`;
+    bucketExtendedSetup = `${serviceName}-s3-extended`;
+    bucketCustomName = `${serviceName}-custom-bucket-${stage}`;
+    bucketExistingSimpleSetup = `${serviceName}-s3-existing-simple`;
+    bucketExistingComplexSetup = `${serviceName}-s3-existing-complex`;
     stackName = `${serviceName}-${stage}`;
     // create external S3 buckets
     // NOTE: deployment can only be done once the S3 buckets are created
@@ -55,15 +37,12 @@ describe('AWS - S3 Integration Test', function() {
       createBucket(bucketExistingSimpleSetup),
       createBucket(bucketExistingComplexSetup),
     ]).then(() => {
-      log.notice(`Deploying "${stackName}" service...`);
-      return deployService(tmpDirPath);
+      return deployService(servicePath);
     });
   });
 
   after(async () => {
-    log.notice('Removing service...');
-    await removeService(tmpDirPath);
-    log.notice('Deleting S3 buckets');
+    await removeService(servicePath);
     return BbPromise.all([
       deleteBucket(bucketExistingSimpleSetup),
       deleteBucket(bucketExistingComplexSetup),

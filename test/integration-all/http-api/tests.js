@@ -6,20 +6,13 @@ const awsRequest = require('@serverless/test/aws-request');
 const fixtures = require('../../fixtures');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
 
-const { getTmpDirPath } = require('../../utils/fs');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  fetch,
-} = require('../../utils/integration');
+const { deployService, removeService, fetch } = require('../../utils/integration');
 
 describe('HTTP API Integration Test', function() {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
-  let serviceName;
   let endpoint;
   let stackName;
-  let tmpDirPath;
+  let servicePath;
   const stage = 'dev';
 
   const resolveEndpoint = async () => {
@@ -37,8 +30,6 @@ describe('HTTP API Integration Test', function() {
     const userPassword = 'razDwa3!';
 
     before(async () => {
-      tmpDirPath = getTmpDirPath();
-      log.debug('temporary path %s', tmpDirPath);
       poolId = (
         await awsRequest('CognitoIdentityServiceProvider', 'createUserPool', {
           PoolName: `test-http-api-${process.hrtime()[1]}`,
@@ -64,8 +55,8 @@ describe('HTTP API Integration Test', function() {
         ),
       ]);
 
-      const serverlessConfig = await createTestService(tmpDirPath, {
-        templateDir: await fixtures.extend('httpApi', {
+      const serviceData = await fixtures.setup('httpApi', {
+        configExt: {
           provider: {
             httpApi: {
               cors: { exposedResponseHeaders: 'X-foo' },
@@ -99,20 +90,19 @@ describe('HTTP API Integration Test', function() {
               ],
             },
           },
-        }),
+        },
       });
-      serviceName = serverlessConfig.service;
+      ({ servicePath } = serviceData);
+      const serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
-      log.notice('deploying %s service', serviceName);
-      await deployService(tmpDirPath);
+      await deployService(servicePath);
       return resolveEndpoint();
     });
 
     after(async () => {
       await awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: poolId });
-      if (!serviceName) return;
-      log.notice('Removing service...');
-      await removeService(tmpDirPath);
+      if (!servicePath) return;
+      await removeService(servicePath);
     });
 
     it('should expose an accessible POST HTTP endpoint', async () => {
@@ -197,15 +187,11 @@ describe('HTTP API Integration Test', function() {
 
   describe('Catch-all endpoints', () => {
     before(async () => {
-      tmpDirPath = getTmpDirPath();
-      log.debug('temporary path %s', tmpDirPath);
-      const serverlessConfig = await createTestService(tmpDirPath, {
-        templateDir: fixtures.map.httpApiCatchAll,
-      });
-      serviceName = serverlessConfig.service;
+      const serviceData = await fixtures.setup('httpApiCatchAll');
+      ({ servicePath } = serviceData);
+      const serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
-      log.notice('deploying %s service', serviceName);
-      await deployService(tmpDirPath);
+      await deployService(servicePath);
       return resolveEndpoint();
     });
 
@@ -214,7 +200,7 @@ describe('HTTP API Integration Test', function() {
       // TODO: Remove once properly diagnosed
       if (this.test.parent.tests.some(test => test.state === 'failed')) return;
       log.notice('Removing service...');
-      await removeService(tmpDirPath);
+      await removeService(servicePath);
     });
 
     it('should catch all root endpoint', async () => {
@@ -244,42 +230,35 @@ describe('HTTP API Integration Test', function() {
 
   describe('Shared API', () => {
     let exportServicePath;
+    let serviceName;
 
     before(async () => {
-      exportServicePath = getTmpDirPath();
-      log.debug('service #1 path %s', exportServicePath);
-
-      const exportServiceConfig = await createTestService(exportServicePath, {
-        templateDir: fixtures.map.httpApiExport,
-      });
-      log.notice('deploying %s service', exportServiceConfig.service);
+      const exportServiceData = await fixtures.setup('httpApiExport');
+      ({ servicePath: exportServicePath } = exportServiceData);
+      const exportServiceName = exportServiceData.serviceConfig.service;
       await deployService(exportServicePath);
       const httpApiId = (
         await awsRequest('CloudFormation', 'describeStacks', {
-          StackName: `${exportServiceConfig.service}-${stage}`,
+          StackName: `${exportServiceName}-${stage}`,
         })
       ).Stacks[0].Outputs[0].OutputValue;
 
-      tmpDirPath = getTmpDirPath();
-      log.debug('sevice #2 path %s', tmpDirPath);
-      const serverlessConfig = await createTestService(tmpDirPath, {
-        templateDir: await fixtures.extend('httpApi', {
+      const serviceData = await fixtures.setup('httpApi', {
+        configExt: {
           provider: { httpApi: { id: httpApiId } },
-        }),
+        },
       });
-      serviceName = serverlessConfig.service;
+      ({ servicePath } = serviceData);
+      serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
-      log.notice('deploying %s service', serviceName);
-      await deployService(tmpDirPath);
+      await deployService(servicePath);
       endpoint = (await awsRequest('ApiGatewayV2', 'getApi', { ApiId: httpApiId })).ApiEndpoint;
     });
 
     after(async () => {
       if (serviceName) {
-        log.notice('removing service #2');
-        await removeService(tmpDirPath);
+        await removeService(servicePath);
       }
-      log.notice('removing service #1');
       await removeService(exportServicePath);
     });
 

@@ -1,50 +1,32 @@
 'use strict';
 
-const path = require('path');
 const { expect } = require('chai');
-const log = require('log').get('serverless:test');
+const fixtures = require('../../fixtures');
 
-const { getTmpDirPath } = require('../../utils/fs');
 const { publishIotData } = require('../../utils/iot');
 const {
-  createTestService,
   deployService,
   removeService,
   waitForFunctionLogs,
+  getMarkers,
 } = require('../../utils/integration');
-const { getMarkers } = require('../shared/utils');
 
 describe('AWS - IoT Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
-  let serviceName;
-  let stackName;
   let iotTopic;
-  let tmpDirPath;
-  const stage = 'dev';
+  let servicePath;
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.notice(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: path.join(__dirname, 'service'),
-      filesToAdd: [path.join(__dirname, '..', 'shared')],
-      serverlessConfigHook:
-        // Ensure unique topics (to avoid collision among concurrent CI runs)
-        config => {
-          iotTopic = `${config.service}/test`;
-          config.functions.iotBasic.events[0].iot.sql = `SELECT * FROM '${iotTopic}'`;
-        },
-    });
-    serviceName = serverlessConfig.service;
-    stackName = `${serviceName}-${stage}`;
-    log.notice(`Deploying "${stackName}" service...`);
-    return deployService(tmpDirPath);
+    const serviceData = await fixtures.setup('iot');
+    ({ servicePath } = serviceData);
+    const serviceName = serviceData.serviceConfig.service;
+    iotTopic = `${serviceName}/test`;
+    return deployService(servicePath);
   });
 
   after(() => {
     // Topics are ephemeral and IoT endpoint is part of the account
-    log.notice('Removing service...');
-    return removeService(tmpDirPath);
+    return removeService(servicePath);
   });
 
   describe('Basic Setup', () => {
@@ -55,7 +37,7 @@ describe('AWS - IoT Integration Test', function() {
 
       // NOTE: This test may fail on fresh accounts where the IoT endpoint has not completed provisioning
       return publishIotData(iotTopic, message)
-        .then(() => waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end))
+        .then(() => waitForFunctionLogs(servicePath, functionName, markers.start, markers.end))
         .then(logs => {
           expect(logs).to.include(message);
         });

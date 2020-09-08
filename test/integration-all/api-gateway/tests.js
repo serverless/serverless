@@ -1,19 +1,12 @@
 'use strict';
 
-const path = require('path');
-const _ = require('lodash');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
+const fixtures = require('../../fixtures');
 
-const { getTmpDirPath, readYamlFile, writeYamlFile } = require('../../utils/fs');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
-const {
-  createTestService,
-  deployService,
-  removeService,
-  fetch,
-} = require('../../utils/integration');
+const { deployService, removeService, fetch } = require('../../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../../utils/api-gateway');
 
 describe('AWS - API Gateway Integration Test', function() {
@@ -21,8 +14,8 @@ describe('AWS - API Gateway Integration Test', function() {
   let serviceName;
   let endpoint;
   let stackName;
-  let tmpDirPath;
-  let serverlessFilePath;
+  let servicePath;
+  let updateConfig;
   let restApiId;
   let restApiRootResourceId;
   let apiKey;
@@ -38,22 +31,12 @@ describe('AWS - API Gateway Integration Test', function() {
   };
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.notice(`Temporary path: ${tmpDirPath}`);
-    serverlessFilePath = path.join(tmpDirPath, 'serverless.yml');
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: path.join(__dirname, 'service'),
-      serverlessConfigHook:
-        // Ensure unique API key for each test (to avoid collision among concurrent CI runs)
-        config => {
-          apiKey = `${config.service}-api-key-1`;
-          config.provider.apiKeys[0] = { name: apiKey, value: apiKey };
-        },
-    });
-    serviceName = serverlessConfig.service;
+    const serviceData = await fixtures.setup('apiGatewayExtended');
+    ({ servicePath, updateConfig } = serviceData);
+    serviceName = serviceData.serviceConfig.service;
+    apiKey = `${serviceName}-api-key-1`;
     stackName = `${serviceName}-${stage}`;
-    log.notice(`Deploying "${stackName}" service...`);
-    await deployService(tmpDirPath);
+    await deployService(servicePath);
     isDeployed = true;
     return resolveEndpoint();
   });
@@ -61,7 +44,7 @@ describe('AWS - API Gateway Integration Test', function() {
   after(async () => {
     if (!isDeployed) return;
     log.notice('Removing service...');
-    await removeService(tmpDirPath);
+    await removeService(servicePath);
   });
 
   describe('Minimal Setup', () => {
@@ -205,22 +188,21 @@ describe('AWS - API Gateway Integration Test', function() {
 
   describe('Using stage specific configuration', () => {
     before(async () => {
-      const serverless = readYamlFile(serverlessFilePath);
-      // enable Logs, Tags and Tracing
-      _.merge(serverless.provider, {
-        tags: {
-          foo: 'bar',
-          baz: 'qux',
-        },
-        tracing: {
-          apiGateway: true,
-        },
-        logs: {
-          restApi: true,
+      await updateConfig({
+        provider: {
+          tags: {
+            foo: 'bar',
+            baz: 'qux',
+          },
+          tracing: {
+            apiGateway: true,
+          },
+          logs: {
+            restApi: true,
+          },
         },
       });
-      writeYamlFile(serverlessFilePath, serverless);
-      await deployService(tmpDirPath);
+      await deployService(servicePath);
     });
 
     it('should update the stage without service interruptions', () => {
@@ -264,39 +246,41 @@ describe('AWS - API Gateway Integration Test', function() {
           );
         });
 
-      const serverless = readYamlFile(serverlessFilePath);
-      // enable Logs, Tags and Tracing
-      _.merge(serverless.provider, {
-        apiGateway: {
-          restApiId,
-          restApiRootResourceId,
-        },
-        tags: {
-          foo: 'bar',
-          baz: 'qux',
-        },
-        tracing: {
-          apiGateway: true,
-        },
-        logs: {
-          restApi: true,
+      await updateConfig({
+        provider: {
+          apiGateway: {
+            restApiId,
+            restApiRootResourceId,
+          },
+          tags: {
+            foo: 'bar',
+            baz: 'qux',
+          },
+          tracing: {
+            apiGateway: true,
+          },
+          logs: {
+            restApi: true,
+          },
         },
       });
-      writeYamlFile(serverlessFilePath, serverless);
       log.notice('Redeploying service (with external Rest API ID)...');
-      await deployService(tmpDirPath);
+      await deployService(servicePath);
       return resolveEndpoint();
     });
 
     after(async () => {
-      // NOTE: deleting the references to the old, external REST API
-      const serverless = readYamlFile(serverlessFilePath);
-      delete serverless.provider.apiGateway.restApiId;
-      delete serverless.provider.apiGateway.restApiRootResourceId;
-      writeYamlFile(serverlessFilePath, serverless);
+      await updateConfig({
+        provider: {
+          apiGateway: {
+            restApiId: null,
+            restApiRootResourceId: null,
+          },
+        },
+      });
       // NOTE: deploying once again to get the stack into the original state
       log.notice('Redeploying service (without external Rest API ID)...');
-      await deployService(tmpDirPath);
+      await deployService(servicePath);
       log.notice('Deleting external rest API...');
       return deleteRestApi(restApiId);
     });

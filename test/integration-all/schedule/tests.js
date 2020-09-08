@@ -1,41 +1,27 @@
 'use strict';
 
-const path = require('path');
 const { expect } = require('chai');
-const log = require('log').get('serverless:test');
+const fixtures = require('../../fixtures');
 
-const { getTmpDirPath } = require('../../utils/fs');
 const {
-  createTestService,
   deployService,
   removeService,
   waitForFunctionLogs,
+  getMarkers,
 } = require('../../utils/integration');
-const { getMarkers } = require('../shared/utils');
 
 describe('AWS - Schedule Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
-  let serviceName;
-  let stackName;
-  let tmpDirPath;
-  const stage = 'dev';
+  let servicePath;
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.notice(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: path.join(__dirname, 'service'),
-      filesToAdd: [path.join(__dirname, '..', 'shared')],
-    });
-    serviceName = serverlessConfig.service;
-    stackName = `${serviceName}-${stage}`;
-    log.notice(`Deploying "${stackName}" service...`);
-    return deployService(tmpDirPath);
+    const serviceData = await fixtures.setup('schedule');
+    ({ servicePath } = serviceData);
+    return deployService(servicePath);
   });
 
   after(async () => {
-    log.notice('Removing service...');
-    return removeService(tmpDirPath);
+    return removeService(servicePath);
   });
 
   describe('Minimal Setup', () => {
@@ -43,7 +29,7 @@ describe('AWS - Schedule Integration Test', function() {
       const functionName = 'scheduleMinimal';
       const markers = getMarkers(functionName);
 
-      return waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end).then(
+      return waitForFunctionLogs(servicePath, functionName, markers.start, markers.end).then(
         logs => {
           expect(logs).to.include(functionName);
         }
@@ -56,7 +42,7 @@ describe('AWS - Schedule Integration Test', function() {
       const functionName = 'scheduleExtended';
       const markers = getMarkers(functionName);
 
-      return waitForFunctionLogs(tmpDirPath, functionName, markers.start, markers.end).then(
+      return waitForFunctionLogs(servicePath, functionName, markers.start, markers.end).then(
         logs => {
           expect(logs).to.include(functionName);
           expect(logs).to.include('transformedInput');
