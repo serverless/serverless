@@ -12,4 +12,4 @@ functions:
     handler: core.iotBasic
     events:
       - iot:
-          sql: "SELECT * FROM 'CHANGE_TO_UNIQUE_PER_RUN'"
+          sql: "SELECT * FROM '${self:service.name}/test'"

@@ -3,7 +3,7 @@
 // NOTE: This script requires Node.js > 8 to run since it uses
 // modern Node.js / JavaScript features such as async / await
 
-const { logger, testServiceIdentifier } = require('./misc');
+const { logger } = require('./misc');
 const { findStacks, deleteStack, listStackResources } = require('./cloudformation');
 const { findRestApis, deleteRestApi } = require('./api-gateway');
 const { deleteBucket } = require('./s3');
@@ -38,8 +38,8 @@ async function cleanup() {
 
   // find all the resources
   const [stacks, apis, userPools] = await Promise.all([
-    findStacks(testServiceIdentifier, status),
-    findRestApis(testServiceIdentifier),
+    findStacks(/^(?:integ-)?test/, status),
+    findRestApis(/^dev-(?:integ-)?test/),
     findUserPools(),
   ]);
 

@@ -1,38 +1,29 @@
 'use strict';
 
 const { expect } = require('chai');
-const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
 const fixtures = require('../../fixtures');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
 
-const { getTmpDirPath } = require('../../utils/fs');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const { deployService, removeService } = require('../../utils/integration');
 
 describe('Function destinations Integration Test', function() {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
-  let serviceName;
   let stackName;
-  let tmpDirPath;
+  let servicePath;
   const stage = 'dev';
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.debug('temporary path %s', tmpDirPath);
-
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: fixtures.map.functionDestinations,
-    });
-    serviceName = serverlessConfig.service;
+    const serviceData = await fixtures.setup('functionDestinations');
+    ({ servicePath } = serviceData);
+    const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    log.notice('deploying %s service', serviceName);
-    await deployService(tmpDirPath);
+    await deployService(servicePath);
   });
 
   after(async () => {
-    if (!serviceName) return;
-    log.notice('Removing service...');
-    await removeService(tmpDirPath);
+    if (!servicePath) return;
+    await removeService(servicePath);
   });
 
   it('on async invoke should invoke destination target', async () =>

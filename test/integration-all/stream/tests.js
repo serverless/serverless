@@ -1,10 +1,9 @@
 'use strict';
 
-const path = require('path');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
+const fixtures = require('../../fixtures');
 
-const { getTmpDirPath } = require('../../utils/fs');
 const {
   createKinesisStream,
   deleteKinesisStream,
@@ -12,53 +11,35 @@ const {
 } = require('../../utils/kinesis');
 const { putDynamoDbItem } = require('../../utils/dynamodb');
 const { confirmCloudWatchLogs } = require('../../utils/misc');
-const { createTestService, deployService, removeService } = require('../../utils/integration');
+const { deployService, removeService } = require('../../utils/integration');
 
 describe('AWS - Stream Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
-  let serviceName;
   let stackName;
-  let tmpDirPath;
+  let servicePath;
   let streamName;
   let tableName;
   const historicStreamMessage = 'Hello from the Kinesis horizon!';
   const stage = 'dev';
 
   before(async () => {
-    tmpDirPath = getTmpDirPath();
-    log.notice(`Temporary path: ${tmpDirPath}`);
-    const serverlessConfig = await createTestService(tmpDirPath, {
-      templateDir: path.join(__dirname, 'service'),
-      filesToAdd: [path.join(__dirname, '..', 'shared')],
-      serverlessConfigHook:
-        // Ensure unique queues (to avoid collision among concurrent CI runs)
-        config => {
-          streamName = `${config.service}-kinesis`;
-          tableName = `${config.service}-table`;
-          config.functions.streamKinesis.events[0].stream.arn[
-            'Fn::Join'
-          ][1][5] = `stream/${streamName}`;
-          config.resources.Resources.DynamoDbTable.Properties.TableName = tableName;
-        },
-    });
-    serviceName = serverlessConfig.service;
+    const serviceData = await fixtures.setup('stream');
+    ({ servicePath } = serviceData);
+    const serviceName = serviceData.serviceConfig.service;
+
+    streamName = `${serviceName}-kinesis`;
+    tableName = `${serviceName}-table`;
     stackName = `${serviceName}-${stage}`;
     // create existing SQS queue
     // NOTE: deployment can only be done once the SQS queue is created
     log.notice(`Creating Kinesis stream "${streamName}"...`);
     return createKinesisStream(streamName)
       .then(() => putKinesisRecord(streamName, historicStreamMessage))
-      .then(() => {
-        log.notice(
-          `Deploying "${stackName}" service with DynamoDB table resource "${tableName}"...`
-        );
-        return deployService(tmpDirPath);
-      });
+      .then(() => deployService(servicePath));
   });
 
   after(async () => {
-    log.notice(`Removing service (and DynamoDB table resource "${tableName}")...`);
-    await removeService(tmpDirPath);
+    await removeService(servicePath);
     log.notice('Deleting Kinesis stream');
     return deleteKinesisStream(streamName);
   });

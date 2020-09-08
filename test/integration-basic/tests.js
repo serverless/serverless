@@ -10,7 +10,6 @@ const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const awsRequest = require('@serverless/test/aws-request');
 const { getTmpDirPath } = require('../utils/fs');
-const { getServiceName } = require('../utils/misc');
 
 const serverlessExec = require('../serverless-binary');
 
@@ -30,7 +29,7 @@ describe('Service Lifecyle Integration Test', function() {
   let StackName;
 
   before(() => {
-    serviceName = getServiceName();
+    serviceName = `test-basic-${process.hrtime()[1]}`;
     StackName = `${serviceName}-dev`;
     log.notice(`Temporary path: ${tmpDir}`);
     fse.mkdirsSync(tmpDir);

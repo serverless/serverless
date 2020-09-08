@@ -5,15 +5,6 @@ const wait = require('timers-ext/promise/sleep');
 
 const logger = console;
 
-const testServiceIdentifier = 'integ-test';
-
-const serviceNameRegex = new RegExp(`${testServiceIdentifier}-d+`);
-
-function getServiceName() {
-  const hrtime = process.hrtime();
-  return `${testServiceIdentifier}-${hrtime[1]}`;
-}
-
 function replaceEnv(values) {
   const originals = {};
   for (const key of Object.keys(values)) {
@@ -62,9 +53,6 @@ function confirmCloudWatchLogs(logGroupName, trigger, options = {}) {
 
 module.exports = {
   confirmCloudWatchLogs,
-  getServiceName,
   logger,
   replaceEnv,
-  serviceNameRegex,
-  testServiceIdentifier,
 };

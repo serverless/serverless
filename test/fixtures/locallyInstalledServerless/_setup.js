@@ -1,22 +1,18 @@
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
-const fse = require('fs-extra');
 
 const fixturePath = path.resolve(__dirname, 'node_modules/serverless');
 const fixtureModulePath = path.resolve(fixturePath, 'index.js');
 
-module.exports = () =>
-  fse
-    .copy(path.resolve(__dirname, 'node_modules-fixture/serverless'), fixturePath)
-    .then(() => fse.readFile(fixtureModulePath))
-    .then(content =>
-      fse.writeFile(
-        fixtureModulePath,
-        String(content).replace(
-          '$SERVERLESS_PATH',
-          JSON.stringify(path.resolve(__dirname, '../../../'))
-        )
-      )
+module.exports = originalFixturePath => {
+  const content = fs.readFileSync(fixtureModulePath);
+  fs.writeFileSync(
+    fixtureModulePath,
+    String(content).replace(
+      '$SERVERLESS_PATH',
+      JSON.stringify(path.resolve(originalFixturePath, '../../../'))
     )
-    .then(() => ({ pathsToRemove: [fixturePath] }));
+  );
+};

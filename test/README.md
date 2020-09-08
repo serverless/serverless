@@ -15,7 +15,7 @@ npm test
 
 All new tests should be configured with help of [runServerless](./utils/run-serverless.js) util - it's the only way to test functionality against completely intialized `serverless` instance, and it's the only scenario that reflects real world usage.
 
-Check documentation of `runServerless` at [@serverless/test/docs/run-serverless](https://github.com/serverless/test/blob/master/docs/run-serverless.md#run-serverless)
+Check documentation of `runServerless` at [@serverless/test/docs/run-serverless](https://github.com/serverless/test/blob/master/docs/run-serverless.md#run-serverless). Note that `runServerless` as configured at `./utils/run-serverless.js` supports two additional options (`fixture` and `configExt`), which provides out of a box setup to run _Serverless_ instance against prepared fixture with eventually extended service configuration
 
 ### Existing test examples:
 
