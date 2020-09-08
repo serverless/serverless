@@ -113,7 +113,7 @@ serverless invoke local -f functionName -e VAR1=value1
 serverless invoke local -f functionName -e VAR1=value1 -e VAR2=value2
 ```
 
-When using [AWS CloudFormation intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) as environment variables value, **only Fn::ImportValue** will be automatically resolved for function invokation. Other intrinsic functions use will result in the corresponding configuration object passed in the function as environment variable.
+When using [AWS CloudFormation intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) as environment variables value, **only Fn::ImportValue and Ref** will be automatically resolved for function invokation. Other intrinsic functions use will result in the corresponding configuration object passed in the function as environment variable.
 
 ```yml
 functions:
@@ -122,11 +122,13 @@ functions:
     environment:
       EXT_TABLE_NAME:
         Fn::ImportValue: exported-tableName
+      REF_TABLE_NAME:
+        Ref: myTable
       INT_TABLE_NAME:
         Fn::GetAtt: [myTable, Arn]
 ```
 
-In the above exemple, `EXT_TABLE_NAME` will be resolved to the exported value `exported-tableName` while `INT_TABLE_NAME` will not be resolved.
+In the above exemple, `EXT_TABLE_NAME` and `REF_TABLE_NAME` will be resolved to the exported value `exported-tableName` and `myTable` physical ID respectively while `INT_TABLE_NAME` will not be resolved.
 
 ### Limitations
 
