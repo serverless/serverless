@@ -54,20 +54,20 @@ function findUserPoolByName(name) {
   return recursiveFind();
 }
 
-async function findUserPools() {
+function findUserPools() {
   const params = { MaxResults: 60 };
 
   const pools = [];
-  async function recursiveFind(nextToken) {
+  function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
-    const result = await awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params);
-    pools.push(...result.UserPools.filter(pool => pool.Name.includes(' CUP ')));
-    if (result.NextToken) await recursiveFind(result.NextToken);
+    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then(result => {
+      pools.push(...result.UserPools.filter(pool => pool.Name.includes(' CUP ')));
+      if (result.NextToken) return recursiveFind(result.NextToken);
+      return null;
+    });
   }
 
-  await recursiveFind();
-
-  return pools;
+  return recursiveFind().then(() => pools);
 }
 
 function describeUserPool(userPoolId) {
