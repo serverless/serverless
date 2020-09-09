@@ -3,10 +3,10 @@
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const awsRequest = require('@serverless/test/aws-request');
-const fixtures = require('../../fixtures');
-const { confirmCloudWatchLogs } = require('../../utils/misc');
+const fixtures = require('../fixtures');
+const { confirmCloudWatchLogs } = require('../utils/misc');
 
-const { deployService, removeService, fetch } = require('../../utils/integration');
+const { deployService, removeService, fetch } = require('../utils/integration');
 
 describe('HTTP API Integration Test', function() {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys

@@ -5,17 +5,11 @@ const { expect } = require('chai');
 const awsRequest = require('@serverless/test/aws-request');
 const log = require('log').get('serverless:test');
 const wait = require('timers-ext/promise/sleep');
-const fixtures = require('../../fixtures');
+const fixtures = require('../fixtures');
 
-const { confirmCloudWatchLogs } = require('../../utils/misc');
-const { deployService, removeService } = require('../../utils/integration');
-const {
-  createApi,
-  deleteApi,
-  getRoutes,
-  createStage,
-  deleteStage,
-} = require('../../utils/websocket');
+const { confirmCloudWatchLogs } = require('../utils/misc');
+const { deployService, removeService } = require('../utils/integration');
+const { createApi, deleteApi, getRoutes, createStage, deleteStage } = require('../utils/websocket');
 
 describe('AWS - API Gateway Websocket Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
