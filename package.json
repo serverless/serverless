@@ -129,7 +129,7 @@
     "/lib/plugins/aws/customResources/node_modules/**"
   ],
   "mocha": {
-    "reporter": "./test/mocha-reporter",
+    "reporter": "./test/mochaReporter",
     "require": [
       "@serverless/test/setup/log",
       "@serverless/test/setup/async-leaks-detector",
