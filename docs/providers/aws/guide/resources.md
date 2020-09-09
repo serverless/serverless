@@ -127,6 +127,7 @@ Here's how the extension logic is defined:
 
 | Resource attribute    | Operation                                                                                                                  |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `Condition`           | Set to extension value if present.                                                                                         |
 | `CreationPolicy`      | Set to extension value if present.                                                                                         |
 | `DeletionPolicy`      | Set to extension value if present.                                                                                         |
 | `DependsOn`           | Merge. The extension value will be added to the resource's `DependsOn` list.                                               |
