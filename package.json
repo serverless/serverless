@@ -199,7 +199,7 @@
   "scripts": {
     "commitlint": "commitlint -f HEAD@{15}",
     "coverage": "nyc npm test",
-    "integration-test-cleanup": "node test/utils/aws-cleanup.js",
+    "integration-test-cleanup": "node test/utils/awsCleanup.js",
     "integration-test-run-all": "mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 \"test/integration/**/*.test.js\"",
     "integration-test-run-basic": "mocha test/integrationBasic.test.js",
     "integration-test-run-package": "mocha-isolated --skip-fs-cleanup-check test/integrationPackage/**/*.tests.js",
