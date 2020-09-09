@@ -20,15 +20,15 @@ Check documentation of `runServerless` at [@serverless/test/docs/run-serverless]
 ### Existing test examples:
 
 - [Run against config passed inline](https://github.com/serverless/serverless/blob/73107822945a878abbdebe2309e8e9d87cc2858a/lib/plugins/aws/package/lib/generateCoreTemplate.test.js#L11-L14)
-- [Run against preprepared fixture](https://github.com/serverless/serverless/blob/73107822945a878abbdebe2309e8e9d87cc2858a/lib/plugins/aws/package/compile/functions/index.test.js#L2629-L2632)
-  - Fixtures can be [extended](https://github.com/serverless/serverless/blob/4c2a52d1bf8fdb15683c09a8db800aa0e5842950/lib/plugins/aws/package/compile/events/httpApi/index.test.js#L119) on spot. Whenever possible it's better to extend existing fixture (e.g. basic `function`) instead of creating new one (check [ALB health check tests](https://github.com/serverless/serverless/blob/04d463f4e438d02fef958fce34677a06645fee82/lib/plugins/aws/package/compile/events/alb/lib/healthCheck.test.js) for good example on such approach)
-  - If needed introduce new test fixtures at [tests/fixtures](./fixtures)
+- [Run against preprepared fixture](https://github.com/serverless/serverless/blob/74634c3317a116077a008375e20d6a5b99b1256e/lib/plugins/aws/package/compile/functions/index.test.js#L2605-L2608)
+  - Fixtures can be [extended](https://github.com/serverless/serverless/blob/74634c3317a116077a008375e20d6a5b99b1256e/lib/plugins/aws/package/compile/events/httpApi/index.test.js#L95-L99) on spot. Whenever possible it's better to extend existing fixture (e.g. basic `function`) instead of creating new one (check [ALB health check tests](https://github.com/serverless/serverless/blob/74634c3317a116077a008375e20d6a5b99b1256e/lib/plugins/aws/package/compile/events/alb/lib/healthCheck.test.js) for good example on such approach)
+  - If needed introduce new test fixtures at [test/fixtures](./fixtures)
 
 Example of test files fully backed by `runServerless`:
 
 - [lib/plugins/aws/package/compile/events/httpApi/index.test.js](https://github.com/serverless/serverless/blob/master/lib/plugins/aws/package/compile/events/httpApi/index.test.js)
 
-If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/73107822945a878abbdebe2309e8e9d87cc2858a/lib/plugins/aws/package/compile/functions/index.test.js#L2624))
+If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/74634c3317a116077a008375e20d6a5b99b1256e/lib/plugins/aws/package/compile/functions/index.test.js#L2602))
 
 _Note: PR's which rewrite existing tests into new method are very welcome! (but, ideally each PR should cover single test file rewrite)_
 
@@ -50,14 +50,14 @@ _Note: Home folder is mocked for test run, therefore relying on `AWS_PROFILE` wo
 
 Ideally any feature that integrates with AWS functionality should be backed by integration test.
 
-Check existing set of AWS integration tests at [tests/integration-all](./integration-all)
+Check existing set of AWS integration tests at [test/integration](./integration)
 
 ### Running specific integration test
 
 Pass test file to Mocha directly as follows
 
 ```
-AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha tests/integration-all/{chosen-test}/tests.js
+AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha tests/integration/{chosen}.test.js
 ```
 
 ## Testing templates
