@@ -12,7 +12,7 @@ module.exports = {
       },
     },
     {
-      files: ['utils/aws-cleanup.js', 'utils/integration.js'],
+      files: ['utils/awsCleanup.js', 'utils/integration.js'],
       parserOptions: {
         ecmaVersion: 2017,
       },
