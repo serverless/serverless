@@ -2,17 +2,17 @@
 
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../../fixtures');
+const fixtures = require('../fixtures');
 
-const { confirmCloudWatchLogs } = require('../../utils/misc');
+const { confirmCloudWatchLogs } = require('../utils/misc');
 const {
   createEventBus,
   putEvents,
   deleteEventBus,
   describeEventBus,
-} = require('../../utils/eventBridge');
+} = require('../utils/eventBridge');
 
-const { deployService, removeService, getMarkers } = require('../../utils/integration');
+const { deployService, removeService, getMarkers } = require('../utils/integration');
 
 describe('AWS - Event Bridge Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys

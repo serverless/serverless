@@ -1,15 +1,15 @@
 'use strict';
 
 const { expect } = require('chai');
-const fixtures = require('../../fixtures');
+const fixtures = require('../fixtures');
 
-const { publishIotData } = require('../../utils/iot');
+const { publishIotData } = require('../utils/iot');
 const {
   deployService,
   removeService,
   waitForFunctionLogs,
   getMarkers,
-} = require('../../utils/integration');
+} = require('../utils/integration');
 
 describe('AWS - IoT Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys

@@ -1,14 +1,14 @@
 'use strict';
 
 const { expect } = require('chai');
-const fixtures = require('../../fixtures');
+const fixtures = require('../fixtures');
 
 const {
   deployService,
   removeService,
   waitForFunctionLogs,
   getMarkers,
-} = require('../../utils/integration');
+} = require('../utils/integration');
 
 describe('AWS - Schedule Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys

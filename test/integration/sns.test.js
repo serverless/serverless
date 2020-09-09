@@ -3,11 +3,11 @@
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../../fixtures');
+const fixtures = require('../fixtures');
 
-const { confirmCloudWatchLogs } = require('../../utils/misc');
-const { createSnsTopic, removeSnsTopic, publishSnsMessage } = require('../../utils/sns');
-const { deployService, removeService } = require('../../utils/integration');
+const { confirmCloudWatchLogs } = require('../utils/misc');
+const { createSnsTopic, removeSnsTopic, publishSnsMessage } = require('../utils/sns');
+const { deployService, removeService } = require('../utils/integration');
 
 describe('AWS - SNS Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
