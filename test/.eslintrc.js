@@ -6,7 +6,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['utils/**.js'],
+      files: ['utils/**'],
       parserOptions: {
         ecmaVersion: 2015,
       },
