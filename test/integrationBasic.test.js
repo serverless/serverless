@@ -9,9 +9,9 @@ const log = require('log').get('serverless:test');
 const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const awsRequest = require('@serverless/test/aws-request');
-const { getTmpDirPath } = require('../utils/fs');
+const { getTmpDirPath } = require('./utils/fs');
 
-const serverlessExec = require('../serverless-binary');
+const serverlessExec = require('./serverless-binary');
 
 describe('Service Lifecyle Integration Test', function() {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
