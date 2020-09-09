@@ -201,7 +201,7 @@
     "coverage": "nyc npm test",
     "integration-test-cleanup": "node test/utils/aws-cleanup.js",
     "integration-test-run-all": "mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 \"test/integration/**/*.test.js\"",
-    "integration-test-run-basic": "mocha test/integration-basic/tests.js",
+    "integration-test-run-basic": "mocha test/integrationBasic.test.js",
     "integration-test-run-package": "mocha-isolated --skip-fs-cleanup-check test/integration-package/**/*.tests.js",
     "lint": "eslint .",
     "lint:updated": "pipe-git-updated --ext=js -- eslint",
