@@ -12,7 +12,7 @@ const wait = require('timers-ext/promise/sleep');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const { load: loadYaml } = require('js-yaml');
 
-const serverlessExec = require('../serverless-binary');
+const serverlessExec = require('../serverlessBinary');
 
 const env = resolveAwsEnv();
 env.SLS_DEBUG = '1';
