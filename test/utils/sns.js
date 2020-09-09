@@ -12,10 +12,9 @@ function createSnsTopic(topicName) {
 
 function resolveTopicArn(topicName, nextToken = null) {
   return awsRequest('SNS', 'listTopics', { NextToken: nextToken }).then(data => {
-    const topicArn = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn))
-      .TopicArn;
+    const targetTopic = data.Topics.find(topic => RegExp(topicName, 'g').test(topic.TopicArn));
 
-    if (topicArn) return topicArn;
+    if (targetTopic) return targetTopic.TopicArn;
 
     if (data.NextToken) return resolveTopicArn(topicName, data.NextToken);
     return null;
