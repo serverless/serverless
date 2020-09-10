@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "1.82.0",
+  "version": "2.0.0",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
@@ -19,21 +19,20 @@
   "main": "lib/Serverless.js",
   "bin": {
     "serverless": "./bin/serverless.js",
-    "slss": "./bin/slss.js",
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
     "@serverless/cli": "^1.5.2",
-    "@serverless/components": "^2.34.9",
-    "@serverless/enterprise-plugin": "^3.8.3",
+    "@serverless/components": "^3.1.2",
+    "@serverless/enterprise-plugin": "^4.0.2",
     "@serverless/inquirer": "^1.1.2",
     "@serverless/utils": "^1.2.0",
     "ajv": "^6.12.4",
     "ajv-keywords": "^3.5.2",
     "archiver": "^3.1.1",
-    "aws-sdk": "^2.746.0",
+    "aws-sdk": "^2.749.0",
     "bluebird": "^3.7.2",
-    "boxen": "^3.2.0",
+    "boxen": "^4.2.0",
     "cachedir": "^2.3.0",
     "chalk": "^2.4.2",
     "child-process-ext": "^2.1.1",
@@ -46,7 +45,7 @@
     "filesize": "^3.6.1",
     "fs-extra": "^8.1.0",
     "get-stdin": "^6.0.0",
-    "globby": "^9.2.0",
+    "globby": "^11.0.1",
     "graceful-fs": "^4.2.4",
     "https-proxy-agent": "^5.0.0",
     "is-docker": "^1.1.0",
@@ -57,10 +56,9 @@
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.20",
     "memoizee": "^0.4.14",
-    "mkdirp": "^0.5.4",
-    "nanomatch": "^1.2.13",
+    "micromatch": "^4.0.2",
     "ncjsm": "^4.1.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "object-hash": "^2.0.3",
     "p-limit": "^2.3.0",
     "promise-queue": "^2.2.5",
@@ -80,8 +78,8 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^9.1.2",
-    "@serverless/eslint-config": "^2.2.0",
-    "@serverless/test": "^4.9.2",
+    "@serverless/eslint-config": "^3.0.0",
+    "@serverless/test": "^5.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cli-progress-footer": "^1.1.1",
@@ -90,7 +88,7 @@
     "eslint-plugin-import": "^2.22.0",
     "git-list-updated": "^1.2.1",
     "github-release-from-cc-changelog": "^2.2.0",
-    "husky": "^4.2.5",
+    "husky": "^4.3.0",
     "jszip": "^3.5.0",
     "lint-staged": "^10.3.0",
     "log": "^6.0.0",
@@ -110,18 +108,8 @@
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
-    "extends": "@serverless/eslint-config/node/6",
-    "root": true,
-    "overrides": [
-      {
-        "files": [
-          "scripts/pkg/**"
-        ],
-        "parserOptions": {
-          "ecmaVersion": 2018
-        }
-      }
-    ]
+    "extends": "@serverless/eslint-config/node",
+    "root": true
   },
   "eslintIgnore": [
     "!/.github",
@@ -129,7 +117,7 @@
     "/lib/plugins/aws/customResources/node_modules/**"
   ],
   "mocha": {
-    "reporter": "./test/mocha-reporter",
+    "reporter": "./test/mochaReporter",
     "require": [
       "@serverless/test/setup/log",
       "@serverless/test/setup/async-leaks-detector",
@@ -199,10 +187,10 @@
   "scripts": {
     "commitlint": "commitlint -f HEAD@{15}",
     "coverage": "nyc npm test",
-    "integration-test-cleanup": "node test/utils/aws-cleanup.js",
-    "integration-test-run-all": "mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 test/integration-all/**/tests.js",
-    "integration-test-run-basic": "mocha test/integration-basic/tests.js",
-    "integration-test-run-package": "mocha-isolated --skip-fs-cleanup-check test/integration-package/**/*.tests.js",
+    "integration-test-cleanup": "node test/utils/awsCleanup.js",
+    "integration-test-run-all": "mocha-isolated --pass-through-aws-creds --skip-fs-cleanup-check --max-workers=20 \"test/integration/**/*.test.js\"",
+    "integration-test-run-basic": "mocha test/integrationBasic.test.js",
+    "integration-test-run-package": "mocha-isolated --skip-fs-cleanup-check test/integrationPackage/**/*.tests.js",
     "lint": "eslint .",
     "lint:updated": "pipe-git-updated --ext=js -- eslint",
     "pkg:build": "node ./scripts/pkg/build.js",
@@ -214,12 +202,12 @@
     "prettier-check:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier -c",
     "prettify": "prettier --write \"**/*.{css,html,js,json,md,yaml,yml}\"",
     "prettify:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier --write",
-    "test": "mocha \"!(node_modules)/**/*.test.js\"",
+    "test": "mocha \"!(test|node_modules)/**/*.test.js\"",
     "test:ci": "npm run prettier-check:updated && npm run lint:updated && npm run test:isolated",
-    "test:isolated": "mocha-isolated"
+    "test:isolated": "mocha-isolated \"!(test|node_modules)/**/*.test.js\""
   },
   "engines": {
-    "node": ">=6.0"
+    "node": ">=10.0"
   },
   "license": "MIT"
 }

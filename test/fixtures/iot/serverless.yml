@@ -1,0 +1,15 @@
+service: CHANGE_TO_UNIQUE_PER_RUN
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  iotBasic:
+    handler: core.iotBasic
+    events:
+      - iot:
+          sql: "SELECT * FROM '${self:service.name}/test'"

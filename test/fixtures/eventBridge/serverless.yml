@@ -1,0 +1,31 @@
+service: service
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  eventBusDefault:
+    handler: core.eventBusDefault
+    events:
+      - eventBridge:
+          pattern:
+            source:
+              - serverless.test
+  eventBusDefaultArn:
+    handler: core.eventBusDefaultArn
+    # Event filled by integration test
+  eventBusCustom:
+    handler: core.eventBusCustom
+    events:
+      - eventBridge:
+          eventBus: ${self:service.name}-named-event-bus
+          pattern:
+            source:
+              - serverless.test
+  eventBusArn:
+    handler: core.eventBusArn
+    # Event filled by integration test
