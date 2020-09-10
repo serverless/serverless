@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. See [standa
 - **AWS Stream:** Fix support for `batchWindow: 0` ([#8202](https://github.com/serverless/serverless/issues/8202)) ([b0547e6](https://github.com/serverless/serverless/commit/b0547e6e1a673eff956f417110ce6bf40fc32f92)) ([Mariusz Nowak](https://github.com/medikoo))
 - **Templates:** Add missing property in ruby template ([#8195](https://github.com/serverless/serverless/issues/8195)) ([8f070d5](https://github.com/serverless/serverless/commit/8f070d58c46e7c1d5cbe34b31a34387eaccea505)) ([jkburges](https://github.com/jkburges))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **Config Schema:**
   - Move docs to dedicated website page ([#8207](https://github.com/serverless/serverless/issues/8207)) ([c370295](https://github.com/serverless/serverless/commit/c370295be6a67c5a7c5e2af323b29588cbc1d02e)) ([Mariusz Nowak](https://github.com/medikoo))
@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file. See [standa
 - **Config Schema:** Schema for AWS `iot` event ([#8177](https://github.com/serverless/serverless/issues/8177)) ([e55fc36](https://github.com/serverless/serverless/commit/e55fc36e1a3e78d155cbaaa5517c99ecc74a113f)) ([Piotr Grzesik](https://github.com/pgrzesik))
 - **Analytics:** Recognize and report four different installation types ([#8188](https://github.com/serverless/serverless/issues/8188)) ([f9e955c](https://github.com/serverless/serverless/commit/f9e955c8f8ae9c1f8d8f883a052f91d57a7ffa4a)) ([Mariusz Nowak](https://github.com/medikoo))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - Remove `update-notifier` notifications (as those are now covered by more accurate backend notifications, which also support notifications for multiple majors) ([#8185](https://github.com/serverless/serverless/issues/8185)) ([11fb888](https://github.com/serverless/serverless/commit/11fb8889c8744180919eb3cfae85269a7ff3649f)) ([Mariusz Nowak](https://github.com/medikoo))
 - Prevent _is locally installed_ detection on confirmed local installations ([#8188](https://github.com/serverless/serverless/issues/8188)) ([7accad6](https://github.com/serverless/serverless/commit/7accad6eb9ad1d9549c2e0e5c55e11b3f827af6a)) ([Mariusz Nowak](https://github.com/medikoo))
@@ -70,7 +70,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Fix handling of invalid range put into `frameworkVersion` ([#8175](https://github.com/serverless/serverless/issues/8175)) ([0d5a480](https://github.com/serverless/serverless/commit/0d5a480fd0fe7abbc1998b9f72707589541f0639)) ([Mariusz Nowak](https://github.com/medikoo))
 - Fix handling of pre-releases in `frameworkVersion` validation ([#8166](https://github.com/serverless/serverless/issues/8166)) ([c0fb04a](https://github.com/serverless/serverless/commit/c0fb04af3d2ec35436e02778b3a23f75f45ad7bb)) ([Mariusz Nowak](https://github.com/medikoo))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **Config Schema:**
   - Define AWS definitions in context of a provider ([#8144](https://github.com/serverless/serverless/issues/8144)) ([c79cae2](https://github.com/serverless/serverless/commit/c79cae2308af0b038ef6fcfcf28be8841493e745)) ([Mariusz Nowak](https://github.com/medikoo))
@@ -102,7 +102,7 @@ All notable changes to this project will be documented in this file. See [standa
 - **Packaging:** Exclude `aws-sdk` dependency (as it's provided in AWS environment unconditionally) ([#8103](https://github.com/serverless/serverless/issues/8103)) ([f45da3c](https://github.com/serverless/serverless/commit/f45da3c7b168d34e7d3c520068dc24364753a74a)) ([Yogendra Sharma](https://github.com/Yogendra0Sharma))
 - **Packaging:** Remove `aws-sdk` installation step when packaging custom resource lambda ([#8110](https://github.com/serverless/serverless/issues/8110)) ([258c692](https://github.com/serverless/serverless/commit/258c692c47c911d77efe880f41134801bdea314a)) ([Sedat Can Yalçın](https://github.com/sedat))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **AWS Deploy:** Refactor out `async` dependency in CloudFormation stack deployment monitoring logic ([#8132](https://github.com/serverless/serverless/issues/8132)) ([f9bcaae](https://github.com/serverless/serverless/commit/f9bcaaead90fd8691a85941f4d5216d5357037ad)) ([Mariusz Nowak](https://github.com/medikoo))
 - Adjust deprecation logs to reflect warning format ([#8108](https://github.com/serverless/serverless/issues/8108)) ([b0938c7](https://github.com/serverless/serverless/commit/b0938c7d9bd946c5c9af6bae99ae6f7931242ba6)) ([Mariusz Nowak](https://github.com/medikoo))
@@ -140,7 +140,7 @@ All notable changes to this project will be documented in this file. See [standa
   - Fix errors normalization for `oneOf` case ([#8044](https://github.com/serverless/serverless/issues/8044)) ([f4803ee](https://github.com/serverless/serverless/commit/f4803ee363253ebefc1c509d8d808db53bcc6e7a)) ([Mariusz Nowak](https://github.com/medikoo))
   - Fix errors normalization with external refs ([#8044](https://github.com/serverless/serverless/issues/8044)) ([d171f54](https://github.com/serverless/serverless/commit/d171f5476d260f90ff0fe9916aed4a0eea49dfde)) ([Mariusz Nowak](https://github.com/medikoo))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - Expose `isStandalone` for metrics ([#8045](https://github.com/serverless/serverless/issues/8045)) ([0ad5cd7](https://github.com/serverless/serverless/commit/0ad5cd7a6333e96b0a041e688bb5eb0a26b98c30)) ([Mariusz Nowak](https://github.com/medikoo))
 
@@ -206,7 +206,7 @@ All notable changes to this project will be documented in this file. See [standa
   - Set `ContextClassLoader` for `groovy` and `clojure` ([#7955](https://github.com/serverless/serverless/issues/7955)) ([25263fd](https://github.com/serverless/serverless/commit/25263fd473584e51c81bb3c5cedd4b9005dfd984)) ([Yuji Yamano](https://github.com/yyamano))
   - Upgrade Java 3rd party libraries used for invokeLocal([#7930](https://github.com/serverless/serverless/issues/7930)) ([851b856](https://github.com/serverless/serverless/commit/851b85629dbff510ceb1865fd9a1a48a75940ebd)) ([Yuji Yamano](https://github.com/yyamano))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - Remove no longger needed Node.js deprecation logs supression ([#7964](https://github.com/serverless/serverless/issues/7964)) ([af89ab8](https://github.com/serverless/serverless/commit/af89ab8994aaaa12e578b2bad72ddc8a948e765c)) ([Mariusz Nowak](https://github.com/medikoo))
 - **CLI:**
@@ -248,7 +248,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Improve error handling in config file resolution [#7924](https://github.com/serverless/serverless/issues/7924) ([de2c68d](https://github.com/serverless/serverless/commit/de2c68d02312f047aa7f83b0b339074b40df7854)) ([Mariusz Nowak](https://github.com/medikoo))
 - Throw operational error as operational [#7924](https://github.com/serverless/serverless/issues/7924) ([f965e44](https://github.com/serverless/serverless/commit/f965e446946048691889a7f3723c19ac747b8fe2)) ([Mariusz Nowak](https://github.com/medikoo))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **`lodash` replacement:**
   - Replace `_.concat` with `array.concat` ([#7851](https://github.com/serverless/serverless/issues/7851)) ([fce0b18](https://github.com/serverless/serverless/commit/fce0b1886448d91be21aa64b778c98d95bb47b87)) ([RT](https://github.com/RT1918))
@@ -267,7 +267,7 @@ All notable changes to this project will be documented in this file. See [standa
   - Ensure reliable access from China ([#7891](https://github.com/serverless/serverless/issues/7891)) ([6fccede](https://github.com/serverless/serverless/commit/6fccedea4ac5a3a546d36b19d2e0701defd9ed85)) ([Mariusz Nowak](https://github.com/medikoo))
   - Support SLS_GEO_LOCATION env var ([#7891](https://github.com/serverless/serverless/issues/7891)) ([474df11](https://github.com/serverless/serverless/commit/474df11288a0431bb14947c4a08ae34edecb4164)) ([Mariusz Nowak](https://github.com/medikoo))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **`lodash` replacement:**
   - Remove `_.isInteger` ([#7878](https://github.com/serverless/serverless/issues/7878)) ([3b19a5a](https://github.com/serverless/serverless/commit/3b19a5a6b191fdb0dac5a81d1244159e0da9e0bd)) ([Dai Van Nguyen](https://github.com/nvdai2401))
@@ -283,7 +283,7 @@ All notable changes to this project will be documented in this file. See [standa
 - **AWS HTTP API:** Respect logRetentionInDays setting ([#7856](https://github.com/serverless/serverless/issues/7856)) ([9dad77c](https://github.com/serverless/serverless/commit/9dad77ce1b12218f3c38b62c716d4dbc9d68bb5d)) ([Jonne Deprez](https://github.com/jonnedeprez))
 - **AWS Websocket:** Fix resources dependency chain ([9c0f646](https://github.com/serverless/serverless/commit/9c0f6461b73976958ebdd7e2762c6d1fbd469da1)) ([Mariusz Nowak](https://github.com/medikoo))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **`lodash` replacement:**
   - Remove `_.isBoolean` usage ([#7880](https://github.com/serverless/serverless/issues/7880)) ([57f70f9](https://github.com/serverless/serverless/commit/57f70f93eb3c24b802c842fb6e395591a70a3270)) ([Anh Dev](https://github.com/anhdevit))
@@ -314,7 +314,7 @@ All notable changes to this project will be documented in this file. See [standa
 - **AWS SQS:** Revert support for `maximumRetryAttempts` option ([#7832](https://github.com/serverless/serverless/issues/7832)) ([5a5a986](https://github.com/serverless/serverless/commit/5a5a9864149e962375bb252adcaf32bbe10662da)) ([Mariusz Nowak](https://github.com/medikoo))
 - Ensure `serverless.ts` is handled properly at plugin commands ([#7806](https://github.com/serverless/serverless/issues/7806)) ([dc96b9a](https://github.com/serverless/serverless/commit/dc96b9a876b04e10ced474b7bb32416a204c67a3)) ([Bryan Hunter](https://github.com/bryan-hunter))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **`lodash` replacement:**
   - Replace `_.first`with `array[0]` ([#7816](https://github.com/serverless/serverless/issues/7816)) ([a527744](https://github.com/serverless/serverless/commit/a527744606a7dd9dd9caf0a376eb615f0b81a40f)) ([Chris Villanueva](https://github.com/chrisVillanueva))
@@ -359,7 +359,7 @@ All notable changes to this project will be documented in this file. See [standa
   - Apply contentHandling only to successful responses ([#7757](https://github.com/serverless/serverless/issues/7757)) ([aa48f0a](https://github.com/serverless/serverless/commit/aa48f0a0766fc07e6e3ca4bb7ba4b6ad3427cc03)) ([Thomas Aribart](https://github.com/ThomasAribart))
 - Downgrade `uuid` to v3 ([#7778](https://github.com/serverless/serverless/issues/7778)) ([e9be1c8](https://github.com/serverless/serverless/commit/e9be1c8c6f3b6f105f0e6d9f4383e7cbe16e62ff)) ([Mariusz Nowak](https://github.com/medikoo))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - **`lodash` replacement:**
   - Replace `_.assign` and `_.extend` with `Object.assign` ([#7766](https://github.com/serverless/serverless/issues/7766)) ([85e9cd4](https://github.com/serverless/serverless/commit/85e9cd4455bb631be921a12a37f2174fd50ecec6)) ([Nguyễn Việt Đức](https://github.com/vietduc01100001))
@@ -392,7 +392,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 - **AWS Deploy:** Do not re-upload unchanged lambda layers ([#7680](https://github.com/serverless/serverless/issues/7680)) ([2b9f63e](https://github.com/serverless/serverless/commit/2b9f63e3329d6e28c0a87d58658b0afde557053e)) ([Tatsuno Yasuhiro](https://github.com/exoego))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - Replace `_.{startsWith,endsWith,includes}` with native methods ([#7715](https://github.com/serverless/serverless/issues/7715)) ([8bb5517](https://github.com/serverless/serverless/commit/8bb55174562c379ae14e5d1b90db3ed2b25038bd)) ([Tatsuno Yasuhiro](https://github.com/exoego))
 - Upgrade `globby` to v9 ([#7750](https://github.com/serverless/serverless/issues/7750)) ([b245596](https://github.com/serverless/serverless/commit/b245596dbb76e6cdea081e3c6510976587e7e82f)) ([Nguyễn Việt Đức](https://github.com/vietduc01100001))
@@ -420,7 +420,7 @@ All notable changes to this project will be documented in this file. See [standa
 - **AWS IAM:** Remove IAM role from function's `DependsOn` section ([#7722](https://github.com/serverless/serverless/issues/7722)) ([d8222fa](https://github.com/serverless/serverless/commit/d8222fa0dc80ac4f6e7c23b3ccfd0d91f80b3e2e)) ([Ahmad Mahmoud Mohammad](https://github.com/AhmedFat7y))
 - **CLI:** Reject multitple `--config` params ([#7728](https://github.com/serverless/serverless/issues/7728)) ([ca2a73f](https://github.com/serverless/serverless/commit/ca2a73f91a86ae41b4cf48384177c0fd74ff4f1f)) ([Ahmad Mahmoud Mohammad](https://github.com/AhmedFat7y))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - Upgrade `fs-extra` to v8 ([#7719](https://github.com/serverless/serverless/issues/7719)) ([c106d53](https://github.com/serverless/serverless/commit/c106d5363830e9dc31a5714f56abfb26b0a5db37)) ([Kenan Christian Dimas](https://github.com/kenanchristian))
 
@@ -437,7 +437,7 @@ All notable changes to this project will be documented in this file. See [standa
   - Update aws-csharp to .NET Core 3.1 ([#7708](https://github.com/serverless/serverless/issues/7708)) ([46df82e](https://github.com/serverless/serverless/commit/46df82ea92ced3ba7542f6de5da6cfda73554ffc)) ([Joseph Woodward](https://github.com/JosephWoodward))
   - Update aws-fsharp to .NET Core 3.1 ([#7709](https://github.com/serverless/serverless/issues/7709)) ([a5a136f](https://github.com/serverless/serverless/commit/a5a136f982f19043cf4cf3236db1ac2d17c8a266)) ([Stuart Lang](https://github.com/slang25))
 
-### Maintanance Improvements
+### Maintenance Improvements
 
 - Replace `_.isArray` with native `Array.isArray` ([#7703](https://github.com/serverless/serverless/issues/7703)) ([3fe2e98](https://github.com/serverless/serverless/commit/3fe2e98f15d3a78571b3aa0894be1632e2f5ab51)) ([Tatsuno Yasuhiro](https://github.com/exoego))
 - Upgrade `archiver` to v3 ([#7712](https://github.com/serverless/serverless/issues/7712)) ([dd9bf9](https://github.com/serverless/serverless/commit/dd9bf9a7996af5a3baf003d166ec34e1eb695b2b)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
