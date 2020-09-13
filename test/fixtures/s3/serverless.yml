@@ -1,0 +1,82 @@
+service: service
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+  s3:
+    customBucket:
+      name: ${self:service.name}-custom-bucket-${opt:stage, 'dev'}
+      publicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+functions:
+  minimal:
+    handler: core.minimal
+    events:
+      - s3: ${self:service.name}-s3-minimal
+  extended:
+    handler: core.extended
+    events:
+      - s3:
+          bucket: ${self:service.name}-s3-extended
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: photos/
+            - suffix: .jpg
+  custom:
+    handler: core.custom
+    events:
+      - s3:
+          bucket: customBucket
+
+  existing:
+    handler: core.existing
+    events:
+      - s3:
+          bucket: ${self:service.name}-s3-existing-simple
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: Files/
+            - suffix: .TXT
+          existing: true
+  # testing if two functions share one bucket with multiple bucket configs
+  existingCreated:
+    handler: core.existingCreated
+    events:
+      - s3:
+          bucket: ${self:service.name}-s3-existing-complex
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: photos
+            - suffix: .jpg
+          existing: true
+      - s3:
+          bucket: ${self:service.name}-s3-existing-complex
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: photos
+            - suffix: .png
+          existing: true
+  existingRemoved:
+    handler: core.existingRemoved
+    events:
+      - s3:
+          bucket: ${self:service.name}-s3-existing-complex
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: photos
+            - suffix: .jpg
+          existing: true
+      - s3:
+          bucket: ${self:service.name}-s3-existing-complex
+          event: s3:ObjectRemoved:*
+          rules:
+            - prefix: photos
+            - suffix: .png
+          existing: true

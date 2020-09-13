@@ -1,0 +1,17 @@
+service: service
+
+configValidationMode: error
+
+# VPC and EFS configuration is added dynamically during test run
+# Because it has to be provisioned separately via CloudFormation stack
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  writer:
+    handler: core.writer
+  reader:
+    handler: core.reader

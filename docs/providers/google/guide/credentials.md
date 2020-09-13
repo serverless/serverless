@@ -45,6 +45,7 @@ Go to the <a href="https://console.cloud.google.com/apis/dashboard" target="_bla
 
 - Cloud Functions API
 - Cloud Deployment Manager V2 API
+- Cloud Build API
 - Cloud Storage
 - Cloud Logging API
 

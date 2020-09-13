@@ -17,10 +17,11 @@ const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
 const uuid = require('uuid');
 
-const nodeVersion = Number(process.version.split('.')[0].slice(1));
 const invocationId = uuid.v4();
 
-process.on('uncaughtException', error => logError(error, { forceExit: true }));
+let serverless;
+
+process.on('uncaughtException', error => logError(error, { forceExit: true, serverless }));
 
 if (process.env.SLS_DEBUG) {
   // For performance reasons enabled only in SLS_DEBUG mode
@@ -29,18 +30,9 @@ if (process.env.SLS_DEBUG) {
   });
 }
 
-if (nodeVersion < 10) {
-  require('../lib/utils/logDeprecation')(
-    'OUTDATED_NODEJS',
-    'Support for Node.js versions below v10 will be dropped with next major release. Please upgrade at https://nodejs.org/en/'
-  );
-}
-
-// requiring here so that if anything went wrong,
-// during require, it will be caught.
 const Serverless = require('../lib/Serverless');
 
-const serverless = new Serverless();
+serverless = new Serverless();
 
 let resolveOnExitPromise;
 serverless.onExitPromise = new Promise(resolve => (resolveOnExitPromise = resolve));
@@ -52,6 +44,9 @@ require('../lib/utils/analytics').sendPending({
 
 serverless
   .init()
+  .then(() => {
+    if (serverless.invokedInstance) serverless = serverless.invokedInstance;
+  })
   .then(() => serverless.run())
   .then(
     () => resolveOnExitPromise(),
@@ -65,7 +60,7 @@ serverless
         }
       });
       if (!enterpriseErrorHandler) {
-        logError(err);
+        logError(err, { serverless });
         return null;
       }
       return enterpriseErrorHandler(err, invocationId)
@@ -73,7 +68,7 @@ serverless
           process.stdout.write(`${error.stack}\n`);
         })
         .then(() => {
-          logError(err);
+          logError(err, { serverless });
         });
     }
   );

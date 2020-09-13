@@ -1,0 +1,28 @@
+service: service
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+  logs:
+    websocket: true
+
+functions:
+  # core functions
+  minimal:
+    handler: core.minimal
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: $default
+  sayHello:
+    handler: core.sayHello
+    events:
+      - websocket:
+          route: hello
+          routeResponseSelectionExpression: $default

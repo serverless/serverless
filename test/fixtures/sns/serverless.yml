@@ -1,0 +1,46 @@
+service: service
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  snsMinimal:
+    handler: core.snsMinimal
+    events:
+      - sns: ${self:service.name}-minimal
+
+  snsMultipleFilteredLeft:
+    handler: core.snsMultipleFilteredLeft
+    events:
+      - sns:
+          topicName: ${self:service.name}-filtered
+          displayName: 'Integration Test: ${self:service.name}-filtered'
+          filterPolicy:
+            side:
+              - left
+  snsMultipleFilteredRight:
+    handler: core.snsMultipleFilteredRight
+    events:
+      - sns:
+          topicName: ${self:service.name}-filtered
+          displayName: 'Integration Test: ${self:service.name}-filtered'
+          filterPolicy:
+            side:
+              - right
+
+  snsExisting:
+    handler: core.snsExisting
+    events:
+      - sns:
+          arn:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:sns'
+                - Ref: 'AWS::Region'
+                - Ref: 'AWS::AccountId'
+                - ${self:service.name}-existing
+          topicName: ${self:service.name}-existing

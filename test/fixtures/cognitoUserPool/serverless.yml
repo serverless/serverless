@@ -1,0 +1,35 @@
+service: service
+
+configValidationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  basic:
+    handler: core.basic
+    events:
+      - cognitoUserPool:
+          pool: ${self:service.name} CUP Basic
+          trigger: PreSignUp
+  existingSimple:
+    handler: core.existingSimple
+    events:
+      - cognitoUserPool:
+          pool: ${self:service.name} CUP Existing Simple
+          trigger: PreSignUp
+          existing: true
+  # testing if two functions share one cognito user pool with multiple configs
+  existingMulti:
+    handler: core.existingMulti
+    events:
+      - cognitoUserPool:
+          pool: ${self:service.name} CUP Existing Multi
+          trigger: PreSignUp
+          existing: true
+      - cognitoUserPool:
+          pool: ${self:service.name} CUP Existing Multi
+          trigger: PreAuthentication
+          existing: true

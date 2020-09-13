@@ -9,6 +9,8 @@
 # Update the service name below with your own service name
 service: capitalize
 
+frameworkVersion: '2'
+
 # Please ensure the serverless-kubeless provider plugin is installed globally.
 # $ npm install -g serverless-kubeless
 #
