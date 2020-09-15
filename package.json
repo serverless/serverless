@@ -64,7 +64,7 @@
     "promise-queue": "^2.2.5",
     "rc": "^1.2.8",
     "replaceall": "^0.1.6",
-    "semver": "^6.3.0",
+    "semver": "^7.3.2",
     "semver-regex": "^2.0.0",
     "stream-promise": "^3.2.0",
     "tabtab": "^3.0.2",
