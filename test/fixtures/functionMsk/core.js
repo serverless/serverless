@@ -4,6 +4,8 @@
 // eslint-disable-next-line
 const { log } = require('./utils');
 
+// NOTE: `kafkajs` is bundled into the deployment package
+// eslint-disable-next-line
 const { Kafka } = require('kafkajs');
 
 function consumer(event, context, callback) {
