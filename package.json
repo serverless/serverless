@@ -99,7 +99,7 @@
     "prettier": "^1.19.1",
     "process-utils": "^3.1.0",
     "proxyquire": "^2.1.3",
-    "semver-regex": "^2.0.0",
+    "semver-regex": "^3.1.1",
     "sinon": "^8.1.1",
     "sinon-chai": "^3.5.0",
     "standard-version": "^8.0.2",
