@@ -29,7 +29,7 @@
     "@serverless/utils": "^1.2.0",
     "ajv": "^6.12.4",
     "ajv-keywords": "^3.5.2",
-    "archiver": "^3.1.1",
+    "archiver": "^5.0.2",
     "aws-sdk": "^2.749.0",
     "bluebird": "^3.7.2",
     "boxen": "^4.2.0",
