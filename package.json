@@ -70,7 +70,7 @@
     "tabtab": "^3.0.2",
     "timers-ext": "^0.1.7",
     "type": "^2.1.0",
-    "untildify": "^3.0.3",
+    "untildify": "^4.0.0",
     "uuid": "^8.3.0",
     "write-file-atomic": "^2.4.3",
     "yaml-ast-parser": "0.0.43",
