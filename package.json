@@ -78,7 +78,6 @@
     "@serverless/test": "^5.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "cli-progress-footer": "^1.1.1",
     "cos-nodejs-sdk-v5": "^2.7.0",
     "eslint": "^7.8.1",
     "eslint-plugin-import": "^2.22.0",
