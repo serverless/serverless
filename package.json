@@ -43,7 +43,7 @@
     "essentials": "^1.1.1",
     "fastest-levenshtein": "^1.0.12",
     "filesize": "^6.1.0",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^9.0.1",
     "get-stdin": "^8.0.0",
     "globby": "^11.0.1",
     "graceful-fs": "^4.2.4",
