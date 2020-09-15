@@ -61,7 +61,6 @@
     "object-hash": "^2.0.3",
     "p-limit": "^3.0.2",
     "promise-queue": "^2.2.5",
-    "rc": "^1.2.8",
     "replaceall": "^0.1.6",
     "semver": "^7.3.2",
     "stream-promise": "^3.2.0",
