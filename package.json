@@ -58,6 +58,7 @@
     "micromatch": "^4.0.2",
     "ncjsm": "^4.1.0",
     "node-fetch": "^2.6.1",
+    "npm-cross-link": "^10.0.1",
     "object-hash": "^2.0.3",
     "p-limit": "^3.0.2",
     "promise-queue": "^2.2.5",
@@ -73,7 +74,7 @@
     "yargs-parser": "^20.0.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^9.1.2",
+    "@commitlint/cli": "^11.0.0",
     "@serverless/eslint-config": "^3.0.0",
     "@serverless/test": "^5.1.0",
     "chai": "^4.2.0",
