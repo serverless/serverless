@@ -37,3 +37,7 @@ functions:
     handler: index.handler
     layers:
       - { Ref: TestLayerWithNoNameLambdaLayer }
+  arnLayerFunc:
+    handler: index.handler
+    layers:
+      - arn:aws:lambda:us-east-2:123456789012:layer:my-layer:1
