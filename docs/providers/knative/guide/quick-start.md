@@ -59,9 +59,10 @@ Now that you’ve completed your setup, let’s create and deploy a serverless S
 
 1. Use the Serverless Framework open-source CLI to create a new Service with `knative-docker`template.
 
-````sh
+```sh
 # Create a new Serverless service/project
 $ serverless create --template knative-docker --path my-service
+```
 
 2. Install the dependencies
 
@@ -69,7 +70,7 @@ $ serverless create --template knative-docker --path my-service
 # Change into the newly created directory
 $ cd my-service
 $ npm install
-````
+```
 
 ### Set up Knative
 
