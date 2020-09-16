@@ -163,10 +163,6 @@
       {
         "type": "refactor",
         "section": "Maintanance Improvements"
-      },
-      {
-        "type": "chore",
-        "section": "Chore Improvements"
       }
     ]
   },
