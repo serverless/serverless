@@ -138,6 +138,10 @@ Resources:
         Revision: !Ref ClusterConfigurationRevision
 
 Outputs:
+  VPC:
+    Description: VPC ID
+    Value: !Ref VPC
+
   PrivateSubnetA:
     Description: Private Subnet A ID
     Value: !Ref PrivateSubnetA

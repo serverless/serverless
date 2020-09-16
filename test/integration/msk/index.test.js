@@ -16,6 +16,7 @@ describe('AWS - MSK Integration Test', function() {
   let stackName;
   let servicePath;
   let clusterConfigurationArn;
+  let outputMap;
   const stage = 'dev';
 
   const suffix = crypto.randomBytes(8).toString('hex');
@@ -56,7 +57,7 @@ describe('AWS - MSK Integration Test', function() {
       StackName: resourcesStackName,
     });
 
-    const outputMap = waitForResult.Stacks[0].Outputs.reduce((map, output) => {
+    outputMap = waitForResult.Stacks[0].Outputs.reduce((map, output) => {
       map[output.OutputKey] = output.OutputValue;
       return map;
     }, {});
@@ -105,6 +106,26 @@ describe('AWS - MSK Integration Test', function() {
   after(async () => {
     log.notice('Removing service...');
     await removeService(servicePath);
+    log.notice('Removing leftover ENI...');
+    const describeResponse = await awsRequest('EC2', 'describeNetworkInterfaces', {
+      Filters: [
+        {
+          Name: 'vpc-id',
+          Values: [outputMap.VPC],
+        },
+        {
+          Name: 'status',
+          Values: ['available'],
+        },
+      ],
+    });
+    await Promise.all(
+      describeResponse.NetworkInterfaces.map(networkInterface =>
+        awsRequest('EC2', 'deleteNetworkInterface', {
+          NetworkInterfaceId: networkInterface.NetworkInterfaceId,
+        })
+      )
+    );
     log.notice('Removing CloudFormation stack with required resources...');
     await awsRequest('CloudFormation', 'deleteStack', { StackName: resourcesStackName });
     await awsRequest('CloudFormation', 'waitFor', 'stackDeleteComplete', {
