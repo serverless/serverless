@@ -23,7 +23,7 @@ service:
   name: myService
   awsKmsKeyArn: arn:aws:kms:us-east-1:XXXXXX:key/some-hash # Optional KMS key arn which will be used for encryption for all functions
 
-frameworkVersion: '>=1.0.0 <2.0.0'
+frameworkVersion: '2'
 enableLocalInstallationFallback: false # If set to 'true', guarantees that it's a locally (for service, in its node_modules) installed framework which processes the command
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
