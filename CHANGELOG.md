@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 - **Config Schema:**
   - Schema for AWS `cloudwatch` event ([#8230](https://github.com/serverless/serverless/issues/8230)) ([3730fd4](https://github.com/serverless/serverless/commit/3730fd4fd1ca3610415968e4633a0cba275b2e43)) ([Oz Weiss](https://github.com/thewizarodofoz))
-  - Schema for AWS `stream` event ([#8201](https://github.com/serverless/serverless/issues/8201)) ([1fb338b](https://github.com/serverless/serverless/commit/1fb338b184ed770bc5d8d162bf5c54336f3d2ddd)) ([rédéric Barthelet](https://github.com/fredericbarthelet))
+  - Schema for AWS `stream` event ([#8201](https://github.com/serverless/serverless/issues/8201)) ([1fb338b](https://github.com/serverless/serverless/commit/1fb338b184ed770bc5d8d162bf5c54336f3d2ddd)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
 
 ### Bug Fixes
 
