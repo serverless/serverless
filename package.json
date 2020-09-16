@@ -58,7 +58,6 @@
     "micromatch": "^4.0.2",
     "ncjsm": "^4.1.0",
     "node-fetch": "^2.6.1",
-    "npm-cross-link": "^10.0.1",
     "object-hash": "^2.0.3",
     "p-limit": "^3.0.2",
     "promise-queue": "^2.2.5",
