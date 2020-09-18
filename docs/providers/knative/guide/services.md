@@ -140,13 +140,13 @@ To configure version pinning define a `frameworkVersion` property in your server
 #### Exact Version
 
 ```yaml
-frameworkVersion: '=1.0.3'
+frameworkVersion: '2.1.0'
 ```
 
 #### Version Range
 
 ```yaml
-frameworkVersion: '>=1.0.0 <2.0.0'
+frameworkVersion: ^2.1.0 # >=2.1.0 && <3.0.0
 ```
 
 ## Installing Serverless in an existing service

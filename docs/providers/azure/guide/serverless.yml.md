@@ -20,7 +20,7 @@ Here is a list of all available properties in `serverless.yml` when the provider
 # serverless.yml
 service: azure-nodejs
 
-frameworkVersion: '>=1.0.0 <2.0.0'
+frameworkVersion: '2'
 
 provider:
   name: azure

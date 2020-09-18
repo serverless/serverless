@@ -80,7 +80,7 @@ npm run lint
 ## Other guidelines
 
 - Minimize [lodash](https://lodash.com/) usage - resort to it, only if given part of logic cannot be expressed easily with native language constructs
-- Do not rely on custom [Bluebird](http://bluebirdjs.com) functions methods (aside from `Bluebird.try`) - we're looking forward to dropping this dependency with the next major.
+- When writing asynchronous code, ensure to take advantage of [async functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) and native `Promise` API. Do not rely on [Bluebird](http://bluebirdjs.com) even though still large parts of old code rely on it. We're looking forward to drop this dependency in next months.
 
 ### Configuring deprecations
 
