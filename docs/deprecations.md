@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="RESOURCES_EXTENSIONS_REFERENCE_TO_NONEXISTENT_RESOURCE"><div>&nbsp;</div></a>
+
+## Defining extensions to nonexistent resources in `resources.extensions`
+
+Starting with v3.0.0, extensions to nonexistent resources in `resources.extensions` will throw an error instead of passing silently.
+
 <a name="DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING"><div>&nbsp;</div></a>
 
 ## Support for `enableLocalInstallationFallback` setting is to be removed
