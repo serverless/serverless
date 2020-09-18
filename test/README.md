@@ -71,7 +71,7 @@ Such tests take advantage of `isDependencyStackAvailable` util to check if all n
 
 Examples of such tests:
 
-- [MSK]('./integration/msk.test.js')
+- [MSK](./integration/msk.test.js)
 
 ## Testing templates
 
