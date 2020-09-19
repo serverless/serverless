@@ -20,13 +20,13 @@ package:
     - extra_layers/**
 
 functions:
-  foo:
+  layerFunc:
     handler: index.handler
     layers:
       - { Ref: TestLayerLambdaLayer }
-  bar:
+  noLayerFunc:
     handler: index.handler
-  fooBar:
+  layerFuncWithConfig:
     handler: index.handler
     reservedConcurrency: 1
   capitalLayerFunc:
