@@ -145,7 +145,7 @@ To configure version pinning define a `frameworkVersion` property in your server
 ```yml
 # serverless.yml
 
-frameworkVersion: '=1.0.3'
+frameworkVersion: '2.1.0'
 ```
 
 #### Version Range
@@ -153,7 +153,7 @@ frameworkVersion: '=1.0.3'
 ```yml
 # serverless.yml
 
-frameworkVersion: '>=1.0.0 <2.0.0'
+frameworkVersion: ^2.1.0 # >=2.1.0 && <3.0.0
 ```
 
 ## Installing Serverless in an existing service
