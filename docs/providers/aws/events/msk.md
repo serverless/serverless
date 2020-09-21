@@ -14,6 +14,11 @@ layout: Doc
 
 # MSK
 
+[Amazon Managed Streaming for Apache Kafka (Amazon MSK)](https://aws.amazon.com/msk/) is a fully managed streaming service that uses Apache Kafka.
+Amazon MSK can be used as event source for Lambda, which allows Lambda service to internally poll it for new messages and invoke corresponding Lambda functions.
+
+## Simple event definition
+
 In the following example, we specify that the `compute` function should be triggered whenever there are new messages available to consume from defined Kafka `topic`.
 
 In order to configure `msk` event, you have to provide two required properties: `arn`, which represents an ARN of MSK cluster and `topic` to consume messages from.

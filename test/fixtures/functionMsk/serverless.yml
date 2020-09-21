@@ -1,6 +1,7 @@
 service: service
 
 configValidationMode: error
+frameworkVersion: '*'
 
 # VPC and Events configuration is added dynamically during test run
 # Because it has to be provisioned separately via CloudFormation stack

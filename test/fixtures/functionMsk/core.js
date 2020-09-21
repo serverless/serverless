@@ -1,9 +1,5 @@
 'use strict';
 
-// NOTE: the `utils.js` file is bundled into the deployment package
-// eslint-disable-next-line
-const { log } = require('./utils');
-
 // NOTE: `kafkajs` is bundled into the deployment package
 // eslint-disable-next-line
 const { Kafka } = require('kafkajs');
@@ -14,7 +10,8 @@ function consumer(event, context, callback) {
   const messages = Object.values(records)[0].map(record =>
     Buffer.from(record.value, 'base64').toString()
   );
-  log(functionName, JSON.stringify(messages));
+  // eslint-disable-next-line
+  console.log(functionName, JSON.stringify(messages));
   return callback(null, event);
 }
 

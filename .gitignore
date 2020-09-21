@@ -5,6 +5,3 @@
 /node_modules
 npm-debug.log
 /package-lock.json
-
-/test/fixtures/**/node_modules
-/test/fixtures/**/package-lock.json

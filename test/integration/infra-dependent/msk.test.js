@@ -2,16 +2,16 @@
 
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
-const fixtures = require('../fixtures');
-const { confirmCloudWatchLogs } = require('../utils/misc');
+const fixtures = require('../../fixtures');
+const { confirmCloudWatchLogs } = require('../../utils/misc');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-} = require('../utils/cludformation');
+} = require('../../utils/cludformation');
 
 const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');
-const { deployService, removeService } = require('../utils/integration');
+const { deployService, removeService } = require('../../utils/integration');
 
 describe('AWS - MSK Integration Test', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
@@ -21,20 +21,17 @@ describe('AWS - MSK Integration Test', function() {
 
   const topicName = `msk-topic-${crypto.randomBytes(8).toString('hex')}`;
 
-  before(async function beforeHook() {
+  before(async () => {
     const isDepsStackAvailable = await isDependencyStackAvailable();
     if (!isDepsStackAvailable) {
-      log.notice(
-        'CloudFormation stack with integration test dependencies not found. Skipping test.'
-      );
-      this.skip();
+      throw new Error('CloudFormation stack with integration test dependencies not found.');
     }
 
     const outputMap = await getDependencyStackOutputMap();
 
     log.notice('Getting MSK Boostrap Brokers URLs...');
     const getBootstrapBrokersResponse = await awsRequest('Kafka', 'getBootstrapBrokers', {
-      ClusterArn: outputMap.MSKCluster,
+      ClusterArn: outputMap.get('MSKCluster'),
     });
     const brokerUrls = getBootstrapBrokersResponse.BootstrapBrokerStringTls;
 
@@ -43,8 +40,8 @@ describe('AWS - MSK Integration Test', function() {
         functions: {
           producer: {
             vpc: {
-              subnetIds: [outputMap.PrivateSubnetA],
-              securityGroupIds: [outputMap.SecurityGroup],
+              subnetIds: [outputMap.get('PrivateSubnetA')],
+              securityGroupIds: [outputMap.get('SecurityGroup')],
             },
             environment: {
               TOPIC_NAME: topicName,
@@ -55,7 +52,7 @@ describe('AWS - MSK Integration Test', function() {
             events: [
               {
                 msk: {
-                  arn: outputMap.MSKCluster,
+                  arn: outputMap.get('MSKCluster'),
                   topic: topicName,
                 },
               },
@@ -69,13 +66,11 @@ describe('AWS - MSK Integration Test', function() {
 
     const serviceName = serviceData.serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
-    log.notice(`Deploying "${stackName}" service...`);
     await deployService(servicePath);
   });
 
   after(async () => {
     if (servicePath) {
-      log.notice('Removing service...');
       await removeService(servicePath);
     }
   });
@@ -84,7 +79,7 @@ describe('AWS - MSK Integration Test', function() {
     const functionName = 'consumer';
     const message = 'Hello from MSK Integration test!';
 
-    return confirmCloudWatchLogs(
+    const events = await confirmCloudWatchLogs(
       `/aws/lambda/${stackName}-${functionName}`,
       async () =>
         await awsRequest('Lambda', 'invoke', {
@@ -92,10 +87,10 @@ describe('AWS - MSK Integration Test', function() {
           InvocationType: 'RequestResponse',
         }),
       { timeout: 120 * 1000 }
-    ).then(events => {
-      const logs = events.reduce((data, event) => data + event.message, '');
-      expect(logs).to.include(functionName);
-      expect(logs).to.include(message);
-    });
+    );
+
+    const logs = events.reduce((data, event) => data + event.message, '');
+    expect(logs).to.include(functionName);
+    expect(logs).to.include(message);
   });
 });

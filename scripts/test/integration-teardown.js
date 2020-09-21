@@ -1,5 +1,11 @@
+#!/usr/bin/env node
+
 'use strict';
 
+require('essentials');
+require('log-node')();
+
+const log = require('log').get('serverless:scripts');
 const awsRequest = require('@serverless/test/aws-request');
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
@@ -7,19 +13,19 @@ const {
 } = require('../../test/utils/cludformation');
 
 (async () => {
-  process.stdout.write('Starting teardown of integration infrastructure...\n');
+  log.notice('Starting teardown of integration infrastructure...');
   const describeClustersResponse = await awsRequest('Kafka', 'listClusters');
   const clusterConfArn =
     describeClustersResponse.ClusterInfoList[0].CurrentBrokerSoftwareInfo.ConfigurationArn;
 
   const outputMap = await getDependencyStackOutputMap();
 
-  process.stdout.write('Removing leftover ENI...\n');
+  log.notice('Removing leftover ENI...');
   const describeResponse = await awsRequest('EC2', 'describeNetworkInterfaces', {
     Filters: [
       {
         Name: 'vpc-id',
-        Values: [outputMap.VPC],
+        Values: [outputMap.get('VPC')],
       },
       {
         Name: 'status',
@@ -36,20 +42,20 @@ const {
       )
     );
   } catch (e) {
-    process.stdout.write(`Error: ${e} while trying to remove leftover ENIs\n`);
+    log.error(`Error: ${e} while trying to remove leftover ENIs\n`);
   }
-  process.stdout.write('Removing integration tests CloudFormation stack...\n');
+  log.notice('Removing integration tests CloudFormation stack...');
   await awsRequest('CloudFormation', 'deleteStack', {
     StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   });
   await awsRequest('CloudFormation', 'waitFor', 'stackDeleteComplete', {
     StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   });
-  process.stdout.write('Removed integration tests CloudFormation stack!\n');
-  process.stdout.write('Removing MSK Cluster configuration...\n');
+  log.notice('Removed integration tests CloudFormation stack!');
+  log.notice('Removing MSK Cluster configuration...');
   await awsRequest('Kafka', 'deleteConfiguration', {
     Arn: clusterConfArn,
   });
-  process.stdout.write('Removed MSK Cluster configuration\n');
-  process.stdout.write('Teardown of integration infrastructure finished\n');
+  log.notice('Removed MSK Cluster configuration');
+  log.notice('Teardown of integration infrastructure finished');
 })();

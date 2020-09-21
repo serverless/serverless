@@ -69,7 +69,10 @@ async function doesStackWithNameAndStatusExists(name, status) {
     }
     return false;
   } catch (e) {
-    return false;
+    if (e.code === 'ValidationError') {
+      return false;
+    }
+    throw e;
   }
 }
 
@@ -78,10 +81,11 @@ async function getStackOutputMap(name) {
     StackName: name,
   });
 
-  return describeStackResponse.Stacks[0].Outputs.reduce((map, output) => {
-    map[output.OutputKey] = output.OutputValue;
-    return map;
-  }, {});
+  const outputsMap = new Map();
+  for (const { OutputKey: key, OutputValue: value } of describeStackResponse.Stacks[0].Outputs) {
+    outputsMap.set(key, value);
+  }
+  return outputsMap;
 }
 
 async function isDependencyStackAvailable() {

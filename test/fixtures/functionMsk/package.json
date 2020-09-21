@@ -1,13 +1,4 @@
 {
-  "name": "functionMsk",
-  "version": "1.0.0",
-  "description": "",
-  "main": "core.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "kafkajs": "^1.13.0"
   }
