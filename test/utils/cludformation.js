@@ -59,23 +59,6 @@ function listStacks(status) {
   return awsRequest('CloudFormation', 'listStacks', params);
 }
 
-async function doesStackWithNameAndStatusExists(name, status) {
-  try {
-    const describeStacksResponse = await awsRequest('CloudFormation', 'describeStacks', {
-      StackName: name,
-    });
-    if (describeStacksResponse.Stacks[0].StackStatus === status) {
-      return true;
-    }
-    return false;
-  } catch (e) {
-    if (e.code === 'ValidationError') {
-      return false;
-    }
-    throw e;
-  }
-}
-
 async function getStackOutputMap(name) {
   const describeStackResponse = await awsRequest('CloudFormation', 'describeStacks', {
     StackName: name,
@@ -89,10 +72,22 @@ async function getStackOutputMap(name) {
 }
 
 async function isDependencyStackAvailable() {
-  return doesStackWithNameAndStatusExists(
-    SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
-    'CREATE_COMPLETE'
-  );
+  const validStatuses = ['CREATE_COMPLETE', 'UPDATE_COMPLETE'];
+
+  try {
+    const describeStacksResponse = await awsRequest('CloudFormation', 'describeStacks', {
+      StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+    });
+    if (validStatuses.includes(describeStacksResponse.Stacks[0].StackStatus)) {
+      return true;
+    }
+    return false;
+  } catch (e) {
+    if (e.code === 'ValidationError') {
+      return false;
+    }
+    throw e;
+  }
 }
 
 async function getDependencyStackOutputMap() {
@@ -104,7 +99,6 @@ module.exports = {
   deleteStack,
   listStackResources,
   listStacks,
-  doesStackWithNameAndStatusExists,
   getStackOutputMap,
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   isDependencyStackAvailable,

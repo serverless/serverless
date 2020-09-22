@@ -11,27 +11,11 @@ const fsPromises = require('fs').promises;
 const path = require('path');
 const { SHARED_INFRA_TESTS_CLOUDFORMATION_STACK } = require('../../../test/utils/cludformation');
 
-(async () => {
-  log.notice('Starting setup of integration infrastructure...');
-
+async function handleInfrastructureCreation() {
   const [cfnTemplate, kafkaServerProperties] = await Promise.all([
     fsPromises.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8'),
     fsPromises.readFile(path.join(__dirname, 'kafka.server.properties')),
   ]);
-
-  log.notice('Checking if integration tests CloudFormation stack already exists...');
-  try {
-    await awsRequest('CloudFormation', 'describeStacks', {
-      StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
-    });
-    log.error('Integration tests CloudFormation stack already exists. Quitting.');
-    return;
-  } catch (e) {
-    if (e.code !== 'ValidationError') {
-      throw e;
-    }
-  }
-  log.notice('Integration tests CloudFormation does not exist. Continuing.');
 
   const clusterName = 'integration-tests-msk-cluster';
   const clusterConfName = 'integration-tests-msk-cluster-configuration';
@@ -64,5 +48,69 @@ const { SHARED_INFRA_TESTS_CLOUDFORMATION_STACK } = require('../../../test/utils
     StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   });
   log.notice('Deployed integration tests CloudFormation stack!');
+}
+
+async function handleInfrastructureUpdate() {
+  log.notice('Updating integration tests CloudFormation stack...');
+
+  const cfnTemplate = await fsPromises.readFile(path.join(__dirname, 'cloudformation.yml'), 'utf8');
+
+  try {
+    await awsRequest('CloudFormation', 'updateStack', {
+      StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+      TemplateBody: cfnTemplate,
+      Parameters: [
+        { ParameterKey: 'ClusterName', UsePreviousValue: true },
+        { ParameterKey: 'ClusterConfigurationArn', UsePreviousValue: true },
+        {
+          ParameterKey: 'ClusterConfigurationRevision',
+          UsePreviousValue: true,
+        },
+      ],
+    });
+  } catch (e) {
+    if (e.message === 'No updates are to be performed.') {
+      log.notice('No changes detected. Integration tests CloudFormation stack is up to date.');
+      return;
+    }
+    throw e;
+  }
+
+  await awsRequest('CloudFormation', 'waitFor', 'stackUpdateComplete', {
+    StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+  });
+  log.notice('Updated integration tests CloudFormation stack!');
+}
+
+(async () => {
+  log.notice('Starting setup of integration infrastructure...');
+
+  let describeResponse;
+
+  log.notice('Checking if integration tests CloudFormation stack already exists...');
+  try {
+    describeResponse = await awsRequest('CloudFormation', 'describeStacks', {
+      StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+    });
+    log.notice('Integration tests CloudFormation stack already exists');
+  } catch (e) {
+    if (e.code !== 'ValidationError') {
+      throw e;
+    }
+    log.notice('Integration tests CloudFormation does not exist');
+  }
+
+  if (describeResponse) {
+    const stackStatus = describeResponse.Stacks[0].StackStatus;
+
+    if (['CREATE_COMPLETE', 'UPDATE_COMPLETE'].includes(stackStatus)) {
+      await handleInfrastructureUpdate();
+    } else {
+      log.error('Existing stack has status: {stackStatus} and it cannot be updated.');
+    }
+  } else {
+    await handleInfrastructureCreation();
+  }
+
   log.notice('Setup of integration infrastructure finished');
 })();

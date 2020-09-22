@@ -10,7 +10,7 @@ function consumer(event, context, callback) {
   const messages = Object.values(records)[0].map(record =>
     Buffer.from(record.value, 'base64').toString()
   );
-  // eslint-disable-next-line
+  // eslint-disable-next-line no-console
   console.log(functionName, JSON.stringify(messages));
   return callback(null, event);
 }
