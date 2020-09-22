@@ -28,7 +28,7 @@ functions:
     handler: index.handler
   layerFuncWithConfig:
     handler: index.handler
-    reservedConcurrency: 1
+    memorySize: 128
   capitalLayerFunc:
     handler: index.handler
     layers:
