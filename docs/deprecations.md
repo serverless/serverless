@@ -73,3 +73,9 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 ## `bin/serverless`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
+
+<a name="SERVICE_DEPRECATED_PROPERTY_AWS_KMS_KEY_ARN"><div>&nbsp;</div></a>
+
+## awsKmsKeyArn references
+
+Plase use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v2.0.0
