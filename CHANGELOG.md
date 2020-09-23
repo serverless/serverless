@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Features
 
 - **Config Schema:**
-  - Schama for AWS `sqs` event ([#8227](https://github.com/serverless/serverless/issues/8227)) ([4f96ce1](https://github.com/serverless/serverless/commit/4f96ce1042079c08578ef70ddbb4c2def32d6663)) ([Oz Weiss](https://github.com/thewizarodofoz))
+  - Schema for AWS `sqs` event ([#8227](https://github.com/serverless/serverless/issues/8227)) ([4f96ce1](https://github.com/serverless/serverless/commit/4f96ce1042079c08578ef70ddbb4c2def32d6663)) ([Oz Weiss](https://github.com/thewizarodofoz))
   - Schema for `functions[]` properties ([#8222](https://github.com/serverless/serverless/issues/8222)) ([feece9a](https://github.com/serverless/serverless/commit/feece9a2ec5be0f49af7147b84bed76e9ba50155)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
   - Schema for AWS `cloudfront` event ([#8250](https://github.com/serverless/serverless/issues/8250)) ([8943693](https://github.com/serverless/serverless/commit/8943693c33359749d6685d867c01151cfd8000cf)) ([Oz Weiss](https://github.com/thewizarodofoz))
   - Schema for AWS `cloudwatchLog` event ([#8228](https://github.com/serverless/serverless/issues/8228)) ([42676d3](https://github.com/serverless/serverless/commit/42676d34d4cb33cb59fd54c6a78ed07c965146e5)) ([Oz Weiss](https://github.com/thewizarodofoz))
