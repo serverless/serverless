@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/serverless/serverless/compare/v2.1.1...v2.2.0) (2020-09-23)
+
+### Features
+
+- **Config Schema:**
+  - Schama for AWS `sqs` event ([#8227](https://github.com/serverless/serverless/issues/8227)) ([4f96ce1](https://github.com/serverless/serverless/commit/4f96ce1042079c08578ef70ddbb4c2def32d6663)) ([Oz Weiss](https://github.com/thewizarodofoz))
+  - Schema for `functions[]` properties ([#8222](https://github.com/serverless/serverless/issues/8222)) ([feece9a](https://github.com/serverless/serverless/commit/feece9a2ec5be0f49af7147b84bed76e9ba50155)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+  - Schema for AWS `cloudfront` event ([#8250](https://github.com/serverless/serverless/issues/8250)) ([8943693](https://github.com/serverless/serverless/commit/8943693c33359749d6685d867c01151cfd8000cf)) ([Oz Weiss](https://github.com/thewizarodofoz))
+  - Schema for AWS `cloudwatchLog` event ([#8228](https://github.com/serverless/serverless/issues/8228)) ([42676d3](https://github.com/serverless/serverless/commit/42676d34d4cb33cb59fd54c6a78ed07c965146e5)) ([Oz Weiss](https://github.com/thewizarodofoz))
+  - Schema for AWS `websocket` event ([#8218](https://github.com/serverless/serverless/issues/8218)) ([e1ca63c](https://github.com/serverless/serverless/commit/e1ca63c06a824e18fdd92f5c6c3efbf7f5f644d2)) ([Raul Zaldana](https://github.com/zaldanaraul))
+- **AWS Lambda:** Support CF intrinsic functions in `fileSystemConfig.arn` ([#8265](https://github.com/serverless/serverless/issues/8265)) ([4bf6543](https://github.com/serverless/serverless/commit/4bf654376f9820efbd78876c72dad95d4cc52831)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Deprecate an attempt to extend nonexistent resources ([#8266](https://github.com/serverless/serverless/issues/8266)) ([0ced414](https://github.com/serverless/serverless/commit/0ced414174c8acf7dd70dd9b5e4b7a525cd8320e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Lambda:** Recognize function-wide settings for version hashing ([#8212](https://github.com/serverless/serverless/issues/8212)) ([1fceb89](https://github.com/serverless/serverless/commit/1fceb898d0ea10b00bc6759a5204065c81b560e8)) ([Oz Weiss](https://github.com/thewizarodofoz))
+- **AWS Local Invocation:** Fix Dockerfile layer path on Windows ([#8273](https://github.com/serverless/serverless/issues/8273)) ([0164327](https://github.com/serverless/serverless/commit/01643273df742239cd020e7d08941c505e540217)) ([Gábor Lipták](https://github.com/gliptak))
+- **AWS SNS:** Fix setup of redrive policy ([#8268](https://github.com/serverless/serverless/issues/8268)) ([3e9e6aa](https://github.com/serverless/serverless/commit/3e9e6aacc675cd7bf92499b9494a15ff9b21981b)) ([5up3r20e](https://github.com/5up3r20e))
+- **Config Schema:**
+  - Recognize enhanced object syntax for plugins ([#8259](https://github.com/serverless/serverless/issues/8259)) ([4b86fa5](https://github.com/serverless/serverless/commit/4b86fa5759a4b52771bb69d3ea50762b87583765)) ([jimjenkins5](https://github.com/jimjenkins5))
+  - Treat explicit `null` or `undefined` as no value ([#8272](https://github.com/serverless/serverless/issues/8272)) ([e5e42ba](https://github.com/serverless/serverless/commit/e5e42bab8cec9c508e465ee259ec75aff183168c)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintanance Improvements
+
+- **`lodash` replacement:**
+  - Replace `_.{entries|entriesIn|toPairs}` with `Object.entries` ([#8275](https://github.com/serverless/serverless/issues/8275)) ([b867df1](https://github.com/serverless/serverless/commit/b867df147aea5e1f57a9d275e2a389efbbcf38aa)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Replace `_.values` with `Object.values` ([#8274](https://github.com/serverless/serverless/issues/8274)) ([57d1ce1](https://github.com/serverless/serverless/commit/57d1ce1a660a0446c77e9bafb174ae3fe0263516)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Dependencies:**
+  - Upgrade "@serverless/utils" to v2 ([#8278](https://github.com/serverless/serverless/issues/8278)) ([ef39e95](https://github.com/serverless/serverless/commit/ef39e958db39b367875af871a7014b4d284f5554)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.1.1](https://github.com/serverless/serverless/compare/v2.1.0...v2.1.1) (2020-09-17)
 
 ### Maintanance Improvements
