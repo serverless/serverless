@@ -5,7 +5,7 @@
 require('essentials');
 require('log-node')();
 
-const log = require('log').get('serverless:scripts');
+const log = require('log').get('serverless');
 const awsRequest = require('@serverless/test/aws-request');
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,

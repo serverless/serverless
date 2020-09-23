@@ -5,7 +5,7 @@
 require('essentials');
 require('log-node')();
 
-const log = require('log').get('serverless:scripts');
+const log = require('log').get('serverless');
 const awsRequest = require('@serverless/test/aws-request');
 const fsPromises = require('fs').promises;
 const path = require('path');
@@ -107,6 +107,7 @@ async function handleInfrastructureUpdate() {
       await handleInfrastructureUpdate();
     } else {
       log.error('Existing stack has status: {stackStatus} and it cannot be updated.');
+      process.exitCode = 1;
     }
   } else {
     await handleInfrastructureCreation();
