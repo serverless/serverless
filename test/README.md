@@ -60,6 +60,19 @@ Pass test file to Mocha directly as follows
 AWS_ACCESS_KEY_ID=XXX AWS_SECRET_ACCESS_KEY=xxx npx mocha tests/integration/{chosen}.test.js
 ```
 
+### Tests that depend on shared infrastructure stack
+
+Due to the fact that some of the tests require a bit more complex infrastructure setup which might be lengthy, two additional commands has been made available:
+
+- `integration-test-setup-infrastructure` - used for setting up all needed intrastructure dependencies
+- `integration-test-teardown-infrastructure` - used for tearing down the infrastructure setup by the above command
+
+Such tests take advantage of `isDependencyStackAvailable` util to check if all needed dependencies are ready. If not, it skips the given test suite.
+
+Examples of such tests:
+
+- [MSK](./integration/msk.test.js)
+
 ## Testing templates
 
 If you add a new template or want to test a template after changing it you can run the template integration tests. Make sure you have `docker` and `docker-compose` installed as they are required. The `docker` containers we're using through compose are automatically including your `$HOME/.aws` folder so you can deploy to AWS.
