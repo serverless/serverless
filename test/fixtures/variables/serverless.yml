@@ -1,0 +1,12 @@
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+custom:
+  importedFile: ${file(config.json)}
+  importedFileWithKey: ${file(config.json):foo}
+  awsVariable: ${AWS::Region}
+  cloudFormationReference: ${AnotherResource}
+  selfReference: ${self:custom.importedFileWithKey}
