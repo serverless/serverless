@@ -1,0 +1,43 @@
+service: service
+provider:
+  name: aws
+
+layers:
+  testLayer:
+    name: default_test_layer
+    path: testLayer
+    description: 'test layer'
+
+  TestLayerWithCapitals:
+    name: capitalized_test_layer
+    path: testLayer
+
+  testLayerWithNoName:
+    path: testLayer
+
+package:
+  exclude:
+    - extra_layers/**
+
+functions:
+  layerFunc:
+    handler: index.handler
+    layers:
+      - { Ref: TestLayerLambdaLayer }
+  noLayerFunc:
+    handler: index.handler
+  layerFuncWithConfig:
+    handler: index.handler
+    memorySize: 128
+  capitalLayerFunc:
+    handler: index.handler
+    layers:
+      - { Ref: TestLayerWithCapitalsLambdaLayer }
+  noNameLayerFunc:
+    handler: index.handler
+    layers:
+      - { Ref: TestLayerWithNoNameLambdaLayer }
+  arnLayerFunc:
+    handler: index.handler
+    layers:
+      - arn:aws:lambda:us-east-2:123456789012:layer:my-layer:1
