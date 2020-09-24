@@ -37,6 +37,7 @@ module.exports = {
         'Dashboard',
         'Packaging',
         'Plugins',
+        'Print',
         'Standalone',
         'Templates',
         'User Config',
