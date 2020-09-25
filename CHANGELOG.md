@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/serverless/serverless/compare/v2.2.0...v2.3.0) (2020-09-25)
+
+### Features
+
+- **AWS MSK:** Support for MSK through `msk` event ([#8164](https://github.com/serverless/serverless/issues/8164)) ([05d703e](https://github.com/serverless/serverless/commit/05d703e6d5a7b100aaf6203209b0d596a3e70496)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Config Schema:** Schema for AWS `alexaSmartHome` event ([#8255](https://github.com/serverless/serverless/issues/8255)) ([bd5099e](https://github.com/serverless/serverless/commit/bd5099e15019352ab5ae9b2cd5519eaff50c520e)) ([Oz Weiss](https://github.com/thewizarodofoz))
+- Deprecate `awsKmsKeyArn` in favor of `kmsKeyArn` ([#8277](https://github.com/serverless/serverless/issues/8277)) ([a55009e](https://github.com/serverless/serverless/commit/a55009e221de91fee46a343483eb31539352410b)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+### Bug Fixes
+
+- **AWS Lambda:** Address issues in version hash generation logic, ensure any layer changes influence change of hash ([#8066](https://github.com/serverless/serverless/issues/8066)) ([e43c889](https://github.com/serverless/serverless/commit/e43c889647f45bc93cf3cb1fd45d4a18ad95da58)) ([Patrick Withams](https://github.com/pwithams))
+- **Config Schema:** Recognize CF intrinsic functions in vpc config ([#8283](https://github.com/serverless/serverless/issues/8283)) ([e75e998](https://github.com/serverless/serverless/commit/e75e998e9238c8d59653ec2533c9fb7c3f0e546a)) ([Devon Powell](https://github.com/devpow112))
+- **Variables:** Ensure no collisions with AWS CloudFormation variables ([#8279](https://github.com/serverless/serverless/issues/8279)) ([2fdeb51](https://github.com/serverless/serverless/commit/2fdeb51174d8fa55cc2704e8e84297471eadec39)) ([Matthieu Napoli](https://github.com/mnapoli))
+
+### Maintenance Improvements
+
+- **`lodash` replacement:**
+  - Replace `_.forEach` with `Object.entries().forEach` ([#8280](https://github.com/serverless/serverless/issues/8280)) ([76e02cc](https://github.com/serverless/serverless/commit/76e02cc09c74e18abdc1fccbda81676cf2462598)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Replace `_.forOwn` with `Object.entries().forEach` ([#8284](https://github.com/serverless/serverless/issues/8284)) ([56c7e44](https://github.com/serverless/serverless/commit/56c7e443a0350027cd5ccf5d4c94dc06f353306f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Print:** Read provider values from provider ([#8281](https://github.com/serverless/serverless/issues/8281)) ([b53716a](https://github.com/serverless/serverless/commit/b53716a64c9dacb411690b8b8496adfc8c194ca1)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.2.0](https://github.com/serverless/serverless/compare/v2.1.1...v2.2.0) (2020-09-23)
 
 ### Features
