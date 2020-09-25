@@ -137,6 +137,36 @@ Resources:
         Arn: !Ref ClusterConfigurationArn
         Revision: !Ref ClusterConfigurationRevision
 
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      PerformanceMode: generalPurpose
+      FileSystemTags:
+        - Key: Name
+          Value: ServerlessFrameworkTestsVolume
+
+  MountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: !Ref PrivateSubnetA
+      SecurityGroups:
+        - !GetAtt VPC.DefaultSecurityGroup
+
+  AccessPointResource:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      FileSystemId: !Ref FileSystem
+      PosixUser:
+        Uid: 1001
+        Gid: 1001
+      RootDirectory:
+        CreationInfo:
+          OwnerGid: 1001
+          OwnerUid: 1001
+          Permissions: 770
+        Path: /efs
+
 Outputs:
   VPC:
     Description: VPC ID
@@ -153,3 +183,7 @@ Outputs:
   MSKCluster:
     Description: Created MSK Cluster
     Value: !Ref MSKCluster
+
+  EFSAccessPointARN:
+    Description: EFS Access Point ARN
+    Value: !GetAtt AccessPointResource.Arn
