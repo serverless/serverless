@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="ALEXA_SKILL_EVENT_WITHOUT_APP_ID"><div>&nbsp;</div></a>
+
+## Support for `alexaSkill` event without `appId` is to be removed
+
+Starting with v3.0.0, support for `alexaSkill` event without `appId` provided will be removed.
+
 <a name="RESOURCES_EXTENSIONS_REFERENCE_TO_NONEXISTENT_RESOURCE"><div>&nbsp;</div></a>
 
 ## Defining extensions to nonexistent resources in `resources.extensions`
