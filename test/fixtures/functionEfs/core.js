@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-const filename = '/mnt/testing/file.txt';
+const filename = process.env.FILENAME;
 
 function writer(event, context, callback) {
   fs.writeFileSync(filename, 'fromlambda', 'utf8');

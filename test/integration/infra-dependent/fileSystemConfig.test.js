@@ -1,14 +1,16 @@
 'use strict';
 
-const path = require('path');
 const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const fixtures = require('../../fixtures');
 
 const awsRequest = require('@serverless/test/aws-request');
-const fs = require('fs');
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../utils/integration');
+const {
+  isDependencyStackAvailable,
+  getDependencyStackOutputMap,
+} = require('../../utils/cludformation');
 
 const EFS_MAX_PROPAGATION_TIME = 1000 * 60 * 5;
 
@@ -24,37 +26,30 @@ describe('AWS - FileSystemConfig Integration Test', function() {
   let startTime;
   let servicePath;
   const stage = 'dev';
-  const resourcesStackName = `efs-integration-tests-deps-stack-${crypto
-    .randomBytes(8)
-    .toString('hex')}`;
+  const filename = `/mnt/testing/${crypto.randomBytes(8).toString('hex')}.txt`;
 
   before(async () => {
-    const cfnTemplate = fs.readFileSync(path.join(__dirname, 'cloudformation.yml'), 'utf8');
+    const isDepsStackAvailable = await isDependencyStackAvailable();
+    if (!isDepsStackAvailable) {
+      throw new Error('CloudFormation stack with integration test dependencies not found.');
+    }
 
-    log.notice('Deploying CloudFormation stack with required resources...');
-    await awsRequest('CloudFormation', 'createStack', {
-      StackName: resourcesStackName,
-      TemplateBody: cfnTemplate,
-    });
-    const waitForResult = await awsRequest('CloudFormation', 'waitFor', 'stackCreateComplete', {
-      StackName: resourcesStackName,
-    });
-
-    const outputMap = waitForResult.Stacks[0].Outputs.reduce((map, output) => {
-      map[output.OutputKey] = output.OutputValue;
-      return map;
-    }, {});
+    const outputMap = await getDependencyStackOutputMap();
 
     const fileSystemConfig = {
       localMountPath: '/mnt/testing',
-      arn: outputMap.AccessPointARN,
+      arn: outputMap.get('EFSAccessPointARN'),
     };
+
     const serviceData = await fixtures.setup('functionEfs', {
       configExt: {
         provider: {
           vpc: {
-            subnetIds: [outputMap.Subnet],
-            securityGroupIds: [outputMap.SecurityGroup],
+            subnetIds: [outputMap.get('PrivateSubnetA')],
+            securityGroupIds: [outputMap.get('SecurityGroup')],
+          },
+          environment: {
+            FILENAME: filename,
           },
         },
         functions: { writer: { fileSystemConfig }, reader: { fileSystemConfig } },
@@ -69,12 +64,9 @@ describe('AWS - FileSystemConfig Integration Test', function() {
   });
 
   after(async () => {
-    await removeService(servicePath);
-    log.notice('Removing CloudFormation stack with required resources...');
-    await awsRequest('CloudFormation', 'deleteStack', { StackName: resourcesStackName });
-    return awsRequest('CloudFormation', 'waitFor', 'stackDeleteComplete', {
-      StackName: resourcesStackName,
-    });
+    if (servicePath) {
+      await removeService(servicePath);
+    }
   });
 
   it('should be able to write to efs and read from it in a separate function', async function self() {
