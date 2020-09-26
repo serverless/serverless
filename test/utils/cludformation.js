@@ -2,6 +2,8 @@
 
 const awsRequest = require('@serverless/test/aws-request');
 
+const SHARED_INFRA_TESTS_CLOUDFORMATION_STACK = 'integration-tests-deps-stack';
+
 function findStacks(name, status) {
   const params = {};
   if (status) {
@@ -57,9 +59,48 @@ function listStacks(status) {
   return awsRequest('CloudFormation', 'listStacks', params);
 }
 
+async function getStackOutputMap(name) {
+  const describeStackResponse = await awsRequest('CloudFormation', 'describeStacks', {
+    StackName: name,
+  });
+
+  const outputsMap = new Map();
+  for (const { OutputKey: key, OutputValue: value } of describeStackResponse.Stacks[0].Outputs) {
+    outputsMap.set(key, value);
+  }
+  return outputsMap;
+}
+
+async function isDependencyStackAvailable() {
+  const validStatuses = ['CREATE_COMPLETE', 'UPDATE_COMPLETE'];
+
+  try {
+    const describeStacksResponse = await awsRequest('CloudFormation', 'describeStacks', {
+      StackName: SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+    });
+    if (validStatuses.includes(describeStacksResponse.Stacks[0].StackStatus)) {
+      return true;
+    }
+    return false;
+  } catch (e) {
+    if (e.code === 'ValidationError') {
+      return false;
+    }
+    throw e;
+  }
+}
+
+async function getDependencyStackOutputMap() {
+  return getStackOutputMap(SHARED_INFRA_TESTS_CLOUDFORMATION_STACK);
+}
+
 module.exports = {
   findStacks,
   deleteStack,
   listStackResources,
   listStacks,
+  getStackOutputMap,
+  SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
+  isDependencyStackAvailable,
+  getDependencyStackOutputMap,
 };

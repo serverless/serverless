@@ -1,0 +1,18 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+# VPC and Events configuration is added dynamically during test run
+# Because it has to be provisioned separately via CloudFormation stack
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  producer:
+    handler: core.producer
+  consumer:
+    handler: core.consumer
