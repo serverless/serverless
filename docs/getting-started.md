@@ -63,12 +63,6 @@ _Note: Users in China are presented with setup centered around chinese [Tencent]
 
 ## Upgrade
 
-### MacOS/Linux
-
-```bash
-serverless upgrade
-```
-
 ### Windows
 
 ```bash
@@ -79,6 +73,8 @@ choco upgrade serverless
 
 ```bash
 npm update -g serverless
+# or
+npm i -g serverless@latest
 ```
 
 ## Set up your free Pro account
