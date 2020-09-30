@@ -8,6 +8,7 @@ const serverlessConfiguration: Serverless = {
     // org: your-org-name,
   },
   frameworkVersion: '2',
+  configValidationMode: 'warn',
   custom: {
     webpack: {
       webpackConfig: './webpack.config.js',
