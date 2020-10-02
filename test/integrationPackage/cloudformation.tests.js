@@ -30,12 +30,6 @@ describe('Integration test - Packaging - CloudFormation', () => {
       /serverless\/aws-nodejs\/dev\/[^]*\/artifact.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
-    expect(
-      cfnTemplate.Resources.HelloLambdaFunction.Properties.Environment.Variables
-        .SLS_LAMBDA_VERSION_DIGEST
-    ).to.exist;
-    delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Environment.Variables
-      .SLS_LAMBDA_VERSION_DIGEST;
     expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
@@ -43,9 +37,6 @@ describe('Integration test - Packaging - CloudFormation', () => {
           S3Bucket: {
             Ref: 'ServerlessDeploymentBucket',
           },
-        },
-        Environment: {
-          Variables: {},
         },
         FunctionName: 'aws-nodejs-dev-hello',
         Handler: 'handler.hello',
@@ -70,12 +61,6 @@ describe('Integration test - Packaging - CloudFormation', () => {
       /serverless\/aws-nodejs\/dev\/[^]*\/aws-nodejs.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
-    expect(
-      cfnTemplate.Resources.HelloLambdaFunction.Properties.Environment.Variables
-        .SLS_LAMBDA_VERSION_DIGEST
-    ).to.exist;
-    delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Environment.Variables
-      .SLS_LAMBDA_VERSION_DIGEST;
     expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
@@ -83,9 +68,6 @@ describe('Integration test - Packaging - CloudFormation', () => {
           S3Bucket: {
             Ref: 'ServerlessDeploymentBucket',
           },
-        },
-        Environment: {
-          Variables: {},
         },
         FunctionName: 'aws-nodejs-dev-hello',
         Handler: 'handler.hello',
@@ -113,12 +95,6 @@ describe('Integration test - Packaging - CloudFormation', () => {
       /serverless\/aws-nodejs\/dev\/[^]*\/hello2.zip/
     );
     delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Code.S3Key;
-    expect(
-      cfnTemplate.Resources.HelloLambdaFunction.Properties.Environment.Variables
-        .SLS_LAMBDA_VERSION_DIGEST
-    ).to.exist;
-    delete cfnTemplate.Resources.HelloLambdaFunction.Properties.Environment.Variables
-      .SLS_LAMBDA_VERSION_DIGEST;
     expect(cfnTemplate.Resources.HelloLambdaFunction).to.deep.equal({
       Type: 'AWS::Lambda::Function',
       Properties: {
@@ -126,9 +102,6 @@ describe('Integration test - Packaging - CloudFormation', () => {
           S3Bucket: {
             Ref: 'ServerlessDeploymentBucket',
           },
-        },
-        Environment: {
-          Variables: {},
         },
         FunctionName: 'aws-nodejs-dev-hello',
         Handler: 'handler.hello',
