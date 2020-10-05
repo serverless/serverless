@@ -10,3 +10,4 @@ custom:
   awsVariable: ${AWS::Region}
   cloudFormationReference: ${AnotherResource}
   selfReference: ${self:custom.importedFileWithKey}
+  serviceReference: ${self:}
