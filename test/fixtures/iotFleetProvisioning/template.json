@@ -1,0 +1,27 @@
+{
+  "Parameters": {
+    "SerialNumber": {
+      "Type": "String"
+    },
+    "AWS::IoT::Certificate::Id": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "certificate": {
+      "Properties": {
+        "CertificateId": {
+          "Ref": "AWS::IoT::Certificate::Id"
+        },
+        "Status": "Active"
+      },
+      "Type": "AWS::IoT::Certificate"
+    },
+    "policy": {
+      "Properties": {
+        "PolicyName": "iotPolicy"
+      },
+      "Type": "AWS::IoT::Policy"
+    }
+  }
+}

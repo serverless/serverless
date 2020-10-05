@@ -1,0 +1,17 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  versionFunctions: false
+
+functions:
+  iotFleetProvisioningBasic:
+    handler: index.iotFleetPreProvisioningHook
+    events:
+      - iotFleetProvisioning:
+          templateBody: ${file(template.json)}
+          provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role'
