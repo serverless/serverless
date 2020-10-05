@@ -32,9 +32,9 @@ provider:
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
   ingress: # optional, ingress configuration if not using nginx
     class: 'traefik' # optional, class of ingress
-		hostname: 'example.com'
-		tls: true
-		tlsSecretName: ingress-example-com-certs
+    hostname: 'example.com'
+    tls: true
+    tlsSecretName: ingress-example-com-certs
 
 plugins:
   - serverless-kubeless
