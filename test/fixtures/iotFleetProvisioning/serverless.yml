@@ -9,8 +9,11 @@ provider:
   versionFunctions: false
 
 functions:
-  registerThing:
-    handler: index.registerThing
+  registerDevice:
+    handler: index.registerDevice
+    environment:
+      TEMPLATE_NAME:
+        Ref: IotFleetProvisioningBasicIotProvisioningTemplate
   iotFleetProvisioningBasic:
     handler: index.iotFleetPreProvisioningHook
     events:
@@ -44,3 +47,7 @@ resources:
             - Effect: Allow
               Action: 'iot:*'
               Resource: '*'
+  Outputs:
+    ProvisioningTemplateName:
+      Value:
+        Ref: IotFleetProvisioningBasicIotProvisioningTemplate
