@@ -562,6 +562,17 @@ class NewProviderPlugin {
           // ...
         },
       },
+
+      // Definition for eventual top level "layers" section
+      layers: {
+        type: 'object',
+        additionalProperties: {
+          type: 'object',
+          properties: {
+            // ...
+          },
+        },
+      },
     });
   }
 }
