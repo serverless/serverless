@@ -9,9 +9,38 @@ provider:
   versionFunctions: false
 
 functions:
+  registerThing:
+    handler: index.registerThing
   iotFleetProvisioningBasic:
     handler: index.iotFleetPreProvisioningHook
     events:
       - iotFleetProvisioning:
           templateBody: ${file(template.json)}
-          provisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role'
+          provisioningRoleArn:
+            'Fn::Sub': arn:aws:iam::${AWS::AccountId}:role/provisioning-role
+
+resources:
+  Resources:
+    ProvisioningRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: provisioning-role
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSIoTThingsRegistration
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: iot.amazonaws.com
+              Action: sts:AssumeRole
+    IoTPolicy:
+      Type: AWS::IoT::Policy
+      Properties:
+        PolicyName: iotPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: 'iot:*'
+              Resource: '*'
