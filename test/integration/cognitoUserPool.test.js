@@ -75,7 +75,13 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       await createUser(userPoolId, 'johndoe', '!!!wAsD123456wAsD!!!');
       const events = await confirmCloudWatchLogs(
         `/aws/lambda/${stackName}-${functionName}`,
-        async () => {}
+        async () => {},
+        {
+          checkIsComplete: soFarEvents => {
+            const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+            return logs.includes('userName');
+          },
+        }
       );
       const logs = events.reduce((data, event) => data + event.message, '');
       expect(logs).to.include(`"userPoolId":"${userPoolId}"`);

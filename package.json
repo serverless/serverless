@@ -104,7 +104,17 @@
   },
   "eslintConfig": {
     "extends": "@serverless/eslint-config/node",
-    "root": true
+    "root": true,
+    "overrides": [
+      {
+        "files": [
+          "test/fixtures/**"
+        ],
+        "rules": {
+          "no-console": "off"
+        }
+      }
+    ]
   },
   "eslintIgnore": [
     "!/.github",
