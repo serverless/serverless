@@ -8,22 +8,8 @@ provider:
   versionFunctions: false
 
 functions:
-  provisionedSqs:
-    handler: core.sqsHandler
-    provisionedConcurrency: 1
-    events:
-      - sqs:
-          arn:
-            Fn::Join:
-              - ':'
-              - - arn
-                - aws
-                - sqs
-                - Ref: AWS::Region
-                - Ref: AWS::AccountId
-                - ${self:service.name}-provisioned
-  provisionedKinesis:
-    handler: core.kinesisHandler
+  provisionedFunc:
+    handler: core.handler
     provisionedConcurrency: 1
     events:
       - stream:
@@ -37,3 +23,13 @@ functions:
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
                 - stream/${self:service.name}-kinesis
+      - sqs:
+          arn:
+            Fn::Join:
+              - ':'
+              - - arn
+                - aws
+                - sqs
+                - Ref: AWS::Region
+                - Ref: AWS::AccountId
+                - ${self:service.name}-provisioned

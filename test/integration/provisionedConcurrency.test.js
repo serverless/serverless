@@ -42,11 +42,15 @@ describe('AWS - Provisioned Concurrency Integration Test', function() {
   });
 
   it('should be correctly invoked by sqs event', async () => {
-    const functionName = 'provisionedSqs';
+    const functionName = 'provisionedFunc';
     const message = 'Hello from SQS!';
 
-    const events = await confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-      sendSqsMessage(queueName, message)
+    const events = await confirmCloudWatchLogs(
+      `/aws/lambda/${stackName}-${functionName}`,
+      () => sendSqsMessage(queueName, message),
+      {
+        checkIsComplete: items => items.find(item => item.message.includes(message)),
+      }
     );
 
     const logs = events.reduce((data, event) => data + event.message, '');
@@ -55,11 +59,15 @@ describe('AWS - Provisioned Concurrency Integration Test', function() {
   });
 
   it('should be correctly invoked by kinesis event', async () => {
-    const functionName = 'provisionedKinesis';
+    const functionName = 'provisionedFunc';
     const message = 'Hello from Kinesis!';
 
-    const events = await confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-      putKinesisRecord(streamName, message)
+    const events = await confirmCloudWatchLogs(
+      `/aws/lambda/${stackName}-${functionName}`,
+      () => putKinesisRecord(streamName, message),
+      {
+        checkIsComplete: items => items.find(item => item.message.includes(message)),
+      }
     );
 
     const logs = events.reduce((data, event) => data + event.message, '');

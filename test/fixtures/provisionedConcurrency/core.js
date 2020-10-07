@@ -1,19 +1,19 @@
 'use strict';
 
-function sqsHandler(event, context, callback) {
-  const functionName = 'provisionedSqs';
-  // eslint-disable-next-line no-console
-  console.log(functionName, JSON.stringify(event));
-  return callback(null, event);
-}
-
-function kinesisHandler(event, context, callback) {
-  const functionName = 'provisionedKinesis';
+function handler(event, context, callback) {
+  const functionName = 'provisionedFunc';
   const { Records } = event;
-  const messages = Records.map(({ kinesis: { data } }) => Buffer.from(data, 'base64').toString());
+  const messages = Records.map(record => {
+    if (record.eventSource === 'aws:sqs') {
+      return record.body;
+    } else if (record.eventSource === 'aws:kinesis') {
+      return Buffer.from(record.kinesis.data, 'base64').toString();
+    }
+    return '';
+  });
   // eslint-disable-next-line no-console
   console.log(functionName, JSON.stringify(messages));
   return callback(null, event);
 }
 
-module.exports = { sqsHandler, kinesisHandler };
+module.exports = { handler };
