@@ -29,7 +29,7 @@
     "ajv": "^6.12.5",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.0.2",
-    "aws-sdk": "^2.763.0",
+    "aws-sdk": "^2.768.0",
     "bluebird": "^3.7.2",
     "boxen": "^4.2.0",
     "cachedir": "^2.3.0",
@@ -67,9 +67,9 @@
     "timers-ext": "^0.1.7",
     "type": "^2.1.0",
     "untildify": "^4.0.0",
-    "uuid": "^8.3.0",
+    "uuid": "^8.3.1",
     "yaml-ast-parser": "0.0.43",
-    "yargs-parser": "^20.2.0"
+    "yargs-parser": "^20.2.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
