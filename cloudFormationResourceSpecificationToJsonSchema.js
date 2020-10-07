@@ -33,6 +33,9 @@ function getType(spec) {
 
 function toJsonSchema(spec) {
   const { Properties } = spec;
+  if (!Properties) {
+    return getType(spec);
+  }
   const properties = {};
   const required = [];
   Object.entries(Properties).forEach(([prop, propSpec]) => {
@@ -48,6 +51,8 @@ function toJsonSchema(spec) {
     additionalProperties: false,
   };
 }
+
+delete specification.ResourceSpecificationVersion;
 
 Object.entries(specification).forEach(([, v1]) => {
   Object.entries(v1).forEach(([k2, v2]) => {
