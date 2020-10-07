@@ -9,7 +9,7 @@ const log = require('log').get('serverless');
 const awsRequest = require('@serverless/test/aws-request');
 const fsPromises = require('fs').promises;
 const path = require('path');
-const { SHARED_INFRA_TESTS_CLOUDFORMATION_STACK } = require('../../../test/utils/cludformation');
+const { SHARED_INFRA_TESTS_CLOUDFORMATION_STACK } = require('../../../test/utils/cloudformation');
 
 async function handleInfrastructureCreation() {
   const [cfnTemplate, kafkaServerProperties] = await Promise.all([

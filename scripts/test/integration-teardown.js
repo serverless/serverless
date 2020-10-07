@@ -10,7 +10,7 @@ const awsRequest = require('@serverless/test/aws-request');
 const {
   SHARED_INFRA_TESTS_CLOUDFORMATION_STACK,
   getDependencyStackOutputMap,
-} = require('../../test/utils/cludformation');
+} = require('../../test/utils/cloudformation');
 
 (async () => {
   log.notice('Starting teardown of integration infrastructure...');
