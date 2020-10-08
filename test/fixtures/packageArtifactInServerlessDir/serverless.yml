@@ -6,8 +6,9 @@ frameworkVersion: '*'
 provider:
   name: aws
 
-package:
-  artifact: .serverless/my-own.zip
+plugins:
+  # Mutates `package.artifact` to point to copied `.serverless/NAME.zip`
+  - ./package-artifact-plugin
 
 functions:
   foo:
