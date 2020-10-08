@@ -6,7 +6,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/monitoring/notifications/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/monitoring/notifications/)
 
 <!-- DOCS-SITE-LINK:END -->
 

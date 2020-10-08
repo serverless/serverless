@@ -6,7 +6,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/sdk/python/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/sdk/python/)
 
 <!-- DOCS-SITE-LINK:END -->
 
