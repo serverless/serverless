@@ -1,6 +1,6 @@
 <!--
-title: Serverless - User Guides
-menuText: User Guides
+title: Serverless - Dashboard
+menuText: Dashboard
 menuOrder: 0
 layout: Doc
 -->
