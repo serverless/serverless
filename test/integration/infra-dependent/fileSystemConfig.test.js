@@ -10,7 +10,7 @@ const { deployService, removeService } = require('../../utils/integration');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-} = require('../../utils/cludformation');
+} = require('../../utils/cloudformation');
 
 const EFS_MAX_PROPAGATION_TIME = 1000 * 60 * 5;
 

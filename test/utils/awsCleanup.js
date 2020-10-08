@@ -4,7 +4,7 @@
 // modern Node.js / JavaScript features such as async / await
 
 const { logger } = require('./misc');
-const { findStacks, deleteStack, listStackResources } = require('./cludformation');
+const { findStacks, deleteStack, listStackResources } = require('./cloudformation');
 const { findRestApis, deleteRestApi } = require('./apiGateway');
 const { deleteBucket } = require('./s3');
 const { findUserPools, deleteUserPoolById } = require('./cognito');
