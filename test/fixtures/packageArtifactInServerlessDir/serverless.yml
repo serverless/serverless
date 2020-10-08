@@ -1,0 +1,16 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+
+package:
+  artifact: .serverless/my-own.zip
+
+functions:
+  foo:
+    handler: index.handler
+  other:
+    handler: index.handler
