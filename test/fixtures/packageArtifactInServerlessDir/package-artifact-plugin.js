@@ -2,9 +2,7 @@
 
 const { promisify } = require('util');
 const path = require('path');
-const fs = require('fs');
-const readdir = promisify(fs.readdir);
-const copyFile = promisify(fs.copyFile);
+const copyFile = promisify(require('fs').copyFile);
 
 /**
  * Simple plugin to move prepackaged zip file to `.serverless/NAME.zip` during
@@ -19,7 +17,7 @@ class PackageArtifactPlugin {
   }
 
   async package() {
-    const zipName = "my-own.zip";
+    const zipName = 'my-own.zip';
     const zipSrcPath = path.resolve(zipName);
     const serverlessDirPath = path.resolve(this.serverless.config.servicePath, '.serverless');
     const zipDestPath = path.join(serverlessDirPath, zipName)
@@ -29,13 +27,6 @@ class PackageArtifactPlugin {
 
     // Mutate package.artifact to point to `.serverless/NAME.zip`
     this.serverless.service.package.artifact = zipDestPath;
-
-    console.log('TODO HERE PackageArtifactPlugin', JSON.stringify({
-      cwd: process.cwd(),
-      serverlessDirPath,
-      files: await readdir(process.cwd()),
-      filesSls: await readdir(serverlessDirPath)
-    }, null, 2));
   }
 }
 
