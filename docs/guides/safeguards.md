@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - Safeguards
 menuText: Safeguards
-menuOrder: 5
+menuOrder: 9
 layout: Doc
 -->
 

@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - CI/CD
 menuText: CI/CD
-menuOrder: 7
+menuOrder: 3
 layout: Doc
 -->
 

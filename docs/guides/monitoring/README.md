@@ -1,7 +1,7 @@
 <!--
 title: Serverless Dashboard - Monitoring
 menuText: Monitoring
-menuOrder: 1
+menuOrder: 4
 layout: Doc
 -->
 
