@@ -1,7 +1,7 @@
 <!--
 title: Serverless - Dashboard
 menuText: Dashboard
-menuOrder: 0
+menuOrder: 1
 layout: Doc
 -->
 
