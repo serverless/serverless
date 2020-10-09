@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.6.0](https://github.com/serverless/serverless/compare/v2.5.0...v2.6.0) (2020-10-09)
+
+### Features
+
+- **Config Schema:** Schema for AWS `http` event ([#8301](https://github.com/serverless/serverless/issues/8301)) ([f235041](https://github.com/serverless/serverless/commit/f235041d0b94e21cf07e11c4b818f44670ff39ae)) ([Oz Weiss](https://github.com/thewizarodofoz))
+
+### Bug Fixes
+
+- **Config Schema:**
+  - Revert invalid `oneOf` based validation ([#8376](https://github.com/serverless/serverless/issues/8376)) ([a9b28b6](https://github.com/serverless/serverless/commit/a9b28b6d7f703ce29e92d05fc129a2a3b5fbce2a)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Bring back non-array supported variants ([#8366](https://github.com/serverless/serverless/issues/8366)) ([244ae11](https://github.com/serverless/serverless/commit/244ae111c19d6e39b121ac387a38747823af6723)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure to preserve `undefined` valued service config properties as `undefined` after normalizing for schema ([#8374](https://github.com/serverless/serverless/issues/8374)) ([2e26e07](https://github.com/serverless/serverless/commit/2e26e07f921575dbb10c049eaa7a864867e696c6)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.5.0](https://github.com/serverless/serverless/compare/v2.4.0...v2.5.0) (2020-10-07)
 
 ### Features
