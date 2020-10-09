@@ -74,7 +74,7 @@
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@serverless/eslint-config": "^3.0.0",
-    "@serverless/test": "^5.1.0",
+    "@serverless/test": "^5.2.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.8.2",
