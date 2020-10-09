@@ -15,14 +15,14 @@ class PackageArtifactPlugin {
   constructor(serverless) {
     this.serverless = serverless;
     this.hooks = {
-      'before:package:createDeploymentArtifacts': this.package.bind(this)
+      'before:package:createDeploymentArtifacts': this.package.bind(this),
     };
   }
 
   async package() {
     const zipSrcPath = path.resolve(ZIP_NAME);
     const serverlessDirPath = path.resolve(this.serverless.config.servicePath, '.serverless');
-    const zipDestPath = path.join(serverlessDirPath, ZIP_NAME)
+    const zipDestPath = path.join(serverlessDirPath, ZIP_NAME);
 
     // Copy zip to `.serverless` directory
     await copyFile(zipSrcPath, zipDestPath);
