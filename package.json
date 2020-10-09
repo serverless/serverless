@@ -29,7 +29,7 @@
     "ajv": "^6.12.5",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.0.2",
-    "aws-sdk": "^2.768.0",
+    "aws-sdk": "^2.770.0",
     "bluebird": "^3.7.2",
     "boxen": "^4.2.0",
     "cachedir": "^2.3.0",
