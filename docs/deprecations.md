@@ -98,4 +98,4 @@ Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyA
 
 ## cloudFront event behavior.ForwardedValues property
 
-[Cloudfront cache behavior `ForwardedValues` field is deprecated](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-forwardedvalues.html). We recommend that you use a cache policy or an origin request policy instead of this field.
+[Cloudfront cache behavior `ForwardedValues` field is deprecated](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-forwardedvalues.html). We recommend that you use a cache policy instead of this field. Please follow [cache policy documentation](/framework/docs/providers/aws/events/cloudfront.md) for implementation details.
