@@ -218,8 +218,25 @@ functions:
       - cloudFront:
           eventType: viewer-response
           origin: s3://bucketname.s3.amazonaws.com/files
-          cachePolicy: myCachePolicy
+          cachePolicy:
+            name: myCachePolicy
 ```
+
+You can reference [AWS Managed Policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policies-list) using an `id` property instead of `name`
+
+```yml
+functions:
+  myLambdaAtEdge:
+    handler: myLambdaAtEdge.handler
+    events:
+      - cloudFront:
+          eventType: viewer-response
+          origin: s3://bucketname.s3.amazonaws.com/files
+          cachePolicy:
+            id: 658327ea-f89d-4fab-a63d-7e88639e58f6 # references AWS Managed Policy named Managed-CachingOptimized
+```
+
+### CloudFront Distribution configurations
 
 Amazon CloudFront distribution configurations can be set in the resources block of the serverless.yml, by defining `CloudFrontDistribution`.
 
