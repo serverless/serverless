@@ -93,3 +93,9 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 ## `awsKmsKeyArn` references
 
 Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v3.0.0
+
+<a name="CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES"><div>&nbsp;</div></a>
+
+## cloudFront event behavior.ForwardedValues property
+
+[Cloudfront cache behavior `ForwardedValues` field is deprecated](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-forwardedvalues.html). We recommend that you use a cache policy or an origin request policy instead of this field.
