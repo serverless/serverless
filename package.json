@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "2.4.0",
+  "version": "2.6.0",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
@@ -29,7 +29,7 @@
     "ajv": "^6.12.5",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.0.2",
-    "aws-sdk": "^2.763.0",
+    "aws-sdk": "^2.770.0",
     "bluebird": "^3.7.2",
     "boxen": "^4.2.0",
     "cachedir": "^2.3.0",
@@ -67,14 +67,14 @@
     "timers-ext": "^0.1.7",
     "type": "^2.1.0",
     "untildify": "^4.0.0",
-    "uuid": "^8.3.0",
+    "uuid": "^8.3.1",
     "yaml-ast-parser": "0.0.43",
-    "yargs-parser": "^20.2.0"
+    "yargs-parser": "^20.2.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@serverless/eslint-config": "^3.0.0",
-    "@serverless/test": "^5.1.0",
+    "@serverless/test": "^5.2.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.8.2",
@@ -104,7 +104,17 @@
   },
   "eslintConfig": {
     "extends": "@serverless/eslint-config/node",
-    "root": true
+    "root": true,
+    "overrides": [
+      {
+        "files": [
+          "test/fixtures/**"
+        ],
+        "rules": {
+          "no-console": "off"
+        }
+      }
+    ]
   },
   "eslintIgnore": [
     "!/.github",

@@ -32,12 +32,9 @@ provider:
   namespace: funcions # optional, deployment namespace if not specified it uses "default"
   ingress: # optional, ingress configuration if not using nginx
     class: 'traefik' # optional, class of ingress
-    additionalAnnotations: # optional, extra annotations to put in ingress metadata
-      kubernetes.io/tls-acme: 'true'
-    tlsConfig: # optional, TLS configuration block
-      - hosts:
-          - 'example.com'
-        secretName: ingress-example-com-certs
+    hostname: 'example.com'
+    tls: true
+    tlsSecretName: ingress-example-com-certs
 
 plugins:
   - serverless-kubeless

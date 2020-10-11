@@ -7,7 +7,7 @@ const { confirmCloudWatchLogs } = require('../../utils/misc');
 const {
   isDependencyStackAvailable,
   getDependencyStackOutputMap,
-} = require('../../utils/cludformation');
+} = require('../../utils/cloudformation');
 
 const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');

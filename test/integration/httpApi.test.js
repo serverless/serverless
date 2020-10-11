@@ -236,6 +236,7 @@ describe('HTTP API Integration Test', function() {
           StackName: `${exportServiceName}-${stage}`,
         })
       ).Stacks[0].Outputs[0].OutputValue;
+      endpoint = (await awsRequest('ApiGatewayV2', 'getApi', { ApiId: httpApiId })).ApiEndpoint;
 
       const serviceData = await fixtures.setup('httpApi', {
         configExt: {
@@ -246,7 +247,6 @@ describe('HTTP API Integration Test', function() {
       serviceName = serviceData.serviceConfig.service;
       stackName = `${serviceName}-${stage}`;
       await deployService(servicePath);
-      endpoint = (await awsRequest('ApiGatewayV2', 'getApi', { ApiId: httpApiId })).ApiEndpoint;
     });
 
     after(async () => {
