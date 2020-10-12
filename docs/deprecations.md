@@ -10,7 +10,7 @@ layout: Doc
 
 ## API Gateway naming will be changed to `${service}-${stage}`
 
-Starting with v3.0.0, API Gateway naming will be changed from `${service}-${stage}` to `${stage}-${service}`.
+Starting with v3.0.0, API Gateway naming will be changed from `${stage}-${service}` to `${service}-${stage}`.
 
 Adapt to this convention now by setting `provider.apiGateway.shouldStartNameWithService` to `true`.
 
