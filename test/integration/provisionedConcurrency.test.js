@@ -26,19 +26,15 @@ describe('AWS - Provisioned Concurrency Integration Test', function() {
     queueName = `${serviceName}-provisioned`;
     stackName = `${serviceName}-${stage}`;
     // NOTE: deployment can only be done once the SQS queue and Kinesis Stream is created
-    log.notice(`Creating SQS queue "${queueName}"...`);
-    await createSqsQueue(queueName);
-    log.notice(`Creating Kinesis stream "${streamName}"...`);
-    await createKinesisStream(streamName);
+    log.notice(`Creating SQS queue "${queueName}" and Kinesis stream "${streamName}"...`);
+    await Promise.all([createSqsQueue(queueName), createKinesisStream(streamName)]);
     return deployService(servicePath);
   });
 
   after(async () => {
     await removeService(servicePath);
-    log.notice(`Deleting Kinesis stream "${streamName}"...`);
-    await deleteKinesisStream(streamName);
-    log.notice(`Deleting SQS queue "${queueName}"...`);
-    return deleteSqsQueue(queueName);
+    log.notice(`Deleting SQS queue "${queueName}" and Kinesis stream "${streamName}"...`);
+    return Promise.all([deleteKinesisStream(streamName), deleteSqsQueue(queueName)]);
   });
 
   it('should be correctly invoked by sqs event', async () => {
