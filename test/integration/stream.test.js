@@ -64,12 +64,19 @@ describe('AWS - Stream Integration Test', function() {
       const item = {
         id: 'message',
       };
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () => {
-        item.hello = `from dynamo!${Math.random()
-          .toString(36)
-          .slice(2)}`;
-        return putDynamoDbItem(tableName, item);
-      }).then(events => {
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => {
+          item.hello = `from dynamo!${Math.random()
+            .toString(36)
+            .slice(2)}`;
+          return putDynamoDbItem(tableName, item);
+        },
+        {
+          checkIsComplete: events =>
+            events.reduce((data, event) => data + event.message, '').includes(functionName),
+        }
+      ).then(events => {
         const logs = events.reduce((data, event) => data + event.message, '');
 
         expect(logs).to.include(functionName);
