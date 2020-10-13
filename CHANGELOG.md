@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.7.0](https://github.com/serverless/serverless/compare/v2.6.0...v2.7.0) (2020-10-13)
+
+### Features
+
+- **AWS Websocket:** Support CF intrinsic functions at `arn` ([#8335](https://github.com/serverless/serverless/issues/8335)) ([9303d8e](https://github.com/serverless/serverless/commit/9303d8ecd46059121082c3308e5fe5385e0be38e)) ([Raul Zaldana](https://github.com/zaldanaraul))
+- **Config Schema:** Schema for AWS functions[] async invocation related properties([#8385](https://github.com/serverless/serverless/issues/8385)) ([719fa3a](https://github.com/serverless/serverless/commit/719fa3a3bf8e5d5dfa135a8225519fc77b719c8e)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- **AWS Local Invocation:** Randomize `context.awsRequestId` ([#8380](https://github.com/serverless/serverless/issues/8380)) ([6a81137](https://github.com/serverless/serverless/commit/6a81137406fd2a2283663af93596ba79d23e38ef)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+### Bug Fixes
+
+- **AWS Deploy:** Fix resolution of CloudFormation error in stack monitoring logic ([#8388](https://github.com/serverless/serverless/issues/8388)) ([4579045](https://github.com/serverless/serverless/commit/4579045ed12ad0ad44c38df7e38f892ebbe5263d)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Stream:** Fix support for lambdas with provisioned concurrency ([#8342](https://github.com/serverless/serverless/issues/8342)) ([c382d86](https://github.com/serverless/serverless/commit/c382d869a84a5c7c84fd827eb815e0b881737c69)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS S3:** Fix handling of lambda removal permissions ([#8384](https://github.com/serverless/serverless/issues/8384)) ([c2d40ea](https://github.com/serverless/serverless/commit/c2d40ea63baa930dad31bf6950c25852ccd8adf4)) ([Oz Weiss](https://github.com/thewizarodofoz))
+- **Config Schema:** Fix API Gateway authorizer schema ([#8389](https://github.com/serverless/serverless/issues/8389)) ([f166546](https://github.com/serverless/serverless/commit/f1665460d4bba7562ad88ecf7a471949bfd1baa4)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Local Invocation:** Ensure `IS_LOCAL` env variable in docker ([#8372](https://github.com/serverless/serverless/issues/8372)) ([21babec](https://github.com/serverless/serverless/commit/21babec2ce5d56ecb7ddaad3e89387f6186cc52e)) ([Marek Piotrowski](https://github.com/marekpiotrowski))
+- **AWS Deploy:** Ensure right handling for overriden (by plugin) `package.artifact` ([#8351](https://github.com/serverless/serverless/issues/8351)) ([661caad](https://github.com/serverless/serverless/commit/661caad22d4d1154aa197bbfc95948ae74bbc1aa)) ([Ryan Roemer](https://github.com/ryan-roemer))
+
 ## [2.6.0](https://github.com/serverless/serverless/compare/v2.5.0...v2.6.0) (2020-10-09)
 
 ### Features
