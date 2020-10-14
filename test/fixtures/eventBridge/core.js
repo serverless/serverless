@@ -28,4 +28,10 @@ function eventBusArn(event, context, callback) {
   return callback(null, event);
 }
 
-module.exports = { eventBusDefault, eventBusDefaultArn, eventBusCustom, eventBusArn };
+function eventBusCFFunctionArn(event, context, callback) {
+  const functionName = 'eventBusCFFunctionArn';
+  log(functionName, JSON.stringify(event));
+  return callback(null, event);
+}
+
+module.exports = { eventBusDefault, eventBusDefaultArn, eventBusCustom, eventBusArn, eventBusCFFunctionArn };

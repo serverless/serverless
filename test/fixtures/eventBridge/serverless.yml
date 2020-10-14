@@ -29,3 +29,6 @@ functions:
   eventBusArn:
     handler: core.eventBusArn
     # Event filled by integration test
+  eventBusCFFunctionArn:
+    handler: core.eventBusCFFunctionArn
+    # Event filled by integration test
