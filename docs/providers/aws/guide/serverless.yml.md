@@ -59,6 +59,28 @@ provider:
   role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
   rolePermissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
   cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
+  cloudFront:
+    myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
+      DefaultTTL: 60
+      MinTTL: 30
+      MaxTTL: 3600
+      Comment: my brand new cloudfront cache policy # optional
+      ParametersInCacheKeyAndForwardedToOrigin:
+        CookiesConfig:
+          CookieBehavior: whitelist # Possible values are 'none', 'whitelist', 'allExcept' and 'all'
+          Cookies:
+            - my-public-cookie
+        EnableAcceptEncodingBrotli: true # optional
+        EnableAcceptEncodingGzip: true
+        HeadersConfig:
+          HeadersBehavior: whitelist # Possible values are 'none' and 'whitelist'
+          Headers:
+            - authorization
+            - content-type
+        QueryStringsConfig:
+          QueryStringBehavior: allExcept # Possible values are 'none', 'whitelist', 'allExcept' and 'all'
+          QueryStrings:
+            - not-cached-query-string
   versionFunctions: false # Optional function versioning
   environment: # Service wide environment variables
     serviceEnvVar: 123456789
@@ -476,6 +498,10 @@ functions:
           eventType: viewer-response
           includeBody: true
           pathPattern: /docs*
+          cachePolicy:
+            # Note, you can use only one of name or id
+            name: myCachePolicy1 # Refers to a Cache Policy defined in provider.cloudFront.cachePolicies
+            id: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Refers to any external Cache Policy id
           origin:
             DomainName: serverless.com
             OriginPath: /framework
