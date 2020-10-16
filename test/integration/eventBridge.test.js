@@ -151,13 +151,7 @@ describe('AWS - Event Bridge Integration Test', function() {
       });
     });
   });
-  describe.only('Using native CloudFormation deployment pattern', function() {
-    // Deploy the test stack above as is - DONE
-
-    // Deploy the test stack above using CloudFormation function to reference arn
-
-    //
-
+  describe('Using native CloudFormation deployment pattern', function() {
     this.timeout(1000 * 60 * 10); // Involves time-taking deploys
     let serviceName;
     let stackName;
@@ -165,7 +159,7 @@ describe('AWS - Event Bridge Integration Test', function() {
     let namedEventBusName;
     let arnEventBusName;
     let arnEventBusArn;
-    // let cfFuncEventBusName;
+    let cfFuncEventBusName;
     const eventSource = 'serverless.test';
     const stage = 'dev';
     const putEventEntries = [
@@ -183,9 +177,7 @@ describe('AWS - Event Bridge Integration Test', function() {
 
       namedEventBusName = `${serviceName}-named-event-bus`;
       arnEventBusName = `${serviceName}-arn-event-bus`;
-
-      // TODO: add event bus logical ID
-      // cfFuncEventBusName = { Ref: 'logicalName' };
+      cfFuncEventBusName = `${serviceName}-custom-event-bus`;
 
       // get default event bus ARN
       const defaultEventBusArn = (await describeEventBus('default')).Arn;
@@ -247,7 +239,7 @@ describe('AWS - Event Bridge Integration Test', function() {
 
     after(async () => {
       log.notice('Removing service...');
-      await removeService(servicePath);
+      // await removeService(servicePath);
       log.notice(`Deleting Event Bus "${arnEventBusName}"...`);
       // return deleteEventBus(arnEventBusName);
     });
@@ -318,26 +310,26 @@ describe('AWS - Event Bridge Integration Test', function() {
       });
     });
 
-    // describe('CF Functon Event Bus', () => {
-    //   it('should invoke function when an event is sent to the event bus', () => {
-    //     const functionName = 'eventBusArn';
-    //     const markers = getMarkers(functionName);
+    describe('CF Functon Event Bus', () => {
+      it('should invoke function when an event is sent to the event bus', () => {
+        const functionName = 'eventBusCFFunctionArn';
+        const markers = getMarkers(functionName);
 
-    //     return confirmCloudWatchLogs(
-    //       `/aws/lambda/${stackName}-${functionName}`,
-    //       () => putEvents(arnEventBusName, putEventEntries),
-    //       {
-    //         checkIsComplete: events =>
-    //           events.find(event => event.message.includes(markers.start)) &&
-    //           events.find(event => event.message.includes(markers.end)),
-    //       }
-    //     ).then(events => {
-    //       const logs = events.map(event => event.message).join('\n');
-    //       expect(logs).to.include(`"source":"${eventSource}"`);
-    //       expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-    //       expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-    //     });
-    //   });
-    // });
+        return confirmCloudWatchLogs(
+          `/aws/lambda/${stackName}-${functionName}`,
+          () => putEvents(cfFuncEventBusName, putEventEntries),
+          {
+            checkIsComplete: events =>
+              events.find(event => event.message.includes(markers.start)) &&
+              events.find(event => event.message.includes(markers.end)),
+          }
+        ).then(events => {
+          const logs = events.map(event => event.message).join('\n');
+          expect(logs).to.include(`"source":"${eventSource}"`);
+          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
+        });
+      });
+    });
   });
 });

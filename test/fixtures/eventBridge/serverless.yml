@@ -31,4 +31,18 @@ functions:
     # Event filled by integration test
   eventBusCFFunctionArn:
     handler: core.eventBusCFFunctionArn
-    # Event filled by integration test
+    events:
+      - eventBridge:
+          useNativeCloudFormation: true
+          eventBus:
+            Ref: EventBus
+          pattern:
+            source:
+              - serverless.test
+
+resources:
+  Resources:
+    EventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:service.name}-custom-event-bus
