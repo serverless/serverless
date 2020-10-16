@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.5.2",
-    "@serverless/components": "^3.2.1",
-    "@serverless/enterprise-plugin": "^4.1.0",
+    "@serverless/components": "^3.2.3",
+    "@serverless/enterprise-plugin": "^4.1.1",
     "@serverless/utils": "^2.0.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.0.2",
-    "aws-sdk": "^2.771.0",
+    "aws-sdk": "^2.772.0",
     "bluebird": "^3.7.2",
     "boxen": "^4.2.0",
     "cachedir": "^2.3.0",
@@ -69,7 +69,7 @@
     "untildify": "^4.0.0",
     "uuid": "^8.3.1",
     "yaml-ast-parser": "0.0.43",
-    "yargs-parser": "^20.2.1"
+    "yargs-parser": "^20.2.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
