@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/serverless/serverless/compare/v2.7.0...v2.8.0) (2020-10-16)
+
+### Features
+
+- **Config Schema:** Schema for `provider` props of AWS `http` event ([#8383](https://github.com/serverless/serverless/issues/8383)) ([e51e0f2](https://github.com/serverless/serverless/commit/e51e0f22da4625a65e5d7fd7bf3b4b1d5b46dd91)) ([Oz Weiss](https://github.com/thewizarodofoz))
+
+### Bug Fixes
+
+- **Config Schema:** Do not mark `layers[].path` as required ([#8398](https://github.com/serverless/serverless/issues/8398)) (([0394025](https://github.com/serverless/serverless/commit/03940254385e138eb40f2f25bd56fcdbee0c3a22)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:** Fix AWS `stream` event `consumer` schema([#8405](https://github.com/serverless/serverless/issues/8405)) ([b0fe67d](https://github.com/serverless/serverless/commit/b0fe67d8466c97f0be045d87780e5e78f6611e7b)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Config Schema:** Convert `oneOf` to more optimal `anyOf` ([#8405](https://github.com/serverless/serverless/issues/8405)) ([2c874e2](https://github.com/serverless/serverless/commit/2c874e22c97fe35290b14736df4b63097d3a9d50)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.7.0](https://github.com/serverless/serverless/compare/v2.6.0...v2.7.0) (2020-10-13)
 
 ### Features
