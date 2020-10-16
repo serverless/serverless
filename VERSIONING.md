@@ -57,16 +57,16 @@ The Serverless Framework supports the major cloud providers Node.js runtime vers
 
 1. Is it okay to mark a feature as deprecated in version 1.4.0 and then remove it in 1.8.0
 
-No, since this is a breaking change it should trigger a major version bump to 2.0.0
+   No, since this is a breaking change it should trigger a major version bump to 2.0.0
 
-2. Can we change everything in a major version bump?
+1. Can we change everything in a major version bump?
 
-Yes, this is the purpose of major version bumps. Ideally every breaking change has a clear and well documented migration path. In best case the features were already introduced earlier and upgrading is not a dealbreaker.
+   Yes, this is the purpose of major version bumps. Ideally every breaking change has a clear and well documented migration path. In best case the features were already introduced earlier and upgrading is not a dealbreaker.
 
-3. Can we do a major version bump without a breaking change?
+1. Can we do a major version bump without a breaking change?
 
-No, as we strictly follow Semantic Versioning. The suggested strategy is to add features with minor releases and only do major version bumps when we take out deperecated features. Sometimes this is not possible, but as suggested above then a well documented migration path should come with the release.
+   No, as we strictly follow Semantic Versioning. The suggested strategy is to add features with minor releases and only do major version bumps when we take out deperecated features. Sometimes this is not possible, but as suggested above then a well documented migration path should come with the release.
 
-4. Why is CLI output a breaking change?
+1. Why is CLI output a breaking change?
 
-Right now we don't provide an option to output a well formated datastructure for a CLI command. Once we have such an option the default CLI output will not be part of the breaking changes list, but rather the datastructure. Also to note here if we add to that datastructure it will not be a breaking change. If we remove or change something from that datastructure it is a breaking change.
+   Right now we don't provide an option to output a well formated datastructure for a CLI command. Once we have such an option the default CLI output will not be part of the breaking changes list, but rather the datastructure. Also to note here if we add to that datastructure it will not be a breaking change. If we remove or change something from that datastructure it is a breaking change.
