@@ -34,4 +34,10 @@ function eventBusCFFunctionArn(event, context, callback) {
   return callback(null, event);
 }
 
-module.exports = { eventBusDefault, eventBusDefaultArn, eventBusCustom, eventBusArn, eventBusCFFunctionArn };
+module.exports = {
+  eventBusDefault,
+  eventBusDefaultArn,
+  eventBusCustom,
+  eventBusArn,
+  eventBusCFFunctionArn,
+};
