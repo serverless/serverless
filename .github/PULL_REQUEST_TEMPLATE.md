@@ -14,8 +14,6 @@ https://github.com/serverless/serverless/blob/master/CONTRIBUTING.md#code-style
 https://github.com/serverless/serverless/blob/master/test/README.md
 -->
 
-<!-- ⚠️⚠️ Ensure that support for Node.js v6 is maintained. -->
-
 <!--
 ⚠️⚠️ Ensure that proposed change passes CI. Confirm on that by running following scripts:
 • npm run prettier-check
