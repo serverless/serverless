@@ -4,7 +4,7 @@
 
 [`serverless` binary](https://github.com/serverless/serverless/blob/master/bin/serverless.js) serves as an entrance for three independent CLI programs. [Initial logic](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/bin/serverless.js#L25-L38) decides which CLI is actually run in current working directory context. Possible options are listed below
 
-### 1. Serverless Framwork CLI
+### 1. Serverless Framework CLI
 
 Documented at [serverless.com/framework/docs](https://www.serverless.com/framework/docs/) of which code is hosted in this repository.
 
@@ -24,7 +24,7 @@ Documented at [serverless.com/components](https://www.serverless.com/components/
 
 ### Overview
 
-Core flow of a process is managed through internal lifecycle engine, for which, internal (core) and external (user made) plugins register supported CLI commands attributing to them ordered lifecycle events,, plus hooks (event listeners) which are invoked when given event is triggered.
+Core flow of a process is managed through internal lifecycle engine, for which, internal (core) and external (user-made) plugins register supported CLI commands attributing to them ordered lifecycle events,, plus hooks (event listeners) which are invoked when given event is triggered.
 
 #### Code organization
 
@@ -59,6 +59,6 @@ Located in [lib/utils](https://github.com/serverless/serverless/tree/master/lib/
 1. Load all plugins (internal and those installed by user). They configure supported CLI commands, register events for lifecycle engine, and attach hooks to events eventually triggered by lifecycle engine ([lib/classes/PluginManager.js#L107-L116](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/lib/classes/PluginManager.js#L107-L116)
 1. If it's `sls --help` command, show help and abort ([lib/Serverless.js#L108-L110](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/lib/Serverless.js#L108-L110)
 1. (If in service context) Populate all variables in service configuration ([lib/Serverless.js#L118-L125](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/lib/Serverless.js#L118-L125))
-1. (if in service context) Validate service configration ([lib/Serverless.js#L128](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/lib/Serverless.js#L128)
+1. (if in service context) Validate service configuration ([lib/Serverless.js#L128](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/lib/Serverless.js#L128)
 1. Run lifecycle engine (emit all events that were registered for invoked CLI command) ([lib/classes/PluginManager.js#L509-L511](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/lib/classes/PluginManager.js#L509-L511))
 1. If execution ended with an error, log it in user friendly way ([lib/classes/Error.js#L68-L129](https://github.com/serverless/serverless/blob/ce376e96b0bb15a06ade362134aee2b1848d6113/lib/classes/Error.js#L68-L129))
