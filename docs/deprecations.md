@@ -6,6 +6,14 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="AWS_API_GATEWAY_NAME_STARTING_WITH_SERVICE"><div>&nbsp;</div></a>
+
+## API Gateway naming will be changed to `${service}-${stage}`
+
+Starting with v3.0.0, API Gateway naming will be changed from `${stage}-${service}` to `${service}-${stage}`.
+
+Adapt to this convention now by setting `provider.apiGateway.shouldStartNameWithService` to `true`.
+
 <a name="ALEXA_SKILL_EVENT_WITHOUT_APP_ID"><div>&nbsp;</div></a>
 
 ## Support for `alexaSkill` event without `appId` is to be removed

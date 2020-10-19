@@ -83,6 +83,7 @@ provider:
     binaryMediaTypes: # Optional binary media types the API might return
       - '*/*'
     metrics:  false # Optional detailed Cloud Watch Metrics
+    shouldStartNameWithService: false # Use `${service}-${stage}` naming for API Gateway. Will be `true` by default in next major version.
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
     authorizers:
