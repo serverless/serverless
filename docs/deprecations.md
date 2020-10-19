@@ -30,7 +30,7 @@ Starting with v3.0.0, extensions to nonexistent resources in `resources.extensio
 
 ## Support for `enableLocalInstallationFallback` setting is to be removed
 
-Starting with v3.0.0, framework will unconditionally run service local installation of `serverless` if its found.
+Starting with v3.0.0, framework will unconditionally run service local installation of `serverless` if it's found.
 
 <a name="LOCAL_INSTALLATION_FALLBACK"><div>&nbsp;</div></a>
 
@@ -90,6 +90,6 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 
 <a name="AWS_KMS_KEY_ARN"><div>&nbsp;</div></a>
 
-## awsKmsKeyArn references
+## `awsKmsKeyArn` references
 
-Plase use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v3.0.0
+Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v3.0.0
