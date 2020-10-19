@@ -6,6 +6,14 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="LOAD_VARIABLES_FROM_ENV_FILES"><div>&nbsp;</div></a>
+
+## Automatic loading environment variables from .env and .env.{stage} files
+
+Starting with v3.0.0, environment variables will be automatically loaded from `.env` and `.env.{stage}` files if they're present.
+
+Adapt to this behavior now by adding `useDotenv: true` to service configuration.
+
 <a name="SERVICE_OBJECT_NOTATION"><div>&nbsp;</div></a>
 
 ## `service` property object notation

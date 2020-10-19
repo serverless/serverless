@@ -1,0 +1,14 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+custom:
+  fromDefaultEnv: ${env:ENV_VARIABLE_FROM_DEFAULT}
+  fromStageEnv: ${env:ENV_VARIABLE_FROM_STAGE}
