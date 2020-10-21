@@ -3,8 +3,6 @@ service: service
 configValidationMode: error
 frameworkVersion: '*'
 
-useDotenv: true
-
 provider:
   name: aws
   runtime: nodejs12.x
