@@ -81,32 +81,19 @@ If the providers are not found, then the Serverless Framework will look for cred
 
 # Migrating from Deployment Profile
 
-Providers support a variety of servier providers, like Azure, GCP, AWS, and they support different credential types too, like AWS Access Roles and AWS Access Key/Secret. Prior to the release of Providers the Serverless Framework Dashboard supported the use of AWS Access Roles in Deployment Profiles. However, deployment profiles only supported a single cloud service provider, AWS, and only one credential type, AWS Access Role. As such, the AWS Access Role will be deprecated from deployment profiles in favor of using providers.
+Deployment profiles can be used to add AWS Access Roles to stages in an app. Any instance deployed to any service in that app will use the AWS Access Role if the corresponding stage is linked to a deployment profile containing the AWS Access Role.
 
-## Create a provider for each deployment profile
+Providers on the other hand are capable of supporting different providers, like AWS, Stripe, GCP, etc. They are also capable of supporting different types, like Access Roles or Access Key & Secret. As such, the AWS Access Role support in deployment profiles is being deprecated and replaced with Providers.
 
-Deployment profiles and providers are both managed at the organization level. As such, you need to create one provider for each deployment profile which uses the AWS Access Roles. For consistency we recommend using the same name for the providers as you used for the deployment profile.
+This migration will be fully automated and backwards compatible; however, there are a few things that will change as a result of the migration:
 
-For example, if you had the deployment profiles, `dev`, `int`, and `prod`, all with unique AWS Access Roles, then you will create the providers, `dev`, `int`, and `prod`, and connect a new AWS Access Role to each.
+- Deployments using deployment profiles will continue to work as-is.
+- If the AWS Access Role must be updated, then it must be updated using Providers instead of Deployment Profiles.
+- If you want to add/edit new Providers, then you must use version 4.1.0 or higher of the Serverless Plugin on the CLI. You can check the version with `sls version`.
 
-If you would like to continue to use the AWS Access Roles, then you will need to generate a new AWS Access Role. The AWS Access Role grants permission to Serverless Framework to generate new credentials; however, Serverless Framework uses a different AWS account for providers than it does for deployment profiles. Therefore the Access Roles from deployment profiles will not work for providers.
+The automatic migration will replace deployment profiles with providers by performing the following:
 
-## Migrating the default deployment profile
+- **A new provider will be created for each deployment profile using the same name and AWS Access Role ARN**. If the deployment profile doesn’t contain an AWS Access Role ARN, it will be skipped.
+- **A provider will be added to each service for the corresponding default stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the default stage of the parent app. For example, if `app1` has `service1` and the _`default`_ stage of `app1` links to the `dev` deployment profile, then the `dev` provider will be added to `service1`. This is repeated for all services in all apps.
+- **A provider will be added to each instance for the corresponding stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the stage of the instance. For example, if `app1` has `service1` and `app1` has a stage `prod` linked to the `prod` deployment profile, then the `prod` provider will be added to the `service1` instances deployed to the `prod` stage.
 
-Each application in the dashboard had a default deployment profile associated with it. If there was an AWS Access Role on that deployment profile, then it was used for all deployments in that application unless specific stages were configured.
-
-While deployment profiles could be associated with the application level, providers are associated at the service level.
-
-For each service in an application configure the corresponding provider with the default deployment profile in the application.
-
-For example, suppose you have an app, `store`, with three services, `database`, `api`, and `site`. The app `store`, has the `dev` deployment profile set as the default deployment profile. In the previous step we created a `dev` provider to replace the `dev` deployment profile. So for each of the services, `database`, `api`, and `site` you will add the `dev` provider to each of those services.
-
-## Migrating deployment profiles from stages
-
-Each application in the dashboard has the ability to configure stages, like `dev`, `staging`, and `prod`. Each of these stages can also be associated with a deployment profile, and therefore an AWS Access Role.
-
-WIth providers you no longer configure the providers per stage, but instead, you can add them to the instances.
-
-For each stage in your application add the corresponding provider to each of the instances in that stage.
-
-For example, suppose you have an app, `store`, and it has the default deployment profile `dev`, and it has the stage `int` and `prod` with corresponding deployment profiles `int` and `prod`. Each of those stages may have one or more instances deployed. Suppose we deployed to two different regions, `us-east-1` and `us-east-2` for each stage, therefore we will have four instances, `int` / `us-east-1`, `int` / `us-east-2`, `prod` / `us-east-1`, and `prod` / `us-east-2`. In the previous step we created corresponding `dev`, `int` and `prod` providers for each of the deployment profiles. In this case we will associate the `int` provider with the `int` / `us-east-1` instance, and the `int` / `us-east-2` instance, and we’ll also associate the `prod` provider with the `prod` / `us-east-1` and the `prod` / `us-east-2` instances.
