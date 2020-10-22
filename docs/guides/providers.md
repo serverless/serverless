@@ -93,7 +93,7 @@ This migration will be fully automated and backwards compatible; however, there 
 
 The automatic migration will replace deployment profiles with providers by performing the following:
 
-- **A new provider will be created for each deployment profile using the same name and AWS Access Role ARN**. If the deployment profile doesn’t contain an AWS Access Role ARN, it will be skipped.
+- **A new provider will be created for each deployment profile using the same AWS Access Role ARN**. If the deployment profile doesn’t contain an AWS Access Role ARN, it will be skipped.
 - **A provider will be added to each service for the corresponding default stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the default stage of the parent app. For example, if `app1` has `service1` and the _`default`_ stage of `app1` links to the `dev` deployment profile, then the `dev` provider will be added to `service1`. This is repeated for all services in all apps.
 - **A provider will be added to each instance for the corresponding stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the stage of the instance. For example, if `app1` has `service1` and `app1` has a stage `prod` linked to the `prod` deployment profile, then the `prod` provider will be added to the `service1` instances deployed to the `prod` stage.
 
