@@ -14,6 +14,8 @@ Starting with v3.0.0, environment variables will be automatically loaded from `.
 
 Adapt to this behavior now by adding `useDotenv: true` to service configuration.
 
+Note that env vars are handled differently than with [serverless-dotenv-plugin](https://github.com/colynb/serverless-dotenv-plugin), check [documentation](/framework/docs/environment-variables/) for more info.
+
 <a name="SERVICE_OBJECT_NOTATION"><div>&nbsp;</div></a>
 
 ## `service` property object notation
