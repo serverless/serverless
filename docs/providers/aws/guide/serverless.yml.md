@@ -365,6 +365,12 @@ functions:
           maximumRecordAgeInSeconds: 120
           startingPosition: LATEST
           enabled: false
+      - msk:
+          arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a
+          topic: kafkaTopic
+          batchSize: 100
+          startingPosition: LATEST
+          enabled: false
       - alexaSkill:
           appId: amzn1.ask.skill.xx-xx-xx-xx
           enabled: true
