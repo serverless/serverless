@@ -33,7 +33,7 @@ To use providers you must add the providers to your organization and then link t
 
 ## Adding providers to your organization
 
-To add a provider to your organization go the **org** section of the [dashboard](https://app.serverless.com). Under the **providers** tab, click **add**`\*\* and follow the instructions.
+To add a provider to your organization go the **org** section of the [dashboard](https://app.serverless.com). Under the **providers** tab, click **add** and follow the instructions.
 
 You’ll be able to select the provider, like AWS, Stripe, and Twilio, name the provider, and set the credentials.
 
