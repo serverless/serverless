@@ -65,6 +65,7 @@
     "semver": "^7.3.2",
     "stream-promise": "^3.2.0",
     "tabtab": "^3.0.2",
+    "tar": "^6.0.5",
     "timers-ext": "^0.1.7",
     "type": "^2.1.0",
     "untildify": "^4.0.0",
