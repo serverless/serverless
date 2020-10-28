@@ -67,6 +67,8 @@ All resource names that are deployed by Serverless have to follow this naming sc
 
 We're also using the term `normalizedName` or similar terms in this guide. This means dropping any characters that aren't allowed in resources names, e.g. special characters.
 
+If you have path variables in your url, they get normalized too, and there is a `Var` added implicitly. So `normalizedPath` for `POST /users/{user_id}` will be normalized to `UsersUseridVarTestPost`
+
 _Tip:_
 If you are unsure how a resource is named, that you want to reference from your custom resources, you can issue a `serverless package`. This will create the CloudFormation template for your service in the `.serverless` folder (it is named `cloudformation-template-update-stack.json`). Just open the file and check for the generated resource name.
 
