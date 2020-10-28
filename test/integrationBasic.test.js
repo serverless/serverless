@@ -8,6 +8,7 @@ const { expect } = require('chai');
 const log = require('log').get('serverless:test');
 const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
+const hasFailed = require('@serverless/test/has-failed');
 const awsRequest = require('@serverless/test/aws-request');
 const { getTmpDirPath } = require('./utils/fs');
 
@@ -33,6 +34,11 @@ describe('Service Lifecyle Integration Test', function() {
     StackName = `${serviceName}-dev`;
     log.notice(`Temporary path: ${tmpDir}`);
     fse.mkdirsSync(tmpDir);
+  });
+
+  // Do not continue if any of the tests failed
+  beforeEach(function() {
+    if (hasFailed(this.test.parent)) this.skip();
   });
 
   after(async () => {
