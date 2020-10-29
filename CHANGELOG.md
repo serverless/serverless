@@ -6,27 +6,27 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Features
 
-- Opt-in auto update feature for global (standalone and npm) installations. Turn on via `sls config --autoupdate` ([#8428](https://github.com/serverless/serverless/issues/8428)) ([e3f4546](https://github.com/serverless/serverless/commit/e3f454680e528e51a61f4e203b5ec72e8947f0b1))
-- **AWS API Gateway:** Improve API Gateway API naming, deprecate `{stage}-{service}` format in favor of `{service}-{stage}` with suggestion to opt-in to new way ([#8339](https://github.com/serverless/serverless/issues/8339)) ([8566135](https://github.com/serverless/serverless/commit/85661353410d53a94c1d04f1a5c86f1fa456b3ff))
-- **AWS CloudFront:** Switch from `ForwardedValues` to cache policies ([#8381](https://github.com/serverless/serverless/issues/8381)) ([479727e](https://github.com/serverless/serverless/commit/479727e1f4363cef1dd2fa1c20bdb9f7f8493838))
-- **AWS Deploy:** Update according to shifted CloudFormation limits ([#8433](https://github.com/serverless/serverless/issues/8433)) ([7e9b2ea](https://github.com/serverless/serverless/commit/7e9b2eac74cd9b720ac1aba4e01a31f06476165c))
+- Opt-in auto update feature for global (standalone and npm) installations. Turn on via `sls config --autoupdate` ([#8428](https://github.com/serverless/serverless/issues/8428)) ([e3f4546](https://github.com/serverless/serverless/commit/e3f454680e528e51a61f4e203b5ec72e8947f0b1)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS API Gateway:** Improve API Gateway API naming, deprecate `{stage}-{service}` format in favor of `{service}-{stage}` with suggestion to opt-in to new way ([#8339](https://github.com/serverless/serverless/issues/8339)) ([8566135](https://github.com/serverless/serverless/commit/85661353410d53a94c1d04f1a5c86f1fa456b3ff)) ([Fabian Schneider](https://github.com/fabsrc))
+- **AWS CloudFront:** Switch from `ForwardedValues` to cache policies ([#8381](https://github.com/serverless/serverless/issues/8381)) ([479727e](https://github.com/serverless/serverless/commit/479727e1f4363cef1dd2fa1c20bdb9f7f8493838)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- **AWS Deploy:** Update according to shifted CloudFormation limits ([#8433](https://github.com/serverless/serverless/issues/8433)) ([7e9b2ea](https://github.com/serverless/serverless/commit/7e9b2eac74cd9b720ac1aba4e01a31f06476165c)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
 - **Analytics:**
-  - Distinguish between npm and other global installation types ([#8428](https://github.com/serverless/serverless/issues/8428)) ([7cc898c](https://github.com/serverless/serverless/commit/7cc898cd0f8ed6cdb63664bed10ecfff74827084))
-  - Report `isAutoUpdateEnabled` ([#8428](https://github.com/serverless/serverless/issues/8428)) ([48a3e11](https://github.com/serverless/serverless/commit/48a3e11f333c4e45a58f6810c1f3137fa953f2b8))
+  - Distinguish between npm and other global installation types ([#8428](https://github.com/serverless/serverless/issues/8428)) ([7cc898c](https://github.com/serverless/serverless/commit/7cc898cd0f8ed6cdb63664bed10ecfff74827084))([Mariusz Nowak](https://github.com/medikoo))
+  - Report `isAutoUpdateEnabled` ([#8428](https://github.com/serverless/serverless/issues/8428)) ([48a3e11](https://github.com/serverless/serverless/commit/48a3e11f333c4e45a58f6810c1f3137fa953f2b8))([Mariusz Nowak](https://github.com/medikoo))
 
 ### Bug Fixes
 
-- **AWS Deploy:** Fix handling of AWS SDK numeric error codes ([#8412](https://github.com/serverless/serverless/issues/8412)) ([6e62e1c](https://github.com/serverless/serverless/commit/6e62e1c5e8f66237e45e83d667e6b50bfb8ea753))
+- **AWS Deploy:** Fix handling of AWS SDK numeric error codes ([#8412](https://github.com/serverless/serverless/issues/8412)) ([6e62e1c](https://github.com/serverless/serverless/commit/6e62e1c5e8f66237e45e83d667e6b50bfb8ea753)) ([Ed Holland](https://github.com/edholland))
 - **Config Schema:**
-  - Ensure to validate `provider` as set in config file ([#8450](https://github.com/serverless/serverless/issues/8450)) ([b04ab55](https://github.com/serverless/serverless/commit/b04ab55fabd193b879244718ed87047ec961904c))
-  - Fix IAM Policy resource reference schema ([#8453](https://github.com/serverless/serverless/issues/8453)) ([85f823c](https://github.com/serverless/serverless/commit/85f823cf46713b110d0f70892e6130315e1d3972))
-- **Templates:** Ensure service is renamed also in eventual `package-lock.json` ([#8409](https://github.com/serverless/serverless/issues/8409)) ([78f159b](https://github.com/serverless/serverless/commit/78f159b4326f7eb092895bbd11813e470c146dc4))
+  - Ensure to validate `provider` as set in config file ([#8450](https://github.com/serverless/serverless/issues/8450)) ([b04ab55](https://github.com/serverless/serverless/commit/b04ab55fabd193b879244718ed87047ec961904c))([Mariusz Nowak](https://github.com/medikoo))
+  - Fix IAM Policy resource reference schema ([#8453](https://github.com/serverless/serverless/issues/8453)) ([85f823c](https://github.com/serverless/serverless/commit/85f823cf46713b110d0f70892e6130315e1d3972))([Mariusz Nowak](https://github.com/medikoo))
+- **Templates:** Ensure service is renamed also in eventual `package-lock.json` ([#8409](https://github.com/serverless/serverless/issues/8409)) ([78f159b](https://github.com/serverless/serverless/commit/78f159b4326f7eb092895bbd11813e470c146dc4)) ([Mark Tse](https://github.com/neverendingqs))
 
 ### Maintenance Improvements
 
-- **Standalone:** Seclude standalone utils ([#8428](https://github.com/serverless/serverless/issues/8428)) ([5fcc54a](https://github.com/serverless/serverless/commit/5fcc54ae2aae9aea40d0fec8d42a86ebd21b5a76))
+- **Standalone:** Seclude standalone utils ([#8428](https://github.com/serverless/serverless/issues/8428)) ([5fcc54a](https://github.com/serverless/serverless/commit/5fcc54ae2aae9aea40d0fec8d42a86ebd21b5a76))([Mariusz Nowak](https://github.com/medikoo))
 - **`blluebird` removal:**
-  - Replace `BbPromise.props` with `Promise.all` ([#8414](https://github.com/serverless/serverless/issues/8414)) ([2d6824c](https://github.com/serverless/serverless/commit/2d6824cde531ba56758f441b39b5ab018702e866))
+  - Replace `BbPromise.props` with `Promise.all` ([#8414](https://github.com/serverless/serverless/issues/8414)) ([2d6824c](https://github.com/serverless/serverless/commit/2d6824cde531ba56758f441b39b5ab018702e866)) ([Piotr Grzesik](https://github.com/pgrzesik))
 
 ## [2.8.0](https://github.com/serverless/serverless/compare/v2.7.0...v2.8.0) (2020-10-16)
 
