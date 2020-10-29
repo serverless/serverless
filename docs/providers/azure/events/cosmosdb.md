@@ -31,35 +31,35 @@ accesses the Function App at `api/cosmos` via a `POST` request
 # serverless.yml
 
 functions:
-  cosmos:
-    handler: src/handlers/cosmos.write
-    events:
-      - http: true
-        x-azure-settings:
-          methods:
-            - POST
-          authLevel: anonymous
-      - http: true
-        x-azure-settings:
-          direction: out
-          name: res
-      - cosmosDB:
-        x-azure-settings:
-          direction: out
-          name: record # name of input parameter in function signature
-          databaseName: sampleDB
-          collectionName: sampleCollection
-          connectionStringSetting: COSMOS_DB_CONNECTION # name of appsetting with the connection string
-          createIfNotExists: true # A boolean value to indicate whether the collection is created when it doesn't exist.
+    cosmos:
+        handler: src/handlers/cosmos.write
+        events:
+            - http: true
+              x-azure-settings:
+                  methods:
+                      - POST
+                  authLevel: anonymous
+            - http: true
+              x-azure-settings:
+                  direction: out
+                  name: res
+            - cosmosDB:
+              x-azure-settings:
+                  direction: out
+                  name: record # name of input parameter in function signature
+                  databaseName: sampleDB
+                  collectionName: sampleCollection
+                  connectionStringSetting: COSMOS_DB_CONNECTION # name of appsetting with the connection string
+                  createIfNotExists: true # A boolean value to indicate whether the collection is created when it doesn't exist.
 ```
 
 ## Sample post data
 
 ```json
 {
-  "name": "John Henry",
-  "employeeId": "123456",
-  "address": "A town nearby"
+    "name": "John Henry",
+    "employeeId": "123456",
+    "address": "A town nearby"
 }
 ```
 
@@ -72,28 +72,28 @@ functions:
 const uuidv4 = require('uuid/v4');
 
 module.exports.write = async function (context, req) {
-  context.log('JavaScript HTTP trigger function processed a request.');
+    context.log('JavaScript HTTP trigger function processed a request.');
 
-  const input = req.body;
+    const input = req.body;
 
-  const timestamp = Date.now();
-  const uuid = uuidv4();
+    const timestamp = Date.now();
+    const uuid = uuidv4();
 
-  const output = JSON.stringify({
-    id: uuid,
-    name: input.name,
-    employeeId: input.employeeId,
-    address: input.address,
-    timestamp: timestamp,
-  });
+    const output = JSON.stringify({
+        id: uuid,
+        name: input.name,
+        employeeId: input.employeeId,
+        address: input.address,
+        timestamp: timestamp,
+    });
 
-  context.bindings.record = output;
+    context.bindings.record = output;
 
-  context.log('Finish writing to CosmosDB');
+    context.log('Finish writing to CosmosDB');
 
-  context.res = {
-    status: 201,
-    body: 'Created',
-  };
+    context.res = {
+        status: 201,
+        body: 'Created',
+    };
 };
 ```
