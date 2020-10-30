@@ -292,6 +292,9 @@ functions:
     destinations: # optional, destinations for async invocations
       onSuccess: functionName # function name or ARN of a target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic)
       onFailure: xxx:xxx:target # function name or ARN of a target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic)
+    fileSystemConfig:
+      arn: arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-a1a1a1a1a1a1a1a1a # ARN of EFS Access Point
+      localMountPath: /mnt/example # path under which EFS will be mounted and accessible by Lambda function
     events: # The Events that trigger this Function
       - http: # This creates an API Gateway HTTP endpoint which can be used to trigger this function.  Learn more in "events/apigateway"
           path: users/create # Path for this endpoint
@@ -387,7 +390,13 @@ functions:
           batchSize: 100
           maximumRecordAgeInSeconds: 120
           startingPosition: LATEST
-          enabled: false
+          enabled: true
+      - msk:
+          arn: arn:aws:kafka:us-east-1:111111111111:cluster/ClusterName/a1a1a1a1a1a1a1a1a # ARN of MSK Cluster
+          topic: kafkaTopic # name of Kafka topic to consume from
+          batchSize: 100 # optional, must be in 1-10000 range
+          startingPosition: LATEST # optional, can be set to LATEST or TRIM_HORIZON
+          enabled: true # optional, true by default, can be used to disable event without deleting resource
       - alexaSkill:
           appId: amzn1.ask.skill.xx-xx-xx-xx
           enabled: true
