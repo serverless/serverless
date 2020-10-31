@@ -415,18 +415,18 @@ Command names need to be unique. If we load two commands and both want to specif
 
 ### Extending validation schema
 
-If your plugin adds support for additional params in `serverless.yaml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
+If your plugin adds support for additional params in `serverless.yml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
 
-The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperties`, `defineCustomEvent` or `defineProvider` helplers.
+The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperties`, `defineFunctionEvent`, `defineFunctionProperties` or `defineProvider` helpers.
 
-We'll walk though those heplers. You may also want to check out examples from [helpers tests](tests/fixtures/configSchemaExtensions/test-plugin.js)
+We'll walk though those helpers. You may also want to check out examples from [helpers tests](tests/fixtures/configSchemaExtensions/test-plugin.js)
 
 #### `defineCustomProperties` helper
 
-Let's say your plugin depends on some properties defined in `custom` section of `serverless.yaml` file.
+Let's say your plugin depends on some properties defined in `custom` section of `serverless.yml` file.
 
 ```
-// serverless.yaml
+// serverless.yml
 
 custom:
   yourPlugin:
@@ -463,10 +463,10 @@ Serverless: Configuration error: custom.yourPlugin.someProperty should be string
 
 #### `defineFunctionEvent` helper
 
-Let's say your plugin adds support to a new `yourPluginEvent` function event. To use this event, a user would need to have `serverless.yaml` file like this:
+Let's say your plugin adds support to a new `yourPluginEvent` function event. To use this event, a user would need to have `serverless.yml` file like this:
 
 ```
-// serverless.yaml
+// serverless.yml
 
 functions:
   someFunc:
@@ -508,6 +508,51 @@ This way, if user sets `anotherProp` by mistake to `some-string`, the Framework 
 
 ```
 Serverless: Configuration error: functions.someFunc.events[0].yourPluginEvent.anotherProp should be number
+```
+
+#### `defineFunctionProperties` helper
+
+Let's say your plugin adds support to a new `someProperty` function property. To use this property, a user would need to have `serverless.yml` file like this:
+
+```
+// serverless.yml
+
+functions:
+  someFunc:
+    handler: handler.main
+    someProperty: my-property-value
+```
+
+In this case your plugin should add validation rules inside your plugin constructor. Otherwise, the Framework would display an error message saying that your property is not supported:
+
+```
+ServerlessError: Configuration error:
+at 'functions.someFunc': unrecognized property 'someProperty'
+```
+
+To fix this error and more importantly to provide validation rules for your property, modify your plugin constructor with code like this:
+
+```javascript
+class NewFunctionPropertiesPlugin {
+  constructor(serverless) {
+    this.serverless = serverless;
+
+    // Create schema for your properties. For reference use https://github.com/ajv-validator/ajv
+    serverless.configSchemaHandler.defineFunctionProperties('providerName', {
+      properties: {
+        someProperty: { type: 'string' },
+        anotherProperty: { type: 'number' },
+      },
+      required: ['someProperty'],
+    });
+  }
+}
+```
+
+This way, if user sets `anotherProperty` by mistake to `hello`, the Framework would display an error:
+
+```
+ServerlessError: Configuration error at 'functions.someFunc.anotherProperty': should be number
 ```
 
 #### `defineProvider` helper
