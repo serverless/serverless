@@ -8,7 +8,6 @@ const spawn = require('child-process-ext/spawn');
 const nodeFetch = require('node-fetch');
 const log = require('log').get('serverless:test');
 const logFetch = require('log').get('fetch');
-const wait = require('timers-ext/promise/sleep');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const { load: loadYaml } = require('js-yaml');
 
@@ -48,39 +47,6 @@ async function removeService(cwd) {
   return spawn(serverlessExec, ['remove'], { cwd, env });
 }
 
-async function getFunctionLogs(cwd, functionName) {
-  let logs;
-  try {
-    ({ stdoutBuffer: logs } = await spawn(
-      serverlessExec,
-      ['logs', '--function', functionName, '--noGreeting', 'true'],
-      {
-        cwd,
-        env,
-      }
-    ));
-  } catch (_) {
-    // Attempting to read logs before first invocation will will result in a "No existing streams for the function" error
-    return null;
-  }
-  return String(logs);
-}
-
-const defaultTimeout = 60000;
-
-async function waitForFunctionLogs(cwd, functionName, startMarker, endMarker, options = {}) {
-  const timeout = options.timeout || defaultTimeout;
-  const startTime = Date.now();
-  await wait(2000);
-  const logs = await getFunctionLogs(cwd, functionName);
-  if (logs && logs.includes(startMarker) && logs.includes(endMarker)) return logs;
-  const timeSpan = Date.now() - startTime;
-  if (timeSpan > timeout) throw new Error('Cannot find function logs');
-  return waitForFunctionLogs(cwd, functionName, startMarker, endMarker, {
-    timeout: timeout - timeSpan,
-  });
-}
-
 let lastRequestId = 0;
 async function fetch(url, options) {
   const requestId = ++lastRequestId;
@@ -118,6 +84,5 @@ module.exports = {
   env,
   fetch,
   removeService,
-  waitForFunctionLogs,
   getMarkers,
 };
