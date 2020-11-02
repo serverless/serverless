@@ -22,6 +22,7 @@ module.exports = {
         'AWS HTTP API',
         'AWS IAM',
         'AWS Info',
+        'AWS IOT',
         'AWS Kinesis',
         'AWS Lambda',
         'AWS Local Invocation',
