@@ -130,18 +130,22 @@ describe('AWS - Cognito User Pool Integration Test', function() {
     describe('single function / multi pool setup', () => {
       it('should invoke function when a user inits auth after being created', async () => {
         const functionName = 'existingMulti';
-        const username = 'janedoe';
+        const usernamePrefix = 'janedoe';
         const password = '!!!wAsD123456wAsD!!!';
 
         const { Id: userPoolId } = await findUserPoolByName(poolExistingMultiSetup);
         const client = await createUserPoolClient('myClient', userPoolId);
         const clientId = client.UserPoolClient.ClientId;
-        await createUser(userPoolId, username, password);
-        await setUserPassword(userPoolId, username, password);
-        await initiateAuth(clientId, username, password);
+
+        let counter = 0;
         const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
-          async () => {},
+          async () => {
+            const username = `${usernamePrefix}${++counter}`;
+            await createUser(userPoolId, username, password);
+            await setUserPassword(userPoolId, username, password);
+            await initiateAuth(clientId, username, password);
+          },
           {
             checkIsComplete: soFarEvents =>
               soFarEvents
@@ -152,7 +156,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
         const logs = events.reduce((data, event) => data + event.message, '');
 
         expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
-        expect(logs).to.include(`"userName":"${username}"`);
+        expect(logs).to.include(`"userName":"${usernamePrefix}`);
         expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
         expect(logs).to.include('"triggerSource":"PreAuthentication_Authentication"');
       });
