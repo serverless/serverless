@@ -11,7 +11,7 @@ const API_UPLOADS_URL = 'https://uploads.github.com/repos/serverless/serverless/
 const requestOptions = { headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` } };
 const binaryBasenameMatcher = /^serverless-([a-z0-9]+)(?:-([a-z0-9]+))?(\.exe)?$/;
 
-module.exports = async versionTag => {
+module.exports = async (versionTag, { isLegacyVersion }) => {
   if (!process.env.GITHUB_TOKEN) {
     process.stdout.write(chalk.red('Missing GITHUB_TOKEN env var\n'));
     process.exitCode = 1;
@@ -39,35 +39,47 @@ module.exports = async versionTag => {
 
   const distFileBasenames = await fs.promises.readdir(distPath);
   await Promise.all(
-    distFileBasenames.map(async distFileBasename => {
-      const distFileBasenameTokens = distFileBasename.match(binaryBasenameMatcher);
-      if (!distFileBasenameTokens) throw new Error(`Unexpected dist file ${distFileBasename}`);
-      const targetBinaryName = `serverless-${
-        distFileBasenameTokens[1]
-      }-${distFileBasenameTokens[2] || 'x64'}${distFileBasenameTokens[3] || ''}`;
-      const existingAssetData = (await releaseAssetsDeferred).find(
-        assetData => assetData.name === targetBinaryName
-      );
-      if (existingAssetData) {
-        await request(`${API_URL}assets/${existingAssetData.id}`, {
-          method: 'DELETE',
-          headers: requestOptions.headers,
-        });
-      }
-      const filePath = path.join(distPath, distFileBasename);
-      await request(
-        `${API_UPLOADS_URL}${await releaseIdDeferred}/assets?name=${targetBinaryName}`,
-        {
-          method: 'POST',
-          body: fs.createReadStream(filePath),
-          headers: {
-            ...requestOptions.headers,
-            'content-length': (await fs.promises.stat(filePath)).size,
-            'content-type': 'application/octet-stream',
-          },
+    distFileBasenames
+      .map(async distFileBasename => {
+        const distFileBasenameTokens = distFileBasename.match(binaryBasenameMatcher);
+        if (!distFileBasenameTokens) throw new Error(`Unexpected dist file ${distFileBasename}`);
+        const targetBinaryName = `serverless-${
+          distFileBasenameTokens[1]
+        }-${distFileBasenameTokens[2] || 'x64'}${distFileBasenameTokens[3] || ''}`;
+        const existingAssetData = (await releaseAssetsDeferred).find(
+          assetData => assetData.name === targetBinaryName
+        );
+        if (existingAssetData) {
+          await request(`${API_URL}assets/${existingAssetData.id}`, {
+            method: 'DELETE',
+            headers: requestOptions.headers,
+          });
         }
-      );
-      process.stdout.write(chalk.green(`${targetBinaryName} uploaded to GiHub\n`));
-    })
+        const filePath = path.join(distPath, distFileBasename);
+        await request(
+          `${API_UPLOADS_URL}${await releaseIdDeferred}/assets?name=${targetBinaryName}`,
+          {
+            method: 'POST',
+            body: fs.createReadStream(filePath),
+            headers: {
+              ...requestOptions.headers,
+              'content-length': (await fs.promises.stat(filePath)).size,
+              'content-type': 'application/octet-stream',
+            },
+          }
+        );
+        process.stdout.write(chalk.green(`${targetBinaryName} uploaded to GiHub\n`));
+      })
+      .concat(
+        isLegacyVersion
+          ? releaseIdDeferred.then(releaseId =>
+              request(`${API_URL}${releaseId}`, {
+                method: 'PATCH',
+                headers: requestOptions.headers,
+                body: JSON.stringify({ prerelease: true }),
+              })
+            )
+          : []
+      )
   );
 };
