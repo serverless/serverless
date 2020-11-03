@@ -17,6 +17,8 @@ custom:
 
 functions:
   someFunction:
+    someFunctionStringProp: function-string-prop
+    someRequiredFunctionNumberProp: 321
     events:
       - someEvent:
           someRequiredStringProp: some string
