@@ -22,9 +22,7 @@ jobs:
       - name: Retrieve dependencies from cache
         uses: actions/cache@v2
         with:
-          path: |
-            ~/.npm
-            node_modules
+          path: ~/.npm
           key: npm-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
 
       - name: Install Node.js and npm
@@ -33,15 +31,17 @@ jobs:
           node-version: 14.x
           registry-url: https://registry.npmjs.org
 
-      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
-      #       same `package.json` as stored with recent `master `build
+      - name: Install dependencies
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
 
       - name: Publish new version
         # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
         #       as it appears actions/setup-node sets own value
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish
+        run: npm publish --tag latest-1
 
       - name: Build standalone artifacts
         run: npm run pkg:build
@@ -59,41 +59,4 @@ jobs:
         run: |
           TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
           TAG=${TEMP_ARRAY[@]: -1}
-          npm run pkg:upload -- $TAG
-
-  chocoPublish:
-    name: Publish to Chocolatey
-    needs: npmPublish
-    runs-on: windows-latest
-    env:
-      CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Retrieve dependencies from cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: npm-v14-${{ runner.os }}-refs/heads/master-${{ hashFiles('package.json') }}
-
-      - name: Install Node.js and npm
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-          registry-url: https://registry.npmjs.org
-
-      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
-      #       same `package.json` as stored with recent `master `build
-
-      - name: Publish to Chocolatey
-        shell: bash
-        run: |
-          TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
-          TAG=${TEMP_ARRAY[@]: -1}
-          cd `npm run pkg:generate-choco-package $TAG | tail -1`
-          choco apikey --key $CHOCO_API_KEY --source https://push.chocolatey.org/
-          choco pack
-          choco push serverless.${TAG:1}.nupkg
+          npm run pkg:upload -- $TAG --legacy

@@ -4,7 +4,7 @@ name: Integrate
 
 on:
   push:
-    branches: [master]
+    branches: [v1]
 
 env:
   SLS_IGNORE_WARNING: '*'
@@ -12,14 +12,14 @@ env:
 
 jobs:
   linuxNode14:
-    name: '[Linux] Node.js 14: Unit tests & Publish canary'
+    name: '[Linux] Node.js 14: Unit tests'
     runs-on: ubuntu-latest
     steps:
       - name: Resolve last validated commit hash (for `git diff` purposes)
         env:
           # See https://github.com/serverlessinc/setup-cicd-resources
-          GET_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.GET_LAST_VALIDATED_COMMIT_HASH_URL }}
-          PUT_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.PUT_LAST_VALIDATED_COMMIT_HASH_URL }}
+          GET_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.GET_LAST_VALIDATED_COMMIT_HASH_URL_V1 }}
+          PUT_LAST_VALIDATED_COMMIT_HASH_URL: ${{ secrets.PUT_LAST_VALIDATED_COMMIT_HASH_URL_V1 }}
         run: |
           curl -f "$GET_LAST_VALIDATED_COMMIT_HASH_URL" -o /home/runner/last-validated-commit-hash || :
           curl -X PUT -H "User-Agent:" -H "Accept:" -H "Content-Type:" -d "$GITHUB_SHA" "$PUT_LAST_VALIDATED_COMMIT_HASH_URL"
@@ -37,16 +37,6 @@ jobs:
         with:
           node-version: 14.x
           registry-url: https://registry.npmjs.org
-
-      - name: Publish canary
-        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
-        #       as it appears actions/setup-node sets own value
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # 01dd......71cc
-        run: |
-          ./.github/prepare-canary.js
-          npm publish --tag canary
-          git checkout .
 
       - name: Retrieve dependencies from cache
         id: cacheNpm
