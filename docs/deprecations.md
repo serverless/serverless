@@ -8,7 +8,7 @@ layout: Doc
 
 <a name="SERVICE_OBJECT_NOTATION"><div>&nbsp;</div></a>
 
-## `service.awsKmsKeyArn` property will no longer be used
+## `service` property object notation
 
 Starting from next major object notation for "service" property will no longer be recognized. Set "service" property directly with service name.
 
