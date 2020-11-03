@@ -88,7 +88,11 @@ Ideally, all breaking changes should be first (before being shipped with next ma
 
 Deprecation log can be configured with the following steps:
 
-1. At the logic point where deprecate feature is being used, write a deprecation log with `serverless._logDeprecation` util. It accepts two arguments:
+1. Write a deprecation log with help of `serverless._logDeprecation` util.
+
+Log should be written only if deprecated functionality is used. If functionality is part of internal plugin then deprecation log should be written at plugin initialization ([example](https://github.com/serverless/serverless/blob/03859c04720f9071d0590b5d0ad1fa0e2c6770b3/lib/plugins/aws/package/compile/events/cloudFront/index.js#L198-L224)). If it relates to some core logic then just put it at place where given functionality is used.
+
+`serverless._logDeprecation` accepts two arguments:
 
 - `code` (e.g. `DEPRECATED_FEATURE_NAME`). Created to identify log programmatically, also used to construct link on documentation page
 - `message` Deprecation message to be displayed to the user
