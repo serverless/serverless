@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.83.1](https://github.com/serverless/serverless/compare/v1.83.0...v1.83.1) (2020-11-03)
+
+### Bug Fixes
+
+- **Analytics:** Ensure to send payload when having all meta ([#8469](https://github.com/serverless/serverless/issues/8469)) ([78dce94](https://github.com/serverless/serverless/commit/78dce94571a05d0021d58352bd21b80f90c62883)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintanance Improvements
+
+- **AWS Lambda:** Ensure to log deprecation at initialization stage ([#8469](https://github.com/serverless/serverless/issues/8469)) ([2e3ce12](https://github.com/serverless/serverless/commit/2e3ce128b0e55abf42e9d07cb96af82f3194d60c)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS ALB:** Ensure to log deprecation at initialization stage ([#8469](https://github.com/serverless/serverless/issues/8469)) ([3cf6449](https://github.com/serverless/serverless/commit/3cf6449b78604434a0292513420d2b90faef37ef)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS HTTP API:** Ensure to log deprecation at initialization stage ([#8469](https://github.com/serverless/serverless/issues/8469)) ([ecd3084](https://github.com/serverless/serverless/commit/ecd30844fc7a748d0ac56679636741c009b2c630)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Standalone:** Support non-latest version builds ([#8469](https://github.com/serverless/serverless/issues/8469)) ([8727044](https://github.com/serverless/serverless/commit/8727044b959ed1bb989d97f7fa178e8dcf36b5a0)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [1.83.0](https://github.com/serverless/serverless/compare/v1.82.0...v1.83.0) (2020-09-10)
 
 ### Features
