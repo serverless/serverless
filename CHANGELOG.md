@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.10.0](https://github.com/serverless/serverless/compare/v2.9.0...v2.10.0) (2020-11-03)
+
+### Features
+
+- **Config Schema:**
+  - Schema for AWS `s3` event ([#8330](https://github.com/serverless/serverless/issues/8330)) ([61d8ee9](https://github.com/serverless/serverless/commit/61d8ee9884cdee652fae131fed1e753301a351bf)) ([Oz Weiss](https://github.com/thewizarodofoz))
+  - `defineFunctionProperties` schema extension method ([#8462](https://github.com/serverless/serverless/issues/8462)) ([5003bbf](https://github.com/serverless/serverless/commit/5003bbf983e7218c673a94a7042ca118aa0ae431)) ([Luis Helder](https://github.com/luislhl))
+
+### Bug Fixes
+
+- **Config Schema:**
+  - Support empty string as environment variables ([#8468](https://github.com/serverless/serverless/issues/8468)) ([ff9db3e](https://github.com/serverless/serverless/commit/ff9db3e7bd0e4cd1261984e048373afc843eb053)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure schema related config normalization is pursued also with validation turned off ([#8460](https://github.com/serverless/serverless/issues/8460)) ([df1b8a9](https://github.com/serverless/serverless/commit/df1b8a9433615c9c6efdff4dcef1f5477ea46d8a)) ([Mariusz Nowak](https://github.com/medikoo))
+- Support log retention at custom resource lambda log groups ([#8456](https://github.com/serverless/serverless/issues/8456)) ([4ce9037](https://github.com/serverless/serverless/commit/4ce9037f8c8416715204f431af65767b3c48e1c7)) ([Filip Pýrek](https://github.com/FilipPyrek))
+- **Analytics:** Ensure to send payload when having all meta ([#8467](https://github.com/serverless/serverless/issues/8467)) ([03859c0](https://github.com/serverless/serverless/commit/03859c04720f9071d0590b5d0ad1fa0e2c6770b3)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Remove `that = this` pattern ([#8463](https://github.com/serverless/serverless/issues/8463)) ([4ae192c](https://github.com/serverless/serverless/commit/4ae192cbfeb534d09af5b29ef7a1ed3f7700332f)) ([telenord](https://github.com/telenord))
+- **Config Schema:**
+  - Run schema validation only in service context (([#8460](https://github.com/serverless/serverless/issues/8460)) ([c271218](https://github.com/serverless/serverless/commit/c2712183a5dae0726c56456d8b3b790e7c597052)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure config modifications happen after its validation ([#8460](https://github.com/serverless/serverless/issues/8460)) ([214768b](https://github.com/serverless/serverless/commit/214768b83ab14495be75ac87f221a31ffd60c88b)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Alexa:** Ensure to log deprecation at initialization stage ([#8467](https://github.com/serverless/serverless/issues/8467)) ([a5a1a23](https://github.com/serverless/serverless/commit/a5a1a230a5714fc2859773077d57eba6d654af74)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS API Gateway:** Ensure to log deprecation at initialization stage ([#8467](https://github.com/serverless/serverless/issues/8467)) ([b6d033a](https://github.com/serverless/serverless/commit/b6d033a044e722f9cd0bd751c4067bf05aa50558)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS CloudFront:** Ensure to log deprecation at initialization stage ([#8467](https://github.com/serverless/serverless/issues/8467)) ([61f90a3](https://github.com/serverless/serverless/commit/61f90a362d33425dc10d4c5bd851132ec5779e8e)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure to log deprecation at initialization stage ([#8467](https://github.com/serverless/serverless/issues/8467)) ([1b26075](https://github.com/serverless/serverless/commit/1b26075fb51c71dd169c4800822842f614465388)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.9.0](https://github.com/serverless/serverless/compare/v2.8.0...v2.9.0) (2020-10-29)
 
 ### Features
