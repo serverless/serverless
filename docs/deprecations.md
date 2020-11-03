@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="SERVICE_OBJECT_NOTATION"><div>&nbsp;</div></a>
+
+## `service.awsKmsKeyArn` property will no longer be used
+
+Starting from next major object notation for "service" property will no longer be recognized. Set "service" property directly with service name.
+
 <a name="CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL"><div>&nbsp;</div></a>
 
 ## `cloudFront` event `behavior.ForwardedValues` property
