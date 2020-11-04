@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="SERVICE_OBJECT_NOTATION"><div>&nbsp;</div></a>
+
+## `service` property object notation
+
+Starting with v3.0.0, object notation for `service` property will no longer be recognized. Set `service` property directly with service name.
+
 <a name="CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL"><div>&nbsp;</div></a>
 
 ## `cloudFront` event `behavior.ForwardedValues` property
