@@ -6,6 +6,23 @@ class TestPlugin {
       function: {
         properties: {
           handler: { type: 'string' },
+          events: {
+            type: 'array',
+            items: {
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: {
+                    existingEvent: {
+                      type: 'object',
+                      properties: { existingProp: { type: 'string' } },
+                    },
+                  },
+                  required: ['existingEvent'],
+                },
+              ],
+            },
+          },
         },
       },
     });
@@ -25,6 +42,13 @@ class TestPlugin {
       },
       required: ['someRequiredStringProp'],
       additionalProperties: false,
+    });
+
+    serverless.configSchemaHandler.extendFunctionEventDefinition('someProvider', 'existingEvent', {
+      properties: {
+        somePluginAdditionalHttpEventProp: { type: 'string' },
+      },
+      required: ['somePluginAdditionalHttpEventProp'],
     });
 
     serverless.configSchemaHandler.defineFunctionProperties('someProvider', {
