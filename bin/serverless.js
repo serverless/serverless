@@ -37,6 +37,10 @@ try {
     componentsV2.runComponents();
     return;
   }
+
+  // if (no serverless.yml found)
+  //   provide an interactive prompt to encourage user to transform the project to a serverless project
+
 } catch (error) {
   if (process.env.SLS_DEBUG) {
     require('../lib/classes/Error').logWarning(`CLI triage crashed with: ${error.stack}`);
