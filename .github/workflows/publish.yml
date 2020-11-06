@@ -33,8 +33,14 @@ jobs:
           node-version: 14.x
           registry-url: https://registry.npmjs.org
 
-      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
-      #       same `package.json` as stored with recent `master `build
+      # Normally we have a guarantee that deps are already there, still it may not be the case when:
+      # - `master` build for same commit failed (and we still pushed tag manually)
+      # - We've pushed tag manually before `master` build finalized
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
 
       - name: Publish new version
         # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
