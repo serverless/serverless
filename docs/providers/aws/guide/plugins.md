@@ -524,7 +524,7 @@ class NewEventPlugin {
     // Create schema for your properties. For reference use https://github.com/ajv-validator/ajv
     serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'http', {
       properties: {
-        documentation: { type: 'string' },
+        documentation: { type: 'object' },
       },
       required: ['documentation'],
     });
@@ -532,10 +532,10 @@ class NewEventPlugin {
 }
 ```
 
-This way, if user sets `documentation` by mistake to `5`, the Framework would display an error:
+This way, if user sets `documentation` by mistake to `anyString`, the Framework would display an error:
 
 ```
-Serverless: Configuration error: functions.someFunc.events[0].http.documentation should be string
+Serverless: Configuration error: functions.someFunc.events[0].http.documentation should be object
 ```
 
 #### `defineFunctionProperties` helper

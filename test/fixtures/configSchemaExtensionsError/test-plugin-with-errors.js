@@ -6,23 +6,12 @@ class TestPluginWithErrors {
       function: {
         properties: {
           handler: { type: 'string' },
-          events: {
-            type: 'array',
-            items: {
-              anyOf: [
-                {
-                  type: 'object',
-                  properties: {
-                    existingEvent: {
-                      type: 'object',
-                      properties: { existingProp: { type: 'string' } },
-                    },
-                  },
-                  required: ['existingEvent'],
-                },
-              ],
-            },
-          },
+        },
+      },
+      functionEvents: {
+        existingEvent: {
+          type: 'object',
+          properties: { existingProp: { type: 'string' } },
         },
       },
     });
