@@ -1,0 +1,14 @@
+service: configSchemaExtensionsError
+
+provider:
+  name: someProvider
+
+plugins:
+  - ./test-plugin-with-errors
+
+configValidationMode: error
+frameworkVersion: '*'
+
+functions:
+  someFunction:
+    handler: 'myHandler.main'

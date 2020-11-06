@@ -44,7 +44,7 @@ class TestPlugin {
       additionalProperties: false,
     });
 
-    serverless.configSchemaHandler.extendFunctionEventDefinition('someProvider', 'existingEvent', {
+    serverless.configSchemaHandler.defineFunctionEventProperties('someProvider', 'existingEvent', {
       properties: {
         somePluginAdditionalHttpEventProp: { type: 'string' },
       },
