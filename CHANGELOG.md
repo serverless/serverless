@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.83.2](https://github.com/serverless/serverless/compare/v1.83.1...v1.83.2) (2020-11-06)
+
+### Bug Fixes
+
+- **AWS HTTP API:** Ensure to report deprecation at initialization phase ([#8483](https://github.com/serverless/serverless/issues/8469)) ([61a72c6](https://github.com/serverless/serverless/commit/61a72c69ed488bd8ae10819ff12b7a2f5679b8e3)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure to inspect configuration once it's fully resolved ([#8483](https://github.com/serverless/serverless/issues/8469)) ([1ea4719](https://github.com/serverless/serverless/commit/1ea47193db3f51a33ecf25ae3ba0aa973530644a)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [1.83.1](https://github.com/serverless/serverless/compare/v1.83.0...v1.83.1) (2020-11-03)
 
 ### Bug Fixes
