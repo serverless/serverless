@@ -417,7 +417,7 @@ Command names need to be unique. If we load two commands and both want to specif
 
 If your plugin adds support for additional params in `serverless.yml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
 
-The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperties`, `defineFunctionEvent`, `defineFunctionProperties` or `defineProvider` helpers.
+The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperties`, `defineFunctionEvent`, `defineFunctionEventProperties`, `defineFunctionProperties` or `defineProvider` helpers.
 
 We'll walk though those helpers. You may also want to check out examples from [helpers tests](tests/fixtures/configSchemaExtensions/test-plugin.js)
 
@@ -508,6 +508,34 @@ This way, if user sets `anotherProp` by mistake to `some-string`, the Framework 
 
 ```
 Serverless: Configuration error: functions.someFunc.events[0].yourPluginEvent.anotherProp should be number
+```
+
+#### `defineFunctionEventProperties` helper
+
+When your plugin extend other plugin events definition for a specific provider, you can use the `defineFunctionEventProperties` to extend event definition with your custom properties.
+
+For exemple, if your plugin adds support to a new `documentation` property on `http` event from `aws` provider, you should add validations rules inside your plugin constructor for this new property.
+
+```javascript
+class NewEventPlugin {
+  constructor(serverless) {
+    this.serverless = serverless;
+
+    // Create schema for your properties. For reference use https://github.com/ajv-validator/ajv
+    serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'http', {
+      properties: {
+        documentation: { type: 'object' },
+      },
+      required: ['documentation'],
+    });
+  }
+}
+```
+
+This way, if user sets `documentation` by mistake to `anyString`, the Framework would display an error:
+
+```
+Serverless: Configuration error: functions.someFunc.events[0].http.documentation should be object
 ```
 
 #### `defineFunctionProperties` helper

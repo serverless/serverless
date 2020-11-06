@@ -8,6 +8,12 @@ class TestPlugin {
           handler: { type: 'string' },
         },
       },
+      functionEvents: {
+        existingEvent: {
+          type: 'object',
+          properties: { existingProp: { type: 'string' } },
+        },
+      },
     });
 
     serverless.configSchemaHandler.defineCustomProperties({
@@ -25,6 +31,13 @@ class TestPlugin {
       },
       required: ['someRequiredStringProp'],
       additionalProperties: false,
+    });
+
+    serverless.configSchemaHandler.defineFunctionEventProperties('someProvider', 'existingEvent', {
+      properties: {
+        somePluginAdditionalEventProp: { type: 'string' },
+      },
+      required: ['somePluginAdditionalEventProp'],
     });
 
     serverless.configSchemaHandler.defineFunctionProperties('someProvider', {
