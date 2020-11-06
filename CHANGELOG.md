@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.11.0](https://github.com/serverless/serverless/compare/v2.10.0...v2.11.0) (2020-11-06)
+
+### Features
+
+- **ConfigSchema:** `defineFuntionEventProperties` schema extension method ([#8471](https://github.com/serverless/serverless/issues/8471)) ([b5abfd8](https://github.com/serverless/serverless/commit/b5abfd8554a2641ca92c16db4cdd20c08be4001e)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Deprecate `service` object notation ([#8466](https://github.com/serverless/serverless/issues/8466)) ([c0a2ecf](https://github.com/serverless/serverless/commit/c0a2ecf453fa82d46bf2fda34708864bc440203d)) ([A. Singh](https://github.com/A-5ingh))
+- **Analytics:**
+  - Distinguish different standalone installations ([#8474](https://github.com/serverless/serverless/issues/8474)) ([5f81f58](https://github.com/serverless/serverless/commit/5f81f58b3af615205fb7b0d92c3828ad723a1595)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report tabtab autocomplete installations ([#8474](https://github.com/serverless/serverless/issues/8474)) ([04b868f](https://github.com/serverless/serverless/commit/04b868fd3b143c27148e3e1cbbd901c2b19944e1)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- Ensure to inspect configuration after it's fully resolved ([#8482](https://github.com/serverless/serverless/issues/8482)) ([f60fb55](https://github.com/serverless/serverless/commit/f60fb55a0b60603039d92d7467d0b231e247c819)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:** Fix handling of command options in help display ([#8476](https://github.com/serverless/serverless/issues/8476)) ([2fffb16](https://github.com/serverless/serverless/commit/2fffb168bc7f957ed9e8e048fd08dfb9669e8eca)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Standalone:** Recognize Windows as non auto updatable platform ([#8474](https://github.com/serverless/serverless/issues/8474)) ([4fc29a5](https://github.com/serverless/serverless/commit/4fc29a57c4b675b2751c1e17d47e45904653f658)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.10.0](https://github.com/serverless/serverless/compare/v2.9.0...v2.10.0) (2020-11-03)
 
 ### Features
