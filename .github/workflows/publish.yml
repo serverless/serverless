@@ -83,8 +83,10 @@ jobs:
           node-version: 14.x
           registry-url: https://registry.npmjs.org
 
-      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
-      #       same `package.json` as stored with previous job
+      - name: Install dependencies
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
 
       - name: Publish to Chocolatey
         shell: bash
