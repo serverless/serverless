@@ -60,3 +60,38 @@ jobs:
           TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
           TAG=${TEMP_ARRAY[@]: -1}
           npm run pkg:upload -- $TAG --legacy
+
+  chocoPublish:
+    name: Publish to Chocolatey
+    needs: npmPublish
+    runs-on: windows-latest
+    env:
+      CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-v14-${{ runner.os }}-refs/heads/v1-${{ hashFiles('package.json') }}
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+          registry-url: https://registry.npmjs.org
+
+      # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
+      #       same `package.json` as stored with previous job
+
+      - name: Publish to Chocolatey
+        shell: bash
+        run: |
+          TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
+          TAG=${TEMP_ARRAY[@]: -1}
+          cd `npm run pkg:generate-choco-package $TAG | tail -1`
+          choco apikey --key $CHOCO_API_KEY --source https://push.chocolatey.org/
+          choco pack
+          choco push serverless.${TAG:1}.nupkg
