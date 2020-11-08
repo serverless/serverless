@@ -1,6 +1,6 @@
 'use strict';
 
-class TestPluginWithErrors {
+class TestPluginWithNonExistingEventError {
   constructor(serverless) {
     serverless.configSchemaHandler.defineProvider('someProvider', {
       function: {
@@ -28,4 +28,4 @@ class TestPluginWithErrors {
   }
 }
 
-module.exports = TestPluginWithErrors;
+module.exports = TestPluginWithNonExistingEventError;

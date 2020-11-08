@@ -13,6 +13,15 @@ class TestPlugin {
           type: 'object',
           properties: { existingProp: { type: 'string' } },
         },
+        existingComplexEvent: {
+          anyOf: [
+            { type: 'string' },
+            {
+              type: 'object',
+              properties: { existingPropForObjectEventDefinition: { type: 'string' } },
+            },
+          ],
+        },
       },
     });
 
@@ -39,6 +48,17 @@ class TestPlugin {
       },
       required: ['somePluginAdditionalEventProp'],
     });
+
+    serverless.configSchemaHandler.defineFunctionEventProperties(
+      'someProvider',
+      'existingComplexEvent',
+      {
+        properties: {
+          somePluginAdditionalComplexeEventProp: { type: 'string' },
+        },
+        required: ['somePluginAdditionalComplexeEventProp'],
+      }
+    );
 
     serverless.configSchemaHandler.defineFunctionProperties('someProvider', {
       properties: {
