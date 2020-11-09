@@ -29,7 +29,7 @@
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.0.2",
-    "aws-sdk": "^2.786.0",
+    "aws-sdk": "^2.787.0",
     "bluebird": "^3.7.2",
     "boxen": "^4.2.0",
     "cachedir": "^2.3.0",
@@ -71,7 +71,7 @@
     "untildify": "^4.0.0",
     "uuid": "^8.3.1",
     "yaml-ast-parser": "0.0.43",
-    "yargs-parser": "^20.2.3"
+    "yargs-parser": "^20.2.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
@@ -80,7 +80,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "cos-nodejs-sdk-v5": "^2.8.3",
-    "eslint": "^7.12.1",
+    "eslint": "^7.13.0",
     "eslint-plugin-import": "^2.22.1",
     "git-list-updated": "^1.2.1",
     "github-release-from-cc-changelog": "^2.2.0",
@@ -101,7 +101,7 @@
     "sinon-chai": "^3.5.0",
     "standard-version": "^9.0.0",
     "strip-ansi": "^5.2.0",
-    "ws": "^7.3.1",
+    "ws": "^7.4.0",
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
