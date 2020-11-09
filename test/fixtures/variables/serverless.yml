@@ -11,3 +11,7 @@ custom:
   cloudFormationReference: ${AnotherResource}
   selfReference: ${self:custom.importedFileWithKey}
   serviceReference: ${self:}
+  nestedRef: nestedVal
+  nestedVal:
+    prop: resolvedNested
+  nestedReference: ${self:custom.${self:custom.nestedRef}.prop}
