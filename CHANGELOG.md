@@ -291,6 +291,13 @@ All notable changes to this project will be documented in this file. See [standa
 - **AWS HTTP API:** Drop support for `timeout` setting ([#8184](https://github.com/serverless/serverless/issues/8184)) ([1cfd1f2](https://github.com/serverless/serverless/commit/1cfd1f25a278679d94e4cd30baf1b2092ff83d8a)) ([Mariusz Nowak](https://github.com/medikoo))
 - Replace `mkdrip` with `esnureDir` from `fs-extra` ([#8183](https://github.com/serverless/serverless/issues/8183)) ([1beb8d0](https://github.com/serverless/serverless/commit/1beb8d0246e705d3d724dbd2fb4c6639bc961cba)) ([Mariusz Nowak](https://github.com/medikoo))
 
+### [1.83.2](https://github.com/serverless/serverless/compare/v1.83.1...v1.83.2) (2020-11-06)
+
+### Bug Fixes
+
+- **AWS HTTP API:** Ensure to report deprecation at initialization phase ([#8483](https://github.com/serverless/serverless/issues/8469)) ([61a72c6](https://github.com/serverless/serverless/commit/61a72c69ed488bd8ae10819ff12b7a2f5679b8e3)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure to inspect configuration once it's fully resolved ([#8483](https://github.com/serverless/serverless/issues/8469)) ([1ea4719](https://github.com/serverless/serverless/commit/1ea47193db3f51a33ecf25ae3ba0aa973530644a)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [1.83.1](https://github.com/serverless/serverless/compare/v1.83.0...v1.83.1) (2020-11-03)
 
 ### Bug Fixes
