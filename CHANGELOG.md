@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.11.1](https://github.com/serverless/serverless/compare/v2.11.0...v2.11.1) (2020-11-09)
+
+### Bug Fixes
+
+- **Config Schema:** Fix multiple event types support in `defineFunctionEventProperties` schema extension method ([#8486](https://github.com/serverless/serverless/issues/8486)) ([e32b771](https://github.com/serverless/serverless/commit/e32b7714253108f9078d2218e68c5994f20cde64)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
 ## [2.11.0](https://github.com/serverless/serverless/compare/v2.10.0...v2.11.0) (2020-11-06)
 
 ### Features
