@@ -1,13 +1,13 @@
 <!--
 title: Serverless Dashboard - Access Roles
 menuText: Access Roles
-menuOrder: 6
+menuOrder: 2
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/access-roles/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/access-roles/)
 
 <!-- DOCS-SITE-LINK:END -->
 

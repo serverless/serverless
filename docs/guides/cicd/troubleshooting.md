@@ -7,7 +7,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/dashboard/cicd/troubleshooting/)
+### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/troubleshooting/)
 
 <!-- DOCS-SITE-LINK:END -->
 

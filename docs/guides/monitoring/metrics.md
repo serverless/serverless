@@ -6,7 +6,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/monitoring/metrics/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/monitoring/metrics/)
 
 <!-- DOCS-SITE-LINK:END -->
 

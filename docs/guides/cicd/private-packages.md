@@ -7,7 +7,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/dashboard/cicd/private-packages/)
+### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/private-packages/)
 
 <!-- DOCS-SITE-LINK:END -->
 

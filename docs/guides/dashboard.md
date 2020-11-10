@@ -1,12 +1,13 @@
 <!--
-title: Serverless - Dashboard Reference
-menuText: Dashboard Reference
+title: Serverless - Dashboard
+menuText: Dashboard
+menuOrder: 1
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/dashboard/)
 
 <!-- DOCS-SITE-LINK:END -->
 

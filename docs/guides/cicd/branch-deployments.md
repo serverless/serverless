@@ -7,7 +7,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/dashboard/cicd/branch-deployments/)
+### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/branch-deployments/)
 
 <!-- DOCS-SITE-LINK:END -->
 
