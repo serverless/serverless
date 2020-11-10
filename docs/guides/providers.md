@@ -81,9 +81,9 @@ If the providers are not found, then the Serverless Framework will look for cred
 
 # Migrating from Deployment Profile
 
-Deployment profiles can be used to add AWS Access Roles to stages in an app. Any instance deployed to any service in that app will use the AWS Access Role if the corresponding stage is linked to a deployment profile containing the AWS Access Role.
+Prior to the release of providers, deployment profiles supported setting AWS Access Role ARNs which could be associated with stages in apps. Providers also support AWS Access Role ARNs, as well as AWS secret/access keys, and in the future will also support other cloud service providers like Azure, GCP, Stripe, etc. As such, deployment profiles are no longer needed and will be replaced with providers.
 
-Providers on the other hand are capable of supporting different providers, like AWS, Stripe, GCP, etc. They are also capable of supporting different types, like Access Roles or Access Key & Secret. As such, the AWS Access Role support in deployment profiles is being deprecated and replaced with Providers.
+AWS Access Roles in deployment profiles will be automatically migrated to providers and no immediate action is required. _This automatic migration will be performed when you deploy using version 4.1.0 or higher of the Serverless Plugin on the CLI._ You can check your plugin version by running `serverless version`.
 
 This migration will be fully automated and backwards compatible; however, there are a few things that will change as a result of the migration:
 
@@ -96,5 +96,3 @@ The automatic migration will replace deployment profiles with providers by perfo
 - **A new provider will be created for each deployment profile using the same AWS Access Role ARN**. If the deployment profile doesn’t contain an AWS Access Role ARN, it will be skipped.
 - **A provider will be added to each service for the corresponding default stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the default stage of the parent app. For example, if `app1` has `service1` and the _`default`_ stage of `app1` links to the `dev` deployment profile, then the `dev` provider will be added to `service1`. This is repeated for all services in all apps.
 - **A provider will be added to each instance for the corresponding stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the stage of the instance. For example, if `app1` has `service1` and `app1` has a stage `prod` linked to the `prod` deployment profile, then the `prod` provider will be added to the `service1` instances deployed to the `prod` stage.
-
-_This automatic migration will be performed when you deploy using version 4.1.0 or higher of the Serverless Plugin on the CLI._
