@@ -12,6 +12,7 @@ module.exports = {
         '',
         'Analytics',
         'AWS ALB',
+        'AWS Alexa',
         'AWS API Gateway',
         'AWS CloudFormation',
         'AWS CloudFront',

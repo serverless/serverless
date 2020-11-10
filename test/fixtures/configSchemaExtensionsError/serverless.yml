@@ -1,0 +1,11 @@
+service: configSchemaExtensionsError
+
+provider:
+  name: someProvider
+
+configValidationMode: error
+frameworkVersion: '*'
+
+functions:
+  someFunction:
+    handler: 'myHandler.main'
