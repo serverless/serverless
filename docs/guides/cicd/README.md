@@ -1,13 +1,13 @@
 <!--
 title: Serverless Dashboard - CI/CD
 menuText: CI/CD
-menuOrder: 7
+menuOrder: 3
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://serverless.com/framework/docs/dashboard/cicd/)
+### [Read this on the main serverless docs site](https://serverless.com/framework/docs/guides/cicd/)
 
 <!-- DOCS-SITE-LINK:END -->
 

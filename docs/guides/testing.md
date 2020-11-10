@@ -1,13 +1,13 @@
 <!--
 title: Serverless Dashboard - Testing
 menuText: Testing
-menuOrder: 9
+menuOrder: 11
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/dashboard/testing/)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/guides/testing/)
 
 <!-- DOCS-SITE-LINK:END -->
 
