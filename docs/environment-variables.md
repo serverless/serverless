@@ -1,16 +1,20 @@
 <!--
-title: Preloading environment variables
-menuText: Preloading environment variables
+title: Resolution of environment variables
+menuText: Resolution of environment variables
 layout: Doc
 -->
 
-# Preloading environment variables
+# Resolution of environment variables
 
-The framework automatically loads environment variables from `.env` files with the help of [dotenv](https://www.npmjs.com/package/dotenv).
+With `useDotenv: true` set in your `serverless.yml` file, framework automatically loads environment variables from `.env` files with the help of [dotenv](https://www.npmjs.com/package/dotenv). Starting with next major version, `.env` files will be loaded by default and `useDotenv` setting will be ignored.
 
-The framework looks for `.env` and `.env.{stage}` files in current directory and then tries to load them using `dotenv`. If `.env.{stage}` is found, `.env` will not be loaded. If stage is not explicitly defined, it defaults to `dev`.
+## Support for `.env` files
 
-**Note**: There are a few differences between above functionality and [serverless-dotenv-plugin](https://github.com/colynb/serverless-dotenv-plugin):
+The framework looks for `.env` and `.env.{stage}` files in service directory and then tries to load them using `dotenv`. If `.env.{stage}` is found, `.env` will not be loaded. If stage is not explicitly defined, it defaults to `dev`.
+
+### Differences against `serverless-dotenv-plugin`
+
+There are a few differences between above functionality and [serverless-dotenv-plugin](https://github.com/colynb/serverless-dotenv-plugin):
 
 - the framework only loads environments variables locally and does not pass them to your functions' environment
 - the framework loads variables from only one `.env` file (if stage-specific `.env` is found, default `.env` is not loaded)
