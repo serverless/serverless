@@ -7,19 +7,19 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "source-map-support": "^0.5.10"
+    "source-map-support": "^0.5.19"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.17",
-    "@types/node": "^10.12.18",
-    "@types/serverless": "^1.72.5",
-    "fork-ts-checker-webpack-plugin": "^3.0.1",
+    "@types/aws-lambda": "^8.10.64",
+    "@types/node": "^14.14.6",
+    "@types/serverless": "^1.78.8",
+    "fork-ts-checker-webpack-plugin": "^6.0.0",
     "serverless-webpack": "^5.2.0",
-    "ts-loader": "^5.3.3",
-    "ts-node": "^8.10.2",
-    "typescript": "^3.2.4",
-    "webpack": "^4.29.0",
-    "webpack-node-externals": "^1.7.2"
+    "ts-loader": "^8.0.10",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5",
+    "webpack": "^5.4.0",
+    "webpack-node-externals": "^2.5.2"
   },
   "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
   "license": "MIT"
