@@ -72,10 +72,11 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       const functionName = 'basic';
 
       const { Id: userPoolId } = await findUserPoolByName(poolBasicSetup);
-      await createUser(userPoolId, 'johndoe', '!!!wAsD123456wAsD!!!');
+
+      let counter = 0;
       const events = await confirmCloudWatchLogs(
         `/aws/lambda/${stackName}-${functionName}`,
-        async () => {},
+        async () => createUser(userPoolId, `johndoe${++counter}`, '!!!wAsD123456wAsD!!!'),
         {
           checkIsComplete: soFarEvents => {
             const logs = soFarEvents.reduce((data, event) => data + event.message, '');
@@ -85,7 +86,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
       );
       const logs = events.reduce((data, event) => data + event.message, '');
       expect(logs).to.include(`"userPoolId":"${userPoolId}"`);
-      expect(logs).to.include('"userName":"johndoe"');
+      expect(logs).to.include('"userName":"johndoe');
       expect(logs).to.include('"triggerSource":"PreSignUp_AdminCreateUser"');
     });
   });
