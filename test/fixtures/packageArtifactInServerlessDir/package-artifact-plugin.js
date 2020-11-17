@@ -21,7 +21,7 @@ class PackageArtifactPlugin {
 
   async package() {
     const zipSrcPath = path.resolve(ZIP_NAME);
-    const serverlessDirPath = path.resolve(this.serverless.config.servicePath, '.serverless');
+    const serverlessDirPath = this.serverless.getWorkingTempDir();
     const zipDestPath = path.join(serverlessDirPath, ZIP_NAME);
 
     // Copy zip to `.serverless` directory
