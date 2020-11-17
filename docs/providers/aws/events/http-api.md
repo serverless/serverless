@@ -281,5 +281,5 @@ Detailed Metrics can be turned on with:
 ```yaml
 provider:
   httpApi:
-    detailedMetrics: true
+    metrics: true
 ```
