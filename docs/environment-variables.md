@@ -20,5 +20,3 @@ There are a few differences between above functionality and [serverless-dotenv-p
 - the framework loads variables from only one `.env` file (if stage-specific `.env` is found, default `.env` is not loaded)
 - the framework does not support `.env.local`, `.env.{stage}.local`, and `.env.development` files in a similar way to the plugin
 - the framework does not use `NODE_ENV` variable and `--env` flag when determining stage
-
-Currently, in order to use that functionality, you have to set `useDotenv: true` in your `serverless.yml` file. Starting with next major version, it will be turned on by default.
