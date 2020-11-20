@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.12.0](https://github.com/serverless/serverless/compare/v2.11.1...v2.12.0) (2020-11-20)
+
+### Features
+
+- **AWS HTTP API:** Support metrics ([#8510](https://github.com/serverless/serverless/issues/8510)) ([3feafbc](https://github.com/serverless/serverless/commit/3feafbceb5777904ea19aab1765c85935d5aa904)) ([Baptiste Guerin](https://github.com/BaptistG))8496
+
+### Bug Fixes
+
+- **Packaging:** Fix compatibility with npm v7.0 ([#8505](https://github.com/serverless/serverless/issues/8505)) ([fdd962b](https://github.com/serverless/serverless/commit/fdd962baa53a7471d33ad041e927c705051b343a)) ([Dmitry Gorbash](https://github.com/dgorbash))
+- **AWS API Gateway:** Fix `usagePlan.throttle` handling ([#8472](https://github.com/serverless/serverless/issues/8472)) ([04e18cb](https://github.com/serverless/serverless/commit/04e18cbebf70ca6fd0534fcee5544de8f6569ed3)) ([andreizet](https://github.com/andreizet))
+- **CLI:** Ensure to not fallback to Framework on components run error ([#8530](https://github.com/serverless/serverless/issues/8530)) ([15332c5](https://github.com/serverless/serverless/commit/15332c55525b91dc0ad11d903789581fb5104b64)) ([Mariusz Nowak](https://github.com/medikoo))
+
+- **Templates:** Fix service rename ([#8508](https://github.com/serverless/serverless/issues/8508)) ([8c0d892](https://github.com/serverless/serverless/commit/8c0d89255e5f3bf2835966fde2f441b828607106)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- **`aws-nodejs-typescript`:**
+  - Upgrade ([#8496](https://github.com/serverless/serverless/issues/8496)) ([786809e](https://github.com/serverless/serverless/commit/786809e262b56490a78a923b0b031378badb18c0)) ([Chris Schuld](https://github.com/cbschuld))
+  - Fix tooling options ([#8501](https://github.com/serverless/serverless/issues/8501)) ([cc103f1](https://github.com/serverless/serverless/commit/cc103f147eddcb29e38937326cc551473925e535)) ([David ALLIX](https://github.com/webda2l))
+- **`aws-go-mod`:** Fix cleanup ([#8507](https://github.com/serverless/serverless/issues/8507)) ([2791c71](https://github.com/serverless/serverless/commit/2791c7142f795ddab7da1b8cbfa7588f9ae4896d)) ([Fukaya Temma](https://github.com/Pranc1ngPegasus))
+
 ### [2.11.1](https://github.com/serverless/serverless/compare/v2.11.0...v2.11.1) (2020-11-09)
 
 ### Bug Fixes
