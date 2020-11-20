@@ -47,8 +47,15 @@ describe('AWS - SNS Integration Test', function() {
       const functionName = 'snsMinimal';
       const message = 'Hello from SNS!';
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
-        publishSnsMessage(minimalTopicName, message)
+      return confirmCloudWatchLogs(
+        `/aws/lambda/${stackName}-${functionName}`,
+        () => publishSnsMessage(minimalTopicName, message),
+        {
+          checkIsComplete: soFarEvents => {
+            const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+            return logs.includes(message);
+          },
+        }
       ).then(events => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
