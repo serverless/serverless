@@ -271,3 +271,15 @@ provider:
   httpApi:
     payload: '1.0'
 ```
+
+### Detailed Metrics
+
+With HTTP API we may configure detailed metrics that can be used setup monitoring and alerting in Cloudwatch.
+
+Detailed Metrics can be turned on with:
+
+```yaml
+provider:
+  httpApi:
+    metrics: true
+```
