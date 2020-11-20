@@ -22,26 +22,22 @@ if (require('../lib/utils/isStandaloneExecutable')) {
 }
 
 // CLI Triage
-try {
-  const componentsV1 = require('@serverless/cli');
-  const componentsV2 = require('@serverless/components');
+(() => {
+  try {
+    const componentsV1 = require('@serverless/cli');
+    const componentsV2 = require('@serverless/components');
 
-  if (componentsV1.runningComponents()) {
     // Serverless Components v1 CLI (deprecated)
-    componentsV1.runComponents();
-    return;
-  }
+    if (componentsV1.runningComponents()) return () => componentsV1.runComponents();
 
-  if (componentsV2.runningComponents()) {
     // Serverless Components CLI
-    componentsV2.runComponents();
-    return;
+    if (componentsV2.runningComponents()) return () => componentsV2.runComponents();
+  } catch (error) {
+    if (process.env.SLS_DEBUG) {
+      require('../lib/classes/Error').logWarning(`CLI triage crashed with: ${error.stack}`);
+    }
   }
-} catch (error) {
-  if (process.env.SLS_DEBUG) {
-    require('../lib/classes/Error').logWarning(`CLI triage crashed with: ${error.stack}`);
-  }
-}
 
-// Serverless Framework CLI
-require('../scripts/serverless');
+  // Serverless Framework CLI
+  return () => require('../scripts/serverless');
+})()();
