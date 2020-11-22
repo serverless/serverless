@@ -11,7 +11,7 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-> This document page is related to the deprecated dashboard. We advise using the updated dashboard at app.serverless.com and using the new [Providers feature to manage AWS connections] for any new orgs created.(https://www.serverless.com/framework/docs/guides/providers/) 
+> This document page is related to the deprecated dashboard. We advise using the updated dashboard at app.serverless.com and using the new [Providers feature to manage AWS connections](https://www.serverless.com/framework/docs/guides/providers/) for any new orgs created.
 
 # Access Roles
 
