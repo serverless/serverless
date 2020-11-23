@@ -11,6 +11,8 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
+> This document page is related to the deprecated dashboard. We advise using the updated dashboard at app.serverless.com and using the new [Providers feature to manage AWS connections](https://www.serverless.com/framework/docs/guides/providers/) for any new orgs created.
+
 # Access Roles
 
 You can use the Serverless Framework Dashboard to set up an AWS Access Role to help you secure your service deployments on AWS by enabling the Serverless Framework to issue temporary AWS Access Keys to deploy your services to AWS.
