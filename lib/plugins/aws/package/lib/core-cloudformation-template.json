@@ -40,6 +40,17 @@
                       "/*"
                     ]
                   ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      { "Ref": "AWS::Partition" },
+                      ":s3:::",
+                      { "Ref": "ServerlessDeploymentBucket" }
+                    ]
+                  ]
                 }
               ],
               "Condition": {
