@@ -1,12 +1,7 @@
-import type { Serverless } from 'serverless/aws';
+import type { AWS } from '@serverless/typescript';
 
-const serverlessConfiguration: Serverless = {
-  service: {
-    name: 'aws-nodejs-typescript',
-    // app and org for use with dashboard.serverless.com
-    // app: your-app-name,
-    // org: your-org-name,
-  },
+const serverlessConfiguration: AWS = {
+  service: 'aws-nodejs-typescript',
   frameworkVersion: '2',
   custom: {
     webpack: {
