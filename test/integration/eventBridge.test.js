@@ -1,4 +1,3 @@
-/* eslint-disable prefer-arrow-callback */
 'use strict';
 
 const { expect } = require('chai');
@@ -15,7 +14,7 @@ const {
 
 const { deployService, removeService, getMarkers } = require('../utils/integration');
 
-describe('AWS - Event Bridge Integration Test', function() {
+describe('AWS - Event Bridge Integration Test', () => {
   describe('Using deprecated CustomResource deployment pattern', function() {
     this.timeout(1000 * 60 * 100); // Involves time-taking deploys
     let serviceName;
@@ -187,25 +186,24 @@ describe('AWS - Event Bridge Integration Test', function() {
       // NOTE: deployment can only be done once the Event Bus is created
       arnEventBusArn = (await createEventBus(arnEventBusName)).EventBusArn;
       // update the YAML file with the arn
-      // TODO: Need to add custom EventBus to config
-      // Ensure all functions are configured to use native CloudFormation - DONE
       await serviceData.updateConfig({
+        provider: {
+          eventBridge: {
+            useCloudFormation: true,
+          },
+        },
         functions: {
           eventBusDefault: {
             events: [
               {
-                eventBridge: {
-                  useNativeCloudFormation: true,
-                },
+                eventBridge: {},
               },
             ],
           },
           eventBusCustom: {
             events: [
               {
-                eventBridge: {
-                  useNativeCloudFormation: true,
-                },
+                eventBridge: {},
               },
             ],
           },
@@ -213,7 +211,6 @@ describe('AWS - Event Bridge Integration Test', function() {
             events: [
               {
                 eventBridge: {
-                  useNativeCloudFormation: true,
                   eventBus: defaultEventBusArn,
                   pattern: { source: ['serverless.test'] },
                 },
@@ -224,7 +221,6 @@ describe('AWS - Event Bridge Integration Test', function() {
             events: [
               {
                 eventBridge: {
-                  useNativeCloudFormation: true,
                   eventBus: arnEventBusArn,
                   pattern: { source: ['serverless.test'] },
                 },
@@ -233,15 +229,14 @@ describe('AWS - Event Bridge Integration Test', function() {
           },
         },
       });
-      // deploy the service
       return deployService(servicePath);
     });
 
     after(async () => {
-      log.notice('Removing service...');
-      // await removeService(servicePath);
+      log.notice('Removing serxvice...');
+      await removeService(servicePath);
       log.notice(`Deleting Event Bus "${arnEventBusName}"...`);
-      // return deleteEventBus(arnEventBusName);
+      return deleteEventBus(arnEventBusName);
     });
 
     describe('Default Event Bus', () => {
