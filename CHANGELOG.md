@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.13.0](https://github.com/serverless/serverless/compare/v2.12.0...v2.13.0) (2020-11-25)
+
+### Features
+
+- **CLI:**
+  - Conditional support for `.env` files ([#8413](https://github.com/serverless/serverless/issues/8413)) ([d1a22c8](https://github.com/serverless/serverless/commit/d1a22c85f2220a2f4691255fb3b9961aeaa4abcb))([Piotr Grzesik](https://github.com/pgrzesik))
+  - Improve general `--help` and remove `--verbose` option ([#8532](https://github.com/serverless/serverless/issues/8532)) ([4287494](https://github.com/serverless/serverless/commit/42874946fc7ff92323d3ce5643415449122d2f38)) ([Vinod Tahelyani](https://github.com/vinod-tahelyani))
+
+### Bug Fixes
+
+- **AWS Deploy:** Improve S3 bucket policy security ([#8542](https://github.com/serverless/serverless/issues/8542)) ([2a9b57b](https://github.com/serverless/serverless/commit/2a9b57b62074d3e58f987aefb7888e14dfc35dce)) ([Ashish Sharma](https://github.com/as19ish))
+- **Config Schema:**
+  - Recognize API Gateway resource policy shorthands ([#8506](https://github.com/serverless/serverless/issues/8506)) ([b7901cd](https://github.com/serverless/serverless/commit/b7901cdb77cb2c81dee62cb614d39d5d2fc824ff)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+  - Recognize string format of `service` ([#8537](https://github.com/serverless/serverless/issues/8537)) ([6c6881c](https://github.com/serverless/serverless/commit/6c6881c853d9a42ed3c99f7c7acaa7cb98bd0a1b)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+### Templates
+
+- **`aws-nodejs-typescript`:** Import type definitions from [`@serverless/typescript`](https://github.com/serverless/typescript/) project ([#8543](https://github.com/serverless/serverless/issues/8543)) ([fef389b](https://github.com/serverless/serverless/commit/fef389b770a3f09431aa761dc98da8cd384eec3f)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+### Maintenance Improvements
+
+- Refactor some functions to native promises ([#8533](https://github.com/serverless/serverless/issues/8533)) ([06f6c6d](https://github.com/serverless/serverless/commit/06f6c6d28ee54055ae4a39686ce54e4738d9e8b0)) ([Graham McGregor](https://github.com/Graham42))
+
 ## [2.12.0](https://github.com/serverless/serverless/compare/v2.11.1...v2.12.0) (2020-11-20)
 
 ### Features
