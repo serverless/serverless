@@ -16,7 +16,7 @@ The framework looks for `.env` and `.env.{stage}` files in service directory and
 
 There are a few differences between above functionality and [serverless-dotenv-plugin](https://github.com/colynb/serverless-dotenv-plugin):
 
-- the framework only loads environments variables locally and does not pass them to your functions' environment
-- the framework loads variables from only one `.env` file (if stage-specific `.env` is found, default `.env` is not loaded)
-- the framework does not support `.env.local`, `.env.{stage}.local`, and `.env.development` files in a similar way to the plugin
-- the framework does not use `NODE_ENV` variable and `--env` flag when determining stage
+- The framework only loads environments variables locally and does not pass them to your function's environment
+- The framework loads variables from only one `.env` file (if stage-specific `.env` is found, default `.env` is not loaded)
+- The framework does not support `.env.local`, `.env.{stage}.local`, and `.env.development` files in a similar way to the plugin
+- The framework does not use `NODE_ENV` variable and `--env` flag when determining stage
