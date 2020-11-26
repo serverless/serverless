@@ -171,10 +171,9 @@ aws_secret_access_key=***************
 
 Now you can switch per project (/ API) by executing once when you start your project:
 
-`export AWS_PROFILE="profileName2" && export AWS_REGION=eu-west-1`.
+`export AWS_PROFILE="profileName2"`.
 
 in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
-The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
 
 ##### Using the `aws-profile` option
 
