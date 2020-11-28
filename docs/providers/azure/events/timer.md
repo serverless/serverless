@@ -33,7 +33,7 @@ functions:
   example:
     handler: handler.hello
     events:
-      - timer:
+      - timer: true
         name: timerObj #<string>, default - "myTimer", specifies which name is available on `context.bindings`
         schedule: 0 */5 * * * * #<string>, cron expression to run on
 ```
