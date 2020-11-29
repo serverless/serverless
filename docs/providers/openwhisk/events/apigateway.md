@@ -129,7 +129,7 @@ enabled for all source domains.
 
 ### URL Path Parameters
 
-The API Gateway service [supports path parameters](https://github.com/apache/incubator-openwhisk/blob/master/docs/apigateway.md#exposing-multiple-web-actions) in user-defined HTTP paths. This allows functions to handle URL paths which include templated values, like resource identifiers.
+The API Gateway service [supports path parameters](https://github.com/apache/openwhisk/blob/master/docs/apigateway.md#exposing-multiple-web-actions) in user-defined HTTP paths. This allows functions to handle URL paths which include templated values, like resource identifiers.
 
 Path parameters are identified using the `{param_name}` format in the URL path. The API Gateway sends the full matched path value in the `__ow_path` field of the event parameters.
 
