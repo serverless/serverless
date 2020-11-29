@@ -898,6 +898,24 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
 
         expect(cfResources).to.not.have.property(functionLogGroupName);
       });
+      it('should have deny policy when disableLogs option is enabled`', async () => {
+        const functionName = serverless.service.getFunction('fnDisableLogs').name;
+        const functionLogGroupName = naming.getLogGroupName(functionName);
+
+        expect(
+          cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement
+        ).to.deep.include({
+          Effect: 'Deny',
+          Action: 'logs:PutLogEvents',
+          Resource: [
+            {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+                `:log-group:${functionLogGroupName}:*`,
+            },
+          ],
+        });
+      });
     });
   });
 });
