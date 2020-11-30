@@ -49,7 +49,9 @@ functions:
 
 ## Setting the BatchSize
 
-For the SQS event integration, you can set the `batchSize`, which effects how many SQS messages can be included in a single Lambda invocation. The default `batchSize` is 10, and the max `batchSize` is 10.
+For the SQS event integration, you can set the `batchSize`, which effects how many SQS messages can be included in a single Lambda invocation. The default `batchSize` is `10`. The max `batchSize` is `10000` for a standard queue, `10` for a FIFO queue.
+
+You can also set `maximumBatchingWindow` to standard queues to specify the maximum amount of time in seconds to gather records before invoking the function. The max `maximumBatchingWindow` is `300` seconds. Check [AWS documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html) for more details.
 
 ```yml
 functions:
@@ -59,6 +61,7 @@ functions:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
+          maximumBatchingWindow: 60
 ```
 
 ## IAM Permissions
