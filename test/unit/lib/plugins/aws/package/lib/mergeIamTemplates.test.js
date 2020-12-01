@@ -869,6 +869,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       let cfResources;
       let naming;
       let serverless;
+      const customFunctionName = 'foo-bar';
       before(async () => {
         const { awsNaming, cfTemplate, serverless: serverlessInstance } = await runServerless({
           fixture: 'function',
@@ -876,6 +877,11 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           configExt: {
             functions: {
               fnDisableLogs: {
+                handler: 'index.handler',
+                disableLogs: true,
+              },
+              fnHaveCustomName: {
+                name: customFunctionName,
                 handler: 'index.handler',
                 disableLogs: true,
               },
@@ -897,6 +903,44 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         const functionLogGroupName = naming.getLogGroupName(functionName);
 
         expect(cfResources).to.not.have.property(functionLogGroupName);
+      });
+
+      it('should not have allow rights to put logs for custom named function when disableLogs option is enabled', async () => {
+        expect(
+          cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement[0]
+            .Resource
+        ).to.not.deep.include({
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
+            `log-group:/aws/lambda/${customFunctionName}:*`,
+        });
+        expect(
+          cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement[1]
+            .Resource
+        ).to.not.deep.include({
+          'Fn::Sub':
+            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
+            `log-group:/aws/lambda/${customFunctionName}:*`,
+        });
+      });
+
+      it('should have deny policy when disableLogs option is enabled`', async () => {
+        const functionName = serverless.service.getFunction('fnDisableLogs').name;
+        const functionLogGroupName = naming.getLogGroupName(functionName);
+
+        expect(
+          cfResources[naming.getRoleLogicalId()].Properties.Policies[0].PolicyDocument.Statement
+        ).to.deep.include({
+          Effect: 'Deny',
+          Action: 'logs:PutLogEvents',
+          Resource: [
+            {
+              'Fn::Sub':
+                'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}' +
+                `:log-group:${functionLogGroupName}:*`,
+            },
+          ],
+        });
       });
     });
   });
