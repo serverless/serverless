@@ -61,6 +61,19 @@ describe('#compileListenerRules()', () => {
           },
           authorizers: ['myFirstAuth', 'mySecondAuth'],
         },
+        {
+          functionName: 'forth',
+          albId: '50dc6c495c0c9188',
+          listenerId: 'f2f7dc8efc522ab2',
+          listenerArn:
+            'arn:aws:elasticloadbalancing:' +
+            'us-east-1:123456789012:listener/app/my-load-balancer/' +
+            '50dc6c495c0c9188/f2f7dc8efc522ab2',
+          priority: 1,
+          conditions: {
+            host: ['example.com'],
+          },
+        },
       ],
       authorizers: {
         myFirstAuth: {
@@ -195,6 +208,31 @@ describe('#compileListenerRules()', () => {
           'us-east-1:123456789012:listener/app/my-load-balancer/' +
           '50dc6c495c0c9188/f2f7dc8efc522ab2',
         Priority: 3,
+      },
+    });
+
+    expect(resources.FirstAlbListenerRule4).to.deep.equal({
+      Type: 'AWS::ElasticLoadBalancingV2::ListenerRule',
+      Properties: {
+        Actions: [
+          {
+            TargetGroupArn: {
+              Ref: 'FirstAlbTargetGroup50dc6c495c0c9188',
+            },
+            Type: 'forward',
+          },
+        ],
+        Conditions: [
+          {
+            Field: 'host-header',
+            Values: ['example.com'],
+          },
+        ],
+        ListenerArn:
+          'arn:aws:elasticloadbalancing:' +
+          'us-east-1:123456789012:listener/app/my-load-balancer/' +
+          '50dc6c495c0c9188/f2f7dc8efc522ab2',
+        Priority: 1,
       },
     });
   });

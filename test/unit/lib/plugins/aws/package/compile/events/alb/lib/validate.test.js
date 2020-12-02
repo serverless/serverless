@@ -58,6 +58,25 @@ describe('#validate()', () => {
           },
         ],
       },
+      third: {
+        // Test for no path
+        events: [
+          {
+            alb: {
+              listenerArn:
+                'arn:aws:elasticloadbalancing:' +
+                'us-east-1:123456789012:listener/app/my-load-balancer/' +
+                '50dc6c495c0c9188/f2f7dc8efc522ab2',
+              priority: 1,
+              conditions: {
+                host: 'example.com',
+                method: 'GET',
+                ip: ['192.168.0.1/1', 'fe80:0000:0000:0000:0204:61ff:fe9d:f156/3'],
+              },
+            },
+          },
+        ],
+      },
     };
 
     const validated = awsCompileAlbEvents.validate();
@@ -94,6 +113,21 @@ describe('#validate()', () => {
           query: {
             foo: 'bar',
           },
+        },
+      },
+      {
+        functionName: 'third',
+        albId: '50dc6c495c0c9188',
+        listenerId: 'f2f7dc8efc522ab2',
+        listenerArn:
+          'arn:aws:elasticloadbalancing:' +
+          'us-east-1:123456789012:listener/app/my-load-balancer/' +
+          '50dc6c495c0c9188/f2f7dc8efc522ab2',
+        priority: 1,
+        conditions: {
+          host: ['example.com'],
+          method: ['GET'],
+          ip: ['192.168.0.1/1', 'fe80:0000:0000:0000:0204:61ff:fe9d:f156/3'],
         },
       },
     ]);
