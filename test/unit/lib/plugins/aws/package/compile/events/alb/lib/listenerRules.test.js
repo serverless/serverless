@@ -69,7 +69,7 @@ describe('#compileListenerRules()', () => {
             'arn:aws:elasticloadbalancing:' +
             'us-east-1:123456789012:listener/app/my-load-balancer/' +
             '50dc6c495c0c9188/f2f7dc8efc522ab2',
-          priority: 1,
+          priority: 4,
           conditions: {
             host: ['example.com'],
           },
@@ -211,13 +211,13 @@ describe('#compileListenerRules()', () => {
       },
     });
 
-    expect(resources.FirstAlbListenerRule4).to.deep.equal({
+    expect(resources.ForthAlbListenerRule4).to.deep.equal({
       Type: 'AWS::ElasticLoadBalancingV2::ListenerRule',
       Properties: {
         Actions: [
           {
             TargetGroupArn: {
-              Ref: 'FirstAlbTargetGroup50dc6c495c0c9188',
+              Ref: 'ForthAlbTargetGroup50dc6c495c0c9188',
             },
             Type: 'forward',
           },
@@ -232,7 +232,7 @@ describe('#compileListenerRules()', () => {
           'arn:aws:elasticloadbalancing:' +
           'us-east-1:123456789012:listener/app/my-load-balancer/' +
           '50dc6c495c0c9188/f2f7dc8efc522ab2',
-        Priority: 1,
+        Priority: 4,
       },
     });
   });

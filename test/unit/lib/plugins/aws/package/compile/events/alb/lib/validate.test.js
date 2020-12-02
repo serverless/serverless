@@ -67,7 +67,7 @@ describe('#validate()', () => {
                 'arn:aws:elasticloadbalancing:' +
                 'us-east-1:123456789012:listener/app/my-load-balancer/' +
                 '50dc6c495c0c9188/f2f7dc8efc522ab2',
-              priority: 1,
+              priority: 3,
               conditions: {
                 host: 'example.com',
                 method: 'GET',
@@ -123,7 +123,7 @@ describe('#validate()', () => {
           'arn:aws:elasticloadbalancing:' +
           'us-east-1:123456789012:listener/app/my-load-balancer/' +
           '50dc6c495c0c9188/f2f7dc8efc522ab2',
-        priority: 1,
+        priority: 3,
         conditions: {
           host: ['example.com'],
           method: ['GET'],
