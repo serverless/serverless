@@ -54,8 +54,6 @@ In 2020, the Serverless Framework began introducing advanced functionality for s
 
 ## <a name="quick-start"></a>Quick Start
 
-[Watch the video guide here](https://serverless.com/framework/) or follow the steps below to create and deploy your first serverless microservice in minutes.
-
 1. **Install via npm:**
 
 ```bash

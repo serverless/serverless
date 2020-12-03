@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.14.0](https://github.com/serverless/serverless/compare/v2.13.0...v2.14.0) (2020-12-01)
+
+### Features
+
+- **AWS SQS:** Support `maximumBatchingWindow` ([#8555](https://github.com/serverless/serverless/issues/8555)) ([ffde506](https://github.com/serverless/serverless/commit/ffde506db76b15a873e88aded7cfa32eb3382c6c)) ([Qi Xi](https://github.com/xiqi))
+
+### Bug Fixes
+
+- **AWS IAM:** Prevent function logs write access with disabled logging ([#8561](https://github.com/serverless/serverless/issues/8561)) ([ee18167](https://github.com/serverless/serverless/commit/ee1816772e4d3db8acda779f622904500d8072ec)) ([Ashish Sharma](https://github.com/as19ish))
+- **Config Schema:** Fix configuration of common properties in `resources` ([#8553](https://github.com/serverless/serverless/issues/8553)) ([9399f2b](https://github.com/serverless/serverless/commit/9399f2b89c8a841d1d7d96a22a8de640d8214479)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
 ## [2.13.0](https://github.com/serverless/serverless/compare/v2.12.0...v2.13.0) (2020-11-25)
 
 ### Features

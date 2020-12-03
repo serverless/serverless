@@ -1,3 +1,14 @@
 /.github
-/docs
+/.editorconfig
+/.prettierignore
+/CODE_OF_CONDUCT.md
+/commitlint.config.js
+/CONTRIBUTING.md
+/docker-compose.yml
+/Dockerfile
+/prettier.config.js
+/RELEASE_PROCESS.md
 /scripts/pkg
+/scripts/test
+/test
+/VERSIONING.md

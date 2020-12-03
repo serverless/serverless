@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "2.13.0",
+  "version": "2.14.0",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
@@ -29,7 +29,7 @@
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.1.0",
-    "aws-sdk": "^2.799.0",
+    "aws-sdk": "^2.800.0",
     "bluebird": "^3.7.2",
     "boxen": "^4.2.0",
     "cachedir": "^2.3.0",
@@ -212,9 +212,9 @@
     "prettier-check:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier -c",
     "prettify": "prettier --write \"**/*.{css,html,js,json,md,yaml,yml}\"",
     "prettify:updated": "pipe-git-updated --ext=css --ext=html --ext=js --ext=json --ext=md --ext=yaml --ext=yml -- prettier --write",
-    "test": "mocha \"!(test|node_modules)/**/*.test.js\"",
+    "test": "mocha \"test/unit/**/*.test.js\"",
     "test:ci": "npm run prettier-check:updated && npm run lint:updated && npm run test:isolated",
-    "test:isolated": "mocha-isolated \"!(test|node_modules)/**/*.test.js\""
+    "test:isolated": "mocha-isolated \"test/unit/**/*.test.js\""
   },
   "engines": {
     "node": ">=10.0"
