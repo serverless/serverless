@@ -33,7 +33,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     });
 
     it('should not create role resource with all functions having `functions[].role`', async () => {
-      await runServerless({ fixture: 'function' });
       const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         cliArgs: ['package'],
