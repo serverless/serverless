@@ -195,6 +195,23 @@ provider:
 
 See the documentation about [IAM](./iam.md) for function level IAM roles.
 
+## Referencing container image as a target
+
+Alternatively lambda environment can be configured through docker images. Image published to AWS ECR registry can be referenced as lambda source (check [AWS Lambda – Container Image Support](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-container-image-support/)).
+
+In service configuration existing AWS ECR image should be referenced via `image` property (which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` format). `handler` and `runtime` properties are not supported in such case.
+
+Example configuration:
+
+```yml
+service: service-name
+provider: aws
+
+functions:
+  hello:
+    image: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
+```
+
 ## VPC Configuration
 
 You can add VPC configuration to a specific function in `serverless.yml` by adding a `vpc` object property in the function configuration. This object should contain the `securityGroupIds` and `subnetIds` array properties needed to construct VPC for this function. Here's an example configuration:
