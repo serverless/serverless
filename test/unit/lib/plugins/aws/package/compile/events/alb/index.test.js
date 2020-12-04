@@ -41,15 +41,15 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
           },
         },
         functions: {
-          fnDeny: {
+          fnAuthorizerOnUnauthenticatedRequestDeny: {
             handler: 'index.handler',
             events: [{ alb: { ...baseEventConfig, priority: 1, authorizer: 'deny' } }],
           },
-          fnAllow: {
+          fnAuthorizerOnUnauthenticatedRequestAllow: {
             handler: 'index.handler',
             events: [{ alb: { ...baseEventConfig, priority: 2, authorizer: 'allow' } }],
           },
-          fnAuthenticate: {
+          fnAuthorizerOnUnauthenticatedRequestAuthenticate: {
             handler: 'index.handler',
             events: [{ alb: { ...baseEventConfig, priority: 3, authorizer: 'authenticate' } }],
           },
@@ -77,7 +77,10 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
 
   describe('should support `onUnauthenticatedRequest`', () => {
     it('should "deny" by default', () => {
-      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId('fnDeny', 1);
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'fnAuthorizerOnUnauthenticatedRequestDeny',
+        1
+      );
       const rule = cfResources[albListenerRuleLogicalId];
 
       expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::ListenerRule');
@@ -90,7 +93,10 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
     });
 
     it('supports support `allow`', () => {
-      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId('fnAllow', 2);
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'fnAuthorizerOnUnauthenticatedRequestAllow',
+        2
+      );
       const rule = cfResources[albListenerRuleLogicalId];
 
       expect(rule.Properties.Actions[0].AuthenticateCognitoConfig).to.deep.equal(
@@ -99,7 +105,10 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
     });
 
     it('should support `authenticate`', () => {
-      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId('fnAuthenticate', 3);
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'fnAuthorizerOnUnauthenticatedRequestAuthenticate',
+        3
+      );
       const rule = cfResources[albListenerRuleLogicalId];
 
       expect(rule.Properties.Actions[0].AuthenticateCognitoConfig).to.deep.equal(
