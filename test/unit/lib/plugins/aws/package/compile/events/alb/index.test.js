@@ -116,4 +116,80 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
       );
     });
   });
+
+  describe('path should be optional', async () => {
+    const baseEventConfig = {
+      listenerArn:
+        'arn:aws:elasticloadbalancing:' +
+        'us-east-1:123456789012:listener/app/my-load-balancer/' +
+        '50dc6c495c0c9188/f2f7dc8efc522ab2',
+    };
+
+    const {
+      cfTemplate: { Resources: myCfResources },
+    } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['package'],
+      configExt: {
+        functions: {
+          functionWithHostOnly: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...baseEventConfig,
+                  priority: 1,
+                  conditions: {
+                    host: 'example.com',
+                  },
+                },
+              },
+            ],
+          },
+          functionWithPathOnly: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...baseEventConfig,
+                  priority: 2,
+                  conditions: {
+                    path: '/',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    it('should should support rule without path', () => {
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'functionWithHostOnly',
+        1
+      );
+      const rule = myCfResources[albListenerRuleLogicalId];
+
+      expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::ListenerRule');
+      expect(rule.Properties.Conditions).to.have.length(1);
+      expect(rule.Properties.Conditions[0].Field).to.equal('host-header');
+      expect(rule.Properties.Conditions[0].Values).to.have.length(1);
+      expect(rule.Properties.Conditions[0].Values[0]).to.equal('example.com');
+    });
+
+    it('should should support rule with path', () => {
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'functionWithHostOnly',
+        1
+      );
+      const rule = myCfResources[albListenerRuleLogicalId];
+
+      expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::ListenerRule');
+      expect(rule.Properties.Conditions).to.have.length(1);
+      expect(rule.Properties.Conditions[0].Field).to.equal('path-pattern');
+      expect(rule.Properties.Conditions[0].Values).to.have.length(1);
+      expect(rule.Properties.Conditions[0].Values[0]).to.equal('/');
+    });
+  });
 });
