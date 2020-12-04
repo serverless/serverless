@@ -164,6 +164,13 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           configExt: {
             service: 'my-service',
             provider: {
+              iamRoleStatements: [
+                {
+                  Effect: 'Allow',
+                  Resource: '*',
+                  NotAction: 'iam:DeleteUser',
+                },
+              ],
               vpc: {
                 securityGroupIds: ['xxx'],
                 subnetIds: ['xxx'],
@@ -184,31 +191,11 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       it('should support `provider.iamRoleStatements`', async () => {
-        const {
-          cfTemplate: { Resources },
-          awsNaming,
-        } = await runServerless({
-          fixture: 'function',
-          cliArgs: ['package'],
-          configExt: {
-            provider: {
-              iamRoleStatements: [
-                {
-                  Effect: 'Allow',
-                  Resource: '*',
-                  NotAction: 'iam:DeleteUser',
-                },
-              ],
-            },
-          },
-        });
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const iamResource = cfResources[IamRoleLambdaExecution];
+        const { Statement } = iamResource.Properties.Policies[0].PolicyDocument;
 
-        const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
-        const iamResource = Resources[IamRoleLambdaExecution];
-
-        const statments = iamResource.Properties.Policies[0].PolicyDocument.Statement;
-
-        expect(statments).to.deep.includes({
+        expect(Statement).to.deep.includes({
           Effect: 'Allow',
           Resource: '*',
           NotAction: ['iam:DeleteUser'],
