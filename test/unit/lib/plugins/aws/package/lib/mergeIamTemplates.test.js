@@ -28,8 +28,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
-      const resourceIam = cfTemplate.Resources[IamRoleLambdaExecution];
-      expect(resourceIam).to.be.undefined;
+      expect(cfTemplate.Resources).to.not.have.property(IamRoleLambdaExecution);
     });
 
     it('should not create role resource with all functions having `functions[].role`', async () => {
@@ -52,8 +51,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       });
 
       const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
-      const resourceIam = cfTemplate.Resources[IamRoleLambdaExecution];
-      expect(resourceIam).to.be.undefined;
+      expect(cfTemplate.Resources).to.not.have.property(IamRoleLambdaExecution);
     });
   });
 
@@ -63,7 +61,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       let cfResources;
 
       before(async () => {
-        await runServerless({
+        const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
           cliArgs: ['package'],
           configExt: {
@@ -79,21 +77,18 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
               },
             },
           },
-        }).then(({ cfTemplate, awsNaming }) => {
-          cfResources = cfTemplate.Resources;
-          naming = awsNaming;
         });
+        cfResources = cfTemplate.Resources;
+        naming = awsNaming;
       });
 
       it('should not configure ManagedPolicyArns by default', () => {
-        // Replaces
         const IamRoleLambdaExecution = naming.getRoleLogicalId();
         const { Properties } = cfResources[IamRoleLambdaExecution];
         expect(Properties.ManagedPolicyArns).to.be.undefined;
       });
 
       it('should add logGroup access policies if there are functions', () => {
-        // Replaces
         const IamRoleLambdaExecution = naming.getRoleLogicalId();
         const { Properties } = cfResources[IamRoleLambdaExecution];
 
@@ -163,7 +158,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       let naming;
 
       before(async () => {
-        await runServerless({
+        const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
           cliArgs: ['package'],
           configExt: {
@@ -182,10 +177,10 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
               rolePermissionsBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
             },
           },
-        }).then(({ cfTemplate, awsNaming }) => {
-          cfResources = cfTemplate.Resources;
-          naming = awsNaming;
         });
+
+        cfResources = cfTemplate.Resources;
+        naming = awsNaming;
       });
 
       it('should support `provider.iamRoleStatements`', async () => {
@@ -282,7 +277,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 handler: 'index.handler',
                 disableLogs: true,
               },
-              functionWithVpc: {
+              fnWithVpc: {
                 handler: 'func.function.handler',
                 name: 'new-service-dev-func1',
                 vpc: {
