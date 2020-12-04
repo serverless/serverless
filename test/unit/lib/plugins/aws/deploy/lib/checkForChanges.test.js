@@ -1092,7 +1092,7 @@ describe('checkForChanges #2', () => {
                   'serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/compiled-cloudformation-template.json',
               })
               .returns({
-                Metadata: { filesha256: 'SR2Mu/JOUfvCHkOakMdXJJNBekv7yYptwBEuR+BblTU=' },
+                Metadata: { filesha256: 'P8d0U46tohyBFJp06rTa3SvmUzpfkkVDTxE/jssbqYM=' },
               });
 
             headObjectStub
