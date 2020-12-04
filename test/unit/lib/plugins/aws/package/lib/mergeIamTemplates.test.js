@@ -11,8 +11,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         cliArgs: ['package'],
       });
       const iamRoleLambdaExecution = awsNaming.getRoleLogicalId();
-      const resourceIam = cfTemplate.Resources[iamRoleLambdaExecution];
-      expect(resourceIam).to.be.undefined;
+      expect(cfTemplate.Resources).to.not.have.property(iamRoleLambdaExecution);
     });
 
     it('should not create role resource with `provider.role`', async () => {
@@ -85,7 +84,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       it('should not configure ManagedPolicyArns by default', () => {
         const IamRoleLambdaExecution = naming.getRoleLogicalId();
         const { Properties } = cfResources[IamRoleLambdaExecution];
-        expect(Properties.ManagedPolicyArns).to.be.undefined;
+        expect(Properties).to.not.have.property('ManagedPolicyArns');
       });
 
       it('should add logGroup access policies if there are functions', () => {
