@@ -323,6 +323,7 @@ describe('AwsCompileLayers', () => {
 });
 
 describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
+  const allowedAccount = 'arn:aws:iam::123456789012:root';
   let cfResources;
   let naming;
   let updateConfig;
@@ -337,6 +338,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
           layerRetain: {
             path: 'layer',
             retain: true,
+            allowedAccounts: [allowedAccount],
           },
         },
       },
@@ -358,7 +360,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   });
 
   describe('`layers[].retain` property', () => {
-    it('should ensure expected deletion policy', () => {
+    it('should ensure expected deletion policy for layer resource', () => {
       const layerResourceNamePrefix = naming.getLambdaLayerLogicalId('layerRetain');
       const layerResourceName = Object.keys(cfResources).find(resourceName =>
         resourceName.startsWith(layerResourceNamePrefix)
@@ -366,6 +368,19 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
       expect(layerResourceName).to.not.equal(layerResourceNamePrefix);
       const layerResource = cfResources[layerResourceName];
       expect(layerResource.DeletionPolicy).to.equal('Retain');
+    });
+
+    it('should ensure expected deletion policy for layer permission resource', () => {
+      const layerPermissionResourceNamePrefix = naming.getLambdaLayerPermissionLogicalId(
+        'layerRetain',
+        allowedAccount
+      );
+      const layerPermissionResourceName = Object.keys(cfResources).find(resourceName =>
+        resourceName.startsWith(layerPermissionResourceNamePrefix)
+      );
+      expect(layerPermissionResourceName).to.not.equal(layerPermissionResourceNamePrefix);
+      const layerPermissionResource = cfResources[layerPermissionResourceName];
+      expect(layerPermissionResource.DeletionPolicy).to.equal('Retain');
     });
 
     it('should ensure unique resource id per layer version', async () => {
