@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.15.0](https://github.com/serverless/serverless/compare/v2.14.0...v2.15.0) (2020-12-04)
+
+### Features
+
+- **AWS Lambda:**
+  - Basic container image support ([#8572](https://github.com/serverless/serverless/issues/8572)) ([c0ea4c1](https://github.com/serverless/serverless/commit/c0ea4c14615f90e93baa1dfccfe5b309680b42b1)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Increase memory limits per changes on AWS side ([#8569](https://github.com/serverless/serverless/issues/8569)) ([c5ae979](https://github.com/serverless/serverless/commit/c5ae9798d2feca03cbcf2290661a08442c2f1c7d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Fix `integration` schema ([#8574](https://github.com/serverless/serverless/issues/8574)) ([09231c0](https://github.com/serverless/serverless/commit/09231c059abdbab1f9a6ac371b8dc6e0784e72da)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.14.0](https://github.com/serverless/serverless/compare/v2.13.0...v2.14.0) (2020-12-01)
 
 ### Features
@@ -18,7 +30,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Features
 
 - **CLI:**
-  - Conditional support for `.env` files ([#8413](https://github.com/serverless/serverless/issues/8413)) ([d1a22c8](https://github.com/serverless/serverless/commit/d1a22c85f2220a2f4691255fb3b9961aeaa4abcb))([Piotr Grzesik](https://github.com/pgrzesik))
+  - Conditional support for `.env` files ([#8413](https://github.com/serverless/serverless/issues/8413)) ([d1a22c8](https://github.com/serverless/serverless/commit/d1a22c85f2220a2f4691255fb3b9961aeaa4abcb)) ([Piotr Grzesik](https://github.com/pgrzesik))
   - Improve general `--help` and remove `--verbose` option ([#8532](https://github.com/serverless/serverless/issues/8532)) ([4287494](https://github.com/serverless/serverless/commit/42874946fc7ff92323d3ce5643415449122d2f38)) ([Vinod Tahelyani](https://github.com/vinod-tahelyani))
 
 ### Bug Fixes
