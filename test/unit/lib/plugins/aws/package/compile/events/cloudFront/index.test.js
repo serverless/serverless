@@ -191,10 +191,10 @@ describe('AwsCompileCloudFrontEvents', () => {
       }).to.throw(Error, 'greater than 5');
     });
 
-    it('should throw if memorySize is greater than 3008 for origin-request or origin-response functions', () => {
+    it('should throw if memorySize is greater than 10240 for origin-request or origin-response functions', () => {
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
-          memorySize: 3009,
+          memorySize: 10241,
           events: [
             {
               cloudFront: {
@@ -208,11 +208,11 @@ describe('AwsCompileCloudFrontEvents', () => {
 
       expect(() => {
         awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 3008');
+      }).to.throw(Error, 'greater than 10240');
 
       awsCompileCloudFrontEvents.serverless.service.functions = {
         first: {
-          memorySize: 3009,
+          memorySize: 10241,
           events: [
             {
               cloudFront: {
@@ -226,7 +226,7 @@ describe('AwsCompileCloudFrontEvents', () => {
 
       expect(() => {
         awsCompileCloudFrontEvents.validate();
-      }).to.throw(Error, 'greater than 3008');
+      }).to.throw(Error, 'greater than 10240');
     });
 
     it('should throw if timeout is greater than 30 for origin-request or origin response functions', () => {

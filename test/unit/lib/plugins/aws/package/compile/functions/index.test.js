@@ -2599,6 +2599,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                   'arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-a1a1a1a1a1a1a1a1a',
               },
             },
+            fnImage: {
+              image:
+                '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+            },
           },
         },
       });
@@ -2897,6 +2901,28 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
         Resource: [arn],
       });
+    });
+
+    it('should support `functions[].image`', () => {
+      const functionServiceConfig = serviceConfig.functions.fnImage;
+      const functionCfLogicalId = naming.getLambdaLogicalId('fnImage');
+      const functionCfConfig = cfResources[functionCfLogicalId].Properties;
+
+      expect(functionCfConfig.Code).to.deep.equal({ ImageUri: functionServiceConfig.image });
+      expect(functionCfConfig).to.not.have.property('Handler');
+      expect(functionCfConfig).to.not.have.property('Runtime');
+
+      const imageDigest = functionServiceConfig.image.slice(
+        functionServiceConfig.image.lastIndexOf('@') + 1
+      );
+      expect(imageDigest).to.match(/^sha256:[a-f0-9]{64}$/);
+      const imageDigestSha = imageDigest.slice('sha256:'.length);
+      const versionCfConfig = Object.values(cfResources).find(
+        resource =>
+          resource.Type === 'AWS::Lambda::Version' &&
+          resource.Properties.FunctionName.Ref === functionCfLogicalId
+      ).Properties;
+      expect(versionCfConfig.CodeSha256).to.equal(imageDigestSha);
     });
   });
 
