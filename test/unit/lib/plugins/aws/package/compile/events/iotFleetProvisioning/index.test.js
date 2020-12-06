@@ -1,8 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const runServerless = require('../../../../../../../test/utils/run-serverless');
-const templateBody = require('../../../../../../../test/fixtures/iotFleetProvisioning/template.json');
+const runServerless = require('../../../../../../../../utils/run-serverless');
+const templateBody = require('../../../../../../../../fixtures/iotFleetProvisioning/template.json');
 
 chai.use(require('chai-as-promised'));
 
