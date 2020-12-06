@@ -10,12 +10,12 @@ provider:
 
 functions:
   registerDevice:
-    handler: index.registerDevice
+    handler: registerDevice.main
     environment:
       TEMPLATE_NAME:
         Ref: IotFleetProvisioningBasicIotProvisioningTemplate
   iotFleetProvisioningBasic:
-    handler: index.iotFleetPreProvisioningHook
+    handler: hook.main
     events:
       - iotFleetProvisioning:
           templateBody: ${file(template.json)}

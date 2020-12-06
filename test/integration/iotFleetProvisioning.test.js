@@ -1,6 +1,7 @@
 'use strict';
 
 const awsRequest = require('@serverless/test/aws-request');
+const { expect } = require('chai');
 const fixtures = require('../fixtures');
 const { deployService, removeService } = require('../utils/integration');
 const { resolveIotEndpoint } = require('../utils/iot');
@@ -26,23 +27,47 @@ describe('AWS - IoT Fleet Provisioning Integration Test', function() {
   });
 
   after(async () => {
+    const { certificates } = await awsRequest('Iot', 'listCertificates');
+    await awsRequest('Iot', 'detachThingPrincipal', {
+      thingName: 'IotDevice',
+      principal: certificates[0].certificateArn,
+    });
+    await awsRequest('Iot', 'detachPolicy', {
+      policyName: 'iotPolicy',
+      target: certificates[0].certificateArn,
+    });
+    await awsRequest('Iot', 'updateCertificate', {
+      certificateId: certificates[0].certificateId,
+      newStatus: 'INACTIVE',
+    });
+    await awsRequest('Iot', 'deleteCertificate', {
+      certificateId: certificates[0].certificateId,
+    });
+    await awsRequest('Iot', 'deleteThing', {
+      thingName: 'IotDevice',
+    });
     await removeService(servicePath);
   });
 
   it('setup a new IoT Thing with the provisioning template', async () => {
-    const [certificates, iotEndpoint] = await Promise.all([
+    const [{ certificatePem, keyPair }, iotEndpoint] = await Promise.all([
       awsRequest('Iot', 'createProvisioningClaim', {
         templateName: await resolveTemplateName(),
       }),
       resolveIotEndpoint(),
     ]);
+
     await awsRequest('Lambda', 'invoke', {
       FunctionName: `${stackName}-registerDevice`,
       InvocationType: 'RequestResponse',
       Payload: JSON.stringify({
         iotEndpoint,
-        ...certificates,
+        certificatePem,
+        privateKey: keyPair.PrivateKey,
       }),
     });
+
+    const { things } = await awsRequest('Iot', 'listThings');
+    expect(things[0].thingName).to.equal('IotDevice');
   });
 });

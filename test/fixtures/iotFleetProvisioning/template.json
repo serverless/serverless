@@ -1,27 +1,24 @@
 {
-  "Parameters": {
-    "SerialNumber": {
-      "Type": "String"
-    },
-    "AWS::IoT::Certificate::Id": {
-      "Type": "String"
-    }
-  },
+  "Parameters": {},
   "Resources": {
     "certificate": {
+      "Type": "AWS::IoT::Certificate",
       "Properties": {
-        "CertificateId": {
-          "Ref": "AWS::IoT::Certificate::Id"
-        },
+        "CertificateId": { "Ref": "AWS::IoT::Certificate::Id" },
         "Status": "Active"
-      },
-      "Type": "AWS::IoT::Certificate"
+      }
     },
     "policy": {
       "Properties": {
         "PolicyName": "iotPolicy"
       },
       "Type": "AWS::IoT::Policy"
+    },
+    "thing": {
+      "Type": "AWS::IoT::Thing",
+      "Properties": {
+        "ThingName": "IotDevice"
+      }
     }
   }
 }
