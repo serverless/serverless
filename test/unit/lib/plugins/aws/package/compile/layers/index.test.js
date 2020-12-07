@@ -366,6 +366,16 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
       expect(layerResourceName).to.not.equal(layerResourceNamePrefix);
       const layerResource = cfResources[layerResourceName];
       expect(layerResource.DeletionPolicy).to.equal('Retain');
+
+      const layerPermissionResourceNamePrefix = naming.getLambdaLayerPermissionLogicalId(
+        'layerRetain'
+      );
+      const layerPermissionResourceName = Object.keys(cfResources).find(resourceName =>
+        resourceName.startsWith(layerPermissionResourceNamePrefix)
+      );
+      expect(layerPermissionResourceName).to.not.equal(layerPermissionResourceNamePrefix);
+      const layerPermissionResource = cfResources[layerPermissionResourceName];
+      expect(layerPermissionResource.DeletionPolicy).to.equal('Retain');
     });
 
     it('should ensure unique resource id per layer version', async () => {
