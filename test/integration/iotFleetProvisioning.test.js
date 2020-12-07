@@ -30,24 +30,28 @@ describe('test/integration/iotFleetProvisioning.test.js', function() {
     const {
       certificates: [{ certificateArn, certificateId }],
     } = await awsRequest('Iot', 'listCertificates');
-    await awsRequest('Iot', 'detachThingPrincipal', {
-      thingName: 'IotDevice',
-      principal: certificateArn,
-    });
-    await awsRequest('Iot', 'detachPolicy', {
-      policyName: 'iotPolicy',
-      target: certificateArn,
-    });
-    await awsRequest('Iot', 'updateCertificate', {
-      certificateId,
-      newStatus: 'INACTIVE',
-    });
-    await awsRequest('Iot', 'deleteCertificate', {
-      certificateId,
-    });
-    await awsRequest('Iot', 'deleteThing', {
-      thingName: 'IotDevice',
-    });
+    await Promise.all([
+      awsRequest('Iot', 'detachThingPrincipal', {
+        thingName: 'IotDevice',
+        principal: certificateArn,
+      }),
+      awsRequest('Iot', 'detachPolicy', {
+        policyName: 'iotPolicy',
+        target: certificateArn,
+      }),
+      awsRequest('Iot', 'updateCertificate', {
+        certificateId,
+        newStatus: 'INACTIVE',
+      }),
+    ]);
+    await Promise.all([
+      awsRequest('Iot', 'deleteThing', {
+        thingName: 'IotDevice',
+      }),
+      awsRequest('Iot', 'deleteCertificate', {
+        certificateId,
+      }),
+    ]);
     await removeService(servicePath);
   });
 
