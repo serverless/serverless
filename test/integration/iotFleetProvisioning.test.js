@@ -6,7 +6,7 @@ const fixtures = require('../fixtures');
 const { deployService, removeService } = require('../utils/integration');
 const { resolveIotEndpoint } = require('../utils/iot');
 
-describe('AWS - IoT Fleet Provisioning Integration Test', function() {
+describe('test/integration/iotFleetProvisioning.test.js', function() {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let servicePath;

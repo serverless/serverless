@@ -8,7 +8,7 @@ chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
 
-describe('AwsCompileIoTFleetProvisioningEvents', () => {
+describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test.js', () => {
   const functionName = 'iotFleetProvisioningBasic';
   let cfResources;
   let naming;
