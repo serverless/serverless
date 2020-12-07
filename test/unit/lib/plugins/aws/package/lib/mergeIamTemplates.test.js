@@ -35,14 +35,11 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         fixture: 'function',
         cliArgs: ['package'],
         configExt: {
-          service: 'another-service',
           functions: {
             foo: {
-              handler: 'index.handler',
               role: 'some:aws:arn:xx1:*:*',
             },
             other: {
-              handler: 'index.handler',
               role: 'some:aws:arn:xx1:*:*',
             },
           },
@@ -58,13 +55,14 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     describe('Defaults', () => {
       let naming;
       let cfResources;
+      let service;
+      const arnLogPrefix = 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}';
 
       before(async () => {
-        const { cfTemplate, awsNaming } = await runServerless({
+        const test = await runServerless({
           fixture: 'function',
           cliArgs: ['package'],
           configExt: {
-            service: 'another-service',
             functions: {
               myFunction: {
                 handler: 'index.handler',
@@ -77,8 +75,10 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
             },
           },
         });
+        const { cfTemplate, awsNaming, fixtureData } = test;
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
+        service = fixtureData.serviceConfig.service;
       });
 
       it('should not configure ManagedPolicyArns by default', () => {
@@ -98,16 +98,14 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           'logs:CreateLogGroup',
         ]);
         expect(createLogStatement.Resource).to.deep.includes({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/another-service-dev*:*',
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*`,
         });
 
         const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
         expect(putLogStatement.Effect).to.be.equal('Allow');
         expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
         expect(putLogStatement.Resource).to.deep.includes({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/another-service-dev*:*:*',
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*:*`,
         });
       });
 
@@ -122,16 +120,14 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           'logs:CreateLogGroup',
         ]);
         expect(createLogStatement.Resource).to.deep.includes({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/myCustomName:*',
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*`,
         });
 
         const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
         expect(putLogStatement.Effect).to.be.equal('Allow');
         expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
         expect(putLogStatement.Resource).to.deep.includes({
-          'Fn::Sub':
-            'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/myCustomName:*:*',
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*:*`,
         });
       });
 
@@ -147,7 +143,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
 
         expect(myFunctionResource.Type).to.be.equal('AWS::Logs::LogGroup');
         expect(myFunctionResource.Properties.LogGroupName).to.be.equal(
-          '/aws/lambda/another-service-dev-myFunction'
+          `/aws/lambda/${service}-dev-myFunction`
         );
       });
     });
@@ -265,7 +261,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
               },
               fnWithVpc: {
                 handler: 'func.function.handler',
-                name: 'new-service-dev-func1',
                 vpc: {
                   securityGroupIds: ['xxx'],
                   subnetIds: ['xxx'],
