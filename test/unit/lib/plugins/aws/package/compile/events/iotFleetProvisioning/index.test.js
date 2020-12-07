@@ -71,8 +71,8 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
   });
 
   describe('With enabled parameter', () => {
-    before(() =>
-      runServerless({
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
           functions: {
@@ -91,11 +91,10 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
           },
         },
         cliArgs: ['package'],
-      }).then(({ awsNaming, cfTemplate }) => {
-        ({ Resources: cfResources } = cfTemplate);
-        naming = awsNaming;
-      })
-    );
+      });
+      ({ Resources: cfResources } = cfTemplate);
+      naming = awsNaming;
+    });
 
     it('should allow disabling of a provisioning template', () => {
       const iotProvisioningTemplateResource =
@@ -105,8 +104,8 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
   });
 
   describe('With templateName parameter', () => {
-    before(() =>
-      runServerless({
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
           functions: {
@@ -125,11 +124,9 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
           },
         },
         cliArgs: ['package'],
-      }).then(({ awsNaming, cfTemplate }) => {
-        ({ Resources: cfResources } = cfTemplate);
-        naming = awsNaming;
-      })
-    );
+      })(({ Resources: cfResources } = cfTemplate));
+      naming = awsNaming;
+    });
 
     it('should allow customization of a provisioning template TemplateName', () => {
       const iotProvisioningTemplateResource =
