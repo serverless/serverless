@@ -7,12 +7,16 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
   let cfResources;
   let naming;
 
+  const baseEventConfig = {
+    listenerArn:
+      'arn:aws:elasticloadbalancing:' +
+      'us-east-1:123456789012:listener/app/my-load-balancer/' +
+      '50dc6c495c0c9188/f2f7dc8efc522ab2',
+  };
+
   before(async () => {
-    const baseEventConfig = {
-      listenerArn:
-        'arn:aws:elasticloadbalancing:' +
-        'us-east-1:123456789012:listener/app/my-load-balancer/' +
-        '50dc6c495c0c9188/f2f7dc8efc522ab2',
+    const validBaseEventConfig = {
+      ...baseEventConfig,
       conditions: {
         path: '/',
       },
@@ -43,15 +47,25 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
         functions: {
           fnAuthorizerOnUnauthenticatedRequestDeny: {
             handler: 'index.handler',
-            events: [{ alb: { ...baseEventConfig, priority: 1, authorizer: 'deny' } }],
+            events: [{ alb: { ...validBaseEventConfig, priority: 1, authorizer: 'deny' } }],
           },
           fnAuthorizerOnUnauthenticatedRequestAllow: {
             handler: 'index.handler',
-            events: [{ alb: { ...baseEventConfig, priority: 2, authorizer: 'allow' } }],
+            events: [{ alb: { ...validBaseEventConfig, priority: 2, authorizer: 'allow' } }],
           },
           fnAuthorizerOnUnauthenticatedRequestAuthenticate: {
             handler: 'index.handler',
-            events: [{ alb: { ...baseEventConfig, priority: 3, authorizer: 'authenticate' } }],
+            events: [{ alb: { ...validBaseEventConfig, priority: 3, authorizer: 'authenticate' } }],
+          },
+          fnConditionsHostOnly: {
+            handler: 'index.handler',
+            events: [
+              { alb: { ...baseEventConfig, priority: 4, conditions: { host: 'example.com' } } },
+            ],
+          },
+          fnConditionsPathOnly: {
+            handler: 'index.handler',
+            events: [{ alb: { ...baseEventConfig, priority: 5, conditions: { path: '/' } } }],
           },
         },
       },
@@ -118,62 +132,12 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
   });
 
   describe('alb rule conditions', () => {
-    const albBaseEventConfig = {
-      listenerArn:
-        'arn:aws:elasticloadbalancing:' +
-        'us-east-1:123456789012:listener/app/my-load-balancer/' +
-        '50dc6c495c0c9188/f2f7dc8efc522ab2',
-    };
-
-    let myCfResources;
-    beforeEach(async () => {
-      const {
-        cfTemplate: { Resources: c },
-      } = await runServerless({
-        fixture: 'function',
-        cliArgs: ['package'],
-        configExt: {
-          functions: {
-            fnConditionsHostOnly: {
-              handler: 'index.handler',
-              events: [
-                {
-                  alb: {
-                    ...albBaseEventConfig,
-                    priority: 1,
-                    conditions: {
-                      host: 'example.com',
-                    },
-                  },
-                },
-              ],
-            },
-            fnConditionsPathOnly: {
-              handler: 'index.handler',
-              events: [
-                {
-                  alb: {
-                    ...albBaseEventConfig,
-                    priority: 2,
-                    conditions: {
-                      path: '/',
-                    },
-                  },
-                },
-              ],
-            },
-          },
-        },
-      });
-      myCfResources = c;
-    });
-
     it('should support rule without path', () => {
       const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
         'fnConditionsHostOnly',
-        1
+        4
       );
-      const rule = myCfResources[albListenerRuleLogicalId];
+      const rule = cfResources[albListenerRuleLogicalId];
 
       expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::ListenerRule');
       expect(rule.Properties.Conditions).to.have.length(1);
@@ -185,9 +149,9 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
     it('should should support rule with path', () => {
       const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
         'fnConditionsPathOnly',
-        2
+        5
       );
-      const rule = myCfResources[albListenerRuleLogicalId];
+      const rule = cfResources[albListenerRuleLogicalId];
 
       expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::ListenerRule');
       expect(rule.Properties.Conditions).to.have.length(1);
@@ -207,7 +171,7 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
               events: [
                 {
                   alb: {
-                    ...albBaseEventConfig,
+                    ...baseEventConfig,
                     priority: 1,
                     conditions: {},
                   },
