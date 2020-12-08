@@ -504,6 +504,39 @@ describe('HttpApiEvents', () => {
     });
   });
 
+  describe('Throttling', () => {
+    let cfResources;
+    let naming;
+    before(() =>
+      runServerless({
+        fixture: 'httpApi',
+        configExt: {
+          provider: {
+            httpApi: {
+              throttle: {
+                burstLimit: 100,
+                rateLimit: 200,
+              },
+            },
+          },
+        },
+        cliArgs: ['package'],
+      }).then(({ awsNaming, cfTemplate }) => {
+        cfResources = cfTemplate.Resources;
+        naming = awsNaming;
+      })
+    );
+
+    it('Should configure burst limit', () => {
+      const resource = cfResources[naming.getHttpApiStageLogicalId()];
+      expect(resource.Properties.DefaultRouteSettings.ThrottlingBurstLimit).to.equal(100);
+    });
+    it('Should configure rate limit', () => {
+      const resource = cfResources[naming.getHttpApiStageLogicalId()];
+      expect(resource.Properties.DefaultRouteSettings.ThrottlingRateLimit).to.equal(200);
+    });
+  });
+
   describe('External HTTP API', () => {
     let cfResources;
     let cfOutputs;
