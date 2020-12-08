@@ -151,13 +151,13 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     describe('Provider properties', () => {
       let cfResources;
       let naming;
+      let service;
 
       before(async () => {
-        const { cfTemplate, awsNaming } = await runServerless({
+        const { cfTemplate, awsNaming, fixtureData } = await runServerless({
           fixture: 'function',
           cliArgs: ['package'],
           configExt: {
-            service: 'my-service',
             provider: {
               iamRoleStatements: [
                 {
@@ -183,6 +183,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
 
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
+        service = fixtureData.serviceConfig.service;
       });
 
       it('should support `provider.iamRoleStatements`', async () => {
@@ -240,7 +241,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         const iamResource = cfResources[normalizedName];
         expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
         expect(iamResource.Properties.RetentionInDays).to.be.equal(5);
-        expect(iamResource.Properties.LogGroupName).to.be.equal('/aws/lambda/my-service-dev-foo');
+        expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-foo`);
       });
     });
 
@@ -260,7 +261,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 disableLogs: true,
               },
               fnWithVpc: {
-                handler: 'func.function.handler',
+                handler: 'index.handler',
                 vpc: {
                   securityGroupIds: ['xxx'],
                   subnetIds: ['xxx'],
