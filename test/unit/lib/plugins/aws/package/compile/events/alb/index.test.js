@@ -1,7 +1,7 @@
 'use strict';
 
 const runServerless = require('../../../../../../../../utils/run-serverless');
-const { expect } = require('chai');
+const { expect, assert } = require('chai');
 
 describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
   let cfResources;
@@ -117,56 +117,60 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
     });
   });
 
-  describe('path should be optional', async () => {
-    const baseEventConfig = {
+  describe('alb rule conditions', () => {
+    const albBaseEventConfig = {
       listenerArn:
         'arn:aws:elasticloadbalancing:' +
         'us-east-1:123456789012:listener/app/my-load-balancer/' +
         '50dc6c495c0c9188/f2f7dc8efc522ab2',
     };
 
-    const {
-      cfTemplate: { Resources: myCfResources },
-    } = await runServerless({
-      fixture: 'function',
-      cliArgs: ['package'],
-      configExt: {
-        functions: {
-          functionWithHostOnly: {
-            handler: 'index.handler',
-            events: [
-              {
-                alb: {
-                  ...baseEventConfig,
-                  priority: 1,
-                  conditions: {
-                    host: 'example.com',
+    let myCfResources;
+    beforeEach(async () => {
+      const {
+        cfTemplate: { Resources: c },
+      } = await runServerless({
+        fixture: 'function',
+        cliArgs: ['package'],
+        configExt: {
+          functions: {
+            fnConditionsHostOnly: {
+              handler: 'index.handler',
+              events: [
+                {
+                  alb: {
+                    ...albBaseEventConfig,
+                    priority: 1,
+                    conditions: {
+                      host: 'example.com',
+                    },
                   },
                 },
-              },
-            ],
-          },
-          functionWithPathOnly: {
-            handler: 'index.handler',
-            events: [
-              {
-                alb: {
-                  ...baseEventConfig,
-                  priority: 2,
-                  conditions: {
-                    path: '/',
+              ],
+            },
+            fnConditionsPathOnly: {
+              handler: 'index.handler',
+              events: [
+                {
+                  alb: {
+                    ...albBaseEventConfig,
+                    priority: 2,
+                    conditions: {
+                      path: '/',
+                    },
                   },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      },
+      });
+      myCfResources = c;
     });
 
-    it('should should support rule without path', () => {
+    it('should support rule without path', () => {
       const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
-        'functionWithHostOnly',
+        'fnConditionsHostOnly',
         1
       );
       const rule = myCfResources[albListenerRuleLogicalId];
@@ -180,8 +184,8 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
 
     it('should should support rule with path', () => {
       const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
-        'functionWithHostOnly',
-        1
+        'fnConditionsPathOnly',
+        2
       );
       const rule = myCfResources[albListenerRuleLogicalId];
 
@@ -190,6 +194,36 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
       expect(rule.Properties.Conditions[0].Field).to.equal('path-pattern');
       expect(rule.Properties.Conditions[0].Values).to.have.length(1);
       expect(rule.Properties.Conditions[0].Values[0]).to.equal('/');
+    });
+
+    it('should fail validation if no conditions are set', () => {
+      return runServerless({
+        fixture: 'function',
+        cliArgs: ['package'],
+        configExt: {
+          functions: {
+            fnConditionsHostOnly: {
+              handler: 'index.handler',
+              events: [
+                {
+                  alb: {
+                    ...albBaseEventConfig,
+                    priority: 1,
+                    conditions: {},
+                  },
+                },
+              ],
+            },
+          },
+        },
+      }).then(
+        () => Promise.reject('Expected to fail'),
+        r =>
+          assert.equal(
+            r,
+            'ServerlessError: At least 1 condition for alb event must be set in function "fnConditionsHostOnly".'
+          )
+      );
     });
   });
 });
