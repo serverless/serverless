@@ -3,865 +3,245 @@
 const expect = require('chai').expect;
 const runServerless = require('../../../../../../utils/run-serverless');
 
-const Serverless = require('../../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
-
-describe('#mergeIamTemplates()', () => {
-  let awsPackage;
-  let serverless;
-  const serviceName = 'new-service';
-  const functionName = 'test';
-  const stage = 'dev';
-  const resolvedFunctionName = `${serviceName}-${stage}-${functionName}`;
-
-  beforeEach(() => {
-    serverless = new Serverless();
-    const options = {
-      stage,
-      region: 'us-east-1',
-    };
-    serverless.setProvider('aws', new AwsProvider(serverless, options));
-    awsPackage = new AwsPackage(serverless, options);
-    awsPackage.serverless.cli = new serverless.classes.CLI();
-    awsPackage.serverless.service.provider.compiledCloudFormationTemplate = {
-      Resources: {},
-    };
-    awsPackage.serverless.service.service = serviceName;
-    awsPackage.serverless.service.functions = {
-      [functionName]: {
-        artifact: 'test.zip',
-        handler: 'handler.hello',
-      },
-    };
-    serverless.service.setFunctionNames(); // Ensure to resolve function names
-  });
-
-  it('should not merge if there are no functions', () => {
-    awsPackage.serverless.service.functions = {};
-
-    return awsPackage.mergeIamTemplates().then(() => {
-      const resources =
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-
-      return expect(resources[awsPackage.provider.naming.getRoleLogicalId()]).to.not.exist;
-    });
-  });
-
-  it('should merge the IamRoleLambdaExecution template into the CloudFormation template', () =>
-    awsPackage.mergeIamTemplates().then(() => {
-      const canonicalFunctionsPrefix = `${
-        awsPackage.serverless.service.service
-      }-${awsPackage.provider.getStage()}`;
-
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ]
-      ).to.deep.equal({
-        Type: 'AWS::IAM::Role',
-        Properties: {
-          AssumeRolePolicyDocument: {
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Principal: {
-                  Service: ['lambda.amazonaws.com'],
-                },
-                Action: ['sts:AssumeRole'],
-              },
-            ],
-          },
-          Path: '/',
-          Policies: [
-            {
-              PolicyName: {
-                'Fn::Join': [
-                  '-',
-                  [awsPackage.serverless.service.service, awsPackage.provider.getStage(), 'lambda'],
-                ],
-              },
-              PolicyDocument: {
-                Version: '2012-10-17',
-                Statement: [
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:CreateLogStream', 'logs:CreateLogGroup'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${canonicalFunctionsPrefix}*:*`,
-                      },
-                    ],
-                  },
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:PutLogEvents'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${canonicalFunctionsPrefix}*:*:*`,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-          RoleName: {
-            'Fn::Join': [
-              '-',
-              [
-                awsPackage.serverless.service.service,
-                awsPackage.provider.getStage(),
-                {
-                  Ref: 'AWS::Region',
-                },
-                'lambdaRole',
-              ],
-            ],
-          },
-        },
-      });
-    }));
-
-  it('should ensure IAM policies when service contains only custom named functions', () => {
-    const customFunctionName = 'foo-bar';
-    awsPackage.serverless.service.functions = {
-      [functionName]: {
-        name: customFunctionName,
-        artifact: 'test.zip',
-        handler: 'handler.hello',
-      },
-    };
-    serverless.service.setFunctionNames(); // Ensure to resolve function names
-
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ]
-      ).to.deep.equal({
-        Type: 'AWS::IAM::Role',
-        Properties: {
-          AssumeRolePolicyDocument: {
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Principal: {
-                  Service: ['lambda.amazonaws.com'],
-                },
-                Action: ['sts:AssumeRole'],
-              },
-            ],
-          },
-          Path: '/',
-          Policies: [
-            {
-              PolicyName: {
-                'Fn::Join': [
-                  '-',
-                  [awsPackage.serverless.service.service, awsPackage.provider.getStage(), 'lambda'],
-                ],
-              },
-              PolicyDocument: {
-                Version: '2012-10-17',
-                Statement: [
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:CreateLogStream', 'logs:CreateLogGroup'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${customFunctionName}:*`,
-                      },
-                    ],
-                  },
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:PutLogEvents'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${customFunctionName}:*:*`,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-          RoleName: {
-            'Fn::Join': [
-              '-',
-              [
-                awsPackage.serverless.service.service,
-                awsPackage.provider.getStage(),
-                {
-                  Ref: 'AWS::Region',
-                },
-                'lambdaRole',
-              ],
-            ],
-          },
-        },
-      });
-    });
-  });
-
-  it('should ensure IAM policies when service contains only canonically named functions', () => {
-    awsPackage.serverless.service.functions = {
-      [functionName]: {
-        artifact: 'test.zip',
-        handler: 'handler.hello',
-      },
-    };
-    serverless.service.setFunctionNames(); // Ensure to resolve function names
-
-    return awsPackage.mergeIamTemplates().then(() => {
-      const canonicalFunctionsPrefix = `${
-        awsPackage.serverless.service.service
-      }-${awsPackage.provider.getStage()}`;
-
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ]
-      ).to.deep.equal({
-        Type: 'AWS::IAM::Role',
-        Properties: {
-          AssumeRolePolicyDocument: {
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Principal: {
-                  Service: ['lambda.amazonaws.com'],
-                },
-                Action: ['sts:AssumeRole'],
-              },
-            ],
-          },
-          Path: '/',
-          Policies: [
-            {
-              PolicyName: {
-                'Fn::Join': [
-                  '-',
-                  [awsPackage.serverless.service.service, awsPackage.provider.getStage(), 'lambda'],
-                ],
-              },
-              PolicyDocument: {
-                Version: '2012-10-17',
-                Statement: [
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:CreateLogStream', 'logs:CreateLogGroup'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${canonicalFunctionsPrefix}*:*`,
-                      },
-                    ],
-                  },
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:PutLogEvents'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${canonicalFunctionsPrefix}*:*:*`,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-          RoleName: {
-            'Fn::Join': [
-              '-',
-              [
-                awsPackage.serverless.service.service,
-                awsPackage.provider.getStage(),
-                {
-                  Ref: 'AWS::Region',
-                },
-                'lambdaRole',
-              ],
-            ],
-          },
-        },
-      });
-    });
-  });
-
-  it('should ensure IAM policies for custom and canonically named functions', () => {
-    const customFunctionName = 'foo-bar';
-    awsPackage.serverless.service.functions = {
-      [functionName]: {
-        name: customFunctionName,
-        artifact: 'test.zip',
-        handler: 'handler.hello',
-      },
-      test2: {
-        artifact: 'test.zip',
-        handler: 'handler.hello',
-      },
-    };
-    serverless.service.setFunctionNames(); // Ensure to resolve function names
-
-    return awsPackage.mergeIamTemplates().then(() => {
-      const canonicalFunctionsPrefix = `${
-        awsPackage.serverless.service.service
-      }-${awsPackage.provider.getStage()}`;
-
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ]
-      ).to.deep.equal({
-        Type: 'AWS::IAM::Role',
-        Properties: {
-          AssumeRolePolicyDocument: {
-            Version: '2012-10-17',
-            Statement: [
-              {
-                Effect: 'Allow',
-                Principal: {
-                  Service: ['lambda.amazonaws.com'],
-                },
-                Action: ['sts:AssumeRole'],
-              },
-            ],
-          },
-          Path: '/',
-          Policies: [
-            {
-              PolicyName: {
-                'Fn::Join': [
-                  '-',
-                  [awsPackage.serverless.service.service, awsPackage.provider.getStage(), 'lambda'],
-                ],
-              },
-              PolicyDocument: {
-                Version: '2012-10-17',
-                Statement: [
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:CreateLogStream', 'logs:CreateLogGroup'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${customFunctionName}:*`,
-                      },
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${canonicalFunctionsPrefix}*:*`,
-                      },
-                    ],
-                  },
-                  {
-                    Effect: 'Allow',
-                    Action: ['logs:PutLogEvents'],
-                    Resource: [
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${customFunctionName}:*:*`,
-                      },
-                      {
-                        'Fn::Sub':
-                          'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:' +
-                          `log-group:/aws/lambda/${canonicalFunctionsPrefix}*:*:*`,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-          RoleName: {
-            'Fn::Join': [
-              '-',
-              [
-                awsPackage.serverless.service.service,
-                awsPackage.provider.getStage(),
-                {
-                  Ref: 'AWS::Region',
-                },
-                'lambdaRole',
-              ],
-            ],
-          },
-        },
-      });
-    });
-  });
-
-  it('should add custom IAM policy statements', () => {
-    awsPackage.serverless.service.provider.iamRoleStatements = [
-      {
-        Effect: 'Allow',
-        Action: ['something:SomethingElse'],
-        Resource: 'some:aws:arn:xxx:*:*',
-      },
-    ];
-
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ].Properties.Policies[0].PolicyDocument.Statement[2]
-      ).to.deep.equal(awsPackage.serverless.service.provider.iamRoleStatements[0]);
-    });
-  });
-
-  it('should add managed policy arns', () => {
-    awsPackage.serverless.service.provider.iamManagedPolicies = [
-      'some:aws:arn:xxx:*:*',
-      'someOther:aws:arn:xxx:*:*',
-      { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWSAccountId' }, 'some/path']] },
-    ];
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ].Properties.ManagedPolicyArns
-      ).to.deep.equal(awsPackage.serverless.service.provider.iamManagedPolicies);
-    });
-  });
-
-  it('should add permission boundary arn', () => {
-    awsPackage.serverless.service.provider.rolePermissionsBoundary =
-      'arn:aws:iam::123456789012:policy/XCompanyBoundaries';
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ].Properties.PermissionsBoundary
-      ).to.deep.equal(awsPackage.serverless.service.provider.rolePermissionsBoundary);
-    });
-  });
-
-  it('should merge managed policy arns when vpc config supplied', () => {
-    awsPackage.serverless.service.provider.vpc = {
-      securityGroupIds: ['xxx'],
-      subnetIds: ['xxx'],
-    };
-    const iamManagedPolicies = [
-      'some:aws:arn:xxx:*:*',
-      'someOther:aws:arn:xxx:*:*',
-      { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWSAccountId' }, 'some/path']] },
-    ];
-    awsPackage.serverless.service.provider.iamManagedPolicies = iamManagedPolicies;
-    const expectedManagedPolicyArns = [
-      'some:aws:arn:xxx:*:*',
-      'someOther:aws:arn:xxx:*:*',
-      { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWSAccountId' }, 'some/path']] },
-      {
-        'Fn::Join': [
-          '',
-          [
-            'arn:',
-            { Ref: 'AWS::Partition' },
-            ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
-          ],
-        ],
-      },
-    ];
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ].Properties.ManagedPolicyArns
-      ).to.deep.equal(expectedManagedPolicyArns);
-    });
-  });
-
-  it('should not throw error if a custom IAM policy statement has a NotAction field', () => {
-    awsPackage.serverless.service.provider.iamRoleStatements = [
-      {
-        Effect: 'Allow',
-        Resource: '*',
-        NotAction: 'iam:DeleteUser',
-      },
-    ];
-
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ].Properties.Policies[0].PolicyDocument.Statement[2]
-      ).to.deep.equal(awsPackage.serverless.service.provider.iamRoleStatements[0]);
-    });
-  });
-
-  it('should not throw error if a custom IAM policy statement has a NotResource field', () => {
-    awsPackage.serverless.service.provider.iamRoleStatements = [
-      {
-        Action: ['something:SomethingElse'],
-        Effect: 'Allow',
-        NotResource: 'arn:aws:sns:*:*:*',
-      },
-    ];
-
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsPackage.provider.naming.getRoleLogicalId()
-        ].Properties.Policies[0].PolicyDocument.Statement[2]
-      ).to.deep.equal(awsPackage.serverless.service.provider.iamRoleStatements[0]);
-    });
-  });
-
-  it('should add RetentionInDays to a CloudWatch LogGroup resource if logRetentionInDays is given', () => {
-    awsPackage.serverless.service.provider.logRetentionInDays = 5;
-    const normalizedName = awsPackage.provider.naming.getLogGroupLogicalId(functionName);
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          normalizedName
-        ]
-      ).to.deep.equal({
-        Type: 'AWS::Logs::LogGroup',
-        Properties: {
-          LogGroupName: awsPackage.provider.naming.getLogGroupName(resolvedFunctionName),
-          RetentionInDays: 5,
-        },
-      });
-    });
-  });
-
-  it('should add a CloudWatch LogGroup resource if all functions use custom roles', () => {
-    awsPackage.serverless.service.functions[functionName].role = 'something';
-    awsPackage.serverless.service.functions = {
-      func0: {
-        handler: 'func.function.handler',
-        name: 'func0',
-      },
-      func1: {
-        handler: 'func.function.handler',
-        name: 'func1',
-      },
-    };
-    const f = awsPackage.serverless.service.functions;
-    const normalizedNames = [
-      awsPackage.provider.naming.getLogGroupLogicalId(f.func0.name),
-      awsPackage.provider.naming.getLogGroupLogicalId(f.func1.name),
-    ];
-    return awsPackage.mergeIamTemplates().then(() => {
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          normalizedNames[0]
-        ]
-      ).to.deep.equal({
-        Type: 'AWS::Logs::LogGroup',
-        Properties: {
-          LogGroupName: awsPackage.provider.naming.getLogGroupName(f.func0.name),
-        },
-      });
-      expect(
-        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          normalizedNames[1]
-        ]
-      ).to.deep.equal({
-        Type: 'AWS::Logs::LogGroup',
-        Properties: {
-          LogGroupName: awsPackage.provider.naming.getLogGroupName(f.func1.name),
-        },
-      });
-    });
-  });
-
-  it('should add default role if one of the functions has an ARN role', () => {
-    awsPackage.serverless.service.functions = {
-      func0: {
-        handler: 'func.function.handler',
-        name: 'new-service-dev-func0',
-        // obtain role from provider
-      },
-      func1: {
-        handler: 'func.function.handler',
-        name: 'new-service-dev-func1',
-        role: 'some:aws:arn:xx1:*:*',
-      },
-    };
-
-    return awsPackage
-      .mergeIamTemplates()
-      .then(
-        () =>
-          expect(
-            awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-              awsPackage.provider.naming.getRoleLogicalId()
-            ]
-          ).to.exist
-      );
-  });
-
-  it('should not add the default role if role is defined on a provider level', () => {
-    awsPackage.serverless.service.provider.role = 'some:aws:arn:xxx:*:*';
-    awsPackage.serverless.service.functions = {
-      func0: {
-        handler: 'func.function.handler',
-        name: 'new-service-dev-func0',
-      },
-      func1: {
-        handler: 'func.function.handler',
-        name: 'new-service-dev-func1',
-      },
-    };
-
-    return awsPackage
-      .mergeIamTemplates()
-      .then(
-        () =>
-          expect(
-            awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-              awsPackage.provider.naming.getRoleLogicalId()
-            ]
-          ).to.not.exist
-      );
-  });
-
-  it('should not add the default role if all functions have an ARN role', () => {
-    awsPackage.serverless.service.functions = {
-      func0: {
-        handler: 'func.function.handler',
-        name: 'new-service-dev-func0',
-        role: 'some:aws:arn:xx0:*:*',
-      },
-      func1: {
-        handler: 'func.function.handler',
-        name: 'new-service-dev-func1',
-        role: 'some:aws:arn:xx1:*:*',
-      },
-    };
-
-    return awsPackage
-      .mergeIamTemplates()
-      .then(
-        () =>
-          expect(
-            awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-              awsPackage.provider.naming.getRoleLogicalId()
-            ]
-          ).to.not.exist
-      );
-  });
-
-  describe('ManagedPolicyArns property', () => {
-    it('should not be added by default', () => {
-      awsPackage.serverless.service.functions = {
-        func0: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func0',
-        },
-      };
-
-      return awsPackage
-        .mergeIamTemplates()
-        .then(
-          () =>
-            expect(
-              awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-                awsPackage.provider.naming.getRoleLogicalId()
-              ].Properties.ManagedPolicyArns
-            ).to.not.exist
-        );
-    });
-
-    it('should be added if vpc config is defined on a provider level', () => {
-      awsPackage.serverless.service.provider.vpc = {
-        securityGroupIds: ['xxx'],
-        subnetIds: ['xxx'],
-      };
-
-      return awsPackage.mergeIamTemplates().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-            awsPackage.provider.naming.getRoleLogicalId()
-          ].Properties.ManagedPolicyArns
-        ).to.deep.equal([
-          {
-            'Fn::Join': [
-              '',
-              [
-                'arn:',
-                { Ref: 'AWS::Partition' },
-                ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
-              ],
-            ],
-          },
-        ]);
-      });
-    });
-
-    it('should be added if vpc config is defined on function level', () => {
-      awsPackage.serverless.service.functions = {
-        func0: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func0',
-        },
-        func1: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func1',
-          vpc: {
-            securityGroupIds: ['xxx'],
-            subnetIds: ['xxx'],
-          },
-        },
-      };
-
-      return awsPackage.mergeIamTemplates().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-            awsPackage.provider.naming.getRoleLogicalId()
-          ].Properties.ManagedPolicyArns
-        ).to.deep.equal([
-          {
-            'Fn::Join': [
-              '',
-              [
-                'arn:',
-                { Ref: 'AWS::Partition' },
-                ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
-              ],
-            ],
-          },
-        ]);
-      });
-    });
-
-    it('should not be added if vpc config is defined with role on function level', () => {
-      awsPackage.serverless.service.functions = {
-        func1: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func1',
-          role: 'some:aws:arn:xx1:*:*',
-          vpc: {
-            securityGroupIds: ['xxx'],
-            subnetIds: ['xxx'],
-          },
-        },
-      };
-
-      return awsPackage
-        .mergeIamTemplates()
-        .then(
-          () =>
-            expect(
-              awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-                awsPackage.provider.naming.getRoleLogicalId()
-              ]
-            ).to.not.exist
-        );
-    });
-  });
-});
-
 describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
-  describe.skip('TODO: No default role', () => {
+  describe('No default role', () => {
     it('should not create role resource if there are no functions', async () => {
-      await runServerless({ fixture: 'aws' });
-      // Replaces
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L40-L49
+      const { cfTemplate, awsNaming } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['package'],
+      });
+      const iamRoleLambdaExecution = awsNaming.getRoleLogicalId();
+      expect(cfTemplate.Resources).to.not.have.property(iamRoleLambdaExecution);
     });
 
     it('should not create role resource with `provider.role`', async () => {
-      await runServerless({ fixture: 'function' });
-      // Replaces
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L613-L636
+      const { cfTemplate, awsNaming } = await runServerless({
+        fixture: 'function',
+        cliArgs: ['package'],
+        configExt: {
+          provider: {
+            name: 'aws',
+            role: 'arn:aws:iam::YourAccountNumber:role/YourIamRole',
+          },
+        },
+      });
+
+      const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
+      expect(cfTemplate.Resources).to.not.have.property(IamRoleLambdaExecution);
     });
 
     it('should not create role resource with all functions having `functions[].role`', async () => {
-      await runServerless({ fixture: 'function' });
-      // Replaces
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L638-L662
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L747-L771
+      const { cfTemplate, awsNaming } = await runServerless({
+        fixture: 'function',
+        cliArgs: ['package'],
+        configExt: {
+          functions: {
+            foo: {
+              role: 'some:aws:arn:xx1:*:*',
+            },
+            other: {
+              role: 'some:aws:arn:xx1:*:*',
+            },
+          },
+        },
+      });
+
+      const IamRoleLambdaExecution = awsNaming.getRoleLogicalId();
+      expect(cfTemplate.Resources).to.not.have.property(IamRoleLambdaExecution);
     });
   });
 
   describe('Default role', () => {
-    describe.skip('TODO: Defaults', () => {
+    describe('Defaults', () => {
+      let naming;
+      let cfResources;
+      let service;
+      const arnLogPrefix = 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}';
+
       before(async () => {
-        await runServerless({
+        const test = await runServerless({
           fixture: 'function',
+          cliArgs: ['package'],
           configExt: {
-            // Configure one of the functions with custom "role", that will replace:
-            // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L587-L611
+            functions: {
+              myFunction: {
+                handler: 'index.handler',
+              },
+              myFunctionWithRole: {
+                name: 'myCustomName',
+                handler: 'index.handler',
+                role: 'myCustRole0',
+              },
+            },
           },
         });
+        const { cfTemplate, awsNaming, fixtureData } = test;
+        cfResources = cfTemplate.Resources;
+        naming = awsNaming;
+        service = fixtureData.serviceConfig.service;
       });
 
       it('should not configure ManagedPolicyArns by default', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L665-L683
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const { Properties } = cfResources[IamRoleLambdaExecution];
+        expect(Properties).to.not.have.property('ManagedPolicyArns');
       });
 
       it('should add logGroup access policies if there are functions', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L51-L129
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L218-L305
-      });
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const { Properties } = cfResources[IamRoleLambdaExecution];
 
-      it('should add logGroup access policies for custom named functions', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L131-L216
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L307-L410
-      });
+        const createLogStatement = Properties.Policies[0].PolicyDocument.Statement[0];
+        expect(createLogStatement.Effect).to.be.equal('Allow');
+        expect(createLogStatement.Action).to.be.deep.equal([
+          'logs:CreateLogStream',
+          'logs:CreateLogGroup',
+        ]);
+        expect(createLogStatement.Resource).to.deep.includes({
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*`,
+        });
 
-      it('should configure LogGroup resources for functions', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L546-L585
-      });
-    });
-
-    describe.skip('TODO: Provider properties', () => {
-      before(async () => {
-        await runServerless({
-          fixture: 'function',
-          configExt: {},
+        const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
+        expect(putLogStatement.Effect).to.be.equal('Allow');
+        expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
+        expect(putLogStatement.Resource).to.deep.includes({
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/${service}-dev*:*:*`,
         });
       });
 
-      it('should support `provider.iamRoleStatements`', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L412-L428
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L492-L508
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L510-L526
+      it('should add logGroup access policies for custom named functions', () => {
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const { Properties } = cfResources[IamRoleLambdaExecution];
+
+        const createLogStatement = Properties.Policies[0].PolicyDocument.Statement[0];
+        expect(createLogStatement.Effect).to.be.equal('Allow');
+        expect(createLogStatement.Action).to.be.deep.equal([
+          'logs:CreateLogStream',
+          'logs:CreateLogGroup',
+        ]);
+        expect(createLogStatement.Resource).to.deep.includes({
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*`,
+        });
+
+        const putLogStatement = Properties.Policies[0].PolicyDocument.Statement[1];
+        expect(putLogStatement.Effect).to.be.equal('Allow');
+        expect(putLogStatement.Action).to.be.deep.equal(['logs:PutLogEvents']);
+        expect(putLogStatement.Resource).to.deep.includes({
+          'Fn::Sub': `${arnLogPrefix}:log-group:/aws/lambda/myCustomName:*:*`,
+        });
       });
 
+      it('should configure LogGroup resources for functions', () => {
+        const myFunctionWithRole = naming.getLogGroupLogicalId('myFunctionWithRole');
+        const myCustomName = cfResources[myFunctionWithRole];
+
+        expect(myCustomName.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(myCustomName.Properties.LogGroupName).to.be.equal('/aws/lambda/myCustomName');
+
+        const myFunctionName = naming.getLogGroupLogicalId('myFunction');
+        const myFunctionResource = cfResources[myFunctionName];
+
+        expect(myFunctionResource.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(myFunctionResource.Properties.LogGroupName).to.be.equal(
+          `/aws/lambda/${service}-dev-myFunction`
+        );
+      });
+    });
+
+    describe('Provider properties', () => {
+      let cfResources;
+      let naming;
+      let service;
+
+      before(async () => {
+        const { cfTemplate, awsNaming, fixtureData } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            provider: {
+              iamRoleStatements: [
+                {
+                  Effect: 'Allow',
+                  Resource: '*',
+                  NotAction: 'iam:DeleteUser',
+                },
+              ],
+              vpc: {
+                securityGroupIds: ['xxx'],
+                subnetIds: ['xxx'],
+              },
+              logRetentionInDays: 5,
+              iamManagedPolicies: [
+                'arn:aws:iam::123456789012:user/*',
+                'arn:aws:s3:::my_corporate_bucket/Development/*',
+                'arn:aws:iam::123456789012:u*',
+              ],
+              rolePermissionsBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
+            },
+          },
+        });
+
+        cfResources = cfTemplate.Resources;
+        naming = awsNaming;
+        service = fixtureData.serviceConfig.service;
+      });
+
+      it('should support `provider.iamRoleStatements`', async () => {
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const iamResource = cfResources[IamRoleLambdaExecution];
+        const { Statement } = iamResource.Properties.Policies[0].PolicyDocument;
+
+        expect(Statement).to.deep.includes({
+          Effect: 'Allow',
+          Resource: '*',
+          NotAction: ['iam:DeleteUser'],
+        });
+      });
       it('should support `provider.iamManagedPolicies`', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L430-L443
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const {
+          Properties: { ManagedPolicyArns },
+        } = cfResources[IamRoleLambdaExecution];
+
+        expect(ManagedPolicyArns).to.deep.includes('arn:aws:iam::123456789012:user/*');
+        expect(ManagedPolicyArns).to.deep.includes(
+          'arn:aws:s3:::my_corporate_bucket/Development/*'
+        );
+        expect(ManagedPolicyArns).to.deep.includes('arn:aws:iam::123456789012:u*');
       });
 
       it('should support `provider.rolePermissionsBoundary`', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L445-L455
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const {
+          Properties: { PermissionsBoundary },
+        } = cfResources[IamRoleLambdaExecution];
+        expect(PermissionsBoundary).to.be.equal(
+          'arn:aws:iam::123456789012:policy/XCompanyBoundaries'
+        );
       });
 
       it('should ensure needed IAM configuration when `provider.vpc` is configured', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L457-L490
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L685-L709
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const iamResource = cfResources[IamRoleLambdaExecution];
+
+        expect(iamResource.Properties.ManagedPolicyArns).to.deep.includes({
+          'Fn::Join': [
+            '',
+            [
+              'arn:',
+              { Ref: 'AWS::Partition' },
+              ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
+            ],
+          ],
+        });
       });
 
       it('should support `provider.logRetentionInDays`', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L528-L544
+        const normalizedName = naming.getLogGroupLogicalId('foo');
+        const iamResource = cfResources[normalizedName];
+        expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(iamResource.Properties.RetentionInDays).to.be.equal(5);
+        expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-foo`);
       });
     });
 
@@ -880,6 +260,13 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                 handler: 'index.handler',
                 disableLogs: true,
               },
+              fnWithVpc: {
+                handler: 'index.handler',
+                vpc: {
+                  securityGroupIds: ['xxx'],
+                  subnetIds: ['xxx'],
+                },
+              },
               fnHaveCustomName: {
                 name: customFunctionName,
                 handler: 'index.handler',
@@ -893,9 +280,19 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         serverless = serverlessInstance;
       });
 
-      it.skip('TODO: should ensure needed IAM configuration when `functions[].vpc` is configured', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/lib/mergeIamTemplates.test.js#L711-L745
+      it('should ensure needed IAM configuration when `functions[].vpc` is configured', () => {
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const { Properties } = cfResources[IamRoleLambdaExecution];
+        expect(Properties.ManagedPolicyArns).to.deep.includes({
+          'Fn::Join': [
+            '',
+            [
+              'arn:',
+              { Ref: 'AWS::Partition' },
+              ':iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole',
+            ],
+          ],
+        });
       });
 
       it('should support `functions[].disableLogs`', async () => {
