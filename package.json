@@ -56,7 +56,6 @@
     "json-refs": "^3.0.15",
     "lodash": "^4.17.20",
     "memoizee": "^0.4.14",
-    "micromatch": "^4.0.2",
     "ncjsm": "^4.1.0",
     "node-fetch": "^2.6.1",
     "object-hash": "^2.0.3",
