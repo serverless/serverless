@@ -50,9 +50,8 @@ provider:
 #    variable1: value1
 
 package:
-  exclude:
-    - ./**
-  include:
+  patterns:
+    - '!./**'
     - ./bin/**
 
 functions:

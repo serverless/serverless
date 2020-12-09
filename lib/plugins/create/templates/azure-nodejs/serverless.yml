@@ -64,14 +64,13 @@ plugins: # look for additional plugins in the community plugins repo: https://gi
 
 # you can add packaging information here
 package:
-  # include:
-  #   - include-me.js
-  #   - include-me-dir/**
-  exclude:
-    # - exclude-me.js
-    # - exclude-me-dir/**
-    - local.settings.json
-    - .vscode/**
+  patterns:
+    # - '!exclude-me.js'
+    # - '!exclude-me-dir/**'
+    - '!local.settings.json'
+    - '!.vscode/**'
+    # - include-me.js
+    # - include-me-dir/**
 
 functions:
   hello:

@@ -41,12 +41,11 @@ plugins:
 
 # you can add packaging information here
 #package:
-#  include:
+#  patterns:
+#    - '!exclude-me.py'
+#    - '!exclude-me-dir/**'
 #    - include-me.py
 #    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
-#    - exclude-me-dir/**
 
 functions:
   hello_world:
