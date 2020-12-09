@@ -468,46 +468,6 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
     });
   });
 
-  describe('Access logs and detailed metrics', () => {
-    let cfResources;
-    let naming;
-    before(() =>
-      runServerless({
-        fixture: 'httpApi',
-        configExt: {
-          provider: {
-            httpApi: { metrics: true },
-            logs: {
-              httpApi: true,
-            },
-          },
-        },
-        cliArgs: ['package'],
-      }).then(({ awsNaming, cfTemplate }) => {
-        cfResources = cfTemplate.Resources;
-        naming = awsNaming;
-      })
-    );
-
-    it('Should configure log group resource', () => {
-      const resource = cfResources[naming.getHttpApiLogGroupLogicalId()];
-      expect(resource.Type).to.equal('AWS::Logs::LogGroup');
-      expect(resource.Properties).to.have.property('LogGroupName');
-      expect(resource.Properties).to.have.property('RetentionInDays');
-    });
-
-    it('Should setup logs format on stage', () => {
-      const stageResourceProps = cfResources[naming.getHttpApiStageLogicalId()].Properties;
-
-      expect(stageResourceProps.AccessLogSettings).to.have.property('Format');
-    });
-
-    it('Should configure detailed metrics', () => {
-      const resource = cfResources[naming.getHttpApiStageLogicalId()];
-      expect(resource.Properties.DefaultRouteSettings.DetailedMetricsEnabled).to.equal(true);
-    });
-  });
-
   describe('External HTTP API', () => {
     let cfResources;
     let cfOutputs;
