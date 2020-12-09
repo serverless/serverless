@@ -40,20 +40,20 @@ describe('AwsInvoke', () => {
     it('should set the provider variable to an instance of AwsProvider', () =>
       expect(awsInvoke.provider).to.be.instanceof(AwsProvider));
 
-    it('should run promise chain in order', () => {
+    it('should run promise chain in order', async () => {
       const validateStub = sinon.stub(awsInvoke, 'extendedValidate').resolves();
       const invokeStub = sinon.stub(awsInvoke, 'invoke').resolves();
       const logStub = sinon.stub(awsInvoke, 'log').resolves();
 
-      return awsInvoke.hooks['invoke:invoke']().then(() => {
-        expect(validateStub.calledOnce).to.be.equal(true);
-        expect(invokeStub.calledAfter(validateStub)).to.be.equal(true);
-        expect(logStub.calledAfter(invokeStub)).to.be.equal(true);
+      await awsInvoke.hooks['invoke:invoke']();
 
-        awsInvoke.extendedValidate.restore();
-        awsInvoke.invoke.restore();
-        awsInvoke.log.restore();
-      });
+      expect(validateStub.calledOnce).to.be.equal(true);
+      expect(invokeStub.calledAfter(validateStub)).to.be.equal(true);
+      expect(logStub.calledAfter(invokeStub)).to.be.equal(true);
+
+      awsInvoke.extendedValidate.restore();
+      awsInvoke.invoke.restore();
+      awsInvoke.log.restore();
     });
 
     it('should set an empty options object if no options are given', () => {
@@ -104,40 +104,40 @@ describe('AwsInvoke', () => {
       return expect(awsInvoke.extendedValidate()).to.be.rejected;
     });
 
-    it('should not throw error when there is no input data', () => {
+    it('should not throw error when there is no input data', async () => {
       awsInvoke.options.data = undefined;
 
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled.then(() => {
-        expect(awsInvoke.options.data).to.equal('');
-      });
+      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
+
+      expect(awsInvoke.options.data).to.equal('');
     });
 
-    it('should keep data if it is a simple string', () => {
+    it('should keep data if it is a simple string', async () => {
       awsInvoke.options.data = 'simple-string';
 
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled.then(() => {
-        expect(awsInvoke.options.data).to.equal('simple-string');
-      });
+      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
+
+      expect(awsInvoke.options.data).to.equal('simple-string');
     });
 
-    it('should parse data if it is a json string', () => {
+    it('should parse data if it is a json string', async () => {
       awsInvoke.options.data = '{"key": "value"}';
 
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled.then(() => {
-        expect(awsInvoke.options.data).to.deep.equal({ key: 'value' });
-      });
+      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
+
+      expect(awsInvoke.options.data).to.deep.equal({ key: 'value' });
     });
 
-    it('should skip parsing data if "raw" requested', () => {
+    it('should skip parsing data if "raw" requested', async () => {
       awsInvoke.options.data = '{"key": "value"}';
       awsInvoke.options.raw = true;
 
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled.then(() => {
-        expect(awsInvoke.options.data).to.deep.equal('{"key": "value"}');
-      });
+      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
+
+      expect(awsInvoke.options.data).to.deep.equal('{"key": "value"}');
     });
 
-    it('it should parse file if relative file path is provided', () => {
+    it('it should parse file if relative file path is provided', async () => {
       serverless.config.servicePath = getTmpDirPath();
       const data = {
         testProp: 'testValue',
@@ -148,12 +148,12 @@ describe('AwsInvoke', () => {
       );
       awsInvoke.options.path = 'data.json';
 
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled.then(() => {
-        expect(awsInvoke.options.data).to.deep.equal(data);
-      });
+      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
+
+      expect(awsInvoke.options.data).to.deep.equal(data);
     });
 
-    it('it should parse file if absolute file path is provided', () => {
+    it('it should parse file if absolute file path is provided', async () => {
       serverless.config.servicePath = getTmpDirPath();
       const data = {
         testProp: 'testValue',
@@ -162,12 +162,12 @@ describe('AwsInvoke', () => {
       serverless.utils.writeFileSync(dataFile, JSON.stringify(data));
       awsInvoke.options.path = dataFile;
 
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled.then(() => {
-        expect(awsInvoke.options.data).to.deep.equal(data);
-      });
+      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
+
+      expect(awsInvoke.options.data).to.deep.equal(data);
     });
 
-    it('it should parse a yaml file if file path is provided', () => {
+    it('it should parse a yaml file if file path is provided', async () => {
       serverless.config.servicePath = getTmpDirPath();
       const yamlContent = 'testProp: testValue';
 
@@ -177,10 +177,10 @@ describe('AwsInvoke', () => {
       );
       awsInvoke.options.path = 'data.yml';
 
-      return expect(awsInvoke.extendedValidate()).to.be.fulfilled.then(() => {
-        expect(awsInvoke.options.data).to.deep.equal({
-          testProp: 'testValue',
-        });
+      await expect(awsInvoke.extendedValidate()).to.be.fulfilled;
+
+      expect(awsInvoke.options.data).to.deep.equal({
+        testProp: 'testValue',
       });
     });
 
@@ -218,72 +218,72 @@ describe('AwsInvoke', () => {
       };
     });
 
-    it('should invoke with correct params', () =>
-      awsInvoke.invoke().then(() => {
-        expect(invokeStub.calledOnce).to.be.equal(true);
-        expect(
-          invokeStub.calledWithExactly('Lambda', 'invoke', {
-            FunctionName: 'customName',
-            InvocationType: 'RequestResponse',
-            LogType: 'None',
-            Payload: Buffer.from(JSON.stringify({})),
-          })
-        ).to.be.equal(true);
-        awsInvoke.provider.request.restore();
-      }));
+    it('should invoke with correct params', async () => {
+      await awsInvoke.invoke();
 
-    it('should invoke and log', () => {
+      expect(invokeStub.calledOnce).to.be.equal(true);
+      expect(
+        invokeStub.calledWithExactly('Lambda', 'invoke', {
+          FunctionName: 'customName',
+          InvocationType: 'RequestResponse',
+          LogType: 'None',
+          Payload: Buffer.from(JSON.stringify({})),
+        })
+      ).to.be.equal(true);
+      awsInvoke.provider.request.restore();
+    });
+
+    it('should invoke and log', async () => {
       awsInvoke.options.log = true;
 
-      return awsInvoke.invoke().then(() => {
-        expect(invokeStub.calledOnce).to.be.equal(true);
-        expect(
-          invokeStub.calledWithExactly('Lambda', 'invoke', {
-            FunctionName: 'customName',
-            InvocationType: 'RequestResponse',
-            LogType: 'Tail',
-            Payload: Buffer.from(JSON.stringify({})),
-          })
-        ).to.be.equal(true);
-        awsInvoke.provider.request.restore();
-      });
+      await awsInvoke.invoke();
+
+      expect(invokeStub.calledOnce).to.be.equal(true);
+      expect(
+        invokeStub.calledWithExactly('Lambda', 'invoke', {
+          FunctionName: 'customName',
+          InvocationType: 'RequestResponse',
+          LogType: 'Tail',
+          Payload: Buffer.from(JSON.stringify({})),
+        })
+      ).to.be.equal(true);
+      awsInvoke.provider.request.restore();
     });
 
-    it('should invoke with other invocation type', () => {
+    it('should invoke with other invocation type', async () => {
       awsInvoke.options.type = 'OtherType';
 
-      return awsInvoke.invoke().then(() => {
-        expect(invokeStub.calledOnce).to.be.equal(true);
-        expect(
-          invokeStub.calledWithExactly('Lambda', 'invoke', {
-            FunctionName: 'customName',
-            InvocationType: 'OtherType',
-            LogType: 'None',
-            Payload: Buffer.from(JSON.stringify({})),
-          })
-        ).to.be.equal(true);
-        awsInvoke.provider.request.restore();
-      });
+      await awsInvoke.invoke();
+      expect(invokeStub.calledOnce).to.be.equal(true);
+      expect(
+        invokeStub.calledWithExactly('Lambda', 'invoke', {
+          FunctionName: 'customName',
+          InvocationType: 'OtherType',
+          LogType: 'None',
+          Payload: Buffer.from(JSON.stringify({})),
+        })
+      ).to.be.equal(true);
+      awsInvoke.provider.request.restore();
     });
 
-    it('should be able to invoke with a qualifier', () => {
+    it('should be able to invoke with a qualifier', async () => {
       awsInvoke.options.qualifier = 'somelongqualifier';
 
-      return awsInvoke.invoke().then(() => {
-        expect(invokeStub.calledOnce).to.be.equal(true);
+      await awsInvoke.invoke();
 
-        expect(
-          invokeStub.calledWithExactly('Lambda', 'invoke', {
-            FunctionName: 'customName',
-            InvocationType: 'RequestResponse',
-            LogType: 'None',
-            Payload: Buffer.from(JSON.stringify({})),
-            Qualifier: 'somelongqualifier',
-          })
-        ).to.be.equal(true);
+      expect(invokeStub.calledOnce).to.be.equal(true);
 
-        awsInvoke.provider.request.restore();
-      });
+      expect(
+        invokeStub.calledWithExactly('Lambda', 'invoke', {
+          FunctionName: 'customName',
+          InvocationType: 'RequestResponse',
+          LogType: 'None',
+          Payload: Buffer.from(JSON.stringify({})),
+          Qualifier: 'somelongqualifier',
+        })
+      ).to.be.equal(true);
+
+      awsInvoke.provider.request.restore();
     });
   });
 
@@ -308,11 +308,10 @@ describe('AwsInvoke', () => {
         LogResult: 'test',
       };
 
-      return awsInvoke.log(invocationReplyMock).then(() => {
-        const expectedPayloadMessage = '{\n    "testProp": "testValue"\n}';
+      awsInvoke.log(invocationReplyMock);
 
-        expect(consoleLogStub.calledWith(expectedPayloadMessage)).to.equal(true);
-      });
+      const expectedPayloadMessage = '{\n    "testProp": "testValue"\n}';
+      expect(consoleLogStub.calledWith(expectedPayloadMessage)).to.equal(true);
     });
 
     it('rejects the promise for failed invocations', () => {
@@ -326,11 +325,10 @@ describe('AwsInvoke', () => {
         FunctionError: true,
       };
 
-      return awsInvoke.log(invocationReplyMock).catch(err => {
-        expect(err)
-          .to.and.be.instanceof(Error)
-          .and.have.property('message', 'Invoked function failed');
-      });
+      return expect(() => awsInvoke.log(invocationReplyMock)).to.throw(
+        Error,
+        'Invoked function failed'
+      );
     });
   });
 });
