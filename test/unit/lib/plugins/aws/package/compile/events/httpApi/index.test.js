@@ -134,6 +134,10 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
               payload: '1.0',
               cors: true,
               metrics: true,
+              throttle: {
+                burstLimit: 100,
+                rateLimit: 200,
+              },
               authorizers: {
                 someAuthorizer: {
                   identitySource: '$request.header.Authorization',
@@ -187,6 +191,16 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
 
     it('should configure detailed metrics', () => {
       expect(cfStage.Properties.DefaultRouteSettings.DetailedMetricsEnabled).to.equal(true);
+    });
+
+    it('should configure burst limit', () => {
+      const resource = cfResources[naming.getHttpApiStageLogicalId()];
+      expect(resource.Properties.DefaultRouteSettings.ThrottlingBurstLimit).to.equal(100);
+    });
+
+    it('should configure rate limit', () => {
+      const resource = cfResources[naming.getHttpApiStageLogicalId()];
+      expect(resource.Properties.DefaultRouteSettings.ThrottlingRateLimit).to.equal(200);
     });
 
     it('should configure log group resource', () => {
@@ -456,7 +470,6 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
     });
   });
 
-<<<<<<< HEAD
   describe('Access logs and detailed metrics', () => {
     let cfResources;
     let naming;
@@ -497,41 +510,6 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
     });
   });
 
-  describe('Throttling', () => {
-    let cfResources;
-    let naming;
-    before(() =>
-      runServerless({
-        fixture: 'httpApi',
-        configExt: {
-          provider: {
-            httpApi: {
-              throttle: {
-                burstLimit: 100,
-                rateLimit: 200,
-              },
-            },
-          },
-        },
-        cliArgs: ['package'],
-      }).then(({ awsNaming, cfTemplate }) => {
-        cfResources = cfTemplate.Resources;
-        naming = awsNaming;
-      })
-    );
-
-    it('Should configure burst limit', () => {
-      const resource = cfResources[naming.getHttpApiStageLogicalId()];
-      expect(resource.Properties.DefaultRouteSettings.ThrottlingBurstLimit).to.equal(100);
-    });
-    it('Should configure rate limit', () => {
-      const resource = cfResources[naming.getHttpApiStageLogicalId()];
-      expect(resource.Properties.DefaultRouteSettings.ThrottlingRateLimit).to.equal(200);
-    });
-  });
-
-=======
->>>>>>> 854526816265a425d2d3fe7ae4285b242893b434
   describe('External HTTP API', () => {
     let cfResources;
     let cfOutputs;
