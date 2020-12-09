@@ -466,6 +466,7 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
           },
           functions: {
             fnIndividual: {
+              handler: 'index.handler',
               package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir2' },
             },
           },
@@ -574,6 +575,7 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
           },
           functions: {
             fnIndividual: {
+              handler: 'index.handler',
               package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir2' },
             },
           },
@@ -583,9 +585,6 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
           },
         },
       });
-
-      // Read path to serverless.service.artifact,  unpack it to temporary folder, and
-      // expose list of files it contains to a local variable
     });
 
     it('should exclude custom plugins localPath', () => {
@@ -616,16 +615,45 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
   });
 
   describe('pre-prepared artifact', () => {
+    before(async () => {
+      await runServerless({
+        fixture: 'packaging',
+        cliArgs: ['package'],
+        configExt: {
+          package: {
+            artifact: 'artifact.zip',
+            exclude: ['dir1', '!dir1/subdir3/**'],
+            include: ['dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
+          },
+          functions: {
+            fnIndividual: {
+              handler: 'index.handler',
+              package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir2' },
+            },
+            fnArtifact: {
+              handler: 'index.handler',
+              artifact: 'artifact-function.zip',
+            },
+          },
+        },
+      });
+    });
     it('should support `package.artifact`', () => {
+      // Confirm that file pointed at `package.artifact` is configured as service level artifact
+      //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L227-L235
     });
 
     it('should ignore `package.artifact` if `functions[].package.individually', () => {
+      // Confirm that fnIndividual was packaged independently
+      //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L262-L287
     });
 
-    it('should support `functions[].package.artifact`', () => {});
+    it('should support `functions[].package.artifact`', () => {
+      // Confirm that file pointed at `functions.fnArtifact.package.artifact` is configured as function level artifact
+    });
   });
 });
