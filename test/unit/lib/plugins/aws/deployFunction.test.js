@@ -20,7 +20,7 @@ describe('AwsDeployFunction', () => {
   let awsDeployFunction;
   let cryptoStub;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     serverless = new Serverless();
     serverless.servicePath = true;
     serverless.service.environment = {
@@ -49,22 +49,21 @@ describe('AwsDeployFunction', () => {
         name: 'first',
       },
     };
-    return serverless.init().then(() => {
-      serverless.setProvider('aws', new AwsProvider(serverless, options));
-      cryptoStub = {
-        createHash() {
-          return this;
-        }, // eslint-disable-line
-        update() {
-          return this;
-        }, // eslint-disable-line
-        digest: sinon.stub(),
-      };
-      AwsDeployFunction = proxyquire('../../../../../lib/plugins/aws/deployFunction', {
-        crypto: cryptoStub,
-      });
-      awsDeployFunction = new AwsDeployFunction(serverless, options);
+    await serverless.init();
+    serverless.setProvider('aws', new AwsProvider(serverless, options));
+    cryptoStub = {
+      createHash() {
+        return this;
+      }, // eslint-disable-line
+      update() {
+        return this;
+      }, // eslint-disable-line
+      digest: sinon.stub(),
+    };
+    AwsDeployFunction = proxyquire('../../../../../lib/plugins/aws/deployFunction', {
+      crypto: cryptoStub,
     });
+    awsDeployFunction = new AwsDeployFunction(serverless, options);
   });
 
   describe('#constructor()', () => {
@@ -93,12 +92,12 @@ describe('AwsDeployFunction', () => {
       awsDeployFunction.provider.request.restore();
     });
 
-    it('it should throw error if function is not provided', () => {
+    it('it should throw error if function is not provided', async () => {
       serverless.service.functions = {};
-      expect(() => awsDeployFunction.checkIfFunctionExists()).to.throw(Error);
+      await expect(awsDeployFunction.checkIfFunctionExists()).to.eventually.be.rejected;
     });
 
-    it('should check if the function is deployed and save the result', () => {
+    it('should check if the function is deployed and save the result', async () => {
       awsDeployFunction.serverless.service.functions = {
         first: {
           name: 'first',
@@ -106,18 +105,18 @@ describe('AwsDeployFunction', () => {
         },
       };
 
-      return awsDeployFunction.checkIfFunctionExists().then(() => {
-        expect(getFunctionStub.calledOnce).to.be.equal(true);
-        expect(
-          getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
-            FunctionName: 'first',
-          })
-        ).to.be.equal(true);
-        expect(awsDeployFunction.serverless.service.provider.remoteFunctionData).to.deep.equal({
-          func: {
-            name: 'first',
-          },
-        });
+      await awsDeployFunction.checkIfFunctionExists();
+
+      expect(getFunctionStub.calledOnce).to.be.equal(true);
+      expect(
+        getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
+          FunctionName: 'first',
+        })
+      ).to.be.equal(true);
+      expect(awsDeployFunction.serverless.service.provider.remoteFunctionData).to.deep.equal({
+        func: {
+          name: 'first',
+        },
       });
     });
   });
@@ -152,34 +151,34 @@ describe('AwsDeployFunction', () => {
       serverless.service.resources = undefined;
     });
 
-    it('should return unmodified ARN if ARN was provided', () => {
+    it('should return unmodified ARN if ARN was provided', async () => {
       const arn = 'arn:aws:iam::123456789012:role/role';
 
-      return awsDeployFunction.normalizeArnRole(arn).then(result => {
-        expect(getAccountInfoStub).to.not.have.been.called;
-        expect(result).to.be.equal(arn);
-      });
+      const result = await awsDeployFunction.normalizeArnRole(arn);
+
+      expect(getAccountInfoStub).to.not.have.been.called;
+      expect(result).to.be.equal(arn);
     });
 
-    it('should return compiled ARN if role name was provided', () => {
+    it('should return compiled ARN if role name was provided', async () => {
       const roleName = 'MyCustomRole';
 
-      return awsDeployFunction.normalizeArnRole(roleName).then(result => {
-        expect(getAccountInfoStub).to.have.been.called;
-        expect(result).to.be.equal('arn:aws:iam::123456789012:role/role_123');
-      });
+      const result = await awsDeployFunction.normalizeArnRole(roleName);
+
+      expect(getAccountInfoStub).to.have.been.called;
+      expect(result).to.be.equal('arn:aws:iam::123456789012:role/role_123');
     });
 
-    it('should return compiled ARN if object role was provided', () => {
+    it('should return compiled ARN if object role was provided', async () => {
       const roleObj = {
         'Fn::GetAtt': ['role_2', 'Arn'],
       };
 
-      return awsDeployFunction.normalizeArnRole(roleObj).then(result => {
-        expect(getRoleStub.calledOnce).to.be.equal(true);
-        expect(getAccountInfoStub).to.not.have.been.called;
-        expect(result).to.be.equal('arn:aws:iam::123456789012:role/role_2');
-      });
+      const result = await awsDeployFunction.normalizeArnRole(roleObj);
+
+      expect(getRoleStub.calledOnce).to.be.equal(true);
+      expect(getAccountInfoStub).to.not.have.been.called;
+      expect(result).to.be.equal('arn:aws:iam::123456789012:role/role_2');
     });
   });
 
@@ -214,7 +213,7 @@ describe('AwsDeployFunction', () => {
       awsDeployFunction.serverless.service.provider.vpc = undefined;
     });
 
-    it("should update function's configuration", () => {
+    it("should update function's configuration", async () => {
       options.functionObj = {
         awsKmsKeyArn: 'arn:aws:kms:us-east-1:123456789012',
         description: 'desc',
@@ -236,42 +235,38 @@ describe('AwsDeployFunction', () => {
 
       awsDeployFunction.options = options;
 
-      return awsDeployFunction.updateFunctionConfiguration().then(() => {
-        expect(normalizeArnRoleStub.calledOnce).to.be.equal(true);
-        expect(normalizeArnRoleStub.calledWithExactly('arn:aws:iam::123456789012:role/Admin'));
-        expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-        expect(
-          updateFunctionConfigurationStub.calledWithExactly(
-            'Lambda',
-            'updateFunctionConfiguration',
-            {
-              DeadLetterConfig: {
-                TargetArn: 'arn:aws:sqs:us-east-1:123456789012:dlq',
-              },
-              Handler: 'my_handler',
-              Description: 'desc',
-              Environment: {
-                Variables: {
-                  VARIABLE: 'value',
-                },
-              },
-              FunctionName: 'first',
-              KMSKeyArn: 'arn:aws:kms:us-east-1:123456789012',
-              MemorySize: 128,
-              Role: 'arn:aws:us-east-1:123456789012:role/role',
-              Timeout: 3,
-              VpcConfig: {
-                SecurityGroupIds: ['1'],
-                SubnetIds: ['2'],
-              },
-              Layers: ['arn:aws:lambda:us-east-1:123456789012:layer:layer:1'],
-            }
-          )
-        ).to.be.equal(true);
-      });
+      await awsDeployFunction.updateFunctionConfiguration();
+
+      expect(normalizeArnRoleStub.calledOnce).to.be.equal(true);
+      expect(normalizeArnRoleStub.calledWithExactly('arn:aws:iam::123456789012:role/Admin'));
+      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
+      expect(
+        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
+          DeadLetterConfig: {
+            TargetArn: 'arn:aws:sqs:us-east-1:123456789012:dlq',
+          },
+          Handler: 'my_handler',
+          Description: 'desc',
+          Environment: {
+            Variables: {
+              VARIABLE: 'value',
+            },
+          },
+          FunctionName: 'first',
+          KMSKeyArn: 'arn:aws:kms:us-east-1:123456789012',
+          MemorySize: 128,
+          Role: 'arn:aws:us-east-1:123456789012:role/role',
+          Timeout: 3,
+          VpcConfig: {
+            SecurityGroupIds: ['1'],
+            SubnetIds: ['2'],
+          },
+          Layers: ['arn:aws:lambda:us-east-1:123456789012:layer:layer:1'],
+        })
+      ).to.be.equal(true);
     });
 
-    it('should update only specified params', () => {
+    it('should update only specified params', async () => {
       options.functionObj = {
         name: 'first',
         description: 'change',
@@ -280,22 +275,17 @@ describe('AwsDeployFunction', () => {
 
       awsDeployFunction.options = options;
 
-      return awsDeployFunction.updateFunctionConfiguration().then(() => {
-        expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-        expect(
-          updateFunctionConfigurationStub.calledWithExactly(
-            'Lambda',
-            'updateFunctionConfiguration',
-            {
-              FunctionName: 'first',
-              Description: 'change',
-            }
-          )
-        ).to.be.equal(true);
-      });
+      await awsDeployFunction.updateFunctionConfiguration();
+      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
+      expect(
+        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
+          FunctionName: 'first',
+          Description: 'change',
+        })
+      ).to.be.equal(true);
     });
 
-    it('should skip elements that contain references', () => {
+    it('should skip elements that contain references', async () => {
       options.functionObj = {
         name: 'first',
         description: 'change',
@@ -324,23 +314,18 @@ describe('AwsDeployFunction', () => {
 
       awsDeployFunction.options = options;
 
-      return awsDeployFunction.updateFunctionConfiguration().then(() => {
-        expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-        expect(
-          updateFunctionConfigurationStub.calledWithExactly(
-            'Lambda',
-            'updateFunctionConfiguration',
-            {
-              FunctionName: 'first',
-              Handler: 'my_handler',
-              Description: 'change',
-            }
-          )
-        ).to.be.equal(true);
-      });
+      await awsDeployFunction.updateFunctionConfiguration();
+      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
+      expect(
+        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
+          FunctionName: 'first',
+          Handler: 'my_handler',
+          Description: 'change',
+        })
+      ).to.be.equal(true);
     });
 
-    it('should do nothing if only references are in', () => {
+    it('should do nothing if only references are in', async () => {
       options.functionObj = {
         name: 'first',
         environment: {
@@ -352,10 +337,9 @@ describe('AwsDeployFunction', () => {
       };
 
       awsDeployFunction.options = options;
+      await expect(awsDeployFunction.updateFunctionConfiguration()).to.be.fulfilled;
 
-      return expect(awsDeployFunction.updateFunctionConfiguration()).to.be.fulfilled.then(
-        () => expect(updateFunctionConfigurationStub).to.not.be.called
-      );
+      expect(updateFunctionConfigurationStub).to.not.be.called;
     });
 
     it('should fail when using invalid characters in environment variable', () => {
@@ -369,10 +353,10 @@ describe('AwsDeployFunction', () => {
 
       awsDeployFunction.options = options;
 
-      expect(() => awsDeployFunction.updateFunctionConfiguration()).to.throw(Error);
+      return expect(awsDeployFunction.updateFunctionConfiguration()).to.eventually.be.rejected;
     });
 
-    it('should transform to string values when using non-string values as environment variables', () => {
+    it('should transform to string values when using non-string values as environment variables', async () => {
       options.functionObj = {
         name: 'first',
         handler: 'my_handler',
@@ -383,28 +367,24 @@ describe('AwsDeployFunction', () => {
       };
 
       awsDeployFunction.options = options;
-      return expect(awsDeployFunction.updateFunctionConfiguration()).to.be.fulfilled.then(() => {
-        expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-        expect(
-          updateFunctionConfigurationStub.calledWithExactly(
-            'Lambda',
-            'updateFunctionConfiguration',
-            {
-              FunctionName: 'first',
-              Handler: 'my_handler',
-              Description: 'change',
-              Environment: {
-                Variables: {
-                  COUNTER: '6',
-                },
-              },
-            }
-          )
-        ).to.be.equal(true);
-      });
+      await expect(awsDeployFunction.updateFunctionConfiguration()).to.be.fulfilled;
+
+      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
+      expect(
+        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
+          FunctionName: 'first',
+          Handler: 'my_handler',
+          Description: 'change',
+          Environment: {
+            Variables: {
+              COUNTER: '6',
+            },
+          },
+        })
+      ).to.be.equal(true);
     });
 
-    it('should inherit provider-level config', () => {
+    it('should inherit provider-level config', async () => {
       options.functionObj = {
         name: 'first',
         handler: 'my_handler',
@@ -421,29 +401,25 @@ describe('AwsDeployFunction', () => {
 
       awsDeployFunction.options = options;
 
-      return awsDeployFunction.updateFunctionConfiguration().then(() => {
-        expect(normalizeArnRoleStub.calledOnce).to.be.equal(true);
-        expect(normalizeArnRoleStub.calledWithExactly('role'));
-        expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-        expect(
-          updateFunctionConfigurationStub.calledWithExactly(
-            'Lambda',
-            'updateFunctionConfiguration',
-            {
-              FunctionName: 'first',
-              Handler: 'my_handler',
-              Description: 'change',
-              VpcConfig: {
-                SubnetIds: [1234, 12345],
-                SecurityGroupIds: [123, 12],
-              },
-              Timeout: 12,
-              MemorySize: 512,
-              Role: 'arn:aws:us-east-1:123456789012:role/role',
-            }
-          )
-        ).to.be.equal(true);
-      });
+      await awsDeployFunction.updateFunctionConfiguration();
+
+      expect(normalizeArnRoleStub.calledOnce).to.be.equal(true);
+      expect(normalizeArnRoleStub.calledWithExactly('role'));
+      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
+      expect(
+        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
+          FunctionName: 'first',
+          Handler: 'my_handler',
+          Description: 'change',
+          VpcConfig: {
+            SubnetIds: [1234, 12345],
+            SecurityGroupIds: [123, 12],
+          },
+          Timeout: 12,
+          MemorySize: 512,
+          Role: 'arn:aws:us-east-1:123456789012:role/role',
+        })
+      ).to.be.equal(true);
     });
   });
 
@@ -475,29 +451,28 @@ describe('AwsDeployFunction', () => {
       fs.readFileSync.restore();
     });
 
-    it('should deploy the function if the hashes are different', () => {
+    it('should deploy the function if the hashes are different', async () => {
       cryptoStub
         .createHash()
         .update()
         .digest.onCall(0)
         .returns('local-hash-zip-file');
 
-      return awsDeployFunction.deployFunction().then(() => {
-        const data = fs.readFileSync(artifactFilePath);
+      await awsDeployFunction.deployFunction();
 
-        expect(updateFunctionCodeStub.calledOnce).to.be.equal(true);
-        expect(readFileSyncStub.called).to.equal(true);
-        expect(
-          updateFunctionCodeStub.calledWithExactly('Lambda', 'updateFunctionCode', {
-            FunctionName: 'first',
-            ZipFile: data,
-          })
-        ).to.be.equal(true);
-        expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
-      });
+      const data = fs.readFileSync(artifactFilePath);
+      expect(updateFunctionCodeStub.calledOnce).to.be.equal(true);
+      expect(readFileSyncStub.called).to.equal(true);
+      expect(
+        updateFunctionCodeStub.calledWithExactly('Lambda', 'updateFunctionCode', {
+          FunctionName: 'first',
+          ZipFile: data,
+        })
+      ).to.be.equal(true);
+      expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
-    it('should deploy the function if the hashes are same but the "force" option is used', () => {
+    it('should deploy the function if the hashes are same but the "force" option is used', async () => {
       awsDeployFunction.options.force = true;
       cryptoStub
         .createHash()
@@ -505,50 +480,48 @@ describe('AwsDeployFunction', () => {
         .digest.onCall(0)
         .returns('remote-hash-zip-file');
 
-      return awsDeployFunction.deployFunction().then(() => {
-        const data = fs.readFileSync(artifactFilePath);
+      await awsDeployFunction.deployFunction();
+      const data = fs.readFileSync(artifactFilePath);
 
-        expect(updateFunctionCodeStub.calledOnce).to.be.equal(true);
-        expect(readFileSyncStub.called).to.equal(true);
-        expect(
-          updateFunctionCodeStub.calledWithExactly('Lambda', 'updateFunctionCode', {
-            FunctionName: 'first',
-            ZipFile: data,
-          })
-        ).to.be.equal(true);
-        expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
-      });
+      expect(updateFunctionCodeStub.calledOnce).to.be.equal(true);
+      expect(readFileSyncStub.called).to.equal(true);
+      expect(
+        updateFunctionCodeStub.calledWithExactly('Lambda', 'updateFunctionCode', {
+          FunctionName: 'first',
+          ZipFile: data,
+        })
+      ).to.be.equal(true);
+      expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
-    it('should resolve if the hashes are the same', () => {
+    it('should resolve if the hashes are the same', async () => {
       cryptoStub
         .createHash()
         .update()
         .digest.onCall(0)
         .returns('remote-hash-zip-file');
 
-      return awsDeployFunction.deployFunction().then(() => {
-        const expected = 'Code not changed. Skipping function deployment.';
+      await awsDeployFunction.deployFunction();
 
-        expect(updateFunctionCodeStub.calledOnce).to.be.equal(false);
-        expect(readFileSyncStub.calledOnce).to.equal(true);
-        expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.equal(true);
-        expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
-      });
+      const expected = 'Code not changed. Skipping function deployment.';
+
+      expect(updateFunctionCodeStub.calledOnce).to.be.equal(false);
+      expect(readFileSyncStub.calledOnce).to.equal(true);
+      expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.equal(true);
+      expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
-    it('should log artifact size', () => {
+    it('should log artifact size', async () => {
       // awnY7Oi280gp5kTCloXzsqJCO4J766x6hATWqQsN/uM= <-- hash of the local zip file
       readFileSyncStub.returns(Buffer.from('my-service.zip content'));
 
-      return awsDeployFunction.deployFunction().then(() => {
-        const expected = 'Uploading function: first (1 KB)...';
+      await awsDeployFunction.deployFunction();
 
-        expect(readFileSyncStub.calledOnce).to.equal(true);
-        expect(statSyncStub.calledOnce).to.equal(true);
-        expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
-        expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
-      });
+      const expected = 'Uploading function: first (1 KB)...';
+      expect(readFileSyncStub.calledOnce).to.equal(true);
+      expect(statSyncStub.calledOnce).to.equal(true);
+      expect(awsDeployFunction.serverless.cli.log.calledWithExactly(expected)).to.be.equal(true);
+      expect(readFileSyncStub.calledWithExactly(artifactFilePath)).to.equal(true);
     });
 
     describe('when artifact is provided', () => {
@@ -568,21 +541,22 @@ describe('AwsDeployFunction', () => {
         serverless.service.getFunction.restore();
       });
 
-      it('should read the provided artifact', () =>
-        awsDeployFunction.deployFunction().then(() => {
-          const data = fs.readFileSync(artifactZipFile);
+      it('should read the provided artifact', async () => {
+        await awsDeployFunction.deployFunction();
 
-          expect(readFileSyncStub).to.have.been.calledWithExactly(artifactZipFile);
-          expect(statSyncStub).to.have.been.calledWithExactly(artifactZipFile);
-          expect(getFunctionStub).to.have.been.calledWithExactly('first');
-          expect(updateFunctionCodeStub.calledOnce).to.equal(true);
-          expect(
-            updateFunctionCodeStub.calledWithExactly('Lambda', 'updateFunctionCode', {
-              FunctionName: 'first',
-              ZipFile: data,
-            })
-          ).to.be.equal(true);
-        }));
+        const data = fs.readFileSync(artifactZipFile);
+
+        expect(readFileSyncStub).to.have.been.calledWithExactly(artifactZipFile);
+        expect(statSyncStub).to.have.been.calledWithExactly(artifactZipFile);
+        expect(getFunctionStub).to.have.been.calledWithExactly('first');
+        expect(updateFunctionCodeStub.calledOnce).to.equal(true);
+        expect(
+          updateFunctionCodeStub.calledWithExactly('Lambda', 'updateFunctionCode', {
+            FunctionName: 'first',
+            ZipFile: data,
+          })
+        ).to.be.equal(true);
+      });
     });
   });
 });
