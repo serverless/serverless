@@ -2,17 +2,17 @@
 
 const expect = require('chai').expect;
 const fs = require('fs');
+const fse = require('fs-extra');
 const path = require('path');
 const copyDirContentsSync = require('../../../../../lib/utils/fs/copyDirContentsSync');
 const fileExistsSync = require('../../../../../lib/utils/fs/fileExistsSync');
-const removeFileSync = require('../../../../../lib/utils/fs/removeFileSync');
 const writeFileSync = require('../../../../../lib/utils/fs/writeFileSync');
 const skipOnDisabledSymlinksInWindows = require('@serverless/test/skip-on-disabled-symlinks-in-windows');
 
 describe('#copyDirContentsSync()', () => {
   const afterCallback = () => {
-    removeFileSync(path.join(process.cwd(), 'testSrc'));
-    removeFileSync(path.join(process.cwd(), 'testDest'));
+    fse.removeSync(path.join(process.cwd(), 'testSrc'));
+    fse.removeSync(path.join(process.cwd(), 'testDest'));
   };
   afterEach(afterCallback);
 
