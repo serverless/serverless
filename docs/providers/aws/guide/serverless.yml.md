@@ -142,6 +142,10 @@ provider:
     name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${opt:stage, self:provider.stage, 'dev'}-${self:service}
     payload: '1.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '1.0'
     cors: true # Implies default behavior, can be fine tuned with specficic options
+    metrics: true # Optional metrics configuration
+    throttle: # Optional throttling configuration
+      burstLimit: 200
+      rateLimit: 100
     authorizers:
       # JWT authorizers to back HTTP API endpoints
       someJwtAuthorizer:
