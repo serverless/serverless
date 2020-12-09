@@ -194,13 +194,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
     });
 
     it('should configure burst limit', () => {
-      const resource = cfResources[naming.getHttpApiStageLogicalId()];
-      expect(resource.Properties.DefaultRouteSettings.ThrottlingBurstLimit).to.equal(100);
+      expect(cfStage.Properties.DefaultRouteSettings.ThrottlingBurstLimit).to.equal(100);
     });
 
     it('should configure rate limit', () => {
-      const resource = cfResources[naming.getHttpApiStageLogicalId()];
-      expect(resource.Properties.DefaultRouteSettings.ThrottlingRateLimit).to.equal(200);
+      expect(cfStage.Properties.DefaultRouteSettings.ThrottlingRateLimit).to.equal(200);
     });
 
     it('should configure log group resource', () => {
