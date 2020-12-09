@@ -263,7 +263,7 @@ provider:
     frameworkLambda: true # Optional, whether to write CloudWatch logs for custom resource lambdas as added by the framework
 
 package: # Optional deployment packaging configuration
-  include: # Specify the directories and files which should be included in the deployment package
+  patterns: # Specify the directories and files which should be included in the deployment package
     - src/**
     - handler.js
   exclude: # Specify the directories and files which should be excluded in the deployment package
@@ -300,7 +300,7 @@ functions:
         - subnetId1
         - subnetId2
     package:
-      include: # Specify the directories and files which should be included in the deployment package for this specific function.
+      patterns: # Specify the directories and files which should be included in the deployment package for this specific function.
         - src/**
         - handler.js
       exclude: # Specify the directories and files which should be excluded in the deployment package for this specific function.
