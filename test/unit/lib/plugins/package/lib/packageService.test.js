@@ -10,6 +10,7 @@ const Package = require('../../../../../../lib/plugins/package/package');
 const Serverless = require('../../../../../../lib/Serverless');
 const serverlessConfigFileUtils = require('../../../../../../lib/utils/getServerlessConfigFile');
 const { createTmpDir } = require('../../../../../utils/fs');
+const runServerless = require('../../../../../utils/run-serverless');
 
 // Configure chai
 chai.use(require('chai-as-promised'));
@@ -34,12 +35,6 @@ describe('#packageService()', () => {
   });
 
   describe('#getIncludes()', () => {
-    it('should return an empty array if no includes are provided', () => {
-      const include = packagePlugin.getIncludes();
-
-      expect(include).to.deep.equal([]);
-    });
-
     it('should merge package includes', () => {
       const packageIncludes = ['dir', 'file.js'];
 
@@ -95,36 +90,6 @@ describe('#packageService()', () => {
       );
     });
 
-    it('should not exclude plugins localPath if it is empty', () => {
-      const localPath = '';
-      serverless.service.plugins = { localPath };
-
-      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then(exclude =>
-        expect(exclude).to.deep.equal(
-          _.union(packagePlugin.defaultExcludes, [serverlessConfigFileName])
-        )
-      );
-    });
-
-    it('should not exclude plugins localPath if it is not a string', () => {
-      const localPath = {};
-      serverless.service.plugins = { localPath };
-
-      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then(exclude =>
-        expect(exclude).to.deep.equal(
-          _.union(packagePlugin.defaultExcludes, [serverlessConfigFileName])
-        )
-      );
-    });
-
-    it('should not exclude serverlessConfigFilePath if is not found', () => {
-      getServerlessConfigFilePathStub.returns(BbPromise.resolve(null));
-
-      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then(exclude =>
-        expect(exclude).to.deep.equal(packagePlugin.defaultExcludes)
-      );
-    });
-
     it('should merge defaults with plugin localPath and excludes', () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
@@ -168,16 +133,6 @@ describe('#packageService()', () => {
   });
 
   describe('#packageService()', () => {
-    it('should package all functions', () => {
-      serverless.service.package.individually = false;
-
-      const packageAllStub = sinon.stub(packagePlugin, 'packageAll').resolves();
-
-      return expect(packagePlugin.packageService()).to.be.fulfilled.then(
-        () => expect(packageAllStub).to.be.calledOnce
-      );
-    });
-
     it('should package functions individually', () => {
       serverless.service.package.individually = true;
       serverless.service.functions = {
@@ -315,23 +270,6 @@ describe('#packageService()', () => {
       packagePlugin.zipFiles.restore();
     });
 
-    it('should call zipService with settings', () => {
-      const servicePath = 'test';
-      const zipFileName = `${serverless.service.service}.zip`;
-
-      serverless.config.servicePath = servicePath;
-
-      return expect(packagePlugin.packageService()).to.be.fulfilled.then(() =>
-        BbPromise.all([
-          expect(getExcludesStub).to.be.calledOnce,
-          expect(getIncludesStub).to.be.calledOnce,
-          expect(resolveFilePathsFromPatternsStub).to.be.calledOnce,
-          expect(zipFilesStub).to.be.calledOnce,
-          expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, undefined, []),
-        ])
-      );
-    });
-
     (process.platfrom === 'win32' ? it : it.skip)(
       'should call zipService with settings & binaries to chmod for GoLang on win32',
       () => {
@@ -400,154 +338,6 @@ describe('#packageService()', () => {
         );
       }
     );
-  });
-
-  describe('#packageFunction()', () => {
-    const exclude = ['test-exclude'];
-    const include = ['test-include'];
-    const files = [];
-    const artifactFilePath = '/some/fake/path/test-artifact.zip';
-    let getExcludesStub;
-    let getIncludesStub;
-    let resolveFilePathsFromPatternsStub;
-    let zipFilesStub;
-
-    beforeEach(() => {
-      getExcludesStub = sinon
-        .stub(packagePlugin, 'getExcludes')
-        .returns(BbPromise.resolve(exclude));
-      getIncludesStub = sinon.stub(packagePlugin, 'getIncludes').returns(include);
-      resolveFilePathsFromPatternsStub = sinon
-        .stub(packagePlugin, 'resolveFilePathsFromPatterns')
-        .returns(files);
-      zipFilesStub = sinon.stub(packagePlugin, 'zipFiles').resolves(artifactFilePath);
-    });
-
-    afterEach(() => {
-      packagePlugin.getExcludes.restore();
-      packagePlugin.getIncludes.restore();
-      packagePlugin.resolveFilePathsFromPatterns.restore();
-      packagePlugin.zipFiles.restore();
-    });
-
-    it('should call zipService with settings', () => {
-      const servicePath = 'test';
-      const funcName = 'test-func';
-
-      const zipFileName = 'test-func.zip';
-
-      serverless.config.servicePath = servicePath;
-      serverless.service.functions = {};
-      serverless.service.functions[funcName] = { name: `test-proj-${funcName}` };
-
-      return expect(packagePlugin.packageFunction(funcName))
-        .to.eventually.equal(artifactFilePath)
-        .then(() =>
-          BbPromise.all([
-            expect(getExcludesStub).to.be.calledOnce,
-            expect(getIncludesStub).to.be.calledOnce,
-            expect(resolveFilePathsFromPatternsStub).to.be.calledOnce,
-
-            expect(zipFilesStub).to.be.calledOnce,
-            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, undefined, []),
-          ])
-        );
-    });
-
-    it('should return function artifact file path', () => {
-      const servicePath = 'test';
-      const funcName = 'test-func';
-
-      serverless.config.servicePath = servicePath;
-      serverless.service.functions = {};
-      serverless.service.functions[funcName] = {
-        name: `test-proj-${funcName}`,
-        package: {
-          artifact: 'artifact.zip',
-        },
-      };
-
-      return expect(packagePlugin.packageFunction(funcName))
-        .to.eventually.equal(path.join('test/artifact.zip'))
-        .then(() =>
-          BbPromise.all([
-            expect(getExcludesStub).to.not.have.been.called,
-            expect(getIncludesStub).to.not.have.been.called,
-            expect(zipFilesStub).to.not.have.been.called,
-          ])
-        );
-    });
-
-    it('should return service artifact file path', () => {
-      const servicePath = 'test';
-      const funcName = 'test-func';
-
-      serverless.config.servicePath = servicePath;
-      serverless.service.functions = {};
-      serverless.service.package = {
-        artifact: 'artifact.zip',
-      };
-      serverless.service.functions[funcName] = {
-        name: `test-proj-${funcName}`,
-      };
-
-      return expect(packagePlugin.packageFunction(funcName))
-        .to.eventually.equal(path.join('test/artifact.zip'))
-        .then(() =>
-          BbPromise.all([
-            expect(getExcludesStub).to.not.have.been.called,
-            expect(getIncludesStub).to.not.have.been.called,
-            expect(zipFilesStub).to.not.have.been.called,
-          ])
-        );
-    });
-
-    it('should call zipService with settings if packaging individually without artifact', () => {
-      const servicePath = 'test';
-      const funcName = 'test-func';
-
-      const zipFileName = 'test-func.zip';
-
-      serverless.config.servicePath = servicePath;
-      serverless.service.functions = {};
-      serverless.service.package = {
-        artifact: 'artifact.zip',
-      };
-      serverless.service.functions[funcName] = {
-        name: `test-proj-${funcName}`,
-        package: { individually: true },
-      };
-
-      return expect(packagePlugin.packageFunction(funcName))
-        .to.eventually.equal(artifactFilePath)
-        .then(() =>
-          BbPromise.all([
-            expect(getExcludesStub).to.be.calledOnce,
-            expect(getIncludesStub).to.be.calledOnce,
-            expect(resolveFilePathsFromPatternsStub).to.be.calledOnce,
-
-            expect(zipFilesStub).to.be.calledOnce,
-            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, undefined, []),
-          ])
-        );
-    });
-
-    it('should not override package property', () => {
-      const funcName = 'test-func';
-      serverless.service.functions = {};
-      serverless.service.functions[funcName] = {
-        name: `test-proj-${funcName}`,
-        package: { individually: true },
-      };
-
-      return packagePlugin
-        .packageFunction(funcName)
-        .then(() =>
-          BbPromise.all([
-            expect(serverless.service.functions[funcName].package.individually).to.equal(true),
-          ])
-        );
-    });
   });
 
   describe('#packageLayer()', () => {
@@ -660,5 +450,182 @@ describe('#packageService()', () => {
         packagePlugin.resolveFilePathsFromPatterns(params)
       ).to.be.fulfilled.then(actual => expect(actual.sort()).to.deep.equal(expected.sort()));
     });
+  });
+});
+
+describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
+  describe('service wide', () => {
+    before(async () => {
+      await runServerless({
+        fixture: 'packaging',
+        cliArgs: ['package'],
+        configExt: {
+          package: {
+            exclude: ['dir1', '!dir1/subdir3/**'],
+            include: ['dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
+          },
+          functions: {
+            fnIndividual: {
+              package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir2' },
+            },
+          },
+        },
+      });
+
+      // Read path to serverless.service.artifact,  unpack it to temporary folder, and
+      // expose list of files it contains to a local variable
+    });
+
+    it('should exclude defaults', () => {
+      // Confirm ".gitignore" is not packaged
+      //
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L77-L85
+    });
+
+    it('should exclude service config', () => {
+      // Confirm "serverless.yml" is not packaged
+      //
+      // Replaces partially
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L77-L85
+    });
+
+    it('should exclude default plugins localPath', () => {
+      // Confirm ".serverless-plugins/index.js" is not packaged
+      //
+      // Replaces
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L87-L96
+    });
+
+    it('should support `package.exclude`', () => {
+      // Confirm "dir1/subdir1/index.js" is not packaged
+      // Confirm "dir1/subdir3/index.js" is packaged
+      //
+      // Replace
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L128-L145
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L637-L649
+    });
+
+    it('should support `package.include`', () => {
+      // Confirm "dir1/subdir2/index.js" is packaged
+      // Confirm "dir1/subdir2/subsubdir1/index.js" is not packaged
+      // Confirm "dir1/subdir2/subsubdir2/index.js" is packaged
+      //
+      // Replaces
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L43-L50
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L625-L635
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L651-L662
+    });
+
+    it('should support `functions[].package.individually`', () => {
+      // Confirm there's functions.fnIndividual.package.artifact
+      // Replace
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L201-L225
+    });
+
+    it('should support `functions[].package.exclude`', () => {
+      // Confirm that in function dedicated artifact "dir1/subdir2/subsubdir2/index.js" is not packaged
+      //
+      // Replaces
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L147-L168
+    });
+    it('should support `functions[].package.include`', () => {
+      // Confirm that in function dedicated artifact "dir1/subdir3/index.js" is packaged
+    });
+
+    (process.platfrom === 'win32' ? it : it.skip)(
+      'should mark go runtime handler files as executable on windows',
+      () => {
+        // Confirm that packaged go handler is executable
+        // Replace
+        // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L335-L376
+      }
+    );
+
+    (process.platfrom === 'win32' ? it : it.skip)(
+      'should normalize go runtime handler path on windows',
+      () => {
+        // Confirm that configured lambda handler has normalized path
+        //
+        // Replace
+        // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L378-L402
+      }
+    );
+
+    it('should package layer', () => {
+      // Confirm that layer is packaged and content is as expected
+      //
+      // Replace
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L581-L607
+    });
+  });
+
+  describe('individually', () => {
+    before(async () => {
+      await runServerless({
+        fixture: 'packaging',
+        cliArgs: ['package'],
+        configExt: {
+          package: {
+            individually: true,
+            artifact: 'artifact.zip',
+            exclude: ['dir1', '!dir1/subdir3/**'],
+            include: ['dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
+          },
+          functions: {
+            fnIndividual: {
+              package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir2' },
+            },
+          },
+          plugins: {
+            localPath: './custom-plugins',
+            modules: ['index'],
+          },
+        },
+      });
+
+      // Read path to serverless.service.artifact,  unpack it to temporary folder, and
+      // expose list of files it contains to a local variable
+    });
+
+    it('should exclude custom plugins localPath', () => {
+      // Confirm ".serverless-plugins/index.js" is not packaged
+    });
+
+    it('should ignore `package.artifact` if `package.individually`', () => {
+      // Replace
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
+    });
+
+    it('should support `package.individually`', () => {
+      // Confirm on different artifacts on functions
+      //
+      // Replaces
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L181-L199
+    });
+
+    it('should support `package.exclude`', () => {
+      // Confirm
+    });
+
+    it('should support `package.include`', () => {
+      // Confirm
+      // Replaces
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L52-L60
+    });
+  });
+
+  describe('pre-prepared artifact', () => {
+    it('should support `package.artifact`', () => {
+      // Replace
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L227-L235
+    });
+
+    it('should ignore `package.artifact` if `functions[].package.individually', () => {
+      // Replace
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L262-L287
+    });
+
+    it('should support `functions[].package.artifact`', () => {});
   });
 });
