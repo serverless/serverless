@@ -419,9 +419,10 @@ describe('#packageService()', () => {
       };
       serverless.config.servicePath = servicePath;
 
+      const expected = [handlerFile].map(file => path.normalize(file));
       return expect(
         packagePlugin.resolveFilePathsFromPatterns(params)
-      ).to.be.fulfilled.then(actual => expect(actual).to.deep.equal([handlerFile]));
+      ).to.be.fulfilled.then(actual => expect(actual).to.deep.equal(expected));
     });
 
     it('should include file specified with `!` in exclude params', () => {
@@ -431,11 +432,10 @@ describe('#packageService()', () => {
       };
       serverless.config.servicePath = servicePath;
 
+      const expected = [handlerFile, utilsFile].map(file => path.normalize(file));
       return expect(
         packagePlugin.resolveFilePathsFromPatterns(params)
-      ).to.be.fulfilled.then(actual =>
-        expect(actual.sort()).to.deep.equal([handlerFile, utilsFile].sort())
-      );
+      ).to.be.fulfilled.then(actual => expect(actual.sort()).to.deep.equal(expected.sort()));
     });
 
     it('should exclude file specified with `!` in include params', () => {
@@ -443,12 +443,25 @@ describe('#packageService()', () => {
         exclude: [],
         include: [`!${utilsFile}`],
       };
-      const expected = [dotsFile, handlerFile];
       serverless.config.servicePath = servicePath;
 
+      const expected = [dotsFile, handlerFile].map(file => path.normalize(file));
       return expect(
         packagePlugin.resolveFilePathsFromPatterns(params)
       ).to.be.fulfilled.then(actual => expect(actual.sort()).to.deep.equal(expected.sort()));
+    });
+
+    it('should not include duplicates when using non-normalized paths', () => {
+      const params = {
+        exclude: ['**'],
+        include: [handlerFile, `./${handlerFile}`],
+      };
+      serverless.config.servicePath = servicePath;
+
+      const expected = [handlerFile].map(file => path.normalize(file));
+      return expect(
+        packagePlugin.resolveFilePathsFromPatterns(params)
+      ).to.be.fulfilled.then(actual => expect(actual).to.deep.equal(expected));
     });
   });
 });
