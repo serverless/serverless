@@ -1,0 +1,23 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+
+package:
+  artifact: artifact.zip
+
+functions:
+  fn1:
+    handler: index.handler
+  fn2:
+    handler: index.handler
+  fnGo:
+    handler: bin/main
+    runtime: go1.x
+
+layers:
+  layer:
+    path: layer
