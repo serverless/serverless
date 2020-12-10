@@ -37,7 +37,7 @@ Q2: Provide (in below placeholder) FULL content of serverless.yml, ensuring that
 </details>
 
 <!--
-Q3: Provide (in below placeholder) FULL name and output of command that exposes the problem.
+Q3: Provide (in below placeholder) FULL name and output of the command that exposes the problem.
        Note: Ensure SLS_DEBUG=* env var for verbose debug output
 -->
 
