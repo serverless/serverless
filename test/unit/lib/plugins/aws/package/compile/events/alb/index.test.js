@@ -1,7 +1,11 @@
 'use strict';
 
 const runServerless = require('../../../../../../../../utils/run-serverless');
-const { expect, assert } = require('chai');
+const { ServerlessError } = require('../../../../../../../../../lib/classes/Error');
+const { use: chaiUse, expect } = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chaiUse(chaiAsPromised);
 
 describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
   let cfResources;
@@ -160,34 +164,32 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
       expect(rule.Properties.Conditions[0].Values[0]).to.equal('/');
     });
 
-    it('should fail validation if no conditions are set', () => {
-      return runServerless({
-        fixture: 'function',
-        cliArgs: ['package'],
-        configExt: {
-          functions: {
-            fnConditionsHostOnly: {
-              handler: 'index.handler',
-              events: [
-                {
-                  alb: {
-                    ...baseEventConfig,
-                    priority: 1,
-                    conditions: {},
+    it('should fail validation if no conditions are set', async () => {
+      const runServerlessAction = () =>
+        runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            functions: {
+              fnConditionsHostOnly: {
+                handler: 'index.handler',
+                events: [
+                  {
+                    alb: {
+                      ...baseEventConfig,
+                      priority: 1,
+                      conditions: {},
+                    },
                   },
-                },
-              ],
+                ],
+              },
             },
           },
-        },
-      }).then(
-        () => Promise.reject('Expected to fail'),
-        r =>
-          assert.equal(
-            r,
-            'ServerlessError: At least 1 condition for alb event must be set in function "fnConditionsHostOnly".'
-          )
-      );
+        });
+
+      await expect(runServerlessAction())
+        .to.eventually.be.rejectedWith(ServerlessError)
+        .and.have.property('code', 'VALIDATION_FAILURE');
     });
   });
 });
