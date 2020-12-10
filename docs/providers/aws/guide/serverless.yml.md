@@ -166,6 +166,9 @@ provider:
     - Effect: 'Allow'
       Action:
         - 's3:ListBucket'
+      Condition:
+        Bool:  # Restrict to SSL only.
+          aws:SecureTransport: true
       Resource:
         Fn::Join:
           - ''
