@@ -20,7 +20,7 @@ Q1: Describe the problem (use case) that needs to be solved
 ⚠️⚠️ REPLACE WITH DESCRIPTION
 
 <!--
-Q2: Propose solution (e.g. provide configuration example)
+Q2: Propose a solution (e.g. provide configuration example)
 
 Note: This is optional, remove this section if you do not wish to propose anything at this point
 -->
