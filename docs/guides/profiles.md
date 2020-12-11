@@ -35,7 +35,7 @@ The description helps provide additional context when listing the deployment pro
 
 Access Roles, Parameters and Safeguards have individual configuration guides:
 
-- [access roles](./access_role.md#link-your-aws-account)
+- [access roles](./access-roles.md#link-your-aws-account)
 - [safeguard policies](./safeguards.md#configuring-policies)
 - [parameters](./parameters.md)
 
