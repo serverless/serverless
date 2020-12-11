@@ -189,7 +189,7 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
 
       await expect(runServerlessAction())
         .to.eventually.be.rejectedWith(ServerlessError)
-        .and.have.property('code', 'VALIDATION_FAILURE');
+        .and.have.property('code', 'ALB_NO_CONDITIONS');
     });
   });
 });
