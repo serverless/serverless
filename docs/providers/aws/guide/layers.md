@@ -97,6 +97,8 @@ layers:
         - layerSourceTarball.tar.gz
 ```
 
+Keep in mind that all `include` and `exclude` patterns (even when inherited from the service config) are resolved against the layer's `path` and not the service `path`.
+
 You can also specify a prebuilt archive to create your layer. When you do this, you do not need to specify the `path` element of your layer.
 
 ```yml
