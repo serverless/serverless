@@ -271,7 +271,7 @@ describe('#packageService()', () => {
     });
 
     (process.platfrom === 'win32' ? it : it.skip)(
-      'should call zipService with settings & no binaries to chmod for non-go on win32',
+      'should call zipService with settings & no binaries to chmod on win32',
       () => {
         const servicePath = 'test';
         const zipFileName = `${serverless.service.service}.zip`;
