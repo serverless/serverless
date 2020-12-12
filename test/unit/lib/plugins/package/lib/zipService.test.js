@@ -818,12 +818,12 @@ describe('zipService', () => {
             expect(unzippedFileData['bin/binary-777'].unixPermissions).to.equal(
               Math.pow(2, 15) + 0o755
             );
-          }
 
-          // read only file is set with chmod of 444
-          expect(unzippedFileData['bin/binary-444'].unixPermissions).to.equal(
-            Math.pow(2, 15) + 0o644
-          );
+            // read only file is set with chmod of 444
+            expect(unzippedFileData['bin/binary-444'].unixPermissions).to.equal(
+              Math.pow(2, 15) + 0o644
+            );
+          }
         });
     });
 
