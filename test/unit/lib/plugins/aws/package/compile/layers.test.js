@@ -3,11 +3,11 @@
 const path = require('path');
 const chai = require('chai');
 const sinon = require('sinon');
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsCompileLayers = require('../../../../../../../../lib/plugins/aws/package/compile/layers/index');
-const Serverless = require('../../../../../../../../lib/Serverless');
-const { getTmpDirPath } = require('../../../../../../../utils/fs');
-const runServerless = require('../../../../../../../utils/run-serverless');
+const AwsProvider = require('../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsCompileLayers = require('../../../../../../../lib/plugins/aws/package/compile/layers');
+const Serverless = require('../../../../../../../lib/Serverless');
+const { getTmpDirPath } = require('../../../../../../utils/fs');
+const runServerless = require('../../../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 
