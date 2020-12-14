@@ -1,6 +1,6 @@
 'use strict';
 
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsRollback = require('../../../../../../lib/plugins/aws/rollback/index');
 const Serverless = require('../../../../../../lib/Serverless');
 const expect = require('chai').expect;

@@ -2,7 +2,7 @@
 
 const sinon = require('sinon');
 const chai = require('chai');
-const AwsProvider = require('../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../../lib/Serverless');
 const existsDeploymentBucket = require('../../../../../../../lib/plugins/aws/deploy/lib/existsDeploymentBucket');
 chai.use(require('chai-as-promised'));

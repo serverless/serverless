@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const path = require('path');
 const fs = require('fs');
 const proxyquire = require('proxyquire');
-const AwsProvider = require('../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../utils/fs');
 

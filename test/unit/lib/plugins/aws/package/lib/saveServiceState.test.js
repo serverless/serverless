@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const path = require('path');
 const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
 const Serverless = require('../../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 
 describe('#saveServiceState()', () => {
   let serverless;

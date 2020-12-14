@@ -1,6 +1,6 @@
 'use strict';
 
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsPackage = require('../../../../../../lib/plugins/aws/package/index');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');

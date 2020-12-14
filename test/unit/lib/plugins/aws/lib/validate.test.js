@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const validate = require('../../../../../../lib/plugins/aws/lib/validate');
 const Serverless = require('../../../../../../lib/Serverless');
 

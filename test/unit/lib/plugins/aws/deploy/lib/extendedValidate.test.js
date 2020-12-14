@@ -3,7 +3,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const path = require('path');
-const AwsProvider = require('../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');

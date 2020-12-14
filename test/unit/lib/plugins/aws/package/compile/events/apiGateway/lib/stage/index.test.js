@@ -7,7 +7,7 @@ const _ = require('lodash');
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const AwsCompileApigEvents = require('../../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway');
 const Serverless = require('../../../../../../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../../../../../lib/plugins/aws/provider');
 const { createTmpDir } = require('../../../../../../../../../../utils/fs');
 
 describe('#compileStage()', () => {
