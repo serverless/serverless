@@ -2,8 +2,8 @@
 
 const BbPromise = require('bluebird');
 const chai = require('chai');
-const Deploy = require('../../../../../lib/plugins/deploy/deploy');
-const Serverless = require('../../../../../lib/Serverless');
+const Deploy = require('../../../../lib/plugins/deploy');
+const Serverless = require('../../../../lib/Serverless');
 const sinon = require('sinon');
 
 // Configure chai
