@@ -1,13 +1,13 @@
 'use strict';
 
 const chai = require('chai');
-const runServerless = require('../../../../../../../../utils/run-serverless');
+const runServerless = require('../../../../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 
 const { expect } = chai;
 
-describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
+describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
   it('should not configure HTTP API resources when no events are configured', () =>
     runServerless({
       config: { service: 'irrelevant', provider: 'aws' },
