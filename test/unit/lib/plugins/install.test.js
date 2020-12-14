@@ -1,13 +1,13 @@
 'use strict';
 
 const chai = require('chai');
-const Serverless = require('../../../../../lib/Serverless');
-const Install = require('../../../../../lib/plugins/install/install.js');
+const Serverless = require('../../../../lib/Serverless');
+const Install = require('../../../../lib/plugins/install.js');
 const sinon = require('sinon');
-const download = require('../../../../../lib/utils/downloadTemplateFromRepo');
+const download = require('../../../../lib/utils/downloadTemplateFromRepo');
 const fse = require('fs-extra');
 const path = require('path');
-const { getTmpDirPath } = require('../../../../utils/fs');
+const { getTmpDirPath } = require('../../../utils/fs');
 
 chai.use(require('sinon-chai'));
 const { expect } = require('chai');
