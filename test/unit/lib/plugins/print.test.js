@@ -4,8 +4,8 @@ const os = require('os');
 const chai = require('chai');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
-const Serverless = require('../../../../../lib/Serverless');
-const CLI = require('../../../../../lib/classes/CLI');
+const Serverless = require('../../../../lib/Serverless');
+const CLI = require('../../../../lib/classes/CLI');
 const YAML = require('js-yaml');
 
 chai.use(require('chai-as-promised'));
@@ -19,8 +19,8 @@ describe('Print', () => {
 
   beforeEach(() => {
     getServerlessConfigFileStub = sinon.stub();
-    const PrintPlugin = proxyquire('../../../../../lib/plugins/print/print.js', {
-      '../../utils/getServerlessConfigFile': {
+    const PrintPlugin = proxyquire('../../../../lib/plugins/print.js', {
+      '../utils/getServerlessConfigFile': {
         getServerlessConfigFile: getServerlessConfigFileStub,
       },
     });
