@@ -1,9 +1,9 @@
 'use strict';
 
 const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsCompileIoTEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/iot/index');
-const Serverless = require('../../../../../../../../../lib/Serverless');
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsCompileIoTEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/iot');
+const Serverless = require('../../../../../../../../lib/Serverless');
 
 describe('AwsCompileIoTEvents', () => {
   let serverless;
