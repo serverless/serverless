@@ -2,10 +2,10 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsMetrics = require('../../../../../../lib/plugins/aws/metrics/awsMetrics');
-const Serverless = require('../../../../../../lib/Serverless');
-const CLI = require('../../../../../../lib/classes/CLI');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsMetrics = require('../../../../../lib/plugins/aws/metrics');
+const Serverless = require('../../../../../lib/Serverless');
+const CLI = require('../../../../../lib/classes/CLI');
 const chalk = require('chalk');
 const dayjs = require('dayjs');
 
