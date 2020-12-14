@@ -14,3 +14,5 @@ functions:
     handler: index.handler
   other:
     handler: index.handler
+    package:
+      artifact: artifact-function.zip
