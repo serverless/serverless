@@ -1,8 +1,8 @@
 'use strict';
 
 const expect = require('chai').expect;
-const Metrics = require('../../../../../lib/plugins/metrics/metrics');
-const Serverless = require('../../../../../lib/Serverless');
+const Metrics = require('../../../../lib/plugins/metrics');
+const Serverless = require('../../../../lib/Serverless');
 
 describe('Metrics', () => {
   let metrics;
