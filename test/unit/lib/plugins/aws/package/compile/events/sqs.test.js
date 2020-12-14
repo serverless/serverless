@@ -1,10 +1,10 @@
 'use strict';
 
 const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsCompileSQSEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/sqs/index');
-const Serverless = require('../../../../../../../../../lib/Serverless');
-const runServerless = require('../../../../../../../../utils/run-serverless');
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsCompileSQSEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/sqs');
+const Serverless = require('../../../../../../../../lib/Serverless');
+const runServerless = require('../../../../../../../utils/run-serverless');
 
 describe('AwsCompileSQSEvents', () => {
   let serverless;
