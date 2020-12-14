@@ -1,8 +1,8 @@
 'use strict';
 
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const AwsRollback = require('../../../../../../lib/plugins/aws/rollback/index');
-const Serverless = require('../../../../../../lib/Serverless');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider');
+const AwsRollback = require('../../../../../lib/plugins/aws/rollback');
+const Serverless = require('../../../../../lib/Serverless');
 const expect = require('chai').expect;
 const assert = require('chai').assert;
 const sinon = require('sinon');
