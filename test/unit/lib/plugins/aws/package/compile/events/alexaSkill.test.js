@@ -3,9 +3,9 @@
 /* eslint-disable no-unused-expressions */
 
 const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsCompileAlexaSkillEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/alexaSkill/index');
-const Serverless = require('../../../../../../../../../lib/Serverless');
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsCompileAlexaSkillEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/alexaSkill');
+const Serverless = require('../../../../../../../../lib/Serverless');
 
 describe('AwsCompileAlexaSkillEvents', () => {
   let serverless;
