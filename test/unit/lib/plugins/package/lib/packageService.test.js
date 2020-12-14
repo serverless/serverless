@@ -271,30 +271,7 @@ describe('#packageService()', () => {
     });
 
     (process.platfrom === 'win32' ? it : it.skip)(
-      'should call zipService with settings & binaries to chmod for GoLang on win32',
-      () => {
-        const servicePath = 'test';
-        const zipFileName = `${serverless.service.service}.zip`;
-
-        serverless.config.servicePath = servicePath;
-        serverless.service.provider.runtime = 'go1.x';
-
-        return expect(packagePlugin.packageService()).to.be.fulfilled.then(() =>
-          BbPromise.all([
-            expect(getExcludesStub).to.be.calledOnce,
-            expect(getIncludesStub).to.be.calledOnce,
-            expect(resolveFilePathsFromPatternsStub).to.be.calledOnce,
-            expect(zipFilesStub).to.be.calledOnce,
-            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, undefined, [
-              'foo',
-            ]),
-          ])
-        );
-      }
-    );
-
-    (process.platfrom === 'win32' ? it : it.skip)(
-      'should call zipService with settings & no binaries to chmod for non-go on win32',
+      'should call zipService with settings & binaries to chmod on win32',
       () => {
         const servicePath = 'test';
         const zipFileName = `${serverless.service.service}.zip`;
@@ -307,33 +284,7 @@ describe('#packageService()', () => {
             expect(getIncludesStub).to.be.calledOnce,
             expect(resolveFilePathsFromPatternsStub).to.be.calledOnce,
             expect(zipFilesStub).to.be.calledOnce,
-            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, undefined, []),
-          ])
-        );
-      }
-    );
-
-    (process.platfrom === 'win32' ? it : it.skip)(
-      'should normalize the handler path for go runtimes on win32',
-      () => {
-        serverless.service.functions.first.handler = 'foo/bar//foo\\bar\\\\foo';
-        serverless.service.provider.runtime = 'go1.x';
-
-        const servicePath = 'test';
-        const zipFileName = `${serverless.service.service}.zip`;
-
-        serverless.config.servicePath = servicePath;
-
-        return expect(packagePlugin.packageService()).to.be.fulfilled.then(() =>
-          BbPromise.all([
-            expect(getExcludesStub).to.be.calledOnce,
-            expect(getIncludesStub).to.be.calledOnce,
-            expect(serverless.service.functions.first),
-            expect(resolveFilePathsFromPatternsStub).to.be.calledOnce,
-            expect(zipFilesStub).to.be.calledOnce,
-            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, undefined, [
-              path.normalize(serverless.service.functions.first.handler),
-            ]),
+            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, []),
           ])
         );
       }
