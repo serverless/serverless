@@ -2,9 +2,9 @@
 
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const AwsDeployList = require('../../../../../../lib/plugins/aws/deployList/index');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
-const Serverless = require('../../../../../../lib/Serverless');
+const AwsDeployList = require('../../../../../lib/plugins/aws/deployList');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider/awsProvider');
+const Serverless = require('../../../../../lib/Serverless');
 
 describe('AwsDeployList', () => {
   let serverless;
