@@ -64,7 +64,6 @@
     "promise-queue": "^2.2.5",
     "replaceall": "^0.1.6",
     "semver": "^7.3.4",
-    "stream-promise": "^3.2.0",
     "tabtab": "^3.0.2",
     "tar": "^6.0.5",
     "timers-ext": "^0.1.7",
