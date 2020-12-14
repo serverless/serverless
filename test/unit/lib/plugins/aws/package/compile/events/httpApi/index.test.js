@@ -134,6 +134,10 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
               payload: '1.0',
               cors: true,
               metrics: true,
+              throttle: {
+                burstLimit: 100,
+                rateLimit: 200,
+              },
               authorizers: {
                 someAuthorizer: {
                   identitySource: '$request.header.Authorization',
@@ -187,6 +191,14 @@ describe('lib/plugins/aws/package/compile/events/httpApi/index.test.js', () => {
 
     it('should configure detailed metrics', () => {
       expect(cfStage.Properties.DefaultRouteSettings.DetailedMetricsEnabled).to.equal(true);
+    });
+
+    it('should configure burst limit', () => {
+      expect(cfStage.Properties.DefaultRouteSettings.ThrottlingBurstLimit).to.equal(100);
+    });
+
+    it('should configure rate limit', () => {
+      expect(cfStage.Properties.DefaultRouteSettings.ThrottlingRateLimit).to.equal(200);
     });
 
     it('should configure log group resource', () => {

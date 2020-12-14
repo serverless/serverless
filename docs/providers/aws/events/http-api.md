@@ -283,3 +283,15 @@ provider:
   httpApi:
     metrics: true
 ```
+
+### Throttling API Requests
+
+With HTTP API we may configure throttling of the API Requests.
+
+```yaml
+provider:
+  httpApi:
+    throttle:
+      burstLimit: 100
+      rateLimit: 100
+```
