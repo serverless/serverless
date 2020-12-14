@@ -3,7 +3,7 @@
 const bluebird = require('bluebird');
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const AwsProvider = require('../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsLogs = require('../../../../../lib/plugins/aws/logs');
 const Serverless = require('../../../../../lib/Serverless');
 

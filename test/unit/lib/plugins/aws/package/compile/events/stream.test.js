@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileStreamEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/stream');
 const Serverless = require('../../../../../../../../lib/Serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');

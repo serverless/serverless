@@ -3,7 +3,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const Serverless = require('../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const CLI = require('../../../../../../lib/classes/CLI');
 const monitorStack = require('../../../../../../lib/plugins/aws/lib/monitorStack');
 

@@ -13,7 +13,7 @@ const YAML = require('js-yaml');
 const _ = require('lodash');
 const overrideEnv = require('process-utils/override-env');
 
-const AwsProvider = require('../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../lib/plugins/aws/provider');
 const fse = require('fs-extra');
 const Serverless = require('../../../../lib/Serverless');
 const slsError = require('../../../../lib/classes/Error');

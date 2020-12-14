@@ -9,7 +9,7 @@ const _ = require('lodash');
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const { createTmpDir } = require('../../../../../../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));

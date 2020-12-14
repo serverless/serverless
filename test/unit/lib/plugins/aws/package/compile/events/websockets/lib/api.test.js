@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const AwsCompileWebsocketsEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/websockets/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 
 describe('#compileApi()', () => {
   let awsCompileWebsocketsEvents;

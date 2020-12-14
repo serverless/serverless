@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const AwsCompileAlbEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/alb/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 
 describe('#validate()', () => {
   let awsCompileAlbEvents;

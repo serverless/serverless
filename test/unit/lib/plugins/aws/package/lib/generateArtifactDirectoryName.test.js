@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const AwsPackage = require('../../../../../../../lib/plugins/aws/package/index');
-const AwsProvider = require('../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../../lib/Serverless');
 
 describe('#generateArtifactDirectoryName()', () => {

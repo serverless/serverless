@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const sandbox = require('sinon');
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider');
 const AwsCompileCloudFrontEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloudFront');
 const Serverless = require('../../../../../../../../lib/Serverless');
 const runServerless = require('../../../../../../../utils/run-serverless');

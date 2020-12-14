@@ -12,10 +12,10 @@ const os = require('os');
 const path = require('path');
 const overrideEnv = require('process-utils/override-env');
 
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
-const Serverless = require('../../../../../../lib/Serverless');
-const { replaceEnv } = require('../../../../../utils/misc');
-const { getTmpFilePath } = require('../../../../../utils/fs');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider');
+const Serverless = require('../../../../../lib/Serverless');
+const { replaceEnv } = require('../../../../utils/misc');
+const { getTmpFilePath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -877,12 +877,9 @@ describe('AwsProvider', () => {
 
   describe('#getCredentials()', () => {
     const awsStub = sinon.stub().returns();
-    const AwsProviderProxyquired = proxyquire(
-      '../../../../../../lib/plugins/aws/provider/awsProvider.js',
-      {
-        'aws-sdk': awsStub,
-      }
-    );
+    const AwsProviderProxyquired = proxyquire('../../../../../lib/plugins/aws/provider.js', {
+      'aws-sdk': awsStub,
+    });
 
     // add environment variables here if you want them cleared prior to your test and restored
     // after it has completed.  Any environment variable that might alter credentials loading

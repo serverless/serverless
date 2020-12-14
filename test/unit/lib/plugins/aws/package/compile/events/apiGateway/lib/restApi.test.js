@@ -3,7 +3,7 @@
 const chai = require('chai');
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));

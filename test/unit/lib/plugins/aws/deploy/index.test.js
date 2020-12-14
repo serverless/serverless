@@ -2,7 +2,7 @@
 
 /* eslint-disable no-unused-expressions */
 
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../lib/plugins/aws/deploy/index');
 const chai = require('chai');
 const Serverless = require('../../../../../../lib/Serverless');
