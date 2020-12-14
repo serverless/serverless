@@ -4,9 +4,9 @@ const chai = require('chai');
 const sinon = require('sinon');
 const path = require('path');
 const proxyquire = require('proxyquire');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
-const Serverless = require('../../../../../../lib/Serverless');
-const { getTmpDirPath } = require('../../../../../utils/fs');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider/awsProvider');
+const Serverless = require('../../../../../lib/Serverless');
+const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 
@@ -25,7 +25,7 @@ describe('AwsInvoke', () => {
 
   beforeEach(() => {
     stdinStub = sinon.stub().resolves('');
-    AwsInvoke = proxyquire('../../../../../../lib/plugins/aws/invoke/index', {
+    AwsInvoke = proxyquire('../../../../../lib/plugins/aws/invoke', {
       'get-stdin': stdinStub,
     });
     serverless = new Serverless();
