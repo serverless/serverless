@@ -7,11 +7,11 @@ const YAML = require('js-yaml');
 const path = require('path');
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const fse = require('fs-extra');
-const PluginUninstall = require('../../../../../../lib/plugins/plugin/uninstall/uninstall');
-const Serverless = require('../../../../../../lib/Serverless');
-const CLI = require('../../../../../../lib/classes/CLI');
+const PluginUninstall = require('../../../../../lib/plugins/plugin/uninstall');
+const Serverless = require('../../../../../lib/Serverless');
+const CLI = require('../../../../../lib/classes/CLI');
 const { expect } = require('chai');
-const { getTmpDirPath } = require('../../../../../utils/fs');
+const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 
