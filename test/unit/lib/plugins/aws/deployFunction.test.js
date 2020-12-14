@@ -5,9 +5,9 @@ const sinon = require('sinon');
 const path = require('path');
 const fs = require('fs');
 const proxyquire = require('proxyquire');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider/awsProvider');
-const Serverless = require('../../../../../../lib/Serverless');
-const { getTmpDirPath } = require('../../../../../utils/fs');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider/awsProvider');
+const Serverless = require('../../../../../lib/Serverless');
+const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -60,7 +60,7 @@ describe('AwsDeployFunction', () => {
         }, // eslint-disable-line
         digest: sinon.stub(),
       };
-      AwsDeployFunction = proxyquire('../../../../../../lib/plugins/aws/deployFunction/index.js', {
+      AwsDeployFunction = proxyquire('../../../../../lib/plugins/aws/deployFunction', {
         crypto: cryptoStub,
       });
       awsDeployFunction = new AwsDeployFunction(serverless, options);
