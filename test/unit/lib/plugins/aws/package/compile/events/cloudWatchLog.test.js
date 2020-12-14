@@ -1,9 +1,9 @@
 'use strict';
 
 const expect = require('chai').expect;
-const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsCompileCloudWatchLogEvents = require('../../../../../../../../../lib/plugins/aws/package/compile/events/cloudWatchLog/index');
-const Serverless = require('../../../../../../../../../lib/Serverless');
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsCompileCloudWatchLogEvents = require('../../../../../../../../lib/plugins/aws/package/compile/events/cloudWatchLog');
+const Serverless = require('../../../../../../../../lib/Serverless');
 
 describe('AwsCompileCloudWatchLogEvents', () => {
   let serverless;
