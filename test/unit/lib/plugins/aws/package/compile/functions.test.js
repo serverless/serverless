@@ -6,13 +6,13 @@ const _ = require('lodash');
 const path = require('path');
 const chai = require('chai');
 const sinon = require('sinon');
-const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
-const AwsCompileFunctions = require('../../../../../../../../lib/plugins/aws/package/compile/functions/index');
-const Serverless = require('../../../../../../../../lib/Serverless');
-const runServerless = require('../../../../../../../utils/run-serverless');
-const fixtures = require('../../../../../../../fixtures');
+const AwsProvider = require('../../../../../../../lib/plugins/aws/provider/awsProvider');
+const AwsCompileFunctions = require('../../../../../../../lib/plugins/aws/package/compile/functions');
+const Serverless = require('../../../../../../../lib/Serverless');
+const runServerless = require('../../../../../../utils/run-serverless');
+const fixtures = require('../../../../../../fixtures');
 
-const { getTmpDirPath, createTmpFile } = require('../../../../../../../utils/fs');
+const { getTmpDirPath, createTmpFile } = require('../../../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -1937,7 +1937,7 @@ describe('AwsCompileFunctions', () => {
       const coreCloudFormationTemplate = awsCompileFunctions.serverless.utils.readFileSync(
         path.resolve(
           __dirname,
-          '../../../../../../../../lib/plugins/aws/package/lib/core-cloudformation-template.json'
+          '../../../../../../../lib/plugins/aws/package/lib/core-cloudformation-template.json'
         )
       );
       awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate = coreCloudFormationTemplate;
