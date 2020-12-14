@@ -6,9 +6,9 @@ const os = require('os');
 const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const config = require('@serverless/utils/config');
-const { ServerlessError } = require('../../../../../lib/classes/Error');
-const runServerless = require('../../../../utils/run-serverless');
-const isTabCompletionSupported = require('../../../../../lib/utils/tabCompletion/isSupported');
+const { ServerlessError } = require('../../../../lib/classes/Error');
+const runServerless = require('../../../utils/run-serverless');
+const isTabCompletionSupported = require('../../../../lib/utils/tabCompletion/isSupported');
 
 BbPromise.promisifyAll(fs);
 
