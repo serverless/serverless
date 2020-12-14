@@ -1,8 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const Info = require('../../../../../lib/plugins/info/info');
-const Serverless = require('../../../../../lib/Serverless');
+const Info = require('../../../../lib/plugins/info');
+const Serverless = require('../../../../lib/Serverless');
 
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
