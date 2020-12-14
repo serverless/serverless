@@ -7,8 +7,8 @@ const fs = require('fs');
 const fse = require('fs-extra');
 const os = require('os');
 const path = require('path');
-const AwsConfigCredentials = require('../../../../../../lib/plugins/aws/configCredentials/awsConfigCredentials');
-const Serverless = require('../../../../../../lib/Serverless');
+const AwsConfigCredentials = require('../../../../../lib/plugins/aws/configCredentials');
+const Serverless = require('../../../../../lib/Serverless');
 
 describe('AwsConfigCredentials', () => {
   let awsConfigCredentials;
