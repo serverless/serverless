@@ -2,8 +2,8 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const SlStats = require('../../../../../lib/plugins/slstats/slstats');
-const Serverless = require('../../../../../lib/Serverless');
+const SlStats = require('../../../../lib/plugins/slstats');
+const Serverless = require('../../../../lib/Serverless');
 const config = require('@serverless/utils/config');
 
 describe('SlStats', () => {
