@@ -2,9 +2,9 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const Serverless = require('../../../../../../lib/Serverless');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const CLI = require('../../../../../../lib/classes/CLI');
+const Serverless = require('../../../../../lib/Serverless');
+const AwsProvider = require('../../../../../lib/plugins/aws/provider');
+const CLI = require('../../../../../lib/classes/CLI');
 const proxyquire = require('proxyquire');
 
 describe('AwsRollbackFunction', () => {
@@ -16,12 +16,9 @@ describe('AwsRollbackFunction', () => {
 
   beforeEach(() => {
     fetchStub = sinon.stub().resolves({ buffer: () => {} });
-    AwsRollbackFunction = proxyquire(
-      '../../../../../../lib/plugins/aws/rollbackFunction/index.js',
-      {
-        'node-fetch': fetchStub,
-      }
-    );
+    AwsRollbackFunction = proxyquire('../../../../../lib/plugins/aws/rollbackFunction.js', {
+      'node-fetch': fetchStub,
+    });
     serverless = new Serverless();
     serverless.servicePath = true;
     serverless.service.functions = {
