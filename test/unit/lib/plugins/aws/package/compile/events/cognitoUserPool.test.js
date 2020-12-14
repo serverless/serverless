@@ -5,8 +5,8 @@
 const sinon = require('sinon');
 const chai = require('chai');
 const proxyquire = require('proxyquire').noCallThru();
-const AwsProvider = require('../../../../../../../../../lib/plugins/aws/provider/awsProvider');
-const Serverless = require('../../../../../../../../../lib/Serverless');
+const AwsProvider = require('../../../../../../../../lib/plugins/aws/provider/awsProvider');
+const Serverless = require('../../../../../../../../lib/Serverless');
 
 const { expect } = chai;
 chai.use(require('sinon-chai'));
@@ -20,9 +20,9 @@ describe('AwsCompileCognitoUserPoolEvents', () => {
   beforeEach(() => {
     addCustomResourceToServiceStub = sinon.stub().resolves();
     const AwsCompileCognitoUserPoolEvents = proxyquire(
-      '../../../../../../../../../lib/plugins/aws/package/compile/events/cognitoUserPool/index',
+      '../../../../../../../../lib/plugins/aws/package/compile/events/cognitoUserPool',
       {
-        '../../../../customResources': {
+        '../../../customResources': {
           addCustomResourceToService: addCustomResourceToServiceStub,
         },
       }
