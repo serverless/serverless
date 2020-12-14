@@ -11,6 +11,8 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
+> This is a deprecated feature of the dashboard. Please look at our documentaion for [Providers](https://www.serverless.com/framework/docs/guides/providers/) which replaces the use of deployment profiles for setting up AWS connections.
+
 # Deployment Profiles
 
 Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Parameters](./parameters.md) and [Access Roles](./access-roles.md).
