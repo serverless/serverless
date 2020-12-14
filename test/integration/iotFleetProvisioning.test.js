@@ -27,16 +27,24 @@ describe('test/integration/iotFleetProvisioning.test.js', function() {
   });
 
   after(async () => {
-    const {
-      certificates: [{ certificateArn, certificateId }],
-    } = await awsRequest('Iot', 'listCertificates');
+    const [
+      {
+        certificates: [{ certificateArn, certificateId }],
+      },
+      {
+        policies: [{ policyName }],
+      },
+    ] = await Promise.all([
+      awsRequest('Iot', 'listCertificates'),
+      awsRequest('Iot', 'listPolicies'),
+    ]);
     await Promise.all([
       awsRequest('Iot', 'detachThingPrincipal', {
         thingName: 'IotDevice',
         principal: certificateArn,
       }),
       awsRequest('Iot', 'detachPolicy', {
-        policyName: 'iotPolicy',
+        policyName,
         target: certificateArn,
       }),
       awsRequest('Iot', 'updateCertificate', {

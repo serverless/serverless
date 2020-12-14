@@ -20,14 +20,16 @@ functions:
       - iotFleetProvisioning:
           templateBody: ${file(template.json)}
           provisioningRoleArn:
-            'Fn::Sub': arn:aws:iam::${AWS::AccountId}:role/provisioning-role
+            Fn::GetAtt:
+              - ProvisioningRole
+              - Arn
 
 resources:
   Resources:
     ProvisioningRole:
       Type: AWS::IAM::Role
       Properties:
-        RoleName: provisioning-role
+        RoleName: ${self:service}-${opt:stage, self:provider.stage, 'dev'}-provisioning-role
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/service-role/AWSIoTThingsRegistration
         AssumeRolePolicyDocument:
@@ -37,16 +39,6 @@ resources:
               Principal:
                 Service: iot.amazonaws.com
               Action: sts:AssumeRole
-    IoTPolicy:
-      Type: AWS::IoT::Policy
-      Properties:
-        PolicyName: iotPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action: 'iot:*'
-              Resource: '*'
   Outputs:
     ProvisioningTemplateName:
       Value:

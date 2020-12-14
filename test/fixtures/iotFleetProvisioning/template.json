@@ -9,10 +9,10 @@
       }
     },
     "policy": {
+      "Type": "AWS::IoT::Policy",
       "Properties": {
-        "PolicyName": "iotPolicy"
-      },
-      "Type": "AWS::IoT::Policy"
+        "PolicyDocument": "{ \"Version\": \"2012-10-17\", \"Statement\": [{ \"Effect\": \"Allow\", \"Action\":[\"iot:*\"], \"Resource\": \"*\" }] }"
+      }
     },
     "thing": {
       "Type": "AWS::IoT::Thing",
