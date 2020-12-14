@@ -8,11 +8,11 @@ const path = require('path');
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const fs = require('fs');
 const fse = require('fs-extra');
-const PluginInstall = require('../../../../../../lib/plugins/plugin/install/install');
-const Serverless = require('../../../../../../lib/Serverless');
-const CLI = require('../../../../../../lib/classes/CLI');
+const PluginInstall = require('../../../../../lib/plugins/plugin/install');
+const Serverless = require('../../../../../lib/Serverless');
+const CLI = require('../../../../../lib/classes/CLI');
 const { expect } = require('chai');
-const { getTmpDirPath } = require('../../../../../utils/fs');
+const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 
