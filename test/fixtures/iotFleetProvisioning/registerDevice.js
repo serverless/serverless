@@ -140,8 +140,9 @@ module.exports.main = async ({ iotEndpoint, certificatePem, privateKey }) => {
   const identity = new iotidentity.IotIdentityClient(connection);
 
   await connection.connect();
-  const { certificateOwnershipToken: token } = await executeKeys(identity);
-  await executeRegisterThing(identity, token);
+  const { certificateOwnershipToken: token, certificateId } = await executeKeys(identity);
+  const { thingName } = await executeRegisterThing(identity, token);
 
   clearTimeout(timer);
+  return { certificateId, thingName };
 };

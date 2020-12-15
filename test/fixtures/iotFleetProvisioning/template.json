@@ -11,7 +11,7 @@
     "policy": {
       "Type": "AWS::IoT::Policy",
       "Properties": {
-        "PolicyDocument": "{ \"Version\": \"2012-10-17\", \"Statement\": [{ \"Effect\": \"Allow\", \"Action\":[\"iot:*\"], \"Resource\": \"*\" }] }"
+        "PolicyName": "${self:service}-${opt:stage, self:provider.stage, 'dev'}-iot-policy"
       }
     },
     "thing": {
