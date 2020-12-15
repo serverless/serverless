@@ -2,10 +2,10 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
+const proxyquire = require('proxyquire');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsLogs = require('../../../../../lib/plugins/aws/logs');
 const Serverless = require('../../../../../lib/Serverless');
-const timers = require('../../../../../lib/utils/timers');
 
 // Configure chai
 chai.use(require('chai-as-promised'));
@@ -324,21 +324,40 @@ describe('AwsLogs', () => {
         '2016/07/28/[$LATEST]83f5206ab2a8488290349b9c1fbfe2ba',
         '2016/07/28/[$LATEST]83f5206ab2a8488290349b9c1fbfe2ba',
       ];
-      const filterLogEventsStub = sinon.stub(awsLogs.provider, 'request').resolves(replyMock);
-      awsLogs.serverless.service.service = 'new-service';
-      awsLogs.options = {
+
+      const timersSleep = sinon.stub().rejects();
+      const MockedAwsLogs = proxyquire('../../../../../lib/plugins/aws/logs', {
+        'timers-ext/promise/sleep': timersSleep,
+      });
+
+      const options = {
+        stage: 'dev',
+        region: 'us-east-1',
+        function: 'first',
+      };
+      serverless = new Serverless();
+      const provider = new AwsProvider(serverless, options);
+      provider.cachedCredentials = {
+        credentials: { accessKeyId: 'foo', secretAccessKey: 'bar' },
+      };
+      serverless.setProvider('aws', provider);
+      serverless.processedInput = { commands: ['logs'] };
+      const mockedAwsLogs = new MockedAwsLogs(serverless, options);
+
+      const filterLogEventsStub = sinon.stub(mockedAwsLogs.provider, 'request').resolves(replyMock);
+      mockedAwsLogs.serverless.service.service = 'new-service';
+      mockedAwsLogs.options = {
         stage: 'dev',
         region: 'us-east-1',
         function: 'first',
         logGroupName: awsLogs.provider.naming.getLogGroupName('new-service-dev-first'),
         tail: true,
       };
-      const timersSleep = sinon.stub(timers, 'sleep').rejects();
 
       try {
-        await awsLogs.showLogs(logStreamNamesMock);
-      } catch (err) {
-        // Promise.delay has to reject or it'll loop forever
+        await mockedAwsLogs.showLogs(logStreamNamesMock);
+      } catch {
+        // timersSleep has to reject or it'll loop forever
       }
 
       expect(filterLogEventsStub.calledOnce).to.be.equal(true);
@@ -350,9 +369,6 @@ describe('AwsLogs', () => {
           startTime: fakeTime - 10 * 1000, // fakeTime - 10 minutes
         })
       ).to.be.equal(true);
-
-      awsLogs.provider.request.restore();
-      timersSleep.restore();
     });
   });
 });
