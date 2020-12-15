@@ -127,6 +127,43 @@ const serverlessConfigurationExtension = {
         },
       ],
     },
+    retryPolicyConfiguration: {
+      handler: 'index.handler',
+      events: [
+        {
+          eventBridge: {
+            retryPolicy: {
+              maximumEventAge: 3600,
+              maximumRetryAttempts: 3,
+            },
+            eventBus: 'custom-saas-events',
+            pattern: {
+              detail: {
+                eventSource: ['saas.external'],
+              },
+            },
+          },
+        },
+      ],
+    },
+    deadLetterConfiguration: {
+      handler: 'index.handler',
+      events: [
+        {
+          eventBridge: {
+            eventBus: 'custom-saas-events',
+            deadLetterConfig: {
+              arn: 'arn:aws:sqs:us-east-1:12345:test',
+            },
+            pattern: {
+              detail: {
+                eventSource: ['saas.external'],
+              },
+            },
+          },
+        },
+      ],
+    },
   },
 };
 
@@ -225,13 +262,25 @@ describe('EventBridgeEvents', () => {
       expect(eventTime).be.eq('$.time');
     });
 
-    it('should register created and delete event bus permissions for non default event bus', () => {
-      const roleId = naming.getCustomResourcesRoleLogicalId('customSaas', '12345');
-      const [firstStatement] = cfResources[roleId].Properties.Policies[0].PolicyDocument.Statement;
-      expect(firstStatement.Action[0]).to.be.eq('events:CreateEventBus');
-      expect(firstStatement.Action[1]).to.be.eq('events:DeleteEventBus');
-      expect(firstStatement.Effect).to.be.eq('Allow');
-    });
+    it('should support retryPolicy configuration', () => {
+    const eventBridgeConfig = getEventBridgeConfigById('retryPolicyConfiguration');
+    const { MaximumEventAgeInSeconds, MaximumRetryAttempts } = eventBridgeConfig.RetryPolicy;
+    expect(MaximumEventAgeInSeconds).to.be.eq(3600);
+    expect(MaximumRetryAttempts).to.be.eq(3);
+  });
+
+  it('should support deadLetterConfig configuration', () => {
+    const eventBridgeConfig = getEventBridgeConfigById('deadLetterConfiguration');
+    const { Arn } = eventBridgeConfig.DeadLetterConfig;
+    expect(Arn).to.be.eq('arn:aws:sqs:us-east-1:12345:test');
+  });
+
+  it('should register created and delete event bus permissions for non default event bus', () => {
+    const roleId = naming.getCustomResourcesRoleLogicalId('customSaas', '12345');
+    const [firstStatement] = cfResources[roleId].Properties.Policies[0].PolicyDocument.Statement;
+    expect(firstStatement.Action[0]).to.be.eq('events:CreateEventBus');
+    expect(firstStatement.Action[1]).to.be.eq('events:DeleteEventBus');
+    expect(firstStatement.Effect).to.be.eq('Allow');});
 
     it('should fail when trying to reference event bus via CF intrinsic function', async () => {
       await expect(
