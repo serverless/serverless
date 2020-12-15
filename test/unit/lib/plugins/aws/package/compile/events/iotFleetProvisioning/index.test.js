@@ -13,11 +13,17 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
     const functionName = 'iotFleetProvisioningBasic';
     const disabledFunctionName = 'iotFleetProvisioningDisabled';
     const namedFunctionName = 'iotFleetProvisioningNamed';
+    const stage = 'dev';
     let cfResources;
     let naming;
+    let serviceName;
 
     before(async () => {
-      const { awsNaming, cfTemplate } = await runServerless({
+      const {
+        awsNaming,
+        cfTemplate,
+        fixtureData: { serviceConfig },
+      } = await runServerless({
         fixture: 'function',
         configExt: {
           functions: {
@@ -61,6 +67,7 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
         cliArgs: ['package'],
       });
       ({ Resources: cfResources } = cfTemplate);
+      serviceName = serviceConfig.service;
       naming = awsNaming;
     });
 
@@ -77,7 +84,9 @@ describe('lib/plugins/aws/package/compile/events/iotFleetProvisioning/index.test
             },
           },
           ProvisioningRoleArn: 'arn:aws:iam::123456789:role/provisioning-role',
-          TemplateBody: JSON.stringify(templateBody),
+          TemplateBody: JSON.stringify(templateBody)
+            .replace('${self:service}', serviceName)
+            .replace("${opt:stage, self:provider.stage, 'dev'}", stage),
         },
         DependsOn: [naming.getLambdaIotFleetProvisioningPermissionLogicalId(functionName)],
       });
