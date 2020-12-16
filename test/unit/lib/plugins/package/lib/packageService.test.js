@@ -9,7 +9,7 @@ const sinon = require('sinon');
 const Package = require('../../../../../../lib/plugins/package/package');
 const Serverless = require('../../../../../../lib/Serverless');
 const serverlessConfigFileUtils = require('../../../../../../lib/utils/getServerlessConfigFile');
-const { createTmpDir } = require('../../../../../utils/fs');
+const { createTmpDir, listZipFiles } = require('../../../../../utils/fs');
 const runServerless = require('../../../../../utils/run-serverless');
 
 // Configure chai
@@ -57,27 +57,16 @@ describe('#packageService()', () => {
 
   describe('#getExcludes()', () => {
     const serverlessConfigFileName = 'serverless.xyz';
-    let getServerlessConfigFilePathStub;
 
-    beforeEach(() => {
-      getServerlessConfigFilePathStub = sinon
+    before(() => {
+      sinon
         .stub(serverlessConfigFileUtils, 'getServerlessConfigFilePath')
         .returns(BbPromise.resolve(`/path/to/${serverlessConfigFileName}`));
     });
 
-    afterEach(() => {
+    after(() => {
       serverlessConfigFileUtils.getServerlessConfigFilePath.restore();
     });
-
-    it('should exclude defaults and serverless config file being used', () =>
-      expect(packagePlugin.getExcludes()).to.be.fulfilled.then(exclude =>
-        BbPromise.join(
-          expect(getServerlessConfigFilePathStub).to.be.calledOnce,
-          expect(exclude).to.deep.equal(
-            _.union(packagePlugin.defaultExcludes, [serverlessConfigFileName])
-          )
-        )
-      ));
 
     it('should exclude plugins localPath defaults', () => {
       const localPath = './myplugins';
@@ -404,12 +393,32 @@ describe('#packageService()', () => {
   });
 });
 
-describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
+describe('lib/plugins/package/lib/packageService.test.js', () => {
+  const mockedDescribeStacksResponse = {
+    CloudFormation: {
+      describeStacks: {
+        Stacks: [
+          {
+            Outputs: [
+              { OutputKey: 'LayerLambdaLayerHash', OutputValue: '123' },
+              { OutputKey: 'LayerLambdaLayerS3Key', OutputValue: 'path/to/layer.zip' },
+            ],
+          },
+        ],
+      },
+    },
+  };
+
   describe('service wide', () => {
+    let fnIndividualZippedFiles;
+
     before(async () => {
-      await runServerless({
+      const {
+        fixtureData: { servicePath },
+      } = await runServerless({
         fixture: 'packaging',
         cliArgs: ['package'],
+        awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
             exclude: ['dir1', '!dir1/subdir3/**'],
@@ -424,32 +433,29 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
         },
       });
 
-      // Read path to serverless.service.artifact,  unpack it to temporary folder, and
-      // expose list of files it contains to a local variable
+      fnIndividualZippedFiles = await listZipFiles(
+        path.join(servicePath, '.serverless', 'fnIndividual.zip')
+      );
     });
 
     it('should exclude defaults', () => {
-      // Confirm ".gitignore" is not packaged
-      //
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L77-L85
+      expect(fnIndividualZippedFiles).to.not.include('.gitignore');
+      expect(fnIndividualZippedFiles).to.not.include('.env');
+      expect(fnIndividualZippedFiles).to.not.include('.env.stage');
     });
 
     it('should exclude service config', () => {
-      // Confirm "serverless.yml" is not packaged
-      //
-      // Replaces partially
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L77-L85
+      expect(fnIndividualZippedFiles).to.not.include('serverless.yml');
     });
 
-    it('should exclude default plugins localPath', () => {
+    it.skip('TODO: should exclude default plugins localPath', () => {
       // Confirm ".serverless-plugins/index.js" is not packaged
       //
       // Replaces
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L87-L96
     });
 
-    it('should support `package.exclude`', () => {
+    it.skip('TODO: should support `package.exclude`', () => {
       // Confirm "dir1/subdir1/index.js" is not packaged
       // Confirm "dir1/subdir3/index.js" is packaged
       //
@@ -458,7 +464,7 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L637-L649
     });
 
-    it('should support `package.include`', () => {
+    it.skip('TODO: should support `package.include`', () => {
       // Confirm "dir1/subdir2/index.js" is packaged
       // Confirm "dir1/subdir2/subsubdir1/index.js" is not packaged
       // Confirm "dir1/subdir2/subsubdir2/index.js" is packaged
@@ -469,19 +475,19 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L651-L662
     });
 
-    it('should support `functions[].package.individually`', () => {
+    it.skip('TODO: should support `functions[].package.individually`', () => {
       // Confirm there's functions.fnIndividual.package.artifact
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L201-L225
     });
 
-    it('should support `functions[].package.exclude`', () => {
+    it.skip('TODO: should support `functions[].package.exclude`', () => {
       // Confirm that in function dedicated artifact "dir1/subdir2/subsubdir2/index.js" is not packaged
       //
       // Replaces
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L147-L168
     });
-    it('should support `functions[].package.include`', () => {
+    it.skip('TODO: should support `functions[].package.include`', () => {
       // Confirm that in function dedicated artifact "dir1/subdir3/index.js" is packaged
     });
 
@@ -495,7 +501,7 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
     );
 
     (process.platfrom === 'win32' ? it : it.skip)(
-      'should normalize go runtime handler path on windows',
+      'TODO: should normalize go runtime handler path on windows',
       () => {
         // Confirm that configured lambda handler has normalized path
         //
@@ -504,7 +510,7 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
       }
     );
 
-    it('should package layer', () => {
+    it.skip('TODO: should package layer', () => {
       // Confirm that layer is packaged and content is as expected
       //
       // Replace
@@ -512,7 +518,7 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
     });
   });
 
-  describe('individually', () => {
+  describe.skip('TODO: individually', () => {
     before(async () => {
       await runServerless({
         fixture: 'packaging',
@@ -565,7 +571,7 @@ describe.skip('TODO: lib/plugins/package/lib/packageService.test.js', () => {
     });
   });
 
-  describe('pre-prepared artifact', () => {
+  describe.skip('TODO: pre-prepared artifact', () => {
     before(async () => {
       await runServerless({
         fixture: 'packaging',
