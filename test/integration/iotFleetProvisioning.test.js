@@ -13,6 +13,7 @@ describe('test/integration/iotFleetProvisioning.test.js', function() {
   let stackName;
   let servicePath;
   let certificateId;
+  let isDeployed = false;
 
   const resolveTemplateName = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
@@ -31,9 +32,11 @@ describe('test/integration/iotFleetProvisioning.test.js', function() {
     const serviceName = serviceConfig.service;
     stackName = `${serviceName}-${stage}`;
     await deployService(servicePath);
+    isDeployed = true;
   });
 
   after(async () => {
+    if (!isDeployed) return;
     const [
       {
         certificateDescription: { certificateArn },
