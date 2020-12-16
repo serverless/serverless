@@ -836,6 +836,67 @@ describe('monitorStack', () => {
       }
     );
 
+    it('should resolve properly first stack event (when CREATE fails and is followed with DELETE)', async () => {
+      awsPlugin.options.verbose = true;
+      const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
+      const cfDataMock = {
+        StackId: 'new-service-dev',
+      };
+      const createStartEvent = {
+        StackEvents: [
+          {
+            EventId: '1m2n3o4p',
+            StackName: 'new-service-dev',
+            LogicalResourceId: 'new-service-dev',
+            ResourceType: 'AWS::CloudFormation::Stack',
+            Timestamp: new Date(),
+            ResourceStatus: 'DELETE_COMPLETE',
+          },
+          {
+            EventId: '1i2j3k4l',
+            StackName: 'new-service-dev',
+            LogicalResourceId: 'myBucket',
+            ResourceType: 'AWS::S3::Bucket',
+            Timestamp: new Date(),
+            ResourceStatus: 'DELETE_IN_PROGRESS',
+          },
+          {
+            EventId: '1a2b3c4e',
+            StackName: 'new-service-dev',
+            LogicalResourceId: 'new-service-dev',
+            ResourceType: 'AWS::CloudFormation::Stack',
+            Timestamp: new Date(),
+            ResourceStatus: 'DELETE_IN_PROGRESS',
+          },
+
+          {
+            EventId: '1e2f3g4h',
+            StackName: 'new-service-dev',
+            LogicalResourceId: 'myBucket',
+            ResourceType: 'AWS::S3::Bucket',
+            Timestamp: new Date(),
+            ResourceStatus: 'CREATE_FAILED',
+            ResourceStatusReason: 'Invalid Property for X',
+          },
+          {
+            EventId: '1a2b3c4d',
+            StackName: 'new-service-dev',
+            LogicalResourceId: 'new-service-dev',
+            ResourceType: 'AWS::CloudFormation::Stack',
+            Timestamp: new Date(),
+            ResourceStatus: 'CREATE_IN_PROGRESS',
+          },
+        ],
+      };
+
+      describeStackEventsStub.onCall(0).resolves(createStartEvent);
+
+      await expect(
+        awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 })
+      ).to.eventually.be.rejectedWith('myBucket - Invalid Property for X.');
+      awsPlugin.provider.request.restore();
+    });
+
     it('should record an error and fail if status is UPDATE_ROLLBACK_IN_PROGRESS', () => {
       const describeStackEventsStub = sinon.stub(awsPlugin.provider, 'request');
       const cfDataMock = {
