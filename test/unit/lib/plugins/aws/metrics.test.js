@@ -45,20 +45,20 @@ describe('AwsMetrics', () => {
       expect(awsMetrics.hooks['metrics:metrics']).to.not.be.undefined;
     });
 
-    it('should run promise chain in order for "metrics:metrics" hook', () => {
+    it('should run promise chain in order for "metrics:metrics" hook', async () => {
       const extendedValidateStub = sinon.stub(awsMetrics, 'extendedValidate').resolves();
       const getMetricsStub = sinon.stub(awsMetrics, 'getMetrics').resolves();
       const showMetricsStub = sinon.stub(awsMetrics, 'showMetrics').resolves();
 
-      return awsMetrics.hooks['metrics:metrics']().then(() => {
-        expect(extendedValidateStub.calledOnce).to.equal(true);
-        expect(getMetricsStub.calledAfter(extendedValidateStub)).to.equal(true);
-        expect(showMetricsStub.calledAfter(getMetricsStub)).to.equal(true);
+      await awsMetrics.hooks['metrics:metrics']();
 
-        awsMetrics.extendedValidate.restore();
-        awsMetrics.getMetrics.restore();
-        awsMetrics.showMetrics.restore();
-      });
+      expect(extendedValidateStub.calledOnce).to.equal(true);
+      expect(getMetricsStub.calledAfter(extendedValidateStub)).to.equal(true);
+      expect(showMetricsStub.calledAfter(getMetricsStub)).to.equal(true);
+
+      awsMetrics.extendedValidate.restore();
+      awsMetrics.getMetrics.restore();
+      awsMetrics.showMetrics.restore();
     });
   });
 
@@ -78,10 +78,11 @@ describe('AwsMetrics', () => {
       awsMetrics.validate.restore();
     });
 
-    it('should call the shared validate() function', () =>
-      awsMetrics.extendedValidate().then(() => {
-        expect(validateStub.calledOnce).to.equal(true);
-      }));
+    it('should call the shared validate() function', () => {
+      awsMetrics.extendedValidate();
+
+      expect(validateStub.calledOnce).to.equal(true);
+    });
 
     it('should set the startTime to yesterday as the default value if not provided', () => {
       awsMetrics.options.startTime = null;
@@ -94,23 +95,21 @@ describe('AwsMetrics', () => {
       const yesterdaysDay = yesterday.getDate();
       const yesterdaysDate = `${yesterdaysYear}-${yesterdaysMonth}-${yesterdaysDay}`;
 
-      return awsMetrics.extendedValidate().then(() => {
-        const defaultsStartTime = dayjs(awsMetrics.options.startTime);
-        const defaultsDate = defaultsStartTime.format('YYYY-M-D');
+      awsMetrics.extendedValidate();
 
-        expect(defaultsDate).to.equal(yesterdaysDate);
-      });
+      const defaultsStartTime = dayjs(awsMetrics.options.startTime);
+      const defaultsDate = defaultsStartTime.format('YYYY-M-D');
+      expect(defaultsDate).to.equal(yesterdaysDate);
     });
 
     it('should set the startTime to the provided value', () => {
       awsMetrics.options.startTime = '1970-01-01';
 
-      return awsMetrics.extendedValidate().then(() => {
-        const startTime = awsMetrics.options.startTime.toISOString();
-        const expectedStartTime = new Date('1970-01-01').toISOString();
+      awsMetrics.extendedValidate();
 
-        expect(startTime).to.equal(expectedStartTime);
-      });
+      const startTime = awsMetrics.options.startTime.toISOString();
+      const expectedStartTime = new Date('1970-01-01').toISOString();
+      expect(startTime).to.equal(expectedStartTime);
     });
 
     it('should translate human friendly syntax (e.g. 24h) for startTime', () => {
@@ -124,12 +123,11 @@ describe('AwsMetrics', () => {
       const yesterdaysDay = yesterday.getDate();
       const yesterdaysDate = `${yesterdaysYear}-${yesterdaysMonth}-${yesterdaysDay}`;
 
-      return awsMetrics.extendedValidate().then(() => {
-        const translatedStartTime = dayjs(awsMetrics.options.startTime);
-        const translatedDate = translatedStartTime.format('YYYY-M-D');
+      awsMetrics.extendedValidate();
 
-        expect(translatedDate).to.equal(yesterdaysDate);
-      });
+      const translatedStartTime = dayjs(awsMetrics.options.startTime);
+      const translatedDate = translatedStartTime.format('YYYY-M-D');
+      expect(translatedDate).to.equal(yesterdaysDate);
     });
 
     it('should set the endTime to today as the default value if not provided', () => {
@@ -141,23 +139,22 @@ describe('AwsMetrics', () => {
       const todaysDay = today.getDate();
       const todaysDate = `${todaysYear}-${todaysMonth}-${todaysDay}`;
 
-      return awsMetrics.extendedValidate().then(() => {
-        const defaultsStartTime = dayjs(awsMetrics.options.endTime);
-        const defaultsDate = defaultsStartTime.format('YYYY-M-D');
+      awsMetrics.extendedValidate();
 
-        expect(defaultsDate).to.equal(todaysDate);
-      });
+      const defaultsStartTime = dayjs(awsMetrics.options.endTime);
+      const defaultsDate = defaultsStartTime.format('YYYY-M-D');
+
+      expect(defaultsDate).to.equal(todaysDate);
     });
 
     it('should set the endTime to the provided value', () => {
       awsMetrics.options.endTime = '1970-01-01';
 
-      return awsMetrics.extendedValidate().then(() => {
-        const endTime = awsMetrics.options.endTime.toISOString();
-        const expectedEndTime = new Date('1970-01-01').toISOString();
+      awsMetrics.extendedValidate();
 
-        expect(endTime).to.equal(expectedEndTime);
-      });
+      const endTime = awsMetrics.options.endTime.toISOString();
+      const expectedEndTime = new Date('1970-01-01').toISOString();
+      expect(endTime).to.equal(expectedEndTime);
     });
   });
 
@@ -182,7 +179,7 @@ describe('AwsMetrics', () => {
       awsMetrics.provider.request.restore();
     });
 
-    it('should gather service wide function metrics if no function option is specified', () => {
+    it('should gather service wide function metrics if no function option is specified', async () => {
       // stubs for function1
       // invocations
       requestStub.onCall(0).resolves({
@@ -281,12 +278,11 @@ describe('AwsMetrics', () => {
         ],
       ];
 
-      return awsMetrics.getMetrics().then(result => {
-        expect(result).to.deep.equal(expectedResult);
-      });
+      const result = await awsMetrics.getMetrics();
+      expect(result).to.deep.equal(expectedResult);
     });
 
-    it('should gather function metrics if function option is specified', () => {
+    it('should gather function metrics if function option is specified', async () => {
       // only display metrics for function1
       awsMetrics.options.function = 'function1';
 
@@ -341,39 +337,38 @@ describe('AwsMetrics', () => {
         ],
       ];
 
-      return awsMetrics.getMetrics().then(result => {
-        expect(result).to.deep.equal(expectedResult);
-      });
+      const result = await awsMetrics.getMetrics();
+      expect(result).to.deep.equal(expectedResult);
     });
 
-    it('should gather metrics with 1 hour period for time span < 24 hours', () => {
+    it('should gather metrics with 1 hour period for time span < 24 hours', async () => {
       awsMetrics.options.startTime = new Date('1970-01-01T09:00');
       awsMetrics.options.endTime = new Date('1970-01-01T16:00');
 
-      return awsMetrics.getMetrics().then(() => {
-        expect(
-          requestStub.calledWith(
-            sinon.match.string,
-            sinon.match.string,
-            sinon.match.has('Period', 3600)
-          )
-        ).to.equal(true);
-      });
+      await awsMetrics.getMetrics();
+
+      expect(
+        requestStub.calledWith(
+          sinon.match.string,
+          sinon.match.string,
+          sinon.match.has('Period', 3600)
+        )
+      ).to.equal(true);
     });
 
-    it('should gather metrics with 1 day period for time span > 24 hours', () => {
+    it('should gather metrics with 1 day period for time span > 24 hours', async () => {
       awsMetrics.options.startTime = new Date('1970-01-01');
       awsMetrics.options.endTime = new Date('1970-01-03');
 
-      return awsMetrics.getMetrics().then(() => {
-        expect(
-          requestStub.calledWith(
-            sinon.match.string,
-            sinon.match.string,
-            sinon.match.has('Period', 24 * 3600)
-          )
-        ).to.equal(true);
-      });
+      await awsMetrics.getMetrics();
+
+      expect(
+        requestStub.calledWith(
+          sinon.match.string,
+          sinon.match.string,
+          sinon.match.has('Period', 24 * 3600)
+        )
+      ).to.equal(true);
     });
   });
 
@@ -470,10 +465,10 @@ describe('AwsMetrics', () => {
       expectedMessage += `${chalk.yellow('Errors: 0 \n')}`;
       expectedMessage += `${chalk.yellow('Duration (avg.): 1000ms')}`;
 
-      return awsMetrics.showMetrics(metrics).then(message => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
-        expect(message).to.equal(expectedMessage);
-      });
+      awsMetrics.showMetrics(metrics);
+
+      expect(consoleLogStub.calledOnce).to.equal(true);
+      expect(consoleLogStub.getCall(0).args[0]).to.equal(expectedMessage);
     });
 
     it('should display correct average of service wide average function duration', () => {
@@ -492,17 +487,17 @@ describe('AwsMetrics', () => {
         ],
       ];
 
-      return awsMetrics.showMetrics(metrics).then(message => {
-        expect(message).to.include('Duration (avg.): 300ms');
-      });
+      awsMetrics.showMetrics(metrics);
+
+      expect(consoleLogStub.getCall(0).args[0]).to.include('Duration (avg.): 300ms');
     });
 
     it('should display 0 as average function duration if no data by given period', () => {
       const metrics = [[], []];
 
-      return awsMetrics.showMetrics(metrics).then(message => {
-        expect(message).to.include('Duration (avg.): 0ms');
-      });
+      awsMetrics.showMetrics(metrics);
+
+      expect(consoleLogStub.getCall(0).args[0]).to.include('Duration (avg.): 0ms');
     });
 
     it('should display function metrics if function option is specified', () => {
@@ -549,10 +544,10 @@ describe('AwsMetrics', () => {
       expectedMessage += `${chalk.yellow('Errors: 0 \n')}`;
       expectedMessage += `${chalk.yellow('Duration (avg.): 1000ms')}`;
 
-      return awsMetrics.showMetrics(metrics).then(message => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
-        expect(message).to.equal(expectedMessage);
-      });
+      awsMetrics.showMetrics(metrics);
+
+      expect(consoleLogStub.calledOnce).to.equal(true);
+      expect(consoleLogStub.getCall(0).args[0]).to.equal(expectedMessage);
     });
 
     it('should resolve with an error message if no metrics are available', () => {
@@ -563,10 +558,10 @@ describe('AwsMetrics', () => {
       expectedMessage += 'January 1, 1970 12:00 AM - January 2, 1970 12:00 AM\n\n';
       expectedMessage += `${chalk.yellow('There are no metrics to show for these options')}`;
 
-      return awsMetrics.showMetrics().then(message => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
-        expect(message).to.equal(expectedMessage);
-      });
+      awsMetrics.showMetrics();
+
+      expect(consoleLogStub.calledOnce).to.equal(true);
+      expect(consoleLogStub.getCall(0).args[0]).to.equal(expectedMessage);
     });
   });
 });

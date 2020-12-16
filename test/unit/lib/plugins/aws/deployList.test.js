@@ -31,29 +31,28 @@ describe('AwsDeployList', () => {
   });
 
   describe('#listDeployments()', () => {
-    it('should print no deployments in case there are none', () => {
+    it('should print no deployments in case there are none', async () => {
       const s3Response = {
         Contents: [],
       };
       const listObjectsStub = sinon.stub(awsDeployList.provider, 'request').resolves(s3Response);
 
-      return awsDeployList.listDeployments().then(() => {
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
-        expect(
-          listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
-            Bucket: awsDeployList.bucketName,
-            Prefix: `${s3Key}`,
-          })
-        ).to.be.equal(true);
-        const infoText = "Couldn't find any existing deployments.";
-        expect(awsDeployList.serverless.cli.log.calledWithExactly(infoText)).to.be.equal(true);
-        const verifyText = 'Please verify that stage and region are correct.';
-        expect(awsDeployList.serverless.cli.log.calledWithExactly(verifyText)).to.be.equal(true);
-        awsDeployList.provider.request.restore();
-      });
+      await awsDeployList.listDeployments();
+      expect(listObjectsStub.calledOnce).to.be.equal(true);
+      expect(
+        listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          Bucket: awsDeployList.bucketName,
+          Prefix: `${s3Key}`,
+        })
+      ).to.be.equal(true);
+      const infoText = "Couldn't find any existing deployments.";
+      expect(awsDeployList.serverless.cli.log.calledWithExactly(infoText)).to.be.equal(true);
+      const verifyText = 'Please verify that stage and region are correct.';
+      expect(awsDeployList.serverless.cli.log.calledWithExactly(verifyText)).to.be.equal(true);
+      awsDeployList.provider.request.restore();
     });
 
-    it('should display all available deployments', () => {
+    it('should display all available deployments', async () => {
       const s3Response = {
         Contents: [
           { Key: `${s3Key}/113304333331-2016-08-18T13:40:06/artifact.zip` },
@@ -65,26 +64,25 @@ describe('AwsDeployList', () => {
 
       const listObjectsStub = sinon.stub(awsDeployList.provider, 'request').resolves(s3Response);
 
-      return awsDeployList.listDeployments().then(() => {
-        expect(listObjectsStub.calledOnce).to.be.equal(true);
-        expect(
-          listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
-            Bucket: awsDeployList.bucketName,
-            Prefix: `${s3Key}`,
-          })
-        ).to.be.equal(true);
-        const infoText = 'Listing deployments:';
-        expect(awsDeployList.serverless.cli.log.calledWithExactly(infoText)).to.be.equal(true);
-        const timestampOne = 'Timestamp: 113304333331';
-        const datetimeOne = 'Datetime: 2016-08-18T13:40:06';
-        expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampOne)).to.be.equal(true);
-        expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeOne)).to.be.equal(true);
-        const timestampTow = 'Timestamp: 903940390431';
-        const datetimeTwo = 'Datetime: 2016-08-18T23:42:08';
-        expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampTow)).to.be.equal(true);
-        expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeTwo)).to.be.equal(true);
-        awsDeployList.provider.request.restore();
-      });
+      await awsDeployList.listDeployments();
+      expect(listObjectsStub.calledOnce).to.be.equal(true);
+      expect(
+        listObjectsStub.calledWithExactly('S3', 'listObjectsV2', {
+          Bucket: awsDeployList.bucketName,
+          Prefix: `${s3Key}`,
+        })
+      ).to.be.equal(true);
+      const infoText = 'Listing deployments:';
+      expect(awsDeployList.serverless.cli.log.calledWithExactly(infoText)).to.be.equal(true);
+      const timestampOne = 'Timestamp: 113304333331';
+      const datetimeOne = 'Datetime: 2016-08-18T13:40:06';
+      expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampOne)).to.be.equal(true);
+      expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeOne)).to.be.equal(true);
+      const timestampTow = 'Timestamp: 903940390431';
+      const datetimeTwo = 'Datetime: 2016-08-18T23:42:08';
+      expect(awsDeployList.serverless.cli.log.calledWithExactly(timestampTow)).to.be.equal(true);
+      expect(awsDeployList.serverless.cli.log.calledWithExactly(datetimeTwo)).to.be.equal(true);
+      awsDeployList.provider.request.restore();
     });
   });
 
@@ -105,12 +103,13 @@ describe('AwsDeployList', () => {
       awsDeployList.displayFunctions.restore();
     });
 
-    it('should run promise chain in order', () =>
-      awsDeployList.listFunctions().then(() => {
-        expect(getFunctionsStub.calledOnce).to.equal(true);
-        expect(getFunctionVersionsStub.calledAfter(getFunctionsStub)).to.equal(true);
-        expect(displayFunctionsStub.calledAfter(getFunctionVersionsStub)).to.equal(true);
-      }));
+    it('should run promise chain in order', async () => {
+      await awsDeployList.listFunctions();
+
+      expect(getFunctionsStub.calledOnce).to.equal(true);
+      expect(getFunctionVersionsStub.calledAfter(getFunctionsStub)).to.equal(true);
+      expect(displayFunctionsStub.calledAfter(getFunctionVersionsStub)).to.equal(true);
+    });
   });
 
   describe('#getFunctions()', () => {
@@ -142,16 +141,16 @@ describe('AwsDeployList', () => {
       awsDeployList.provider.request.restore();
     });
 
-    it('should get all service related functions', () => {
+    it('should get all service related functions', async () => {
       const expectedResult = [
         { FunctionName: 'listDeployments-dev-func1' },
         { FunctionName: 'listDeployments-dev-func2' },
       ];
 
-      return awsDeployList.getFunctions().then(result => {
-        expect(listFunctionsStub.callCount).to.equal(2);
-        expect(result).to.deep.equal(expectedResult);
-      });
+      const result = await awsDeployList.getFunctions();
+
+      expect(listFunctionsStub.callCount).to.equal(2);
+      expect(result).to.deep.equal(expectedResult);
     });
   });
 
@@ -174,21 +173,20 @@ describe('AwsDeployList', () => {
       awsDeployList.provider.request.restore();
     });
 
-    it('should return the versions for the provided function when response is paginated', () => {
+    it('should return the versions for the provided function when response is paginated', async () => {
       const params = {
         FunctionName: 'listDeployments-dev-func',
       };
 
-      return awsDeployList.getFunctionPaginatedVersions(params).then(result => {
-        const expectedResult = {
-          Versions: [
-            { FunctionName: 'listDeployments-dev-func', Version: '1' },
-            { FunctionName: 'listDeployments-dev-func', Version: '2' },
-          ],
-        };
+      const result = await awsDeployList.getFunctionPaginatedVersions(params);
+      const expectedResult = {
+        Versions: [
+          { FunctionName: 'listDeployments-dev-func', Version: '1' },
+          { FunctionName: 'listDeployments-dev-func', Version: '2' },
+        ],
+      };
 
-        expect(result).to.deep.equal(expectedResult);
-      });
+      expect(result).to.deep.equal(expectedResult);
     });
   });
 
@@ -205,25 +203,24 @@ describe('AwsDeployList', () => {
       awsDeployList.provider.request.restore();
     });
 
-    it('should return the versions for the provided functions', () => {
+    it('should return the versions for the provided functions', async () => {
       const funcs = [
         { FunctionName: 'listDeployments-dev-func1' },
         { FunctionName: 'listDeployments-dev-func2' },
       ];
 
-      return awsDeployList.getFunctionVersions(funcs).then(result => {
-        const expectedResult = [
-          {
-            Versions: [{ FunctionName: 'listDeployments-dev-func', Version: '$LATEST' }],
-          },
-          {
-            Versions: [{ FunctionName: 'listDeployments-dev-func', Version: '$LATEST' }],
-          },
-        ];
+      const result = await awsDeployList.getFunctionVersions(funcs);
+      const expectedResult = [
+        {
+          Versions: [{ FunctionName: 'listDeployments-dev-func', Version: '$LATEST' }],
+        },
+        {
+          Versions: [{ FunctionName: 'listDeployments-dev-func', Version: '$LATEST' }],
+        },
+      ];
 
-        expect(listVersionsByFunctionStub.calledTwice).to.equal(true);
-        expect(result).to.deep.equal(expectedResult);
-      });
+      expect(listVersionsByFunctionStub.calledTwice).to.equal(true);
+      expect(result).to.deep.equal(expectedResult);
     });
   });
 
@@ -247,15 +244,14 @@ describe('AwsDeployList', () => {
     it('should display all the functions in the service together with their versions', () => {
       const log = awsDeployList.serverless.cli.log;
 
-      return awsDeployList.displayFunctions(funcs).then(() => {
-        expect(log.calledWithExactly('Listing functions and their last 5 versions:')).to.be.equal(
-          true
-        );
-        expect(log.calledWithExactly('-------------')).to.be.equal(true);
+      awsDeployList.displayFunctions(funcs);
+      expect(log.calledWithExactly('Listing functions and their last 5 versions:')).to.be.equal(
+        true
+      );
+      expect(log.calledWithExactly('-------------')).to.be.equal(true);
 
-        expect(log.calledWithExactly('func-1: 1337')).to.be.equal(true);
-        expect(log.calledWithExactly('func-2: 3, 4, 5, 6, 7')).to.be.equal(true);
-      });
+      expect(log.calledWithExactly('func-1: 1337')).to.be.equal(true);
+      expect(log.calledWithExactly('func-2: 3, 4, 5, 6, 7')).to.be.equal(true);
     });
   });
 });
