@@ -226,4 +226,23 @@ describe('#generateCoreTemplate()', () => {
         },
       });
     }));
+
+  it('should not create ServerlessDeploymentBucketPolicy resource if requested', async () => {
+    const { cfTemplate, awsNaming } = await runServerless({
+      config: {
+        service: 'irrelevant',
+        provider: {
+          name: 'aws',
+          deploymentBucket: {
+            skipPolicySetup: true,
+          },
+        },
+      },
+      cliArgs: ['package'],
+    });
+
+    expect(cfTemplate.Resources).to.not.have.property(
+      awsNaming.getDeploymentBucketPolicyLogicalId()
+    );
+  });
 });
