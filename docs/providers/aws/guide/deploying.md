@@ -78,6 +78,9 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 
 - You can make uploading to S3 faster by adding `--aws-s3-accelerate`
 
+- You can disable creation of default S3 bucket policy by setting `skipPolicySetup` under `deploymentBucket` config. It only applies to deployment bucket that is automatically created
+  by the Serverless Framework.
+
 Check out the [deploy command docs](../cli-reference/deploy.md) for all details and options.
 
 - For information on multi-region deployments, [checkout this article](https://serverless.com/blog/build-multiregion-multimaster-application-dynamodb-global-tables).
