@@ -141,27 +141,6 @@ describe('AwsCompileFunctions', () => {
   });
 
   describe('#compileFunctions()', () => {
-    it('should use service artifact if not individually', () => {
-      awsCompileFunctions.serverless.service.package.individually = false;
-      const artifactTemp = awsCompileFunctions.serverless.service.functions.test.package.artifact;
-      awsCompileFunctions.serverless.service.functions.test.package.artifact = false;
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        const functionResource =
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-            compiledFunctionName
-          ];
-
-        const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-          .split(path.sep)
-          .pop();
-
-        expect(functionResource.Properties.Code.S3Key).to.deep.equal(`${s3Folder}/${s3FileName}`);
-        awsCompileFunctions.serverless.service.functions.test.package.artifact = artifactTemp;
-      });
-    });
-
     it('should use function artifact if individually', () => {
       awsCompileFunctions.serverless.service.package.individually = true;
 
@@ -179,51 +158,6 @@ describe('AwsCompileFunctions', () => {
           .pop();
 
         expect(functionResource.Properties.Code.S3Key).to.deep.equal(`${s3Folder}/${s3FileName}`);
-      });
-    });
-
-    it('should use function artifact if individually at function level', () => {
-      awsCompileFunctions.serverless.service.functions[functionName].package.individually = true;
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        const functionResource =
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-            compiledFunctionName
-          ];
-
-        const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        const s3FileName = awsCompileFunctions.serverless.service.functions[
-          functionName
-        ].package.artifact
-          .split(path.sep)
-          .pop();
-
-        expect(functionResource.Properties.Code.S3Key).to.deep.equal(`${s3Folder}/${s3FileName}`);
-        awsCompileFunctions.serverless.service.functions[functionName].package = {
-          individually: false,
-        };
-      });
-    });
-
-    it('should add an ARN provider role', () => {
-      awsCompileFunctions.serverless.service.provider.name = 'aws';
-      awsCompileFunctions.serverless.service.provider.role = 'arn:aws:xxx:*:*';
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.DependsOn
-        ).to.deep.equal(['FuncLogGroup']);
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.Properties.Role
-        ).to.deep.equal(awsCompileFunctions.serverless.service.provider.role);
       });
     });
 
@@ -369,29 +303,6 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should prefer function declared role over provider declared role', () => {
-      awsCompileFunctions.serverless.service.provider.name = 'aws';
-      awsCompileFunctions.serverless.service.provider.role = 'arn:aws:xxx:*:*';
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          role: 'arn:aws:xxx:*:*',
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.DependsOn
-        ).to.deep.equal(['FuncLogGroup']);
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction.Properties.Role
-        ).to.equal(awsCompileFunctions.serverless.service.functions.func.role);
-      });
-    });
-
     it('should add function declared roles', () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
@@ -416,42 +327,6 @@ describe('AwsCompileFunctions', () => {
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
             .Func0LambdaFunction.Properties.Role
         ).to.deep.equal(awsCompileFunctions.serverless.service.functions.func0.role);
-
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .Func1LambdaFunction.DependsOn
-        ).to.deep.equal(['Func1LogGroup']);
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .Func1LambdaFunction.Properties.Role
-        ).to.deep.equal(awsCompileFunctions.serverless.service.functions.func1.role);
-      });
-    });
-
-    it('should add function declared role and fill in with provider role', () => {
-      awsCompileFunctions.serverless.service.provider.name = 'aws';
-      awsCompileFunctions.serverless.service.provider.role = 'arn:aws:xxx:*:*';
-      awsCompileFunctions.serverless.service.functions = {
-        func0: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func0',
-        },
-        func1: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func1',
-          role: 'arn:aws:xx1:*:*',
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .Func0LambdaFunction.DependsOn
-        ).to.deep.equal(['Func0LogGroup']);
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .Func0LambdaFunction.Properties.Role
-        ).to.deep.equal(awsCompileFunctions.serverless.service.provider.role);
 
         expect(
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
@@ -500,141 +375,6 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should create a function resource with provider level vpc config', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.provider.vpc = {
-        securityGroupIds: ['xxx'],
-        subnetIds: ['xxx'],
-      };
-
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          VpcConfig: {
-            SecurityGroupIds: ['xxx'],
-            SubnetIds: ['xxx'],
-          },
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should create a function resource with function level vpc config', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          vpc: {
-            securityGroupIds: ['xxx'],
-            subnetIds: ['xxx'],
-          },
-        },
-      };
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          VpcConfig: {
-            SecurityGroupIds: ['xxx'],
-            SubnetIds: ['xxx'],
-          },
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should create a function resource with provider level tags', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-
-      awsCompileFunctions.serverless.service.provider.tags = {
-        foo: 'bar',
-        baz: 'qux',
-      };
-
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          Tags: [
-            { Key: 'foo', Value: 'bar' },
-            { Key: 'baz', Value: 'qux' },
-          ],
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
     it('should create a function resource with function level tags', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
@@ -667,57 +407,6 @@ describe('AwsCompileFunctions', () => {
           Timeout: 6,
           Tags: [
             { Key: 'foo', Value: 'bar' },
-            { Key: 'baz', Value: 'qux' },
-          ],
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should create a function resource with provider and function level tags', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          tags: {
-            foo: 'bar',
-            baz: 'qux',
-          },
-        },
-      };
-
-      awsCompileFunctions.serverless.service.provider.tags = {
-        foo: 'quux',
-        corge: 'uier',
-      };
-
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          Tags: [
-            { Key: 'foo', Value: 'bar' },
-            { Key: 'corge', Value: 'uier' },
             { Key: 'baz', Value: 'qux' },
           ],
         },
@@ -1094,110 +783,6 @@ describe('AwsCompileFunctions', () => {
         });
       });
 
-      it('should use a the service KMS key arn if provided', () => {
-        awsCompileFunctions.serverless.service.serviceObject = {
-          name: 'new-service',
-          awsKmsKeyArn: 'arn:aws:kms:region:accountid:foo/bar',
-        };
-
-        awsCompileFunctions.serverless.service.functions = {
-          func: {
-            handler: 'func.function.handler',
-            name: 'new-service-dev-func',
-          },
-        };
-
-        const compiledFunction = {
-          Type: 'AWS::Lambda::Function',
-          DependsOn: ['FuncLogGroup'],
-          Properties: {
-            Code: {
-              S3Key: `${s3Folder}/${s3FileName}`,
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            },
-            FunctionName: 'new-service-dev-func',
-            Handler: 'func.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            KmsKeyArn: 'arn:aws:kms:region:accountid:foo/bar',
-          },
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledCfTemplate =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-          const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-          expect(functionResource).to.deep.equal(compiledFunction);
-        });
-      });
-
-      it('should prefer a function KMS key arn over a service KMS key arn', () => {
-        awsCompileFunctions.serverless.service.serviceObject = {
-          name: 'new-service',
-          awsKmsKeyArn: 'arn:aws:kms:region:accountid:foo/service',
-        };
-
-        awsCompileFunctions.serverless.service.functions = {
-          func1: {
-            handler: 'func1.function.handler',
-            name: 'new-service-dev-func1',
-            awsKmsKeyArn: 'arn:aws:kms:region:accountid:foo/function',
-          },
-          func2: {
-            handler: 'func2.function.handler',
-            name: 'new-service-dev-func2',
-          },
-        };
-
-        const compiledFunction1 = {
-          Type: 'AWS::Lambda::Function',
-          DependsOn: ['Func1LogGroup'],
-          Properties: {
-            Code: {
-              S3Key: `${s3Folder}/${s3FileName}`,
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            },
-            FunctionName: 'new-service-dev-func1',
-            Handler: 'func1.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            KmsKeyArn: 'arn:aws:kms:region:accountid:foo/function',
-          },
-        };
-
-        const compiledFunction2 = {
-          Type: 'AWS::Lambda::Function',
-          DependsOn: ['Func2LogGroup'],
-          Properties: {
-            Code: {
-              S3Key: `${s3Folder}/${s3FileName}`,
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            },
-            FunctionName: 'new-service-dev-func2',
-            Handler: 'func2.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            KmsKeyArn: 'arn:aws:kms:region:accountid:foo/service',
-          },
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledCfTemplate =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-
-          const function1Resource = compiledCfTemplate.Resources.Func1LambdaFunction;
-          const function2Resource = compiledCfTemplate.Resources.Func2LambdaFunction;
-          expect(function1Resource).to.deep.equal(compiledFunction1);
-          expect(function2Resource).to.deep.equal(compiledFunction2);
-        });
-      });
-
       describe('when IamRoleLambdaExecution is used', () => {
         beforeEach(() => {
           // pretend that the IamRoleLambdaExecution is used
@@ -1261,45 +846,6 @@ describe('AwsCompileFunctions', () => {
           });
         });
       });
-
-      describe('when IamRoleLambdaExecution is not used', () => {
-        it('should create necessary function resources if a KMS key arn is provided', () => {
-          awsCompileFunctions.serverless.service.functions = {
-            func: {
-              handler: 'func.function.handler',
-              name: 'new-service-dev-func',
-              awsKmsKeyArn: 'arn:aws:kms:region:accountid:foo/bar',
-            },
-          };
-
-          const compiledFunction = {
-            Type: 'AWS::Lambda::Function',
-            DependsOn: ['FuncLogGroup'],
-            Properties: {
-              Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
-                S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              },
-              FunctionName: 'new-service-dev-func',
-              Handler: 'func.function.handler',
-              MemorySize: 1024,
-              Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
-              Timeout: 6,
-              KmsKeyArn: 'arn:aws:kms:region:accountid:foo/bar',
-            },
-          };
-
-          return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-            const compiledCfTemplate =
-              awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-
-            const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-
-            expect(functionResource).to.deep.equal(compiledFunction);
-          });
-        });
-      });
     });
 
     describe('when using tracing config', () => {
@@ -1309,118 +855,6 @@ describe('AwsCompileFunctions', () => {
       beforeEach(() => {
         s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
         s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
-      });
-
-      it('should use a the provider wide tracing config if provided', () => {
-        Object.assign(awsCompileFunctions.serverless.service.provider, {
-          tracing: {
-            lambda: true,
-          },
-        });
-
-        awsCompileFunctions.serverless.service.functions = {
-          func: {
-            handler: 'func.function.handler',
-            name: 'new-service-dev-func',
-          },
-        };
-
-        const compiledFunction = {
-          Type: 'AWS::Lambda::Function',
-          DependsOn: ['FuncLogGroup'],
-          Properties: {
-            Code: {
-              S3Key: `${s3Folder}/${s3FileName}`,
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            },
-            FunctionName: 'new-service-dev-func',
-            Handler: 'func.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            TracingConfig: {
-              Mode: 'Active',
-            },
-          },
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledCfTemplate =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-          const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-          expect(functionResource).to.deep.equal(compiledFunction);
-        });
-      });
-
-      it('should prefer a function tracing config over a provider config', () => {
-        Object.assign(awsCompileFunctions.serverless.service.provider, {
-          tracing: {
-            lambda: 'PassThrough',
-          },
-        });
-
-        awsCompileFunctions.serverless.service.functions = {
-          func1: {
-            handler: 'func1.function.handler',
-            name: 'new-service-dev-func1',
-            tracing: 'Active',
-          },
-          func2: {
-            handler: 'func2.function.handler',
-            name: 'new-service-dev-func2',
-          },
-        };
-
-        const compiledFunction1 = {
-          Type: 'AWS::Lambda::Function',
-          DependsOn: ['Func1LogGroup'],
-          Properties: {
-            Code: {
-              S3Key: `${s3Folder}/${s3FileName}`,
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            },
-            FunctionName: 'new-service-dev-func1',
-            Handler: 'func1.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            TracingConfig: {
-              Mode: 'Active',
-            },
-          },
-        };
-
-        const compiledFunction2 = {
-          Type: 'AWS::Lambda::Function',
-          DependsOn: ['Func2LogGroup'],
-          Properties: {
-            Code: {
-              S3Key: `${s3Folder}/${s3FileName}`,
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-            },
-            FunctionName: 'new-service-dev-func2',
-            Handler: 'func2.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            TracingConfig: {
-              Mode: 'PassThrough',
-            },
-          },
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledCfTemplate =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-
-          const function1Resource = compiledCfTemplate.Resources.Func1LambdaFunction;
-          const function2Resource = compiledCfTemplate.Resources.Func2LambdaFunction;
-          expect(function1Resource).to.deep.equal(compiledFunction1);
-          expect(function2Resource).to.deep.equal(compiledFunction2);
-        });
       });
 
       describe('when IamRoleLambdaExecution is used', () => {
@@ -1488,99 +922,6 @@ describe('AwsCompileFunctions', () => {
           });
         });
       });
-
-      describe('when IamRoleLambdaExecution is not used', () => {
-        it('should create necessary resources if a tracing config is provided', () => {
-          awsCompileFunctions.serverless.service.functions = {
-            func: {
-              handler: 'func.function.handler',
-              name: 'new-service-dev-func',
-              tracing: 'PassThrough',
-            },
-          };
-
-          const compiledFunction = {
-            Type: 'AWS::Lambda::Function',
-            DependsOn: ['FuncLogGroup'],
-            Properties: {
-              Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
-                S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              },
-              FunctionName: 'new-service-dev-func',
-              Handler: 'func.function.handler',
-              MemorySize: 1024,
-              Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
-              Timeout: 6,
-              TracingConfig: {
-                Mode: 'PassThrough',
-              },
-            },
-          };
-
-          return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-            const compiledCfTemplate =
-              awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-
-            const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-
-            expect(functionResource).to.deep.equal(compiledFunction);
-          });
-        });
-      });
-    });
-
-    it('should create a function resource with environment config', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          environment: {
-            test1: 'test1',
-            test2: 'test2',
-          },
-        },
-      };
-
-      awsCompileFunctions.serverless.service.provider.environment = {
-        providerTest1: 'providerTest1',
-      };
-
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          Environment: {
-            Variables: {
-              test1: 'test1',
-              test2: 'test2',
-              providerTest1: 'providerTest1',
-            },
-          },
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
     });
 
     it('should create a function resource with function level environment config', () => {
@@ -1615,101 +956,6 @@ describe('AwsCompileFunctions', () => {
           Environment: {
             Variables: {
               test1: 'test1',
-            },
-          },
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should create a function resource with provider level environment config', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-
-      awsCompileFunctions.serverless.service.provider.environment = {
-        providerTest1: 'providerTest1',
-      };
-
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          Environment: {
-            Variables: {
-              providerTest1: 'providerTest1',
-            },
-          },
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should overwrite a provider level environment config when function config is given', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.provider.environment = {
-        variable: 'overwrite-me',
-      };
-
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          environment: {
-            variable: 'overwritten',
-          },
-        },
-      };
-
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          Environment: {
-            Variables: {
-              variable: 'overwritten',
             },
           },
         },
@@ -1785,48 +1031,6 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it(
-      'should allow functions to use a different runtime' +
-        ' than the service default runtime if specified',
-      () => {
-        const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-          .split(path.sep)
-          .pop();
-        awsCompileFunctions.serverless.service.functions = {
-          func: {
-            handler: 'func.function.handler',
-            name: 'new-service-dev-func',
-            runtime: 'python2.7',
-          },
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledFunction = {
-            Type: 'AWS::Lambda::Function',
-            DependsOn: ['FuncLogGroup'],
-            Properties: {
-              Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
-                S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              },
-              FunctionName: 'new-service-dev-func',
-              Handler: 'func.function.handler',
-              MemorySize: 1024,
-              Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'python2.7',
-              Timeout: 6,
-            },
-          };
-
-          expect(
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-              .FuncLambdaFunction
-          ).to.deep.equal(compiledFunction);
-        });
-      }
-    );
-
     it('should default to the nodejs12.x runtime when no provider runtime is given', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
@@ -1855,92 +1059,6 @@ describe('AwsCompileFunctions', () => {
           Timeout: 6,
         },
       };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should consider the providers runtime and memorySize when creating a function resource', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.provider.runtime = 'python2.7';
-      awsCompileFunctions.serverless.service.provider.memorySize = 128;
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 128,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'python2.7',
-          Timeout: 6,
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should use a custom bucket if specified', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      const bucketName = 'com.serverless.deploys';
-
-      awsCompileFunctions.serverless.service.package.deploymentBucket = bucketName;
-      awsCompileFunctions.serverless.service.provider.runtime = 'python2.7';
-      awsCompileFunctions.serverless.service.provider.memorySize = 128;
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: bucketName,
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 128,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'python2.7',
-          Timeout: 6,
-        },
-      };
-      const coreCloudFormationTemplate = awsCompileFunctions.serverless.utils.readFileSync(
-        path.resolve(
-          __dirname,
-          '../../../../../../../lib/plugins/aws/package/lib/core-cloudformation-template.json'
-        )
-      );
-      awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate = coreCloudFormationTemplate;
 
       return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
         expect(
@@ -2048,26 +1166,6 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
-    it('should not create function output objects when "versionFunctions" is false', () => {
-      awsCompileFunctions.serverless.service.provider.versionFunctions = false;
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-        },
-        anotherFunc: {
-          handler: 'anotherFunc.function.handler',
-        },
-      };
-
-      const expectedOutputs = {};
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Outputs
-        ).to.deep.equal(expectedOutputs);
-      });
-    });
-
     it('should set function declared reserved concurrency limit', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
@@ -2159,30 +1257,6 @@ describe('AwsCompileFunctions', () => {
           awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
             .FuncLambdaFunction
         ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should version only function that is flagged to be versioned', () => {
-      awsCompileFunctions.serverless.service.provider.versionFunctions = false;
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          versionFunction: true,
-        },
-        anotherFunc: {
-          handler: 'anotherFunc.function.handler',
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Outputs
-            .FuncLambdaFunctionQualifiedArn
-        ).to.exist;
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Outputs
-            .AnotherFuncLambdaFunctionQualifiedArn
-        ).to.not.exist;
       });
     });
   });
@@ -2369,22 +1443,61 @@ describe('AwsCompileFunctions', () => {
 describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
   describe('Provider properties', () => {
     let cfResources;
+    let cfOutputs;
     let naming;
     let serviceConfig;
     let iamRolePolicyStatements;
 
     before(async () => {
       const { awsNaming, cfTemplate, fixtureData } = await runServerless({
-        fixture: 'function',
+        fixture: 'packageArtifact',
         cliArgs: ['package'],
         configExt: {
+          service: {
+            // TODO: When removing support for service.awsKmsKeyArn, whole service object
+            // should be removed from this configuration
+            name: 'service',
+            awsKmsKeyArn: 'arn:aws:kms:region:accountid:pro/vider',
+          },
           provider: {
             vpc: {
               subnetIds: ['subnet-01010101'],
               securityGroupIds: ['sg-0a0a0a0a'],
             },
+            tags: {
+              providerTagA: 'providerTagAValue',
+              providerTagB: 'providerTagBValue',
+            },
+            tracing: {
+              lambda: 'Active',
+            },
+            environment: {
+              providerEnvVarA: 'providerEnvVarAValue',
+              providerEnvVarB: 'providerEnvVarBValue',
+              sharedEnvVar: 'valueFromProvider',
+            },
+            memorySize: 4096,
+            runtime: 'nodejs10.x',
+            deploymentBucket: 'com.serverless.deploys',
+            versionFunctions: false,
           },
           functions: {
+            foo: {
+              vpc: {
+                subnetIds: ['subnet-02020202'],
+                securityGroupIds: ['sg-1b1b1b1b'],
+              },
+              awsKmsKeyArn: 'arn:aws:kms:region:accountid:fun/ction',
+              tracing: 'PassThrough',
+              environment: {
+                funcEnvVarA: 'funcEnvVarAValue',
+                funcEnvVarB: 'funcEnvVarBValue',
+                sharedEnvVar: 'valueFromFunction',
+              },
+              memorySize: 2048,
+              runtime: 'nodejs12.x',
+              versionFunction: true,
+            },
             fnFileSystemConfig: {
               handler: 'index.handler',
               fileSystemConfig: {
@@ -2397,120 +1510,195 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         },
       });
       cfResources = cfTemplate.Resources;
+      cfOutputs = cfTemplate.Outputs;
       naming = awsNaming;
       serviceConfig = fixtureData.serviceConfig;
       iamRolePolicyStatements =
         cfResources.IamRoleLambdaExecution.Properties.Policies[0].PolicyDocument.Statement;
     });
 
-    it.skip('TODO: should support `package.artifact`', async () => {
-      // Replacement for:
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L149-L168
+    it('should support `package.artifact`', async () => {
+      const {
+        Code: { S3Key },
+      } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      expect(S3Key.endsWith('artifact.zip')).to.be.true;
     });
 
-    it.skip('TODO: should ignore `package.artifact` when packaging individually', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L190-L211
+    it('should prefer `functions[].package.artifact` over service.package.artifact', () => {
+      const {
+        Code: { S3Key },
+      } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(S3Key.endsWith('artifact-function.zip')).to.be.true;
     });
 
-    it.skip('TODO: should support `provider.role` as arn string', async () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L213-L233
-      //
-      // Confirm that provider.role ends at Function.Properties.Role
+    it('should support `provider.vpc`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const { VpcConfig } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(VpcConfig.SecurityGroupIds).to.deep.equal(providerConfig.vpc.securityGroupIds);
+      expect(VpcConfig.SubnetIds).to.deep.equal(providerConfig.vpc.subnetIds);
     });
 
-    it.skip('TODO: should prefer `functions[].role` over `provider.role`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L377-L398
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L436-L470
+    it('should prefer `functions[].vpc` over `provider.vpc`', () => {
+      const fooFunctionConfig = serviceConfig.functions.foo;
+
+      const { VpcConfig } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      expect(VpcConfig.SecurityGroupIds).to.deep.equal(fooFunctionConfig.vpc.securityGroupIds);
+      expect(VpcConfig.SubnetIds).to.deep.equal(fooFunctionConfig.vpc.subnetIds);
     });
 
-    it.skip('TODO: should support `provider.vpc`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L518-L561
-      //
-      // Confirm on VpcConfig property
+    it('should support `provider.tags`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const expectedTags = Object.entries(providerConfig.tags).map(([Key, Value]) => ({
+        Key,
+        Value,
+      }));
+      const { Tags } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+      expect(Tags).to.deep.include.members(expectedTags);
     });
 
-    it.skip('TODO: should prefer `functions[].vpc` over `provider.vpc`', () => {});
+    it('should support both `provider.tags and `function[].tags`', () => {
+      const providerConfig = serviceConfig.provider;
+      const fooFunctionConfig = serviceConfig.functions.foo;
 
-    it.skip('TODO: should support `provider.tags`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L607-L651
+      const expectedTags = Object.entries({
+        ...providerConfig.tags,
+        ...fooFunctionConfig.tags,
+      }).map(([Key, Value]) => ({ Key, Value }));
+
+      const { Tags } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(Tags).to.deep.include.members(expectedTags);
     });
 
-    it.skip('TODO: should support both `provider.tags and `function[].tags`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L698-L747
+    it('should support `service.awsKmsKeyArn`', () => {
+      const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(KmsKeyArn).to.equal(serviceConfig.service.awsKmsKeyArn);
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: ['kms:Decrypt'],
+        Resource: [serviceConfig.service.awsKmsKeyArn],
+      });
     });
 
-    it.skip('TODO: should support `service.awsKmsKeyArn`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1112-L1149
+    it('should prefer `functions[].awsKmsKeyArn` over `service.awsKmsKeyArn`', () => {
+      const fooFunctionConfig = serviceConfig.functions.foo;
+
+      const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      expect(KmsKeyArn).to.equal(fooFunctionConfig.awsKmsKeyArn);
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: ['kms:Decrypt'],
+        Resource: [fooFunctionConfig.awsKmsKeyArn],
+      });
     });
 
-    it.skip('TODO: should prefer `functions[].awsKmsKeyArn` over `service.awsKmsKeyArn`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1151-L1214
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1281-L1316
+    it('should support `provider.tracing.lambda`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const { TracingConfig } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(TracingConfig).to.deep.equal({ Mode: providerConfig.tracing.lambda });
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
+        Resource: ['*'],
+      });
     });
 
-    it.skip('TODO: should support `provider.tracing.lambda`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1329-L1369
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1457-L1504
-      //
-      // Confirm on TrancingConfig property
+    it('should prefer `functions[].tracing` over `provider.tracing.lambda`', () => {
+      const fooFunctionConfig = serviceConfig.functions.foo;
+
+      const { TracingConfig } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      expect(TracingConfig).to.deep.equal({ Mode: fooFunctionConfig.tracing });
+      expect(iamRolePolicyStatements).to.deep.include({
+        Effect: 'Allow',
+        Action: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
+        Resource: ['*'],
+      });
     });
 
-    it.skip('TODO: should prefer `functions[].tracing` over `provider.tracing.lambda`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1371-L1439
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1508-L1546
+    it('should support `provider.environment`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const {
+        Environment: { Variables },
+      } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(Variables).to.deep.equal(providerConfig.environment);
     });
 
-    it.skip('TODO: should support `provider.environment`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1646-L1690
+    it('should prefer `functions[].environment` over `provider.environment`', () => {
+      const providerConfig = serviceConfig.provider;
+      const fooFunctionConfig = serviceConfig.functions.foo;
+
+      const {
+        Environment: { Variables },
+      } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      const expectedVariables = {
+        ...providerConfig.environment,
+        ...fooFunctionConfig.environment,
+      };
+      expect(Variables).to.deep.equal(expectedVariables);
     });
 
-    it.skip('TODO: should prefer `functions[].environment` over `provider.environment`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1549-L1599
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1692-L1739
+    it('should support `provider.memorySize`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const { MemorySize } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(MemorySize).to.equal(providerConfig.memorySize);
     });
 
-    it.skip('TODO: should support `provider.memorySize`', () => {
-      // Partial replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1901-L1937
+    it('should prefer `functions[].memorySize` over `provider.memorySize`', () => {
+      const fooFunctionConfig = serviceConfig.functions.foo;
+
+      const { MemorySize } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      expect(MemorySize).to.equal(fooFunctionConfig.memorySize);
     });
 
-    it.skip('TODO: should prefer `functions[].memorySize` over `provider.memorySize`', () => {});
+    it('should support `provider.runtime`', () => {
+      const providerConfig = serviceConfig.provider;
 
-    it.skip('TODO: should support `provider.runtime`', () => {
-      // Partial replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1901-L1937
+      const { Runtime } = cfResources[naming.getLambdaLogicalId('other')].Properties;
+
+      expect(Runtime).to.equal(providerConfig.runtime);
     });
 
-    it.skip('TODO: should prefer `functions[].runtime` over `provider.runtime`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1822-L1862
+    it('should prefer `functions[].runtime` over `provider.runtime`', () => {
+      const fooFunctionConfig = serviceConfig.functions.foo;
+
+      const { Runtime } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      expect(Runtime).to.equal(fooFunctionConfig.runtime);
     });
 
-    it.skip('TODO: should support `provider.versionFunctions: false`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2082-L2100
+    it('should support `provider.versionFunctions: false`', () => {
+      expect(cfOutputs).to.not.have.property(naming.getLambdaVersionOutputLogicalId('other'));
     });
 
-    it.skip('TODO: should prefer `functions[].versionFunction` over `provider.versionFunctions`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2196-L2218
+    it('should prefer `functions[].versionFunction` over `provider.versionFunctions`', () => {
+      expect(cfOutputs).to.have.property(naming.getLambdaVersionOutputLogicalId('foo'));
     });
 
-    it.skip('TODO: should support `package.deploymentBucket`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1939-L1982
+    it('should support `provider.deploymentBucket`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const {
+        Code: { S3Bucket },
+      } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
+
+      expect(S3Bucket).to.deep.equal(providerConfig.deploymentBucket);
     });
 
     it('should support `functions[].fileSystemConfig` with vpc configured on provider', () => {
@@ -2528,6 +1716,45 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         Effect: 'Allow',
         Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite'],
         Resource: [arn],
+      });
+    });
+
+    describe('when custom IAM role is used', () => {
+      let customRoleServiceConfig;
+      let fooFunctionRole;
+      let otherFunctionRole;
+
+      before(async () => {
+        const { awsNaming, cfTemplate, fixtureData } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            provider: {
+              role: 'arn:aws:iam::123456789012:role/fromProvider',
+            },
+            functions: {
+              foo: {
+                role: 'arn:aws:iam::123456789012:role/fromFunction',
+              },
+            },
+          },
+        });
+        fooFunctionRole = cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.Role;
+        otherFunctionRole =
+          cfTemplate.Resources[awsNaming.getLambdaLogicalId('other')].Properties.Role;
+        customRoleServiceConfig = fixtureData.serviceConfig;
+      });
+
+      it('should support `provider.role` as arn string', async () => {
+        const providerConfig = customRoleServiceConfig.provider;
+
+        expect(otherFunctionRole).to.equal(providerConfig.role);
+      });
+
+      it('should prefer `functions[].role` over `provider.role`', () => {
+        const fooFunctionConfig = customRoleServiceConfig.functions.foo;
+
+        expect(fooFunctionRole).to.equal(fooFunctionConfig.role);
       });
     });
   });
