@@ -35,6 +35,115 @@ describe('AwsInvoke', () => {
     awsInvoke = new AwsInvoke(serverless, options);
   });
 
+  it('should allow invoke with context', async () => {
+    const lambdaInvokeStub = sinon.stub();
+
+    const result = await runServerless({
+      fixture: 'apiGateway',
+      cliArgs: ['invoke', '-f', 'foo', '--context', 'somecontext'],
+      awsRequestStubMap: {
+        Lambda: {
+          invoke: args => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
+      },
+    });
+    expect(lambdaInvokeStub).to.have.been.calledOnce;
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      ClientContext: 'InNvbWVjb250ZXh0Ig==',
+      FunctionName: result.serverless.service.getFunction('foo').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from('{}'),
+    });
+  });
+
+  it('should allow invoke with contextPath', async () => {
+    const lambdaInvokeStub = sinon.stub();
+
+    serverless.config.servicePath = getTmpDirPath();
+    const data = {
+      testProp: 'testValue',
+    };
+    const contextDataFile = path.join(serverless.config.servicePath, 'context.json');
+    serverless.utils.writeFileSync(contextDataFile, JSON.stringify(data));
+
+    const result = await runServerless({
+      fixture: 'apiGateway',
+      cliArgs: ['invoke', '-f', 'foo', '--contextPath', contextDataFile],
+      awsRequestStubMap: {
+        Lambda: {
+          invoke: args => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
+      },
+    });
+    expect(lambdaInvokeStub).to.have.been.calledOnce;
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      ClientContext: 'eyJ0ZXN0UHJvcCI6InRlc3RWYWx1ZSJ9',
+      FunctionName: result.serverless.service.getFunction('foo').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from('{}'),
+    });
+  });
+
+  it('should throw error on invoke with contextPath if file not exists', async () => {
+    const lambdaInvokeStub = sinon.stub();
+
+    const contextDataFile = path.join(getTmpDirPath(), 'context.json');
+
+    await expect(
+      runServerless({
+        fixture: 'apiGateway',
+        cliArgs: ['invoke', '-f', 'foo', '--contextPath', contextDataFile],
+        awsRequestStubMap: {
+          Lambda: {
+            invoke: args => {
+              lambdaInvokeStub.returns('payload');
+              return lambdaInvokeStub(args);
+            },
+          },
+        },
+      })
+    ).to.be.rejectedWith(serverless.classes.Error);
+    expect(lambdaInvokeStub).to.have.been.callCount(0);
+  });
+
+  it('should allow invoke with raw context for contextPath', async () => {
+    const lambdaInvokeStub = sinon.stub();
+
+    serverless.config.servicePath = getTmpDirPath();
+    const data = 'somecontext';
+    const contextDataFile = path.join(serverless.config.servicePath, 'context.json');
+    serverless.utils.writeFileSync(contextDataFile, JSON.stringify(data));
+
+    const result = await runServerless({
+      fixture: 'apiGateway',
+      cliArgs: ['invoke', '-f', 'foo', '--contextPath', contextDataFile],
+      awsRequestStubMap: {
+        Lambda: {
+          invoke: args => {
+            lambdaInvokeStub.returns('payload');
+            return lambdaInvokeStub(args);
+          },
+        },
+      },
+    });
+    expect(lambdaInvokeStub).to.have.been.calledOnce;
+    expect(lambdaInvokeStub.args[0][0]).to.deep.equal({
+      ClientContext: 'InNvbWVjb250ZXh0Ig==',
+      FunctionName: result.serverless.service.getFunction('foo').name,
+      InvocationType: 'RequestResponse',
+      LogType: 'None',
+      Payload: Buffer.from('{}'),
+    });
+  });
+
   describe('#extendedValidate()', () => {
     let backupIsTTY;
     beforeEach(() => {
