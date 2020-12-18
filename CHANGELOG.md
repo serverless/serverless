@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.16.0](https://github.com/serverless/serverless/compare/v2.15.0...v2.16.0) (2020-12-18)
+
+### Features
+
+- **AWS ALB:** Recognize `path` as optional condition ([#8571](https://github.com/serverless/serverless/issues/8571)) ([3632e0e](https://github.com/serverless/serverless/commit/3632e0ee09945ed5f293779a68409cb297c7d0cc)) ([Jin](https://github.com/jinhong-))
+
+### Bug Fixes
+
+- **AWS Deploy:**
+  - Fix resolution of first deploy event ([#8632](https://github.com/serverless/serverless/issues/8632)) ([9bc1060](https://github.com/serverless/serverless/commit/9bc1060dceb6a155abdb27364a9d0061b4d95983)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Allow to disable creation of default bucket policy ([#6923](https://github.com/serverless/serverless/issues/6923)) ([919b95f](https://github.com/serverless/serverless/commit/919b95f4911b29d5e05fc3adaa097ad7a22b4c18)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Packaging:**
+  - Add exec bit for packaged files on Windows ([#8615](https://github.com/serverless/serverless/issues/8615)) ([c864fbd](https://github.com/serverless/serverless/commit/c864fbd4826de27d2796e394b0a100c8d3add33e)) ([Łukasz Jendrysik](https://github.com/scadu))
+  - Do not exclude layer paths when packaging a layer ([#8602](https://github.com/serverless/serverless/issues/8602)) ([86b366a](https://github.com/serverless/serverless/commit/86b366a5d3b6b0bd00b73c71d0c1a0661ff27ce2)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+  - Ensure that .env files are excluded from package ([#8566](https://github.com/serverless/serverless/issues/8566)) ([8791cda](https://github.com/serverless/serverless/commit/8791cdacb75c84a2e08c5639abf769e915968288)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Expose meaningfully file access errors ([#8582](https://github.com/serverless/serverless/issues/8582)) ([13c7b7b](https://github.com/serverless/serverless/commit/13c7b7bc97aab4d70e178fdb25af1b2c3b85ac5b)) ([Łukasz Jendrysik](https://github.com/scadu))
+- **AWS Lambda:** Improve "image" property validation ([#8639](https://github.com/serverless/serverless/pull/8639)) ([a8be1d1](https://github.com/serverless/serverless/commit/a8be1d1776a26b033d821d70e99ad654a39a4158)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Standalone:** Fix upgrade command ([#8608](https://github.com/serverless/serverless/pull/8608)) ([f23e50b](https://github.com/serverless/serverless/commit/f23e50b16e50559596fbd9561dfb4ced82973814)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Follow AWS naming in stack deploy action types ([#8632](https://github.com/serverless/serverless/issues/8632)) ([a238a9b](https://github.com/serverless/serverless/commit/a238a9bc902a1443007848c65d9a179ec78e5c8f)) ([Mariusz Nowak](https://github.com/medikoo))
+- Convert to native Promise and async/await ([#8593](https://github.com/serverless/serverless/issues/8593)) ([84d423d](https://github.com/serverless/serverless/commit/84d423d3be9d89475a22f29f808d506fb4f56d3c)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+- Normalize module path ([#8620](https://github.com/serverless/serverless/pull/8620)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove dependency to stream-promise ([#8601](https://github.com/serverless/serverless/issues/8601)) ([ca697f3](https://github.com/serverless/serverless/commit/ca697f3911aec5a0bb0e02ce5bfdef5bbd4cc00a)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+- Remove irrelevant fs modules ([#8588](https://github.com/serverless/serverless/issues/8588)) ([c1907a2](https://github.com/serverless/serverless/commit/c1907a2dde7531dab8bff665434ee8a72397c2ca)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove unused modules ([#8598](https://github.com/serverless/serverless/issues/8598)) ([d102a39](https://github.com/serverless/serverless/commit/d102a3984abfe5c014c4adafa8abf2ea8edfd336)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+
 ## [2.15.0](https://github.com/serverless/serverless/compare/v2.14.0...v2.15.0) (2020-12-04)
 
 ### Features
