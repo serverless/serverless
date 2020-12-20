@@ -1,5 +1,7 @@
 import type { AWS } from '@serverless/typescript';
 
+import { hello } from './src/functions';
+
 const serverlessConfiguration: AWS = {
   service: 'aws-nodejs-typescript',
   frameworkVersion: '2',
@@ -9,31 +11,19 @@ const serverlessConfiguration: AWS = {
       includeModules: true
     }
   },
-  // Add the serverless-webpack plugin
   plugins: ['serverless-webpack'],
   provider: {
     name: 'aws',
     runtime: 'nodejs12.x',
     apiGateway: {
       minimumCompressionSize: 1024,
+      shouldStartNameWithService: true,
     },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
     },
   },
-  functions: {
-    hello: {
-      handler: 'handler.hello',
-      events: [
-        {
-          http: {
-            method: 'get',
-            path: 'hello',
-          }
-        }
-      ]
-    }
-  }
+  functions: { hello }
 }
 
 module.exports = serverlessConfiguration;
