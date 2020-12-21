@@ -444,12 +444,40 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
     it('should exclude defaults', () => {
       expect(fnIndividualZippedFiles).to.not.include('.gitignore');
-      expect(fnIndividualZippedFiles).to.not.include('.env');
-      expect(fnIndividualZippedFiles).to.not.include('.env.stage');
     });
 
     it('should exclude service config', () => {
       expect(fnIndividualZippedFiles).to.not.include('serverless.yml');
+    });
+
+    describe('with useDotenv', () => {
+      it('should exclude .env files', async () => {
+        before(async () => {
+          const {
+            fixtureData: { servicePath },
+          } = await runServerless({
+            fixture: 'packaging',
+            cliArgs: ['package'],
+            awsRequestStubMap: mockedDescribeStacksResponse,
+            configExt: {
+              useDotenv: true,
+              functions: {
+                fnIndividual: {
+                  handler: 'index.handler',
+                  package: { individually: true },
+                },
+              },
+            },
+          });
+
+          const zippedFiles = await listZipFiles(
+            path.join(servicePath, '.serverless', 'fnIndividual.zip')
+          );
+
+          expect(zippedFiles).to.not.include('.env');
+          expect(zippedFiles).to.not.include('.env.stage');
+        });
+      });
     });
 
     it.skip('TODO: should exclude default plugins localPath', () => {
