@@ -427,7 +427,11 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           functions: {
             fnIndividual: {
               handler: 'index.handler',
-              package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir2' },
+              package: {
+                individually: true,
+                include: 'dir1/subdir4/**',
+                exclude: 'dir1/subdir2/subsubdir3',
+              },
             },
           },
         },
@@ -482,13 +486,13 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
 
     it.skip('TODO: should support `functions[].package.exclude`', () => {
-      // Confirm that in function dedicated artifact "dir1/subdir2/subsubdir2/index.js" is not packaged
+      // Confirm that in function dedicated artifact "dir1/subdir2/subsubdir3/index.js" is not packaged
       //
       // Replaces
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L147-L168
     });
     it.skip('TODO: should support `functions[].package.include`', () => {
-      // Confirm that in function dedicated artifact "dir1/subdir3/index.js" is packaged
+      // Confirm that in function dedicated artifact "dir1/subdir/index.js" is packaged
     });
 
     (process.platfrom === 'win32' ? it : it.skip)(
