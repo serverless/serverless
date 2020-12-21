@@ -28,7 +28,7 @@ As `runServerless` tests are expensive, it's good to ensure a _minimal_ count of
 
 Example of test files fully backed by `runServerless`:
 
-- [lib/plugins/aws/package/compile/events/httpApi/index.test.js](https://github.com/serverless/serverless/blob/master/lib/plugins/aws/package/compile/events/httpApi/index.test.js)
+- [lib/plugins/aws/package/compile/events/httpApi.js](https://github.com/serverless/serverless/blob/master/lib/plugins/aws/package/compile/events/httpApi.js)
 
 If we're about to add new tests to an existing test file with tests written old way, then best is to create another `describe` block for new tests at the bottom (as it's done [here](https://github.com/serverless/serverless/blob/74634c3317a116077a008375e20d6a5b99b1256e/lib/plugins/aws/package/compile/functions/index.test.js#L2602))
 
@@ -73,7 +73,7 @@ Such tests take advantage of `isDependencyStackAvailable` util to check if all n
 
 Examples of such tests:
 
-- [MSK](./integration/msk.test.js)
+- [MSK](./integration/infra-dependent/msk.test.js)
 
 ## Testing templates
 
