@@ -10,7 +10,7 @@ layout: Doc
 
 ## Automatic loading environment variables from .env and .env.{stage} files
 
-Starting with v3.0.0, environment variables will be automatically loaded from `.env` and `.env.{stage}` files if they're present.
+Starting with v3.0.0, environment variables will be automatically loaded from `.env` and `.env.{stage}` files if they're present. In addition, `.env` files will be excluded from package in order to avoid uploading sensitive data as a part of the package by mistake.
 
 Adapt to this behavior now by adding `useDotenv: true` to service configuration.
 

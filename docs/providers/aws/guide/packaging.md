@@ -54,7 +54,7 @@ By default, serverless will exclude the following patterns:
 - .serverless/\*\*
 - .serverless_plugins/\*\*
 
-and the serverless configuration file being used (i.e. `serverless.yml`)
+and the serverless configuration file being used (i.e. `serverless.yml`). In addition, if `useDotenv` is set, all files satisfying pattern `.env*` will be excluded as well.
 
 ### Examples
 
