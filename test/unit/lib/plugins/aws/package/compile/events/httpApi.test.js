@@ -139,6 +139,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
               payload: '1.0',
               cors: true,
               metrics: true,
+              disableDefaultEndpoint: false,
               authorizers: {
                 someAuthorizer: {
                   identitySource: '$request.header.Authorization',
@@ -202,6 +203,31 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     it('should setup logs format on stage', () => {
       expect(cfStage.Properties.AccessLogSettings).to.have.property('Format');
+    });
+
+    it('should not disable default execute-api endpoint', () => {
+      expect(cfApi.Properties.DisableExecuteApiEndpoint).to.equal(false);
+    });
+
+    describe('Disable default execute-api endpoint', () => {
+      before(() =>
+        runServerless({
+          fixture: 'httpApi',
+          configExt: {
+            provider: {
+              httpApi: {
+                disableDefaultEndpoint: true,
+              },
+            },
+          },
+          cliArgs: ['package'],
+        }).then(({ awsNaming, cfTemplate }) => {
+          cfApi = cfTemplate.Resources[awsNaming.getHttpApiLogicalId()];
+        })
+      );
+      it('should disable default execute-api endpoint', () => {
+        expect(cfApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
+      });
     });
 
     describe('Cors', () => {
