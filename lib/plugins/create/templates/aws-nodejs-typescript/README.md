@@ -6,16 +6,16 @@ For detailed instructions, please refer to the [documentation](https://www.serve
 
 ## Installation/deployment instructions
 
-Depending on your preffered package manager, follow the instructions below to deploy your project.
+Depending on your preferred package manager, follow the instructions below to deploy your project.
 
 ### Using NPM
 
-- Run `npm i` to install the project dependancies
+- Run `npm i` to install the project dependencies
 - Run `npx sls deploy` to deploy this stack to AWS
 
 ### Using Yarn
 
-- Run `yarn` to install the project dependancies
+- Run `yarn` to install the project dependencies
 - Run `yarn sls deploy` to deploy this stack to AWS
 
 ## Test your service
