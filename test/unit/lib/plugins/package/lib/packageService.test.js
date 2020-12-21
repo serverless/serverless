@@ -504,16 +504,6 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       }
     );
 
-    (process.platfrom === 'win32' ? it : it.skip)(
-      'TODO: should normalize go runtime handler path on windows',
-      () => {
-        // Confirm that configured lambda handler has normalized path
-        //
-        // Replace
-        // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L378-L402
-      }
-    );
-
     it.skip('TODO: should package layer', () => {
       // Confirm that layer is packaged and content is as expected
       //
