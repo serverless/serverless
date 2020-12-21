@@ -108,6 +108,18 @@ describe('ConfigSchemaHandler', () => {
         return;
       });
     });
+
+    it('should throw when defineFunctionEvent is used with an already defined event', async () => {
+      await expect(
+        runServerless({
+          fixture: 'configSchemaExtensionsError',
+          cliArgs: ['info'],
+          configExt: {
+            plugins: ['./test-plugin-with-colliding-function-event-property'],
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
+    });
   });
 
   describe('#defineFunctionEventProperties', () => {
@@ -239,6 +251,18 @@ describe('ConfigSchemaHandler', () => {
         );
         return;
       });
+    });
+
+    it('should throw when defineTopLevelProperty is used with an already defined property', async () => {
+      await expect(
+        runServerless({
+          fixture: 'configSchemaExtensionsError',
+          cliArgs: ['info'],
+          configExt: {
+            plugins: ['./test-plugin-with-colliding-top-level-property'],
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
     });
   });
 
