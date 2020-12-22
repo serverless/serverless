@@ -35,16 +35,6 @@ module.exports = async (versionTag, { isLegacyVersion }) => {
   };
 
   await Promise.all([
-    !isLegacyVersion &&
-      cos
-        .putObjectAsync({
-          Key: 'latest-tag',
-          Body: Buffer.from(versionTag),
-          ...bucketConf,
-        })
-        .then(() => {
-          process.stdout.write(chalk.green("'latest-tag' uploaded to Tencent\n"));
-        }),
     cos
       .putObjectAsync({
         Key: `${versionTag}/serverless-linux-x64`,
@@ -64,4 +54,11 @@ module.exports = async (versionTag, { isLegacyVersion }) => {
         process.stdout.write(chalk.green("'serverless-macos-x64' uploaded to Tencent\n"));
       }),
   ]);
+  if (isLegacyVersion) return;
+  await cos.putObjectAsync({
+    Key: 'latest-tag',
+    Body: Buffer.from(versionTag),
+    ...bucketConf,
+  });
+  process.stdout.write(chalk.green("'latest-tag' uploaded to Tencent\n"));
 };
