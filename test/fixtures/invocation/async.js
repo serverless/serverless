@@ -1,11 +1,8 @@
 'use strict';
 
-module.exports.handler = (event, context, callback) => {
-  if (event && event.shouldFail) {
-    callback(new Error('Failed on request'));
-    return;
-  }
-  callback(null, {
+module.exports.handler = async (event, context) => {
+  if (event && event.shouldFail) throw new Error('Failed on request');
+  return {
     statusCode: 200,
     body: JSON.stringify({
       message: 'Invoked',
@@ -13,5 +10,5 @@ module.exports.handler = (event, context, callback) => {
       clientContext: context.clientContext,
       env: process.env,
     }),
-  });
+  };
 };
