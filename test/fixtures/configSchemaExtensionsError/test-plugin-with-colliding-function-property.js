@@ -3,17 +3,16 @@
 class TestPluginWithCollidingFunctionEventPropertyError {
   constructor(serverless) {
     serverless.configSchemaHandler.defineProvider('someProvider', {
-      functionEvents: {
-        existingEvent: {
-          type: 'object',
-          properties: { existingProp: { type: 'string' } },
+      function: {
+        properties: {
+          handler: { type: 'string' },
         },
       },
     });
 
-    serverless.configSchemaHandler.defineFunctionEventProperties('someProvider', 'existingEvent', {
+    serverless.configSchemaHandler.defineFunctionProperties('someProvider', {
       properties: {
-        existingProp: { type: 'string' },
+        handler: { type: 'string' },
       },
     });
   }

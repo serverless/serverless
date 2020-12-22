@@ -115,7 +115,7 @@ describe('ConfigSchemaHandler', () => {
           fixture: 'configSchemaExtensionsError',
           cliArgs: ['info'],
           configExt: {
-            plugins: ['./test-plugin-with-colliding-function-event-property'],
+            plugins: ['./test-plugin-with-colliding-function-event'],
           },
         })
       ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
@@ -193,6 +193,18 @@ describe('ConfigSchemaHandler', () => {
         })
       ).to.eventually.be.rejected.and.have.property('code', 'FUNCTION_EVENT_SCHEMA_NOT_OBJECT');
     });
+
+    it('should throw when defineFunctionEventProperties is used with an already defined property', async () => {
+      await expect(
+        runServerless({
+          fixture: 'configSchemaExtensionsError',
+          cliArgs: ['info'],
+          configExt: {
+            plugins: ['./test-plugin-with-colliding-function-event-property'],
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
+    });
   });
 
   describe('#defineFunctionProperties', () => {
@@ -217,6 +229,18 @@ describe('ConfigSchemaHandler', () => {
         return;
       });
     });
+
+    it('should throw when defineFunctionProperties is used with an already defined property', async () => {
+      await expect(
+        runServerless({
+          fixture: 'configSchemaExtensionsError',
+          cliArgs: ['info'],
+          configExt: {
+            plugins: ['./test-plugin-with-colliding-function-property'],
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
+    });
   });
 
   describe('#defineCustomProperties', () => {
@@ -234,6 +258,18 @@ describe('ConfigSchemaHandler', () => {
         ).to.deep.equal(someCustomStringProp);
         return;
       });
+    });
+
+    it('should throw when defineCustomProperties is used with an already defined property', async () => {
+      await expect(
+        runServerless({
+          fixture: 'configSchemaExtensionsError',
+          cliArgs: ['info'],
+          configExt: {
+            plugins: ['./test-plugin-with-colliding-custom-property'],
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
     });
   });
 
@@ -294,6 +330,30 @@ describe('ConfigSchemaHandler', () => {
         ).to.deep.equal(expectedHandlerPieceOfSchema);
         return;
       });
+    });
+
+    it('should throw when defineProvider is used with an already defined property in provider', async () => {
+      await expect(
+        runServerless({
+          fixture: 'configSchemaExtensionsError',
+          cliArgs: ['info'],
+          configExt: {
+            plugins: ['./test-plugin-with-colliding-provider-property-in-provider'],
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
+    });
+
+    it('should throw when defineProvider is used with an already defined property in function', async () => {
+      await expect(
+        runServerless({
+          fixture: 'configSchemaExtensionsError',
+          cliArgs: ['info'],
+          configExt: {
+            plugins: ['./test-plugin-with-colliding-provider-property-in-function'],
+          },
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'SCHEMA_COLLISION');
     });
   });
 });
