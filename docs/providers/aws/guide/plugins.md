@@ -417,15 +417,84 @@ Command names need to be unique. If we load two commands and both want to specif
 
 If your plugin adds support for additional params in `serverless.yml` file, you should also add validation rules to the Framework's schema. Otherwise, the Framework may place validation errors to command output about your params.
 
-The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineCustomProperties`, `defineFunctionEvent`, `defineFunctionEventProperties`, `defineFunctionProperties` or `defineProvider` helpers.
+The Framework uses JSON-schema validation backed by [AJV](https://github.com/ajv-validator/ajv). You can extend [initial schema](/lib/configSchema/index.js) inside your plugin constuctor by using `defineTopLevelProperty`, `defineCustomProperties`, `defineFunctionEvent`, `defineFunctionEventProperties`, `defineFunctionProperties` or `defineProvider` helpers.
+
+Use the following map to know which helper suits best your needs.
+
+```yml
+custom:
+  my-plugin:
+    customProperty: foobar # <-- use defineCustomProperties
+
+my-plugin: # <-- use defineTopLevelProperty
+  customProperty: foobar
+
+provider:
+  name: new-provider # <-- use defineProvider
+  my-plugin:
+    customProperty: foobar
+
+functions:
+  someFunc:
+    handler: handler.main
+    customProperty: foobar # <-- use defineFunctionProperties
+    events:
+      - yourPluginEvent: # <-- use defineFunctionEvent
+          customProperty: foobar
+      - http:
+          customProperty: foobar # <-- use defineFunctionEventProperties
+```
 
 We'll walk though those helpers. You may also want to check out examples from [helpers tests](tests/fixtures/configSchemaExtensions/test-plugin.js)
+
+#### `defineTopLevelProperty` helper
+
+If your plugin requires additional top-level properties (like `provider`, `custom`, `service`...), you can use the `defineTopLevelProperty` helper to add their definition.
+
+Considering the following example
+
+```yml
+// serverless.yml
+
+service: my-service
+
+yourPlugin:
+  someProperty: foobar
+```
+
+you'll need to add validation rules as described below:
+
+```javascript
+class NewTopLevelPropertyPlugin {
+  constructor(serverless) {
+    this.serverless = serverless;
+
+    // Create schema for your properties. For reference use https://github.com/ajv-validator/ajv
+    const newCustomPropSchema = {
+      type: 'object',
+      properties: {
+        someProperty: { type: 'string' },
+      },
+      required: ['someProperty'],
+    };
+
+    // Attach your piece of schema to main schema at top level
+    serverless.configSchemaHandler.defineTopLevelProperty('yourPlugin', newCustomPropSchema);
+  }
+}
+```
+
+This way, if user sets `someProperty` by mistake to `false`, the Framework would display an error:
+
+```
+Serverless: Configuration error: yourPlugin.someProperty should be string
+```
 
 #### `defineCustomProperties` helper
 
 Let's say your plugin depends on some properties defined in `custom` section of `serverless.yml` file.
 
-```
+```yml
 // serverless.yml
 
 custom:
@@ -465,7 +534,7 @@ Serverless: Configuration error: custom.yourPlugin.someProperty should be string
 
 Let's say your plugin adds support to a new `yourPluginEvent` function event. To use this event, a user would need to have `serverless.yml` file like this:
 
-```
+```yml
 // serverless.yml
 
 functions:
@@ -542,7 +611,7 @@ Serverless: Configuration error: functions.someFunc.events[0].http.documentation
 
 Let's say your plugin adds support to a new `someProperty` function property. To use this property, a user would need to have `serverless.yml` file like this:
 
-```
+```yml
 // serverless.yml
 
 functions:
