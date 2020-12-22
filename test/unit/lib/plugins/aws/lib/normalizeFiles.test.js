@@ -176,5 +176,47 @@ describe('normalizeFiles', () => {
         },
       });
     });
+
+    it('should sort resources and outputs alphabetically', () => {
+      const input = {
+        Resources: {
+          ResourceThatShouldBeLast: {
+            Type: 'AWS::XXX::XXX',
+          },
+          ResourceThatShouldBeFirst: {
+            Type: 'AWS::XXX::XXX',
+          },
+        },
+        Outputs: {
+          OutputThatShouldBeLast: {
+            Value: 'SomeValue',
+          },
+          OutputThatShouldBeFirst: {
+            Value: 'AnotherValue',
+          },
+        },
+      };
+
+      const result = normalizeFiles.normalizeCloudFormationTemplate(input);
+
+      expect(result).to.deep.equal({
+        Resources: {
+          ResourceThatShouldBeFirst: {
+            Type: 'AWS::XXX::XXX',
+          },
+          ResourceThatShouldBeLast: {
+            Type: 'AWS::XXX::XXX',
+          },
+        },
+        Outputs: {
+          OutputThatShouldBeLast: {
+            Value: 'SomeValue',
+          },
+          OutputThatShouldBeFirst: {
+            Value: 'AnotherValue',
+          },
+        },
+      });
+    });
   });
 });

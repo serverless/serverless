@@ -11,6 +11,7 @@ const AwsCompileFunctions = require('../../../../../../../lib/plugins/aws/packag
 const Serverless = require('../../../../../../../lib/Serverless');
 const runServerless = require('../../../../../../utils/run-serverless');
 const fixtures = require('../../../../../../fixtures');
+const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/getHashForFilePath');
 
 const { getTmpDirPath, createTmpFile } = require('../../../../../../utils/fs');
 
@@ -1782,6 +1783,48 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     });
   });
 
+  describe('`provider.lambdaHashingVersion` support', () => {
+    it('CodeSha256 for functions should be the same for default hashing and for 20201221 version', async () => {
+      const { servicePath, updateConfig } = await fixtures.setup('function', {
+        configExt: {
+          provider: {
+            versionFunctions: true,
+          },
+        },
+      });
+
+      const { cfTemplate: originalTemplate, awsNaming } = await runServerless({
+        cwd: servicePath,
+        cliArgs: ['package'],
+      });
+
+      const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+
+      const originalVersionCfConfig = Object.values(originalTemplate.Resources).find(
+        resource =>
+          resource.Type === 'AWS::Lambda::Version' &&
+          resource.Properties.FunctionName.Ref === functionCfLogicalId
+      ).Properties;
+
+      await updateConfig({
+        provider: {
+          lambdaHashingVersion: '20201221',
+        },
+      });
+      const { cfTemplate: updatedTemplate } = await runServerless({
+        cwd: servicePath,
+        cliArgs: ['package'],
+      });
+      const updatedVersionCfConfig = Object.values(updatedTemplate.Resources).find(
+        resource =>
+          resource.Type === 'AWS::Lambda::Version' &&
+          resource.Properties.FunctionName.Ref === functionCfLogicalId
+      ).Properties;
+
+      expect(originalVersionCfConfig.CodeSha256).to.deep.equal(updatedVersionCfConfig.CodeSha256);
+    });
+  });
+
   describe('Function properties', () => {
     let cfResources;
     let naming;
@@ -2176,215 +2219,82 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
   });
 
   describe('Version hash resolution', () => {
-    it.skip('TODO: should create a different version if configuration changed', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2022-L2057
-      //
-      // Configure in similar fashion as test below
-    });
+    const testLambdaHashingVersion = lambdaHashingVersion => {
+      const configExt = lambdaHashingVersion ? { provider: { lambdaHashingVersion } } : {};
 
-    it('should not create a different version if only function-wide configuration changed', async () => {
-      const { servicePath, updateConfig } = await fixtures.setup('function');
-
-      const { cfTemplate: originalTemplate } = await runServerless({
-        cwd: servicePath,
-        cliArgs: ['package'],
+      it.skip('TODO: should create a different version if configuration changed', () => {
+        // Replacement for
+        // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2022-L2057
+        //
+        // Configure in similar fashion as test below
       });
-      const originalVersionArn = originalTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
 
-      await updateConfig({
-        functions: {
-          foo: {
-            tags: {
-              foo: 'bar',
-            },
-            reservedConcurrency: 1,
-          },
-        },
-      });
-      const { cfTemplate: updatedTemplate } = await runServerless({
-        cwd: servicePath,
-        cliArgs: ['package'],
-      });
-      const updatedVersionArn = updatedTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
+      it('should not create a different version if only function-wide configuration changed', async () => {
+        const { servicePath, updateConfig } = await fixtures.setup('function', { configExt });
 
-      expect(
-        updatedTemplate.Resources.FooLambdaFunction.Properties.ReservedConcurrentExecutions
-      ).to.equal(1);
-
-      expect(originalVersionArn).to.equal(updatedVersionArn);
-    });
-
-    describe('with layers', () => {
-      let firstCfTemplate;
-      let servicePath;
-      let updateConfig;
-      const mockDescribeStackResponse = {
-        CloudFormation: {
-          describeStacks: { Stacks: [{ Outputs: [{ OutputKey: 'test' }] }] },
-        },
-      };
-
-      beforeEach(async () => {
-        const serviceData = await fixtures.setup('functionLayers');
-        ({ servicePath, updateConfig } = serviceData);
-        const data = await runServerless({
+        const { cfTemplate: originalTemplate } = await runServerless({
           cwd: servicePath,
           cliArgs: ['package'],
-          awsRequestStubMap: mockDescribeStackResponse,
         });
-        firstCfTemplate = data.cfTemplate;
-      });
-
-      it('should create different version ids for identical lambdas with and without layers', () => {
-        expect(firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref).to.not.equal(
-          firstCfTemplate.Outputs.NoLayerFuncLambdaFunctionQualifiedArn.Value.Ref
-        );
-      });
-
-      it('should generate different lambda version id when lambda layer properties are different', async () => {
-        const firstVersionId =
-          firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
-
-        await updateConfig({
-          layers: { testLayer: { path: 'testLayer', description: 'Different description' } },
-        });
-
-        const data = await runServerless({
-          cwd: servicePath,
-          cliArgs: ['package'],
-          awsRequestStubMap: mockDescribeStackResponse,
-        });
-
-        expect(firstVersionId).to.not.equal(
-          data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
-        );
-      });
-
-      it('should ignore changing character of S3Key paths when generating layer version id', async () => {
-        // the S3Key path is timestamped and so changes on every deployment regardless of layer changes, and should
-        // therefore not be included in the version id digest
-        const firstVersionId =
-          firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
-        const firstS3Key = firstCfTemplate.Resources.TestLayerLambdaLayer.Properties.Content.S3Key;
-
-        const data = await runServerless({
-          cwd: servicePath,
-          cliArgs: ['package'],
-          awsRequestStubMap: mockDescribeStackResponse,
-        });
-
-        expect(firstS3Key).to.not.equal(
-          data.cfTemplate.Resources.TestLayerLambdaLayer.Properties.Content.S3Key
-        );
-        expect(firstVersionId).to.equal(
-          data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
-        );
-      });
-
-      it('should ignore properties order when generating layer version id', async () => {
-        const firstVersionId =
-          firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
+        const originalVersionArn = originalTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
 
         await updateConfig({
           functions: {
-            layerFunc: { layers: [{ Ref: 'TestLayerLambdaLayer' }], handler: 'index.handler' },
-          },
-        });
-
-        const data = await runServerless({
-          cwd: servicePath,
-          cliArgs: ['package'],
-          awsRequestStubMap: mockDescribeStackResponse,
-        });
-
-        expect(firstVersionId).to.equal(
-          data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
-        );
-      });
-
-      it('should create different lambda version id for different property keys (but no different values)', async () => {
-        const firstVersionId =
-          firstCfTemplate.Outputs.LayerFuncWithConfigLambdaFunctionQualifiedArn.Value.Ref;
-
-        await updateConfig({
-          functions: {
-            layerFuncWithConfig: { handler: 'index.handler', timeout: 128 },
-          },
-        });
-
-        const data = await runServerless({
-          cwd: servicePath,
-          cliArgs: ['package'],
-          awsRequestStubMap: mockDescribeStackResponse,
-        });
-
-        expect(firstVersionId).to.not.equal(
-          data.cfTemplate.Outputs.LayerFuncWithConfigLambdaFunctionQualifiedArn.Value.Ref
-        );
-      });
-
-      it('should create same version id when layer source and config are unchanged', async () => {
-        const firstVersionId =
-          firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
-
-        const data = await runServerless({
-          cwd: servicePath,
-          cliArgs: ['package'],
-          awsRequestStubMap: mockDescribeStackResponse,
-        });
-
-        expect(firstVersionId).to.equal(
-          data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
-        );
-      });
-
-      it('should generate different lambda version id when lambda layer arns are different', async () => {
-        const firstVersionId =
-          firstCfTemplate.Outputs.ArnLayerFuncLambdaFunctionQualifiedArn.Value.Ref;
-
-        await updateConfig({
-          functions: {
-            arnLayerFunc: {
-              handler: 'index.handler',
-              layers: ['arn:aws:lambda:us-east-2:123456789012:layer:my-layer:2'],
+            foo: {
+              tags: {
+                foo: 'bar',
+              },
+              reservedConcurrency: 1,
             },
           },
         });
-
-        const data = await runServerless({
+        const { cfTemplate: updatedTemplate } = await runServerless({
           cwd: servicePath,
           cliArgs: ['package'],
-          awsRequestStubMap: mockDescribeStackResponse,
         });
+        const updatedVersionArn = updatedTemplate.Outputs.FooLambdaFunctionQualifiedArn.Value.Ref;
 
-        expect(firstVersionId).to.not.equal(
-          data.cfTemplate.Outputs.ArnLayerFuncLambdaFunctionQualifiedArn.Value.Ref
-        );
+        expect(
+          updatedTemplate.Resources.FooLambdaFunction.Properties.ReservedConcurrentExecutions
+        ).to.equal(1);
+
+        expect(originalVersionArn).to.equal(updatedVersionArn);
       });
 
-      describe('when layer content is changed', () => {
-        let originalLayer;
-        let sourceChangeLayer;
-        let backupLayer;
+      describe('with layers', () => {
+        let firstCfTemplate;
+        let servicePath;
+        let updateConfig;
+        const mockDescribeStackResponse = {
+          CloudFormation: {
+            describeStacks: { Stacks: [{ Outputs: [{ OutputKey: 'test' }] }] },
+          },
+        };
 
         beforeEach(async () => {
-          originalLayer = path.join(servicePath, 'testLayer');
-          sourceChangeLayer = path.join(servicePath, 'extra_layers', 'testLayerSourceChange');
-          backupLayer = path.join(servicePath, 'extra_layers', 'testLayerBackup');
-
-          await fse.rename(originalLayer, backupLayer);
-          await fse.rename(sourceChangeLayer, originalLayer);
+          const serviceData = await fixtures.setup('functionLayers', { configExt });
+          ({ servicePath, updateConfig } = serviceData);
+          const data = await runServerless({
+            cwd: servicePath,
+            cliArgs: ['package'],
+            awsRequestStubMap: mockDescribeStackResponse,
+          });
+          firstCfTemplate = data.cfTemplate;
         });
 
-        afterEach(async () => {
-          await fse.rename(originalLayer, sourceChangeLayer);
-          await fse.rename(backupLayer, originalLayer);
+        it('should create different version ids for identical lambdas with and without layers', () => {
+          expect(
+            firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
+          ).to.not.equal(firstCfTemplate.Outputs.NoLayerFuncLambdaFunctionQualifiedArn.Value.Ref);
         });
 
-        it('should create different lambda version id', async () => {
+        it('should generate different lambda version id when lambda layer properties are different', async () => {
           const firstVersionId =
             firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
+
+          await updateConfig({
+            layers: { testLayer: { path: 'testLayer', description: 'Different description' } },
+          });
 
           const data = await runServerless({
             cwd: servicePath,
@@ -2396,7 +2306,153 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
           );
         });
+
+        it('should ignore changing character of S3Key paths when generating layer version id', async () => {
+          // the S3Key path is timestamped and so changes on every deployment regardless of layer changes, and should
+          // therefore not be included in the version id digest
+          const firstVersionId =
+            firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
+          const firstS3Key =
+            firstCfTemplate.Resources.TestLayerLambdaLayer.Properties.Content.S3Key;
+
+          const data = await runServerless({
+            cwd: servicePath,
+            cliArgs: ['package'],
+            awsRequestStubMap: mockDescribeStackResponse,
+          });
+
+          expect(firstS3Key).to.not.equal(
+            data.cfTemplate.Resources.TestLayerLambdaLayer.Properties.Content.S3Key
+          );
+          expect(firstVersionId).to.equal(
+            data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
+          );
+        });
+
+        it('should ignore properties order when generating layer version id', async () => {
+          const firstVersionId =
+            firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
+
+          await updateConfig({
+            functions: {
+              layerFunc: { layers: [{ Ref: 'TestLayerLambdaLayer' }], handler: 'index.handler' },
+            },
+          });
+
+          const data = await runServerless({
+            cwd: servicePath,
+            cliArgs: ['package'],
+            awsRequestStubMap: mockDescribeStackResponse,
+          });
+
+          expect(firstVersionId).to.equal(
+            data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
+          );
+        });
+
+        it('should create different lambda version id for different property keys (but no different values)', async () => {
+          const firstVersionId =
+            firstCfTemplate.Outputs.LayerFuncWithConfigLambdaFunctionQualifiedArn.Value.Ref;
+
+          await updateConfig({
+            functions: {
+              layerFuncWithConfig: { handler: 'index.handler', timeout: 128 },
+            },
+          });
+
+          const data = await runServerless({
+            cwd: servicePath,
+            cliArgs: ['package'],
+            awsRequestStubMap: mockDescribeStackResponse,
+          });
+
+          expect(firstVersionId).to.not.equal(
+            data.cfTemplate.Outputs.LayerFuncWithConfigLambdaFunctionQualifiedArn.Value.Ref
+          );
+        });
+
+        it('should create same version id when layer source and config are unchanged', async () => {
+          const firstVersionId =
+            firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
+
+          const data = await runServerless({
+            cwd: servicePath,
+            cliArgs: ['package'],
+            awsRequestStubMap: mockDescribeStackResponse,
+          });
+
+          expect(firstVersionId).to.equal(
+            data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
+          );
+        });
+
+        it('should generate different lambda version id when lambda layer arns are different', async () => {
+          const firstVersionId =
+            firstCfTemplate.Outputs.ArnLayerFuncLambdaFunctionQualifiedArn.Value.Ref;
+
+          await updateConfig({
+            functions: {
+              arnLayerFunc: {
+                handler: 'index.handler',
+                layers: ['arn:aws:lambda:us-east-2:123456789012:layer:my-layer:2'],
+              },
+            },
+          });
+
+          const data = await runServerless({
+            cwd: servicePath,
+            cliArgs: ['package'],
+            awsRequestStubMap: mockDescribeStackResponse,
+          });
+
+          expect(firstVersionId).to.not.equal(
+            data.cfTemplate.Outputs.ArnLayerFuncLambdaFunctionQualifiedArn.Value.Ref
+          );
+        });
+
+        describe('when layer content is changed', () => {
+          let originalLayer;
+          let sourceChangeLayer;
+          let backupLayer;
+
+          beforeEach(async () => {
+            originalLayer = path.join(servicePath, 'testLayer');
+            sourceChangeLayer = path.join(servicePath, 'extra_layers', 'testLayerSourceChange');
+            backupLayer = path.join(servicePath, 'extra_layers', 'testLayerBackup');
+
+            await fse.rename(originalLayer, backupLayer);
+            await fse.rename(sourceChangeLayer, originalLayer);
+            getHashForFilePath.clear();
+          });
+
+          afterEach(async () => {
+            await fse.rename(originalLayer, sourceChangeLayer);
+            await fse.rename(backupLayer, originalLayer);
+          });
+
+          it('should create different lambda version id', async () => {
+            const firstVersionId =
+              firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
+
+            const data = await runServerless({
+              cwd: servicePath,
+              cliArgs: ['package'],
+              awsRequestStubMap: mockDescribeStackResponse,
+            });
+
+            expect(firstVersionId).to.not.equal(
+              data.cfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref
+            );
+          });
+        });
       });
+    };
+    describe('default hashing version', () => {
+      testLambdaHashingVersion();
+    });
+
+    describe('lambdaHashingVersion: 20201221', () => {
+      testLambdaHashingVersion('20201221');
     });
   });
 
