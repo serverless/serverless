@@ -210,7 +210,6 @@ describe('Create', () => {
           elem.replace(path.join(tmpDir, path.sep), '')
         );
         expect(dirContent).to.include('.gitignore');
-        expect(dirContent).to.include(path.join('.vscode', 'launch.json'));
         expect(dirContent).to.include('README.md');
         expect(dirContent).to.include('package.json');
         expect(dirContent).to.include('serverless.ts');

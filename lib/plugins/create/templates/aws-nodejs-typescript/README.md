@@ -60,9 +60,6 @@ The project code base is mainly located within the `src` folder. This folder is 
 
 ```
 .
-├── .vscode                  # Visual Studio Code folder
-│   └── launch.json          # Lambda debugger configuration
-│
 ├── src
 │   ├── functions            # Lambda configuration and source code folder
 │   │   ├── hello
