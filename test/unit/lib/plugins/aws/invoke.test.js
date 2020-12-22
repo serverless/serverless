@@ -7,6 +7,7 @@ const proxyquire = require('proxyquire');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../utils/fs');
+const runServerless = require('../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 
@@ -32,35 +33,6 @@ describe('AwsInvoke', () => {
     serverless.setProvider('aws', new AwsProvider(serverless, options));
     serverless.processedInput = { commands: ['invoke'] };
     awsInvoke = new AwsInvoke(serverless, options);
-  });
-
-  describe('#constructor()', () => {
-    it('should have hooks', () => expect(awsInvoke.hooks).to.be.not.empty);
-
-    it('should set the provider variable to an instance of AwsProvider', () =>
-      expect(awsInvoke.provider).to.be.instanceof(AwsProvider));
-
-    it('should run promise chain in order', async () => {
-      const validateStub = sinon.stub(awsInvoke, 'extendedValidate').resolves();
-      const invokeStub = sinon.stub(awsInvoke, 'invoke').resolves();
-      const logStub = sinon.stub(awsInvoke, 'log').resolves();
-
-      await awsInvoke.hooks['invoke:invoke']();
-
-      expect(validateStub.calledOnce).to.be.equal(true);
-      expect(invokeStub.calledAfter(validateStub)).to.be.equal(true);
-      expect(logStub.calledAfter(invokeStub)).to.be.equal(true);
-
-      awsInvoke.extendedValidate.restore();
-      awsInvoke.invoke.restore();
-      awsInvoke.log.restore();
-    });
-
-    it('should set an empty options object if no options are given', () => {
-      const awsInvokeWithEmptyOptions = new AwsInvoke(serverless);
-
-      expect(awsInvokeWithEmptyOptions.options).to.deep.equal({});
-    });
   });
 
   describe('#extendedValidate()', () => {
@@ -182,11 +154,6 @@ describe('AwsInvoke', () => {
       expect(awsInvoke.options.data).to.deep.equal({
         testProp: 'testValue',
       });
-    });
-
-    it('it should throw error if service path is not set', () => {
-      serverless.config.servicePath = false;
-      return expect(awsInvoke.extendedValidate()).to.be.rejected;
     });
 
     it('it should throw error if file path does not exist', () => {
@@ -330,5 +297,171 @@ describe('AwsInvoke', () => {
         'Invoked function failed'
       );
     });
+  });
+});
+
+describe.skip('test/unit/lib/plugins/aws/invoke.test.js', () => {
+  describe('Common', () => {
+    before(async () => {
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'callback', '--data', '{"inputKey":"inputValue"}'],
+        awsRequestStubMap: {
+          // Stub AWS SDK invocation
+        },
+      });
+    });
+
+    it('TODO: should invoke AWS SDK with expected params', async () => {
+      // Confirm that AWS SDK stub was ivoked with expected params (confirm all params)
+      // Replaces
+      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L221-L234
+    });
+
+    it('TODO: should support JSON string data', async () => {
+      // Replaces
+      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L123-L129
+    });
+
+    it('TODO: should log payload', async () => {
+      // Confirm by inspecting stdout, that it logs data as returned by our AWS SDK stub
+      // Replaces
+      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L236-L251
+      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L301-L315
+    });
+  });
+
+  it('TODO: should accept no data', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: ['invoke', '--function', 'callback'],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `Payload` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L107-L113
+  });
+
+  it('TODO: should support plain string data', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: ['invoke', '--function', 'callback', '--data', 'inputData'],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `Payload` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L115-L121
+  });
+
+  it('TODO: should should not attempt to parse data with raw option', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: ['invoke', '--function', 'callback', '--data', '{"inputKey":"inputValue"}', '--raw'],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `Payload` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L131-L138
+  });
+
+  it('TODO: should support JSON file path as data', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: ['invoke', '--function', 'callback', '--path', 'payload.json'],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `Payload` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L140-L154
+  });
+
+  it('TODO: should support absolute file path as data', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: [
+        'invoke',
+        '--function',
+        'callback',
+        '--path' /* TODO: Pass absolute path to payload.json in fixture */,
+      ],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `Payload` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L156-L168
+  });
+
+  it('TODO: should support YAML file path as data', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: ['invoke', '--function', 'callback', '--path', 'payload.yaml'],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `Payload` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L170-L185
+  });
+
+  it('TODO: should throw error if data file path does not exist', async () => {
+    await expect(
+      runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'callback', '--path', 'not-existing.yaml'],
+      })
+    ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L192-L199
+  });
+
+  it('TODO: should throw error if function is not provided', async () => {
+    await expect(
+      runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'notExisting'],
+      })
+    ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L102-L105
+  });
+
+  it('TODO: should support --type option', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: ['invoke', '--function', 'callback', '--type', 'Event'],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `InvocationType` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L253-L267
+  });
+
+  it('TODO: should support --qualifier option', async () => {
+    await runServerless({
+      fixture: 'invocation',
+      cliArgs: ['invoke', '--function', 'callback', '--qualifier', 'foo'],
+      awsRequestStubMap: {
+        // Stub AWS SDK invocation, and confirm `Qualifier` param
+      },
+    });
+    // Replaces
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L269-L287
+  });
+
+  it('TODO: should fail the process for failed invocations', async () => {
+    await expect(
+      runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'callback', '--path', 'not-existing.yaml'],
+      })
+    ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+    // Replace
+    // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L317-L332
   });
 });

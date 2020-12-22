@@ -1,0 +1,11 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+
+functions:
+  callback:
+    handler: callback.handler
