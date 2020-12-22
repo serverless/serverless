@@ -58,7 +58,12 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       expect(resource.Properties.AutoDeploy).to.equal(true);
     });
 
-    it('should configure output', () => {
+    it('should configure output for HttpApi', () => {
+      const output = cfOutputs.HttpApi;
+      expect(output).to.have.property('Value');
+    });
+
+    it('should configure output for HttpApiUrl', () => {
       const output = cfOutputs.HttpApiUrl;
       expect(output).to.have.property('Value');
     });
@@ -481,6 +486,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
         expect(cfResources).to.not.have.property(naming.getHttpApiStageLogicalId());
       });
       it('should not configure output', () => {
+        expect(cfOutputs).to.not.have.property('HttpApi');
         expect(cfOutputs).to.not.have.property('HttpApiUrl');
       });
       it('should configure endpoint that attaches to external API', () => {
