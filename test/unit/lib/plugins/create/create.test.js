@@ -206,13 +206,23 @@ describe('Create', () => {
       create.options.template = 'aws-nodejs-typescript';
 
       return create.create().then(() => {
-        const dirContent = fs.readdirSync(tmpDir);
-        expect(dirContent).to.include('serverless.ts');
-        expect(dirContent).to.include('handler.ts');
-        expect(dirContent).to.include('tsconfig.json');
-        expect(dirContent).to.include('package.json');
-        expect(dirContent).to.include('webpack.config.js');
+        const dirContent = walkDirSync(tmpDir).map(elem =>
+          elem.replace(path.join(tmpDir, path.sep), '')
+        );
         expect(dirContent).to.include('.gitignore');
+        expect(dirContent).to.include('README.md');
+        expect(dirContent).to.include('package.json');
+        expect(dirContent).to.include('serverless.ts');
+        expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'handler.ts'));
+        expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'index.ts'));
+        expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'mock.json'));
+        expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'schema.ts'));
+        expect(dirContent).to.include(path.join('src', 'functions', 'index.ts'));
+        expect(dirContent).to.include(path.join('src', 'libs', 'apiGateway.ts'));
+        expect(dirContent).to.include(path.join('src', 'libs', 'lambda.ts'));
+        expect(dirContent).to.include('tsconfig.json');
+        expect(dirContent).to.include('tsconfig.paths.json');
+        expect(dirContent).to.include('webpack.config.js');
       });
     });
 
