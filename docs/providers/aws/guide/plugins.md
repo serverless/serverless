@@ -451,7 +451,7 @@ We'll walk though those helpers. You may also want to check out examples from [h
 
 If your plugin requires additional top-level properties (like `provider`, `custom`, `service`...), you can use the `defineTopLevelProperty` helper to add their definition.
 
-Considering the following exemple
+Considering the following example
 
 ```yml
 // serverless.yml
@@ -462,7 +462,7 @@ yourPlugin:
   someProperty: foobar
 ```
 
-you'll need to add vaalidation rules as described below:
+you'll need to add validation rules as described below:
 
 ```javascript
 class NewTopLevelPropertyPlugin {
