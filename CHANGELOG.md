@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.16.1](https://github.com/serverless/serverless/compare/v2.16.0...v2.16.1) (2020-12-22)
+
+### Bug Fixes
+
+- **Packaging:** Exclude `.env` files only when `useDotenv` is set ([#8648](https://github.com/serverless/serverless/pull/8648)) ([537fcac](https://github.com/serverless/serverless/commit/537fcac7597f0c6efbae7a5fc984270a78a2a53a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.16.0](https://github.com/serverless/serverless/compare/v2.15.0...v2.16.0) (2020-12-18)
 
 ### Features
