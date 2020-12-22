@@ -14,6 +14,7 @@ const CLI = require('../../../../../../lib/classes/CLI');
 const { getTmpDirPath } = require('../../../../../utils/fs');
 const skipWithNotice = require('@serverless/test/skip-with-notice');
 const log = require('log').get('serverless:test');
+const runServerless = require('../../../../../utils/run-serverless');
 
 const tmpServicePath = path.resolve(__dirname, '../../../../../../lib/plugins/aws/invokeLocal');
 
@@ -75,40 +76,6 @@ describe('AwsInvokeLocal', () => {
     serverless.setProvider('aws', provider);
     awsInvokeLocal = new AwsInvokeLocal(serverless, options);
     awsInvokeLocal.provider = provider;
-  });
-
-  describe('#constructor()', () => {
-    it('should have hooks', () => expect(awsInvokeLocal.hooks).to.be.not.empty);
-
-    it('should set the provider variable to an instance of AwsProvider', () =>
-      expect(awsInvokeLocal.provider).to.be.instanceof(AwsProvider));
-
-    it('should run invoke:local:invoke promise chain in order', async () => {
-      const invokeLocalStub = sinon.stub(awsInvokeLocal, 'invokeLocal').resolves();
-
-      await awsInvokeLocal.hooks['invoke:local:invoke']();
-      expect(invokeLocalStub.callCount).to.be.equal(1);
-
-      awsInvokeLocal.invokeLocal.restore();
-    });
-
-    it('should run before:invoke:local:loadEnvVars promise chain in order', async () => {
-      const validateStub = sinon.stub(awsInvokeLocal, 'extendedValidate').resolves();
-      const loadEnvVarsStub = sinon.stub(awsInvokeLocal, 'loadEnvVars').resolves();
-
-      await awsInvokeLocal.hooks['before:invoke:local:loadEnvVars']();
-      expect(validateStub.callCount).to.be.equal(1);
-      expect(loadEnvVarsStub.calledAfter(validateStub)).to.be.equal(true);
-
-      awsInvokeLocal.extendedValidate.restore();
-      awsInvokeLocal.loadEnvVars.restore();
-    });
-
-    it('should set an empty options object if no options are given', () => {
-      const awsInvokeWithEmptyOptions = new AwsInvokeLocal(serverless);
-
-      expect(awsInvokeWithEmptyOptions.options).to.deep.equal({});
-    });
   });
 
   describe('#extendedValidate()', () => {
@@ -262,21 +229,11 @@ describe('AwsInvokeLocal', () => {
       });
     });
 
-    it('it should throw error if service path is not set', () => {
-      serverless.config.servicePath = false;
-      return expect(awsInvokeLocal.extendedValidate()).to.be.rejected;
-    });
-
     it('it should reject error if file path does not exist', () => {
       serverless.config.servicePath = getTmpDirPath();
       awsInvokeLocal.options.path = 'some/path';
 
       return expect(awsInvokeLocal.extendedValidate()).to.be.rejected;
-    });
-
-    it('should resolve if path is not given', () => {
-      awsInvokeLocal.options.path = false;
-      return expect(awsInvokeLocal.extendedValidate()).to.be.fulfilled;
     });
   });
 
@@ -595,15 +552,6 @@ describe('AwsInvokeLocal', () => {
 
     afterEach(() => {
       serverless.cli.consoleLog.restore();
-    });
-
-    describe('with sync return value', () => {
-      it('should succeed if succeed', async () => {
-        awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
-
-        await awsInvokeLocal.invokeLocalNodeJs('fixture/handlerWithSuccess', 'withMessageByReturn');
-        expect(serverless.cli.consoleLog.lastCall.args[0]).to.contain('"Succeed"');
-      });
     });
 
     describe('with done method', () => {
@@ -1330,5 +1278,485 @@ describe('AwsInvokeLocal', () => {
 
       expect(dockerArgsFromOptions).to.eql(['-v', '/My Docs:/docs']);
     });
+  });
+});
+
+describe.skip('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
+  const testRuntime = (functionName, cliParams = []) => {
+    describe('Input resolution', () => {
+      // All tested with individual runServerless run
+      it('TODO: should accept no data', async () => {
+        // Confirm outcome on { stdout }
+        await runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', 'local', '--function', functionName, ...cliParams],
+        });
+
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L149-L154
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L476-L482
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L489-L498
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L511-L547
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L567-L582
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L627-L637
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L671-L680
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1076-L1086
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1116-L1173
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1208-L1256
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1301-L1334
+      });
+
+      it('TODO: should should support plain string data', async () => {
+        // Confirm outcome on { stdout }
+        await runServerless({
+          fixture: 'invocation',
+          cliArgs: [
+            'invoke',
+            'local',
+            '--function',
+            functionName,
+            ...cliParams,
+            '--data',
+            'inputData',
+          ],
+        });
+
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L161-L166
+      });
+
+      describe('Automated JSON parsing', () => {
+        before(async () => {
+          // Confirm outcome on { stdout }
+          await runServerless({
+            fixture: 'invocation',
+            cliArgs: [
+              'invoke',
+              'local',
+              '--function',
+              functionName,
+              ...cliParams,
+              '--data',
+              '{"inputKey":"inputValue"}',
+            ],
+          });
+        });
+
+        it('TODO: should support JSON string data', () => {
+          // Replaces
+          // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L168-L173
+        });
+        it('TODO: should support JSON string client context', () => {
+          // Replaces
+          // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L183-L188
+          // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L502-L509
+        });
+      });
+
+      describe('"--raw" option', () => {
+        before(async () => {
+          // Confirm outcome on { stdout }
+          await runServerless({
+            fixture: 'invocation',
+            cliArgs: [
+              'invoke',
+              'local',
+              '--function',
+              functionName,
+              ...cliParams,
+              '--data',
+              '{"inputKey":"inputValue"}',
+              '--raw',
+            ],
+          });
+        });
+
+        it('TODO: should should not attempt to parse data with raw option', () => {
+          // Replaces
+          // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L175-L181
+        });
+        it('TODO: should should not attempt to parse client context with raw option', () => {
+          // Replaces
+          // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L190-L196
+        });
+      });
+
+      describe('JSON file input', () => {
+        before(async () => {
+          // Confirm outcome on { stdout }
+          await runServerless({
+            fixture: 'invocation',
+            cliArgs: [
+              'invoke',
+              'local',
+              '--function',
+              functionName,
+              ...cliParams,
+              '--path',
+              'payload.json',
+            ],
+          });
+        });
+        // Single runServerless run
+        it('TODO: should support JSON file path as data', () => {
+          // Replaces
+          // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L198-L211
+        });
+        it('TODO: should support JSON file path as client context', () => {});
+      });
+
+      it('TODO: should support YAML file path as data', async () => {
+        await runServerless({
+          fixture: 'invocation',
+          cliArgs: [
+            'invoke',
+            'local',
+            '--function',
+            functionName,
+            ...cliParams,
+            '--path',
+            'payload.yaml',
+          ],
+        });
+
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L229-L241
+      });
+
+      it('TODO: should support JS file path for data', async () => {
+        await runServerless({
+          fixture: 'invocation',
+          cliArgs: [
+            'invoke',
+            'local',
+            '--function',
+            functionName,
+            ...cliParams,
+            '--path',
+            'payload.js',
+          ],
+        });
+
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L243-L263
+      });
+
+      it('TODO: should support absolute file path as data', async () => {
+        await runServerless({
+          fixture: 'invocation',
+          cliArgs: [
+            'invoke',
+            'local',
+            '--function',
+            functionName,
+            ...cliParams,
+            '--path' /* TODO: Pass absolute path to payload.json in fixture */,
+          ],
+        });
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L213-L227
+      });
+
+      it('TODO: should throw error if data file path does not exist', async () => {
+        await expect(
+          runServerless({
+            fixture: 'invocation',
+            cliArgs: ['invoke', '--function', 'callback', '--path', 'not-existing.yaml'],
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L270-L275
+      });
+
+      it('TODO: should throw error if function does not exist', async () => {
+        await expect(
+          runServerless({
+            fixture: 'invocation',
+            cliArgs: ['invoke', '--function', 'notExisting'],
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L156-L159
+      });
+    });
+
+    describe('Environment variables', () => {
+      before(async () => {
+        process.env.AWS_ACCESS_KEY_ID = 'AAKIXXX';
+        process.env.AWS_SECRET_ACCESS_KEY = 'ASAKXXX';
+
+        // Confirm outcome on { stdout }
+        await runServerless({
+          fixture: 'invocation',
+          cliArgs: [
+            'invoke',
+            'local',
+            '--function',
+            functionName,
+            ...cliParams,
+            '--env',
+            'PARAM_ENV_VAR=param-env-var-value',
+          ],
+          configExt: {
+            provider: {
+              environment: {
+                PROVIDER_LEVEL_VAR: 'PROVIDER_LEVEL_VAR_VALUE',
+              },
+              profile: 'production',
+              region: 'us-east-2',
+            },
+            functions: {
+              fn: {
+                environment: {
+                  FUNCTION_LEVEL_VAR: 'FUNCTION_LEVEL_VAR_VALUE',
+                },
+              },
+            },
+          },
+        });
+      });
+
+      after(() => {
+        delete process.env.AWS_ACCESS_KEY_ID;
+        delete process.env.AWS_SECRET_ACCESS_KEY;
+      });
+
+      it('TODO: should expose eventual AWS credentials in environment variables', () => {
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L284-L327
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L390-L402
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L404-L415
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L417-L424
+      });
+      it('TODO: should expose `provider.env` in environment variables', () => {
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L354-L357
+      });
+      it('TODO: should expose `provider.profile` in environment variables', () => {
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L359-L363
+      });
+      it('TODO: should expose `functions[].env` in environment variables', () => {
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L365-L368
+      });
+      it('TODO: should expose `--env` vars in environment variables', () => {
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1259-L1299
+      });
+      it('TODO: should expose default lambda environment variables', () => {
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L370-L388
+      });
+      it('TODO: should resolve region from `service.provider` if not provided via option', () => {
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L426-L441
+      });
+    });
+  };
+
+  describe('Node.js', () => {
+    testRuntime('callback');
+
+    // All tested with individual runServerless run
+    it('TODO: should support success resolution via async function', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'async'],
+      });
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L762-L767
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L830-L840
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L881-L892
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L917-L922
+    });
+    it('TODO: should support success resolution via context.done', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'contextDone'],
+      });
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L609-L625
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L771-L783
+    });
+    it('TODO: should support success resolution via context.succeed', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'contextSucceed'],
+      });
+    });
+    it('TODO: should support immediate failure at initialization', async () => {
+      await expect(
+        runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', '--function', 'initFail'],
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L702-L717
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L727-L737
+    });
+    it('TODO: should support immediate failure at invocation', async () => {
+      await expect(
+        runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', '--function', 'invocationFail'],
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+    });
+    it('TODO: should support failure resolution via async function', async () => {
+      await expect(
+        runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', '--function', 'async', '--data', '{"shouldFail":true}'],
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L683-L689
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L719-L725
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L756-L760
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L895-L915
+    });
+    it('TODO: should support failure resolution via callback', async () => {
+      await expect(
+        runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', '--function', 'callback', '--data', '{"shouldFail":true}'],
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L691-L700
+    });
+    it('TODO: should support failure resolution via context.done', async () => {
+      await expect(
+        runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', '--function', 'contextDone', '--data', '{"shouldFail":true}'],
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L785-L794
+    });
+    it('TODO: should support failure resolution via context.fail', async () => {
+      await expect(
+        runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', '--function', 'contextSucceed', '--data', '{"shouldFail":true}'],
+        })
+      ).to.eventually.be.rejected.and.have.property('code', 'TODO');
+    });
+    it('TODO: should recognize first resolution', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'doubledResolutionCallbackFirst'],
+      });
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'doubledResolutionPromiseFirst'],
+      });
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L798-L810
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L814-L826
+    });
+    it('TODO: should support context.remainingTimeInMillis()', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'remainingTime'],
+      });
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L639-L668
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L843-L878
+    });
+  });
+
+  describe('Python', () => {
+    // If Python runtime is not installed, skip below tests by:
+    // - Invoke skip with notice as here;
+    // https://github.com/serverless/serverless/blob/2d6824cde531ba56758f441b39b5ab018702e866/lib/plugins/aws/invokeLocal/index.test.js#L1001-L1003
+    // - Ensure all other tests are skipped
+    testRuntime('python'); // TODO: Configure python handler
+    describe('context.remainingTimeInMillis', () => {
+      it('TODO: should support context.get_remaining_time_in_millis()', async () => {
+        // Confirm outcome on { stdout }
+        await runServerless({
+          fixture: 'invocation',
+          cliArgs: ['invoke', '--function', 'pythonRemainingTime'], // TODO: Configure python handler
+        });
+
+        // Replaces
+        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L941-L969
+      });
+    });
+  });
+
+  describe('Ruby', () => {
+    // If Ruby runtime is not installed, skip below tests by:
+    // - Invoke skip with notice as here;
+    // https://github.com/serverless/serverless/blob/2d6824cde531ba56758f441b39b5ab018702e866/lib/plugins/aws/invokeLocal/index.test.js#L1043-L1045
+    // - Ensure all other tests are skipped
+    testRuntime('ruby'); // TODO: Configure ruby handler
+    it('TODO: should suppurt class/module address in handler for "ruby*" runtime', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'rubyClass'], // TODO: Configure ruby handler
+      });
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L549-L565
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1012-L1032
+    });
+    it('TODO: should support context.get_remaining_time_in_millis()', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'rubyRemainingTime'], // TODO: Configure ruby handler
+      });
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L993-L1010
+    });
+    it('TODO: should support context.deadline_ms', async () => {
+      // Confirm outcome on { stdout }
+      await runServerless({
+        fixture: 'invocation',
+        cliArgs: ['invoke', '--function', 'rubyDeadline'], // TODO: Configure ruby handler
+      });
+
+      // Replaces
+      // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1034-L1051
+    });
+  });
+
+  describe('Java', () => {
+    // If Java runtime is not installed, skip below tests by:
+    // - Invoke skip with notice as here;
+    // https://github.com/serverless/serverless/blob/2d6824cde531ba56758f441b39b5ab018702e866/lib/plugins/aws/invokeLocal/index.test.js#L1043-L1045
+    // - Ensure all other tests are skipped
+    testRuntime('java'); // TODO: Configure java handler
+  });
+
+  describe('Docker', () => {
+    // If Docker is not installed, skip below tests by:
+    // - Invoke skip with notice as here;
+    // https://github.com/serverless/serverless/blob/2d6824cde531ba56758f441b39b5ab018702e866/lib/plugins/aws/invokeLocal/index.test.js#L1043-L1045
+    // - Ensure all other tests are skipped
+
+    testRuntime('callback', ['--docker']);
+    it('TODO: should support "provided" runtime in docker invocation', () => {});
   });
 });

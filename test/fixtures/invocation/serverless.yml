@@ -9,3 +9,20 @@ provider:
 functions:
   callback:
     handler: callback.handler
+  async:
+    handler: async.handler
+  contextDone:
+    handler: context-done.handler
+  contextSucceed:
+    handler: context-succeed.handler
+  initFail:
+    handler: init-fail.handler
+  invocationFail:
+    handler: invocation-fail.handler
+  doubledResolutionCallbackFirst:
+    handler: doubled-resolution-callback-first.handler
+  doubledResolutionPromiseFirst:
+    handler: doubled-resolution-promise-first.handler
+  remainingTime:
+    handler: remaining-time.handler
+    timeout: 3

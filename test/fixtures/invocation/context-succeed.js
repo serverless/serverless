@@ -1,11 +1,11 @@
 'use strict';
 
-module.exports.handler = (event, context, callback) => {
+module.exports.handler = (event, context) => {
   if (event && event.shouldFail) {
-    callback(new Error('Failed on request'));
+    context.fail(new Error('Failed on request'));
     return;
   }
-  callback(null, {
+  context.succeed({
     statusCode: 200,
     body: JSON.stringify({
       message: 'Invoked',
