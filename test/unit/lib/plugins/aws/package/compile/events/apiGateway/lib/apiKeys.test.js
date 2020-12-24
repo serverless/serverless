@@ -39,11 +39,10 @@ describe('#compileApiKeys()', () => {
           customerId: 'customerid98765',
         },
       ],
-    };
-
-    // Added purely to test https://github.com/serverless/serverless/issues/7844 regression
-    awsCompileApigEvents.serverless.service.provider.usagePlan = {
-      quota: { limit: 5000 },
+      // Added purely to test https://github.com/serverless/serverless/issues/7844 regression
+      usagePlan: {
+        quota: { limit: 5000 },
+      },
     };
 
     return awsCompileApigEvents.compileApiKeys().then(() => {
@@ -140,7 +139,6 @@ describe('#compileApiKeys()', () => {
 
   describe('when using usage plan notation', () => {
     it('should support usage plan notation', () => {
-      awsCompileApigEvents.serverless.service.provider.usagePlan = [{ free: [] }, { paid: [] }];
       awsCompileApigEvents.serverless.service.provider.apiGateway = {
         apiKeys: [
           {
@@ -156,6 +154,7 @@ describe('#compileApiKeys()', () => {
           },
           { paid: ['0987654321', 'jihgfedcba'] },
         ],
+        usagePlan: [{ free: [] }, { paid: [] }],
       };
 
       return awsCompileApigEvents.compileApiKeys().then(() => {
