@@ -28,7 +28,7 @@ describe('#compileUsagePlan()', () => {
   });
 
   it('should compile default usage plan resource', () => {
-    serverless.service.provider.apiKeys = ['1234567890'];
+    serverless.service.provider.apiGateway = { apiKeys: ['1234567890'] };
     return awsCompileApigEvents.compileUsagePlan().then(() => {
       expect(
         awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
@@ -275,8 +275,8 @@ describe('#compileUsagePlan()', () => {
   });
 
   it('should compile custom usage plan resource with restApiId provided', () => {
-    serverless.service.provider.apiKeys = ['1234567890'];
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      apiKeys: ['1234567890'],
       restApiId: 'xxxxx',
     };
 

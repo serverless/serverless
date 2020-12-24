@@ -30,10 +30,9 @@ describe('#compileUsagePlanKeys()', () => {
   it('should support api key notation', () => {
     const defaultUsagePlanLogicalId = awsCompileApigEvents.provider.naming.getUsagePlanLogicalId();
     awsCompileApigEvents.apiGatewayUsagePlanNames = ['default'];
-    awsCompileApigEvents.serverless.service.provider.apiKeys = [
-      '1234567890',
-      { name: 'abcdefghij', value: 'abcdefghijvalue' },
-    ];
+    awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      apiKeys: ['1234567890', { name: 'abcdefghij', value: 'abcdefghijvalue' }],
+    };
 
     return awsCompileApigEvents.compileUsagePlanKeys().then(() => {
       // key 1
@@ -91,13 +90,15 @@ describe('#compileUsagePlanKeys()', () => {
         paid: awsCompileApigEvents.provider.naming.getUsagePlanLogicalId(paidUsagePlanName),
       };
       awsCompileApigEvents.apiGatewayUsagePlanNames = [freeUsagePlanName, paidUsagePlanName];
-      awsCompileApigEvents.serverless.service.provider.apiKeys = [
-        { free: ['1234567890', { name: 'abcdefghij', value: 'abcdefghijvalue' }] },
-        { paid: ['0987654321', 'jihgfedcba'] },
-      ];
+      awsCompileApigEvents.serverless.service.provider.apiGateway = {
+        apiKeys: [
+          { free: ['1234567890', { name: 'abcdefghij', value: 'abcdefghijvalue' }] },
+          { paid: ['0987654321', 'jihgfedcba'] },
+        ],
+      };
 
       return awsCompileApigEvents.compileUsagePlanKeys().then(() => {
-        awsCompileApigEvents.serverless.service.provider.apiKeys.forEach(plan => {
+        awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach(plan => {
           const planName = Object.keys(plan)[0]; // free || paid
           const apiKeys = plan[planName];
           apiKeys.forEach((apiKey, index) => {
@@ -132,7 +133,9 @@ describe('#compileUsagePlanKeys()', () => {
 
     it('should throw if api key name does not match a usage plan', () => {
       awsCompileApigEvents.apiGatewayUsagePlanNames = ['default'];
-      awsCompileApigEvents.serverless.service.provider.apiKeys = [{ free: ['1234567890'] }];
+      awsCompileApigEvents.serverless.service.provider.apiGateway = {
+        apiKeys: [{ free: ['1234567890'] }],
+      };
       expect(() => awsCompileApigEvents.compileUsagePlanKeys()).to.throw(
         /has no usage plan defined/
       );
