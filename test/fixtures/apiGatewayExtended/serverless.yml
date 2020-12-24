@@ -7,9 +7,10 @@ provider:
   name: aws
   runtime: nodejs12.x
   versionFunctions: false
-  apiKeys:
-    - name: ${self:service.name}-api-key-1
-      value: ${self:service.name}-api-key-1
+  apiGateway:
+    apiKeys:
+      - name: ${self:service.name}-api-key-1
+        value: ${self:service.name}-api-key-1
 
 functions:
   # core functions
