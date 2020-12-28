@@ -68,7 +68,7 @@ module.exports = async (versionTag, { isLegacyVersion }) => {
             },
           }
         );
-        process.stdout.write(chalk.green(`${targetBinaryName} uploaded to GiHub\n`));
+        process.stdout.write(chalk.green(`${targetBinaryName} uploaded to GitHub\n`));
       })
       .concat(
         isLegacyVersion
