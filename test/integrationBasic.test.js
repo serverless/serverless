@@ -21,7 +21,10 @@ describe('Service Lifecyle Integration Test', function() {
   const env = resolveAwsEnv();
   const spawnOptions = {
     cwd: tmpDir,
-    env,
+    env: {
+      ...env,
+      SLS_DEPRECATION_DISABLE: '*',
+    },
     // As in invoke we optionally read stdin, we need to ensure it's closed
     // See https://github.com/sindresorhus/get-stdin/issues/13#issuecomment-279234249
     shouldCloseStdin: true,
