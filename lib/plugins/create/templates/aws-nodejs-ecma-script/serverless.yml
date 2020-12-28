@@ -12,6 +12,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
 
 functions:
   first:
@@ -19,6 +20,6 @@ functions:
   second:
     handler: second.hello
     events:
-      - http:
+      - httpApi:
           method: get
-          path: second
+          path: /second

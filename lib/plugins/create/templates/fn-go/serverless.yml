@@ -5,10 +5,7 @@
 # uses to deploy your code to your provider of choice
 
 # The `service` block is the name of the service
-service:
-  name: hello-world
-#    config:
-#        some: 'val'
+service: hello-world # NOTE: update this with your service name
 
 frameworkVersion: '2'
 
