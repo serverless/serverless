@@ -59,6 +59,7 @@ provider:
   deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
   role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
   rolePermissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
+  lambdaHashingVersion: 20201221 # optional, version of hashing algorithm that should be used by the framework
   cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   cloudFront:
     myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name

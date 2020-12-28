@@ -6,6 +6,22 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="LAMBDA_HASHING_VERSION_V2"><div>&nbsp;</div></a>
+
+## Default `provider.lambdaHashingVersion`
+
+Starting with v3.0.0, the default value of `lambdaHashingVersion` will be equal to `20201221`. You can adapt to this behavior now, by setting `provider.lambdaHashingVersion` to `20201221`.
+
+When trying to `sls deploy` for the first time after migration to new `lambdaHashingVersion`, you might encounter an error, similar to the one below:
+
+```
+  Serverless Error ---------------------------------------
+
+  An error occurred: FooLambdaVersion3IV5NZ3sE5T2UFimCOai2Tc6eCaW7yIYOP786U0Oc - A version for this Lambda function exists ( 11 ). Modify the function to create a new version..
+```
+
+It is an expected behavior, to avoid it, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions.
+
 <a name="LOAD_VARIABLES_FROM_ENV_FILES"><div>&nbsp;</div></a>
 
 ## Automatic loading environment variables from .env and .env.{stage} files
