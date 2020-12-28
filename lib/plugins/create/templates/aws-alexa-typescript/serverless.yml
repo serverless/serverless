@@ -1,5 +1,5 @@
-service:
-  name: aws-alexa-typescript
+service: aws-alexa-typescript # NOTE: update this with your service name
+
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -13,6 +13,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
 
 custom:
   alexa:

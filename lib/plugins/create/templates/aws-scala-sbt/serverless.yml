@@ -23,6 +23,7 @@ frameworkVersion: '2'
 provider:
   name: aws
   runtime: java8
+  lambdaHashingVersion: 20201221
 
 # you can overwrite defaults here
 #  stage: dev
@@ -61,8 +62,8 @@ functions:
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
 #    events:
-#      - http:
-#          path: users/create
+#      - httpApi:
+#          path: /users/create
 #          method: get
 #      - websocket: $connect
 #      - s3: ${env:BUCKET}

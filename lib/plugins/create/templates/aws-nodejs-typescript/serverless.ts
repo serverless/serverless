@@ -22,6 +22,7 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
     },
+    lambdaHashingVersion: '20201221',
   },
   functions: { hello }
 }
