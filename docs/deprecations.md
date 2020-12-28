@@ -133,3 +133,33 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 ## `awsKmsKeyArn` references
 
 Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v3.0.0
+
+<a name="PARAMETERIZED_ARGUMENT_ORG"><div>&nbsp;</div></a>
+
+## Parameterized `org` usage
+
+Org is required to resolve variables when logged in, variable resolution will not function without plaintext value.
+
+<a name="PARAMETERIZED_ARGUMENT_APP"><div>&nbsp;</div></a>
+
+## Parameterized `app` usage
+
+App is required to resolve variables when logged in, variable resolution will not function without plaintext value.
+
+<a name="PARAMETERIZED_ARGUMENT_SERVICE"><div>&nbsp;</div></a>
+
+## Parameterized `service` usage
+
+Service is required to resolve variables when logged in, variable resolution will not function without plaintext value.
+
+<a name="PARAMETERIZED_ARGUMENT_STAGE"><div>&nbsp;</div></a>
+
+## Parameterized `stage` usage
+
+Stage is required to resolve variables when logged in, variable resolution will not function without plaintext value. You may override value in `serverless.yml` with command line argument `--stage`.
+
+<a name="PARAMETERIZED_ARGUMENT_REGION"><div>&nbsp;</div></a>
+
+## Parameterized `region` usage
+
+Region is required to resolve variables when logged in, variable resolution will not function without plaintext value. You may override value in `serverless.yml` with command line argument `--region`.
