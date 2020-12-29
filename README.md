@@ -196,7 +196,7 @@ Check out our [help wanted](https://github.com/serverless/serverless/labels/help
 
 We recommend the following professional services organizations who are experts in serverless development:
 
-- [Serverless Guru](https://www.antstack.io/)
+- [Serverless Guru](https://serverlessguru.com/)
 - [Antstack](https://www.antstack.io/)
 - [Theodo](https://www.theodo.co.uk) - full stack teams passionate about Serverless that also run the Serverless Transformation Newsletter & Blog.
 - [null](https://null.tc/) - maintains [Bref](https://bref.sh/) to create serverless PHP applications
