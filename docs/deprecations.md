@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="PARAMETERIZED_ARGUMENT"><div>&nbsp;</div></a>
+
+## Parameterized `org`, `app`, `service`, `stage`, and `region` usage
+
+Org, app, service, stage, and region are required to resolve variables when logged in, variable resolution will not function without plaintext value. You may override values in `serverless.yml` for `stage` and `region` with command line arguments `--stage` and `--region`. The rest must be plain text.
+
 <a name="LAMBDA_HASHING_VERSION_V2"><div>&nbsp;</div></a>
 
 ## Default `provider.lambdaHashingVersion`
@@ -133,9 +139,3 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 ## `awsKmsKeyArn` references
 
 Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v3.0.0
-
-<a name="PARAMETERIZED_ARGUMENT"><div>&nbsp;</div></a>
-
-## Parameterized `org`, `app`, `service`, `stage`, and `region` usage
-
-Org, app, service, stage, and region are required to resolve variables when logged in, variable resolution will not function without plaintext value. You may override values in `serverless.yml` for `stage` and `region` with command line arguments `--stage` and `--region`. The rest must be plain text.
