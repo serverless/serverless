@@ -6,6 +6,12 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="PARAMETERIZED_ARGUMENT"><div>&nbsp;</div></a>
+
+## Parameterized `org`, `app`, `service`, `stage`, and `region` usage
+
+Org, app, service, stage, and region are required to resolve variables when logged in, variable resolution will not function without plaintext value. You may override values in `serverless.yml` for `stage` and `region` with command line arguments `--stage` and `--region`. The rest must be plain text.
+
 <a name="LAMBDA_HASHING_VERSION_V2"><div>&nbsp;</div></a>
 
 ## Default `provider.lambdaHashingVersion`
