@@ -199,7 +199,7 @@ See the documentation about [IAM](./iam.md) for function level IAM roles.
 
 Alternatively lambda environment can be configured through docker images. Image published to AWS ECR registry can be referenced as lambda source (check [AWS Lambda – Container Image Support](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-container-image-support/)).
 
-In service configuration existing AWS ECR image should be referenced via `image` property (which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` format). `handler` and `runtime` properties are not supported in such case.
+In service configuration existing AWS ECR image should be referenced via `image` property (which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format). `handler` and `runtime` properties are not supported in such case.
 
 Example configuration:
 

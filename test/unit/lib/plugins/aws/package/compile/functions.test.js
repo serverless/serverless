@@ -1831,6 +1831,13 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     let serverless;
     let serviceConfig;
     let iamRolePolicyStatements;
+    const imageDigestFromECR =
+      'sha256:2e6b10a4b1ca0f6d3563a8a1f034dde7c4d7c93b50aa91f24311765d0822186b';
+    const awsRequestStubMap = {
+      ECR: {
+        describeImages: { imageDetails: [{ imageDigest: imageDigestFromECR }] },
+      },
+    };
 
     before(async () => {
       const {
@@ -1873,8 +1880,12 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               image:
                 '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
             },
+            fnImageWithTag: {
+              image: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker:stable',
+            },
           },
         },
+        awsRequestStubMap,
       });
       cfResources = cfTemplate.Resources;
       naming = awsNaming;
@@ -2173,7 +2184,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
-    it('should support `functions[].image`', () => {
+    it('should support `functions[].image` with sha', () => {
       const functionServiceConfig = serviceConfig.functions.fnImage;
       const functionCfLogicalId = naming.getLambdaLogicalId('fnImage');
       const functionCfConfig = cfResources[functionCfLogicalId].Properties;
@@ -2193,6 +2204,25 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           resource.Properties.FunctionName.Ref === functionCfLogicalId
       ).Properties;
       expect(versionCfConfig.CodeSha256).to.equal(imageDigestSha);
+    });
+
+    it('should support `functions[].image` with tag', () => {
+      const functionServiceConfig = serviceConfig.functions.fnImageWithTag;
+      const functionCfLogicalId = naming.getLambdaLogicalId('fnImageWithTag');
+      const functionCfConfig = cfResources[functionCfLogicalId].Properties;
+
+      expect(functionCfConfig.Code).to.deep.equal({
+        ImageUri: `${functionServiceConfig.image.split(':')[0]}@${imageDigestFromECR}`,
+      });
+      expect(functionCfConfig).to.not.have.property('Handler');
+      expect(functionCfConfig).to.not.have.property('Runtime');
+
+      const versionCfConfig = Object.values(cfResources).find(
+        resource =>
+          resource.Type === 'AWS::Lambda::Version' &&
+          resource.Properties.FunctionName.Ref === functionCfLogicalId
+      ).Properties;
+      expect(versionCfConfig.CodeSha256).to.equal(imageDigestFromECR.slice('sha256:'.length));
     });
   });
 
