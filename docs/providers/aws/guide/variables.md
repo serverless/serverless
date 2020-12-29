@@ -59,7 +59,6 @@ For example:
 ```yml
 provider:
   name: aws
-  stage: ${opt:stage, 'dev'}
   environment:
     MY_SECRET: ${file(./config.${opt:stage, self:provider.stage, 'dev'}.json):CREDS}
 ```
@@ -75,7 +74,7 @@ If `sls deploy --stage qa` is run, the option `stage=qa` is used inside the `${f
 
 Likewise, if `sls deploy --stage prod` is run the `config.prod.json` file would be found and used.
 
-If no `--stage` flag is provided, the second parameter defined in `${opt:stage, 'dev'}` a.k.a `dev` will be used and result in `${file(./config.dev.json):CREDS}`.
+If no `--stage` flag is provided, the fallback `dev` will be used and result in `${file(./config.dev.json):CREDS}`.
 
 ## Reference Properties In serverless.yml
 

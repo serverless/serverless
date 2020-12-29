@@ -32,8 +32,8 @@ disabledDeprecations: # Disable deprecation logs by their codes. Default is empt
 provider:
   name: aws
   runtime: nodejs12.x
-  stage: ${opt:stage, 'dev'} # Set the default stage used. Default is dev
-  region: ${opt:region, 'us-east-1'} # Overwrite the default region used. Default is us-east-1
+  stage: dev # Default stage to be used. Default is "dev"
+  region: us-east-1 # Default region to be used. Default is "us-east-1"
   stackName: custom-stack-name # Use a custom name for the CloudFormation stack
   apiName: custom-api-name # Use a custom name for the API Gateway API
   websocketsApiName: custom-websockets-api-name # Use a custom name for the websockets API
