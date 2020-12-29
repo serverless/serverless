@@ -1838,7 +1838,9 @@ describe('lib/plugins/aws/package/compile/events/cloudFront/index.new.test.js', 
   describe('Resource generation', () => {
     let cfResources;
     let naming;
+    let serviceName;
 
+    const stage = 'custom-stage';
     const cachePolicyName = 'allInCache';
     const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
     const cachePolicyConfig = {
@@ -1869,9 +1871,15 @@ describe('lib/plugins/aws/package/compile/events/cloudFront/index.new.test.js', 
       );
 
     before(async () => {
-      const { awsNaming, cfTemplate } = await runServerless({
+      const {
+        awsNaming,
+        cfTemplate,
+        fixtureData: {
+          serviceConfig: { service },
+        },
+      } = await runServerless({
         fixture: 'function',
-        cliArgs: ['package'],
+        cliArgs: ['package', '--stage', stage],
         configExt: {
           provider: {
             cloudFront: {
@@ -1944,11 +1952,18 @@ describe('lib/plugins/aws/package/compile/events/cloudFront/index.new.test.js', 
       });
       cfResources = cfTemplate.Resources;
       naming = awsNaming;
+      serviceName = service;
     });
 
     it.skip('TODO: should configure needed resources', () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/85e480b5771d5deeb45ae5eb586723c26cf61a90/lib/plugins/aws/package/compile/events/cloudFront/index.test.js#L432-L570
+    });
+
+    it('should configure distribution config comment', () => {
+      const distributionConfig =
+        cfResources[naming.getCloudFrontDistributionLogicalId()].Properties.DistributionConfig;
+      expect(distributionConfig.Comment).to.equal(`${serviceName} ${stage}`);
     });
 
     it.skip('TODO: should ensure that triggered functions are versioned', () => {
