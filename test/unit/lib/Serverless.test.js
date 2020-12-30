@@ -337,7 +337,7 @@ describe('Serverless [new tests]', () => {
       it('Should run without notice', () =>
         fixtures.setup('locallyInstalledServerless').then(({ servicePath }) =>
           runServerless({
-            serverlessPath: path.resolve(servicePath, 'node_modules/serverless'),
+            serverlessDir: path.resolve(servicePath, 'node_modules/serverless'),
             cwd: servicePath,
             cliArgs: ['-v'],
           }).then(({ serverless }) => {

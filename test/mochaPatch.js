@@ -12,9 +12,9 @@ BbPromise.config({
   longStackTraces: true,
 });
 
-module.exports = require('@serverless/test/setup/mocha-reporter');
+const { runnerEmitter } = require('@serverless/test/setup/patch');
 
-module.exports.deferredRunner.then(runner => {
+runnerEmitter.on('runner', runner => {
   runner.on('suite end', suite => {
     if (!suite.parent || !suite.parent.root) return;
 
