@@ -7,7 +7,9 @@ const memoize = require('memoizee');
 const normalizeAjvErrors = require('../../../../../lib/classes/ConfigSchemaHandler/normalizeAjvErrors');
 
 describe('#normalizeAjvErrors', () => {
-  const resolveAjv = memoize(() => new Ajv({ allErrors: true }));
+  const resolveAjv = memoize(
+    () => new Ajv({ allErrors: true, coerceTypes: 'array', verbose: true })
+  );
   const resolveValidate = memoize(schema => resolveAjv().compile(schema));
 
   const schema = {
@@ -133,7 +135,7 @@ describe('#normalizeAjvErrors', () => {
       foo: 'bar',
       provider: {
         name: 'aws',
-        deploymentBucket: { maxPreviousDeploymentArtifacts: '20' },
+        deploymentBucket: { maxPreviousDeploymentArtifacts: 'foo' },
       },
       custom: {
         someCustom: { name: 'third' },
