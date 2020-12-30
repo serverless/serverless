@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const BbPromise = require('bluebird');
+const JsZip = require('jszip');
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
@@ -642,31 +643,33 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
     describe('with absolute artifact path', () => {
       let absoluteArtifactFilePath;
-      const awsLambdaRequestsStubMap = {
-        Lambda: {
-          getFunction: {
-            Configuration: {
-              LastModified: '2020-05-20T15:34:16.494+0000',
-            },
-          },
-          updateFunctionCode: {},
-          updateFunctionConfiguration: {},
-        },
-      };
+      let zipContent;
 
       before(async () => {
+        const zip = new JsZip();
+        zip.file('index.js', '');
+        zipContent = await zip.generateAsync({ type: 'base64' });
         absoluteArtifactFilePath = path.join(process.cwd(), 'newArtifact.zip');
-        await fs.promises.writeFile(absoluteArtifactFilePath, '');
+        await fs.promises.writeFile(absoluteArtifactFilePath, zipContent);
       });
 
       it('for function', async () => {
-        const {
-          serverless: { service },
-        } = await runServerless({
+        const updateFunctionCodeStub = sinon.stub();
+
+        await runServerless({
           fixture: 'function',
           cliArgs: ['deploy', '-f', 'other'],
-          lastLifecycleHookName: 'deploy:function:packageFunction',
-          awsRequestStubMap: awsLambdaRequestsStubMap,
+          awsRequestStubMap: {
+            Lambda: {
+              getFunction: {
+                Configuration: {
+                  LastModified: '2020-05-20T15:34:16.494+0000',
+                },
+              },
+              updateFunctionCode: updateFunctionCodeStub,
+              updateFunctionConfiguration: {},
+            },
+          },
           configExt: {
             functions: {
               other: {
@@ -677,24 +680,35 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
             },
           },
         });
-        expect(service.getFunction('other').package.artifact).to.equal(absoluteArtifactFilePath);
+        expect(updateFunctionCodeStub).to.have.been.calledOnce;
+        expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
       });
 
       it('service-wide', async () => {
-        const {
-          serverless: { service },
-        } = await runServerless({
+        const updateFunctionCodeStub = sinon.stub();
+
+        await runServerless({
           fixture: 'function',
           cliArgs: ['deploy', '-f', 'foo'],
-          lastLifecycleHookName: 'deploy:function:packageFunction',
-          awsRequestStubMap: awsLambdaRequestsStubMap,
+          awsRequestStubMap: {
+            Lambda: {
+              getFunction: {
+                Configuration: {
+                  LastModified: '2020-05-20T15:34:16.494+0000',
+                },
+              },
+              updateFunctionCode: updateFunctionCodeStub,
+              updateFunctionConfiguration: {},
+            },
+          },
           configExt: {
             package: {
               artifact: absoluteArtifactFilePath,
             },
           },
         });
-        expect(service.getFunction('foo').package.artifact).to.equal(absoluteArtifactFilePath);
+        expect(updateFunctionCodeStub).to.have.been.calledOnce;
+        expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
       });
     });
   });
