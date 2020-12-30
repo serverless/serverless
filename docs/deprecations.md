@@ -66,6 +66,12 @@ Eventually if you have a strong reason to stick to current convention, you may e
 
 Starting with v3.0.0, support for `alexaSkill` event without `appId` provided will be removed.
 
+<a name="AWS_KMS_KEY_ARN"><div>&nbsp;</div></a>
+
+## `awsKmsKeyArn` references
+
+Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v3.0.0
+
 <a name="RESOURCES_EXTENSIONS_REFERENCE_TO_NONEXISTENT_RESOURCE"><div>&nbsp;</div></a>
 
 ## Defining extensions to nonexistent resources in `resources.extensions`
@@ -133,9 +139,3 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 ## `bin/serverless`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
-
-<a name="AWS_KMS_KEY_ARN"><div>&nbsp;</div></a>
-
-## `awsKmsKeyArn` references
-
-Please use `provider.kmsKeyArn` and `functions[].kmsKeyArn`. `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` will be removed with v3.0.0
