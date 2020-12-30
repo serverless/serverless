@@ -24,7 +24,7 @@ Documented at [serverless.com/components](https://www.serverless.com/components/
 
 ### Overview
 
-Core flow of a process is managed through internal lifecycle engine, for which, internal (core) and external (user-made) plugins register supported CLI commands attributing to them ordered lifecycle events,, plus hooks (event listeners) which are invoked when given event is triggered.
+Core flow of a process is managed through internal lifecycle engine, for which, internal (core) and external (user-made) plugins register supported CLI commands attributing to them ordered lifecycle events, plus hooks (event listeners) which are invoked when given event is triggered.
 
 #### Code organization
 
@@ -34,9 +34,7 @@ _Note: that each of these modules are considered private, there should be no dep
 
 ##### Core classes
 
-Located in ([`lib/Serverless.js`](https://github.com/serverless/serverless/tree/master/lib/classes) and [lib/classes](https://github.com/serverless/serverless/tree/master/lib/classes))
-
-It's were core machinery with lifecycle engine internals is implemented
+Located in [lib/classes](https://github.com/serverless/serverless/tree/master/lib/classes). Core machinery with lifecycle engine internals
 
 ##### Internal plugins
 

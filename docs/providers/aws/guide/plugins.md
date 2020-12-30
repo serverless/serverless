@@ -583,7 +583,7 @@ Serverless: Configuration error: functions.someFunc.events[0].yourPluginEvent.an
 
 When your plugin extend other plugin events definition for a specific provider, you can use the `defineFunctionEventProperties` to extend event definition with your custom properties.
 
-For exemple, if your plugin adds support to a new `documentation` property on `http` event from `aws` provider, you should add validations rules inside your plugin constructor for this new property.
+For example, if your plugin adds support to a new `documentation` property on `http` event from `aws` provider, you should add validations rules inside your plugin constructor for this new property.
 
 ```javascript
 class NewEventPlugin {
