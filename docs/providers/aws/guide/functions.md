@@ -521,7 +521,7 @@ functions:
 
 ## EFS Configuration
 
-You can use [Amazon EFS with Lambda](https://docs.aws.amazon.com/lambda/latest/dg/services-efs.html) by adding a `fileSystemConfig` property in the function configuration in `serverless.yml`. `fileSystemConfig` should be an object that contains the `arn` and `localMountPath` properties. The `arn` property should reference an existing EFS Access Point, where the `localMountPath` should specifiy the absolute path under which the file system will be mounted. Here's an example configuration:
+You can use [Amazon EFS with Lambda](https://docs.aws.amazon.com/lambda/latest/dg/services-efs.html) by adding a `fileSystemConfig` property in the function configuration in `serverless.yml`. `fileSystemConfig` should be an object that contains the `arn` and `localMountPath` properties. The `arn` property should reference an existing EFS Access Point, where the `localMountPath` should specify the absolute path under which the file system will be mounted. Here's an example configuration:
 
 ```yml
 # serverless.yml

@@ -97,7 +97,7 @@ Log should be written only if deprecated functionality is used. If functionality
 - `code` (e.g. `DEPRECATED_FEATURE_NAME`). Created to identify log programmatically, also used to construct link on documentation page
 - `message` Deprecation message to be displayed to the user
 
-2. The Document introduced deprecation at `docs/depreactions.md` (new deprecation should be listed as first, follow the format of other documented deprecations)
+2. The Document introduced deprecation at `docs/deprecations.md` (new deprecation should be listed as first, follow the format of other documented deprecations)
 
 # Testing
 
