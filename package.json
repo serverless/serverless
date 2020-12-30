@@ -100,7 +100,7 @@
     "sinon": "^9.2.2",
     "sinon-chai": "^3.5.0",
     "standard-version": "^9.1.0",
-    "strip-ansi": "^5.2.0",
+    "strip-ansi": "^6.0.0",
     "ws": "^7.4.2",
     "xml2js": "^0.4.23"
   },
