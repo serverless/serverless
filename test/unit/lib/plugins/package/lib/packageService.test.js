@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const BbPromise = require('bluebird');
 const path = require('path');
+const fs = require('fs');
 const fse = require('fs-extra');
 const chai = require('chai');
 const sinon = require('sinon');
@@ -593,11 +594,12 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
   });
 
-  describe.skip('TODO: pre-prepared artifact', () => {
+  describe('pre-prepared artifact', () => {
     before(async () => {
       await runServerless({
         fixture: 'packaging',
         cliArgs: ['package'],
+        awsRequestStubMap: mockedDescribeStacksResponse,
         configExt: {
           package: {
             artifact: 'artifact.zip',
@@ -611,28 +613,89 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
             },
             fnArtifact: {
               handler: 'index.handler',
-              artifact: 'artifact-function.zip',
+              package: {
+                artifact: 'artifact-function.zip',
+              },
             },
           },
         },
       });
     });
-    it('should support `package.artifact`', () => {
+
+    it.skip('should support `package.artifact`', () => {
       // Confirm that file pointed at `package.artifact` is configured as service level artifact
       //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L227-L235
     });
 
-    it('should ignore `package.artifact` if `functions[].package.individually', () => {
+    it.skip('should ignore `package.artifact` if `functions[].package.individually', () => {
       // Confirm that fnIndividual was packaged independently
       //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L262-L287
     });
 
-    it('should support `functions[].package.artifact`', () => {
+    it.skip('should support `functions[].package.artifact`', () => {
       // Confirm that file pointed at `functions.fnArtifact.package.artifact` is configured as function level artifact
+    });
+
+    describe('with absolute artifact path', () => {
+      let absoluteArtifactFilePath;
+      const awsLambdaRequestsStubMap = {
+        Lambda: {
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+            },
+          },
+          updateFunctionCode: {},
+          updateFunctionConfiguration: {},
+        },
+      };
+
+      before(async () => {
+        absoluteArtifactFilePath = path.join(process.cwd(), 'newArtifact.zip');
+        await fs.promises.writeFile(absoluteArtifactFilePath, '');
+      });
+
+      it('for function', async () => {
+        const {
+          serverless: { service },
+        } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['deploy', '-f', 'other'],
+          lastLifecycleHookName: 'deploy:function:packageFunction',
+          awsRequestStubMap: awsLambdaRequestsStubMap,
+          configExt: {
+            functions: {
+              other: {
+                package: {
+                  artifact: absoluteArtifactFilePath,
+                },
+              },
+            },
+          },
+        });
+        expect(service.getFunction('other').package.artifact).to.equal(absoluteArtifactFilePath);
+      });
+
+      it('service-wide', async () => {
+        const {
+          serverless: { service },
+        } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['deploy', '-f', 'foo'],
+          lastLifecycleHookName: 'deploy:function:packageFunction',
+          awsRequestStubMap: awsLambdaRequestsStubMap,
+          configExt: {
+            package: {
+              artifact: absoluteArtifactFilePath,
+            },
+          },
+        });
+        expect(service.getFunction('foo').package.artifact).to.equal(absoluteArtifactFilePath);
+      });
     });
   });
 });
