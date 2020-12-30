@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.17.0](https://github.com/serverless/serverless/compare/v2.16.1...v2.17.0) (2020-12-30)
+
+### Features
+
+- **AWS Deploy:** Improve function version hashing algorithm ([#8661](https://github.com/serverless/serverless/issues/8661)) ([ef53050](https://github.com/serverless/serverless/commit/ef530506d5044ab3312c829838bb29cfcd2c889f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Lambda:** Support referencing images with tags ([#8683](https://github.com/serverless/serverless/issues/8683)) ([68b7ed5](https://github.com/serverless/serverless/commit/68b7ed5089f9226c1dbe3b992b93afdcf2015736)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS HTTP API:** Expose HTTP API in CloudFormation stack outputs ([#8664](https://github.com/serverless/serverless/issues/8664)) ([f9c8677](https://github.com/serverless/serverless/commit/f9c8677eccdfe14382c7e90079abce9f7bfed866)) ([Santhos Baala, Ramalingam Santhanakrishnan](https://github.com/captainsano))
+- **Config Schema:** Validate extensions against collisions with existing properties ([#8655](https://github.com/serverless/serverless/issues/8655)) ([7266599](https://github.com/serverless/serverless/commit/7266599a7dcfcb96cdfcb73a95c3d162fe6f3a1f)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Support `--context` and `--contextPath` at `invoke` command ([#8652](https://github.com/serverless/serverless/issues/8652)) ([ff253e3](https://github.com/serverless/serverless/commit/ff253e32dd5e9c17f46f5a359ebfb9007b6ffa7d)) ([lewgordon](https://github.com/lewgordon))
+
+### Bug Fixes
+
+- **AWS CloudFront:** Ensure to describe resolved stage in comment ([#8685](https://github.com/serverless/serverless/issues/8685)) ([120bfb7](https://github.com/serverless/serverless/commit/120bfb7c0273e2ddd120a4311ee736694568fc53)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Fix handling of `null` in deep property resolution ([#8165](https://github.com/serverless/serverless/issues/8165)) ([eb11e6d](https://github.com/serverless/serverless/commit/eb11e6d92b99687529fed708d3f7f5a28ef1c027)) ([Antoine Pham](https://github.com/MystK) & [Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Lambda:** Ensure layer permissions are retained with layer itself ([#8688](https://github.com/serverless/serverless/issues/8688)) ([bf418ac](https://github.com/serverless/serverless/commit/bf418ac6ca14f3a5570998f5fecf2bfd8a3d12a6)) ([raym0nd93](https://github.com/raym0nd93) & [Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Update `aws-nodejs-typescript` template ([#8646](https://github.com/serverless/serverless/issues/8646)) ([c9db035](https://github.com/serverless/serverless/commit/c9db035266db23518011a4b7457319add0c00994)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Upgrade to avoid using deprecated functionality ([#8677](https://github.com/serverless/serverless/issues/8677)) ([3c5e497](https://github.com/serverless/serverless/commit/3c5e497116bec410b16f4a752c30e19b856df898)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [2.16.1](https://github.com/serverless/serverless/compare/v2.16.0...v2.16.1) (2020-12-22)
 
 ### Bug Fixes
