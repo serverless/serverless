@@ -232,6 +232,23 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
+    it('should honour provider.iam.role option when set', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          provider: {
+            role: 'arn:role-a',
+            iam: { role: 'arn:role-b' },
+          },
+        },
+        cliArgs: ['package'],
+      });
+
+      expect(cfTemplate.Resources.FooLambdaFunction.Properties.Role).to.eql({
+        'Fn::GetAtt': ['arn:role-b', 'Arn'],
+      });
+    });
+
     it('should add a logical role name function role', () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {

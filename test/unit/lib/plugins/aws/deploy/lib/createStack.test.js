@@ -8,6 +8,7 @@ const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
 const ServerlessError = require('../../../../../../../lib/serverless-error');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
+const runServerless = require('../../../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -40,10 +41,6 @@ describe('createStack', () => {
     awsDeploy = new AwsDeploy(serverless, options);
     awsDeploy.serverless.service.service = `service-${new Date().getTime().toString()}`;
     awsDeploy.serverless.cli = new serverless.classes.CLI();
-  });
-
-  afterEach(() => {
-    sandbox.restore();
   });
 
   describe('#create()', () => {
@@ -85,19 +82,6 @@ describe('createStack', () => {
 
       return awsDeploy.create().then(() => {
         expect(createStackStub.args[0][2].Capabilities).to.contain('CAPABILITY_AUTO_EXPAND');
-      });
-    });
-
-    it('should use CloudFormation service role ARN if it is specified', () => {
-      awsDeploy.serverless.service.provider.cfnRole = 'arn:aws:iam::123456789012:role/myrole';
-
-      const createStackStub = sandbox.stub(awsDeploy.provider, 'request').resolves();
-      sandbox.stub(awsDeploy, 'monitorStack').resolves();
-
-      return awsDeploy.create().then(() => {
-        expect(createStackStub.args[0][2].RoleARN).to.equal(
-          'arn:aws:iam::123456789012:role/myrole'
-        );
       });
     });
 
@@ -211,5 +195,102 @@ describe('createStack', () => {
         expect(disableTransferAccelerationStub.called).to.be.false;
       });
     });
+  });
+});
+
+describe('createStack #2', () => {
+  const createStackStub = sandbox.stub().resolves({});
+  const describeStacksStub = sandbox
+    .stub()
+    .onFirstCall()
+    .throws('error', 'stack does not exist')
+    .onSecondCall()
+    .resolves({ Stacks: [{}] });
+
+  afterEach(() => {
+    createStackStub.resetHistory();
+    describeStacksStub.resetHistory();
+  });
+
+  const awsRequestStubMap = {
+    STS: {
+      getCallerIdentity: {
+        ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+        UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+        Account: '999999999999',
+        Arn: 'arn:aws:iam::999999999999:user/test',
+      },
+    },
+    ECR: {
+      describeRepositories: sandbox.stub().throws({
+        providerError: { code: 'RepositoryNotFoundException' },
+      }),
+    },
+    S3: {
+      deleteObjects: {},
+      listObjectsV2: { Contents: [] },
+      upload: {},
+    },
+    CloudFormation: {
+      describeStacks: describeStacksStub,
+      createStack: createStackStub,
+      describeStackEvents: {
+        StackEvents: [
+          {
+            EventId: '1e2f3g4h',
+            StackName: 'new-service-dev',
+            LogicalResourceId: 'new-service-dev',
+            ResourceType: 'AWS::CloudFormation::Stack',
+            Timestamp: new Date(),
+            ResourceStatus: 'CREATE_COMPLETE',
+          },
+        ],
+      },
+      describeStackResource: {
+        StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
+      },
+      validateTemplate: {},
+      updateStack: {},
+      listStackResources: {},
+    },
+  };
+
+  it('should use iam.deploymentRole service role if set', async () => {
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy'],
+      configExt: {
+        provider: {
+          iam: {
+            deploymentRole: 'arn:aws:iam::123456789012:role/role-a',
+          },
+          cfnRole: 'arn:aws:iam::123456789012:role/role-b',
+        },
+      },
+      awsRequestStubMap,
+      lastLifecycleHookName: 'deploy:function:deploy',
+    });
+    expect(createStackStub).to.be.calledOnce;
+    expect(createStackStub.getCall(0).firstArg.RoleARN).to.equal(
+      'arn:aws:iam::123456789012:role/role-a'
+    );
+  });
+
+  it('should use CloudFormation service role ARN if it is specified', async () => {
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy'],
+      configExt: {
+        provider: {
+          cfnRole: 'arn:aws:iam::123456789012:role/role-b',
+        },
+      },
+      awsRequestStubMap,
+      lastLifecycleHookName: 'deploy:function:deploy',
+    });
+    expect(createStackStub).to.be.calledOnce;
+    expect(createStackStub.getCall(0).firstArg.RoleARN).to.equal(
+      'arn:aws:iam::123456789012:role/role-b'
+    );
   });
 });
