@@ -130,8 +130,9 @@ module.exports.main = async ({ iotEndpoint, certificatePem, privateKey }) => {
   configBuilder.with_client_id(`test-${Math.floor(Math.random() * 100000000)}`);
   configBuilder.with_endpoint(iotEndpoint);
 
-  // rce node to wait 60 seconds before killing itself, promises do not keep node alive
-  const timer = setTimeout(() => {}, 60 * 1000);
+  // MqttClient and IotIdentityClient async operations do not keep node process alive
+  // We need to issue a keep alive timer so process does not die
+  const keepAliveTimer = setTimeout(() => {}, 60 * 60 * 1000);
 
   const config = configBuilder.build();
   const client = new mqtt.MqttClient(clientBootstrap);
@@ -142,7 +143,7 @@ module.exports.main = async ({ iotEndpoint, certificatePem, privateKey }) => {
   await connection.connect();
   const { certificateOwnershipToken: token, certificateId } = await executeKeys(identity);
   const { thingName } = await executeRegisterThing(identity, token);
+  clearTimeout(keepAliveTimer);
 
-  clearTimeout(timer);
   return { certificateId, thingName };
 };
