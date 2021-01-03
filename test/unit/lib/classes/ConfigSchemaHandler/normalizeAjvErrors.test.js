@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 
-const Ajv = require('ajv');
+const Ajv = require('ajv').default;
 const memoize = require('memoizee');
 const normalizeAjvErrors = require('../../../../../lib/classes/ConfigSchemaHandler/normalizeAjvErrors');
 
