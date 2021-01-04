@@ -1,7 +1,7 @@
 'use strict';
 
 // Your function handler
-module.exports.helloWorldHandler = function(event, context, callback) {
+module.exports.helloWorldHandler = function (event, context, callback) {
   const message = {
     message: 'Hello World',
     event,

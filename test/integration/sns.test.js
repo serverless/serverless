@@ -9,7 +9,7 @@ const { confirmCloudWatchLogs } = require('../utils/misc');
 const { createSnsTopic, removeSnsTopic, publishSnsMessage } = require('../utils/sns');
 const { deployService, removeService } = require('../utils/integration');
 
-describe('AWS - SNS Integration Test', function() {
+describe('AWS - SNS Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let servicePath;
@@ -51,12 +51,12 @@ describe('AWS - SNS Integration Test', function() {
         `/aws/lambda/${stackName}-${functionName}`,
         () => publishSnsMessage(minimalTopicName, message),
         {
-          checkIsComplete: soFarEvents => {
+          checkIsComplete: (soFarEvents) => {
             const logs = soFarEvents.reduce((data, event) => data + event.message, '');
             return logs.includes(message);
           },
         }
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
         expect(logs).to.include(message);
@@ -79,7 +79,7 @@ describe('AWS - SNS Integration Test', function() {
         confirmCloudWatchLogs(`/aws/lambda/${stackName}-${leftFunctionName}`, async () => {
           await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
           await publishSnsMessage(filteredTopicName, leftMessage, leftAttributes);
-        }).then(events => {
+        }).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(logs).to.include(leftFunctionName);
           expect(logs).to.include(leftMessage);
@@ -89,7 +89,7 @@ describe('AWS - SNS Integration Test', function() {
         confirmCloudWatchLogs(`/aws/lambda/${stackName}-${rightFunctionName}`, async () => {
           await publishSnsMessage(filteredTopicName, middleMessage, middleAttributes);
           await publishSnsMessage(filteredTopicName, rightMessage, rightAttributes);
-        }).then(events => {
+        }).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(logs).to.include(rightFunctionName);
           expect(logs).not.to.include(leftMessage);
@@ -107,7 +107,7 @@ describe('AWS - SNS Integration Test', function() {
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
         publishSnsMessage(existingTopicName, message)
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
         expect(logs).to.include(message);

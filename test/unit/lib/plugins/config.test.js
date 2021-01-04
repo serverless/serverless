@@ -27,13 +27,13 @@ describe('Config', () => {
     runServerless({
       config: { service: 'foo', provider: 'aws' },
       cliArgs: ['config', 'credentials', '-k', 'foo', '-s', 'bar'],
-    }).then(unexpected, error => expect(error).to.be.instanceof(ServerlessError)));
+    }).then(unexpected, (error) => expect(error).to.be.instanceof(ServerlessError)));
 
   it('should throw an error if user passed unsupported "provider" option', () =>
     runServerless({
       config: { service: 'foo', provider: 'aws' },
       cliArgs: ['config', 'credentials', '--provider', 'not-supported', '-k', 'foo', '-s', 'bar'],
-    }).then(unexpected, error => expect(error).to.be.instanceof(ServerlessError)));
+    }).then(unexpected, (error) => expect(error).to.be.instanceof(ServerlessError)));
 
   if (isTabCompletionSupported) {
     it('should support "config tabcompletion install" command', () =>
@@ -45,7 +45,7 @@ describe('Config', () => {
         Promise.all([
           fs
             .readFileAsync(path.resolve(os.homedir(), '.bashrc'), 'utf8')
-            .then(bashRcContent =>
+            .then((bashRcContent) =>
               expect(bashRcContent).to.include(' ~/.config/tabtab/__tabtab.bash')
             ),
           fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),
@@ -67,10 +67,10 @@ describe('Config', () => {
           Promise.all([
             fs
               .readFileAsync(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'))
-              .then(unexpected, error => expect(error.code).to.equal('ENOENT')),
+              .then(unexpected, (error) => expect(error.code).to.equal('ENOENT')),
             fs
               .readFileAsync(path.resolve(os.homedir(), '.config/tabtab/sls.bash'))
-              .then(unexpected, error => expect(error.code).to.equal('ENOENT')),
+              .then(unexpected, (error) => expect(error.code).to.equal('ENOENT')),
           ])
         )
       ));

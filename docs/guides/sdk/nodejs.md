@@ -45,7 +45,7 @@ And to import it instead, import with
 ```javascript
 const { captureError } = require('./serverless_sdk');
 
-module.exports.hello = async event => {
+module.exports.hello = async (event) => {
   try {
     // do some real stuff but it throws an error, oh no!
     throw new Error('aa');

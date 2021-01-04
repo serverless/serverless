@@ -134,14 +134,14 @@ describe('PluginManager', () => {
     }
 
     functions() {
-      return new BbPromise(resolve => {
+      return new BbPromise((resolve) => {
         this.deployedFunctions += 1;
         return resolve();
       });
     }
 
     resources() {
-      return new BbPromise(resolve => {
+      return new BbPromise((resolve) => {
         this.deployedResources += 1;
         return resolve();
       });
@@ -671,15 +671,15 @@ describe('PluginManager', () => {
       const servicePlugins = ['ServicePluginMock1', 'ServicePluginMock2'];
       pluginManager.loadAllPlugins(servicePlugins);
 
-      expect(pluginManager.plugins.some(plugin => plugin instanceof ServicePluginMock1)).to.equal(
+      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock1)).to.equal(
         true
       );
-      expect(pluginManager.plugins.some(plugin => plugin instanceof ServicePluginMock2)).to.equal(
+      expect(pluginManager.plugins.some((plugin) => plugin instanceof ServicePluginMock2)).to.equal(
         true
       );
-      expect(pluginManager.plugins.some(plugin => plugin instanceof EnterprisePluginMock)).to.equal(
-        true
-      );
+      expect(
+        pluginManager.plugins.some((plugin) => plugin instanceof EnterprisePluginMock)
+      ).to.equal(true);
       // note: this test will be refactored as the Create plugin will be moved
       // to another directory
       expect(pluginManager.plugins.length).to.be.above(2);
@@ -691,10 +691,10 @@ describe('PluginManager', () => {
       pluginManager.loadAllPlugins(servicePlugins);
 
       const pluginIndexes = [
-        pluginManager.plugins.findIndex(plugin => plugin instanceof Create),
-        pluginManager.plugins.findIndex(plugin => plugin instanceof ServicePluginMock1),
-        pluginManager.plugins.findIndex(plugin => plugin instanceof ServicePluginMock2),
-        pluginManager.plugins.findIndex(plugin => plugin instanceof EnterprisePluginMock),
+        pluginManager.plugins.findIndex((plugin) => plugin instanceof Create),
+        pluginManager.plugins.findIndex((plugin) => plugin instanceof ServicePluginMock1),
+        pluginManager.plugins.findIndex((plugin) => plugin instanceof ServicePluginMock2),
+        pluginManager.plugins.findIndex((plugin) => plugin instanceof EnterprisePluginMock),
       ];
       expect(pluginIndexes).to.deep.equal(pluginIndexes.slice().sort((a, b) => a - b));
     });
@@ -1219,9 +1219,7 @@ describe('PluginManager', () => {
     });
 
     it('should accept a single event in place of an array', () => {
-      expect(pluginManager.getHooks('deploy:functions'))
-        .to.be.an('Array')
-        .with.length(1);
+      expect(pluginManager.getHooks('deploy:functions')).to.be.an('Array').with.length(1);
     });
   });
 
@@ -1238,8 +1236,8 @@ describe('PluginManager', () => {
 
       const plugins = pluginManager.getPlugins();
       expect(plugins.length).to.be.above(3);
-      expect(plugins.some(plugin => plugin instanceof ServicePluginMock1)).to.be.true;
-      expect(plugins.some(plugin => plugin instanceof ServicePluginMock2)).to.be.true;
+      expect(plugins.some((plugin) => plugin instanceof ServicePluginMock1)).to.be.true;
+      expect(plugins.some((plugin) => plugin instanceof ServicePluginMock2)).to.be.true;
     });
 
     afterEach(() => {
@@ -1321,7 +1319,7 @@ describe('PluginManager', () => {
       expect(pluginManager.cliOptions.bar).to.equal(100);
     });
 
-    [0, '', false].forEach(defaultValue => {
+    [0, '', false].forEach((defaultValue) => {
       it(`assigns valid falsy default value '${defaultValue} to empty options`, () => {
         pluginManager.commands = {
           foo: {
@@ -1718,9 +1716,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(AliasPluginMock);
 
       const commands = pluginManager.getCommands();
-      expect(commands)
-        .to.have.a.property('on')
-        .that.has.a.nested.property('commands.premise');
+      expect(commands).to.have.a.property('on').that.has.a.nested.property('commands.premise');
       expect(commands).to.have.a.property('premise');
     });
   });
@@ -1788,7 +1784,7 @@ describe('PluginManager', () => {
         },
       };
     });
-    it('should give a suggestion for an unknown command', done => {
+    it('should give a suggestion for an unknown command', (done) => {
       try {
         pluginManager.getCommand(['creet']);
         done('Test failed. Expected an error to be thrown');
@@ -1802,7 +1798,7 @@ describe('PluginManager', () => {
       }
     });
 
-    it('should not give a suggestion for valid top level command', done => {
+    it('should not give a suggestion for valid top level command', (done) => {
       try {
         pluginManager.getCommand(['deploy', 'function-misspelled']);
         done('Test failed. Expected an error to be thrown');
@@ -1978,8 +1974,8 @@ describe('PluginManager', () => {
       installPlugin(localPluginDir, SynchronousPluginMock);
 
       pluginManager.loadAllPlugins(['local-plugin']);
-      expect(pluginManager.plugins).to.satisfy(plugins =>
-        plugins.some(plugin => plugin.constructor.name === 'SynchronousPluginMock')
+      expect(pluginManager.plugins).to.satisfy((plugins) =>
+        plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
       );
     });
 
@@ -1993,8 +1989,8 @@ describe('PluginManager', () => {
       });
       // Had to use contructor.name because the class will be loaded via
       // require and the reference will not match with SynchronousPluginMock
-      expect(pluginManager.plugins).to.satisfy(plugins =>
-        plugins.some(plugin => plugin.constructor.name === 'SynchronousPluginMock')
+      expect(pluginManager.plugins).to.satisfy((plugins) =>
+        plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
       );
     });
 
@@ -2009,8 +2005,8 @@ describe('PluginManager', () => {
       });
       // Had to use contructor.name because the class will be loaded via
       // require and the reference will not match with SynchronousPluginMock
-      expect(pluginManager.plugins).to.satisfy(plugins =>
-        plugins.some(plugin => plugin.constructor.name === 'SynchronousPluginMock')
+      expect(pluginManager.plugins).to.satisfy((plugins) =>
+        plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
       );
     });
 
@@ -2025,8 +2021,8 @@ describe('PluginManager', () => {
       });
       // Had to use contructor.name because the class will be loaded via
       // require and the reference will not match with SynchronousPluginMock
-      expect(pluginManager.plugins).to.satisfy(plugins =>
-        plugins.some(plugin => plugin.constructor.name === 'SynchronousPluginMock')
+      expect(pluginManager.plugins).to.satisfy((plugins) =>
+        plugins.some((plugin) => plugin.constructor.name === 'SynchronousPluginMock')
       );
     });
 
@@ -2041,7 +2037,7 @@ describe('PluginManager', () => {
     });
   });
 
-  describe('Plugin / CLI integration', function() {
+  describe('Plugin / CLI integration', function () {
     this.timeout(1000 * 60 * 10);
 
     let serverlessInstance;

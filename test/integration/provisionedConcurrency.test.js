@@ -9,7 +9,7 @@ const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../utils/sqs
 const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService } = require('../utils/integration');
 
-describe('AWS - Provisioned Concurrency Integration Test', function() {
+describe('AWS - Provisioned Concurrency Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let servicePath;
@@ -45,7 +45,7 @@ describe('AWS - Provisioned Concurrency Integration Test', function() {
       `/aws/lambda/${stackName}-${functionName}`,
       () => sendSqsMessage(queueName, message),
       {
-        checkIsComplete: items => items.find(item => item.message.includes(message)),
+        checkIsComplete: (items) => items.find((item) => item.message.includes(message)),
       }
     );
 
@@ -62,7 +62,7 @@ describe('AWS - Provisioned Concurrency Integration Test', function() {
       `/aws/lambda/${stackName}-${functionName}`,
       () => putKinesisRecord(streamName, message),
       {
-        checkIsComplete: items => items.find(item => item.message.includes(message)),
+        checkIsComplete: (items) => items.find((item) => item.message.includes(message)),
       }
     );
 

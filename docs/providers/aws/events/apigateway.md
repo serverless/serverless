@@ -105,7 +105,7 @@ functions:
 
 'use strict';
 
-module.exports.hello = function(event, context, callback) {
+module.exports.hello = function (event, context, callback) {
   console.log(event); // Contains incoming request data (e.g., query params, headers and more)
 
   const response = {
@@ -351,7 +351,7 @@ If you want to use CORS with the lambda-proxy integration, remember to include t
 
 'use strict';
 
-module.exports.hello = function(event, context, callback) {
+module.exports.hello = function (event, context, callback) {
   const response = {
     statusCode: 200,
     headers: {

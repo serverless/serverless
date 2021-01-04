@@ -46,7 +46,7 @@ URL paths for the serverless functions are prefixed with the function name, e.g.
 
 'use strict';
 
-module.exports.hello = function(params) {
+module.exports.hello = function (params) {
   // Your function handler
   return { payload: 'Hello world!' };
 };
@@ -86,7 +86,7 @@ functions:
 
 'use strict';
 
-module.exports.handler = function(params) {
+module.exports.handler = function (params) {
   const name = params.name || 'stranger';
   // Your function handler
   return { payload: `Hello ${name}!` };

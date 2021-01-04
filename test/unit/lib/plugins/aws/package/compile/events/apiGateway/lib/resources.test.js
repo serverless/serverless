@@ -171,7 +171,7 @@ describe('#compileResources()', () => {
         'foo/{foo_id}': 'ApiGatewayResourceFooFooidVar',
         'foo/{foo_id}/bar': 'ApiGatewayResourceFooFooidVarBar',
       };
-      Object.keys(expectedResourceLogicalIds).forEach(path => {
+      Object.keys(expectedResourceLogicalIds).forEach((path) => {
         expect(awsCompileApigEvents.apiGatewayResources[path].resourceLogicalId).equal(
           expectedResourceLogicalIds[path]
         );
@@ -200,7 +200,7 @@ describe('#compileResources()', () => {
         'foo/bar': 'ApiGatewayResourceFooBar',
         'foo/{bar}': 'ApiGatewayResourceFooBarVar',
       };
-      Object.keys(expectedResourceLogicalIds).forEach(path => {
+      Object.keys(expectedResourceLogicalIds).forEach((path) => {
         expect(awsCompileApigEvents.apiGatewayResources[path].resourceLogicalId).equal(
           expectedResourceLogicalIds[path]
         );
@@ -511,7 +511,7 @@ describe('#compileResources()', () => {
         Object.keys(
           awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
         ).every(
-          k => ['ApiGatewayMethodundefinedGet', 'ApiGatewayMethodundefinedPost'].indexOf(k) === -1
+          (k) => ['ApiGatewayMethodundefinedGet', 'ApiGatewayMethodundefinedPost'].indexOf(k) === -1
         )
       ).to.equal(true);
     });

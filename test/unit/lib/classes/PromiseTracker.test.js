@@ -37,7 +37,7 @@ describe('PromiseTracker', () => {
   });
   it('reports the correct number of added promise statuses', () => {
     let resolve;
-    const pending = new BbPromise(rslv => {
+    const pending = new BbPromise((rslv) => {
       resolve = rslv;
     });
     const resolved = BbPromise.resolve();
@@ -73,7 +73,7 @@ describe('PromiseTracker', () => {
   });
   it('reports and then clears tracked promises when stopped after reporting.', () => {
     let resolve;
-    const pending = new BbPromise(rslv => {
+    const pending = new BbPromise((rslv) => {
       resolve = rslv;
     });
     const resolved = BbPromise.resolve();

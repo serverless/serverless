@@ -46,7 +46,7 @@ function writeYamlFile(filePath, content) {
 }
 
 function listZipFiles(filename) {
-  return new JSZip().loadAsync(fs.readFileSync(filename)).then(zip => Object.keys(zip.files));
+  return new JSZip().loadAsync(fs.readFileSync(filename)).then((zip) => Object.keys(zip.files));
 }
 
 module.exports = {

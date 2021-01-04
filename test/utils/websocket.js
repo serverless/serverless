@@ -33,7 +33,7 @@ function deleteStage(apiId, stageName) {
 }
 
 function getRoutes(apiId) {
-  return awsRequest('ApiGatewayV2', 'getRoutes', { ApiId: apiId }).then(data => data.Items);
+  return awsRequest('ApiGatewayV2', 'getRoutes', { ApiId: apiId }).then((data) => data.Items);
 }
 
 module.exports = {

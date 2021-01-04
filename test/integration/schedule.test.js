@@ -6,7 +6,7 @@ const fixtures = require('../fixtures');
 const { deployService, removeService } = require('../utils/integration');
 const { confirmCloudWatchLogs } = require('../utils/misc');
 
-describe('AWS - Schedule Integration Test', function() {
+describe('AWS - Schedule Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let servicePath;
   let stackName;
@@ -28,7 +28,7 @@ describe('AWS - Schedule Integration Test', function() {
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
         timeout: 3 * 60 * 1000,
-      }).then(events => {
+      }).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
       });
@@ -41,11 +41,11 @@ describe('AWS - Schedule Integration Test', function() {
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
         timeout: 3 * 60 * 1000,
-        checkIsComplete: soFarEvents => {
+        checkIsComplete: (soFarEvents) => {
           const logs = soFarEvents.reduce((data, event) => data + event.message, '');
           return logs.includes('transformedInput');
         },
-      }).then(events => {
+      }).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
         expect(logs).to.include('transformedInput');

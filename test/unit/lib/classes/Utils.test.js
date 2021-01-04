@@ -85,7 +85,7 @@ describe('Utils', () => {
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
-      return expect(serverless.yamlParser.parse(tmpFilePath)).to.be.fulfilled.then(obj => {
+      return expect(serverless.yamlParser.parse(tmpFilePath)).to.be.fulfilled.then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
     });
@@ -95,7 +95,7 @@ describe('Utils', () => {
 
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
-      return expect(serverless.yamlParser.parse(tmpFilePath)).to.be.fulfilled.then(obj => {
+      return expect(serverless.yamlParser.parse(tmpFilePath)).to.be.fulfilled.then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
     });
@@ -186,7 +186,7 @@ describe('Utils', () => {
       serverless.utils.writeFileSync(tmpFilePath, { foo: 'bar' });
 
       // note: use return when testing promises otherwise you'll have unhandled rejection errors
-      return expect(serverless.utils.readFile(tmpFilePath)).to.be.fulfilled.then(obj => {
+      return expect(serverless.utils.readFile(tmpFilePath)).to.be.fulfilled.then((obj) => {
         expect(obj.foo).to.equal('bar');
       });
     });

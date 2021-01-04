@@ -21,7 +21,7 @@ Let's imagine that we have deployed the following Nodejs code as a Fn function u
 ```javascript
 const fdk = require('@fnproject/fdk');
 
-fdk.handle(input => {
+fdk.handle((input) => {
   input = JSON.parse(input);
   let name = 'World';
   if (input.name) {

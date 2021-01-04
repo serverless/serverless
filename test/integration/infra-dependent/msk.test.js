@@ -13,7 +13,7 @@ const awsRequest = require('@serverless/test/aws-request');
 const crypto = require('crypto');
 const { deployService, removeService } = require('../../utils/integration');
 
-describe('AWS - MSK Integration Test', function() {
+describe('AWS - MSK Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let servicePath;

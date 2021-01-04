@@ -7,9 +7,9 @@ function waitForKinesisStream(streamName) {
   const params = {
     StreamName: streamName,
   };
-  return new BbPromise(resolve => {
+  return new BbPromise((resolve) => {
     const interval = setInterval(() => {
-      awsRequest('Kinesis', 'describeStream', params).then(data => {
+      awsRequest('Kinesis', 'describeStream', params).then((data) => {
         const status = data.StreamDescription.StreamStatus;
         if (status === 'ACTIVE') {
           clearInterval(interval);

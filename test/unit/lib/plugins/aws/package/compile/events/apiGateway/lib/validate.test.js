@@ -31,9 +31,7 @@ describe('#validate()', () => {
       },
     };
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(0);
+    expect(validated.events).to.be.an('Array').with.length(0);
   });
 
   it('should reject an invalid http event', () => {
@@ -72,9 +70,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
   });
 
   it('should discard a starting slash from paths', () => {
@@ -94,9 +90,7 @@ describe('#validate()', () => {
       },
     };
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(2);
+    expect(validated.events).to.be.an('Array').with.length(2);
     expect(validated.events[0].http).to.have.property('path', 'foo/bar');
     expect(validated.events[1].http).to.have.property('path', 'foo/bar');
   });
@@ -266,9 +260,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(2);
+    expect(validated.events).to.be.an('Array').with.length(2);
     expect(validated.events[0].http.authorizer.type).to.equal('AWS_IAM');
     expect(validated.events[1].http.authorizer.type).to.equal('AWS_IAM');
   });
@@ -301,9 +293,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(2);
+    expect(validated.events).to.be.an('Array').with.length(2);
     expect(validated.events[0].http.authorizer.name).to.equal('foo');
     expect(validated.events[0].http.authorizer.arn).to.deep.equal({
       'Fn::GetAtt': ['FooLambdaFunction', 'Arn'],
@@ -437,9 +427,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.cors).to.deep.equal({
       headers: [
         'Content-Type',
@@ -473,9 +461,7 @@ describe('#validate()', () => {
       },
     };
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.cors.headers).to.deep.equal(['X-Foo-Bar']);
   });
 
@@ -501,9 +487,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.cors).to.deep.equal({
       headers: ['X-Foo-Bar'],
       methods: ['POST', 'OPTIONS'],
@@ -611,9 +595,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.response.statusCodes).to.deep.equal({
       200: {
         pattern: '',
@@ -652,9 +634,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.response.statusCodes).to.deep.equal({
       418: {
         pattern: '',
@@ -681,9 +661,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.cors.methods).to.deep.equal(['POST', 'OPTIONS']);
   });
 
@@ -704,9 +682,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.authorizer.name).to.equal('authorizer');
     expect(validated.events[0].http.authorizer.arn).to.deep.equal({
       'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'],
@@ -729,9 +705,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.authorizer.name).to.equal('authorizer');
     expect(validated.events[0].http.authorizer.arn).to.equal('xxx:dev-authorizer');
   });
@@ -755,9 +729,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.authorizer.name).to.equal('authorizer');
     expect(validated.events[0].http.authorizer.arn).to.deep.equal({
       'Fn::GetAtt': ['AuthorizerLambdaFunction', 'Arn'],
@@ -782,9 +754,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.authorizer.name).to.equal('authorizer');
     expect(validated.events[0].http.authorizer.arn).to.equal('xxx:dev-authorizer');
   });
@@ -808,9 +778,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.authorizer.name).to.equal('custom-name');
     expect(validated.events[0].http.authorizer.arn).to.equal('xxx:dev-authorizer');
   });
@@ -847,9 +815,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.request.parameters).to.deep.equal({
       'method.request.querystring.foo': true,
       'method.request.querystring.bar': false,
@@ -892,9 +858,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.request.parameters).to.deep.equal({
       'method.request.querystring.foo': true,
       'method.request.querystring.bar': false,
@@ -936,9 +900,7 @@ describe('#validate()', () => {
       },
     };
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.integration).to.equal('AWS_PROXY');
   });
 
@@ -986,9 +948,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(5);
+    expect(validated.events).to.be.an('Array').with.length(5);
     expect(validated.events[0].http.integration).to.equal('AWS');
     expect(validated.events[1].http.integration).to.equal('AWS');
     expect(validated.events[2].http.integration).to.equal('AWS_PROXY');
@@ -1015,9 +975,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.integration).to.equal('HTTP');
   });
 
@@ -1054,9 +1012,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.request.parameters).to.deep.equal({
       'method.request.querystring.foo': true,
       'method.request.querystring.bar': false,
@@ -1104,9 +1060,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.integration).to.equal('HTTP_PROXY');
   });
 
@@ -1143,9 +1097,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.request.parameters).to.deep.equal({
       'method.request.querystring.foo': true,
       'method.request.querystring.bar': false,
@@ -1282,9 +1234,7 @@ describe('#validate()', () => {
       sinon.stub(serverless.cli, 'log');
 
       const validated = awsCompileApigEvents.validate();
-      expect(validated.events)
-        .to.be.an('Array')
-        .with.length(1);
+      expect(validated.events).to.be.an('Array').with.length(1);
       expect(validated.events[0].http.response).to.equal(undefined);
       expect(validated.events[0].http.request.uri).to.equal('http://www.example.com');
       expect(validated.events[0].http.request.parameters).to.deep.equal({
@@ -1309,9 +1259,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.integration).to.equal('MOCK');
   });
 
@@ -1331,9 +1279,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.integration).to.equal('AWS');
     expect(validated.events[0].http.async);
   });
@@ -1443,9 +1389,7 @@ describe('#validate()', () => {
       sinon.stub(serverless.cli, 'log');
 
       const validated = awsCompileApigEvents.validate();
-      expect(validated.events)
-        .to.be.an('Array')
-        .with.length(1);
+      expect(validated.events).to.be.an('Array').with.length(1);
       expect(validated.events[0].http.response).to.equal(undefined);
       expect(validated.events[0].http.request.parameters).to.deep.equal({
         'method.request.path.foo': true,
@@ -1472,9 +1416,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.request.passThrough).to.equal('WHEN_NO_MATCH');
   });
 
@@ -1494,9 +1436,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.request.passThrough).to.equal('NEVER');
   });
 
@@ -1520,9 +1460,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.request.passThrough).to.equal(undefined);
   });
 
@@ -1547,9 +1485,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.integration).to.equal('HTTP_PROXY');
     expect(validated.events[0].http.connectionType).to.equal('VPC_LINK');
   });
@@ -1619,9 +1555,7 @@ describe('#validate()', () => {
     };
 
     const validated = awsCompileApigEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(1);
+    expect(validated.events).to.be.an('Array').with.length(1);
     expect(validated.events[0].http.response.statusCodes).to.deep.equal({
       200: {
         pattern: '',

@@ -9,7 +9,7 @@ const { createSqsQueue, deleteSqsQueue, sendSqsMessage } = require('../utils/sqs
 const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService } = require('../utils/integration');
 
-describe('AWS - SQS Integration Test', function() {
+describe('AWS - SQS Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let servicePath;
@@ -31,7 +31,7 @@ describe('AWS - SQS Integration Test', function() {
     });
   });
 
-  after(async function() {
+  after(async function () {
     if (hasFailed(this.test.parent)) return null;
     await removeService(servicePath);
     log.notice('Deleting SQS queue');
@@ -45,7 +45,7 @@ describe('AWS - SQS Integration Test', function() {
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
         sendSqsMessage(queueName, message)
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
         expect(logs).to.include(message);

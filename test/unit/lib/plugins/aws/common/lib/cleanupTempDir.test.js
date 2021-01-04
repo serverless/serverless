@@ -34,14 +34,14 @@ describe('#cleanupTempDir()', () => {
     });
   });
 
-  it('should resolve if servicePath is not present', done => {
+  it('should resolve if servicePath is not present', (done) => {
     delete serverless.config.servicePath;
     packageService.cleanupTempDir().then(() => {
       done();
     });
   });
 
-  it('should resolve if the .serverless directory is not present', done => {
+  it('should resolve if the .serverless directory is not present', (done) => {
     packageService.cleanupTempDir().then(() => {
       done();
     });

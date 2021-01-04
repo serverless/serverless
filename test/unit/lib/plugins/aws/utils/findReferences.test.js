@@ -8,12 +8,8 @@ describe('#findReferences()', () => {
     const withoutArgs = findReferences();
     const nullArgs = findReferences(null);
 
-    expect(withoutArgs)
-      .to.be.a('Array')
-      .to.have.lengthOf(0);
-    expect(nullArgs)
-      .to.be.a('Array')
-      .have.lengthOf(0);
+    expect(withoutArgs).to.be.a('Array').to.have.lengthOf(0);
+    expect(nullArgs).to.be.a('Array').have.lengthOf(0);
   });
 
   it('should return paths', () => {
@@ -48,10 +44,8 @@ describe('#findReferences()', () => {
     ];
     const paths = findReferences(testObject, 'hit');
 
-    expect(paths)
-      .to.be.a('Array')
-      .to.have.lengthOf(4);
-    expect(paths.every(path => expectedResult.includes(path))).to.equal(true);
+    expect(paths).to.be.a('Array').to.have.lengthOf(4);
+    expect(paths.every((path) => expectedResult.includes(path))).to.equal(true);
   });
 
   it('should not fail with circular references', () => {
@@ -87,9 +81,7 @@ describe('#findReferences()', () => {
     ];
     const paths = findReferences(testObject, 'hit');
 
-    expect(paths)
-      .to.be.a('Array')
-      .to.have.lengthOf(4);
-    expect(paths.every(path => expectedResult.includes(path))).to.equal(true);
+    expect(paths).to.be.a('Array').to.have.lengthOf(4);
+    expect(paths.every((path) => expectedResult.includes(path))).to.equal(true);
   });
 });

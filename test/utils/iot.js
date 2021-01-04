@@ -3,13 +3,13 @@
 const awsRequest = require('@serverless/test/aws-request');
 
 function resolveIotEndpoint() {
-  return awsRequest('Iot', 'describeEndpoint').then(data => {
+  return awsRequest('Iot', 'describeEndpoint').then((data) => {
     return data.endpointAddress;
   });
 }
 
 function publishIotData(topic, message) {
-  return resolveIotEndpoint().then(endpoint => {
+  return resolveIotEndpoint().then((endpoint) => {
     const params = {
       topic,
       payload: Buffer.from(message),

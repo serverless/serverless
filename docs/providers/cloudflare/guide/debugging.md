@@ -19,7 +19,7 @@ How can we debug errors in our Cloudflare Workers functions?
 Let's imagine that we have deployed the following code as a Cloudflare Worker function using Serverless:
 
 ```javascript
-addEventListener('fetch', event => {
+addEventListener('fetch', (event) => {
   event.respondWith(handleRequest(event.request));
 });
 async function handleRequest(request) {

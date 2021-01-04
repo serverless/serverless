@@ -15,13 +15,10 @@ describe('#createZipFile()', () => {
     const toZipFilePath = createTmpFile('foo.json');
     const zipFilePath = createTmpFile('package.zip');
 
-    const srcDirPath = toZipFilePath
-      .split(path.sep)
-      .slice(0, -1)
-      .join(path.sep);
+    const srcDirPath = toZipFilePath.split(path.sep).slice(0, -1).join(path.sep);
 
     return createZipFile(srcDirPath, zipFilePath)
       .then(listZipFiles)
-      .then(files => expect(files).to.deep.equal(['foo.json']));
+      .then((files) => expect(files).to.deep.equal(['foo.json']));
   });
 });

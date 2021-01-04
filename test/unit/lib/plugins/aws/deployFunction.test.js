@@ -452,11 +452,7 @@ describe('AwsDeployFunction', () => {
     });
 
     it('should deploy the function if the hashes are different', async () => {
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-zip-file');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       await awsDeployFunction.deployFunction();
 
@@ -474,11 +470,7 @@ describe('AwsDeployFunction', () => {
 
     it('should deploy the function if the hashes are same but the "force" option is used', async () => {
       awsDeployFunction.options.force = true;
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('remote-hash-zip-file');
+      cryptoStub.createHash().update().digest.onCall(0).returns('remote-hash-zip-file');
 
       await awsDeployFunction.deployFunction();
       const data = fs.readFileSync(artifactFilePath);
@@ -495,11 +487,7 @@ describe('AwsDeployFunction', () => {
     });
 
     it('should resolve if the hashes are the same', async () => {
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('remote-hash-zip-file');
+      cryptoStub.createHash().update().digest.onCall(0).returns('remote-hash-zip-file');
 
       await awsDeployFunction.deployFunction();
 

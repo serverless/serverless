@@ -37,7 +37,7 @@ const subscribe = (fn, deffered, options) => {
   });
 };
 
-const executeKeys = async identity => {
+const executeKeys = async (identity) => {
   console.log('Subscribing to CreateKeysAndCertificate Accepted and Rejected topics..');
 
   const keysSubRequest = {};

@@ -9,7 +9,7 @@ module.exports.handler = (event, context, callback) => {
       }),
     })
   );
-  return new Promise(resolve =>
+  return new Promise((resolve) =>
     setTimeout(() =>
       resolve({
         statusCode: 200,

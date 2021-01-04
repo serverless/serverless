@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports.hello = function(event) {
+module.exports.hello = function (event) {
   return {
     statusCode: 200,
     body: JSON.stringify(

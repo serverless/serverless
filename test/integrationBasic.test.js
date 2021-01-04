@@ -14,7 +14,7 @@ const { getTmpDirPath } = require('./utils/fs');
 
 const serverlessExec = require('./serverlessBinary');
 
-describe('Service Lifecyle Integration Test', function() {
+describe('Service Lifecyle Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   const templateName = 'aws-nodejs';
   const tmpDir = getTmpDirPath();
@@ -37,7 +37,7 @@ describe('Service Lifecyle Integration Test', function() {
   });
 
   // Do not continue if any of the tests failed
-  beforeEach(function() {
+  beforeEach(function () {
     if (hasFailed(this.test.parent)) this.skip();
   });
 

@@ -100,7 +100,7 @@ describe('emptyS3Bucket', () => {
       });
     });
 
-    it('should resolve if objectsInBucket is empty', done => {
+    it('should resolve if objectsInBucket is empty', (done) => {
       awsRemove.objectsInBucket = [];
 
       awsRemove.deleteObjects().then(() => {

@@ -44,7 +44,7 @@ describe('#existsDeploymentBucket()', () => {
     const errorObj = { message: 'Access Denied' };
 
     sinon.stub(awsPlugin.provider, 'request').throws(errorObj);
-    return expect(awsPlugin.existsDeploymentBucket(bucketName)).to.be.rejected.then(err => {
+    return expect(awsPlugin.existsDeploymentBucket(bucketName)).to.be.rejected.then((err) => {
       expect(awsPluginStub.args[0][0]).to.equal('S3');
       expect(awsPluginStub.args[0][1]).to.equal('getBucketLocation');
       expect(awsPluginStub.args[0][2].Bucket).to.equal(bucketName);
@@ -60,7 +60,7 @@ describe('#existsDeploymentBucket()', () => {
       LocationConstraint: 'us-west-1',
     });
 
-    return expect(awsPlugin.existsDeploymentBucket(bucketName)).to.be.rejected.then(err => {
+    return expect(awsPlugin.existsDeploymentBucket(bucketName)).to.be.rejected.then((err) => {
       expect(awsPluginStub.args[0][0]).to.equal('S3');
       expect(awsPluginStub.args[0][1]).to.equal('getBucketLocation');
       expect(awsPluginStub.args[0][2].Bucket).to.equal(bucketName);
@@ -71,7 +71,7 @@ describe('#existsDeploymentBucket()', () => {
   [
     { region: 'eu-west-1', response: 'EU' },
     { region: 'us-east-1', response: '' },
-  ].forEach(value => {
+  ].forEach((value) => {
     it(`should handle inconsistent getBucketLocation responses for ${value.region} region`, () => {
       const bucketName = 'com.serverless.deploys';
 

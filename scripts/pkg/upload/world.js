@@ -31,23 +31,23 @@ module.exports = async (versionTag, { isLegacyVersion }) => {
   };
 
   const releaseIdDeferred = request(`${API_URL}tags/${versionTag}`, requestOptions).then(
-    result => result.id
+    (result) => result.id
   );
-  const releaseAssetsDeferred = releaseIdDeferred.then(releaseId =>
+  const releaseAssetsDeferred = releaseIdDeferred.then((releaseId) =>
     request(`${API_URL}${releaseId}/assets`, requestOptions)
   );
 
   const distFileBasenames = await fs.promises.readdir(distPath);
   await Promise.all(
     distFileBasenames
-      .map(async distFileBasename => {
+      .map(async (distFileBasename) => {
         const distFileBasenameTokens = distFileBasename.match(binaryBasenameMatcher);
         if (!distFileBasenameTokens) throw new Error(`Unexpected dist file ${distFileBasename}`);
-        const targetBinaryName = `serverless-${
-          distFileBasenameTokens[1]
-        }-${distFileBasenameTokens[2] || 'x64'}${distFileBasenameTokens[3] || ''}`;
+        const targetBinaryName = `serverless-${distFileBasenameTokens[1]}-${
+          distFileBasenameTokens[2] || 'x64'
+        }${distFileBasenameTokens[3] || ''}`;
         const existingAssetData = (await releaseAssetsDeferred).find(
-          assetData => assetData.name === targetBinaryName
+          (assetData) => assetData.name === targetBinaryName
         );
         if (existingAssetData) {
           await request(`${API_URL}assets/${existingAssetData.id}`, {
@@ -72,7 +72,7 @@ module.exports = async (versionTag, { isLegacyVersion }) => {
       })
       .concat(
         isLegacyVersion
-          ? releaseIdDeferred.then(releaseId =>
+          ? releaseIdDeferred.then((releaseId) =>
               request(`${API_URL}${releaseId}`, {
                 method: 'PATCH',
                 headers: requestOptions.headers,

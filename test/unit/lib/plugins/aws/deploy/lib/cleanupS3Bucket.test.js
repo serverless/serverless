@@ -74,7 +74,7 @@ describe('cleanupS3Bucket', () => {
 
       const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
 
-      return awsDeploy.getObjectsToRemove().then(objectsToRemove => {
+      return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
         expect(objectsToRemove).to.not.include({
           Key: `${s3Key}${s3Key}/141321321541-2016-08-18T11:23:02/artifact.zip`,
         });
@@ -122,7 +122,7 @@ describe('cleanupS3Bucket', () => {
 
       const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
 
-      return awsDeploy.getObjectsToRemove().then(objectsToRemove => {
+      return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
         expect(objectsToRemove.length).to.equal(0);
         expect(listObjectsStub.calledOnce).to.be.equal(true);
         expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
@@ -149,7 +149,7 @@ describe('cleanupS3Bucket', () => {
 
       const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
 
-      return awsDeploy.getObjectsToRemove().then(objectsToRemove => {
+      return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
         expect(objectsToRemove).to.have.lengthOf(0);
         expect(listObjectsStub).to.have.been.calledOnce;
         expect(listObjectsStub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
@@ -185,7 +185,7 @@ describe('cleanupS3Bucket', () => {
 
         const listObjectsStub = sinon.stub(awsDeploy.provider, 'request').resolves(serviceObjects);
 
-        return awsDeploy.getObjectsToRemove().then(objectsToRemove => {
+        return awsDeploy.getObjectsToRemove().then((objectsToRemove) => {
           expect(objectsToRemove).to.deep.include.members([
             { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/artifact.zip` },
             { Key: `${s3Key}/141321321541-2016-08-18T11:23:02/cloudformation.json` },

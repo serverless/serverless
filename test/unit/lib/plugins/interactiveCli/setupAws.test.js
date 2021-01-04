@@ -21,7 +21,7 @@ const lifecycleHookNamesBlacklist = [
 
 const openBrowserUrls = [];
 const modulesCacheStub = {
-  './lib/utils/openBrowser': url =>
+  './lib/utils/openBrowser': (url) =>
     BbPromise.try(() => {
       openBrowserUrls.push(url);
     }),
@@ -84,7 +84,7 @@ describe('interactiveCli: setupAws', () => {
         () => {
           throw new Error('Unexpected ~/.aws directory, related tests aborted');
         },
-        error => {
+        (error) => {
           if (error.code === 'ENOENT') return;
           throw error;
         }
@@ -130,7 +130,7 @@ describe('interactiveCli: setupAws', () => {
         expect(openBrowserUrls.length).to.equal(2);
         expect(openBrowserUrls[0].includes('signup')).to.be.true;
         expect(openBrowserUrls[1].includes('console.aws.amazon.com')).to.be.true;
-        return resolveFileProfiles().then(profiles => {
+        return resolveFileProfiles().then((profiles) => {
           expect(profiles).to.deep.equal(new Map([['default', { accessKeyId, secretAccessKey }]]));
         });
       });
@@ -148,7 +148,7 @@ describe('interactiveCli: setupAws', () => {
       }).then(() => {
         expect(openBrowserUrls.length).to.equal(1);
         expect(openBrowserUrls[0].includes('console.aws.amazon.com')).to.be.true;
-        return resolveFileProfiles().then(profiles => {
+        return resolveFileProfiles().then((profiles) => {
           expect(profiles).to.deep.equal(new Map([['default', { accessKeyId, secretAccessKey }]]));
         });
       });
@@ -167,7 +167,7 @@ describe('interactiveCli: setupAws', () => {
         () => {
           throw new Error('Unexpected');
         },
-        error => expect(error.code).to.equal('INVALID_ANSWER')
+        (error) => expect(error.code).to.equal('INVALID_ANSWER')
       );
     });
 
@@ -184,7 +184,7 @@ describe('interactiveCli: setupAws', () => {
         () => {
           throw new Error('Unexpected');
         },
-        error => expect(error.code).to.equal('INVALID_ANSWER')
+        (error) => expect(error.code).to.equal('INVALID_ANSWER')
       );
     });
   });

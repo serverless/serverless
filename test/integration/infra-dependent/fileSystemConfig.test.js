@@ -20,7 +20,7 @@ const retryableMountErrors = new Set([
   'EFSIOException',
 ]);
 
-describe('AWS - FileSystemConfig Integration Test', function() {
+describe('AWS - FileSystemConfig Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let startTime;

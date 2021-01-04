@@ -16,7 +16,7 @@ describe('#copyDirContentsSync()', () => {
   };
   afterEach(afterCallback);
 
-  it('should recursively copy directory files including symbolic links', function() {
+  it('should recursively copy directory files including symbolic links', function () {
     const tmpSrcDirPath = path.join(process.cwd(), 'testSrc');
     const tmpDestDirPath = path.join(process.cwd(), 'testDest');
 
@@ -44,7 +44,7 @@ describe('#copyDirContentsSync()', () => {
     expect(fileExistsSync(destFile3)).to.equal(true);
   });
 
-  it('should recursively copy directory files excluding symbolic links', function() {
+  it('should recursively copy directory files excluding symbolic links', function () {
     const tmpSrcDirPath = path.join(process.cwd(), 'testSrc');
     const tmpDestDirPath = path.join(process.cwd(), 'testDest');
 

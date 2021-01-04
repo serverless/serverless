@@ -13,7 +13,7 @@ async function findDeploymentBuckets(stacks) {
   const buckets = [];
   for (const stack of stacks) {
     const stackResources = await listStackResources(stack.StackId);
-    const bucket = stackResources.filter(resource => {
+    const bucket = stackResources.filter((resource) => {
       return resource.LogicalResourceId === 'ServerlessDeploymentBucket';
     });
     buckets.push(...bucket);
@@ -44,9 +44,9 @@ async function cleanup() {
   ]);
 
   let bucketsToRemove = [];
-  const stacksToRemove = stacks.filter(stack => +new Date(stack.CreationTime) < yesterday);
-  const apisToRemove = apis.filter(api => +new Date(api.createdDate) < yesterday);
-  const userPoolsToRemove = userPools.filter(userPool => userPool.CreationDate < yesterday);
+  const stacksToRemove = stacks.filter((stack) => +new Date(stack.CreationTime) < yesterday);
+  const apisToRemove = apis.filter((api) => +new Date(api.createdDate) < yesterday);
+  const userPoolsToRemove = userPools.filter((userPool) => userPool.CreationDate < yesterday);
 
   if (stacksToRemove) {
     bucketsToRemove = await findDeploymentBuckets(stacksToRemove);
@@ -59,7 +59,7 @@ async function cleanup() {
 
   if (bucketsToRemove.length) {
     logger.log('Removing Buckets...');
-    const promises = bucketsToRemove.map(bucket => deleteBucket(bucket.PhysicalResourceId));
+    const promises = bucketsToRemove.map((bucket) => deleteBucket(bucket.PhysicalResourceId));
     try {
       await Promise.all(promises);
     } catch (error) {
@@ -69,7 +69,7 @@ async function cleanup() {
 
   if (stacksToRemove.length) {
     logger.log('Removing Stacks...');
-    const promises = stacksToRemove.map(stack => deleteStack(stack.StackName));
+    const promises = stacksToRemove.map((stack) => deleteStack(stack.StackName));
     try {
       await Promise.all(promises);
     } catch (error) {
@@ -79,7 +79,7 @@ async function cleanup() {
 
   if (apisToRemove.length) {
     logger.log('Removing APIs...');
-    const promises = apisToRemove.map(api => deleteRestApi(api.id));
+    const promises = apisToRemove.map((api) => deleteRestApi(api.id));
     try {
       await Promise.all(promises);
     } catch (error) {
@@ -89,7 +89,7 @@ async function cleanup() {
 
   if (userPoolsToRemove.length) {
     logger.log('Removing User Pools...');
-    const promises = userPoolsToRemove.map(userPool => deleteUserPoolById(userPool.Id));
+    const promises = userPoolsToRemove.map((userPool) => deleteUserPoolById(userPool.Id));
     try {
       await Promise.all(promises);
     } catch (error) {
@@ -98,7 +98,7 @@ async function cleanup() {
   }
 }
 
-cleanup().catch(error => {
+cleanup().catch((error) => {
   // eslint-disable-next-line no-console
   console.error(error);
   process.exit(1);

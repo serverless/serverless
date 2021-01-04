@@ -451,7 +451,7 @@ module.exports.rate = 'rate(10 minutes)';
 
 ```js
 // config.js
-module.exports = serverless => {
+module.exports = (serverless) => {
   serverless.cli.consoleLog('You can access Serverless config and methods as well!');
 
   return {

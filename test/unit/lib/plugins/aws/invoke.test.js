@@ -464,7 +464,7 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
       cliArgs: ['invoke', '--function', 'callback', '--context', 'somecontext'],
       awsRequestStubMap: {
         Lambda: {
-          invoke: args => {
+          invoke: (args) => {
             lambdaInvokeStub.returns('payload');
             return lambdaInvokeStub(args);
           },
@@ -489,7 +489,7 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
       cliArgs: ['invoke', '--function', 'callback', '--raw', '--context', '{"ctx": "somecontext"}'],
       awsRequestStubMap: {
         Lambda: {
-          invoke: args => {
+          invoke: (args) => {
             lambdaInvokeStub.returns('payload');
             return lambdaInvokeStub(args);
           },
@@ -524,7 +524,7 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
       cliArgs: ['invoke', '--function', 'callback', '--contextPath', contextDataFile],
       awsRequestStubMap: {
         Lambda: {
-          invoke: args => {
+          invoke: (args) => {
             lambdaInvokeStub.returns('payload');
             return lambdaInvokeStub(args);
           },
@@ -552,7 +552,7 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
         cliArgs: ['invoke', '--function', 'callback', '--contextPath', contextDataFile],
         awsRequestStubMap: {
           Lambda: {
-            invoke: args => {
+            invoke: (args) => {
               lambdaInvokeStub.returns('payload');
               return lambdaInvokeStub(args);
             },

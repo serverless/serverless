@@ -66,8 +66,8 @@ async function fetch(url, options) {
     .clone()
     .buffer()
     .then(
-      buffer => logFetch.debug('[%d] %s', requestId, String(buffer)),
-      error => logFetch.error('[%d] response resolution error: %o', requestId, error)
+      (buffer) => logFetch.debug('[%d] %s', requestId, String(buffer)),
+      (error) => logFetch.error('[%d] response resolution error: %o', requestId, error)
     );
   return response;
 }

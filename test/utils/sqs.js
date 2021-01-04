@@ -11,7 +11,7 @@ function createSqsQueue(queueName) {
 }
 
 function deleteSqsQueue(queueName) {
-  return awsRequest('SQS', 'getQueueUrl', { QueueName: queueName }).then(data => {
+  return awsRequest('SQS', 'getQueueUrl', { QueueName: queueName }).then((data) => {
     const params = {
       QueueUrl: data.QueueUrl,
     };
@@ -20,7 +20,7 @@ function deleteSqsQueue(queueName) {
 }
 
 function sendSqsMessage(queueName, message) {
-  return awsRequest('SQS', 'getQueueUrl', { QueueName: queueName }).then(data => {
+  return awsRequest('SQS', 'getQueueUrl', { QueueName: queueName }).then((data) => {
     const params = {
       QueueUrl: data.QueueUrl,
       MessageBody: message,

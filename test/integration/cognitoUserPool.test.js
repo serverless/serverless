@@ -19,7 +19,7 @@ const {
 const { deployService, removeService } = require('../utils/integration');
 const { confirmCloudWatchLogs } = require('../utils/misc');
 
-describe('AWS - Cognito User Pool Integration Test', function() {
+describe('AWS - Cognito User Pool Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let stackName;
   let servicePath;
@@ -54,7 +54,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
     return deployService(servicePath);
   });
 
-  after(async function() {
+  after(async function () {
     if (!servicePath) return null;
     // Do not clean on fail, to allow further state investigation
     if (hasFailed(this.test.parent)) return null;
@@ -78,7 +78,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
         `/aws/lambda/${stackName}-${functionName}`,
         async () => createUser(userPoolId, `johndoe${++counter}`, '!!!wAsD123456wAsD!!!'),
         {
-          checkIsComplete: soFarEvents => {
+          checkIsComplete: (soFarEvents) => {
             const logs = soFarEvents.reduce((data, event) => data + event.message, '');
             return logs.includes('userName');
           },
@@ -103,7 +103,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
           `/aws/lambda/${stackName}-${functionName}`,
           async () => createUser(userPoolId, `janedoe${++counter}`, '!!!wAsD123456wAsD!!!'),
           {
-            checkIsComplete: soFarEvents => {
+            checkIsComplete: (soFarEvents) => {
               const logs = soFarEvents.reduce((data, event) => data + event.message, '');
               return logs.includes('userName');
             },
@@ -148,7 +148,7 @@ describe('AWS - Cognito User Pool Integration Test', function() {
             await initiateAuth(clientId, username, password);
           },
           {
-            checkIsComplete: soFarEvents =>
+            checkIsComplete: (soFarEvents) =>
               soFarEvents
                 .reduce((data, event) => data + event.message, '')
                 .includes('PreAuthentication_Authentication'),

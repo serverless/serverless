@@ -100,7 +100,7 @@ describe('Install', () => {
       downloadStub.resolves('remote-service');
 
       return install.install().then(() => {
-        const installationMessage = logSpy.args.filter(arg =>
+        const installationMessage = logSpy.args.filter((arg) =>
           arg[0].includes('installed "remote-service"')
         );
 
@@ -115,7 +115,7 @@ describe('Install', () => {
       downloadStub.resolves('remote-service');
 
       return install.install().then(() => {
-        const installationMessage = logSpy.args.filter(arg =>
+        const installationMessage = logSpy.args.filter((arg) =>
           arg[0].includes('installed "remote-service" as "remote"')
         );
 

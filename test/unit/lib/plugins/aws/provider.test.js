@@ -85,7 +85,7 @@ describe('AwsProvider', () => {
 
     describe('stage name validation', () => {
       const stages = ['myStage', 'my-stage', 'my_stage', "${opt:stage, 'prod'}"];
-      stages.forEach(stage => {
+      stages.forEach((stage) => {
         it(`should not throw an error before variable population
             even if http event is present and stage is ${stage}`, () => {
           const config = {
@@ -228,7 +228,7 @@ describe('AwsProvider', () => {
 
         putObject() {
           return {
-            send: cb => cb(null, { called: true }),
+            send: (cb) => cb(null, { called: true }),
           };
         }
       }
@@ -247,7 +247,7 @@ describe('AwsProvider', () => {
         },
       };
 
-      return awsProvider.request('S3', 'putObject', {}).then(data => {
+      return awsProvider.request('S3', 'putObject', {}).then((data) => {
         expect(data.called).to.equal(true);
       });
     });
@@ -260,7 +260,7 @@ describe('AwsProvider', () => {
 
         put() {
           return {
-            send: cb => cb(null, { called: true }),
+            send: (cb) => cb(null, { called: true }),
           };
         }
       }
@@ -282,7 +282,7 @@ describe('AwsProvider', () => {
         },
       };
 
-      return awsProvider.request('DynamoDB.DocumentClient', 'put', {}).then(data => {
+      return awsProvider.request('DynamoDB.DocumentClient', 'put', {}).then((data) => {
         expect(data.called).to.equal(true);
       });
     });
@@ -315,7 +315,7 @@ describe('AwsProvider', () => {
         },
       };
 
-      return awsProvider.request('APIGateway', 'getRestApis', {}).then(data => {
+      return awsProvider.request('APIGateway', 'getRestApis', {}).then((data) => {
         expect(data.called).to.equal(true);
       });
     });
@@ -329,7 +329,7 @@ describe('AwsProvider', () => {
 
         describeStacks() {
           return {
-            send: cb =>
+            send: (cb) =>
               cb(null, {
                 region: this.config.region,
               }),
@@ -358,12 +358,12 @@ describe('AwsProvider', () => {
           { StackName: 'foo' },
           { region: 'ap-northeast-1' }
         )
-        .then(data => {
+        .then((data) => {
           expect(data).to.eql({ region: 'ap-northeast-1' });
         });
     });
 
-    it('should retry if error code is 429', done => {
+    it('should retry if error code is 429', (done) => {
       const error = {
         statusCode: 429,
         retryable: true,
@@ -388,7 +388,7 @@ describe('AwsProvider', () => {
       };
       awsProvider
         .request('S3', 'error', {})
-        .then(data => {
+        .then((data) => {
           expect(data).to.exist;
           expect(sendFake.send).to.have.been.calledTwice;
           done();
@@ -396,7 +396,7 @@ describe('AwsProvider', () => {
         .catch(done);
     });
 
-    it('should retry if error code is 429 and retryable is set to false', done => {
+    it('should retry if error code is 429 and retryable is set to false', (done) => {
       const error = {
         statusCode: 429,
         retryable: false,
@@ -421,7 +421,7 @@ describe('AwsProvider', () => {
       };
       awsProvider
         .request('S3', 'error', {})
-        .then(data => {
+        .then((data) => {
           expect(data).to.exist;
           expect(sendFake.send).to.have.been.calledTwice;
           done();
@@ -429,7 +429,7 @@ describe('AwsProvider', () => {
         .catch(done);
     });
 
-    it('should not retry if error code is 403 and retryable is set to true', done => {
+    it('should not retry if error code is 403 and retryable is set to true', (done) => {
       const error = {
         statusCode: 403,
         retryable: true,
@@ -461,7 +461,7 @@ describe('AwsProvider', () => {
         });
     });
 
-    it('should reject errors', done => {
+    it('should reject errors', (done) => {
       const error = {
         statusCode: 500,
         message: 'Some error message',
@@ -488,7 +488,7 @@ describe('AwsProvider', () => {
         .catch(() => done());
     });
 
-    it('should use error message if it exists', done => {
+    it('should use error message if it exists', (done) => {
       const awsErrorResponse = {
         message: 'Something went wrong...',
         code: 'Forbidden',
@@ -520,14 +520,14 @@ describe('AwsProvider', () => {
       awsProvider
         .request('S3', 'error', {})
         .then(() => done('Should not succeed'))
-        .catch(err => {
+        .catch((err) => {
           expect(err.message).to.eql(awsErrorResponse.message);
           done();
         })
         .catch(done);
     });
 
-    it('should default to error code if error message is non-existent', done => {
+    it('should default to error code if error message is non-existent', (done) => {
       const awsErrorResponse = {
         message: null,
         code: 'Forbidden',
@@ -559,14 +559,14 @@ describe('AwsProvider', () => {
       awsProvider
         .request('S3', 'error', {})
         .then(() => done('Should not succeed'))
-        .catch(err => {
+        .catch((err) => {
           expect(err.message).to.eql(awsErrorResponse.code);
           done();
         })
         .catch(done);
     });
 
-    it('should return ref to docs for missing credentials', done => {
+    it('should return ref to docs for missing credentials', (done) => {
       const error = {
         statusCode: 403,
         message: 'Missing credentials in config',
@@ -591,14 +591,14 @@ describe('AwsProvider', () => {
       awsProvider
         .request('S3', 'error', {})
         .then(() => done('Should not succeed'))
-        .catch(err => {
+        .catch((err) => {
           expect(err.message).to.contain('in our docs here:');
           done();
         })
         .catch(done);
     });
 
-    it('should not retry for missing credentials', done => {
+    it('should not retry for missing credentials', (done) => {
       const error = {
         statusCode: 403,
         message: 'Missing credentials in config',
@@ -622,7 +622,7 @@ describe('AwsProvider', () => {
       awsProvider
         .request('S3', 'error', {})
         .then(() => done('Should not succeed'))
-        .catch(err => {
+        .catch((err) => {
           expect(sendFake.send).to.have.been.calledOnce;
           expect(err.message).to.contain('in our docs here:');
           done();
@@ -639,7 +639,7 @@ describe('AwsProvider', () => {
 
         putObject() {
           return {
-            send: cb => cb(null, { called: true }),
+            send: (cb) => cb(null, { called: true }),
           };
         }
       }
@@ -678,7 +678,7 @@ describe('AwsProvider', () => {
 
           describeStacks() {
             return {
-              send: cb => cb(null, { called: true }),
+              send: (cb) => cb(null, { called: true }),
             };
           }
         }
@@ -699,7 +699,7 @@ describe('AwsProvider', () => {
 
         return awsProvider
           .request('CloudFormation', 'describeStacks', {}, { useCache: true })
-          .then(data => {
+          .then((data) => {
             expect(data.called).to.equal(true);
           });
       });
@@ -722,7 +722,7 @@ describe('AwsProvider', () => {
         awsProvider.sdk = {
           CloudFormation: FakeCF,
         };
-        const executeRequestWithRegion = region =>
+        const executeRequestWithRegion = (region) =>
           awsProvider.request(
             'CloudFormation',
             'describeStacks',
@@ -737,9 +737,9 @@ describe('AwsProvider', () => {
         requests.push(BbPromise.try(() => executeRequestWithRegion('ap-northeast-1')));
 
         return BbPromise.all(requests)
-          .then(results => {
+          .then((results) => {
             expect(Object.keys(results).length).to.equal(2);
-            results.forEach(result => {
+            results.forEach((result) => {
               expect(result).to.deep.equal(expectedResult);
             });
             return expect(sendStub.callCount).to.equal(2);
@@ -789,9 +789,9 @@ describe('AwsProvider', () => {
         }
 
         return BbPromise.all(requests)
-          .then(results => {
+          .then((results) => {
             expect(Object.keys(results).length).to.equal(numTests);
-            results.forEach(result => {
+            results.forEach((result) => {
               expect(result).to.deep.equal(expectedResult);
             });
             return BbPromise.join(
@@ -849,7 +849,7 @@ describe('AwsProvider', () => {
 
             describeStacks() {
               return {
-                send: cb => cb(null, {}),
+                send: (cb) => cb(null, {}),
               };
             }
           }
@@ -1295,7 +1295,7 @@ describe('AwsProvider', () => {
         },
       });
 
-      return awsProvider.getServerlessDeploymentBucketName().then(bucketName => {
+      return awsProvider.getServerlessDeploymentBucketName().then((bucketName) => {
         expect(bucketName).to.equal('serverlessDeploymentBucketName');
         expect(describeStackResourcesStub.calledOnce).to.be.equal(true);
         expect(
@@ -1317,7 +1317,7 @@ describe('AwsProvider', () => {
         },
       });
 
-      return awsProvider.getServerlessDeploymentBucketName().then(bucketName => {
+      return awsProvider.getServerlessDeploymentBucketName().then((bucketName) => {
         expect(describeStackResourcesStub.called).to.be.equal(false);
         expect(bucketName).to.equal('custom-bucket');
         awsProvider.request.restore();
@@ -1437,7 +1437,7 @@ describe('AwsProvider', () => {
         Arn: 'arn:aws:sts::123456789012:assumed-role/ROLE-NAME/VWXYZ',
       });
 
-      return awsProvider.getAccountInfo().then(result => {
+      return awsProvider.getAccountInfo().then((result) => {
         expect(stsGetCallerIdentityStub.calledOnce).to.equal(true);
         expect(result.accountId).to.equal(accountId);
         expect(result.partition).to.equal(partition);
@@ -1457,7 +1457,7 @@ describe('AwsProvider', () => {
         Arn: 'arn:aws:sts::123456789012:assumed-role/ROLE-NAME/VWXYZ',
       });
 
-      return awsProvider.getAccountId().then(result => {
+      return awsProvider.getAccountId().then((result) => {
         expect(stsGetCallerIdentityStub.calledOnce).to.equal(true);
         expect(result).to.equal(accountId);
         awsProvider.request.restore();

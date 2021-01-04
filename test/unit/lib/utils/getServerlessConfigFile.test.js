@@ -32,7 +32,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.equal(null);
     });
   });
@@ -46,7 +46,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.deep.equal({});
     });
   });
@@ -60,7 +60,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.deep.equal({ service: 'my-yml-service' });
     });
   });
@@ -74,7 +74,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.deep.equal({ service: 'my-yaml-service' });
     });
   });
@@ -88,7 +88,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: { config: 'foobar.yaml' } },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.deep.equal({ service: 'my-yaml-service' });
     });
   });
@@ -102,7 +102,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.deep.equal({ service: 'my-json-service' });
     });
   });
@@ -116,7 +116,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.deep.equal({ service: 'my-json-service' });
     });
   });
@@ -133,7 +133,7 @@ describe('#getServerlessConfigFile()', () => {
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
-    ).to.be.fulfilled.then(result => {
+    ).to.be.fulfilled.then((result) => {
       expect(result).to.deep.equal({ service: 'my-json-service' });
     });
   });
@@ -162,11 +162,11 @@ describe('#getServerlessConfigFile()', () => {
         config: {},
       })
     ).to.be.fulfilled.then(
-      result => {
+      (result) => {
         process.chdir(cwd);
         expect(result).to.deep.equal({ service: 'my-yml-service' });
       },
-      error => {
+      (error) => {
         process.chdir(cwd);
         throw error;
       }
@@ -185,7 +185,7 @@ describe('#getServerlessConfigFile()', () => {
         fixture: 'serverlessTs',
         cliArgs: ['package'],
         shouldStubSpawn: true,
-      }).catch(error => {
+      }).catch((error) => {
         if (error.code !== 'TS_NODE_NOT_FOUND') throw error;
       });
     });

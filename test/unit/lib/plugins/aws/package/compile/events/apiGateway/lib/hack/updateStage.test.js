@@ -676,7 +676,7 @@ describe('#updateStage()', () => {
     return checkLogLevel(null, defaultApiGatewayLogLevel);
   });
 
-  ['INFO', 'ERROR'].forEach(logLevel => {
+  ['INFO', 'ERROR'].forEach((logLevel) => {
     it(`should update the stage with a custom APIGW log level if given ${logLevel}`, () => {
       return checkLogLevel(logLevel, logLevel);
     });

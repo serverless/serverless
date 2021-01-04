@@ -21,7 +21,7 @@ const invocationId = uuid.v4();
 
 let serverless;
 
-process.on('uncaughtException', error => logError(error, { forceExit: true, serverless }));
+process.on('uncaughtException', (error) => logError(error, { forceExit: true, serverless }));
 
 if (process.env.SLS_DEBUG) {
   // For performance reasons enabled only in SLS_DEBUG mode
@@ -35,7 +35,7 @@ const Serverless = require('../lib/Serverless');
 serverless = new Serverless();
 
 let resolveOnExitPromise;
-serverless.onExitPromise = new Promise(resolve => (resolveOnExitPromise = resolve));
+serverless.onExitPromise = new Promise((resolve) => (resolveOnExitPromise = resolve));
 serverless.invocationId = invocationId;
 
 require('../lib/utils/analytics').sendPending({
@@ -50,11 +50,11 @@ serverless
   .then(() => serverless.run())
   .then(
     () => resolveOnExitPromise(),
-    err => {
+    (err) => {
       resolveOnExitPromise();
       // If Enterprise Plugin, capture error
       let enterpriseErrorHandler = null;
-      serverless.pluginManager.plugins.forEach(p => {
+      serverless.pluginManager.plugins.forEach((p) => {
         if (p.enterprise && p.enterprise.errorHandler) {
           enterpriseErrorHandler = p.enterprise.errorHandler;
         }
@@ -64,7 +64,7 @@ serverless
         return null;
       }
       return enterpriseErrorHandler(err, invocationId)
-        .catch(error => {
+        .catch((error) => {
           process.stdout.write(`${error.stack}\n`);
         })
         .then(() => {

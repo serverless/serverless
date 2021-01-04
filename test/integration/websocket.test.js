@@ -11,7 +11,7 @@ const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService } = require('../utils/integration');
 const { createApi, deleteApi, getRoutes, createStage, deleteStage } = require('../utils/websocket');
 
-describe('AWS - API Gateway Websocket Integration Test', function() {
+describe('AWS - API Gateway Websocket Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let stackName;
   let serviceName;
@@ -37,7 +37,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   async function getWebSocketServerUrl() {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
     const webSocketServerUrl = result.Stacks[0].Outputs.find(
-      output => output.OutputKey === 'ServiceEndpointWebsocket'
+      (output) => output.OutputKey === 'ServiceEndpointWebsocket'
     ).OutputValue;
     return webSocketServerUrl;
   }
@@ -51,7 +51,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
       return new Promise((resolve, reject) => {
         const ws = new WebSocket(webSocketServerUrl);
-        reject = (promiseReject => error => {
+        reject = ((promiseReject) => (error) => {
           promiseReject(error);
           try {
             ws.close();
@@ -71,7 +71,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
         ws.on('close', resolve);
 
-        ws.on('message', event => {
+        ws.on('message', (event) => {
           twoWayPassed = true;
           clearTimeout(timeoutId);
           try {
@@ -86,7 +86,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
   });
 
   describe('Minimal Setup', () => {
-    it('should expose an accessible websocket endpoint', async function() {
+    it('should expose an accessible websocket endpoint', async function () {
       if (!twoWayPassed) this.skip();
       const webSocketServerUrl = await getWebSocketServerUrl();
 
@@ -95,7 +95,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
       return new Promise((resolve, reject) => {
         const ws = new WebSocket(webSocketServerUrl);
         let isRejected = false;
-        reject = (promiseReject => error => {
+        reject = ((promiseReject) => (error) => {
           isRejected = true;
           promiseReject(error);
           try {
@@ -110,7 +110,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
             if (isRejected) throw new Error('Stop propagation');
             ws.send('test message');
             return wait(500);
-          }).then(events => {
+          }).then((events) => {
             expect(events.length > 0).to.equal(true);
             ws.close();
           }, reject);
@@ -118,7 +118,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
 
         ws.on('close', resolve);
 
-        ws.on('message', event => {
+        ws.on('message', (event) => {
           log.debug('Unexpected WebSocket message', event);
           reject(new Error('Unexpected message'));
         });
@@ -128,7 +128,7 @@ describe('AWS - API Gateway Websocket Integration Test', function() {
     // NOTE: this test should  be at the very end because we're using an external REST API here
     describe('when using an existing websocket API', () => {
       let websocketApiId;
-      before(async function() {
+      before(async function () {
         if (!twoWayPassed) this.skip();
         // create an external websocket API
         const externalWebsocketApiName = `${stage}-${serviceName}-ext-api`;

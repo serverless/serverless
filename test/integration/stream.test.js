@@ -9,7 +9,7 @@ const { putDynamoDbItem } = require('../utils/dynamodb');
 const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService } = require('../utils/integration');
 
-describe('AWS - Stream Integration Test', function() {
+describe('AWS - Stream Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let stackName;
   let servicePath;
@@ -49,7 +49,7 @@ describe('AWS - Stream Integration Test', function() {
         `/aws/lambda/${stackName}-${functionName}`,
         () => putKinesisRecord(streamName, message),
         { timeout: 120 * 1000 }
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(logs).to.include(functionName);
         expect(logs).to.include(message);
@@ -67,16 +67,14 @@ describe('AWS - Stream Integration Test', function() {
       return confirmCloudWatchLogs(
         `/aws/lambda/${stackName}-${functionName}`,
         () => {
-          item.hello = `from dynamo!${Math.random()
-            .toString(36)
-            .slice(2)}`;
+          item.hello = `from dynamo!${Math.random().toString(36).slice(2)}`;
           return putDynamoDbItem(tableName, item);
         },
         {
-          checkIsComplete: events =>
+          checkIsComplete: (events) =>
             events.reduce((data, event) => data + event.message, '').includes(functionName),
         }
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
 
         expect(logs).to.include(functionName);

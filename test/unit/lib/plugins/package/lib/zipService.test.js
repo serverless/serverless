@@ -83,9 +83,11 @@ describe('zipService', () => {
 
       fs.writeFileSync(filePath, buf);
 
-      return expect(packagePlugin.getFileContentAndStat(filePath)).to.be.fulfilled.then(result => {
-        expect(result.data).to.deep.equal(buf);
-      });
+      return expect(packagePlugin.getFileContentAndStat(filePath)).to.be.fulfilled.then(
+        (result) => {
+          expect(result.data).to.deep.equal(buf);
+        }
+      );
     });
   });
 
@@ -103,7 +105,7 @@ describe('zipService', () => {
 
       fs.writeFileSync(filePath, buf);
 
-      return expect(packagePlugin.getFileContent(filePath)).to.be.fulfilled.then(result => {
+      return expect(packagePlugin.getFileContent(filePath)).to.be.fulfilled.then((result) => {
         expect(result).to.deep.equal(buf);
       });
     });
@@ -114,7 +116,7 @@ describe('zipService', () => {
       packagePlugin.serverless.service.package.excludeDevDependencies = false;
 
       return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-        updatedParams => {
+        (updatedParams) => {
           expect(updatedParams).to.deep.equal(params);
         }
       );
@@ -145,7 +147,7 @@ describe('zipService', () => {
         globbySyncStub.returns(filePaths);
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub).to.not.have.been.called;
             expect(readFileAsyncStub).to.not.have.been.called;
@@ -172,7 +174,7 @@ describe('zipService', () => {
         readFileAsyncStub.resolves(depPaths);
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.been.calledTwice;
@@ -202,7 +204,7 @@ describe('zipService', () => {
         globbySyncStub.throws();
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub).to.not.have.been.called;
             expect(readFileAsyncStub).to.not.have.been.called;
@@ -222,7 +224,7 @@ describe('zipService', () => {
         readFileAsyncStub.resolves();
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.been.calledOnce;
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.been.calledTwice;
@@ -243,7 +245,7 @@ describe('zipService', () => {
         readFileAsyncStub.onCall(1).rejects();
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.been.calledOnce;
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.been.calledTwice;
@@ -289,7 +291,7 @@ describe('zipService', () => {
         readFileAsyncStub.onCall(5).resolves('{}');
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub.callCount).to.equal(6);
             expect(readFileAsyncStub).to.have.callCount(6);
@@ -364,7 +366,7 @@ describe('zipService', () => {
         readFileAsyncStub.onCall(3).resolves('{}');
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.callCount(4);
@@ -433,7 +435,7 @@ describe('zipService', () => {
         readFileAsyncStub.onCall(7).resolves('{}');
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub.callCount).to.equal(6);
             expect(readFileAsyncStub).to.have.callCount(8);
@@ -500,7 +502,7 @@ describe('zipService', () => {
         readFileAsyncStub.onCall(2).resolves('{}');
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub).to.have.been.calledTwice;
             expect(readFileAsyncStub).to.have.been.calledThrice;
@@ -547,7 +549,7 @@ describe('zipService', () => {
         globbySyncStub.returns(filePaths);
         execAsyncStub.resolves();
 
-        const mapper = depPath => path.join(`${servicePath}`, depPath);
+        const mapper = (depPath) => path.join(`${servicePath}`, depPath);
 
         const devDepPaths = devPaths.map(mapper).join('\n');
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(devDepPaths);
@@ -565,7 +567,7 @@ describe('zipService', () => {
           .resolves('{"name": "meowmix", "bin": {"meow": "./bin/meow.js", "mix": "./bin/mix.js"}}');
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.been.calledOnce;
             expect(execAsyncStub).to.have.been.calledTwice;
 
@@ -616,7 +618,7 @@ describe('zipService', () => {
           '1st/2nd/node_modules/module-1',
           '1st/2nd/node_modules/module-2',
         ];
-        const depPaths = deps.map(depPath => path.join(`${servicePath}`, depPath));
+        const depPaths = deps.map((depPath) => path.join(`${servicePath}`, depPath));
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths.join('\n'));
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
 
@@ -639,7 +641,7 @@ describe('zipService', () => {
         readFileAsyncStub.onCall(7).resolves(module2PackageJson);
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
-          updatedParams => {
+          (updatedParams) => {
             expect(globbySyncStub).to.have.been.calledOnce;
             expect(execAsyncStub.callCount).to.equal(6);
             expect(readFileAsyncStub).to.have.callCount(8);
@@ -726,11 +728,11 @@ describe('zipService', () => {
     beforeEach(() => {
       zip = new JsZip();
 
-      Object.keys(testDirectory).forEach(dirName => {
+      Object.keys(testDirectory).forEach((dirName) => {
         const dirPath = path.join(tmpDirPath, dirName);
         const files = testDirectory[dirName];
 
-        Object.keys(files).forEach(fileName => {
+        Object.keys(files).forEach((fileName) => {
           const filePath = path.join(dirPath, fileName);
           const fileValue = files[fileName];
           const file = _.isObject(fileValue) ? fileValue : { content: fileValue };
@@ -755,15 +757,15 @@ describe('zipService', () => {
         .to.eventually.be.equal(
           path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
         )
-        .then(artifact => {
+        .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
         })
-        .then(unzippedData => {
+        .then((unzippedData) => {
           const unzippedFileData = unzippedData.files;
 
           expect(
-            Object.keys(unzippedFileData).filter(file => !unzippedFileData[file].dir)
+            Object.keys(unzippedFileData).filter((file) => !unzippedFileData[file].dir)
           ).to.be.lengthOf(12);
 
           // root directory
@@ -805,11 +807,11 @@ describe('zipService', () => {
         .to.eventually.be.equal(
           path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
         )
-        .then(artifact => {
+        .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
         })
-        .then(unzippedData => {
+        .then((unzippedData) => {
           const unzippedFileData = unzippedData.files;
 
           if (os.platform() !== 'win32') {
@@ -835,15 +837,15 @@ describe('zipService', () => {
         .to.eventually.be.equal(
           path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
         )
-        .then(artifact => {
+        .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
         })
-        .then(unzippedData => {
+        .then((unzippedData) => {
           const unzippedFileData = unzippedData.files;
 
           expect(
-            Object.keys(unzippedFileData).filter(file => !unzippedFileData[file].dir)
+            Object.keys(unzippedFileData).filter((file) => !unzippedFileData[file].dir)
           ).to.be.lengthOf(7);
 
           // root directory
@@ -880,15 +882,15 @@ describe('zipService', () => {
         .to.eventually.be.equal(
           path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
         )
-        .then(artifact => {
+        .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
         })
-        .then(unzippedData => {
+        .then((unzippedData) => {
           const unzippedFileData = unzippedData.files;
 
           expect(
-            Object.keys(unzippedFileData).filter(file => !unzippedFileData[file].dir)
+            Object.keys(unzippedFileData).filter((file) => !unzippedFileData[file].dir)
           ).to.be.lengthOf(10);
 
           // root directory
@@ -926,15 +928,15 @@ describe('zipService', () => {
         .to.eventually.be.equal(
           path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
         )
-        .then(artifact => {
+        .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
         })
-        .then(unzippedData => {
+        .then((unzippedData) => {
           const unzippedFileData = unzippedData.files;
 
           expect(
-            Object.keys(unzippedFileData).filter(file => !unzippedFileData[file].dir)
+            Object.keys(unzippedFileData).filter((file) => !unzippedFileData[file].dir)
           ).to.be.lengthOf(10);
 
           // root directory
@@ -973,11 +975,11 @@ describe('zipService', () => {
         .to.eventually.be.equal(
           path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
         )
-        .then(artifact => {
+        .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
         })
-        .then(unzippedData => {
+        .then((unzippedData) => {
           const unzippedFileData = unzippedData.files;
           expect(Object.keys(unzippedFileData).sort()).to.deep.equal([
             'bin/binary-444',
@@ -996,11 +998,11 @@ describe('zipService', () => {
         .to.eventually.be.equal(
           path.join(serverless.config.servicePath, '.serverless', params.zipFileName)
         )
-        .then(artifact => {
+        .then((artifact) => {
           const data = fs.readFileSync(artifact);
           return expect(zip.loadAsync(data)).to.be.fulfilled;
         })
-        .then(unzippedData => {
+        .then((unzippedData) => {
           const unzippedFileData = unzippedData.files;
           expect(Object.keys(unzippedFileData).sort()).to.deep.equal([
             'bin/binary-444',

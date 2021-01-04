@@ -15,7 +15,7 @@ function describeEventBus(name) {
 }
 
 function putEvents(EventBusName, Entries) {
-  Entries.map(entry => (entry.EventBusName = EventBusName));
+  Entries.map((entry) => (entry.EventBusName = EventBusName));
   const params = {
     Entries,
   };

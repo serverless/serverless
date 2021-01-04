@@ -28,7 +28,7 @@ describe('#writeFileSync()', () => {
 
     writeFileSync(tmpFilePath, { foo: 'bar' });
 
-    return serverless.yamlParser.parse(tmpFilePath).then(obj => {
+    return serverless.yamlParser.parse(tmpFilePath).then((obj) => {
       expect(obj.foo).to.equal('bar');
     });
   });
@@ -38,7 +38,7 @@ describe('#writeFileSync()', () => {
 
     writeFileSync(tmpFilePath, { foo: 'bar' });
 
-    return serverless.yamlParser.parse(tmpFilePath).then(obj => {
+    return serverless.yamlParser.parse(tmpFilePath).then((obj) => {
       expect(obj.foo).to.equal('bar');
     });
   });
@@ -57,7 +57,7 @@ describe('#writeFileSync()', () => {
 
     writeFileSync(tmpFilePath, bar, true);
 
-    return fse.readFile(tmpFilePath, 'utf8').then(contents => {
+    return fse.readFile(tmpFilePath, 'utf8').then((contents) => {
       expect(contents).to.equal(expected);
     });
   });

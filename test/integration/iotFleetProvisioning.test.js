@@ -6,7 +6,7 @@ const fixtures = require('../fixtures');
 const { deployService, removeService } = require('../utils/integration');
 const { resolveIotEndpoint } = require('../utils/iot');
 
-describe('test/integration/iotFleetProvisioning.test.js', function() {
+describe('test/integration/iotFleetProvisioning.test.js', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   const thingName = 'IotDevice';
   const stage = 'dev';
@@ -17,12 +17,13 @@ describe('test/integration/iotFleetProvisioning.test.js', function() {
 
   const resolveTemplateName = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-    return result.Stacks[0].Outputs.find(output => output.OutputKey === 'ProvisioningTemplateName')
-      .OutputValue;
+    return result.Stacks[0].Outputs.find(
+      (output) => output.OutputKey === 'ProvisioningTemplateName'
+    ).OutputValue;
   };
   const resolveIoTPolicyName = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
-    return result.Stacks[0].Outputs.find(output => output.OutputKey === 'IoTPolicyName')
+    return result.Stacks[0].Outputs.find((output) => output.OutputKey === 'IoTPolicyName')
       .OutputValue;
   };
 

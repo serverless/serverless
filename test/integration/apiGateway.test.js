@@ -9,7 +9,7 @@ const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService, fetch } = require('../utils/integration');
 const { createRestApi, deleteRestApi, getResources } = require('../utils/apiGateway');
 
-describe('AWS - API Gateway Integration Test', function() {
+describe('AWS - API Gateway Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let serviceName;
   let endpoint;
@@ -25,7 +25,7 @@ describe('AWS - API Gateway Integration Test', function() {
   const resolveEndpoint = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
     const endpointOutput = result.Stacks[0].Outputs.find(
-      output => output.OutputKey === 'ServiceEndpoint'
+      (output) => output.OutputKey === 'ServiceEndpoint'
     ).OutputValue;
     endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com.+/)[0];
   };
@@ -54,32 +54,32 @@ describe('AWS - API Gateway Integration Test', function() {
       const testEndpoint = `${endpoint}`;
 
       return fetch(testEndpoint, { method: 'GET' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal(expectedMessage));
+        .then((response) => response.json())
+        .then((json) => expect(json.message).to.equal(expectedMessage));
     });
 
     it('should expose an accessible POST HTTP endpoint', () => {
       const testEndpoint = `${endpoint}/minimal-1`;
 
       return fetch(testEndpoint, { method: 'POST' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal(expectedMessage));
+        .then((response) => response.json())
+        .then((json) => expect(json.message).to.equal(expectedMessage));
     });
 
     it('should expose an accessible PUT HTTP endpoint', () => {
       const testEndpoint = `${endpoint}/minimal-2`;
 
       return fetch(testEndpoint, { method: 'PUT' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal(expectedMessage));
+        .then((response) => response.json())
+        .then((json) => expect(json.message).to.equal(expectedMessage));
     });
 
     it('should expose an accessible DELETE HTTP endpoint', () => {
       const testEndpoint = `${endpoint}/minimal-3`;
 
       return fetch(testEndpoint, { method: 'DELETE' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal(expectedMessage));
+        .then((response) => response.json())
+        .then((json) => expect(json.message).to.equal(expectedMessage));
     });
   });
 
@@ -87,7 +87,7 @@ describe('AWS - API Gateway Integration Test', function() {
     it('should setup simple CORS support via cors: true config', () => {
       const testEndpoint = `${endpoint}/simple-cors`;
 
-      return fetch(testEndpoint, { method: 'OPTIONS' }).then(response => {
+      return fetch(testEndpoint, { method: 'OPTIONS' }).then((response) => {
         const headers = response.headers;
         const allowHeaders = [
           'Content-Type',
@@ -107,7 +107,7 @@ describe('AWS - API Gateway Integration Test', function() {
     it('should setup CORS support with complex object config', () => {
       const testEndpoint = `${endpoint}/complex-cors`;
 
-      return fetch(testEndpoint, { method: 'OPTIONS' }).then(response => {
+      return fetch(testEndpoint, { method: 'OPTIONS' }).then((response) => {
         const headers = response.headers;
         const allowHeaders = [
           'Content-Type',
@@ -133,7 +133,7 @@ describe('AWS - API Gateway Integration Test', function() {
     });
 
     it('should reject requests without authorization', () => {
-      return fetch(testEndpoint).then(response => {
+      return fetch(testEndpoint).then((response) => {
         expect(response.status).to.equal(401);
       });
     });
@@ -141,15 +141,15 @@ describe('AWS - API Gateway Integration Test', function() {
     it('should reject requests with wrong authorization', () => {
       return fetch(testEndpoint, {
         headers: { Authorization: 'Bearer ShouldNotBeAuthorized' },
-      }).then(response => {
+      }).then((response) => {
         expect(response.status).to.equal(401);
       });
     });
 
     it('should authorize requests with correct authorization', () => {
       return fetch(testEndpoint, { headers: { Authorization: 'Bearer ShouldBeAuthorized' } })
-        .then(response => response.json())
-        .then(json => {
+        .then((response) => response.json())
+        .then((json) => {
           expect(json.message).to.equal('Hello from API Gateway! - (customAuthorizers)');
           expect(json.event.requestContext.authorizer.principalId).to.equal('SomeRandomId');
           expect(json.event.headers.Authorization).to.equal('Bearer ShouldBeAuthorized');
@@ -180,7 +180,7 @@ describe('AWS - API Gateway Integration Test', function() {
     });
 
     it('should reject a request with an invalid API Key', () => {
-      return fetch(testEndpoint).then(response => {
+      return fetch(testEndpoint).then((response) => {
         expect(response.status).to.equal(403);
       });
     });
@@ -213,17 +213,17 @@ describe('AWS - API Gateway Integration Test', function() {
         `/aws/api-gateway/${stackName}`,
         () =>
           fetch(`${testEndpoint}`, { method: 'GET' })
-            .then(response => response.json())
+            .then((response) => response.json())
             // Confirm that APIGW responds as expected
-            .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'))
+            .then((json) => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'))
         // Confirm that CloudWatch logs for APIGW are written
-      ).then(events => expect(events.length > 0).to.equal(true));
+      ).then((events) => expect(events.length > 0).to.equal(true));
     });
   });
 
   describe('Integration Lambda Timeout', () => {
     it('should result with 504 status code', () =>
-      fetch(`${endpoint}/integration-lambda-timeout`).then(response =>
+      fetch(`${endpoint}/integration-lambda-timeout`).then((response) =>
         expect(response.status).to.equal(504)
       ));
   });
@@ -234,11 +234,11 @@ describe('AWS - API Gateway Integration Test', function() {
       // create an external REST API
       const externalRestApiName = `${stage}-${serviceName}-ext-api`;
       await createRestApi(externalRestApiName)
-        .then(restApiMeta => {
+        .then((restApiMeta) => {
           restApiId = restApiMeta.id;
           return getResources(restApiId);
         })
-        .then(resources => {
+        .then((resources) => {
           restApiRootResourceId = resources[0].id;
           log.notice(
             'Created external rest API ' +
@@ -290,8 +290,8 @@ describe('AWS - API Gateway Integration Test', function() {
       const testEndpoint = `${endpoint}/minimal-1`;
 
       return fetch(testEndpoint, { method: 'POST' })
-        .then(response => response.json())
-        .then(json => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
+        .then((response) => response.json())
+        .then((json) => expect(json.message).to.equal('Hello from API Gateway! - (minimal)'));
     });
   });
 });

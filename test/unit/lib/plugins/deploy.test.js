@@ -29,9 +29,7 @@ describe('Deploy', () => {
     it('should have hooks', () => expect(deploy.hooks).to.be.not.empty);
     it('should work without options', () => {
       const noOptionDeploy = new Deploy(serverless);
-      expect(noOptionDeploy)
-        .to.have.property('options')
-        .to.be.eql({});
+      expect(noOptionDeploy).to.have.property('options').to.be.eql({});
     });
   });
 

@@ -12,7 +12,7 @@ chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 const expect = require('chai').expect;
 
-describe('#writeFile()', function() {
+describe('#writeFile()', function () {
   let serverless;
   this.timeout(0);
 

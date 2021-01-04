@@ -44,7 +44,7 @@ async function apiKeys(event) {
 }
 
 async function timeout(event) {
-  return new Promise(resolve =>
+  return new Promise((resolve) =>
     setTimeout(
       () =>
         resolve({

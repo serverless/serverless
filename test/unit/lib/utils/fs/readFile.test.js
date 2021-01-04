@@ -39,7 +39,7 @@ describe('#readFile()', () => {
     const tmpFilePath = getTmpFilePath('invalid.yml');
     return writeFile(tmpFilePath, ': a')
       .then(() => readFile(tmpFilePath))
-      .catch(e => {
+      .catch((e) => {
         expect(e.name).to.equal('YAMLException');
         expect(e.message).to.match(new RegExp('.*invalid.yml'));
       });

@@ -98,7 +98,7 @@ describe('#compileUsagePlanKeys()', () => {
       };
 
       return awsCompileApigEvents.compileUsagePlanKeys().then(() => {
-        awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach(plan => {
+        awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach((plan) => {
           const planName = Object.keys(plan)[0]; // free || paid
           const apiKeys = plan[planName];
           apiKeys.forEach((apiKey, index) => {

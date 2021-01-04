@@ -12,8 +12,8 @@ function findStacks(name, status) {
 
   function recursiveFind(found, token) {
     if (token) params.NextToken = token;
-    return awsRequest('CloudFormation', 'listStacks', params).then(result => {
-      const matches = result.StackSummaries.filter(stack => stack.StackName.match(name));
+    return awsRequest('CloudFormation', 'listStacks', params).then((result) => {
+      const matches = result.StackSummaries.filter((stack) => stack.StackName.match(name));
       if (matches.length) {
         found.push(...matches);
       }
@@ -40,7 +40,7 @@ function listStackResources(stack) {
 
   function recursiveFind(resources, token) {
     if (token) params.NextToken = token;
-    return awsRequest('CloudFormation', 'listStackResources', params).then(result => {
+    return awsRequest('CloudFormation', 'listStackResources', params).then((result) => {
       resources.push(...result.StackResourceSummaries);
       if (result.NextToken) return recursiveFind(resources, result.NextToken);
       return resources;
