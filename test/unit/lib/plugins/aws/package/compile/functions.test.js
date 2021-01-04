@@ -1801,7 +1801,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
 
       const originalVersionCfConfig = Object.values(originalTemplate.Resources).find(
-        resource =>
+        (resource) =>
           resource.Type === 'AWS::Lambda::Version' &&
           resource.Properties.FunctionName.Ref === functionCfLogicalId
       ).Properties;
@@ -1816,7 +1816,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         cliArgs: ['package'],
       });
       const updatedVersionCfConfig = Object.values(updatedTemplate.Resources).find(
-        resource =>
+        (resource) =>
           resource.Type === 'AWS::Lambda::Version' &&
           resource.Properties.FunctionName.Ref === functionCfLogicalId
       ).Properties;
@@ -2199,7 +2199,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(imageDigest).to.match(/^sha256:[a-f0-9]{64}$/);
       const imageDigestSha = imageDigest.slice('sha256:'.length);
       const versionCfConfig = Object.values(cfResources).find(
-        resource =>
+        (resource) =>
           resource.Type === 'AWS::Lambda::Version' &&
           resource.Properties.FunctionName.Ref === functionCfLogicalId
       ).Properties;
@@ -2218,7 +2218,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(functionCfConfig).to.not.have.property('Runtime');
 
       const versionCfConfig = Object.values(cfResources).find(
-        resource =>
+        (resource) =>
           resource.Type === 'AWS::Lambda::Version' &&
           resource.Properties.FunctionName.Ref === functionCfLogicalId
       ).Properties;
@@ -2242,14 +2242,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           },
         },
         cliArgs: ['package'],
-      }).catch(error => {
+      }).catch((error) => {
         expect(error).to.have.property('code', 'LAMBDA_FILE_SYSTEM_CONFIG_MISSING_VPC');
       });
     });
   });
 
   describe('Version hash resolution', () => {
-    const testLambdaHashingVersion = lambdaHashingVersion => {
+    const testLambdaHashingVersion = (lambdaHashingVersion) => {
       const configExt = lambdaHashingVersion ? { provider: { lambdaHashingVersion } } : {};
 
       it.skip('TODO: should create a different version if configuration changed', () => {

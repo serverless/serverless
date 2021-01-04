@@ -41,7 +41,7 @@ module.exports.saveUser = (context, req) => {
       created_at: Date.now(),
     };
 
-    db.saveUser(user, function(err) {
+    db.saveUser(user, function (err) {
       if (err) {
         reject(err);
       } else {
@@ -77,7 +77,7 @@ class Users {
         created_at: Date.now(),
       };
 
-      this.db.saveUser(user, function(err) {
+      this.db.saveUser(user, function (err) {
         if (err) {
           reject(err);
         } else {

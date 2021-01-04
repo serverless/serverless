@@ -73,7 +73,7 @@ describe('SlStats', () => {
 
       slStats.options = { enable: true };
 
-      return slStats.toggleStats().catch(error => {
+      return slStats.toggleStats().catch((error) => {
         expect(setStub.calledOnce).to.equal(false);
         expect(error).to.match(/of statistics failed/);
       });
@@ -84,7 +84,7 @@ describe('SlStats', () => {
       setStub.throws('error while updating config file');
       slStats.options = { disable: true };
 
-      return slStats.toggleStats().catch(error => {
+      return slStats.toggleStats().catch((error) => {
         expect(setStub.calledOnce).to.equal(true);
         expect(error).to.match(/of statistics failed/);
       });

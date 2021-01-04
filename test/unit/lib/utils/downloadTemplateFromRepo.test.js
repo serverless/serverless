@@ -50,7 +50,7 @@ describe('downloadTemplateFromRepo', () => {
     const downloadTemplateFromRepoModule = proxyquire(
       '../../../../lib/utils/downloadTemplateFromRepo',
       {
-        'node-fetch': url => {
+        'node-fetch': (url) => {
           if (url.indexOf('mybitbucket.server.ltd') > -1) {
             return fetchStub();
           }
@@ -65,7 +65,7 @@ describe('downloadTemplateFromRepo', () => {
     parseRepoURL = downloadTemplateFromRepoModule.parseRepoURL;
   });
 
-  afterEach(done => {
+  afterEach((done) => {
     // change back to the old cwd
     process.chdir(cwd);
     fse.remove(newServicePath).then(done);
@@ -108,14 +108,14 @@ describe('downloadTemplateFromRepo', () => {
       const name = 'new-service-name';
 
       spawnStub.resolves({
-        then: callback => {
+        then: (callback) => {
           const slsYml = path.join(process.cwd(), 'new-service-name', 'serverless.yml');
           writeFileSync(slsYml, 'service: sample-service');
           callback();
         },
       });
 
-      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then(serviceName => {
+      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then((serviceName) => {
         expect(spawnStub.calledOnce).to.equal(true);
         expect(downloadStub.calledOnce).to.equal(false);
         expect(spawnStub.args[0][0]).to.equal('git');
@@ -144,14 +144,14 @@ describe('downloadTemplateFromRepo', () => {
       const name = 'new-service-name';
 
       spawnStub.resolves({
-        then: callback => {
+        then: (callback) => {
           const slsYml = path.join(process.cwd(), 'new-service-name', 'serverless.yml');
           writeFileSync(slsYml, 'service: sample-service');
           callback();
         },
       });
 
-      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then(serviceName => {
+      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then((serviceName) => {
         expect(spawnStub.calledOnce).to.equal(true);
         expect(downloadStub.calledOnce).to.equal(false);
         expect(spawnStub.args[0][0]).to.equal('git');
@@ -177,14 +177,14 @@ describe('downloadTemplateFromRepo', () => {
       const name = 'new-service-name';
 
       downloadStub.resolves({
-        then: callback => {
+        then: (callback) => {
           const slsYml = path.join(process.cwd(), 'new-service-name', 'serverless.yml');
           writeFileSync(slsYml, 'service: service-name');
           callback();
         },
       });
 
-      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then(serviceName => {
+      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then((serviceName) => {
         expect(downloadStub.calledOnce).to.equal(true);
         expect(downloadStub.args[0][1]).to.contain(name);
         expect(downloadStub.args[0][0]).to.equal(`${url}/archive/master.zip`);
@@ -210,7 +210,7 @@ describe('downloadTemplateFromRepo', () => {
         })
       );
 
-      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then(serviceName => {
+      return expect(downloadTemplateFromRepo(url, name)).to.be.fulfilled.then((serviceName) => {
         expect(downloadStub.calledOnce).to.equal(true);
         const yml = readFileSync(path.join(newServicePath, 'serverless.yml'));
         expect(yml.service).to.equal(name);
@@ -244,7 +244,7 @@ describe('downloadTemplateFromRepo', () => {
 
     it('should parse a valid GitHub URL', () => {
       return expect(parseRepoURL('https://github.com/serverless/serverless')).to.be.fulfilled.then(
-        output => {
+        (output) => {
           expect(output).to.deep.eq({
             owner: 'serverless',
             repo: 'serverless',
@@ -261,7 +261,7 @@ describe('downloadTemplateFromRepo', () => {
     it('should parse a valid GitHub URL with subdirectory', () => {
       return expect(
         parseRepoURL('https://github.com/serverless/serverless/tree/master/assets')
-      ).to.be.fulfilled.then(output => {
+      ).to.be.fulfilled.then((output) => {
         expect(output).to.deep.eq({
           owner: 'serverless',
           repo: 'serverless',
@@ -277,7 +277,7 @@ describe('downloadTemplateFromRepo', () => {
     it('should parse a valid GitHub Entreprise URL', () => {
       return expect(
         parseRepoURL('https://github.mydomain.com/serverless/serverless')
-      ).to.be.fulfilled.then(output => {
+      ).to.be.fulfilled.then((output) => {
         expect(output).to.deep.eq({
           owner: 'serverless',
           repo: 'serverless',
@@ -293,7 +293,7 @@ describe('downloadTemplateFromRepo', () => {
     it('should parse a valid GitHub Entreprise with subdirectory', () => {
       return expect(
         parseRepoURL('https://github.mydomain.com/serverless/serverless/tree/master/assets')
-      ).to.be.fulfilled.then(output => {
+      ).to.be.fulfilled.then((output) => {
         expect(output).to.deep.eq({
           owner: 'serverless',
           repo: 'serverless',
@@ -309,7 +309,7 @@ describe('downloadTemplateFromRepo', () => {
     it('should parse a valid GitHub Entreprise URL with authentication', () => {
       return expect(
         parseRepoURL('https://username:password@github.com/serverless/serverless/')
-      ).to.be.fulfilled.then(output => {
+      ).to.be.fulfilled.then((output) => {
         expect(output).to.deep.eq({
           owner: 'serverless',
           repo: 'serverless',
@@ -323,7 +323,7 @@ describe('downloadTemplateFromRepo', () => {
     });
 
     it('should parse a valid BitBucket URL', () => {
-      return parseRepoURL('https://bitbucket.org/atlassian/localstack').then(output => {
+      return parseRepoURL('https://bitbucket.org/atlassian/localstack').then((output) => {
         expect(output).to.deep.eq({
           owner: 'atlassian',
           repo: 'localstack',
@@ -339,7 +339,7 @@ describe('downloadTemplateFromRepo', () => {
     it('should parse a valid BitBucket URL with subdirectory', () => {
       return parseRepoURL(
         'https://bitbucket.org/atlassian/localstack/src/85870856fd6941ae75c0fa946a51cf756ff2f53a/localstack/dashboard/?at=mvn'
-      ).then(output => {
+      ).then((output) => {
         expect(output).to.deep.eq({
           owner: 'atlassian',
           repo: 'localstack',
@@ -355,7 +355,7 @@ describe('downloadTemplateFromRepo', () => {
     it('should parse a valid Bitbucket Server URL', () => {
       return parseRepoURL(
         'https://user:pass@mybitbucket.server.ltd/rest/api/latest/projects/myproject/repos/myrepo/archive?at=refs%2Fheads%2Fdevelop'
-      ).then(output => {
+      ).then((output) => {
         expect(output).to.deep.eq({
           owner: 'myproject',
           repo: 'myrepo',
@@ -370,7 +370,7 @@ describe('downloadTemplateFromRepo', () => {
     });
 
     it('should parse a valid GitLab URL ', () => {
-      return parseRepoURL('https://gitlab.com/serverless/serverless').then(output => {
+      return parseRepoURL('https://gitlab.com/serverless/serverless').then((output) => {
         expect(output).to.deep.eq({
           owner: 'serverless',
           repo: 'serverless',
@@ -386,7 +386,7 @@ describe('downloadTemplateFromRepo', () => {
 
     it('should parse a valid GitLab URL with subdirectory', () => {
       return parseRepoURL('https://gitlab.com/serverless/serverless/tree/dev/subdir').then(
-        output => {
+        (output) => {
           expect(output).to.deep.eq({
             owner: 'serverless',
             repo: 'serverless',

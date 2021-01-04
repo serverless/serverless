@@ -14,7 +14,7 @@ describe('AwsRollback', () => {
   let serverless;
   let provider;
 
-  const createInstance = options => {
+  const createInstance = (options) => {
     serverless = new Serverless();
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
@@ -124,7 +124,7 @@ describe('AwsRollback', () => {
         .then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-        .catch(errorMessage => {
+        .catch((errorMessage) => {
           expect(errorMessage).to.include("Couldn't find any existing deployments");
           expect(listObjectsStub.calledOnce).to.be.equal(true);
           expect(
@@ -159,7 +159,7 @@ describe('AwsRollback', () => {
         .then(() => {
           assert.isNotOk(true, 'setStackToUpdate should not resolve');
         })
-        .catch(errorMessage => {
+        .catch((errorMessage) => {
           expect(errorMessage).to.include("Couldn't find a deployment for the timestamp");
           expect(listObjectsStub.calledOnce).to.be.equal(true);
           expect(

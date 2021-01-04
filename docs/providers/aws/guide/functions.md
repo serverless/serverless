@@ -50,7 +50,7 @@ The `handler` property points to the file and module containing the code you wan
 
 ```javascript
 // handler.js
-module.exports.functionOne = function(event, context, callback) {};
+module.exports.functionOne = function (event, context, callback) {};
 ```
 
 You can add as many functions as you want within this property.

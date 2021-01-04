@@ -16,7 +16,7 @@ describe('#getEnsureArtifact', () => {
   let invokedCount = 0;
 
   before(() => {
-    ensureArtifact = getEnsureArtifact(testArtifactName, cachePath => {
+    ensureArtifact = getEnsureArtifact(testArtifactName, (cachePath) => {
       testArtifactPath = path.resolve(cachePath, testArtifactName);
       ++invokedCount;
       return fse.writeFile(testArtifactPath, '');
@@ -24,11 +24,11 @@ describe('#getEnsureArtifact', () => {
   });
 
   it('Should not generate on ensure function initialization', () =>
-    fse.pathExists(testArtifactPath).then(exists => expect(exists).to.be.false));
+    fse.pathExists(testArtifactPath).then((exists) => expect(exists).to.be.false));
 
   it('Should generate artifact if missing', () =>
     ensureArtifact().then(() =>
-      fse.pathExists(testArtifactPath).then(exists => expect(exists).to.be.true)
+      fse.pathExists(testArtifactPath).then((exists) => expect(exists).to.be.true)
     ));
 
   it('Should generate only on first access', () =>
@@ -40,7 +40,7 @@ describe('#getEnsureArtifact', () => {
   });
 
   it('Should return cache path', () =>
-    ensureArtifact().then(cachePath =>
+    ensureArtifact().then((cachePath) =>
       expect(cachePath).to.include(`.serverless${path.sep}artifacts`)
     ));
 });

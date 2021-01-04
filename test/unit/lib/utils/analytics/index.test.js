@@ -32,7 +32,7 @@ describe('analytics', () => {
     ({ report, sendPending } = proxyquire('../../../../../lib/utils/analytics/index.js', {
       '@serverless/utils/analytics-and-notfications-url': analyticsUrl,
       './areDisabled': false,
-      'node-fetch': url => {
+      'node-fetch': (url) => {
         usedUrl = url;
         ++pendingRequests;
         if (pendingRequests > concurrentRequestsMax) concurrentRequestsMax = pendingRequests;
@@ -63,11 +63,11 @@ describe('analytics', () => {
   });
 
   it('Should ignore missing cacheDirPath', () =>
-    sendPending().then(sendPendingResult => {
+    sendPending().then((sendPendingResult) => {
       expect(sendPendingResult).to.be.null;
       return sendReport().then(() => {
         expect(usedUrl).to.equal(analyticsUrl);
-        return fse.readdir(cacheDirPath).then(dirFilenames => {
+        return fse.readdir(cacheDirPath).then((dirFilenames) => {
           expect(dirFilenames.filter(isFilename).length).to.equal(0);
         });
       });
@@ -80,13 +80,13 @@ describe('analytics', () => {
         expect(usedUrl).to.equal(analyticsUrl);
         return fse.readdir(cacheDirPath);
       })
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(1);
         expectedState = 'success';
         return sendPending();
       })
       .then(() => fse.readdir(cacheDirPath))
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(0);
       });
   });
@@ -96,7 +96,7 @@ describe('analytics', () => {
     expect(pendingRequests).to.equal(0);
     let resolveServerlessExecutionSpan;
     const serverlessExecutionSpan = new BbPromise(
-      resolve => (resolveServerlessExecutionSpan = resolve)
+      (resolve) => (resolveServerlessExecutionSpan = resolve)
     );
     return Promise.all([
       sendReport(),
@@ -110,7 +110,7 @@ describe('analytics', () => {
       .then(() => {
         return fse.readdir(cacheDirPath);
       })
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(7);
         expectedState = 'success';
         expect(pendingRequests).to.equal(0);
@@ -118,7 +118,7 @@ describe('analytics', () => {
         return sendPending({ serverlessExecutionSpan });
       })
       .then(() => fse.readdir(cacheDirPath))
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(0);
         expect(concurrentRequestsMax).to.equal(3);
         resolveServerlessExecutionSpan();
@@ -140,13 +140,13 @@ describe('analytics', () => {
       .then(() => {
         return fse.readdir(cacheDirPath);
       })
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(7);
         expectedState = 'success';
         return sendPending();
       })
       .then(() => fse.readdir(cacheDirPath))
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(4);
         return fse.emptyDir(cacheDirPath);
       });
@@ -157,7 +157,7 @@ describe('analytics', () => {
     expect(pendingRequests).to.equal(0);
     let resolveServerlessExecutionSpan;
     const serverlessExecutionSpan = new BbPromise(
-      resolve => (resolveServerlessExecutionSpan = resolve)
+      (resolve) => (resolveServerlessExecutionSpan = resolve)
     );
     return Promise.all([
       cacheEvent(0),
@@ -171,7 +171,7 @@ describe('analytics', () => {
       .then(() => {
         return fse.readdir(cacheDirPath);
       })
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(7);
         expectedState = 'success';
         expect(pendingRequests).to.equal(0);
@@ -179,7 +179,7 @@ describe('analytics', () => {
         return sendPending({ serverlessExecutionSpan });
       })
       .then(() => fse.readdir(cacheDirPath))
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(0);
         expect(concurrentRequestsMax).to.equal(2);
         resolveServerlessExecutionSpan();
@@ -193,7 +193,7 @@ describe('analytics', () => {
       .then(() => {
         return fse.readdir(cacheDirPath);
       })
-      .then(dirFilenames => {
+      .then((dirFilenames) => {
         expect(dirFilenames.filter(isFilename).length).to.equal(0);
       });
   });

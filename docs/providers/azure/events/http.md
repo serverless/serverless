@@ -57,7 +57,7 @@ URL paths for the serverless functions are prefixed with "api" by default, e.g.
 
 'use strict';
 
-module.exports.hello = function(context, req) {
+module.exports.hello = function (context, req) {
   context.res = {
     body: 'Hello world!',
   };
@@ -78,7 +78,7 @@ In Node.js, the request object looks like an express request object.
 
 'use strict';
 
-module.exports.hello = function(context, req) {
+module.exports.hello = function (context, req) {
   const query = req.query; // dictionary of query strings
   const body = req.body; // Parsed body based on content-type
   const method = req.method; // HTTP Method (GET, POST, PUT, etc.)

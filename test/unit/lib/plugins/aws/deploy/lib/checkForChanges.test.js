@@ -125,7 +125,7 @@ describe('checkForChanges', () => {
     it('should resolve if no result is returned', () => {
       listObjectsV2Stub.resolves();
 
-      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then(result => {
+      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then((result) => {
         expect(listObjectsV2Stub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeploy.bucketName,
           Prefix: 'serverless/my-service/dev',
@@ -160,7 +160,7 @@ describe('checkForChanges', () => {
 
       listObjectsV2Stub.resolves(serviceObjects);
 
-      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then(result => {
+      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then((result) => {
         expect(listObjectsV2Stub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeploy.bucketName,
           Prefix: 'serverless/my-service/dev',
@@ -181,7 +181,7 @@ describe('checkForChanges', () => {
 
       listObjectsV2Stub.resolves(serviceObjects);
 
-      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then(result => {
+      return expect(awsDeploy.getMostRecentObjects()).to.be.fulfilled.then((result) => {
         expect(listObjectsV2Stub).to.have.been.calledWithExactly('S3', 'listObjectsV2', {
           Bucket: awsDeploy.bucketName,
           Prefix: 'serverless/my-service/dev',
@@ -206,7 +206,7 @@ describe('checkForChanges', () => {
     });
 
     it('should resolve if no input is provided', () =>
-      expect(awsDeploy.getObjectMetadata()).to.be.fulfilled.then(result => {
+      expect(awsDeploy.getObjectMetadata()).to.be.fulfilled.then((result) => {
         expect(headObjectStub).to.not.have.been.called;
         expect(result).to.deep.equal([]);
       }));
@@ -214,7 +214,7 @@ describe('checkForChanges', () => {
     it('should resolve if no objects are provided as input', () => {
       const input = [];
 
-      return expect(awsDeploy.getObjectMetadata(input)).to.be.fulfilled.then(result => {
+      return expect(awsDeploy.getObjectMetadata(input)).to.be.fulfilled.then((result) => {
         expect(headObjectStub).to.not.have.been.called;
         expect(result).to.deep.equal([]);
       });
@@ -290,11 +290,7 @@ describe('checkForChanges', () => {
 
     it('should resolve if objects are given, but no function last modified date', () => {
       globbySyncStub.returns(['my-service.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
 
       const input = [{ Metadata: { filesha256: 'remote-hash-cf-template' } }];
 
@@ -320,16 +316,8 @@ describe('checkForChanges', () => {
 
     it('should not set a flag if there are more remote hashes', () => {
       globbySyncStub.returns(['my-service.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-cf-template');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('local-hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('local-hash-zip-file-1');
 
       const input = [
         { Metadata: { filesha256: 'remote-hash-cf-template' } },
@@ -363,16 +351,8 @@ describe('checkForChanges', () => {
 
     it('should not set a flag if remote and local hashes are different', () => {
       globbySyncStub.returns(['my-service.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-cf-template');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('local-hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('local-hash-zip-file-1');
 
       const input = [
         { Metadata: { filesha256: 'remote-hash-cf-template' } },
@@ -401,22 +381,10 @@ describe('checkForChanges', () => {
 
     it('should not set a flag if remote and local hashes are the same but are duplicated', () => {
       globbySyncStub.returns(['func1.zip', 'func2.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('remote-hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(0).returns('remote-hash-cf-template');
       // happens when package.individually is used
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('remote-hash-zip-file-1');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(2)
-        .returns('remote-hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(1).returns('remote-hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(2).returns('remote-hash-zip-file-1');
 
       const input = [
         { Metadata: { filesha256: 'remote-hash-cf-template' } },
@@ -448,16 +416,8 @@ describe('checkForChanges', () => {
 
     it('should not set a flag if the hashes are equal, but the objects were modified after their functions', () => {
       globbySyncStub.returns(['my-service.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('hash-cf-template');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
 
       const now = new Date();
       const inThePast = new Date(new Date().getTime() - 100000);
@@ -490,16 +450,8 @@ describe('checkForChanges', () => {
 
     it('should set a flag if the remote and local hashes are equal', () => {
       globbySyncStub.returns(['my-service.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('hash-cf-template');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
 
       const input = [
         { Metadata: { filesha256: 'hash-cf-template' } },
@@ -528,16 +480,8 @@ describe('checkForChanges', () => {
 
     it('should set a flag if the remote and local hashes are equal, and the edit times are ordered', () => {
       globbySyncStub.returns(['my-service.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('hash-cf-template');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
 
       const longAgo = new Date(new Date().getTime() - 100000);
       const longerAgo = new Date(new Date().getTime() - 200000);
@@ -571,22 +515,10 @@ describe('checkForChanges', () => {
 
     it('should set a flag if the remote and local hashes are duplicated and equal', () => {
       globbySyncStub.returns(['func1.zip', 'func2.zip']);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
       // happens when package.individually is used
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('hash-zip-file-1');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(2)
-        .returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(1).returns('hash-zip-file-1');
+      cryptoStub.createHash().update().digest.onCall(2).returns('hash-zip-file-1');
 
       const input = [
         { Metadata: { filesha256: 'hash-cf-template' } },
@@ -623,16 +555,8 @@ describe('checkForChanges', () => {
       };
 
       globbySyncStub.returns([]);
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('hash-cf-template');
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(1)
-        .returns('local-my-own-hash');
+      cryptoStub.createHash().update().digest.onCall(0).returns('hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(1).returns('local-my-own-hash');
 
       const input = [
         { Metadata: { filesha256: 'hash-cf-template' } },
@@ -709,7 +633,7 @@ describe('checkForChanges', () => {
 
       sandbox.stub(awsDeploy, 'checkIfDeploymentIsNecessary').callsFake(
         () =>
-          new Promise(resolve => {
+          new Promise((resolve) => {
             awsDeploy.serverless.service.provider.shouldNotDeploy = true;
             resolve();
           })
@@ -920,7 +844,7 @@ describe('checkForChanges', () => {
         awsDeploy.serverless.service.setFunctionNames();
 
         return expect(awsDeploy.getFunctionsEarliestLastModifiedDate()).to.have.been.fulfilled.then(
-          ans => {
+          (ans) => {
             expect(getFunctionStub).to.have.not.been.called;
             expect(ans).to.be.null;
           }
@@ -950,7 +874,7 @@ describe('checkForChanges', () => {
         awsDeploy.serverless.service.setFunctionNames();
 
         return expect(awsDeploy.getFunctionsEarliestLastModifiedDate()).to.have.been.fulfilled.then(
-          ans => {
+          (ans) => {
             expect(ans.valueOf()).to.equal(new Date(0).valueOf());
             expect(getFunctionStub).to.have.been.calledTwice;
           }
@@ -991,7 +915,7 @@ describe('checkForChanges', () => {
         awsDeploy.serverless.service.setFunctionNames();
 
         return expect(awsDeploy.getFunctionsEarliestLastModifiedDate()).to.have.been.fulfilled.then(
-          ans => {
+          (ans) => {
             expect(ans.valueOf()).to.equal(longerAgo.valueOf());
             expect(getFunctionStub).to.have.been.calledThrice;
           }

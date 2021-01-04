@@ -74,7 +74,7 @@ describe('interactiveCli: initializeService', () => {
         lifecycleHookNamesBlacklist,
       })
         .then(() => lstat(join(newProjectPath, 'serverless.yml')))
-        .then(stats => expect(stats.isFile()).to.be.true);
+        .then((stats) => expect(stats.isFile()).to.be.true);
     });
   });
 
@@ -92,7 +92,7 @@ describe('interactiveCli: initializeService', () => {
       () => {
         throw new Error('Unexpected');
       },
-      error => expect(error.code).to.equal('INVALID_ANSWER')
+      (error) => expect(error.code).to.equal('INVALID_ANSWER')
     );
   });
 
@@ -110,7 +110,7 @@ describe('interactiveCli: initializeService', () => {
       () => {
         throw new Error('Unexpected');
       },
-      error => expect(error.code).to.equal('INVALID_ANSWER')
+      (error) => expect(error.code).to.equal('INVALID_ANSWER')
     );
   });
 });

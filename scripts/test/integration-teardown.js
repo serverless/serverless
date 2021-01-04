@@ -35,7 +35,7 @@ const {
   });
   try {
     await Promise.all(
-      describeResponse.NetworkInterfaces.map(networkInterface =>
+      describeResponse.NetworkInterfaces.map((networkInterface) =>
         awsRequest('EC2', 'deleteNetworkInterface', {
           NetworkInterfaceId: networkInterface.NetworkInterfaceId,
         })

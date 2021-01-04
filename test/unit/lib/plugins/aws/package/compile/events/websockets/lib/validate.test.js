@@ -264,9 +264,7 @@ describe('#validate()', () => {
       },
     };
     const validated = awsCompileWebsocketsEvents.validate();
-    expect(validated.events)
-      .to.be.an('Array')
-      .with.length(0);
+    expect(validated.events).to.be.an('Array').with.length(0);
   });
 });
 

@@ -859,7 +859,7 @@ describe('AwsCompileS3Events', () => {
 
       const lambdaPermissionsPolicies = cfTemplate.Resources.IamRoleCustomResourcesLambdaExecution.Properties.Policies[
         '0'
-      ].PolicyDocument.Statement.filter(x => x.Action[0].includes('AddPermission'));
+      ].PolicyDocument.Statement.filter((x) => x.Action[0].includes('AddPermission'));
 
       expect(lambdaPermissionsPolicies).to.have.length(1);
 

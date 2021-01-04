@@ -150,7 +150,7 @@ describe('createStack', () => {
 
       const createStub = sandbox.stub(awsDeploy, 'create').resolves();
 
-      return awsDeploy.createStack().catch(e => {
+      return awsDeploy.createStack().catch((e) => {
         expect(createStub.called).to.be.equal(false);
         expect(e.name).to.be.equal('ServerlessError');
         expect(e.message).to.be.equal(errorMock.message);

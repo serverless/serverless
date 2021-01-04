@@ -72,7 +72,7 @@ describe('#packageService()', () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
 
-      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then(exclude =>
+      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then((exclude) =>
         expect(exclude).to.deep.equal(
           _.union(packagePlugin.defaultExcludes, [serverlessConfigFileName], [localPath])
         )
@@ -86,7 +86,7 @@ describe('#packageService()', () => {
       const packageExcludes = ['dir', 'file.js'];
       serverless.service.package.exclude = packageExcludes;
 
-      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then(exclude =>
+      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then((exclude) =>
         expect(exclude).to.deep.equal(
           _.union(
             packagePlugin.defaultExcludes,
@@ -107,7 +107,7 @@ describe('#packageService()', () => {
 
       const funcExcludes = ['lib', 'other.js'];
 
-      return expect(packagePlugin.getExcludes(funcExcludes)).to.be.fulfilled.then(exclude =>
+      return expect(packagePlugin.getExcludes(funcExcludes)).to.be.fulfilled.then((exclude) =>
         expect(exclude).to.deep.equal(
           _.union(
             packagePlugin.defaultExcludes,
@@ -135,7 +135,7 @@ describe('#packageService()', () => {
 
       const packageFunctionStub = sinon
         .stub(packagePlugin, 'packageFunction')
-        .resolves(func => func.name);
+        .resolves((func) => func.name);
 
       return expect(packagePlugin.packageService()).to.be.fulfilled.then(
         () => expect(packageFunctionStub).to.be.calledTwice
@@ -157,8 +157,8 @@ describe('#packageService()', () => {
 
       const packageFunctionStub = sinon
         .stub(packagePlugin, 'packageFunction')
-        .resolves(func => func.name);
-      const packageAllStub = sinon.stub(packagePlugin, 'packageAll').resolves(func => func.name);
+        .resolves((func) => func.name);
+      const packageAllStub = sinon.stub(packagePlugin, 'packageAll').resolves((func) => func.name);
 
       return expect(packagePlugin.packageService()).to.be.fulfilled.then(() =>
         BbPromise.join(
@@ -192,8 +192,8 @@ describe('#packageService()', () => {
 
       const packageFunctionStub = sinon
         .stub(packagePlugin, 'packageFunction')
-        .resolves(func => func.name);
-      const packageAllStub = sinon.stub(packagePlugin, 'packageAll').resolves(func => func.name);
+        .resolves((func) => func.name);
+      const packageAllStub = sinon.stub(packagePlugin, 'packageAll').resolves((func) => func.name);
 
       return expect(packagePlugin.packageService()).to.be.fulfilled.then(() =>
         BbPromise.join(
@@ -219,8 +219,8 @@ describe('#packageService()', () => {
 
       const packageFunctionStub = sinon
         .stub(packagePlugin, 'packageFunction')
-        .resolves(func => func.name);
-      const packageAllStub = sinon.stub(packagePlugin, 'packageAll').resolves(func => func.name);
+        .resolves((func) => func.name);
+      const packageAllStub = sinon.stub(packagePlugin, 'packageAll').resolves((func) => func.name);
 
       return expect(packagePlugin.packageService()).to.be.fulfilled.then(() =>
         BbPromise.join(
@@ -361,7 +361,7 @@ describe('#packageService()', () => {
 
       return expect(
         packagePlugin.resolveFilePathsFromPatterns(params)
-      ).to.be.fulfilled.then(actual => expect(actual).to.deep.equal([handlerFile]));
+      ).to.be.fulfilled.then((actual) => expect(actual).to.deep.equal([handlerFile]));
     });
 
     it('should include file specified with `!` in exclude params', () => {
@@ -373,7 +373,7 @@ describe('#packageService()', () => {
 
       return expect(
         packagePlugin.resolveFilePathsFromPatterns(params)
-      ).to.be.fulfilled.then(actual =>
+      ).to.be.fulfilled.then((actual) =>
         expect(actual.sort()).to.deep.equal([handlerFile, utilsFile].sort())
       );
     });
@@ -388,7 +388,7 @@ describe('#packageService()', () => {
 
       return expect(
         packagePlugin.resolveFilePathsFromPatterns(params)
-      ).to.be.fulfilled.then(actual => expect(actual.sort()).to.deep.equal(expected.sort()));
+      ).to.be.fulfilled.then((actual) => expect(actual.sort()).to.deep.equal(expected.sort()));
     });
   });
 });

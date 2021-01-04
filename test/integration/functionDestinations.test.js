@@ -7,7 +7,7 @@ const { confirmCloudWatchLogs } = require('../utils/misc');
 
 const { deployService, removeService } = require('../utils/integration');
 
-describe('Function destinations Integration Test', function() {
+describe('Function destinations Integration Test', function () {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
   let stackName;
   let servicePath;
@@ -35,8 +35,8 @@ describe('Function destinations Integration Test', function() {
           InvocationType: 'Event',
         });
       },
-      { checkIsComplete: events => events.length }
-    ).then(events => {
+      { checkIsComplete: (events) => events.length }
+    ).then((events) => {
       expect(events.length > 0).to.equal(true);
     }));
 });

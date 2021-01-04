@@ -34,14 +34,14 @@ Here is an example in Node.js of how to follow the practices above. The job this
 const db = require('db').connect();
 const mailer = require('mailer');
 
-module.exports.saveUser = params => {
+module.exports.saveUser = (params) => {
   return Promise((resolve, reject) => {
     const user = {
       email: params.email,
       created_at: Date.now(),
     };
 
-    db.saveUser(user, function(err) {
+    db.saveUser(user, function (err) {
       if (err) {
         reject(err);
       } else {
@@ -76,7 +76,7 @@ class Users {
         created_at: Date.now(),
       };
 
-      this.db.saveUser(user, function(err) {
+      this.db.saveUser(user, function (err) {
         if (err) {
           reject(err);
         } else {
@@ -98,7 +98,7 @@ const Users = require('users');
 
 let users = new Users(db, mailer);
 
-module.exports.saveUser = params => {
+module.exports.saveUser = (params) => {
   return users.save(params.email);
 };
 ```

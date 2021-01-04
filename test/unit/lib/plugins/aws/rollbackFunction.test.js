@@ -103,7 +103,7 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
-        return awsRollbackFunction.getFunctionToBeRestored().then(result => {
+        return awsRollbackFunction.getFunctionToBeRestored().then((result) => {
           expect(getFunctionStub.calledOnce).to.equal(true);
           expect(
             getFunctionStub.calledWithExactly('Lambda', 'getFunction', {
@@ -134,7 +134,7 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
-        return awsRollbackFunction.getFunctionToBeRestored().catch(error => {
+        return awsRollbackFunction.getFunctionToBeRestored().catch((error) => {
           expect(error.message.match(/Function "hello" with version "4711" not found/));
           expect(getFunctionStub.calledOnce).to.equal(true);
           expect(
@@ -165,7 +165,7 @@ describe('AwsRollbackFunction', () => {
         awsRollbackFunction.options.function = 'hello';
         awsRollbackFunction.options['function-version'] = '4711';
 
-        return awsRollbackFunction.getFunctionToBeRestored().catch(error => {
+        return awsRollbackFunction.getFunctionToBeRestored().catch((error) => {
           expect(error.message.match(/something went wrong/));
           expect(getFunctionStub.calledOnce).to.equal(true);
           expect(

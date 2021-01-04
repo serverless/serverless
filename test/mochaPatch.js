@@ -14,8 +14,8 @@ BbPromise.config({
 
 const { runnerEmitter } = require('@serverless/test/setup/patch');
 
-runnerEmitter.on('runner', runner => {
-  runner.on('suite end', suite => {
+runnerEmitter.on('runner', (runner) => {
+  runner.on('suite end', (suite) => {
     if (!suite.parent || !suite.parent.root) return;
 
     // Ensure to reset memoization on artifacts generation after each test file run.

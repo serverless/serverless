@@ -29,7 +29,7 @@ describe('AwsConfigCredentials', () => {
       () => {
         throw new Error('Unexpected ~/.aws directory, related tests aborted');
       },
-      error => {
+      (error) => {
         if (error.code === 'ENOENT') return;
         throw error;
       }
@@ -118,7 +118,7 @@ describe('AwsConfigCredentials', () => {
         expect(awsConfigCredentials.options.profile).to.equal('default');
       }));
 
-    it('should resolve if the provider option is not "aws"', done => {
+    it('should resolve if the provider option is not "aws"', (done) => {
       awsConfigCredentials.options.provider = 'invalid-provider';
 
       awsConfigCredentials.configureCredentials().then(() => done());
@@ -131,7 +131,7 @@ describe('AwsConfigCredentials', () => {
         () => {
           throw new Error('Unexpected');
         },
-        error =>
+        (error) =>
           expect(error.message).to.include('Please include --key and --secret options for AWS')
       );
     });

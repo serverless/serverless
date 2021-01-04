@@ -74,7 +74,7 @@ describe('Create', () => {
         downloadStub.rejects(new Error('Wrong'));
         create.options['template-url'] = 'https://github.com/serverless/serverless';
 
-        return create.create().catch(error => {
+        return create.create().catch((error) => {
           expect(error).to.match(/Wrong/);
           expect(downloadStub).to.have.been.calledOnce; // eslint-disable-line
         });
@@ -85,7 +85,7 @@ describe('Create', () => {
         create.options['template-url'] = 'https://github.com/serverless/serverless';
 
         return create.create().then(() => {
-          const installationMessage = logSpy.args.filter(arg =>
+          const installationMessage = logSpy.args.filter((arg) =>
             arg[0].includes('installed "serverless"')
           );
 
@@ -100,7 +100,7 @@ describe('Create', () => {
         create.options.name = 'sls';
 
         return create.create().then(() => {
-          const installationMessage = logSpy.args.filter(arg =>
+          const installationMessage = logSpy.args.filter((arg) =>
             arg[0].includes('installed "serverless" as "sls"')
           );
 
@@ -121,7 +121,7 @@ describe('Create', () => {
       create.options.name = 'my_service';
 
       return create.create().then(() =>
-        create.serverless.yamlParser.parse(path.join(tmpDir, 'serverless.yml')).then(obj => {
+        create.serverless.yamlParser.parse(path.join(tmpDir, 'serverless.yml')).then((obj) => {
           expect(obj.service).to.equal('my_service');
         })
       );
@@ -149,7 +149,7 @@ describe('Create', () => {
       create.options.template = 'aws-clojure-gradle';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -170,7 +170,7 @@ describe('Create', () => {
       create.options.template = 'aws-clojurescript-gradle';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -206,7 +206,7 @@ describe('Create', () => {
       create.options.template = 'aws-nodejs-typescript';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
         expect(dirContent).to.include('.gitignore');
@@ -316,7 +316,7 @@ describe('Create', () => {
       create.options.template = 'aws-java-maven';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -341,7 +341,7 @@ describe('Create', () => {
       create.options.template = 'aws-kotlin-jvm-maven';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -366,7 +366,7 @@ describe('Create', () => {
       create.options.template = 'aws-kotlin-jvm-gradle';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -391,7 +391,7 @@ describe('Create', () => {
       create.options.template = 'aws-kotlin-jvm-gradle-kts';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -417,7 +417,7 @@ describe('Create', () => {
       create.options.template = 'aws-kotlin-nodejs-gradle';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -446,7 +446,7 @@ describe('Create', () => {
       create.options.template = 'aws-java-gradle';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -475,7 +475,7 @@ describe('Create', () => {
       create.options.template = 'aws-groovy-gradle';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -504,7 +504,7 @@ describe('Create', () => {
       create.options.template = 'aws-scala-sbt';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -522,7 +522,7 @@ describe('Create', () => {
       create.options.template = 'openwhisk-java-maven';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
         expect(dirContent).to.include('pom.xml');
@@ -786,7 +786,7 @@ describe('Create', () => {
       create.options.template = 'knative-docker';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
         expect(dirContent).to.include('package.json');
@@ -841,7 +841,7 @@ describe('Create', () => {
       create.options.template = 'spotinst-java8';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -860,7 +860,7 @@ describe('Create', () => {
       create.options.template = 'fn-nodejs';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
         expect(dirContent).to.include('package.json');
@@ -877,7 +877,7 @@ describe('Create', () => {
       create.options.template = 'fn-go';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
         expect(dirContent).to.include('package.json');
@@ -1145,7 +1145,7 @@ describe('Create', () => {
       create.options.template = 'aws-go';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -1162,7 +1162,7 @@ describe('Create', () => {
       create.options.template = 'aws-go-dep';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 
@@ -1180,7 +1180,7 @@ describe('Create', () => {
       create.options.template = 'aws-go-mod';
 
       return create.create().then(() => {
-        const dirContent = walkDirSync(tmpDir).map(elem =>
+        const dirContent = walkDirSync(tmpDir).map((elem) =>
           elem.replace(path.join(tmpDir, path.sep), '')
         );
 

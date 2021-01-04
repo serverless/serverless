@@ -7,7 +7,7 @@ const { Kafka } = require('kafkajs');
 function consumer(event, context, callback) {
   const functionName = 'consumer';
   const { records } = event;
-  const messages = Object.values(records)[0].map(record =>
+  const messages = Object.values(records)[0].map((record) =>
     Buffer.from(record.value, 'base64').toString()
   );
   // eslint-disable-next-line no-console

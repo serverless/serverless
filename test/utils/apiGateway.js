@@ -24,7 +24,7 @@ function getResources(restApiId) {
     restApiId,
   };
 
-  return awsRequest('APIGateway', 'getResources', params).then(data => data.items);
+  return awsRequest('APIGateway', 'getResources', params).then((data) => data.items);
 }
 
 function findRestApis(name) {
@@ -34,8 +34,8 @@ function findRestApis(name) {
 
   function recursiveFind(found, position) {
     if (position) params.position = position;
-    return awsRequest('APIGateway', 'getRestApis', params).then(result => {
-      const matches = result.items.filter(restApi => restApi.name.match(name));
+    return awsRequest('APIGateway', 'getRestApis', params).then((result) => {
+      const matches = result.items.filter((restApi) => restApi.name.match(name));
       if (matches.length) {
         _.merge(found, matches);
       }

@@ -65,7 +65,7 @@ functions:
 'use strict';
 const uuidv4 = require('uuid/v4');
 
-module.exports.write = async function(context, req) {
+module.exports.write = async function (context, req) {
   context.log('JavaScript HTTP trigger function processed a request.');
 
   const input = req.body;

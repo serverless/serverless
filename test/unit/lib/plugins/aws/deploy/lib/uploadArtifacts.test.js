@@ -101,11 +101,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the CloudFormation file to the S3 bucket', () => {
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
 
       return awsDeploy.uploadCloudFormationFile().then(() => {
         expect(normalizeCloudFormationTemplateStub).to.have.been.calledOnce;
@@ -124,11 +120,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the CloudFormation file to a bucket with SSE bucket policy', () => {
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-cf-template');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-cf-template');
       awsDeploy.serverless.service.provider.deploymentBucketObject = {
         serverSideEncryption: 'AES256',
       };
@@ -170,11 +162,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the .zip file to the S3 bucket', () => {
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-zip-file');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       const tmpDirPath = getTmpDirPath();
       const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
@@ -197,11 +185,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should upload the .zip file to a bucket with SSE bucket policy', () => {
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-zip-file');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       const tmpDirPath = getTmpDirPath();
       const artifactFilePath = path.join(tmpDirPath, 'artifact.zip');
@@ -368,11 +352,7 @@ describe('uploadArtifacts', () => {
     it('should upload the custom resources .zip file to the S3 bucket', () => {
       fse.ensureFileSync(customResourcesFilePath);
 
-      cryptoStub
-        .createHash()
-        .update()
-        .digest.onCall(0)
-        .returns('local-hash-zip-file');
+      cryptoStub.createHash().update().digest.onCall(0).returns('local-hash-zip-file');
 
       return expect(awsDeploy.uploadCustomResources()).to.eventually.be.fulfilled.then(() => {
         expect(uploadStub).to.have.been.calledOnce;

@@ -7,7 +7,7 @@ const { publishIotData } = require('../utils/iot');
 const { confirmCloudWatchLogs } = require('../utils/misc');
 const { deployService, removeService } = require('../utils/integration');
 
-describe('AWS - IoT Integration Test', function() {
+describe('AWS - IoT Integration Test', function () {
   this.timeout(1000 * 60 * 100); // Involves time-taking deploys
   let iotTopic;
   let servicePath;

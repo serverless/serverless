@@ -3,7 +3,7 @@
 function handler(event, context, callback) {
   const functionName = 'provisionedFunc';
   const { Records } = event;
-  const messages = Records.map(record => {
+  const messages = Records.map((record) => {
     if (record.eventSource === 'aws:sqs') {
       return record.body;
     } else if (record.eventSource === 'aws:kinesis') {

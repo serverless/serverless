@@ -8,7 +8,7 @@ const { confirmCloudWatchLogs } = require('../utils/misc');
 
 const { deployService, removeService, fetch } = require('../utils/integration');
 
-describe('HTTP API Integration Test', function() {
+describe('HTTP API Integration Test', function () {
   this.timeout(1000 * 60 * 20); // Involves time-taking deploys
   let endpoint;
   let stackName;
@@ -18,7 +18,7 @@ describe('HTTP API Integration Test', function() {
   const resolveEndpoint = async () => {
     const result = await awsRequest('CloudFormation', 'describeStacks', { StackName: stackName });
     const endpointOutput = result.Stacks[0].Outputs.find(
-      output => output.OutputKey === 'HttpApiUrl'
+      (output) => output.OutputKey === 'HttpApiUrl'
     ).OutputValue;
     endpoint = endpointOutput.match(/https:\/\/.+\.execute-api\..+\.amazonaws\.com/)[0];
   };
@@ -41,7 +41,7 @@ describe('HTTP API Integration Test', function() {
           UserPoolId: poolId,
           ExplicitAuthFlows: ['ALLOW_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH'],
           PreventUserExistenceErrors: 'ENABLED',
-        }).then(result => result.UserPoolClient.ClientId),
+        }).then((result) => result.UserPoolClient.ClientId),
         awsRequest('CognitoIdentityServiceProvider', 'adminCreateUser', {
           UserPoolId: poolId,
           Username: userName,
@@ -174,7 +174,7 @@ describe('HTTP API Integration Test', function() {
       confirmCloudWatchLogs(`/aws/http-api/${stackName}`, async () => {
         const response = await fetch(`${endpoint}/some-post`, { method: 'POST' });
         await response.json();
-      }).then(events => {
+      }).then((events) => {
         expect(events.length > 0).to.equal(true);
       }));
   });
@@ -189,10 +189,10 @@ describe('HTTP API Integration Test', function() {
       return resolveEndpoint();
     });
 
-    after(async function() {
+    after(async function () {
       // Added temporarily to inspect random fails
       // TODO: Remove once properly diagnosed
-      if (this.test.parent.tests.some(test => test.state === 'failed')) return;
+      if (this.test.parent.tests.some((test) => test.state === 'failed')) return;
       log.notice('Removing service...');
       await removeService(servicePath);
     });

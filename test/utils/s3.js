@@ -24,11 +24,11 @@ function createAndRemoveInBucket(bucket, opts = {}) {
 }
 
 function emptyBucket(bucket) {
-  return awsRequest('S3', 'listObjects', { Bucket: bucket }).then(data => {
+  return awsRequest('S3', 'listObjects', { Bucket: bucket }).then((data) => {
     const items = data.Contents;
     const numItems = items.length;
     if (numItems) {
-      const keys = items.map(item => Object.assign({}, { Key: item.Key }));
+      const keys = items.map((item) => Object.assign({}, { Key: item.Key }));
       return awsRequest('S3', 'deleteObjects', {
         Bucket: bucket,
         Delete: {

@@ -21,7 +21,7 @@ describe('#resolveCfImportValue', () => {
           ],
         }),
     };
-    return resolveCfImportValue(provider, 'exportName').then(result => {
+    return resolveCfImportValue(provider, 'exportName').then((result) => {
       expect(result).to.equal('exportValue');
     });
   });

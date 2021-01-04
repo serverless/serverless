@@ -620,7 +620,7 @@ describe('CLI', () => {
     });
   });
 
-  describe('Integration tests', function() {
+  describe('Integration tests', function () {
     this.timeout(1000 * 60 * 10);
     const serverlessExec = require('../../../serverlessBinary');
     const env = resolveAwsEnv();

@@ -65,7 +65,7 @@ describe('validateTemplate', () => {
     it('should throw an error if the CloudFormation template is invalid', () => {
       validateTemplateStub.rejects({ message: 'Some error while validating' });
 
-      return expect(awsDeploy.validateTemplate()).to.be.rejected.then(error => {
+      return expect(awsDeploy.validateTemplate()).to.be.rejected.then((error) => {
         expect(awsDeploy.serverless.cli.log).to.have.been.called;
         expect(validateTemplateStub).to.have.been.calledOnce;
         expect(validateTemplateStub).to.have.been.calledWithExactly(

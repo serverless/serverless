@@ -19,7 +19,7 @@ describe('#credentials', () => {
       () => {
         throw new Error('Unexpected ~/.aws directory, related tests aborted');
       },
-      error => {
+      (error) => {
         if (error.code === 'ENOENT') return;
         throw error;
       }
@@ -58,14 +58,14 @@ describe('#credentials', () => {
     ].join('\n')}\n`;
 
     return new BbPromise((resolve, reject) => {
-      outputFile(credentialsFilePath, credentialsFileContent, error => {
+      outputFile(credentialsFilePath, credentialsFileContent, (error) => {
         if (error) reject(error);
         else resolve();
       });
     }).then(() =>
       credentials
         .resolveFileProfiles()
-        .then(resolvedProfiles => expect(resolvedProfiles).to.deep.equal(profiles))
+        .then((resolvedProfiles) => expect(resolvedProfiles).to.deep.equal(profiles))
     );
   });
 
@@ -102,7 +102,7 @@ describe('#credentials', () => {
       .then(() =>
         credentials
           .resolveFileProfiles()
-          .then(resolvedProfiles => expect(resolvedProfiles).to.deep.equal(profiles))
+          .then((resolvedProfiles) => expect(resolvedProfiles).to.deep.equal(profiles))
       );
   });
 });

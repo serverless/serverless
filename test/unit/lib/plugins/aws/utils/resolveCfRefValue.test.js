@@ -24,7 +24,7 @@ describe('#resolveCfRefValue', () => {
           ],
         }),
     };
-    return resolveCfRefValue(provider, 'myDB').then(result => {
+    return resolveCfRefValue(provider, 'myDB').then((result) => {
       expect(result).to.equal('stack-name-db-id');
     });
   });

@@ -55,7 +55,7 @@ The `script` property points to the file containing your Cloudflare Worker.
 ```javascript
 // helloWorld.js
 
-addEventListener('fetch', event => {
+addEventListener('fetch', (event) => {
   event.respondWith(handleRequest(event.request));
 });
 

@@ -14,7 +14,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         expect(() => {
           serverless.configSchemaHandler.schema.properties.service.name = 'changed';
         }).to.throw(Error);
@@ -25,7 +25,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         expect(() => {
           serverless.configSchemaHandler.schema.properties.plugins.properties = 'changed';
         }).to.throw(Error);
@@ -36,7 +36,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         expect(() => {
           serverless.configSchemaHandler.schema.properties.resources.something = 'changed';
         }).to.throw(Error);
@@ -47,7 +47,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         expect(() => {
           serverless.configSchemaHandler.schema.properties.package.properties.oneMore = {
             type: 'string',
@@ -60,7 +60,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         expect(() => {
           serverless.configSchemaHandler.schema.properties.layers.properties = 'changed';
         }).to.throw(Error);
@@ -82,7 +82,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         const expectedPieceOfSchema = {
           type: 'object',
           properties: {
@@ -103,7 +103,9 @@ describe('ConfigSchemaHandler', () => {
         expect(
           serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
             FUNCTION_NAME_PATTERN
-          ].properties.events.items.anyOf.find(definition => definition.required[0] === 'someEvent')
+          ].properties.events.items.anyOf.find(
+            (definition) => definition.required[0] === 'someEvent'
+          )
         ).to.deep.equal(expectedPieceOfSchema);
         return;
       });
@@ -131,8 +133,9 @@ describe('ConfigSchemaHandler', () => {
 
       const existingEventDefinition = serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
         FUNCTION_NAME_PATTERN
-      ].properties.events.items.anyOf.find(definition => definition.required[0] === 'existingEvent')
-        .properties.existingEvent;
+      ].properties.events.items.anyOf.find(
+        (definition) => definition.required[0] === 'existingEvent'
+      ).properties.existingEvent;
 
       expect(existingEventDefinition.properties).to.have.deep.property(
         'somePluginAdditionalEventProp',
@@ -152,7 +155,7 @@ describe('ConfigSchemaHandler', () => {
       const existingEventDefinition = serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
         FUNCTION_NAME_PATTERN
       ].properties.events.items.anyOf.find(
-        definition => definition.required[0] === 'existingComplexEvent'
+        (definition) => definition.required[0] === 'existingComplexEvent'
       ).properties.existingComplexEvent;
 
       expect(existingEventDefinition).to.deep.equal({
@@ -212,7 +215,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         const actualFunctionProperties =
           serverless.serverless.configSchemaHandler.schema.properties.functions.patternProperties[
             FUNCTION_NAME_PATTERN
@@ -248,7 +251,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         const someCustomStringProp = {
           type: 'string',
         };
@@ -278,7 +281,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         const expectedAppPropSchema = {
           type: 'string',
         };
@@ -307,7 +310,7 @@ describe('ConfigSchemaHandler', () => {
       return runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
-      }).then(serverless => {
+      }).then((serverless) => {
         const providerPieceOfSchema = {
           type: 'object',
           properties: {

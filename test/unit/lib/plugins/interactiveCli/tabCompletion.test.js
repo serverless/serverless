@@ -88,7 +88,7 @@ describe('interactiveCli: tabCompletion', () => {
       Promise.all([
         fs
           .readFileAsync(path.resolve(os.homedir(), '.bashrc'), 'utf8')
-          .then(bashRcContent =>
+          .then((bashRcContent) =>
             expect(bashRcContent).to.include(' ~/.config/tabtab/__tabtab.bash')
           ),
         fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),

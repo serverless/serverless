@@ -18,7 +18,7 @@ function createUserPoolClient(name, userPoolId) {
 }
 
 function deleteUserPool(name) {
-  return findUserPoolByName(name).then(pool =>
+  return findUserPoolByName(name).then((pool) =>
     awsRequest('CognitoIdentityServiceProvider', 'deleteUserPool', { UserPoolId: pool.Id })
   );
 }
@@ -37,8 +37,8 @@ function findUserPoolByName(name) {
   const pools = [];
   function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
-    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then(result => {
-      pools.push(...result.UserPools.filter(pool => pool.Name === name));
+    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then((result) => {
+      pools.push(...result.UserPools.filter((pool) => pool.Name === name));
       if (result.NextToken) return recursiveFind(result.NextToken);
       switch (pools.length) {
         case 0:
@@ -60,8 +60,8 @@ function findUserPools() {
   const pools = [];
   function recursiveFind(nextToken) {
     if (nextToken) params.NextToken = nextToken;
-    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then(result => {
-      pools.push(...result.UserPools.filter(pool => pool.Name.includes(' CUP ')));
+    return awsRequest('CognitoIdentityServiceProvider', 'listUserPools', params).then((result) => {
+      pools.push(...result.UserPools.filter((pool) => pool.Name.includes(' CUP ')));
       if (result.NextToken) return recursiveFind(result.NextToken);
       return null;
     });
@@ -73,7 +73,7 @@ function findUserPools() {
 function describeUserPool(userPoolId) {
   return awsRequest('CognitoIdentityServiceProvider', 'describeUserPool', {
     UserPoolId: userPoolId,
-  }).then(result => {
+  }).then((result) => {
     awsLog.debug('cognito.describeUserPool %s %j', userPoolId, result);
     return result;
   });

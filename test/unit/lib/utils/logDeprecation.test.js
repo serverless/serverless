@@ -25,7 +25,7 @@ describe('#logDeprecation()', () => {
   it('Should log deprecation message if not disabled and first time', () => {
     let stdoutData = '';
     overrideStdoutWrite(
-      data => (stdoutData += data),
+      (data) => (stdoutData += data),
       () => logDeprecation('CODE1', 'Start using deprecation log')
     );
     expect(stdoutData).to.include('Start using deprecation log');
@@ -39,7 +39,7 @@ describe('#logDeprecation()', () => {
     logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
     let stdoutData = '';
     overrideStdoutWrite(
-      data => (stdoutData += data),
+      (data) => (stdoutData += data),
       () => logDeprecation('CODE1', 'Start using deprecation log')
     );
     expect(stdoutData).to.equal('');
@@ -56,7 +56,7 @@ describe('#logDeprecation()', () => {
       const serviceConfig = serverless.service;
       let stdoutData = '';
       overrideStdoutWrite(
-        data => (stdoutData += data),
+        (data) => (stdoutData += data),
         () => logDeprecation('CODE1', 'Start using deprecation log', { serviceConfig })
       );
       expect(stdoutData).to.equal('');
@@ -68,7 +68,7 @@ describe('#logDeprecation()', () => {
     logDeprecation = mockRequire.reRequire('../../../../lib/utils/logDeprecation');
     let stdoutData = '';
     overrideStdoutWrite(
-      data => (stdoutData += data),
+      (data) => (stdoutData += data),
       () => logDeprecation('CODE1', 'Start using deprecation log')
     );
     expect(stdoutData).to.equal('');
@@ -84,7 +84,7 @@ describe('#logDeprecation()', () => {
       const serviceConfig = serverless.service;
       let stdoutData = '';
       overrideStdoutWrite(
-        data => (stdoutData += data),
+        (data) => (stdoutData += data),
         () => logDeprecation('CODE1', 'Start using deprecation log', { serviceConfig })
       );
       expect(stdoutData).to.equal('');
@@ -94,7 +94,7 @@ describe('#logDeprecation()', () => {
   it('Should not log deprecation twice', () => {
     let stdoutData = '';
     overrideStdoutWrite(
-      data => (stdoutData += data),
+      (data) => (stdoutData += data),
       () => {
         logDeprecation('CODE1', 'Start using deprecation log');
         expect(stdoutData).to.include('Start using deprecation log');

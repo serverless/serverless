@@ -108,7 +108,7 @@ describe('#parse()', () => {
     expect(obj).to.equal('serverless');
   });
 
-  shortHandOptions.forEach(shortHandOption => {
+  shortHandOptions.forEach((shortHandOption) => {
     it(`should convert shorthand syntax "${shortHandOption.name}"`, () => {
       const tmpFilePath = 'anything.yml';
       const fileContents = shortHandOption.yaml;

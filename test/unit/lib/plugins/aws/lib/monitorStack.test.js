@@ -71,7 +71,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(0).resolves(updateStartEvent);
       describeStackEventsStub.onCall(1).resolves(updateFinishedEvent);
 
-      return awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 }).then(stackStatus => {
+      return awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 }).then((stackStatus) => {
         expect(describeStackEventsStub.callCount).to.be.equal(2);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -116,7 +116,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(0).resolves(updateStartEvent);
       describeStackEventsStub.onCall(1).resolves(updateFinishedEvent);
 
-      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).then(stackStatus => {
+      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).then((stackStatus) => {
         expect(describeStackEventsStub.callCount).to.be.equal(2);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -161,7 +161,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(0).resolves(updateStartEvent);
       describeStackEventsStub.onCall(1).resolves(updateFinishedEvent);
 
-      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).then(stackStatus => {
+      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).then((stackStatus) => {
         expect(describeStackEventsStub.callCount).to.be.equal(2);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -219,7 +219,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(nestedStackEvent);
       describeStackEventsStub.onCall(2).resolves(updateFinishedEvent);
 
-      return awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 }).then(stackStatus => {
+      return awsPlugin.monitorStack('create', cfDataMock, { frequency: 10 }).then((stackStatus) => {
         expect(describeStackEventsStub.callCount).to.be.equal(3);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -277,7 +277,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(nestedStackEvent);
       describeStackEventsStub.onCall(2).resolves(updateFinishedEvent);
 
-      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).then(stackStatus => {
+      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).then((stackStatus) => {
         expect(describeStackEventsStub.callCount).to.be.equal(3);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -335,7 +335,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(nestedStackEvent);
       describeStackEventsStub.onCall(2).resolves(updateFinishedEvent);
 
-      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).then(stackStatus => {
+      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).then((stackStatus) => {
         expect(describeStackEventsStub.callCount).to.be.equal(3);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -371,7 +371,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(0).resolves(updateStartEvent);
       describeStackEventsStub.onCall(1).rejects(stackNotFoundError);
 
-      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).then(stackStatus => {
+      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).then((stackStatus) => {
         expect(describeStackEventsStub.callCount).to.be.equal(2);
         expect(
           describeStackEventsStub.calledWithExactly('CloudFormation', 'describeStackEvents', {
@@ -443,7 +443,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(3).resolves(updateRollbackComplete);
 
-      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch(e => {
+      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch((e) => {
         let errorMessage = 'An error occurred: ';
         errorMessage += 'mochaS3 - Bucket already exists.';
         if (e.name !== 'ServerlessError') throw e;
@@ -525,7 +525,7 @@ describe('monitorStack', () => {
 
       describeStackEventsStub.onCall(0).rejects(failedDescribeStackEvents);
 
-      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch(e => {
+      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch((e) => {
         expect(e.message).to.be.equal('Something went wrong.');
         expect(describeStackEventsStub.callCount).to.be.equal(1);
         expect(
@@ -593,7 +593,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(3).resolves(updateRollbackFailedEvent);
 
-      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch(e => {
+      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch((e) => {
         let errorMessage = 'An error occurred: ';
         errorMessage += 'mochaS3 - Bucket already exists.';
         expect(e.name).to.be.equal('ServerlessError');
@@ -669,7 +669,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(2).resolves(deleteItemFailedEvent);
       describeStackEventsStub.onCall(3).resolves(deleteFailedEvent);
 
-      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).catch(e => {
+      return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).catch((e) => {
         let errorMessage = 'An error occurred: ';
         errorMessage += 'mochaLambda - You are not authorized to perform this operation.';
         expect(e.name).to.be.equal('ServerlessError');
@@ -749,7 +749,7 @@ describe('monitorStack', () => {
         describeStackEventsStub.onCall(2).resolves(deleteItemFailedEvent);
         describeStackEventsStub.onCall(3).resolves(deleteFailedEvent);
 
-        return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).catch(e => {
+        return awsPlugin.monitorStack('delete', cfDataMock, { frequency: 10 }).catch((e) => {
           let errorMessage = 'An error occurred: ';
           errorMessage += 'mochaLambda - You are not authorized to perform this operation.';
           expect(e.name).to.be.equal('ServerlessError');
@@ -941,7 +941,7 @@ describe('monitorStack', () => {
       describeStackEventsStub.onCall(1).resolves(updateRollbackEvent);
       describeStackEventsStub.onCall(2).resolves(updateRollbackCompleteEvent);
 
-      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch(e => {
+      return awsPlugin.monitorStack('update', cfDataMock, { frequency: 10 }).catch((e) => {
         let errorMessage = 'An error occurred: ';
         errorMessage += 'mocha - Export is in use.';
         expect(e.name).to.be.equal('ServerlessError');

@@ -362,7 +362,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   describe('`layers[].retain` property', () => {
     it('should ensure expected deletion policy for layer resource', () => {
       const layerResourceNamePrefix = naming.getLambdaLayerLogicalId('layerRetain');
-      const layerResourceName = Object.keys(cfResources).find(resourceName =>
+      const layerResourceName = Object.keys(cfResources).find((resourceName) =>
         resourceName.startsWith(layerResourceNamePrefix)
       );
       expect(layerResourceName).to.not.equal(layerResourceNamePrefix);
@@ -375,7 +375,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
         'layerRetain',
         allowedAccount
       );
-      const layerPermissionResourceName = Object.keys(cfResources).find(resourceName =>
+      const layerPermissionResourceName = Object.keys(cfResources).find((resourceName) =>
         resourceName.startsWith(layerPermissionResourceNamePrefix)
       );
       expect(layerPermissionResourceName).to.not.equal(layerPermissionResourceNamePrefix);
@@ -385,7 +385,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
 
     it('should ensure unique resource id per layer version', async () => {
       const layerResourceNamePrefix = naming.getLambdaLayerLogicalId('layerRetain');
-      const firstLayerResourceName = Object.keys(cfResources).find(resourceName =>
+      const firstLayerResourceName = Object.keys(cfResources).find((resourceName) =>
         resourceName.startsWith(layerResourceNamePrefix)
       );
 

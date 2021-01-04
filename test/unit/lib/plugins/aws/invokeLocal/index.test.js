@@ -442,7 +442,7 @@ describe('AwsInvokeLocal', () => {
       [
         { path: 'handler.hello', expected: 'handler' },
         { path: '.build/handler.hello', expected: '.build/handler' },
-      ].forEach(item => {
+      ].forEach((item) => {
         it(`should call invokeLocalNodeJs for any node.js runtime version for ${item.path}`, async () => {
           awsInvokeLocal.options.functionObj.handler = item.path;
 
@@ -887,7 +887,7 @@ describe('AwsInvokeLocal', () => {
     afterEach(afterEachCallback);
 
     describe('context.remainingTimeInMillis', () => {
-      it('should become lower over time', async function() {
+      it('should become lower over time', async function () {
         // skipping in CI for now due to handler loading issues
         // in the Windows machine on Travis CI
         if (process.env.CI) {
@@ -939,7 +939,7 @@ describe('AwsInvokeLocal', () => {
     afterEach(afterEachCallback);
 
     describe('context.remainingTimeInMillis', () => {
-      it('should become lower over time', async function() {
+      it('should become lower over time', async function () {
         awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
 
         try {
@@ -958,7 +958,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     describe('calling a class method', () => {
-      it('should execute', async function() {
+      it('should execute', async function () {
         awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
 
         try {
@@ -980,7 +980,7 @@ describe('AwsInvokeLocal', () => {
     });
 
     describe('context.deadlineMs', () => {
-      it('should return deadline', async function() {
+      it('should return deadline', async function () {
         awsInvokeLocal.serverless.config.servicePath = tmpServicePath;
 
         try {

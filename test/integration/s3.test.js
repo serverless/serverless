@@ -9,7 +9,7 @@ const { createBucket, createAndRemoveInBucket, deleteBucket } = require('../util
 const { deployService, removeService } = require('../utils/integration');
 const { confirmCloudWatchLogs } = require('../utils/misc');
 
-describe('AWS - S3 Integration Test', function() {
+describe('AWS - S3 Integration Test', function () {
   this.timeout(1000 * 60 * 10); // Involves time-taking deploys
   let stackName;
   let servicePath;
@@ -56,7 +56,7 @@ describe('AWS - S3 Integration Test', function() {
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
         createAndRemoveInBucket(bucketMinimalSetup)
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(/aws:s3/g.test(logs)).to.equal(true);
         expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -72,7 +72,7 @@ describe('AWS - S3 Integration Test', function() {
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
         createAndRemoveInBucket(bucketExtendedSetup, { prefix: 'photos/', suffix: '.jpg' })
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(/aws:s3/g.test(logs)).to.equal(true);
         expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);
@@ -88,7 +88,7 @@ describe('AWS - S3 Integration Test', function() {
 
       return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, () =>
         createAndRemoveInBucket(bucketCustomName)
-      ).then(events => {
+      ).then((events) => {
         const logs = events.reduce((data, event) => data + event.message, '');
         expect(/aws:s3/g.test(logs)).to.equal(true);
         expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -108,7 +108,7 @@ describe('AWS - S3 Integration Test', function() {
             prefix: 'Files/',
             suffix: '.TXT',
           })
-        ).then(events => {
+        ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -127,7 +127,7 @@ describe('AWS - S3 Integration Test', function() {
             prefix: 'photos',
             suffix: '.jpg',
           })
-        ).then(events => {
+        ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -143,7 +143,7 @@ describe('AWS - S3 Integration Test', function() {
             prefix: 'photos',
             suffix: '.jpg',
           })
-        ).then(events => {
+        ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);
@@ -159,7 +159,7 @@ describe('AWS - S3 Integration Test', function() {
             prefix: 'photos',
             suffix: '.png',
           })
-        ).then(events => {
+        ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectCreated:Put/g.test(logs)).to.equal(true);
@@ -175,7 +175,7 @@ describe('AWS - S3 Integration Test', function() {
             prefix: 'photos',
             suffix: '.png',
           })
-        ).then(events => {
+        ).then((events) => {
           const logs = events.reduce((data, event) => data + event.message, '');
           expect(/aws:s3/g.test(logs)).to.equal(true);
           expect(/ObjectRemoved:Delete/g.test(logs)).to.equal(true);

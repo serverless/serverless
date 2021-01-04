@@ -46,7 +46,7 @@ functions:
 
 'use strict';
 
-module.exports.hello = function(context, item) {
+module.exports.hello = function (context, item) {
   context.log('Received item: ${item}');
   context.done();
 };

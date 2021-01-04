@@ -330,7 +330,7 @@ describe('Print', () => {
     [
       { value: 'hello_123@~:/+', description: 'ascii chars' },
       { value: '①⑴⒈⒜Ⓐⓐⓟ ..▉가Ὠ', description: 'unicode chars' },
-    ].forEach(testCase => {
+    ].forEach((testCase) => {
       it(testCase.description, () => {
         const conf = {
           custom: {

@@ -59,7 +59,7 @@ describe('PluginUtils', () => {
       }).to.throw(Error);
     });
 
-    it('should resolve if the cwd is a Serverless service', done => {
+    it('should resolve if the cwd is a Serverless service', (done) => {
       pluginUtils.serverless.config.servicePath = true;
 
       pluginUtils.validate().then(() => done());
@@ -79,7 +79,7 @@ describe('PluginUtils', () => {
       fse.ensureFileSync(serverlessYmlFilePath);
 
       return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        serverlessFilePath => {
+        (serverlessFilePath) => {
           expect(serverlessFilePath).to.equal(serverlessYmlFilePath);
         }
       );
@@ -90,7 +90,7 @@ describe('PluginUtils', () => {
       fse.ensureFileSync(serverlessYamlFilePath);
 
       return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        serverlessFilePath => {
+        (serverlessFilePath) => {
           expect(serverlessFilePath).to.equal(serverlessYamlFilePath);
         }
       );
@@ -101,7 +101,7 @@ describe('PluginUtils', () => {
       fse.ensureFileSync(serverlessJsonFilePath);
 
       return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        serverlessFilePath => {
+        (serverlessFilePath) => {
           expect(serverlessFilePath).to.equal(serverlessJsonFilePath);
         }
       );
@@ -112,7 +112,7 @@ describe('PluginUtils', () => {
       fse.ensureFileSync(serverlessJsFilePath);
 
       return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        serverlessFilePath => {
+        (serverlessFilePath) => {
           expect(serverlessFilePath).to.equal(serverlessJsFilePath);
         }
       );
@@ -142,7 +142,7 @@ describe('PluginUtils', () => {
     it('should fetch and return the plugins from the plugins repository', () => {
       const endpoint = 'https://raw.githubusercontent.com/serverless/plugins/master/plugins.json';
 
-      return pluginWithFetchStub.getPlugins().then(result => {
+      return pluginWithFetchStub.getPlugins().then((result) => {
         expect(fetchStub.calledOnce).to.equal(true);
         expect(fetchStub.args[0][0]).to.equal(endpoint);
         expect(result).to.deep.equal(plugins);
@@ -177,7 +177,7 @@ describe('PluginUtils', () => {
       expectedMessage += `${chalk.yellow.underline('serverless-plugin-2')}`;
       expectedMessage += ' - Serverless Plugin 2\n';
       expectedMessage = expectedMessage.slice(0, -2);
-      return expect(pluginUtils.display(plugins)).to.be.fulfilled.then(message => {
+      return expect(pluginUtils.display(plugins)).to.be.fulfilled.then((message) => {
         expect(consoleLogStub.calledTwice).to.equal(true);
         expect(message).to.equal(expectedMessage);
       });
@@ -186,7 +186,7 @@ describe('PluginUtils', () => {
     it('should print a message when no plugins are available to display', () => {
       const expectedMessage = 'There are no plugins available to display';
 
-      return pluginUtils.display([]).then(message => {
+      return pluginUtils.display([]).then((message) => {
         expect(consoleLogStub.calledOnce).to.equal(true);
         expect(message).to.equal(expectedMessage);
       });

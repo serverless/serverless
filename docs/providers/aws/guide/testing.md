@@ -40,7 +40,7 @@ module.exports.saveUser = (event, context, callback) => {
     created_at: Date.now(),
   };
 
-  db.saveUser(user, function(err) {
+  db.saveUser(user, function (err) {
     if (err) {
       callback(err);
     } else {
@@ -73,7 +73,7 @@ class Users {
       created_at: Date.now(),
     };
 
-    this.db.saveUser(user, function(err) {
+    this.db.saveUser(user, function (err) {
       if (err) {
         callback(err);
       } else {

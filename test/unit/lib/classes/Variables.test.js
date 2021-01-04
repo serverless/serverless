@@ -71,7 +71,7 @@ describe('Variables', () => {
         .returns(BbPromise.resolve());
       const populateObjectStub = sinon
         .stub(serverless.variables, 'populateObjectImpl')
-        .callsFake(val => {
+        .callsFake((val) => {
           expect(val).to.equal(serverless.service);
           expect(val.provider.variableSyntax).to.be.undefined;
           expect(val.serverless).to.be.undefined;
@@ -88,14 +88,14 @@ describe('Variables', () => {
     it('should clear caches and remaining state *before* [pre]populating service', () => {
       const prepopulateServiceStub = sinon
         .stub(serverless.variables, 'prepopulateService')
-        .callsFake(val => {
+        .callsFake((val) => {
           expect(serverless.variables.deep).to.eql([]);
           expect(serverless.variables.tracker.getAll()).to.eql([]);
           return BbPromise.resolve(val);
         });
       const populateObjectStub = sinon
         .stub(serverless.variables, 'populateObjectImpl')
-        .callsFake(val => {
+        .callsFake((val) => {
           expect(serverless.variables.deep).to.eql([]);
           expect(serverless.variables.tracker.getAll()).to.eql([]);
           return BbPromise.resolve(val);
@@ -115,7 +115,7 @@ describe('Variables', () => {
     it('should clear caches and remaining *after* [pre]populating service', () => {
       const prepopulateServiceStub = sinon
         .stub(serverless.variables, 'prepopulateService')
-        .callsFake(val => {
+        .callsFake((val) => {
           serverless.variables.deep.push('${foo:}');
           const promise = BbPromise.resolve(val);
           serverless.variables.tracker.add('foo:', promise, '${foo:}');
@@ -124,7 +124,7 @@ describe('Variables', () => {
         });
       const populateObjectStub = sinon
         .stub(serverless.variables, 'populateObjectImpl')
-        .callsFake(val => {
+        .callsFake((val) => {
           serverless.variables.deep.push('${bar:}');
           const promise = BbPromise.resolve(val);
           serverless.variables.tracker.add('bar:', promise, '${bar:}');
@@ -155,12 +155,12 @@ describe('Variables', () => {
         { value: 'でsu', description: 'mixed japanese leading' },
         { value: 'suごi', description: 'mixed japanese middle' },
         { value: '①⑴⒈⒜Ⓐⓐⓟ ..▉가Ὠ', description: 'random unicode' },
-      ].forEach(testCase => {
+      ].forEach((testCase) => {
         it(testCase.description, () => {
           serverless.variables.service.custom = {
             settings: `\${self:nonExistent, "${testCase.value}"}`,
           };
-          return serverless.variables.populateService().should.be.fulfilled.then(result => {
+          return serverless.variables.populateService().should.be.fulfilled.then((result) => {
             expect(result.custom).to.be.deep.eql({
               settings: testCase.value,
             });
@@ -173,7 +173,7 @@ describe('Variables', () => {
       serverless.variables.service.custom = {
         settings: '${opt:nonExistent, "fallback"}',
       };
-      return serverless.variables.populateService().should.be.fulfilled.then(result => {
+      return serverless.variables.populateService().should.be.fulfilled.then((result) => {
         expect(result.custom).to.be.deep.eql({
           settings: 'fallback',
         });
@@ -184,7 +184,7 @@ describe('Variables', () => {
       serverless.variables.service.custom = {
         settings: '${env:nonExistent, "fallback"}',
       };
-      return serverless.variables.populateService().should.be.fulfilled.then(result => {
+      return serverless.variables.populateService().should.be.fulfilled.then((result) => {
         expect(result.custom).to.be.deep.eql({
           settings: 'fallback',
         });
@@ -202,7 +202,7 @@ describe('Variables', () => {
 
         return serverless.variables
           .populateService()
-          .should.be.fulfilled.then(result => {
+          .should.be.fulfilled.then((result) => {
             expect(result.custom).to.be.deep.eql({
               settings: 'fallback',
             });
@@ -227,7 +227,7 @@ describe('Variables', () => {
 
         return serverless.variables
           .populateService()
-          .should.be.fulfilled.then(result => {
+          .should.be.fulfilled.then((result) => {
             expect(result.custom).to.be.deep.eql({
               settings: 'fallback',
             });
@@ -256,7 +256,7 @@ describe('Variables', () => {
 
         return serverless.variables
           .populateService()
-          .should.be.fulfilled.then(result => {
+          .should.be.fulfilled.then((result) => {
             expect(result.custom.settings1).to.not.equal(result.custom.settings2);
           })
           .finally(() => {
@@ -283,7 +283,7 @@ describe('Variables', () => {
         serverless.variables.service.custom = {
           settings: '${s3:bucket/key, "fallback"}',
         };
-        return serverless.variables.populateService().should.be.fulfilled.then(result => {
+        return serverless.variables.populateService().should.be.fulfilled.then((result) => {
           expect(result.custom).to.be.deep.eql({
             settings: 'fallback',
           });
@@ -294,7 +294,7 @@ describe('Variables', () => {
         serverless.variables.service.custom = {
           settings: '${cf:stack.value, "fallback"}',
         };
-        return serverless.variables.populateService().should.be.fulfilled.then(result => {
+        return serverless.variables.populateService().should.be.fulfilled.then((result) => {
           expect(result.custom).to.be.deep.eql({
             settings: 'fallback',
           });
@@ -305,7 +305,7 @@ describe('Variables', () => {
         serverless.variables.service.custom = {
           settings: '${ssm:/path/param, "fallback"}',
         };
-        return serverless.variables.populateService().should.be.fulfilled.then(result => {
+        return serverless.variables.populateService().should.be.fulfilled.then((result) => {
           expect(result.custom).to.be.deep.eql({
             settings: 'fallback',
           });
@@ -343,28 +343,28 @@ describe('Variables', () => {
       requestStub.restore();
     });
     const prepopulatedProperties = [
-      { name: 'region', getter: provider => provider.getRegion() },
-      { name: 'stage', getter: provider => provider.getStage() },
-      { name: 'profile', getter: provider => provider.getProfile() },
+      { name: 'region', getter: (provider) => provider.getRegion() },
+      { name: 'stage', getter: (provider) => provider.getStage() },
+      { name: 'profile', getter: (provider) => provider.getProfile() },
       {
         name: 'credentials',
-        getter: provider => provider.serverless.service.provider.credentials,
+        getter: (provider) => provider.serverless.service.provider.credentials,
       },
       {
         name: 'credentials.accessKeyId',
-        getter: provider => provider.serverless.service.provider.credentials.accessKeyId,
+        getter: (provider) => provider.serverless.service.provider.credentials.accessKeyId,
       },
       {
         name: 'credentials.secretAccessKey',
-        getter: provider => provider.serverless.service.provider.credentials.secretAccessKey,
+        getter: (provider) => provider.serverless.service.provider.credentials.secretAccessKey,
       },
       {
         name: 'credentials.sessionToken',
-        getter: provider => provider.serverless.service.provider.credentials.sessionToken,
+        getter: (provider) => provider.serverless.service.provider.credentials.sessionToken,
       },
     ];
     describe('basic population tests', () => {
-      prepopulatedProperties.forEach(property => {
+      prepopulatedProperties.forEach((property) => {
         it(`should populate variables in ${property.name} values`, () => {
           _.set(
             awsProvider.serverless.service.provider,
@@ -386,8 +386,8 @@ describe('Variables', () => {
         { value: '${s3:bucket/key}', name: 'S3' },
         { value: '${ssm:/path/param}', name: 'SSM' },
       ];
-      prepopulatedProperties.forEach(property => {
-        dependentConfigs.forEach(config => {
+      prepopulatedProperties.forEach((property) => {
+        dependentConfigs.forEach((config) => {
           it(`should reject ${config.name} variables in ${property.name} values`, () => {
             _.set(awsProvider.serverless.service.provider, property.name, config.value);
             return serverless.variables
@@ -413,7 +413,7 @@ describe('Variables', () => {
         { region: '${self:foo, "foo"}', state: 'bar' },
         { region: '${self:foo, "foo"}', state: '${self:bar, "bar"}' },
       ];
-      stateCombinations.forEach(combination => {
+      stateCombinations.forEach((combination) => {
         it('must leave the dependent services in their original state', () => {
           const dependentMethods = [
             { name: 'getValueFromCf', original: serverless.variables.getValueFromCf },
@@ -423,7 +423,7 @@ describe('Variables', () => {
           awsProvider.serverless.service.provider.region = combination.region;
           awsProvider.serverless.service.provider.state = combination.state;
           return serverless.variables.populateService().should.be.fulfilled.then(() => {
-            dependentMethods.forEach(method => {
+            dependentMethods.forEach((method) => {
               expect(serverless.variables[method.name]).to.equal(method.original);
             });
           });
@@ -484,7 +484,7 @@ describe('Variables', () => {
 
       return serverless.variables
         .populateObject(object)
-        .then(populatedObject => {
+        .then((populatedObject) => {
           expect(populatedObject).to.deep.equal(expectedPopulatedObject);
         })
         .finally(() => serverless.variables.populateValue.restore());
@@ -501,7 +501,7 @@ describe('Variables', () => {
       expectedPopulatedObject['some.nested.key'] = 'hello';
       const populateValueStub = sinon.stub(serverless.variables, 'populateValue').callsFake(
         // eslint-disable-next-line no-template-curly-in-string
-        val => {
+        (val) => {
           return val === '${opt:stage}' ? BbPromise.resolve('prod') : BbPromise.resolve(val);
         }
       );
@@ -536,7 +536,7 @@ describe('Variables', () => {
           me: expected,
         };
         return expect(
-          serverless.variables.populateObject(service).then(result => {
+          serverless.variables.populateObject(service).then((result) => {
             expect(jc.stringify(result)).to.eql(jc.stringify(expected));
           })
         ).to.be.fulfilled;
@@ -553,7 +553,7 @@ describe('Variables', () => {
           val2: 'my value 0',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -568,7 +568,7 @@ describe('Variables', () => {
           val1: 'string',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -583,7 +583,7 @@ describe('Variables', () => {
           val1: '*',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -598,7 +598,7 @@ describe('Variables', () => {
           val1: 'foo*',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -613,7 +613,7 @@ describe('Variables', () => {
           val1: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -624,7 +624,7 @@ describe('Variables', () => {
         };
         const expected = { val0: undefined };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -639,7 +639,7 @@ describe('Variables', () => {
           val1: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -654,7 +654,7 @@ describe('Variables', () => {
           val1: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -671,7 +671,7 @@ describe('Variables', () => {
           val2: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -688,7 +688,7 @@ describe('Variables', () => {
           val2: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -705,7 +705,7 @@ describe('Variables', () => {
           val2: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -722,7 +722,7 @@ describe('Variables', () => {
           val2: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -741,7 +741,7 @@ describe('Variables', () => {
           val2: 'my value',
         };
         return expect(
-          serverless.variables.populateObject(service.custom).then(result => {
+          serverless.variables.populateObject(service.custom).then((result) => {
             expect(result).to.eql(expected);
           })
         ).to.be.fulfilled;
@@ -1454,7 +1454,7 @@ module.exports = {
       getValueFromSourceStub.onCall(2).resolves('variableValue');
       return serverless.variables
         .overwrite(['opt:stage', 'env:stage', 'self:provider.stage'])
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal('variableValue');
           expect(getValueFromSourceStub).to.have.been.calledThrice;
         })
@@ -1467,7 +1467,7 @@ module.exports = {
       getValueFromSourceStub.onCall(1).resolves('variableValue');
       return serverless.variables
         .overwrite(['opt:stage', 'env:stage'])
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal('variableValue');
           expect(getValueFromSourceStub).to.have.been.calledTwice;
         })
@@ -1480,7 +1480,7 @@ module.exports = {
       getValueFromSourceStub.onCall(1).resolves([]);
       return serverless.variables
         .overwrite(['opt:stage', 'env:stage'])
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.deep.equal([]);
           expect(getValueFromSourceStub).to.have.been.calledTwice;
         })
@@ -1516,7 +1516,7 @@ module.exports = {
       getValueFromSourceStub.onCall(2).resolves('variableValue2');
       return serverless.variables
         .overwrite(['opt:stage', 'env:stage', 'self:provider.stage'])
-        .should.be.fulfilled.then(valueToPopulate =>
+        .should.be.fulfilled.then((valueToPopulate) =>
           expect(valueToPopulate).to.equal('variableValue')
         )
         .finally(() => getValueFromSourceStub.restore());
@@ -1587,7 +1587,7 @@ module.exports = {
     it('should call getValueFromSls if referencing sls var', () =>
       serverless.variables
         .getValueFromSource('sls:instanceId')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromSlsStub).to.have.been.called;
           expect(getValueFromSlsStub).to.have.been.calledWith('sls:instanceId');
@@ -1596,7 +1596,7 @@ module.exports = {
     it('should call getValueFromEnv if referencing env var', () =>
       serverless.variables
         .getValueFromSource('env:TEST_VAR')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromEnvStub).to.have.been.called;
           expect(getValueFromEnvStub).to.have.been.calledWith('env:TEST_VAR');
@@ -1605,7 +1605,7 @@ module.exports = {
     it('should call getValueFromOptions if referencing an option', () =>
       serverless.variables
         .getValueFromSource('opt:stage')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromOptionsStub).to.have.been.called;
           expect(getValueFromOptionsStub).to.have.been.calledWith('opt:stage');
@@ -1614,7 +1614,7 @@ module.exports = {
     it('should call getValueFromSelf if referencing from self', () =>
       serverless.variables
         .getValueFromSource('self:provider')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromSelfStub).to.have.been.called;
           expect(getValueFromSelfStub).to.have.been.calledWith('self:provider');
@@ -1623,7 +1623,7 @@ module.exports = {
     it('should call getValueFromFile if referencing from another file', () =>
       serverless.variables
         .getValueFromSource('file(./config.yml)')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromFileStub).to.have.been.called;
           expect(getValueFromFileStub).to.have.been.calledWith('file(./config.yml)');
@@ -1632,7 +1632,7 @@ module.exports = {
     it('should call getValueFromCf if referencing CloudFormation Outputs', () =>
       serverless.variables
         .getValueFromSource('cf:test-stack.testOutput')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromCfStub).to.have.been.called;
           expect(getValueFromCfStub).to.have.been.calledWith('cf:test-stack.testOutput');
@@ -1641,7 +1641,7 @@ module.exports = {
     it('should call getValueFromS3 if referencing variable in S3', () =>
       serverless.variables
         .getValueFromSource('s3:test-bucket/path/to/key')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromS3Stub).to.have.been.called;
           expect(getValueFromS3Stub).to.have.been.calledWith('s3:test-bucket/path/to/key');
@@ -1650,7 +1650,7 @@ module.exports = {
     it('should call getValueFromSsm if referencing variable in SSM', () =>
       serverless.variables
         .getValueFromSource('ssm:/test/path/to/param')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(valueToPopulate).to.equal(variableValue);
           expect(getValueFromSsmStub).to.have.been.called;
           expect(getValueFromSsmStub).to.have.been.calledWith('ssm:/test/path/to/param');
@@ -1684,7 +1684,7 @@ module.exports = {
           variableString: 'ssm:/test/path/to/param',
         },
       ];
-      sources.forEach(source => {
+      sources.forEach((source) => {
         it(`should only call ${source.function} once, returning the cached value otherwise`, () => {
           const getValueFunctionStub =
             serverless.variables.variableResolvers[source.functionIndex].resolver;
@@ -1709,7 +1709,7 @@ module.exports = {
   describe('#getValueFromSls()', () => {
     it('should get variable from Serverless Framework provided variables', () => {
       serverless.instanceId = 12345678;
-      return serverless.variables.getValueFromSls('sls:instanceId').then(valueToPopulate => {
+      return serverless.variables.getValueFromSls('sls:instanceId').then((valueToPopulate) => {
         expect(valueToPopulate).to.equal(12345678);
       });
     });
@@ -1723,7 +1723,7 @@ module.exports = {
 
     it('should allow top-level references to the environment variables hive', () => {
       process.env.TEST_VAR = 'someValue';
-      return serverless.variables.getValueFromEnv('env:').then(valueToPopulate => {
+      return serverless.variables.getValueFromEnv('env:').then((valueToPopulate) => {
         expect(valueToPopulate.TEST_VAR).to.be.equal('someValue');
       });
     });
@@ -1813,7 +1813,7 @@ module.exports = {
       const readFileSyncStub = sinon.stub(serverless.utils, 'readFileSync').returns(configYml);
       return serverless.variables
         .getValueFromFile('file(~/somedir/config.yml)')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(realpathSync).to.not.have.been.called;
           expect(fileExistsStub).to.have.been.calledWithMatch(expectedFileName);
           expect(readFileSyncStub).to.have.been.calledWithMatch(expectedFileName);
@@ -1851,7 +1851,7 @@ module.exports = {
       const existsSync = sinon.spy(fse, 'existsSync');
       return serverless.variables
         .getValueFromFile('file(./non-existing.yml)')
-        .should.be.fulfilled.then(valueToPopulate => {
+        .should.be.fulfilled.then((valueToPopulate) => {
           expect(realpathSync).to.not.have.been.called;
           expect(existsSync).to.have.been.calledOnce;
           expect(valueToPopulate).to.be.undefined;
@@ -1870,7 +1870,7 @@ module.exports = {
       return serverless.variables.getValueFromFile('file(./someFile)').should.become('hello world');
     });
 
-    it('should populate symlinks', function() {
+    it('should populate symlinks', function () {
       const SUtils = new Utils();
       const tmpDirPath = getTmpDirPath();
       const realFilePath = path.join(tmpDirPath, 'someFile');
@@ -2593,13 +2593,13 @@ module.exports = {
     it('truthy string should throw an error', () => {
       return serverless.variables
         .getValueStrToBool('strToBool(anything)')
-        .catch(err => err.message)
+        .catch((err) => err.message)
         .should.become(errMessage);
     });
     it('null (string) should throw an error', () => {
       return serverless.variables
         .getValueStrToBool('strToBool(null)')
-        .catch(err => err.message)
+        .catch((err) => err.message)
         .should.become(errMessage);
     });
     it('strToBool(true) as an input to strToBool', () => {

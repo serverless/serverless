@@ -1865,9 +1865,9 @@ describe('lib/plugins/aws/package/compile/events/cloudFront/index.new.test.js', 
       },
     };
 
-    const getAssociatedCacheBehavior = pathPattern =>
+    const getAssociatedCacheBehavior = (pathPattern) =>
       cfResources.CloudFrontDistribution.Properties.DistributionConfig.CacheBehaviors.find(
-        cacheBehavior => cacheBehavior.PathPattern === pathPattern
+        (cacheBehavior) => cacheBehavior.PathPattern === pathPattern
       );
 
     before(async () => {

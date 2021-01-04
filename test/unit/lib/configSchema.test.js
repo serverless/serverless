@@ -131,7 +131,7 @@ describe('#configSchema', () => {
           if (someCase.logMessage) expect(stdoutData).to.include(someCase.logMessage);
           return;
         },
-        err => {
+        (err) => {
           try {
             expect(err.message).to.include(someCase.errorMessage);
           } catch (error) {
