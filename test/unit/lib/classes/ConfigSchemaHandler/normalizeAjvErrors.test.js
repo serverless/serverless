@@ -283,10 +283,10 @@ describe('#normalizeAjvErrors', () => {
       () =>
         expect(
           errors.some(error => {
-            if (error.dataPath !== '/provider') {
+            if (error.dataPath !== '/provider/deploymentBucket/maxPreviousDeploymentArtifacts') {
               return false;
             }
-            if (error.keyword !== 'anyOf') return false;
+            if (error.keyword !== 'type') return false;
             error.isExpected = true;
             return true;
           })
