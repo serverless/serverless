@@ -11,7 +11,8 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-> This is a deprecated feature of the dashboard. Please look at our documentaion for [Providers](https://www.serverless.com/framework/docs/guides/providers/) which replaces the use of deployment profiles for setting up AWS connections.
+> This is a deprecated feature of the dashboard. Please look at our documentaion for [Providers](https://www.serverless.com/framework/docs/guides/providers/) and
+> [Parameters](https://www.serverless.com/framework/docs/guides/parameters/) which replaces the use of deployment profiles for setting up AWS connections and parameters.
 
 # Deployment Profiles
 
