@@ -5,7 +5,7 @@
  */
 
 const chai = require('chai');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 const path = require('path');
 const Serverless = require('../../../../lib/Serverless');
 const { getTmpFilePath, getTmpDirPath } = require('../../../utils/fs');
@@ -21,7 +21,7 @@ describe('YamlParser', () => {
     it('should parse a simple .yaml file', () => {
       const tmpFilePath = getTmpFilePath('simple.yaml');
 
-      serverless.utils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
+      serverless.utils.writeFileSync(tmpFilePath, yaml.dump({ foo: 'bar' }));
 
       return expect(serverless.yamlParser.parse(tmpFilePath))
         .to.eventually.have.property('foo')
@@ -31,7 +31,7 @@ describe('YamlParser', () => {
     it('should parse a simple .yml file', () => {
       const tmpFilePath = getTmpFilePath('simple.yml');
 
-      serverless.utils.writeFileSync(tmpFilePath, YAML.dump({ foo: 'bar' }));
+      serverless.utils.writeFileSync(tmpFilePath, yaml.dump({ foo: 'bar' }));
 
       return expect(serverless.yamlParser.parse(tmpFilePath))
         .to.eventually.have.property('foo')

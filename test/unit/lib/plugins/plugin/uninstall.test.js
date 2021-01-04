@@ -3,7 +3,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 const path = require('path');
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const fse = require('fs-extra');
@@ -138,7 +138,7 @@ describe('PluginUninstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginUninstall.options.name = 'serverless-plugin-1';
 
@@ -159,7 +159,7 @@ describe('PluginUninstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginUninstall.options.name = 'serverless-not-in-registry-plugin';
 
@@ -179,7 +179,7 @@ describe('PluginUninstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
       pluginUninstall.options.name = 'serverless-plugin-1@1.0';
       return expect(pluginUninstall.uninstall()).to.be.fulfilled.then(() => {
         expect(pluginUninstall.options.pluginName).to.be.equal('serverless-plugin-1');
@@ -252,7 +252,7 @@ describe('PluginUninstall', () => {
         provider: 'aws',
         plugins: ['serverless-existing-plugin', 'serverless-plugin-1'],
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginUninstall.options.pluginName = 'serverless-plugin-1';
 
@@ -270,7 +270,7 @@ describe('PluginUninstall', () => {
         provider: 'aws',
         plugins: ['serverless-plugin-1'],
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginUninstall.options.pluginName = 'serverless-plugin-1';
 
@@ -288,7 +288,7 @@ describe('PluginUninstall', () => {
         provider: 'aws',
         plugins: ['serverless-plugin-1'],
       };
-      serverless.utils.writeFileSync(serverlessYamlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYamlFilePath, yaml.dump(serverlessYml));
       pluginUninstall.options.pluginName = 'serverless-plugin-1';
       return expect(pluginUninstall.removePluginFromServerlessFile()).to.be.fulfilled.then(() => {
         expect(serverless.utils.readFileSync(serverlessYamlFilePath, 'utf8')).to.not.have.property(
@@ -378,7 +378,7 @@ describe('PluginUninstall', () => {
             modules: ['serverless-existing-plugin', 'serverless-plugin-1'],
           },
         };
-        serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+        serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
         pluginUninstall.options.pluginName = 'serverless-plugin-1';
 
@@ -402,7 +402,7 @@ describe('PluginUninstall', () => {
             modules: ['serverless-plugin-1'],
           },
         };
-        serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+        serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
         pluginUninstall.options.pluginName = 'serverless-plugin-1';
 
