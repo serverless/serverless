@@ -47,8 +47,8 @@ fi
 if [[ $IS_IN_CHINA == "1" ]]
 then
 	# In China download from location in China (Github API download is slow and times out)
-  LATEST_TAG=`curl -L --silent https://sls-standalone-1300963013.cos.ap-shanghai.myqcloud.com/latest-tag`
-	BINARY_URL=https://sls-standalone-1300963013.cos.ap-shanghai.myqcloud.com/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+  LATEST_TAG=`curl -L --silent https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/latest-tag`
+	BINARY_URL=https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/$LATEST_TAG/serverless-$PLATFORM-$ARCH
 else
   LATEST_TAG=`curl -L --silent https://api.github.com/repos/serverless/serverless/releases/latest 2>&1 | grep 'tag_name' | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"`
 	BINARY_URL=https://github.com/serverless/serverless/releases/download/$LATEST_TAG/serverless-$PLATFORM-$ARCH

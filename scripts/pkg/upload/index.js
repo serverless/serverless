@@ -41,15 +41,4 @@ if (!/^v\d+\.\d+\.\d+$/.test(versionTag)) {
 }
 
 require('./world')(versionTag, { isLegacyVersion: argv.legacy });
-require('./china')(versionTag, { isLegacyVersion: argv.legacy }).catch(error => {
-  // TODO: Remove after China region accessibility issue is solved
-  process.stderr.write(`
-**************************************************
-
-ERROR: Upload of binaries to China region failed with:
-
-${error.stack}
-
-**************************************************
-`);
-});
+require('./china')(versionTag, { isLegacyVersion: argv.legacy });

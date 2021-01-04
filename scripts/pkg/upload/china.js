@@ -7,8 +7,8 @@ const chalk = require('chalk');
 const Cos = require('cos-nodejs-sdk-v5');
 
 const distPath = path.resolve(__dirname, '../../../dist');
-const TENCENT_BUCKET_NAME = 'sls-standalone-1300963013';
-const TENCENT_REGION = 'ap-shanghai';
+const TENCENT_BUCKET_NAME = 'sls-standalone-sv-1300963013';
+const TENCENT_REGION = 'na-siliconvalley';
 
 module.exports = async (versionTag, { isLegacyVersion }) => {
   if (!process.env.TENCENT_SECRET_KEY) {
