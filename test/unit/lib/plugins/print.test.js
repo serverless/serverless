@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 
 chai.use(require('chai-as-promised'));
 
@@ -51,7 +51,7 @@ describe('Print', () => {
 
       expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(YAML.load(message)).to.eql(conf);
+      expect(yaml.load(message)).to.eql(conf);
     });
   });
 
@@ -216,7 +216,7 @@ describe('Print', () => {
 
       expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(YAML.load(message)).to.eql(conf);
+      expect(yaml.load(message)).to.eql(conf);
     });
   });
 
@@ -248,7 +248,7 @@ describe('Print', () => {
 
       expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(YAML.load(message)).to.eql(expected);
+      expect(yaml.load(message)).to.eql(expected);
     });
   });
 
@@ -283,7 +283,7 @@ describe('Print', () => {
 
       expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(YAML.load(message)).to.eql(expected);
+      expect(yaml.load(message)).to.eql(expected);
     });
   });
 
@@ -322,7 +322,7 @@ describe('Print', () => {
 
       expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(YAML.load(message)).to.eql(expected);
+      expect(yaml.load(message)).to.eql(expected);
     });
   });
 
@@ -357,7 +357,7 @@ describe('Print', () => {
 
           expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
           expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-          expect(YAML.load(message)).to.eql(expected);
+          expect(yaml.load(message)).to.eql(expected);
         });
       });
     });

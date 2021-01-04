@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const Serverless = require('../../../lib/Serverless');
 const semverRegex = require('semver-regex');
 const path = require('path');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
 
@@ -183,7 +183,7 @@ describe('Serverless', () => {
         },
       };
 
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'), YAML.dump(serverlessYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'), yaml.dump(serverlessYml));
 
       serverless.config.update({ servicePath: tmpDirPath });
       serverless.pluginManager.cliOptions = {

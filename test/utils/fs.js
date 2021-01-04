@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
 const crypto = require('crypto');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 const JSZip = require('jszip');
 
 const tmpDirCommonPath = require('@serverless/test/process-tmp-dir');
@@ -36,13 +36,13 @@ function replaceTextInFile(filePath, subString, newSubString) {
 
 function readYamlFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
-  return YAML.safeLoad(content);
+  return yaml.safeLoad(content);
 }
 
 function writeYamlFile(filePath, content) {
-  const yaml = YAML.safeDump(content);
-  fs.writeFileSync(filePath, yaml);
-  return yaml;
+  const data = yaml.safeDump(content);
+  fs.writeFileSync(filePath, data);
+  return data;
 }
 
 function listZipFiles(filename) {

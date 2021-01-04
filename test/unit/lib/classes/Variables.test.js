@@ -9,7 +9,7 @@ const os = require('os');
 const path = require('path');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 const _ = require('lodash');
 const overrideEnv = require('process-utils/override-env');
 
@@ -1837,7 +1837,7 @@ module.exports = {
           prob: 'prob',
         },
       };
-      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), YAML.dump(configYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), yaml.dump(configYml));
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./config.yml)')
@@ -1912,7 +1912,7 @@ module.exports = {
           prob: 'prob',
         },
       };
-      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), YAML.dump(configYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), yaml.dump(configYml));
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./config.yml):test2.sub')
@@ -2011,7 +2011,7 @@ module.exports = {
           prob: 'prob',
         },
       };
-      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), YAML.dump(configYml));
+      SUtils.writeFileSync(path.join(tmpDirPath, 'config.yml'), yaml.dump(configYml));
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./config.yml).testObj.sub')

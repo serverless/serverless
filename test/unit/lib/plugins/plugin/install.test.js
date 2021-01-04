@@ -3,7 +3,7 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 const path = require('path');
 const childProcess = BbPromise.promisifyAll(require('child_process'));
 const fs = require('fs');
@@ -139,7 +139,7 @@ describe('PluginInstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginInstall.options.name = 'serverless-plugin-1';
 
@@ -160,7 +160,7 @@ describe('PluginInstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginInstall.options.name = '@scope/serverless-plugin-1';
 
@@ -181,7 +181,7 @@ describe('PluginInstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginInstall.options.name = 'serverless-not-in-registry-plugin';
       return expect(pluginInstall.install()).to.be.fulfilled.then(() => {
@@ -200,7 +200,7 @@ describe('PluginInstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
       pluginInstall.options.name = 'serverless-plugin-1';
       return expect(pluginInstall.install()).to.be.fulfilled.then(() => {
         expect(pluginInstall.options.pluginName).to.be.equal('serverless-plugin-1');
@@ -216,7 +216,7 @@ describe('PluginInstall', () => {
           service: 'plugin-service',
           provider: 'aws',
         };
-        serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+        serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
         pluginInstall.options.name = '@scope/serverless-plugin-1';
         return expect(pluginInstall.install()).to.be.fulfilled.then(() => {
           expect(pluginInstall.options.pluginName).to.be.equal('@scope/serverless-plugin-1');
@@ -230,7 +230,7 @@ describe('PluginInstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
       pluginInstall.options.name = 'serverless-plugin-1@1.0.0';
       return expect(pluginInstall.install()).to.be.fulfilled.then(() => {
         expect(pluginInstall.options.pluginName).to.be.equal('serverless-plugin-1');
@@ -324,7 +324,7 @@ describe('PluginInstall', () => {
         provider: 'aws',
         // no plugins array here
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginInstall.options.pluginName = 'serverless-plugin-1';
 
@@ -344,7 +344,7 @@ describe('PluginInstall', () => {
         provider: 'aws',
         plugins: ['serverless-existing-plugin'], // one plugin was already added
       };
-      serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
       pluginInstall.options.pluginName = 'serverless-plugin-1';
 
@@ -363,7 +363,7 @@ describe('PluginInstall', () => {
         service: 'plugin-service',
         provider: 'aws',
       };
-      serverless.utils.writeFileSync(serverlessYamlFilePath, YAML.dump(serverlessYml));
+      serverless.utils.writeFileSync(serverlessYamlFilePath, yaml.dump(serverlessYml));
       pluginInstall.options.pluginName = 'serverless-plugin-1';
       return expect(pluginInstall.addPluginToServerlessFile()).to.be.fulfilled.then(() => {
         expect(serverless.utils.readFileSync(serverlessYamlFilePath, 'utf8')).to.deep.equal(
@@ -447,7 +447,7 @@ describe('PluginInstall', () => {
             modules: [],
           },
         };
-        serverless.utils.writeFileSync(serverlessYmlFilePath, YAML.dump(serverlessYml));
+        serverless.utils.writeFileSync(serverlessYmlFilePath, yaml.dump(serverlessYml));
 
         pluginInstall.options.pluginName = 'serverless-plugin-1';
 
