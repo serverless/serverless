@@ -653,62 +653,132 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         await fs.promises.writeFile(absoluteArtifactFilePath, zipContent);
       });
 
-      it('for function', async () => {
-        const updateFunctionCodeStub = sinon.stub();
+      describe('while deploying whole service', () => {
+        const s3UploadStub = sinon.stub();
+        const awsRequestStubMap = {
+          Lambda: {
+            getFunction: {
+              Configuration: {
+                LastModified: '2020-05-20T15:34:16.494+0000',
+              },
+            },
+          },
+          S3: {
+            upload: s3UploadStub,
+            listObjectsV2: {},
+          },
+          CloudFormation: {
+            describeStacks: {},
+            describeStackResource: { StackResourceDetail: { PhysicalResourceId: 'resource-id' } },
+          },
+          STS: {
+            getCallerIdentity: {
+              ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+              UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+              Account: '999999999999',
+              Arn: 'arn:aws:iam::999999999999:user/test',
+            },
+          },
+        };
 
-        await runServerless({
-          fixture: 'function',
-          cliArgs: ['deploy', '-f', 'other'],
-          awsRequestStubMap: {
-            Lambda: {
-              getFunction: {
-                Configuration: {
-                  LastModified: '2020-05-20T15:34:16.494+0000',
-                },
-              },
-              updateFunctionCode: updateFunctionCodeStub,
-              updateFunctionConfiguration: {},
-            },
-          },
-          configExt: {
-            functions: {
-              other: {
-                package: {
-                  artifact: absoluteArtifactFilePath,
-                },
-              },
-            },
-          },
+        beforeEach(() => {
+          s3UploadStub.resetHistory();
         });
-        expect(updateFunctionCodeStub).to.have.been.calledOnce;
-        expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
+
+        it('for function', async () => {
+          await runServerless({
+            fixture: 'function',
+            cliArgs: ['deploy'],
+            lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
+            awsRequestStubMap,
+            configExt: {
+              functions: {
+                other: {
+                  package: {
+                    artifact: absoluteArtifactFilePath,
+                  },
+                },
+              },
+            },
+          });
+
+          // One with CF template, one with function artifact and one with provided function artifact
+          expect(s3UploadStub).to.be.calledThrice;
+          const callArgs = s3UploadStub.args.find(item => item[0].Key.endsWith('newArtifact.zip'));
+          expect(callArgs[0].Body.path).to.equal(absoluteArtifactFilePath);
+        });
+
+        it('service-wide', async () => {
+          await runServerless({
+            fixture: 'function',
+            cliArgs: ['deploy'],
+            lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
+            awsRequestStubMap,
+            configExt: {
+              package: {
+                artifact: absoluteArtifactFilePath,
+              },
+            },
+          });
+
+          // One with CF template, one with service artifact
+          expect(s3UploadStub).to.be.calledTwice;
+          const callArgs = s3UploadStub.args.find(item => item[0].Key.endsWith('newArtifact.zip'));
+          expect(callArgs[0].Body.path).to.equal(absoluteArtifactFilePath);
+        });
       });
 
-      it('service-wide', async () => {
+      describe('while deploying specific function', () => {
         const updateFunctionCodeStub = sinon.stub();
+        const awsRequestStubMap = {
+          Lambda: {
+            getFunction: {
+              Configuration: {
+                LastModified: '2020-05-20T15:34:16.494+0000',
+              },
+            },
+            updateFunctionCode: updateFunctionCodeStub,
+            updateFunctionConfiguration: {},
+          },
+        };
 
-        await runServerless({
-          fixture: 'function',
-          cliArgs: ['deploy', '-f', 'foo'],
-          awsRequestStubMap: {
-            Lambda: {
-              getFunction: {
-                Configuration: {
-                  LastModified: '2020-05-20T15:34:16.494+0000',
+        beforeEach(() => {
+          updateFunctionCodeStub.resetHistory();
+        });
+
+        it('for function', async () => {
+          await runServerless({
+            fixture: 'function',
+            cliArgs: ['deploy', '-f', 'other'],
+            awsRequestStubMap,
+            configExt: {
+              functions: {
+                other: {
+                  package: {
+                    artifact: absoluteArtifactFilePath,
+                  },
                 },
               },
-              updateFunctionCode: updateFunctionCodeStub,
-              updateFunctionConfiguration: {},
             },
-          },
-          configExt: {
-            package: {
-              artifact: absoluteArtifactFilePath,
-            },
-          },
+          });
+          expect(updateFunctionCodeStub).to.have.been.calledOnce;
+          expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
         });
-        expect(updateFunctionCodeStub).to.have.been.calledOnce;
-        expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
+
+        it('service-wide', async () => {
+          await runServerless({
+            fixture: 'function',
+            cliArgs: ['deploy', '-f', 'foo'],
+            awsRequestStubMap,
+            configExt: {
+              package: {
+                artifact: absoluteArtifactFilePath,
+              },
+            },
+          });
+          expect(updateFunctionCodeStub).to.have.been.calledOnce;
+          expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
+        });
       });
     });
   });
