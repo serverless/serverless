@@ -28,7 +28,7 @@ describe('#compileUsagePlan()', () => {
   });
 
   it('should compile default usage plan resource', () => {
-    serverless.service.provider.apiKeys = ['1234567890'];
+    serverless.service.provider.apiGateway = { apiKeys: ['1234567890'] };
     return awsCompileApigEvents.compileUsagePlan().then(() => {
       expect(
         awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
@@ -66,15 +66,17 @@ describe('#compileUsagePlan()', () => {
   });
 
   it('should support custom usage plan resource via single object notation', () => {
-    serverless.service.provider.usagePlan = {
-      quota: {
-        limit: 500,
-        offset: 10,
-        period: 'MONTH',
-      },
-      throttle: {
-        burstLimit: 200,
-        rateLimit: 100,
+    serverless.service.provider.apiGateway = {
+      usagePlan: {
+        quota: {
+          limit: 500,
+          offset: 10,
+          period: 'MONTH',
+        },
+        throttle: {
+          burstLimit: 200,
+          rateLimit: 100,
+        },
       },
     };
 
@@ -139,34 +141,36 @@ describe('#compileUsagePlan()', () => {
     const logicalIdFree = awsCompileApigEvents.provider.naming.getUsagePlanLogicalId(freePlanName);
     const logicalIdPaid = awsCompileApigEvents.provider.naming.getUsagePlanLogicalId(paidPlanName);
 
-    serverless.service.provider.usagePlan = [
-      {
-        [freePlanName]: {
-          quota: {
-            limit: 1000,
-            offset: 100,
-            period: 'MONTH',
-          },
-          throttle: {
-            burstLimit: 1,
-            rateLimit: 1,
-          },
-        },
-      },
-      {
-        [paidPlanName]: {
-          quota: {
-            limit: 1000000,
-            offset: 200,
-            period: 'MONTH',
-          },
-          throttle: {
-            burstLimit: 1000,
-            rateLimit: 1000,
+    serverless.service.provider.apiGateway = {
+      usagePlan: [
+        {
+          [freePlanName]: {
+            quota: {
+              limit: 1000,
+              offset: 100,
+              period: 'MONTH',
+            },
+            throttle: {
+              burstLimit: 1,
+              rateLimit: 1,
+            },
           },
         },
-      },
-    ];
+        {
+          [paidPlanName]: {
+            quota: {
+              limit: 1000000,
+              offset: 200,
+              period: 'MONTH',
+            },
+            throttle: {
+              burstLimit: 1000,
+              rateLimit: 1000,
+            },
+          },
+        },
+      ],
+    };
 
     return awsCompileApigEvents.compileUsagePlan().then(() => {
       // resources for the "free" plan
@@ -275,8 +279,8 @@ describe('#compileUsagePlan()', () => {
   });
 
   it('should compile custom usage plan resource with restApiId provided', () => {
-    serverless.service.provider.apiKeys = ['1234567890'];
     awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      apiKeys: ['1234567890'],
       restApiId: 'xxxxx',
     };
 
@@ -329,7 +333,7 @@ describe('UsagePlan', () => {
   };
 
   it('Should have values for throttle', () => {
-    serverlessConfigurationExtension.provider.usagePlan = { throttle };
+    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle } };
     return runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
@@ -345,7 +349,7 @@ describe('UsagePlan', () => {
   });
 
   it('Should have values for quota', () => {
-    serverlessConfigurationExtension.provider.usagePlan = { quota };
+    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { quota } };
     return runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
@@ -360,7 +364,7 @@ describe('UsagePlan', () => {
   });
 
   it('Should have values for quota and throttle', () => {
-    serverlessConfigurationExtension.provider.usagePlan = { throttle, quota };
+    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle, quota } };
     return runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,

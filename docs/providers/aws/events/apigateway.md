@@ -608,12 +608,7 @@ In case an exception is thrown in your lambda function AWS will send an error me
 
 ### Setting API keys for your Rest API
 
-You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the
-`provider` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require
-one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you
-want to set as private. API Keys are created globally, so if you want to deploy your service to different stages make sure
-your API key contains a stage variable as defined below. When using API keys, you can optionally define usage plan quota
-and throttle, using `usagePlan` object.
+You can specify a list of API keys to be used by your service Rest API by adding an `apiKeys` array property to the `provider.apiGateway` object in `serverless.yml`. You'll also need to explicitly specify which endpoints are `private` and require one of the api keys to be included in the request by adding a `private` boolean property to the `http` event object you want to set as private. API Keys are created globally, so if you want to deploy your service to different stages make sure your API key contains a stage variable as defined below. When using API keys, you can optionally define usage plan quota and throttle, using `usagePlan` object.
 
 When setting the value, you need to be aware that changing value will require replacement and CloudFormation doesn't allow
 two API keys with the same name. It means that you need to change the name also when changing the value. If you don't care
@@ -625,23 +620,24 @@ Here's an example configuration for setting API keys for your service Rest API:
 service: my-service
 provider:
   name: aws
-  apiKeys:
-    - myFirstKey
-    - ${opt:stage}-myFirstKey
-    - ${env:MY_API_KEY} # you can hide it in a serverless variable
-    - name: myThirdKey
-      value: myThirdKeyValue
-    - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
-      description: Api key description # Optional
-      customerId: A string that will be set as the customerID for the key # Optional
-  usagePlan:
-    quota:
-      limit: 5000
-      offset: 2
-      period: MONTH
-    throttle:
-      burstLimit: 200
-      rateLimit: 100
+  apiGateway:
+    apiKeys:
+      - myFirstKey
+      - ${opt:stage}-myFirstKey
+      - ${env:MY_API_KEY} # you can hide it in a serverless variable
+      - name: myThirdKey
+        value: myThirdKeyValue
+      - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
+        description: Api key description # Optional
+        customerId: A string that will be set as the customerID for the key # Optional
+    usagePlan:
+      quota:
+        limit: 5000
+        offset: 2
+        period: MONTH
+      throttle:
+        burstLimit: 200
+        rateLimit: 100
 functions:
   hello:
     events:
@@ -661,30 +657,31 @@ You can also setup multiple usage plans for your API. In this case you need to m
 service: my-service
 provider:
   name: aws
-  apiKeys:
-    - free:
-        - myFreeKey
-        - ${opt:stage}-myFreeKey
-    - paid:
-        - myPaidKey
-        - ${opt:stage}-myPaidKey
-  usagePlan:
-    - free:
-        quota:
-          limit: 5000
-          offset: 2
-          period: MONTH
-        throttle:
-          burstLimit: 200
-          rateLimit: 100
-    - paid:
-        quota:
-          limit: 50000
-          offset: 1
-          period: MONTH
-        throttle:
-          burstLimit: 2000
-          rateLimit: 1000
+  apiGateway:
+    apiKeys:
+      - free:
+          - myFreeKey
+          - ${opt:stage}-myFreeKey
+      - paid:
+          - myPaidKey
+          - ${opt:stage}-myPaidKey
+    usagePlan:
+      - free:
+          quota:
+            limit: 5000
+            offset: 2
+            period: MONTH
+          throttle:
+            burstLimit: 200
+            rateLimit: 100
+      - paid:
+          quota:
+            limit: 50000
+            offset: 1
+            period: MONTH
+          throttle:
+            burstLimit: 2000
+            rateLimit: 1000
 functions:
   hello:
     events:

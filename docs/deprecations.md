@@ -6,6 +6,16 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
+<a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
+
+## API Gateway specific configuration
+
+Please use `provider.apiGateway.apiKeys` instead of `provider.apiKeys`.
+Please use `provider.apiGateway.resourcePolicy` instead of `provider.resourcePolicy`.
+Please use `provider.apiGateway.usagePlan` instead of `provider.usagePlan`.
+
+Starting with v3.0.0, API Gateway-specific configuration keys `apiKeys`, `resourcePolicy` and `usagePlan` will be relocated from `provider` to `provider.apiGateway`.
+
 <a name="PARAMETERIZED_ARGUMENT"><div>&nbsp;</div></a>
 
 ## Parameterized `org`, `app`, `service`, `stage`, and `region` usage

@@ -27,21 +27,22 @@ describe('#compileApiKeys()', () => {
   });
 
   it('should support api key notation', () => {
-    awsCompileApigEvents.serverless.service.provider.apiKeys = [
-      '1234567890',
-      { name: '2345678901' },
-      { value: 'valueForKeyWithoutName', description: 'Api key description' },
-      { name: '3456789012', value: 'valueForKey3456789012' },
-      {
-        name: '9876543211',
-        value: 'valueForKey9876543211',
-        customerId: 'customerid98765',
+    awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      apiKeys: [
+        '1234567890',
+        { name: '2345678901' },
+        { value: 'valueForKeyWithoutName', description: 'Api key description' },
+        { name: '3456789012', value: 'valueForKey3456789012' },
+        {
+          name: '9876543211',
+          value: 'valueForKey9876543211',
+          customerId: 'customerid98765',
+        },
+      ],
+      // Added purely to test https://github.com/serverless/serverless/issues/7844 regression
+      usagePlan: {
+        quota: { limit: 5000 },
       },
-    ];
-
-    // Added purely to test https://github.com/serverless/serverless/issues/7844 regression
-    awsCompileApigEvents.serverless.service.provider.usagePlan = {
-      quota: { limit: 5000 },
     };
 
     return awsCompileApigEvents.compileApiKeys().then(() => {
@@ -138,21 +139,23 @@ describe('#compileApiKeys()', () => {
 
   describe('when using usage plan notation', () => {
     it('should support usage plan notation', () => {
-      awsCompileApigEvents.serverless.service.provider.usagePlan = [{ free: [] }, { paid: [] }];
-      awsCompileApigEvents.serverless.service.provider.apiKeys = [
-        {
-          free: [
-            '1234567890',
-            { name: '2345678901' },
-            {
-              value: 'valueForKeyWithoutName',
-              description: 'Api key description',
-            },
-            { name: '3456789012', value: 'valueForKey3456789012' },
-          ],
-        },
-        { paid: ['0987654321', 'jihgfedcba'] },
-      ];
+      awsCompileApigEvents.serverless.service.provider.apiGateway = {
+        apiKeys: [
+          {
+            free: [
+              '1234567890',
+              { name: '2345678901' },
+              {
+                value: 'valueForKeyWithoutName',
+                description: 'Api key description',
+              },
+              { name: '3456789012', value: 'valueForKey3456789012' },
+            ],
+          },
+          { paid: ['0987654321', 'jihgfedcba'] },
+        ],
+        usagePlan: [{ free: [] }, { paid: [] }],
+      };
 
       return awsCompileApigEvents.compileApiKeys().then(() => {
         const expectedApiKeys = {
@@ -175,7 +178,7 @@ describe('#compileApiKeys()', () => {
             { name: 'jihgfedcba', value: undefined, description: undefined },
           ],
         };
-        awsCompileApigEvents.serverless.service.provider.apiKeys.forEach(plan => {
+        awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach(plan => {
           const planName = Object.keys(plan)[0]; // free || paid
           const apiKeys = expectedApiKeys[planName];
           apiKeys.forEach((apiKey, index) => {

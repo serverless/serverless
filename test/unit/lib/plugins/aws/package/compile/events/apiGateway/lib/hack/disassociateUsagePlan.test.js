@@ -63,7 +63,7 @@ describe('#disassociateUsagePlan()', () => {
   });
 
   it('should remove association from the usage plan', () => {
-    disassociateUsagePlan.serverless.service.provider.apiKeys = ['apiKey1'];
+    disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: ['apiKey1'] };
 
     return disassociateUsagePlan.disassociateUsagePlan().then(() => {
       expect(providerRequestStub.callCount).to.be.equal(3);
@@ -95,7 +95,7 @@ describe('#disassociateUsagePlan()', () => {
   });
 
   it('should resolve if no api keys are given', () => {
-    disassociateUsagePlan.serverless.service.provider.apiKeys = [];
+    disassociateUsagePlan.serverless.service.provider.apiGateway = { apiKeys: [] };
 
     return disassociateUsagePlan.disassociateUsagePlan().then(() => {
       expect(providerRequestStub.callCount).to.be.equal(0);

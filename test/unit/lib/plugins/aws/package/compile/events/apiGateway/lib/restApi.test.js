@@ -55,19 +55,21 @@ describe('#compileRestApi()', () => {
     }));
 
   it('should create a REST API resource with resource policy', () => {
-    awsCompileApigEvents.serverless.service.provider.resourcePolicy = [
-      {
-        Effect: 'Allow',
-        Principal: '*',
-        Action: 'execute-api:Invoke',
-        Resource: ['execute-api:/*/*/*'],
-        Condition: {
-          IpAddress: {
-            'aws:SourceIp': ['123.123.123.123'],
+    awsCompileApigEvents.serverless.service.provider.apiGateway = {
+      resourcePolicy: [
+        {
+          Effect: 'Allow',
+          Principal: '*',
+          Action: 'execute-api:Invoke',
+          Resource: ['execute-api:/*/*/*'],
+          Condition: {
+            IpAddress: {
+              'aws:SourceIp': ['123.123.123.123'],
+            },
           },
         },
-      },
-    ];
+      ],
+    };
     return awsCompileApigEvents.compileRestApi().then(() => {
       const resources =
         awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources;
