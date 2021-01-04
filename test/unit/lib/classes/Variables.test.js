@@ -2741,6 +2741,162 @@ module.exports = {
       expect(logWarningSpy.args[0][0]).to.contain('file');
     });
   });
+  describe('#assertFound()', () => {
+    let logWarningSpy;
+    let consoleLogStub;
+    let varProxy;
+
+    beforeEach(() => {
+      logWarningSpy = sinon.spy(slsError, 'logWarning');
+      consoleLogStub = sinon.stub(console, 'log').returns();
+      const ProxyQuiredVariables = proxyquire('../../../../lib/classes/Variables.js', {
+        './Error': logWarningSpy,
+      });
+      varProxy = new ProxyQuiredVariables(serverless);
+    });
+
+    afterEach(() => {
+      logWarningSpy.restore();
+      consoleLogStub.restore();
+    });
+
+    describe('when throwOnUnresolvedVariableReferences is set to true', () => {
+      beforeEach(() => {
+        serverless.config.update({ throwOnUnresolvedVariableReferences: true });
+      });
+
+      it('should do nothing if variable has valid value.', () => {
+        expect(() => varProxy.assertFound('self:service', 'a-valid-value')).not.to.throw();
+      });
+
+      describe('when variable string does not match any of syntax', () => {
+        // These situation happen when deep variable population fails
+        it('should do nothing if variable has null value.', () => {
+          expect(() => varProxy.assertFound('', null)).not.to.throw();
+        });
+
+        it('should do nothing if variable has undefined value.', () => {
+          expect(() => varProxy.assertFound('', undefined)).not.to.throw();
+        });
+
+        it('should do nothing if variable has empty object value.', () => {
+          expect(() => varProxy.assertFound('', {})).not.to.throw();
+        });
+      });
+
+      it('should throw if variable has null value.', () => {
+        expect(() => varProxy.assertFound('self:service', null)).to.throw(Error);
+        expect(logWarningSpy).to.not.have.been.calledOnce;
+      });
+
+      it('should throw if variable has undefined value.', () => {
+        expect(() => varProxy.assertFound('self:service', undefined)).to.throw(Error);
+        expect(logWarningSpy).to.not.have.been.calledOnce;
+      });
+
+      it('should throw if variable has empty object value.', () => {
+        expect(() => varProxy.assertFound('self:service', {})).to.throw(Error);
+        expect(logWarningSpy).to.not.have.been.calledOnce;
+      });
+
+      it('should not throw if variable has empty array value.', () => {
+        expect(() => varProxy.assertFound('self:service', [])).not.to.throw();
+      });
+
+      it('should detect the "environment variable" variable type', () => {
+        expect(() => varProxy.assertFound('env:service', null)).to.throw(
+          Error,
+          'environment variable'
+        );
+      });
+
+      it('should detect the "option" variable type', () => {
+        expect(() => varProxy.assertFound('opt:service', null)).to.throw(Error, 'option');
+      });
+
+      it('should detect the "service attribute" variable type', () => {
+        expect(() => varProxy.assertFound('self:service', null)).to.throw(
+          Error,
+          'service attribute'
+        );
+      });
+
+      it('should detect the "file" variable type', () => {
+        expect(() => varProxy.assertFound('file(service)', null)).to.throw(Error, 'file');
+      });
+    });
+
+    describe('when throwOnUnresolvedVariableReferences is set to false', () => {
+      beforeEach(() => {
+        serverless.config.update({ throwOnUnresolvedVariableReferences: false });
+      });
+
+      it('should do nothing if variable has valid value.', () => {
+        varProxy.assertFound('self:service', 'a-valid-value');
+        expect(logWarningSpy).to.not.have.been.calledOnce;
+      });
+
+      describe('when variable string does not match any of syntax', () => {
+        // These situation happen when deep variable population fails
+        it('should do nothing if variable has null value.', () => {
+          varProxy.assertFound('', null);
+          expect(logWarningSpy).to.not.have.been.calledOnce;
+        });
+
+        it('should do nothing if variable has undefined value.', () => {
+          varProxy.assertFound('', undefined);
+          expect(logWarningSpy).to.not.have.been.calledOnce;
+        });
+
+        it('should do nothing if variable has empty object value.', () => {
+          varProxy.assertFound('', {});
+          expect(logWarningSpy).to.not.have.been.calledOnce;
+        });
+      });
+      it('should log if variable has null value.', () => {
+        varProxy.assertFound('self:service', null);
+        expect(logWarningSpy).to.have.been.calledOnce;
+      });
+      it('should log if variable has undefined value.', () => {
+        varProxy.assertFound('self:service', undefined);
+        expect(logWarningSpy).to.have.been.calledOnce;
+      });
+
+      it('should log if variable has empty object value.', () => {
+        varProxy.assertFound('self:service', {});
+        expect(logWarningSpy).to.have.been.calledOnce;
+      });
+
+      it('should not log if variable has empty array value.', () => {
+        varProxy.assertFound('self:service', []);
+        expect(logWarningSpy).to.not.have.been.called;
+      });
+
+      it('should detect the "environment variable" variable type', () => {
+        varProxy.assertFound('env:service', null);
+        expect(logWarningSpy).to.have.been.calledOnce;
+        expect(logWarningSpy.args[0][0]).to.contain('environment variable');
+      });
+
+      it('should detect the "option" variable type', () => {
+        varProxy.assertFound('opt:service', null);
+        expect(logWarningSpy).to.have.been.calledOnce;
+        expect(logWarningSpy.args[0][0]).to.contain('option');
+      });
+
+      it('should detect the "service attribute" variable type', () => {
+        varProxy.assertFound('self:service', null);
+        expect(logWarningSpy).to.have.been.calledOnce;
+        expect(logWarningSpy.args[0][0]).to.contain('service attribute');
+      });
+
+      it('should detect the "file" variable type', () => {
+        varProxy.assertFound('file(service)', null);
+        expect(logWarningSpy).to.have.been.calledOnce;
+        expect(logWarningSpy.args[0][0]).to.contain('file');
+      });
+    });
+  });
 });
 
 describe('test/unit/lib/classes/Variables.test.js', () => {

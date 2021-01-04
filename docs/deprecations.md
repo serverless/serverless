@@ -10,6 +10,14 @@ layout: Doc
 
 To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable. Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations. If you want to disable specific deprecations set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`.
 
+<a name="VARIABLES_ERROR_ON_UNRESOLVED"><div>&nbsp;</div></a>
+
+## Erroring on unresolved variable references
+
+Starting with v3.0.0, references to variables that cannot be resolved will result in an error being thrown.
+
+Adapt to this behaviour now by adding `throwOnUnresolvedVariableReferences: true` to service configuration.
+
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
 ## API Gateway specific configuration
