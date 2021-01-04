@@ -8,7 +8,6 @@ describe('#cloudformationSchame()', () => {
   describe('#schema()', () => {
     it('should contain schema', () => {
       expect(Object.keys(cloudformationSchema.schema)).to.be.eql([
-        'include',
         'implicit',
         'explicit',
         'compiledImplicit',
