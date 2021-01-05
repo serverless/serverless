@@ -1129,11 +1129,9 @@ describe('AwsCompileFunctions', () => {
             Outputs: {},
           };
 
-          _.set(
-            awsCompileFunctions,
-            'serverless.service.functions.func.environment.MY_ENV_VAR',
-            'myvalue'
-          );
+          awsCompileFunctions.serverless.service.functions.func.environment = {
+            MY_ENV_VAR: 'myvalue',
+          };
 
           return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled;
         })

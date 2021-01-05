@@ -11,7 +11,6 @@ const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
 const Create = require('../../../../lib/plugins/create/create');
 
-const _ = require('lodash');
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
@@ -989,7 +988,7 @@ describe('PluginManager', () => {
       const consoleLogStub = sinon.stub(pluginManager.serverless.cli, 'log').returns();
       const synchronousPluginMockInstance = new SynchronousPluginMock();
       synchronousPluginMockInstance.commands.deploy.aliases = ['info'];
-      _.set(process.env, 'SLS_DEBUG', '*');
+      process.env.SLS_DEBUG = '*';
       pluginManager.loadCommands(synchronousPluginMockInstance);
       expect(consoleLogStub).to.have.been.calledWith('  -> @info');
     });
