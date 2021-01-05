@@ -11,11 +11,35 @@ layout: Doc
 
 <!-- DOCS-SITE-LINK:END -->
 
-> This is a deprecated feature of the dashboard. Please look at our documentaion for [Providers](https://www.serverless.com/framework/docs/guides/providers/) which replaces the use of deployment profiles for setting up AWS connections.
+> This is a deprecated feature of the dashboard. Please look at our documentaion for [Providers](https://www.serverless.com/framework/docs/guides/providers/) and
+> [Parameters](https://www.serverless.com/framework/docs/guides/parameters/) which replaces the use of deployment profiles for setting up AWS connections and parameters.
 
 # Deployment Profiles
 
 Deployment Profiles enable each stage of your Serverless application to use a unique set of [Safeguards](./safeguards.md), [Parameters](./parameters.md) and [Access Roles](./access-roles.md).
+
+## Deprecation and Migration from Deployment Profile
+
+Prior to the January 5th, 2021 release, deployment profiles supported setting AWS Access Role ARNs and managing parameters. Support for using AWS Access Roles for deployments has moved from deployment profiles to Providers. Support for managing Parameters has moved from deployment profiles to services and instances.
+
+**Deployment profiles will be deprecated on February 1st, 2021**. Migration from deployment profiles to providers and parameters will be automatic; however, there are two required action items to use the new features.
+
+### Action Items
+
+- You **MUST** upgrade to use the Enterprise Plugin version 4.4.1 or higher.
+- You **MUST** relink your AWS Account via the providers UI by no later than February 1st, 2021.
+
+### Automatic Migration
+
+Parameters and Providers will be migrated automatically from deployment profiles when you perform a deployment using the enterprise plugin version 4.4.1 or higher, or January 31st, 2021, whichever is earlier.
+
+The automatic migration will replace deployment profiles with providers by performing the following:
+
+- **A new provider will be created for each deployment profile using the same AWS Access Role ARN**. If the deployment profile doesn’t contain an AWS Access Role ARN, it will be skipped.
+- **A provider will be added to each service for the corresponding default stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the default stage of the parent app. For example, if `app1` has `service1` and the _`default`_ stage of `app1` links to the `dev` deployment profile, then the `dev` provider will be added to `service1`. This is repeated for all services in all apps.
+- **A provider will be added to each instance for the corresponding stage in the app**. The provider will be the provider corresponding to the deployment profile which was associated with the stage of the instance. For example, if `app1` has `service1` and `app1` has a stage `prod` linked to the `prod` deployment profile, then the `prod` provider will be added to the `service1` instances deployed to the `prod` stage.
+- **Parameters from the deployment profile associated with the default stage in the app will be copied to the service**.
+- **Parameters from the deployment profile associated with a stage in an app will be copied to the instance**.
 
 ## Use Deployment Profiles
 
