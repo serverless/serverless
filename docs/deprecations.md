@@ -16,7 +16,7 @@ To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment varia
 
 Starting with v3.0.0, references to variables that cannot be resolved will result in an error being thrown.
 
-Adapt to this behaviour now by adding `throwOnUnresolvedVariableReferences: true` to service configuration.
+Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: error` to service configuration.
 
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 

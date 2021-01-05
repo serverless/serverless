@@ -18,8 +18,8 @@ Variables allow users to dynamically replace config values in `serverless.yml` c
 
 They are especially useful when providing secrets for your service to use and when you are working with multiple stages.
 
-If `throwOnUnresolvedVariableReferences` is set to `true`, references to variables that cannot be resolved will result in an error being thrown.
-This will become the default behaviour in the next major version, and the `throwOnUnresolvedVariableReferences` setting will be ignored.
+If `unresolvedVariablesNotificationMode` is set to `error`, references to variables that cannot be resolved will result in an error being thrown.
+This will become the default behaviour in the next major version.
 
 ## Syntax
 
