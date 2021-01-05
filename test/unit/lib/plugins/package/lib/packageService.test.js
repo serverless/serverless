@@ -704,7 +704,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
           // One with CF template, one with function artifact and one with provided function artifact
           expect(s3UploadStub).to.be.calledThrice;
-          const callArgs = s3UploadStub.args.find(item => item[0].Key.endsWith('newArtifact.zip'));
+          const callArgs = s3UploadStub.args.find((item) =>
+            item[0].Key.endsWith('newArtifact.zip')
+          );
           expect(callArgs[0].Body.path).to.equal(absoluteArtifactFilePath);
         });
 
@@ -723,7 +725,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
           // One with CF template, one with service artifact
           expect(s3UploadStub).to.be.calledTwice;
-          const callArgs = s3UploadStub.args.find(item => item[0].Key.endsWith('newArtifact.zip'));
+          const callArgs = s3UploadStub.args.find((item) =>
+            item[0].Key.endsWith('newArtifact.zip')
+          );
           expect(callArgs[0].Body.path).to.equal(absoluteArtifactFilePath);
         });
       });
