@@ -75,6 +75,27 @@ describe('ConfigSchemaHandler', () => {
         cliArgs: ['info'],
       });
     });
+
+    it('should produce deprecation warnings', async () => {
+      const { stdoutData } = await runServerless({
+        fixture: 'aws',
+        configExt: {
+          functions: {
+            func: {
+              awsKmsKeyArn: 'arn:aws:kms',
+            },
+          },
+        },
+        cliArgs: ['print'],
+      });
+
+      expect(stdoutData).to.contain(
+        'Starting with next major version, "awsKmsKeyArn" function property will be replaced with "provider.kmsKeyArn"'
+      );
+      expect(stdoutData).to.contain(
+        'More Info: https://www.serverless.com/framework/docs/deprecations/#AWS_KMS_KEY_ARN'
+      );
+    });
   });
 
   describe('#defineFunctionEvent', () => {
