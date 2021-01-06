@@ -588,7 +588,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.not.include('.custom-plugins/index.js');
     });
 
-    it('should ignore `package.artifact` if `package.individually`', () => {
+    it('TODO: should ignore `package.artifact` if `package.individually`', () => {
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
     });
@@ -637,7 +637,6 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         },
       });
     });
-
     it('TODO: should support `package.artifact`', () => {
       // Confirm that file pointed at `package.artifact` is configured as service level artifact
       //
