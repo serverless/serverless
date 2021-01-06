@@ -34,7 +34,9 @@ The Serverless Framework translates all syntax in `serverless.yml` to a single A
 
 - An AWS CloudFormation template is created from your `serverless.yml`.
 - If a Stack has not yet been created, then it is created with no resources except for an S3 Bucket, which will store zip files of your Function code.
+- If you're using locally build ECR images, dedicated ECR repository is created for your service. You also will be logged to that repository via `docker login`.
 - The code of your Functions is then packaged into zip files.
+- If you're using locally build ECR images, they are built and uploaded to ECR.
 - Serverless fetches the hashes for all files of the previous deployment (if any) and compares them against the hashes of the local files.
 - Serverless terminates the deployment process if all file hashes are the same.
 - Zip files of your Functions' code are uploaded to your Code S3 Bucket.
