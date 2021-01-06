@@ -27,6 +27,7 @@
     "@serverless/enterprise-plugin": "^4.4.0",
     "@serverless/utils": "^2.2.0",
     "ajv": "^7.0.3",
+    "ajv-formats": "^1.5.1",
     "ajv-keywords": "^4.0.0",
     "archiver": "^5.1.0",
     "aws-sdk": "^2.819.0",
