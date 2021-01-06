@@ -49,6 +49,10 @@ function listZipFiles(filename) {
   return new JSZip().loadAsync(fs.readFileSync(filename)).then((zip) => Object.keys(zip.files));
 }
 
+function listFilePermissions(filename) {
+  return new JSZip().loadAsync(fs.readFileSync(filename)).then((zip) => zip.files);
+}
+
 module.exports = {
   tmpDirCommonPath,
   getTmpDirPath,
@@ -59,4 +63,5 @@ module.exports = {
   readYamlFile,
   writeYamlFile,
   listZipFiles,
+  listFilePermissions,
 };

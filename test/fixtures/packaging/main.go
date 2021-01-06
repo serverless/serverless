@@ -1,19 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
-
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-
 // Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context) (Response, error) {
-
+func Handler() (string, error) {
+	return "Go Serverless!", nil
 }
 
 func main() {
+	// Make the handler available for Remote Procedure Call by AWS Lambda
 	lambda.Start(Handler)
 }
