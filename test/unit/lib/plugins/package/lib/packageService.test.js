@@ -275,7 +275,7 @@ describe('#packageService()', () => {
             expect(getIncludesStub).to.be.calledOnce,
             expect(resolveFilePathsFromPatternsStub).to.be.calledOnce,
             expect(zipFilesStub).to.be.calledOnce,
-            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName, []),
+            expect(zipFilesStub).to.have.been.calledWithExactly(files, zipFileName),
           ])
         );
       }
@@ -525,13 +525,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
 
     it('should support `functions[].package.include`', () => {
-      // Confirm that in function dedicated artifact "dir1/subdir/index.js" is packaged
       expect(fnIndividualZippedFiles).to.include('dir1/subdir4/index.js');
       // Replaces
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L147-L168
-    });
-    it.skip('TODO: should support `functions[].package.include`', () => {
-      // Confirm that in function dedicated artifact "dir1/subdir4/index.js" is packaged
     });
 
     (process.platform === 'win32' ? it : it.skip)(
