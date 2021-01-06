@@ -25,7 +25,7 @@
     "@serverless/cli": "^1.5.2",
     "@serverless/components": "^3.4.3",
     "@serverless/enterprise-plugin": "^4.4.0",
-    "@serverless/utils": "^2.1.0",
+    "@serverless/utils": "^2.2.0",
     "ajv": "^7.0.3",
     "ajv-keywords": "^4.0.0",
     "archiver": "^5.1.0",
