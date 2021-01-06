@@ -1872,6 +1872,14 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             fnImage: {
               image: imageWithSha,
             },
+            fnImageWithConfig: {
+              image: {
+                uri: imageWithSha,
+                workingDirectory: './workdir',
+                entryPoint: ['executable', 'param1'],
+                command: ['anotherexecutable'],
+              },
+            },
           },
         },
       });
@@ -2194,6 +2202,17 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           resource.Properties.FunctionName.Ref === functionCfLogicalId
       ).Properties;
       expect(versionCfConfig.CodeSha256).to.equal(imageDigestSha);
+    });
+
+    it('should support `functions[].image` with image config properties', () => {
+      const functionCfLogicalId = naming.getLambdaLogicalId('fnImageWithConfig');
+      const functionCfConfig = cfResources[functionCfLogicalId].Properties;
+
+      expect(functionCfConfig.ImageConfig).to.deep.equal({
+        Command: ['anotherexecutable'],
+        EntryPoint: ['executable', 'param1'],
+        WorkingDirectory: './workdir',
+      });
     });
   });
 
