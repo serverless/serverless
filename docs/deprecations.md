@@ -149,3 +149,47 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 ## `bin/serverless`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
+
+## To Disable specific Deprecations
+
+To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable.
+
+Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations.
+If you want to disable specific depreications set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`.
+
+## List of Deprecation Codes
+
+`ALEXA_SKILL_EVENT_WITHOUT_APP_ID`
+Starting with next major version, support for alexaSkill event without appId specified will be removed.
+
+`DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING`
+Starting with next major version, "enableLocalInstallationFallback" setting will no longer be supported.
+CLI will unconditionally fallback to service local installation when its found.
+Remove this setting to clear this deprecation warning.
+
+`RESOURCES_EXTENSIONS_REFERENCE_TO_NONEXISTENT_RESOURCE`
+Starting with next major version, extensions to nonexistent resources will throw an error instead of passing silently.
+
+`AWS_KMS_KEY_ARN`
+Starting with next major version, "awsKmsKeyArn" service property will be replaced by "provider.kmsKeyArn"
+
+`LAMBDA_HASHING_VERSION_V2`
+Starting with next major version, default value of provider.lambdaHashingVersion will be equal to "20201221"
+
+`CLOUDFRONT_CACHE_BEHAVIOR_FORWARDED_VALUES_AND_TTL`
+Cloudfront has deprecated the use of the ForwardedValues, MinTTL, MaxTTL and DefaultTTL field to configure cache behavior.
+Please use "provider.cloudfront.cachePolicies" to define Cache Policies and reference it here with "cachePolicy.name" property.
+You can also reference existing policies with "cachePolicy.id".
+
+`AWS_API_GATEWAY_NAME_STARTING_WITH_SERVICE`
+Starting with next major version, API Gateway naming will be changed from "{stage}-{service}" to "{service}-{stage}".
+Set "provider.apiGateway.shouldStartNameWithService" to "true" to adapt to the new behavior now.
+
+`AWS_API_GATEWAY_SPECIFIC_KEYS`
+Starting with next major version, API Gateway-specific configuration keys "apiKeys", "resourcePolicy" and "usagePlan" will be relocated from "provider" to "provider.apiGateway"
+
+`LOAD_VARIABLES_FROM_ENV_FILES`
+Detected ".env" files. Note that Framework now supports loading variables from those files when "useDotenv: true" is set (and that will be the default from next major release)
+
+`SERVICE_OBJECT_NOTATION`
+Starting from next major object notation for "service" property will no longer be recognized. Set "service" property directly with service name.
