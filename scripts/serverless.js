@@ -38,12 +38,11 @@ const processSpanPromise = (async () => {
   }
 
   const Serverless = require('../lib/Serverless');
-
   serverless = new Serverless();
-  serverless.onExitPromise = processSpanPromise;
-  serverless.invocationId = invocationId;
 
   try {
+    serverless.onExitPromise = processSpanPromise;
+    serverless.invocationId = invocationId;
     await serverless.init();
     if (serverless.invokedInstance) serverless = serverless.invokedInstance;
     await serverless.run();
