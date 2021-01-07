@@ -47,7 +47,7 @@ require('../lib/utils/analytics').sendPending({
     await serverless.init();
     if (serverless.invokedInstance) serverless = serverless.invokedInstance;
     await serverless.run();
-  } catch (err) {
+  } catch (error) {
     // If Enterprise Plugin, capture error
     let enterpriseErrorHandler = null;
     serverless.pluginManager.plugins.forEach((p) => {
@@ -56,15 +56,15 @@ require('../lib/utils/analytics').sendPending({
       }
     });
     if (!enterpriseErrorHandler) {
-      logError(err, { serverless });
+      logError(error, { serverless });
       return;
     }
     try {
-      await enterpriseErrorHandler(err, invocationId);
-    } catch (error) {
-      process.stdout.write(`${error.stack}\n`);
+      await enterpriseErrorHandler(error, invocationId);
+    } catch (enterpriseErrorHandlerError) {
+      process.stdout.write(`${enterpriseErrorHandlerError.stack}\n`);
     }
-    logError(err, { serverless });
+    logError(error, { serverless });
   } finally {
     resolveOnExitPromise();
   }
