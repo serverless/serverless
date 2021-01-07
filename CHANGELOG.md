@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.18.0](https://github.com/serverless/serverless/compare/v2.17.0...v2.18.0) (2021-01-07)
+
+### Features
+
+- **AWS API Gateway:** Move api-specific keys to `provider.apiGateway` ([#8670](https://github.com/serverless/serverless/pull/8670)) ([eacae9a](https://github.com/serverless/serverless/commit/eacae9a64da22ddf0fca8beff580a951e20d4fc0)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- AWS `iotFleetProvisioning` event support ([#8324](https://github.com/serverless/serverless/issues/8324)) ([7d80245](https://github.com/serverless/serverless/commit/7d80245839918f10c3f5681e896ef36c657b38cb)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- **Standalone:** Update to Node 14 for standalone binaries ([#8723](https://github.com/serverless/serverless/pull/8723)) ([5cc3be1](https://github.com/serverless/serverless/commit/5cc3be15be83b5358b78fccc9ef7e7f2a3bed45d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **Config Schema:** Improve AWS tags validation ([#8714](https://github.com/serverless/serverless/pull/8714)) ([b093609](https://github.com/serverless/serverless/commit/b093609f7952d5a63c91e6435b6a3a7d7d09cb1a)) ([Rohit Gohri](https://github.com/rohit-gohri))
+
+### Maintenance Improvements
+
+- Replace `_.set` with native assignment ([#8709](https://github.com/serverless/serverless/pull/8709)) ([66aa66f](https://github.com/serverless/serverless/commit/66aa66fbfe363edeb4123d709890a7c78f74b571)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Upgrade "ajv" to v7 and "ajv-keywords" to v4 ([#8703](https://github.com/serverless/serverless/issues/8703)) ([1af73ba](https://github.com/serverless/serverless/commit/1af73bacdf01e5dc855da59387ab36085b2b78a1)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Use ajv formats ([036698c](https://github.com/serverless/serverless/commit/036698ca5b46dc27a2844114813812a83f64813e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Upgrade "js-yaml" to v4 ([#8708](https://github.com/serverless/serverless/pull/8708)) ([b143383](https://github.com/serverless/serverless/commit/b14338332c86a4461d0e1c564c740c1f6a29fb4a)) ([Mariusz Nowak](https://github.com/medikoo))
+- Use @serverless/utils for cloudformationSchema ([#8705](https://github.com/serverless/serverless/issues/8705)) ([2efc357](https://github.com/serverless/serverless/commit/2efc3570c953cff04a22c8690f510532d5650eac)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
 ## [2.17.0](https://github.com/serverless/serverless/compare/v2.16.1...v2.17.0) (2020-12-30)
 
 ### Features
