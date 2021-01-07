@@ -187,38 +187,6 @@ describe('AwsInvoke', () => {
       };
     });
 
-    it('should invoke with correct params', async () => {
-      await awsInvoke.invoke();
-
-      expect(invokeStub.calledOnce).to.be.equal(true);
-      expect(
-        invokeStub.calledWithExactly('Lambda', 'invoke', {
-          FunctionName: 'customName',
-          InvocationType: 'RequestResponse',
-          LogType: 'None',
-          Payload: Buffer.from(JSON.stringify({})),
-        })
-      ).to.be.equal(true);
-      awsInvoke.provider.request.restore();
-    });
-
-    it('should invoke and log', async () => {
-      awsInvoke.options.log = true;
-
-      await awsInvoke.invoke();
-
-      expect(invokeStub.calledOnce).to.be.equal(true);
-      expect(
-        invokeStub.calledWithExactly('Lambda', 'invoke', {
-          FunctionName: 'customName',
-          InvocationType: 'RequestResponse',
-          LogType: 'Tail',
-          Payload: Buffer.from(JSON.stringify({})),
-        })
-      ).to.be.equal(true);
-      awsInvoke.provider.request.restore();
-    });
-
     it('should invoke with other invocation type', async () => {
       awsInvoke.options.type = 'OtherType';
 
@@ -257,32 +225,6 @@ describe('AwsInvoke', () => {
   });
 
   describe('#log()', () => {
-    let consoleLogStub;
-
-    beforeEach(() => {
-      consoleLogStub = sinon.stub(awsInvoke, 'consoleLog');
-    });
-
-    afterEach(() => {
-      awsInvoke.consoleLog.restore();
-    });
-
-    it('should log payload', () => {
-      const invocationReplyMock = {
-        Payload: `
-        {
-         "testProp": "testValue"
-        }
-        `,
-        LogResult: 'test',
-      };
-
-      awsInvoke.log(invocationReplyMock);
-
-      const expectedPayloadMessage = '{\n    "testProp": "testValue"\n}';
-      expect(consoleLogStub.calledWith(expectedPayloadMessage)).to.equal(true);
-    });
-
     it('rejects the promise for failed invocations', () => {
       const invocationReplyMock = {
         Payload: `
@@ -303,33 +245,57 @@ describe('AwsInvoke', () => {
 });
 
 describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
-  describe.skip('Common', () => {
+  describe('Common', () => {
+    let lambdaInvokeStub;
+    let result;
+
     before(async () => {
-      await runServerless({
+      lambdaInvokeStub = sinon.stub();
+
+      result = await runServerless({
         fixture: 'invocation',
-        cliArgs: ['invoke', '--function', 'callback', '--data', '{"inputKey":"inputValue"}'],
+        cliArgs: [
+          'invoke',
+          '--function',
+          'callback',
+          '--data',
+          '{"inputKey":"inputValue"}',
+          '--log',
+          'tail',
+        ],
         awsRequestStubMap: {
-          // Stub AWS SDK invocation
+          Lambda: {
+            invoke: (args) => {
+              lambdaInvokeStub.returns({
+                Payload: args.Payload,
+                LogResult: Buffer.from('test').toString('base64'),
+              });
+              return lambdaInvokeStub(args);
+            },
+          },
         },
       });
     });
 
-    it('TODO: should invoke AWS SDK with expected params', async () => {
-      // Confirm that AWS SDK stub was ivoked with expected params (confirm all params)
-      // Replaces
-      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L221-L234
+    it('should invoke AWS SDK with expected params', () => {
+      expect(lambdaInvokeStub).to.be.calledOnce;
+      expect(lambdaInvokeStub).to.be.calledWith({
+        FunctionName: result.serverless.service.getFunction('callback').name,
+        InvocationType: 'RequestResponse',
+        LogType: 'Tail',
+        Payload: Buffer.from(JSON.stringify({ inputKey: 'inputValue' })),
+      });
     });
 
-    it('TODO: should support JSON string data', async () => {
+    xit('TODO: should support JSON string data', async () => {
       // Replaces
       // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L123-L129
     });
 
-    it('TODO: should log payload', async () => {
-      // Confirm by inspecting stdout, that it logs data as returned by our AWS SDK stub
-      // Replaces
-      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L236-L251
-      // https://github.com/serverless/serverless/blob/537fcac7597f0c6efbae7a5fc984270a78a2a53a/test/unit/lib/plugins/aws/invoke.test.js#L301-L315
+    it('should log payload', () => {
+      expect(result.stdoutData).to.contain(
+        '{\n    "inputKey": "inputValue"\n}\n\u001b[90m--------------------------------------------------------------------\u001b[39m\ntest\n'
+      );
     });
   });
 
