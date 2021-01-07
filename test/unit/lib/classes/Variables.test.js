@@ -2721,7 +2721,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               custom: { myVariable: '${env:missingEnvVar}' },
             },
           })
-        ).to.be.rejectedWith('environment variable');
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
 
       it('should error for missing "option" type variables', async () => {
@@ -2734,7 +2734,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               custom: { myVariable: '${opt:missingOpt}' },
             },
           })
-        ).to.be.rejectedWith('option');
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
 
       it('should error for missing "service attribute" type variables', async () => {
@@ -2747,7 +2747,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               custom: { myVariable: '${self:missingAttribute}' },
             },
           })
-        ).to.be.rejectedWith('service attribute');
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
 
       it('should error for missing "file" type variables', async () => {
@@ -2760,7 +2760,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               custom: { myVariable: '${file(./missingFile)}' },
             },
           })
-        ).to.be.rejectedWith('file');
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
     });
 
