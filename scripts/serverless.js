@@ -42,33 +42,30 @@ require('../lib/utils/analytics').sendPending({
   serverlessExecutionSpan: serverless.onExitPromise,
 });
 
-serverless
-  .init()
-  .then(() => {
+(async () => {
+  try {
+    await serverless.init();
     if (serverless.invokedInstance) serverless = serverless.invokedInstance;
-  })
-  .then(() => serverless.run())
-  .then(
-    () => resolveOnExitPromise(),
-    (err) => {
-      resolveOnExitPromise();
-      // If Enterprise Plugin, capture error
-      let enterpriseErrorHandler = null;
-      serverless.pluginManager.plugins.forEach((p) => {
-        if (p.enterprise && p.enterprise.errorHandler) {
-          enterpriseErrorHandler = p.enterprise.errorHandler;
-        }
-      });
-      if (!enterpriseErrorHandler) {
-        logError(err, { serverless });
-        return null;
+    await serverless.run();
+  } catch (err) {
+    // If Enterprise Plugin, capture error
+    let enterpriseErrorHandler = null;
+    serverless.pluginManager.plugins.forEach((p) => {
+      if (p.enterprise && p.enterprise.errorHandler) {
+        enterpriseErrorHandler = p.enterprise.errorHandler;
       }
-      return enterpriseErrorHandler(err, invocationId)
-        .catch((error) => {
-          process.stdout.write(`${error.stack}\n`);
-        })
-        .then(() => {
-          logError(err, { serverless });
-        });
+    });
+    if (!enterpriseErrorHandler) {
+      logError(err, { serverless });
+      return;
     }
-  );
+    try {
+      await enterpriseErrorHandler(err, invocationId);
+    } catch (error) {
+      process.stdout.write(`${error.stack}\n`);
+    }
+    logError(err, { serverless });
+  } finally {
+    resolveOnExitPromise();
+  }
+})();
