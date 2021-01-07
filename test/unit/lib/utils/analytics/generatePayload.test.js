@@ -99,6 +99,7 @@ describe('lib/utils/analytics/generatePayload', () => {
     const { serverless } = await runServerless({
       fixture: 'locallyInstalledServerless',
       cliArgs: ['config'],
+      modulesCacheStub: {},
     });
     const payload = await generatePayload(serverless);
     expect(payload).to.deep.equal({
@@ -116,7 +117,7 @@ describe('lib/utils/analytics/generatePayload', () => {
       isAutoUpdateEnabled: false,
       isTabAutocompletionInstalled: false,
       npmDependencies: [],
-      triggeredDeprecations: ['LAMBDA_HASHING_VERSION_V2'],
+      triggeredDeprecations: [],
       installationType: 'local:fallback',
       isDashboardEnabled: false,
       versions,
