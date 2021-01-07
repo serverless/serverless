@@ -20,14 +20,14 @@ Deployment Profiles enable each stage of your Serverless application to use a un
 
 ## Deprecation and Migration from Deployment Profile
 
-Prior to the January 5th, 2021 release, deployment profiles supported setting AWS Access Role ARNs and managing parameters. Support for using AWS Access Roles for deployments has moved from deployment profiles to Providers. Support for managing Parameters has moved from deployment profiles to services and instances.
+Prior to the January 11th, 2021 release, deployment profiles supported setting AWS Access Role ARNs and managing parameters. Support for using AWS Access Roles for deployments has moved from deployment profiles to Providers. Support for managing Parameters has moved from deployment profiles to services and instances.
 
-**Deployment profiles will be deprecated on February 1st, 2021**. Migration from deployment profiles to providers and parameters will be automatic; however, there are two required action items to use the new features.
+**Deployment profiles will be deprecated on January 31st, 2021**. Migration from deployment profiles to providers and parameters will be automatic; however, there are two required action items to use the new features.
 
 ### Action Items
 
 - You **MUST** upgrade to use the Enterprise Plugin version 4.4.1 or higher.
-- You **MUST** relink your AWS Account via the providers UI by no later than February 1st, 2021.
+- You **MUST** relink your AWS Account via the providers UI by no later than January 31st, 2021.
 
 ### Automatic Migration
 
