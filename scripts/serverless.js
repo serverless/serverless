@@ -19,30 +19,30 @@ let serverless;
 
 process.on('uncaughtException', (error) => logError(error, { forceExit: true, serverless }));
 
-const BbPromise = require('bluebird');
-const uuid = require('uuid');
-
-const invocationId = uuid.v4();
-if (process.env.SLS_DEBUG) {
-  // For performance reasons enabled only in SLS_DEBUG mode
-  BbPromise.config({
-    longStackTraces: true,
+const processSpanPromise = (async () => {
+  const wait = require('timers-ext/promise/sleep');
+  await wait(); // Ensure access to "processSpanPromise"
+  require('../lib/utils/analytics').sendPending({
+    serverlessExecutionSpan: processSpanPromise,
   });
-}
 
-const Serverless = require('../lib/Serverless');
+  const BbPromise = require('bluebird');
+  const uuid = require('uuid');
 
-serverless = new Serverless();
+  const invocationId = uuid.v4();
+  if (process.env.SLS_DEBUG) {
+    // For performance reasons enabled only in SLS_DEBUG mode
+    BbPromise.config({
+      longStackTraces: true,
+    });
+  }
 
-let resolveOnExitPromise;
-serverless.onExitPromise = new Promise((resolve) => (resolveOnExitPromise = resolve));
-serverless.invocationId = invocationId;
+  const Serverless = require('../lib/Serverless');
 
-require('../lib/utils/analytics').sendPending({
-  serverlessExecutionSpan: serverless.onExitPromise,
-});
+  serverless = new Serverless();
+  serverless.onExitPromise = processSpanPromise;
+  serverless.invocationId = invocationId;
 
-(async () => {
   try {
     await serverless.init();
     if (serverless.invokedInstance) serverless = serverless.invokedInstance;
@@ -65,7 +65,5 @@ require('../lib/utils/analytics').sendPending({
       process.stdout.write(`${enterpriseErrorHandlerError.stack}\n`);
     }
     logError(error, { serverless });
-  } finally {
-    resolveOnExitPromise();
   }
 })();
