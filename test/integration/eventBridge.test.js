@@ -15,7 +15,7 @@ const {
 const { deployService, removeService, getMarkers } = require('../utils/integration');
 
 describe('AWS - Event Bridge Integration Test', () => {
-  describe('Using deprecated CustomResource deployment pattern', function() {
+  describe('Using deprecated CustomResource deployment pattern', function () {
     this.timeout(1000 * 60 * 100); // Involves time-taking deploys
     let serviceName;
     let stackName;
@@ -93,12 +93,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents('default', putEventEntries),
           {
-            checkIsComplete: events =>
-              events.find(event => event.message.includes(markers.start)) &&
-              events.find(event => event.message.includes(markers.end)),
+            checkIsComplete: (events) =>
+              events.find((event) => event.message.includes(markers.start)) &&
+              events.find((event) => event.message.includes(markers.end)),
           }
-        ).then(events => {
-          const logs = events.map(event => event.message).join('\n');
+        ).then((events) => {
+          const logs = events.map((event) => event.message).join('\n');
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
           expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
@@ -115,12 +115,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(namedEventBusName, putEventEntries),
           {
-            checkIsComplete: events =>
-              events.find(event => event.message.includes(markers.start)) &&
-              events.find(event => event.message.includes(markers.end)),
+            checkIsComplete: (events) =>
+              events.find((event) => event.message.includes(markers.start)) &&
+              events.find((event) => event.message.includes(markers.end)),
           }
-        ).then(events => {
-          const logs = events.map(event => event.message).join('\n');
+        ).then((events) => {
+          const logs = events.map((event) => event.message).join('\n');
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
           expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
@@ -137,12 +137,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(arnEventBusName, putEventEntries),
           {
-            checkIsComplete: events =>
-              events.find(event => event.message.includes(markers.start)) &&
-              events.find(event => event.message.includes(markers.end)),
+            checkIsComplete: (events) =>
+              events.find((event) => event.message.includes(markers.start)) &&
+              events.find((event) => event.message.includes(markers.end)),
           }
-        ).then(events => {
-          const logs = events.map(event => event.message).join('\n');
+        ).then((events) => {
+          const logs = events.map((event) => event.message).join('\n');
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
           expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
@@ -150,7 +150,7 @@ describe('AWS - Event Bridge Integration Test', () => {
       });
     });
   });
-  describe('Using native CloudFormation deployment pattern', function() {
+  describe('Using native CloudFormation deployment pattern', function () {
     this.timeout(1000 * 60 * 10); // Involves time-taking deploys
     let serviceName;
     let stackName;
@@ -248,12 +248,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents('default', putEventEntries),
           {
-            checkIsComplete: events =>
-              events.find(event => event.message.includes(markers.start)) &&
-              events.find(event => event.message.includes(markers.end)),
+            checkIsComplete: (events) =>
+              events.find((event) => event.message.includes(markers.start)) &&
+              events.find((event) => event.message.includes(markers.end)),
           }
-        ).then(events => {
-          const logs = events.map(event => event.message).join('\n');
+        ).then((events) => {
+          const logs = events.map((event) => event.message).join('\n');
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
           expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
@@ -270,12 +270,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(namedEventBusName, putEventEntries),
           {
-            checkIsComplete: events =>
-              events.find(event => event.message.includes(markers.start)) &&
-              events.find(event => event.message.includes(markers.end)),
+            checkIsComplete: (events) =>
+              events.find((event) => event.message.includes(markers.start)) &&
+              events.find((event) => event.message.includes(markers.end)),
           }
-        ).then(events => {
-          const logs = events.map(event => event.message).join('\n');
+        ).then((events) => {
+          const logs = events.map((event) => event.message).join('\n');
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
           expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
@@ -292,12 +292,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(arnEventBusName, putEventEntries),
           {
-            checkIsComplete: events =>
-              events.find(event => event.message.includes(markers.start)) &&
-              events.find(event => event.message.includes(markers.end)),
+            checkIsComplete: (events) =>
+              events.find((event) => event.message.includes(markers.start)) &&
+              events.find((event) => event.message.includes(markers.end)),
           }
-        ).then(events => {
-          const logs = events.map(event => event.message).join('\n');
+        ).then((events) => {
+          const logs = events.map((event) => event.message).join('\n');
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
           expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
@@ -314,12 +314,12 @@ describe('AWS - Event Bridge Integration Test', () => {
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(cfFuncEventBusName, putEventEntries),
           {
-            checkIsComplete: events =>
-              events.find(event => event.message.includes(markers.start)) &&
-              events.find(event => event.message.includes(markers.end)),
+            checkIsComplete: (events) =>
+              events.find((event) => event.message.includes(markers.start)) &&
+              events.find((event) => event.message.includes(markers.end)),
           }
-        ).then(events => {
-          const logs = events.map(event => event.message).join('\n');
+        ).then((events) => {
+          const logs = events.map((event) => event.message).join('\n');
           expect(logs).to.include(`"source":"${eventSource}"`);
           expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
           expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);

@@ -983,4 +983,28 @@ describe('#naming()', () => {
       );
     });
   });
+
+  describe('#getEventBridgeEventBusLogicalId()', () => {
+    it('should normalize the event bus name and append correct suffix', () => {
+      expect(sdk.naming.getEventBridgeEventBusLogicalId('ExampleEventBusName')).to.equal(
+        'ExampleEventBusNameEventBridgeEventBus'
+      );
+    });
+  });
+
+  describe('#getEventBridgeRuleLogicalId()', () => {
+    it('should normalize the rule name and append correct suffix', () => {
+      expect(sdk.naming.getEventBridgeRuleLogicalId('exampleRuleName')).to.equal(
+        'ExampleRuleNameEventBridgeRule'
+      );
+    });
+  });
+
+  describe('#getEventBridgeLambdaPermissionLogicalId()', () => {
+    it('should normalize the name and append correct suffix with index', () => {
+      expect(sdk.naming.getEventBridgeLambdaPermissionLogicalId('exampleFunction', 1)).to.equal(
+        'ExampleFunctionEventBridgeLambdaPermission1'
+      );
+    });
+  });
 });
