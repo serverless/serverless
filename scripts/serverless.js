@@ -13,16 +13,16 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
   return;
 }
 
-const BbPromise = require('bluebird');
 const logError = require('../lib/classes/Error').logError;
-const uuid = require('uuid');
-
-const invocationId = uuid.v4();
 
 let serverless;
 
 process.on('uncaughtException', (error) => logError(error, { forceExit: true, serverless }));
 
+const BbPromise = require('bluebird');
+const uuid = require('uuid');
+
+const invocationId = uuid.v4();
 if (process.env.SLS_DEBUG) {
   // For performance reasons enabled only in SLS_DEBUG mode
   BbPromise.config({
