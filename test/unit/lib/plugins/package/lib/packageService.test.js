@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 const BbPromise = require('bluebird');
-const JsZip = require('jszip');
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
@@ -13,6 +12,7 @@ const Serverless = require('../../../../../../lib/Serverless');
 const serverlessConfigFileUtils = require('../../../../../../lib/utils/getServerlessConfigFile');
 const { createTmpDir, listZipFiles } = require('../../../../../utils/fs');
 const runServerless = require('../../../../../utils/run-serverless');
+const fixtures = require('../../../../../fixtures');
 
 // Configure chai
 chai.use(require('chai-as-promised'));
@@ -623,34 +623,38 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       });
     });
 
-    it.skip('should support `package.artifact`', () => {
+    it.skip('TODO: should support `package.artifact`', () => {
       // Confirm that file pointed at `package.artifact` is configured as service level artifact
       //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L227-L235
     });
 
-    it.skip('should ignore `package.artifact` if `functions[].package.individually', () => {
+    it.skip('TODO: should ignore `package.artifact` if `functions[].package.individually', () => {
       // Confirm that fnIndividual was packaged independently
       //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L262-L287
     });
 
-    it.skip('should support `functions[].package.artifact`', () => {
+    it.skip('TODO: should support `functions[].package.artifact`', () => {
       // Confirm that file pointed at `functions.fnArtifact.package.artifact` is configured as function level artifact
     });
 
     describe('with absolute artifact path', () => {
       let absoluteArtifactFilePath;
       let zipContent;
+      let servicePath;
+      let updateConfig;
 
       before(async () => {
-        const zip = new JsZip();
-        zip.file('index.js', '');
-        zipContent = await zip.generateAsync({ type: 'base64' });
-        absoluteArtifactFilePath = path.join(process.cwd(), 'newArtifact.zip');
-        await fs.promises.writeFile(absoluteArtifactFilePath, zipContent);
+        ({ servicePath, updateConfig } = await fixtures.setup('packageArtifact'));
+        absoluteArtifactFilePath = path.join(servicePath, 'newArtifact.zip');
+        await fs.promises.copyFile(
+          path.join(servicePath, 'artifact.zip'),
+          absoluteArtifactFilePath
+        );
+        zipContent = await fs.promises.readFile(absoluteArtifactFilePath);
       });
 
       describe('while deploying whole service', () => {
@@ -686,24 +690,22 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         });
 
         it('for function', async () => {
-          await runServerless({
-            fixture: 'function',
-            cliArgs: ['deploy'],
-            lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
-            awsRequestStubMap,
-            configExt: {
-              functions: {
-                other: {
-                  package: {
-                    artifact: absoluteArtifactFilePath,
-                  },
+          await updateConfig({
+            functions: {
+              other: {
+                package: {
+                  artifact: absoluteArtifactFilePath,
                 },
               },
             },
           });
+          await runServerless({
+            cwd: servicePath,
+            cliArgs: ['deploy'],
+            lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
+            awsRequestStubMap,
+          });
 
-          // One with CF template, one with function artifact and one with provided function artifact
-          expect(s3UploadStub).to.be.calledThrice;
           const callArgs = s3UploadStub.args.find((item) =>
             item[0].Key.endsWith('newArtifact.zip')
           );
@@ -711,20 +713,18 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         });
 
         it('service-wide', async () => {
+          await updateConfig({
+            package: {
+              artifact: absoluteArtifactFilePath,
+            },
+          });
           await runServerless({
-            fixture: 'function',
+            cwd: servicePath,
             cliArgs: ['deploy'],
             lastLifecycleHookName: 'aws:deploy:deploy:uploadArtifacts',
             awsRequestStubMap,
-            configExt: {
-              package: {
-                artifact: absoluteArtifactFilePath,
-              },
-            },
           });
 
-          // One with CF template, one with service artifact
-          expect(s3UploadStub).to.be.calledTwice;
           const callArgs = s3UploadStub.args.find((item) =>
             item[0].Key.endsWith('newArtifact.zip')
           );
@@ -751,34 +751,34 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         });
 
         it('for function', async () => {
-          await runServerless({
-            fixture: 'function',
-            cliArgs: ['deploy', '-f', 'other'],
-            awsRequestStubMap,
-            configExt: {
-              functions: {
-                other: {
-                  package: {
-                    artifact: absoluteArtifactFilePath,
-                  },
+          await updateConfig({
+            functions: {
+              other: {
+                package: {
+                  artifact: absoluteArtifactFilePath,
                 },
               },
             },
+          });
+          await runServerless({
+            cwd: servicePath,
+            cliArgs: ['deploy', '-f', 'other'],
+            awsRequestStubMap,
           });
           expect(updateFunctionCodeStub).to.have.been.calledOnce;
           expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
         });
 
         it('service-wide', async () => {
+          await updateConfig({
+            package: {
+              artifact: absoluteArtifactFilePath,
+            },
+          });
           await runServerless({
-            fixture: 'function',
+            cwd: servicePath,
             cliArgs: ['deploy', '-f', 'foo'],
             awsRequestStubMap,
-            configExt: {
-              package: {
-                artifact: absoluteArtifactFilePath,
-              },
-            },
           });
           expect(updateFunctionCodeStub).to.have.been.calledOnce;
           expect(updateFunctionCodeStub.args[0][0].ZipFile).to.deep.equal(Buffer.from(zipContent));
