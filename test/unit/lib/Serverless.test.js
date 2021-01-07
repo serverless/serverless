@@ -290,14 +290,16 @@ describe('Serverless [new tests]', () => {
   describe('When local version available', () => {
     describe('When running global version', () => {
       it('Should fallback to local version when it is found and "enableLocalInstallationFallback" is not set', () =>
-        runServerless({ fixture: 'locallyInstalledServerless', cliArgs: ['-v'] }).then(
-          ({ serverless }) => {
-            expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
-            expect(serverless.isInvokedByGlobalInstallation).to.be.true;
-            expect(serverless.isLocallyInstalled).to.be.true;
-            expect(serverless.isLocalStub).to.be.true;
-          }
-        ));
+        runServerless({
+          fixture: 'locallyInstalledServerless',
+          cliArgs: ['-v'],
+          modulesCacheStub: {},
+        }).then(({ serverless }) => {
+          expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
+          expect(serverless.isInvokedByGlobalInstallation).to.be.true;
+          expect(serverless.isLocallyInstalled).to.be.true;
+          expect(serverless.isLocalStub).to.be.true;
+        }));
 
       let serverlessWithDisabledLocalInstallationFallback;
       it('Should report deprecation notice when "enableLocalInstallationFallback" is set', () =>
@@ -305,6 +307,7 @@ describe('Serverless [new tests]', () => {
           fixture: 'locallyInstalledServerless',
           configExt: { enableLocalInstallationFallback: false },
           cliArgs: ['-v'],
+          modulesCacheStub: {},
         }).then(({ serverless }) => {
           serverlessWithDisabledLocalInstallationFallback = serverless;
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
@@ -323,6 +326,7 @@ describe('Serverless [new tests]', () => {
           fixture: 'locallyInstalledServerless',
           configExt: { enableLocalInstallationFallback: true },
           cliArgs: ['-v'],
+          modulesCacheStub: {},
         }).then(({ serverless }) => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
             'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
@@ -352,12 +356,14 @@ describe('Serverless [new tests]', () => {
 
   describe('When local version not available', () => {
     it('Should run without notice', () =>
-      runServerless({ fixture: 'aws', cliArgs: ['-v'] }).then(({ serverless }) => {
-        expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
-        expect(serverless.isInvokedByGlobalInstallation).to.be.false;
-        expect(serverless.isLocallyInstalled).to.be.false;
-        expect(serverless.isLocalStub).to.not.exist;
-      }));
+      runServerless({ fixture: 'aws', cliArgs: ['-v'], modulesCacheStub: {} }).then(
+        ({ serverless }) => {
+          expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
+          expect(serverless.isInvokedByGlobalInstallation).to.be.false;
+          expect(serverless.isLocallyInstalled).to.be.false;
+          expect(serverless.isLocalStub).to.not.exist;
+        }
+      ));
   });
 
   describe('When .env file is available', () => {
