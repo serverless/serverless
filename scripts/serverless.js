@@ -13,56 +13,62 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
   return;
 }
 
-const logError = require('../lib/classes/Error').logError;
+const handleError = require('../lib/cli/handle-error');
 
 let serverless;
 
-process.on('uncaughtException', (error) => logError(error, { forceExit: true, serverless }));
+process.once('uncaughtException', (error) =>
+  handleError(error, {
+    isUncaughtException: true,
+    isLocallyInstalled: serverless && serverless.isLocallyInstalled,
+  })
+);
 
 const processSpanPromise = (async () => {
-  const wait = require('timers-ext/promise/sleep');
-  await wait(); // Ensure access to "processSpanPromise"
-  require('../lib/utils/analytics').sendPending({
-    serverlessExecutionSpan: processSpanPromise,
-  });
-
-  const BbPromise = require('bluebird');
-  const uuid = require('uuid');
-
-  const invocationId = uuid.v4();
-  if (process.env.SLS_DEBUG) {
-    // For performance reasons enabled only in SLS_DEBUG mode
-    BbPromise.config({
-      longStackTraces: true,
-    });
-  }
-
-  const Serverless = require('../lib/Serverless');
-  serverless = new Serverless();
-
   try {
-    serverless.onExitPromise = processSpanPromise;
-    serverless.invocationId = invocationId;
-    await serverless.init();
-    if (serverless.invokedInstance) serverless = serverless.invokedInstance;
-    await serverless.run();
-  } catch (error) {
-    // If Enterprise Plugin, capture error
-    let enterpriseErrorHandler = null;
-    serverless.pluginManager.plugins.forEach((p) => {
-      if (p.enterprise && p.enterprise.errorHandler) {
-        enterpriseErrorHandler = p.enterprise.errorHandler;
-      }
+    const wait = require('timers-ext/promise/sleep');
+    await wait(); // Ensure access to "processSpanPromise"
+    require('../lib/utils/analytics').sendPending({
+      serverlessExecutionSpan: processSpanPromise,
     });
-    if (!enterpriseErrorHandler) {
-      logError(error, { serverless });
-      return;
+
+    const BbPromise = require('bluebird');
+    const uuid = require('uuid');
+
+    const invocationId = uuid.v4();
+    if (process.env.SLS_DEBUG) {
+      // For performance reasons enabled only in SLS_DEBUG mode
+      BbPromise.config({
+        longStackTraces: true,
+      });
     }
+
+    const Serverless = require('../lib/Serverless');
+    serverless = new Serverless();
+
     try {
-      await enterpriseErrorHandler(error, invocationId);
-    } catch (enterpriseErrorHandlerError) {
-      process.stdout.write(`${enterpriseErrorHandlerError.stack}\n`);
+      serverless.onExitPromise = processSpanPromise;
+      serverless.invocationId = invocationId;
+      await serverless.init();
+      if (serverless.invokedInstance) serverless = serverless.invokedInstance;
+      await serverless.run();
+    } catch (error) {
+      // If Enterprise Plugin, capture error
+      let enterpriseErrorHandler = null;
+      serverless.pluginManager.plugins.forEach((p) => {
+        if (p.enterprise && p.enterprise.errorHandler) {
+          enterpriseErrorHandler = p.enterprise.errorHandler;
+        }
+      });
+      if (!enterpriseErrorHandler) throw error;
+      try {
+        await enterpriseErrorHandler(error, invocationId);
+      } catch (enterpriseErrorHandlerError) {
+        process.stdout.write(`${enterpriseErrorHandlerError.stack}\n`);
+      }
+      throw error;
     }
-    logError(error, { serverless });
+  } catch (error) {
+    handleError(error);
   }
 })();
