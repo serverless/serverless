@@ -1943,19 +1943,19 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1457-L1504
       //
-      // Confirm on TrancingConfig property
+      // Confirm on TracingConfig property
       // Confirm also on needed IAM policies
     });
 
     it.skip('TODO: should support `functions[].onError` as arn', () => {
-      // Replacment for
+      // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L774-L821
       //
       // Confirm on Function `DeadLetterConfig` property and on IAM policy statement being added
     });
 
     it.skip('TODO: should support `functions[].onError` as Ref', () => {
-      // Replacment for
+      // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L823-L863
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L951-L988
       //
