@@ -87,7 +87,7 @@ describe('AwsPackage', () => {
     beforeEach(() => {
       spawnStub = sinon.stub(serverless.pluginManager, 'spawn');
       generateCoreTemplateStub = sinon.stub(awsPackage, 'generateCoreTemplate').resolves();
-      mergeIamTemplatesStub = sinon.stub(awsPackage, 'mergeIamTemplates').resolves();
+      mergeIamTemplatesStub = sinon.stub(awsPackage, 'mergeIamTemplates').returns();
       generateArtifactDirectoryNameStub = sinon
         .stub(awsPackage, 'generateArtifactDirectoryName')
         .resolves();
@@ -127,10 +127,10 @@ describe('AwsPackage', () => {
         expect(generateCoreTemplateStub.calledOnce).to.equal(true);
       }));
 
-    it('should run "package:setupProviderConfiguration" hook', () =>
-      awsPackage.hooks['package:setupProviderConfiguration']().then(() => {
-        expect(mergeIamTemplatesStub.calledOnce).to.equal(true);
-      }));
+    it('should run "package:setupProviderConfiguration" hook', () => {
+      awsPackage.hooks['package:setupProviderConfiguration']();
+      expect(mergeIamTemplatesStub.calledOnce).to.equal(true);
+    });
 
     it('should run "before:package:compileFunctions" hook', () =>
       awsPackage.hooks['before:package:compileFunctions']().then(() => {
