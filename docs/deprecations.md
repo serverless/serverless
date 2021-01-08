@@ -8,7 +8,7 @@ layout: Doc
 
 ## How to disable specific deprecation logs
 
-To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable. Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations. If you want to disable specific depreications set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`.
+To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable. Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations. If you want to disable specific deprecations set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`.
 
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
@@ -122,6 +122,8 @@ Starting with v3.0.0, framework will unconditionally run service local installat
 
 ## Fallback to a service local `serverless` installation
 
+Deprecation code: `LOCAL_INSTALLATION_FALLBACK`
+
 Starting with v2.0.0, globally installed CLI will by default run (fallback to) service local installation of `serverless` if it's found.
 
 Adapt to this behavior now by adding `enableLocalInstallationFallback: true` to service configuration. Alternatively you may opt-out by setting it to `false` (note that'll be ineffective starting from v3.0.0, where support for this setting will be dropped, and CLI will unconditionally favor locally installed `serverless` installations when found)
@@ -129,6 +131,8 @@ Adapt to this behavior now by adding `enableLocalInstallationFallback: true` to 
 <a name="AWS_HTTP_API_TIMEOUT"><div>&nbsp;</div></a>
 
 ## AWS HTTP API `timeout`
+
+Deprecation code: `AWS_HTTP_API_TIMEOUT`
 
 `provider.httpApi.timeout` and `functions[].events[].httpApi.timeout` settings will no longer be recognized with v2.0.0.
 
@@ -138,17 +142,23 @@ Endpoints are configured to automatically follow timeout setting as configured o
 
 ## `slss` alias
 
+Deprecation code: `SLSS_CLI_ALIAS`
+
 Support for `slss` command will be removed with v2.0.0. Use `sls` or `serverless` instead.
 
 <a name="AWS_FUNCTION_DESTINATIONS_ASYNC_CONFIG"><div>&nbsp;</div></a>
 
 ## AWS Lambda Function Destinations `maximumEventAge` & `maximumRetryAttempts`
 
+Deprecation code: `AWS_FUNCTION_DESTINATIONS_ASYNC_CONFIG`
+
 `maximumEventAge` and `maximumRetryAttempts` should be defined directly at function level. Support for those settings on `destinations` level, will be removed with v2.0.0
 
 <a name="AWS_HTTP_API_VERSION"><div>&nbsp;</div></a>
 
 ## AWS HTTP API payload format
+
+Deprecation code: `AWS_HTTP_API_VERSION`
 
 Default HTTP API Payload version will be switched to 2.0 with next major release (For more details see [payload format documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html#http-api-develop-integrations-lambda.proxy-format))
 
@@ -158,6 +168,8 @@ Configure `httpApi.payload` explicitly to ensure seamless migration.
 
 ## Outdated Node.js version
 
+Deprecation code: `OUTDATED_NODEJS`
+
 Support for Node.js v6 and v8 will be dropped with v2.0.0 release
 
 Ensure to rely on at least Node.js v10 (It's recommended to use LTS version, as listed at https://nodejs.org/en/)
@@ -166,10 +178,14 @@ Ensure to rely on at least Node.js v10 (It's recommended to use LTS version, as 
 
 ## AWS ALB `allowUnauthenticated`
 
+Deprecation code: `AWS_ALB_ALLOW_UNAUTHENTICATED`
+
 Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be removed with v2.0.0
 
 <a name="BIN_SERVERLESS"><div>&nbsp;</div></a>
 
 ## `bin/serverless`
+
+Deprecation code: `BIN_SERVERLESS`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
