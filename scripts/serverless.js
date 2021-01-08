@@ -32,16 +32,9 @@ const processSpanPromise = (async () => {
       serverlessExecutionSpan: processSpanPromise,
     });
 
-    const BbPromise = require('bluebird');
     const uuid = require('uuid');
 
     const invocationId = uuid.v4();
-    if (process.env.SLS_DEBUG) {
-      // For performance reasons enabled only in SLS_DEBUG mode
-      BbPromise.config({
-        longStackTraces: true,
-      });
-    }
 
     const Serverless = require('../lib/Serverless');
     serverless = new Serverless();
