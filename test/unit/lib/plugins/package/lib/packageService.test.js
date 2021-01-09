@@ -1,8 +1,10 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs');
 const chai = require('chai');
-const { listZipFiles, listFilePermissions } = require('../../../../../utils/fs');
+const sinon = require('sinon');
+const { listFilePermissions, listZipFiles } = require('../../../../../utils/fs');
 const runServerless = require('../../../../../utils/run-serverless');
 const fixtures = require('../../../../../fixtures');
 
