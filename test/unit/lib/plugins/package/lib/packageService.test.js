@@ -206,7 +206,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.not.include('.custom-plugins/index.js');
     });
 
-    it('TODO: should ignore `package.artifact` if `package.individually`', () => {
+    it.skip('TODO: should ignore `package.artifact` if `package.individually`', () => {
       // expect(fnIndividualZippedFiles).to.not.include('artifact.zip');
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
     });
@@ -256,21 +256,21 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         },
       });
     });
-    it('TODO: should support `package.artifact`', () => {
+    it.skip('TODO: should support `package.artifact`', () => {
       // Confirm that file pointed at `package.artifact` is configured as service level artifact
       //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L227-L235
     });
 
-    it('TODO: should ignore `package.artifact` if `functions[].package.individually', () => {
+    it.skip('TODO: should ignore `package.artifact` if `functions[].package.individually', () => {
       // Confirm that fnIndividual was packaged independently
       //
       // Replace
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L262-L287
     });
 
-    it('TODO: should support `functions[].package.artifact`', () => {
+    it.skip('TODO: should support `functions[].package.artifact`', () => {
       // Confirm that file pointed at `functions.fnArtifact.package.artifact` is configured as function level artifact
     });
   });
