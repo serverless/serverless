@@ -193,5 +193,30 @@ describe('extendedValidate', () => {
         expect(awsDeploy.serverless.cli.log.firstCall.calledWithExactly(msg)).to.be.equal(true);
       });
     });
+
+    it("should not warn if function's timeout is greater than 30 and it's attached to APIGW, but it has async mode", () => {
+      stateFileMock.service.functions = {
+        first: {
+          timeout: 31,
+          package: {
+            artifact: 'artifact.zip',
+          },
+          events: [
+            {
+              http: {
+                async: true,
+              },
+            },
+          ],
+        },
+      };
+      awsDeploy.serverless.service.package.individually = true;
+      fileExistsSyncStub.returns(true);
+      readFileSyncStub.returns(stateFileMock);
+
+      return awsDeploy.extendedValidate().then(() => {
+        expect(awsDeploy.serverless.cli.log.firstCall).to.be.equal(null);
+      });
+    });
   });
 });
