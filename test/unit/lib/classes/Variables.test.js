@@ -2741,43 +2741,43 @@ module.exports = {
       expect(logWarningSpy.args[0][0]).to.contain('file');
     });
   });
+});
 
-  describe('variable syntax', () => {
-    let processedConfig = null;
-    before(async () => {
-      const result = await runServerless({
-        fixture: 'variables',
-        cliArgs: ['print'],
-      });
-      processedConfig = result.serverless.service;
+describe('test/unit/lib/classes/Variables.test.js', () => {
+  let processedConfig = null;
+  before(async () => {
+    const result = await runServerless({
+      fixture: 'variables',
+      cliArgs: ['print'],
     });
+    processedConfig = result.serverless.service;
+  });
 
-    it('should support ${file(...)} syntax', () => {
-      expect(processedConfig.custom.importedFile).to.deep.equal({
-        foo: 'bar',
-      });
+  it('should support ${file(...)} syntax', () => {
+    expect(processedConfig.custom.importedFile).to.deep.equal({
+      foo: 'bar',
     });
+  });
 
-    it('should support ${file(...):key} syntax', () => {
-      expect(processedConfig.custom.importedFileWithKey).to.equal('bar');
-    });
+  it('should support ${file(...):key} syntax', () => {
+    expect(processedConfig.custom.importedFileWithKey).to.equal('bar');
+  });
 
-    it('should ignore native CloudFormation variables', () => {
-      expect(processedConfig.custom.awsVariable).to.equal('${AWS::Region}');
-    });
+  it('should ignore native CloudFormation variables', () => {
+    expect(processedConfig.custom.awsVariable).to.equal('${AWS::Region}');
+  });
 
-    it('should ignore CloudFormation references', () => {
-      expect(processedConfig.custom.cloudFormationReference).to.equal('${AnotherResource}');
-    });
+  it('should ignore CloudFormation references', () => {
+    expect(processedConfig.custom.cloudFormationReference).to.equal('${AnotherResource}');
+  });
 
-    it('should support ${self:key} syntax', () => {
-      expect(processedConfig.custom.selfReference).to.equal('bar');
-    });
-    it('should support ${self:} syntax', () => {
-      expect(processedConfig.custom.serviceReference).to.equal(processedConfig);
-    });
-    it('should support nested resolution', () => {
-      expect(processedConfig.custom.nestedReference).to.equal('resolvedNested');
-    });
+  it('should support ${self:key} syntax', () => {
+    expect(processedConfig.custom.selfReference).to.equal('bar');
+  });
+  it('should support ${self:} syntax', () => {
+    expect(processedConfig.custom.serviceReference).to.equal(processedConfig);
+  });
+  it('should support nested resolution', () => {
+    expect(processedConfig.custom.nestedReference).to.equal('resolvedNested');
   });
 });
