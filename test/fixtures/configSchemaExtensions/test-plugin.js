@@ -54,9 +54,9 @@ class TestPlugin {
       'existingComplexEvent',
       {
         properties: {
-          somePluginAdditionalComplexeEventProp: { type: 'string' },
+          somePluginAdditionalComplexEventProp: { type: 'string' },
         },
-        required: ['somePluginAdditionalComplexeEventProp'],
+        required: ['somePluginAdditionalComplexEventProp'],
       }
     );
 
