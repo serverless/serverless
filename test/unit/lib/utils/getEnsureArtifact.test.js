@@ -2,45 +2,44 @@
 
 const { expect } = require('chai');
 
-const getEnsureArtifact = require('../../../../lib/utils/getEnsureArtifact');
+const ensureArtifact = require('../../../../lib/utils/ensureArtifact');
 
 const path = require('path');
+const fs = require('fs');
 const fse = require('fs-extra');
 const crypto = require('crypto');
 
-describe('#getEnsureArtifact', () => {
+describe('#ensureArtifact', () => {
   const testArtifactName = `test-${crypto.randomBytes(2).toString('hex')}`;
 
   let testArtifactPath;
-  let ensureArtifact;
   let invokedCount = 0;
 
-  before(() => {
-    ensureArtifact = getEnsureArtifact(testArtifactName, (cachePath) => {
-      testArtifactPath = path.resolve(cachePath, testArtifactName);
-      ++invokedCount;
-      return fse.writeFile(testArtifactPath, '');
-    });
+  const generateFunc = async (cachePath) => {
+    testArtifactPath = path.resolve(cachePath, testArtifactName);
+    ++invokedCount;
+    await fs.promises.writeFile(testArtifactPath, '');
+  };
+
+  it('Should generate artifact if missing', async () => {
+    await ensureArtifact(testArtifactName, generateFunc);
+    const exists = await fse.pathExists(testArtifactPath);
+    expect(exists).to.be.true;
   });
 
-  it('Should not generate on ensure function initialization', () =>
-    fse.pathExists(testArtifactPath).then((exists) => expect(exists).to.be.false));
-
-  it('Should generate artifact if missing', () =>
-    ensureArtifact().then(() =>
-      fse.pathExists(testArtifactPath).then((exists) => expect(exists).to.be.true)
-    ));
-
-  it('Should generate only on first access', () =>
-    ensureArtifact().then(() => expect(invokedCount).to.equal(1)));
-
-  it('Should not generate, if generated in past', () => {
-    getEnsureArtifact._ensureArtifact.delete(testArtifactName);
-    return ensureArtifact().then(() => expect(invokedCount).to.equal(1));
+  it('Should generate only on first access', async () => {
+    await ensureArtifact(testArtifactName, generateFunc);
+    expect(invokedCount).to.equal(1);
   });
 
-  it('Should return cache path', () =>
-    ensureArtifact().then((cachePath) =>
-      expect(cachePath).to.include(`.serverless${path.sep}artifacts`)
-    ));
+  it('Should not generate, if generated in past', async () => {
+    ensureArtifact.delete(testArtifactName);
+    await ensureArtifact(testArtifactName, generateFunc);
+    expect(invokedCount).to.equal(1);
+  });
+
+  it('Should return cache path', async () => {
+    const cachePath = await ensureArtifact(testArtifactName, generateFunc);
+    expect(cachePath).to.include(`.serverless${path.sep}artifacts`);
+  });
 });
