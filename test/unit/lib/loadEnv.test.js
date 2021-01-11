@@ -7,7 +7,7 @@ const overrideEnv = require('process-utils/override-env');
 const fs = require('fs');
 const loadEnv = require('../../../lib/loadEnv');
 const dotenv = require('dotenv');
-const ServerlessError = require('../../../lib/classes/Error').ServerlessError;
+const ServerlessError = require('../../../lib/serverless-error');
 
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
