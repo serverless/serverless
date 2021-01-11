@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const chai = require('chai');
 const sinon = require('sinon');
-const { listFilePermissions, listZipFiles } = require('../../../../../utils/fs');
+const { listFileProperties, listZipFiles } = require('../../../../../utils/fs');
 const runServerless = require('../../../../../utils/run-serverless');
 const fixtures = require('../../../../../fixtures');
 
@@ -32,7 +32,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
   describe('service wide', () => {
     let fnIndividualZippedFiles;
     let fnLayerFiles;
-    let fnFilePermissions;
+    let fnFileProperties;
 
     before(async () => {
       const {
@@ -63,7 +63,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
       );
       fnLayerFiles = await listZipFiles(path.join(servicePath, '.serverless', 'layer.zip'));
-      fnFilePermissions = await listFilePermissions(
+      fnFileProperties = await listFileProperties(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
       );
     });
@@ -152,7 +152,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       'should mark go runtime handler files as executable on windows',
       () => {
         // Confirm that packaged go handler is executable
-        expect(fnFilePermissions['main.go'].unixPermissions).to.equal(Math.pow(2, 15) + 0o755);
+        expect(fnFileProperties['main.go'].unixPermissions).to.equal(Math.pow(2, 15) + 0o755);
         // Replace
         // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L335-L376
       }
