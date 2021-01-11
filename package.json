@@ -64,6 +64,7 @@
     "p-limit": "^3.1.0",
     "promise-queue": "^2.2.5",
     "replaceall": "^0.1.6",
+    "require-from-string": "^2.0.2",
     "semver": "^7.3.4",
     "tabtab": "^3.0.2",
     "tar": "^6.1.0",
