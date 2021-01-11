@@ -32,6 +32,8 @@ const processSpanPromise = (async () => {
       serverlessExecutionSpan: processSpanPromise,
     });
 
+    if (await require('../lib/cli/eventually-list-version')()) return;
+
     const uuid = require('uuid');
 
     const invocationId = uuid.v4();

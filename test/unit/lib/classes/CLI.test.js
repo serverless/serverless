@@ -230,30 +230,6 @@ describe('CLI', () => {
       expect(helpDisplayed).to.equal(true);
     });
 
-    it('should return true when the "version" parameter is given', () => {
-      cli = new CLI(serverless, ['version']);
-      const processedInput = cli.processInput();
-      const helpDisplayed = cli.displayHelp(processedInput);
-
-      expect(helpDisplayed).to.equal(true);
-    });
-
-    it('should return true when the "--version" parameter is given', () => {
-      cli = new CLI(serverless, ['--version']);
-      const processedInput = cli.processInput();
-      const helpDisplayed = cli.displayHelp(processedInput);
-
-      expect(helpDisplayed).to.equal(true);
-    });
-
-    it('should return true when the "-v" parameter is given', () => {
-      cli = new CLI(serverless, ['-v']);
-      const processedInput = cli.processInput();
-      const helpDisplayed = cli.displayHelp(processedInput);
-
-      expect(helpDisplayed).to.equal(true);
-    });
-
     it('should return true when the "-h" parameter is given with a command', () => {
       cli = new CLI(serverless, ['test', '-h']);
       serverless.cli = cli;
@@ -332,7 +308,7 @@ describe('CLI', () => {
       expect(helpDisplayed).to.equal(true);
     });
 
-    it('should return false if no "help" or "version" related command / option is given', () => {
+    it('should return false if no "help" related command / option is given', () => {
       cli = new CLI(serverless, ['test']);
       serverless.cli = cli;
       class PluginMock {
@@ -427,32 +403,6 @@ describe('CLI', () => {
       expect(consoleLogStub.called).to.equal(false);
       expect(displayCommandUsageStub.calledOnce).to.equal(false);
       expect(displayCommandOptionsStub.calledOnce).to.equal(false);
-    });
-  });
-
-  describe('#getVersionNumber()', () => {
-    let consoleLogSpy;
-
-    beforeEach(() => {
-      cli = new CLI(serverless);
-      consoleLogSpy = sinon.spy(cli, 'consoleLog');
-    });
-
-    afterEach(() => {
-      cli.consoleLog.restore();
-    });
-
-    it('should log the version numbers', () => {
-      cli.getVersionNumber();
-
-      expect(consoleLogSpy.args[0][0]).to.include('Framework Core');
-      expect(consoleLogSpy.args[0][0]).to.include('Plugin');
-      expect(consoleLogSpy.args[0][0]).to.include('SDK');
-
-      const userNodeVersion = Number(process.version.split('.')[0].slice(1));
-      if (userNodeVersion >= 8) {
-        expect(consoleLogSpy.args[1][0]).to.include('Components');
-      }
     });
   });
 
@@ -668,30 +618,6 @@ describe('CLI [new tests]', () => {
     }).then(({ stdoutData }) => {
       expect(stdoutData).to.include('Documentation: http://slss.io/docs');
     }));
-
-  it('Should show version when requested and no commands are used', () =>
-    runServerless({
-      fixture: 'function',
-      cliArgs: ['-v'],
-    }).then(({ stdoutData }) => {
-      expect(stdoutData).to.include('Framework Core: ');
-    }));
-
-  it('Should not show version with command', () =>
-    runServerless({
-      fixture: 'customProvider',
-      cliArgs: ['info', '-v'],
-    })
-      .then(({ stdoutData }) => {
-        expect(stdoutData).to.not.include('Framework Core: ');
-        return runServerless({
-          fixture: 'customProvider',
-          cliArgs: ['info', '--version'],
-        });
-      })
-      .then(({ stdoutData }) => {
-        expect(stdoutData).to.not.include('Framework Core: ');
-      }));
 
   it('Should handle incomplete command configurations', async () => {
     const { stdoutData } = await runServerless({
