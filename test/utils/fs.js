@@ -49,8 +49,9 @@ function listZipFiles(filename) {
   return new JSZip().loadAsync(fs.readFileSync(filename)).then((zip) => Object.keys(zip.files));
 }
 
-function listFileProperties(filename) {
-  return new JSZip().loadAsync(fs.readFileSync(filename)).then((zip) => zip.files);
+async function listFileProperties(filename) {
+  const zip = await new JSZip().loadAsync(fs.readFileSync(filename));
+  return zip.files;
 }
 
 module.exports = {
