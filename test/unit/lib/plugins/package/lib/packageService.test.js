@@ -105,33 +105,18 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
 
     it('should exclude default plugins localPath', () => {
-      // Confirm ".serverless-plugins/index.js" is not packaged
       expect(fnIndividualZippedFiles).to.not.include('.serverless-plugins/index.js');
-      // Replaces
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L87-L96
     });
 
     it('should support `package.exclude`', () => {
-      // Confirm "dir1/subdir1/index.js" is not packaged
       expect(fnIndividualZippedFiles).to.not.include('dir1/subdir1/index.js');
-      // Confirm "dir1/subdir3/index.js" is packaged
       expect(fnIndividualZippedFiles).to.include('dir1/subdir3/index.js');
-      // Replace
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L128-L145
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L637-L649
     });
 
     it('should support `package.include`', () => {
-      // Confirm "dir1/subdir2/index.js" is packaged
       expect(fnIndividualZippedFiles).to.include('dir1/subdir2/index.js');
-      // Confirm "dir1/subdir2/subsubdir1/index.js" is not packaged
       expect(fnIndividualZippedFiles).to.not.include('dir1/subdir2/subsubdir1/index.js');
-      // Confirm "dir1/subdir2/subsubdir2/index.js" is packaged
       expect(fnIndividualZippedFiles).to.include('dir1/subdir2/subsubdir2/index.js');
-      // Replaces
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L43-L50
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L625-L635
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L651-L662
     });
 
     it('TODO: should support `functions[].package.individually`', () => {
@@ -144,26 +129,18 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
     it('should support `functions[].package.include`', () => {
       expect(fnIndividualZippedFiles).to.include('dir1/subdir4/index.js');
-      // Replaces
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L147-L168
     });
 
     (process.platform === 'win32' ? it : it.skip)(
       'should mark go runtime handler files as executable on windows',
       () => {
-        // Confirm that packaged go handler is executable
         expect(fnFileProperties['main.go'].unixPermissions).to.equal(Math.pow(2, 15) + 0o755);
-        // Replace
-        // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L335-L376
       }
     );
 
     it('should package layer', () => {
       expect(fnLayerFiles).to.include('layer-module-1.js');
       expect(fnLayerFiles).to.include('layer-module-2.js');
-
-      // Replace
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L581-L607
     });
   });
 
@@ -207,16 +184,12 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
 
     it.skip('TODO: should ignore `package.artifact` if `package.individually`', () => {
-      // expect(fnIndividualZippedFiles).to.not.include('artifact.zip');
+      expect(fnIndividualZippedFiles).to.not.include('artifact.zip');
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
     });
 
     it('should support `package.individually`', () => {
-      // Confirm on different artifacts on functions
       expect(fnIndividualZippedFiles).to.include('dir1/subdir3/index.js');
-
-      // Replaces
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L181-L199
     });
 
     it('should support `package.exclude`', () => {
