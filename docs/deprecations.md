@@ -8,7 +8,14 @@ layout: Doc
 
 ## How to disable specific deprecation logs
 
-To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable. Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations. If you want to disable specific deprecations set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`.
+To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable. Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations. If you want to disable specific deprecations set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`. Alternatively, you can also use `disabledDeprecations` in your `serverless.yml` in the following manner:
+
+```yml
+service: myService
+disabledDeprecations:
+  - CODE_1 # To disable specific deprecation with code "CODE_1"
+  - '*' # To disable all deprecation messages
+```
 
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
