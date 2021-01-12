@@ -727,6 +727,25 @@ describe('#naming()', () => {
     });
   });
 
+  describe('#getKafkaEventLogicalId()', () => {
+    it('should normalize the function name and append topic name', () => {
+      expect(sdk.naming.getKafkaEventLogicalId('functionName', 'kafka-topic')).to.equal(
+        'FunctionNameEventSourceMappingKafkaKafkatopic'
+      );
+    });
+
+    it('should normalize long function name and append topic name', () => {
+      expect(
+        sdk.naming.getKafkaEventLogicalId(
+          'functionName',
+          'myVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicName'
+        )
+      ).to.equal(
+        'FunctionNameEventSourceMappingKafkaMyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVeryLongTopicNamemyVery'
+      );
+    });
+  });
+
   describe('#getMSKEventLogicalId()', () => {
     it('should normalize the function name and append normalized cluster and topic names', () => {
       expect(
