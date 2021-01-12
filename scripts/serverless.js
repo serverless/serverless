@@ -35,17 +35,18 @@ const processSpanPromise = (async () => {
     if (await require('../lib/cli/eventually-list-version')()) return;
 
     const uuid = require('uuid');
-
-    const invocationId = uuid.v4();
-
     const Serverless = require('../lib/Serverless');
+
     serverless = new Serverless();
 
     try {
       serverless.onExitPromise = processSpanPromise;
-      serverless.invocationId = invocationId;
+      serverless.invocationId = uuid.v4();
       await serverless.init();
-      if (serverless.invokedInstance) serverless = serverless.invokedInstance;
+      if (serverless.invokedInstance) {
+        serverless.invokedInstance.invocationId = serverless.invocationId;
+        serverless = serverless.invokedInstance;
+      }
       await serverless.run();
     } catch (error) {
       // If Enterprise Plugin, capture error
@@ -57,7 +58,7 @@ const processSpanPromise = (async () => {
       });
       if (!enterpriseErrorHandler) throw error;
       try {
-        await enterpriseErrorHandler(error, invocationId);
+        await enterpriseErrorHandler(error, serverless.invocationId);
       } catch (enterpriseErrorHandlerError) {
         process.stdout.write(`${enterpriseErrorHandlerError.stack}\n`);
       }
