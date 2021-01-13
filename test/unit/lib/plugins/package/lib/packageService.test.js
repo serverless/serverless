@@ -119,12 +119,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.include('dir1/subdir2/subsubdir2/index.js');
     });
 
-    it('TODO: should support `functions[].package.individually`', () => {
-      // Confirm there's functions.fnIndividual.package.artifact
-      // Not sure if valid. To be checked.
+    it('should support `functions[].package.individually`', () => {
       expect(fnIndividualZippedFiles).to.include('artifact.zip');
-      // Replace
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L201-L225
     });
 
     it('should support `functions[].package.include`', () => {
