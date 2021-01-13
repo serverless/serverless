@@ -2,6 +2,11 @@
 
 const path = require('path');
 const chai = require('chai');
+const sinon = require('sinon');
+const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
+const AwsCompileLayers = require('../../../../../../../lib/plugins/aws/package/compile/layers');
+const Serverless = require('../../../../../../../lib/Serverless');
+const { getTmpDirPath } = require('../../../../../../utils/fs');
 const runServerless = require('../../../../../../utils/run-serverless');
 
 chai.use(require('chai-as-promised'));
@@ -23,6 +28,300 @@ const awsRequestStubMap = {
   },
 };
 
+describe('AwsCompileLayers', () => {
+  let serverless;
+  let awsCompileLayers;
+  let awsProvider;
+  let providerRequestStub;
+
+  const layerName = 'test';
+  const compiledLayerName = 'TestLambdaLayer';
+
+  beforeEach(() => {
+    const options = {
+      stage: 'dev',
+      region: 'us-east-1',
+    };
+    serverless = new Serverless(options);
+    awsProvider = new AwsProvider(serverless, options);
+    serverless.setProvider('aws', awsProvider);
+    serverless.cli = new serverless.classes.CLI();
+    serverless.config.servicePath = process.cwd();
+    awsCompileLayers = new AwsCompileLayers(serverless, options);
+    awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate = {
+      Resources: {},
+      Outputs: {},
+    };
+    providerRequestStub = sinon.stub(awsCompileLayers.provider, 'request');
+
+    const serviceArtifact = 'new-service.zip';
+    const individualArtifact = 'test.zip';
+    awsCompileLayers.packagePath = getTmpDirPath();
+    // The contents of the test artifacts need to be predictable so the hashes stay the same
+    serverless.utils.writeFileSync(
+      path.join(awsCompileLayers.packagePath, serviceArtifact),
+      'foobar'
+    );
+    serverless.utils.writeFileSync(
+      path.join(awsCompileLayers.packagePath, individualArtifact),
+      'barbaz'
+    );
+
+    awsCompileLayers.serverless.service.service = 'new-service';
+    awsCompileLayers.serverless.service.package.artifactDirectoryName = 'somedir';
+    awsCompileLayers.serverless.service.package.artifact = path.join(
+      awsCompileLayers.packagePath,
+      serviceArtifact
+    );
+    awsCompileLayers.serverless.service.layers = {};
+    awsCompileLayers.serverless.service.layers[layerName] = {
+      name: 'test',
+      package: {
+        artifact: path.join(awsCompileLayers.packagePath, individualArtifact),
+      },
+      handler: 'handler.hello',
+    };
+
+    providerRequestStub.withArgs('CloudFormation', 'describeStacks').resolves({
+      Stacks: [
+        {
+          Outputs: [
+            { OutputKey: 'TestLambdaLayerHash', OutputValue: '1qaz' },
+            { OutputKey: 'TestLambdaLayerS3Key', OutputValue: 'a/b/c/foo.zip' },
+          ],
+        },
+      ],
+    });
+  });
+
+  describe('#compileLayers()', () => {
+    it('should use layer artifact if individually', () => {
+      awsCompileLayers.serverless.service.package.individually = true;
+
+      return expect(awsCompileLayers.compileLayers()).to.be.fulfilled.then(() => {
+        const layerResource =
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+            compiledLayerName
+          ];
+
+        const s3Folder = awsCompileLayers.serverless.service.package.artifactDirectoryName;
+        const s3FileName = awsCompileLayers.serverless.service.layers[layerName].package.artifact
+          .split(path.sep)
+          .pop();
+
+        expect(layerResource.Properties.Content.S3Key).to.deep.equal(`${s3Folder}/${s3FileName}`);
+      });
+    });
+
+    it('should create a simple layer resource', () => {
+      const s3Folder = awsCompileLayers.serverless.service.package.artifactDirectoryName;
+      const s3FileName = awsCompileLayers.serverless.service.layers.test.package.artifact
+        .split(path.sep)
+        .pop();
+      awsCompileLayers.serverless.service.layers = {
+        test: {
+          path: 'layer',
+        },
+      };
+      const compiledLayer = {
+        Type: 'AWS::Lambda::LayerVersion',
+        Properties: {
+          Content: {
+            S3Key: `${s3Folder}/${s3FileName}`,
+            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          },
+          LayerName: 'test',
+        },
+      };
+      const compiledLayerOutput = {
+        Description: 'Current Lambda layer version',
+        Value: {
+          Ref: 'TestLambdaLayer',
+        },
+      };
+
+      return expect(awsCompileLayers.compileLayers()).to.be.fulfilled.then(() => {
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .TestLambdaLayer
+        ).to.deep.equal(compiledLayer);
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Outputs
+            .TestLambdaLayerQualifiedArn
+        ).to.deep.equal(compiledLayerOutput);
+      });
+    });
+
+    it('should create a layer resource with permissions', () => {
+      const s3Folder = awsCompileLayers.serverless.service.package.artifactDirectoryName;
+      const s3FileName = awsCompileLayers.serverless.service.layers.test.package.artifact
+        .split(path.sep)
+        .pop();
+      awsCompileLayers.serverless.service.layers = {
+        test: {
+          path: 'layer',
+          allowedAccounts: ['*'],
+        },
+      };
+      const compiledLayer = {
+        Type: 'AWS::Lambda::LayerVersion',
+        Properties: {
+          Content: {
+            S3Key: `${s3Folder}/${s3FileName}`,
+            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          },
+          LayerName: 'test',
+        },
+      };
+      const compiledLayerOutput = {
+        Description: 'Current Lambda layer version',
+        Value: {
+          Ref: 'TestLambdaLayer',
+        },
+      };
+      const compiledLayerVersion = {
+        Type: 'AWS::Lambda::LayerVersionPermission',
+        Properties: {
+          Action: 'lambda:GetLayerVersion',
+          LayerVersionArn: {
+            Ref: 'TestLambdaLayer',
+          },
+          Principal: '*',
+        },
+      };
+
+      return expect(awsCompileLayers.compileLayers()).to.be.fulfilled.then(() => {
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .TestLambdaLayer
+        ).to.deep.equal(compiledLayer);
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Outputs
+            .TestLambdaLayerQualifiedArn
+        ).to.deep.equal(compiledLayerOutput);
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .TestWildLambdaLayerPermission
+        ).to.deep.equal(compiledLayerVersion);
+      });
+    });
+
+    it('should create a layer resource with permissions per account', () => {
+      const s3Folder = awsCompileLayers.serverless.service.package.artifactDirectoryName;
+      const s3FileName = awsCompileLayers.serverless.service.layers.test.package.artifact
+        .split(path.sep)
+        .pop();
+      awsCompileLayers.serverless.service.layers = {
+        test: {
+          path: 'layer',
+          allowedAccounts: ['1111111', '2222222'],
+        },
+      };
+      const compiledLayer = {
+        Type: 'AWS::Lambda::LayerVersion',
+        Properties: {
+          Content: {
+            S3Key: `${s3Folder}/${s3FileName}`,
+            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          },
+          LayerName: 'test',
+        },
+      };
+      const compiledLayerOutput = {
+        Description: 'Current Lambda layer version',
+        Value: {
+          Ref: 'TestLambdaLayer',
+        },
+      };
+      const compiledLayerVersionNumber = {
+        Type: 'AWS::Lambda::LayerVersionPermission',
+        Properties: {
+          Action: 'lambda:GetLayerVersion',
+          LayerVersionArn: {
+            Ref: 'TestLambdaLayer',
+          },
+          Principal: '1111111',
+        },
+      };
+
+      const compiledLayerVersionString = {
+        Type: 'AWS::Lambda::LayerVersionPermission',
+        Properties: {
+          Action: 'lambda:GetLayerVersion',
+          LayerVersionArn: {
+            Ref: 'TestLambdaLayer',
+          },
+          Principal: '2222222',
+        },
+      };
+
+      return expect(awsCompileLayers.compileLayers()).to.be.fulfilled.then(() => {
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .TestLambdaLayer
+        ).to.deep.equal(compiledLayer);
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Outputs
+            .TestLambdaLayerQualifiedArn
+        ).to.deep.equal(compiledLayerOutput);
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .Test1111111LambdaLayerPermission
+        ).to.deep.equal(compiledLayerVersionNumber);
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .Test2222222LambdaLayerPermission
+        ).to.deep.equal(compiledLayerVersionString);
+      });
+    });
+
+    it('should create a layer resource with metadata options set', () => {
+      const s3Folder = awsCompileLayers.serverless.service.package.artifactDirectoryName;
+      const s3FileName = awsCompileLayers.serverless.service.layers.test.package.artifact
+        .split(path.sep)
+        .pop();
+      awsCompileLayers.serverless.service.layers = {
+        test: {
+          path: 'layer',
+          description: 'desc',
+          compatibleRuntimes: ['nodejs12.x'],
+          licenseInfo: 'GPL',
+        },
+      };
+      const compiledLayer = {
+        Type: 'AWS::Lambda::LayerVersion',
+        Properties: {
+          Content: {
+            S3Key: `${s3Folder}/${s3FileName}`,
+            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
+          },
+          LayerName: 'test',
+          Description: 'desc',
+          CompatibleRuntimes: ['nodejs12.x'],
+          LicenseInfo: 'GPL',
+        },
+      };
+      const compiledLayerOutput = {
+        Description: 'Current Lambda layer version',
+        Value: {
+          Ref: 'TestLambdaLayer',
+        },
+      };
+
+      return expect(awsCompileLayers.compileLayers()).to.be.fulfilled.then(() => {
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Resources
+            .TestLambdaLayer
+        ).to.deep.equal(compiledLayer);
+        expect(
+          awsCompileLayers.serverless.service.provider.compiledCloudFormationTemplate.Outputs
+            .TestLambdaLayerQualifiedArn
+        ).to.deep.equal(compiledLayerOutput);
+      });
+    });
+  });
+});
+
 describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   let cfResources;
   let naming;
@@ -40,17 +339,6 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
           individually: true,
         },
         layers: {
-          layerOne: {
-            path: 'layer',
-            allowedAccounts: ['*'],
-          },
-          layerTwo: {
-            description: 'Layer two example',
-            path: 'layer',
-            compatibleRuntimes: ['nodejs12.x'],
-            licenseInfo: 'GPL',
-            allowedAccounts: ['123456789012', '123456789013'],
-          },
           layerRetain: {
             path: 'layer',
             retain: true,
@@ -76,7 +364,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
     expect(layerResource.Properties.Content.S3Key).to.be.equal(`${s3Folder}/${s3FileName}`);
   });
 
-  it('should generate expected layer version resource', () => {
+  it('TODO: should generate expected layer version resource', () => {
     const resourceName = 'layer';
     const layerResource = cfResources[naming.getLambdaLayerLogicalId(resourceName)];
     const s3Folder = service.package.artifactDirectoryName;
@@ -85,12 +373,12 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
     expect(layerResource.Type).to.be.equals('AWS::Lambda::LayerVersion');
     expect(layerResource.Properties.Content.S3Key).to.be.equal(`${s3Folder}/${s3FileName}`);
     expect(layerResource.Properties.LayerName).to.be.equal('layer');
-    expect(layerResource.Properties.Content.S3Bucket.Ref).to.be.equal('ServerlessDeploymentBucket');
+    expect(layerResource.Properties.Content.S3Bucket.ref).to.be.equal('ServerlessDeploymentBucket');
 
     expect(cfOutputs.LayerLambdaLayerQualifiedArn.Description).to.be.equals(
       'Current Lambda layer version'
     );
-    expect(cfOutputs.LayerLambdaLayerQualifiedArn.Value.Ref).to.be.equals('LayerLambdaLayer');
+    expect(cfOutputs.LayerLambdaLayerQualifiedArn.Value).to.be.equals('LayerLambdaLayer');
   });
 
   describe('`layers[].retain` property', () => {
@@ -129,96 +417,33 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
         awsRequestStubMap,
       });
       expect(firstCfResources).to.have.property(firstLayerResourceName);
+      // Replaces
+      // https://github.com/serverless/serverless/blob/e78f695004bf292c4163daf9705e5e0c6cbe2592/test/unit/lib/plugins/aws/package/compile/layers/index.test.js#L147-L329
     });
   });
 
-  it('should generate expected permissions resource', () => {
-    const layerResourceName = naming.getLambdaLayerLogicalId('LayerOne');
-    const layerOne = cfResources[layerResourceName];
-    const s3Folder = service.package.artifactDirectoryName;
-    const s3FileName = service.layers.layerOne.package.artifact.split(path.sep).pop();
-
-    expect(layerOne.Type).to.be.equals('AWS::Lambda::LayerVersion');
-    expect(layerOne.Properties.Content.S3Key).to.be.equals(`${s3Folder}/${s3FileName}`);
-    expect(layerOne.Properties.Content.S3Bucket.Ref).to.be.equals('ServerlessDeploymentBucket');
-    expect(layerOne.Properties.LayerName).to.be.equals('layerOne');
-
-    const description = 'Current Lambda layer version';
-    expect(cfOutputs.LayerLambdaLayerQualifiedArn.Description).to.be.equals(description);
-    expect(cfOutputs.LayerLambdaLayerQualifiedArn.Value.Ref).to.be.equals('LayerLambdaLayer');
-
-    const layerNamePermission = naming.getLambdaLayerPermissionLogicalId('LayerOne', 'Wild');
-    const layerPermission = cfResources[layerNamePermission];
-
-    expect(layerPermission.Type).to.be.equals('AWS::Lambda::LayerVersionPermission');
-    expect(layerPermission.Properties.Action).to.be.equals('lambda:GetLayerVersion');
-    expect(layerPermission.Properties.LayerVersionArn.Ref).to.be.equals('LayerOneLambdaLayer');
-    expect(layerPermission.Properties.Principal).to.be.equals('*');
+  it.skip('TODO: should generate expected permissions resource', () => {
+    // Replaces
+    // https://github.com/serverless/serverless/blob/e78f695004bf292c4163daf9705e5e0c6cbe2592/test/unit/lib/plugins/aws/package/compile/layers/index.test.js#L331-L383
   });
 
-  it('should support `layers[].allowedAccounts`', () => {
-    const layerResourceName = naming.getLambdaLayerLogicalId('LayerTwo');
-    const layerOne = cfResources[layerResourceName];
-    const s3Folder = service.package.artifactDirectoryName;
-    const s3FileName = service.layers.layerOne.package.artifact.split(path.sep).pop();
-
-    expect(layerOne.Type).to.be.equals('AWS::Lambda::LayerVersion');
-    expect(layerOne.Properties.Content.S3Key).to.be.equals(`${s3Folder}/${s3FileName}`);
-    expect(layerOne.Properties.Content.S3Bucket.Ref).to.be.equals('ServerlessDeploymentBucket');
-    expect(layerOne.Properties.LayerName).to.be.equals('layerTwo');
-
-    const description = 'Current Lambda layer version';
-    expect(cfOutputs.LayerLambdaLayerQualifiedArn.Description).to.be.equals(description);
-    expect(cfOutputs.LayerLambdaLayerQualifiedArn.Value.Ref).to.be.equals('LayerLambdaLayer');
-
-    const layerNamePermissionFirstUser = naming.getLambdaLayerPermissionLogicalId(
-      'layerTwo',
-      '123456789012'
-    );
-    const layerPermissionFirstUser = cfResources[layerNamePermissionFirstUser];
-
-    expect(layerPermissionFirstUser.Type).to.be.equals('AWS::Lambda::LayerVersionPermission');
-    expect(layerPermissionFirstUser.Properties.Action).to.be.equals('lambda:GetLayerVersion');
-    expect(layerPermissionFirstUser.Properties.LayerVersionArn.Ref).to.be.equals(
-      'LayerTwoLambdaLayer'
-    );
-    expect(layerPermissionFirstUser.Properties.Principal).to.be.equals('123456789012');
-
-    const layerNamePermissionUserSecond = naming.getLambdaLayerPermissionLogicalId(
-      'layerTwo',
-      '123456789013'
-    );
-    const layerPermissionSecondUser = cfResources[layerNamePermissionUserSecond];
-
-    expect(layerPermissionSecondUser.Type).to.be.equals('AWS::Lambda::LayerVersionPermission');
-    expect(layerPermissionSecondUser.Properties.Action).to.be.equals('lambda:GetLayerVersion');
-    expect(layerPermissionSecondUser.Properties.LayerVersionArn.Ref).to.be.equals(
-      'LayerTwoLambdaLayer'
-    );
-    expect(layerPermissionSecondUser.Properties.Principal).to.be.equals('123456789013');
+  it.skip('TODO: should support `layers[].allowedAccounts`', () => {
+    // Replaces
+    // https://github.com/serverless/serverless/blob/e78f695004bf292c4163daf9705e5e0c6cbe2592/test/unit/lib/plugins/aws/package/compile/layers/index.test.js#L331-L452
   });
 
-  it('should support `layers[].description`', () => {
-    const layerResourceName = naming.getLambdaLayerLogicalId('LayerTwo');
-    const layerOne = cfResources[layerResourceName];
-
-    expect(layerOne.Type).to.be.equals('AWS::Lambda::LayerVersion');
-    expect(layerOne.Properties.Description).to.be.equals('Layer two example');
+  it.skip('TODO: should support `layers[].description`', () => {
+    // Replaces partially
+    // https://github.com/serverless/serverless/blob/e78f695004bf292c4163daf9705e5e0c6cbe2592/test/unit/lib/plugins/aws/package/compile/layers/index.test.js#L454-L497
   });
 
-  it('should support `layers[].compatibleRuntimes`', () => {
-    const layerResourceName = naming.getLambdaLayerLogicalId('LayerTwo');
-    const layerOne = cfResources[layerResourceName];
-
-    expect(layerOne.Type).to.be.equals('AWS::Lambda::LayerVersion');
-    expect(layerOne.Properties.CompatibleRuntimes).to.be.deep.equals(['nodejs12.x']);
+  it.skip('TODO: should support `layers[].compatibleRuntimes`', () => {
+    // Replaces partially
+    // https://github.com/serverless/serverless/blob/e78f695004bf292c4163daf9705e5e0c6cbe2592/test/unit/lib/plugins/aws/package/compile/layers/index.test.js#L454-L497
   });
 
-  it('should support `layers[].licenseInfo`', () => {
-    const layerResourceName = naming.getLambdaLayerLogicalId('LayerTwo');
-    const layerOne = cfResources[layerResourceName];
-
-    expect(layerOne.Type).to.be.equals('AWS::Lambda::LayerVersion');
-    expect(layerOne.Properties.LicenseInfo).to.be.deep.equals('GPL');
+  it.skip('TODO: should support `layers[].licenseInfo`', () => {
+    // Replaces partially
+    // https://github.com/serverless/serverless/blob/e78f695004bf292c4163daf9705e5e0c6cbe2592/test/unit/lib/plugins/aws/package/compile/layers/index.test.js#L454-L497
   });
 });
