@@ -1604,10 +1604,14 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     });
 
     it('should fail if `functions[].image` references image not defined in `provider.ecr.images`', async () => {
+      const modulesCacheStub = {
+        'child-process-ext/spawn': sinon.stub().resolves(),
+      };
       await expect(
         runServerless({
           fixture: 'function',
           cliArgs: ['package'],
+          modulesCacheStub,
           configExt: {
             functions: {
               fnProviderUndefinedImage: {
@@ -1751,7 +1755,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
     describe('with `functions[].image` referencing images that require building', () => {
       const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
       const repositoryUri = '999999999999.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker';
-      const authorizationToken = 'dGVzdC1kb2NrZXI=';
+      const authorizationToken = 'YXdzOmRvY2tlcmF1dGh0b2tlbg==';
       const proxyEndpoint = `https://${repositoryUri}`;
       const describeRepositoriesStub = sinon.stub();
       const createRepositoryStub = sinon.stub();
@@ -1779,12 +1783,6 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         },
       };
       const spawnExtStub = sinon.stub().returns({
-        child: {
-          stdin: {
-            write: () => {},
-            end: () => {},
-          },
-        },
         stdBuffer: `digest: sha256:${imageSha} size: 1787`,
       });
       const modulesCacheStub = {
@@ -1832,7 +1830,8 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           'login',
           '--username',
           'AWS',
-          '--password-stdin',
+          '--password',
+          'dockerauthtoken',
           proxyEndpoint,
         ]);
         expect(spawnExtStub).to.be.calledWith('docker', [
@@ -1961,18 +1960,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
             cliArgs: ['package'],
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
-              'child-process-ext/spawn': sinon
-                .stub()
-                .returns({
-                  child: {
-                    stdin: {
-                      write: () => {},
-                      end: () => {},
-                    },
-                  },
-                })
-                .onThirdCall()
-                .throws(),
+              'child-process-ext/spawn': sinon.stub().returns({}).onThirdCall().throws(),
             },
           })
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_BUILD_ERROR');
@@ -1985,18 +1973,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
             cliArgs: ['package'],
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
-              'child-process-ext/spawn': sinon
-                .stub()
-                .returns({
-                  child: {
-                    stdin: {
-                      write: () => {},
-                      end: () => {},
-                    },
-                  },
-                })
-                .onCall(3)
-                .throws(),
+              'child-process-ext/spawn': sinon.stub().returns({}).onCall(3).throws(),
             },
           })
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_TAG_ERROR');
@@ -2009,18 +1986,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
             cliArgs: ['package'],
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
-              'child-process-ext/spawn': sinon
-                .stub()
-                .returns({
-                  child: {
-                    stdin: {
-                      write: () => {},
-                      end: () => {},
-                    },
-                  },
-                })
-                .onCall(4)
-                .throws(),
+              'child-process-ext/spawn': sinon.stub().returns({}).onCall(4).throws(),
             },
           })
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_PUSH_ERROR');
