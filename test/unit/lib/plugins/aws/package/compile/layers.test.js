@@ -32,7 +32,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
   let cfOutputs;
 
   before(async () => {
-    const test = await runServerless({
+    const { awsNaming, cfTemplate, fixtureData, serverless } = await runServerless({
       fixture: 'layer',
       cliArgs: ['package'],
       configExt: {
@@ -59,7 +59,6 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
       },
       awsRequestStubMap,
     });
-    const { awsNaming, cfTemplate, fixtureData, serverless } = test;
     cfResources = cfTemplate.Resources;
     cfOutputs = cfTemplate.Outputs;
     naming = awsNaming;
