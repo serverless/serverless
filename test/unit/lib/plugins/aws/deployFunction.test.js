@@ -550,8 +550,13 @@ describe('AwsDeployFunction', () => {
   });
 });
 
-describe('AwsDeployFunction - runServerless', () => {
-  describe('when ecr is used', () => {
+describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
+  // This is just a happy-path test of images support. Due to sharing code from `provider.js`
+  // all further configurations are tested as a part of `test/unit/lib/plugins/aws/provider.test.js`
+  it('should support deploying function that has image defined with sha', async () => {
+    const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
+    const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
+    const updateFunctionCodeStub = sinon.stub();
     const awsRequestStubMap = {
       Lambda: {
         getFunction: {
@@ -559,246 +564,31 @@ describe('AwsDeployFunction - runServerless', () => {
             LastModified: '2020-05-20T15:34:16.494+0000',
           },
         },
+        updateFunctionCode: updateFunctionCodeStub,
+        updateFunctionConfiguration: sinon.stub(),
+      },
+      STS: {
+        getCallerIdentity: {
+          ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+          UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+          Account: '999999999999',
+          Arn: 'arn:aws:iam::999999999999:user/test',
+        },
       },
     };
-
-    it('should fail if `functions[].image` references image without path and uri', async () => {
-      await expect(
-        runServerless({
-          fixture: 'function',
-          cliArgs: ['deploy', 'function', '-f', 'fnProviderInvalidImage'],
-          awsRequestStubMap,
-          configExt: {
-            provider: {
-              ecr: {
-                images: {
-                  invalidimage: {},
-                },
-              },
-            },
-            functions: {
-              fnProviderInvalidImage: {
-                image: 'invalidimage',
-              },
-            },
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap,
+      configExt: {
+        functions: {
+          foo: {
+            image: imageWithSha,
           },
-        })
-      ).to.be.rejectedWith(
-        'Either "uri" or "path" property needs to be set on image "invalidimage"'
-      );
+        },
+      },
     });
-
-    it('should fail if `functions[].image` references image with both path and uri', async () => {
-      await expect(
-        runServerless({
-          fixture: 'function',
-          cliArgs: ['deploy', 'function', '-f', 'fnProviderInvalidImage'],
-          awsRequestStubMap,
-          configExt: {
-            provider: {
-              ecr: {
-                images: {
-                  invalidimage: {
-                    path: './',
-                    uri:
-                      '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
-                  },
-                },
-              },
-            },
-            functions: {
-              fnProviderInvalidImage: {
-                image: 'invalidimage',
-              },
-            },
-          },
-        })
-      ).to.be.rejectedWith(
-        'Either "uri" or "path" property (not both) needs to be set on image "invalidimage"'
-      );
-    });
-
-    describe('with `provider.ecr.images` that require building', () => {
-      const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
-      const repositoryUri = '999999999999.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker';
-      const authorizationToken = 'dGVzdC1kb2NrZXI=';
-      const proxyEndpoint = `https://${repositoryUri}`;
-      const describeRepositoriesStub = sinon.stub();
-      const createRepositoryStub = sinon.stub();
-      const updateFunctionCodeStub = sinon.stub();
-      const baseAwsRequestStubMap = {
-        Lambda: {
-          getFunction: {
-            Configuration: {
-              LastModified: '2020-05-20T15:34:16.494+0000',
-            },
-          },
-          updateFunctionCode: updateFunctionCodeStub,
-        },
-        STS: {
-          getCallerIdentity: {
-            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
-            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
-            Account: '999999999999',
-            Arn: 'arn:aws:iam::999999999999:user/test',
-          },
-        },
-        ECR: {
-          describeRepositories: {
-            repositories: [{ repositoryUri }],
-          },
-          getAuthorizationToken: {
-            authorizationData: [
-              {
-                proxyEndpoint: `https://${repositoryUri}`,
-                authorizationToken,
-              },
-            ],
-          },
-        },
-      };
-      const spawnExtStub = sinon.stub().returns({
-        child: {
-          stdin: {
-            write: () => {},
-            end: () => {},
-          },
-        },
-        stdBuffer: `digest: sha256:${imageSha} size: 1787`,
-      });
-      const modulesCacheStub = {
-        'child-process-ext/spawn': spawnExtStub,
-      };
-
-      beforeEach(() => {
-        describeRepositoriesStub.reset();
-        createRepositoryStub.reset();
-        spawnExtStub.resetHistory();
-        updateFunctionCodeStub.resetHistory();
-      });
-
-      it('should work correctly when repository exists beforehand', async () => {
-        const overrideAwsRequestStubMap = {
-          ...baseAwsRequestStubMap,
-          ECR: {
-            ...baseAwsRequestStubMap.ECR,
-            describeRepositories: describeRepositoriesStub.resolves({
-              repositories: [{ repositoryUri }],
-            }),
-            createRepository: createRepositoryStub,
-          },
-        };
-        const { awsNaming } = await runServerless({
-          fixture: 'ecr',
-          cliArgs: ['deploy', 'function', '-f', 'foo'],
-          awsRequestStubMap: overrideAwsRequestStubMap,
-          modulesCacheStub,
-        });
-
-        expect(describeRepositoriesStub).to.be.calledOnce;
-        expect(createRepositoryStub.notCalled).to.be.true;
-        expect(updateFunctionCodeStub).to.be.calledOnce;
-        expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(
-          `${repositoryUri}@sha256:${imageSha}`
-        );
-        expect(spawnExtStub).to.be.calledWith('docker', ['--version']);
-        expect(spawnExtStub).to.be.calledWith('docker', [
-          'login',
-          '--username',
-          'AWS',
-          '--password-stdin',
-          proxyEndpoint,
-        ]);
-        expect(spawnExtStub).to.be.calledWith('docker', [
-          'build',
-          '-t',
-          `${awsNaming.getEcrRepositoryName()}:baseimage`,
-          './',
-        ]);
-        expect(spawnExtStub).to.be.calledWith('docker', [
-          'tag',
-          `${awsNaming.getEcrRepositoryName()}:baseimage`,
-          `${repositoryUri}:baseimage`,
-        ]);
-        expect(spawnExtStub).to.be.calledWith('docker', ['push', `${repositoryUri}:baseimage`]);
-      });
-
-      it('should work correctly when repository does not exist beforehand', async () => {
-        const overrideAwsRequestStubMap = {
-          ...baseAwsRequestStubMap,
-          ECR: {
-            ...baseAwsRequestStubMap.ECR,
-            describeRepositories: describeRepositoriesStub.throws({
-              providerError: { code: 'RepositoryNotFoundException' },
-            }),
-            createRepository: createRepositoryStub.resolves({ repository: { repositoryUri } }),
-          },
-        };
-
-        await runServerless({
-          fixture: 'ecr',
-          cliArgs: ['deploy', 'function', '-f', 'foo'],
-          awsRequestStubMap: overrideAwsRequestStubMap,
-          modulesCacheStub,
-        });
-
-        expect(describeRepositoriesStub).to.be.calledOnce;
-        expect(createRepositoryStub).to.be.calledOnce;
-        expect(updateFunctionCodeStub).to.be.calledOnce;
-        expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(
-          `${repositoryUri}@sha256:${imageSha}`
-        );
-      });
-
-      it('should work correctly when image is defined with implicit path in provider', async () => {
-        const overrideAwsRequestStubMap = {
-          ...baseAwsRequestStubMap,
-          ECR: {
-            ...baseAwsRequestStubMap.ECR,
-            describeRepositories: describeRepositoriesStub.resolves({
-              repositories: [{ repositoryUri }],
-            }),
-            createRepository: createRepositoryStub,
-          },
-        };
-        await runServerless({
-          fixture: 'ecr',
-          cliArgs: ['deploy', 'function', '-f', 'foo'],
-          awsRequestStubMap: overrideAwsRequestStubMap,
-          modulesCacheStub,
-          configExt: {
-            provider: {
-              ecr: {
-                images: {
-                  baseimage: './',
-                },
-              },
-            },
-          },
-        });
-
-        expect(describeRepositoriesStub).to.be.calledOnce;
-        expect(createRepositoryStub.notCalled).to.be.true;
-        expect(updateFunctionCodeStub).to.be.calledOnce;
-        expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(
-          `${repositoryUri}@sha256:${imageSha}`
-        );
-      });
-
-      it('should fail when docker command is not available', async () => {
-        await expect(
-          runServerless({
-            fixture: 'ecr',
-            cliArgs: ['deploy', 'function', '-f', 'foo'],
-            awsRequestStubMap: baseAwsRequestStubMap,
-            modulesCacheStub: {
-              'child-process-ext/spawn': sinon.stub().throws(),
-            },
-          })
-        ).to.be.rejectedWith(
-          'Could not find Docker installation. Ensure Docker is installed before continuing.'
-        );
-      });
-    });
+    expect(updateFunctionCodeStub).to.be.calledOnce;
+    expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(imageWithSha);
   });
 });
