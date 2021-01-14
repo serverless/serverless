@@ -17,6 +17,16 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="VARIABLES_ERROR_ON_UNRESOLVED"><div>&nbsp;</div></a>
+
+## Erroring on unresolved variable references
+
+Deprecation code: `VARIABLES_ERROR_ON_UNRESOLVED`
+
+Starting with v3.0.0, references to variables that cannot be resolved will result in an error being thrown.
+
+Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: error` to service configuration.
+
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
 ## API Gateway specific configuration

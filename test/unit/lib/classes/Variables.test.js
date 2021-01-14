@@ -1228,15 +1228,15 @@ module.exports = {
     it('should not allow partially double-quoted string', () => {
       const property = '${opt:stage, prefix"prod"suffix}';
       serverless.variables.options = {};
-      const warnIfNotFoundSpy = sinon.spy(serverless.variables, 'warnIfNotFound');
+      const handleUnresolvedSpy = sinon.spy(serverless.variables, 'handleUnresolved');
       return serverless.variables
         .populateProperty(property)
         .should.become(undefined)
         .then(() => {
-          expect(warnIfNotFoundSpy.callCount).to.equal(1);
+          expect(handleUnresolvedSpy.callCount).to.equal(1);
         })
         .finally(() => {
-          warnIfNotFoundSpy.restore();
+          handleUnresolvedSpy.restore();
         });
     });
 
@@ -1255,15 +1255,15 @@ module.exports = {
     it('should not match a boolean with value containing word true or false if overwrite syntax provided', () => {
       const property = '${opt:stage, foofalsebar}';
       serverless.variables.options = {};
-      const warnIfNotFoundSpy = sinon.spy(serverless.variables, 'warnIfNotFound');
+      const handleUnresolvedSpy = sinon.spy(serverless.variables, 'handleUnresolved');
       return serverless.variables
         .populateProperty(property)
         .should.become(undefined)
         .then(() => {
-          expect(warnIfNotFoundSpy.callCount).to.equal(1);
+          expect(handleUnresolvedSpy.callCount).to.equal(1);
         })
         .finally(() => {
-          warnIfNotFoundSpy.restore();
+          handleUnresolvedSpy.restore();
         });
     });
 
@@ -1297,18 +1297,18 @@ module.exports = {
       const requestStub = sinon
         .stub(awsProvider, 'request')
         .callsFake(() => BbPromise.reject(error));
-      const warnIfNotFoundSpy = sinon.spy(serverless.variables, 'warnIfNotFound');
+      const handleUnresolvedSpy = sinon.spy(serverless.variables, 'handleUnresolved');
 
       return serverless.variables
         .populateProperty(property)
         .should.become(undefined)
         .then(() => {
           expect(requestStub.callCount).to.equal(1);
-          expect(warnIfNotFoundSpy.callCount).to.equal(1);
+          expect(handleUnresolvedSpy.callCount).to.equal(1);
         })
         .finally(() => {
           requestStub.restore();
-          warnIfNotFoundSpy.restore();
+          handleUnresolvedSpy.restore();
         });
     });
 
@@ -2669,10 +2669,12 @@ module.exports = {
         .should.become('${deep:0.veryDeep}');
     });
   });
-  describe('#warnIfNotFound()', () => {
+
+  describe('#handleUnresolved()', () => {
     let logWarningSpy;
     let consoleLogStub;
     let varProxy;
+
     beforeEach(() => {
       logWarningSpy = sinon.spy(slsError, 'logWarning');
       consoleLogStub = sinon.stub(console, 'log').returns();
@@ -2681,62 +2683,73 @@ module.exports = {
       });
       varProxy = new ProxyQuiredVariables(serverless);
     });
+
     afterEach(() => {
       logWarningSpy.restore();
       consoleLogStub.restore();
     });
+
     it('should do nothing if variable has valid value.', () => {
-      varProxy.warnIfNotFound('self:service', 'a-valid-value');
+      varProxy.handleUnresolved('self:service', 'a-valid-value');
       expect(logWarningSpy).to.not.have.been.calledOnce;
     });
+
     describe('when variable string does not match any of syntax', () => {
       // These situation happen when deep variable population fails
       it('should do nothing if variable has null value.', () => {
-        varProxy.warnIfNotFound('', null);
+        varProxy.handleUnresolved('', null);
         expect(logWarningSpy).to.not.have.been.calledOnce;
       });
+
       it('should do nothing if variable has undefined value.', () => {
-        varProxy.warnIfNotFound('', undefined);
+        varProxy.handleUnresolved('', undefined);
         expect(logWarningSpy).to.not.have.been.calledOnce;
       });
+
       it('should do nothing if variable has empty object value.', () => {
-        varProxy.warnIfNotFound('', {});
+        varProxy.handleUnresolved('', {});
         expect(logWarningSpy).to.not.have.been.calledOnce;
       });
     });
     it('should log if variable has null value.', () => {
-      varProxy.warnIfNotFound('self:service', null);
+      varProxy.handleUnresolved('self:service', null);
       expect(logWarningSpy).to.have.been.calledOnce;
     });
     it('should log if variable has undefined value.', () => {
-      varProxy.warnIfNotFound('self:service', undefined);
+      varProxy.handleUnresolved('self:service', undefined);
       expect(logWarningSpy).to.have.been.calledOnce;
     });
+
     it('should log if variable has empty object value.', () => {
-      varProxy.warnIfNotFound('self:service', {});
+      varProxy.handleUnresolved('self:service', {});
       expect(logWarningSpy).to.have.been.calledOnce;
     });
+
     it('should not log if variable has empty array value.', () => {
-      varProxy.warnIfNotFound('self:service', []);
+      varProxy.handleUnresolved('self:service', []);
       expect(logWarningSpy).to.not.have.been.called;
     });
+
     it('should detect the "environment variable" variable type', () => {
-      varProxy.warnIfNotFound('env:service', null);
+      varProxy.handleUnresolved('env:service', null);
       expect(logWarningSpy).to.have.been.calledOnce;
       expect(logWarningSpy.args[0][0]).to.contain('environment variable');
     });
+
     it('should detect the "option" variable type', () => {
-      varProxy.warnIfNotFound('opt:service', null);
+      varProxy.handleUnresolved('opt:service', null);
       expect(logWarningSpy).to.have.been.calledOnce;
       expect(logWarningSpy.args[0][0]).to.contain('option');
     });
+
     it('should detect the "service attribute" variable type', () => {
-      varProxy.warnIfNotFound('self:service', null);
+      varProxy.handleUnresolved('self:service', null);
       expect(logWarningSpy).to.have.been.calledOnce;
       expect(logWarningSpy.args[0][0]).to.contain('service attribute');
     });
+
     it('should detect the "file" variable type', () => {
-      varProxy.warnIfNotFound('file(service)', null);
+      varProxy.handleUnresolved('file(service)', null);
       expect(logWarningSpy).to.have.been.calledOnce;
       expect(logWarningSpy.args[0][0]).to.contain('file');
     });
@@ -2779,5 +2792,110 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
   });
   it('should support nested resolution', () => {
     expect(processedConfig.custom.nestedReference).to.equal('resolvedNested');
+  });
+
+  describe('variable resolving', () => {
+    describe('when unresolvedVariablesNotificationMode is set to "error"', () => {
+      it('should error for missing "environment variable" type variables', async () => {
+        await expect(
+          runServerless({
+            fixture: 'variables',
+            cliArgs: ['print'],
+            configExt: {
+              unresolvedVariablesNotificationMode: 'error',
+              custom: { myVariable: '${env:missingEnvVar}' },
+            },
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
+      });
+
+      it('should error for missing "option" type variables', async () => {
+        await expect(
+          runServerless({
+            fixture: 'variables',
+            cliArgs: ['print'],
+            configExt: {
+              unresolvedVariablesNotificationMode: 'error',
+              custom: { myVariable: '${opt:missingOpt}' },
+            },
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
+      });
+
+      it('should error for missing "service attribute" type variables', async () => {
+        await expect(
+          runServerless({
+            fixture: 'variables',
+            cliArgs: ['print'],
+            configExt: {
+              unresolvedVariablesNotificationMode: 'error',
+              custom: { myVariable: '${self:missingAttribute}' },
+            },
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
+      });
+
+      it('should error for missing "file" type variables', async () => {
+        await expect(
+          runServerless({
+            fixture: 'variables',
+            cliArgs: ['print'],
+            configExt: {
+              unresolvedVariablesNotificationMode: 'error',
+              custom: { myVariable: '${file(./missingFile)}' },
+            },
+          })
+        ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
+      });
+    });
+
+    describe('when unresolvedVariablesNotificationMode is set to "warn"', () => {
+      it('prints warnings to the console but no deprecation message', async () => {
+        const { serverless, stdoutData } = await runServerless({
+          fixture: 'variables',
+          cliArgs: ['print'],
+          configExt: {
+            unresolvedVariablesNotificationMode: 'warn',
+            custom: {
+              myVariable1: '${env:missingEnvVar}',
+              myVariable2: '${opt:missingOpt}',
+              myVariable3: '${self:missingAttribute}',
+              myVariable4: '${file(./missingFile)}',
+            },
+          },
+        });
+
+        expect(Array.from(serverless.triggeredDeprecations)).not.to.contain(
+          'VARIABLES_ERROR_ON_UNRESOLVED'
+        );
+
+        expect(stdoutData).to.include('Serverless Warning');
+        expect(stdoutData).to.include('A valid environment variable to satisfy the declaration');
+        expect(stdoutData).to.include('A valid option to satisfy the declaration');
+        expect(stdoutData).to.include('A valid service attribute to satisfy the declaration');
+        expect(stdoutData).to.include('A valid file to satisfy the declaration');
+      });
+    });
+
+    describe('when unresolvedVariablesNotificationMode is not set', () => {
+      it('should warn and print a deprecation message', async () => {
+        const { serverless } = await runServerless({
+          fixture: 'variables',
+          cliArgs: ['print'],
+          configExt: {
+            custom: {
+              myVariable1: '${env:missingEnvVar}',
+              myVariable2: '${opt:missingOpt}',
+              myVariable3: '${self:missingAttribute}',
+              myVariable4: '${file(./missingFile)}',
+            },
+          },
+        });
+
+        expect(Array.from(serverless.triggeredDeprecations)).to.contain(
+          'VARIABLES_ERROR_ON_UNRESOLVED'
+        );
+      });
+    });
   });
 });
