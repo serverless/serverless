@@ -14,6 +14,8 @@ To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment varia
 
 ## Erroring on unresolved variable references
 
+Deprecation code: `VARIABLES_ERROR_ON_UNRESOLVED`
+
 Starting with v3.0.0, references to variables that cannot be resolved will result in an error being thrown.
 
 Adapt to this behaviour now by adding `unresolvedVariablesNotificationMode: error` to service configuration.
