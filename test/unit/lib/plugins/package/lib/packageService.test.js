@@ -70,37 +70,35 @@ describe('#packageService()', () => {
       serverlessConfigFileUtils.getServerlessConfigFilePath.restore();
     });
 
-    it('should exclude plugins localPath defaults', () => {
+    it('should exclude plugins localPath defaults', async () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
 
-      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then((exclude) =>
-        expect(exclude).to.deep.equal(
-          _.union(packagePlugin.defaultExcludes, [serverlessConfigFileName], [localPath])
-        )
+      const exclude = await packagePlugin.getExcludes();
+      expect(exclude).to.deep.equal(
+        _.union(packagePlugin.defaultExcludes, [serverlessConfigFileName], [localPath])
       );
     });
 
-    it('should merge defaults with plugin localPath and excludes', () => {
+    it('should merge defaults with plugin localPath and excludes', async () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
 
       const packageExcludes = ['dir', 'file.js'];
       serverless.service.package.exclude = packageExcludes;
 
-      return expect(packagePlugin.getExcludes()).to.be.fulfilled.then((exclude) =>
-        expect(exclude).to.deep.equal(
-          _.union(
-            packagePlugin.defaultExcludes,
-            [serverlessConfigFileName],
-            [localPath],
-            packageExcludes
-          )
+      const exclude = await packagePlugin.getExcludes();
+      expect(exclude).to.deep.equal(
+        _.union(
+          packagePlugin.defaultExcludes,
+          [serverlessConfigFileName],
+          [localPath],
+          packageExcludes
         )
       );
     });
 
-    it('should merge defaults with plugin localPath package and func excludes', () => {
+    it('should merge defaults with plugin localPath package and func excludes', async () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
 
@@ -109,15 +107,14 @@ describe('#packageService()', () => {
 
       const funcExcludes = ['lib', 'other.js'];
 
-      return expect(packagePlugin.getExcludes(funcExcludes)).to.be.fulfilled.then((exclude) =>
-        expect(exclude).to.deep.equal(
-          _.union(
-            packagePlugin.defaultExcludes,
-            [serverlessConfigFileName],
-            [localPath],
-            packageExcludes,
-            funcExcludes
-          )
+      const exclude = await packagePlugin.getExcludes(funcExcludes);
+      expect(exclude).to.deep.equal(
+        _.union(
+          packagePlugin.defaultExcludes,
+          [serverlessConfigFileName],
+          [localPath],
+          packageExcludes,
+          funcExcludes
         )
       );
     });
