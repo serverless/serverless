@@ -236,7 +236,7 @@ functions:
     image: baseimage
 ```
 
-During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. After each successful deployment, as a part of cleanup step, all images that are no longer used by functions in `serverless.yml` will be removed. During `sls remove`, the aforementioned ECR repository will be removed as well.
+During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. After each successful deployment, as a part of cleanup step, all images that are no longer used by functions in `serverless.yml` will be removed. During `sls remove`, the aforementioned ECR repository will be removed as well. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
 ## VPC Configuration
 

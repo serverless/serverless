@@ -1826,7 +1826,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         expect(describeRepositoriesStub).to.be.calledOnce;
         expect(createRepositoryStub.notCalled).to.be.true;
         expect(spawnExtStub).to.be.calledWith('docker', ['--version']);
-        expect(spawnExtStub).to.be.calledWith('docker', [
+        expect(spawnExtStub).not.to.be.calledWith('docker', [
           'login',
           '--username',
           'AWS',
@@ -1879,6 +1879,105 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         expect(versionCfConfig.CodeSha256).to.equal(imageSha);
         expect(describeRepositoriesStub).to.be.calledOnce;
         expect(createRepositoryStub).to.be.calledOnce;
+      });
+
+      it('should login and retry when docker push fails with no basic auth credentials error', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+        const innerSpawnExtStub = sinon
+          .stub()
+          .returns({
+            stdBuffer: `digest: sha256:${imageSha} size: 1787`,
+          })
+          .onCall(3)
+          .throws({ stdBuffer: 'no basic auth credentials' });
+        const { awsNaming, cfTemplate } = await runServerless({
+          fixture: 'ecr',
+          cliArgs: ['package'],
+          awsRequestStubMap,
+          modulesCacheStub: {
+            'child-process-ext/spawn': innerSpawnExtStub,
+          },
+        });
+
+        const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+        const functionCfConfig = cfTemplate.Resources[functionCfLogicalId].Properties;
+        const versionCfConfig = Object.values(cfTemplate.Resources).find(
+          (resource) =>
+            resource.Type === 'AWS::Lambda::Version' &&
+            resource.Properties.FunctionName.Ref === functionCfLogicalId
+        ).Properties;
+
+        expect(functionCfConfig.Code.ImageUri).to.deep.equal(`${repositoryUri}@sha256:${imageSha}`);
+        expect(versionCfConfig.CodeSha256).to.equal(imageSha);
+        expect(describeRepositoriesStub).to.be.calledOnce;
+        expect(createRepositoryStub.notCalled).to.be.true;
+        expect(innerSpawnExtStub).to.be.calledWith('docker', ['--version']);
+        expect(innerSpawnExtStub).to.be.calledWith('docker', [
+          'build',
+          '-t',
+          `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          './',
+        ]);
+        expect(innerSpawnExtStub).to.be.calledWith('docker', [
+          'tag',
+          `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          `${repositoryUri}:baseimage`,
+        ]);
+        expect(innerSpawnExtStub).to.be.calledWith('docker', [
+          'push',
+          `${repositoryUri}:baseimage`,
+        ]);
+        expect(innerSpawnExtStub).to.be.calledWith('docker', [
+          'login',
+          '--username',
+          'AWS',
+          '--password',
+          'dockerauthtoken',
+          proxyEndpoint,
+        ]);
+      });
+
+      it('should emit warning if docker login stores unencrypted credentials', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+
+        const { stdoutData } = await runServerless({
+          fixture: 'ecr',
+          cliArgs: ['package'],
+          awsRequestStubMap,
+          modulesCacheStub: {
+            'child-process-ext/spawn': sinon
+              .stub()
+              .returns({
+                stdBuffer: `digest: sha256:${imageSha} size: 1787`,
+              })
+              .onCall(3)
+              .throws({ stdBuffer: 'no basic auth credentials' })
+              .onCall(4)
+              .returns({ stdBuffer: 'your password will be stored unencrypted' }),
+          },
+        });
+
+        expect(stdoutData).to.include(
+          'WARNING: Docker authentication token will be stored unencrypted in docker config.'
+        );
       });
 
       it('should work correctly when image is defined with implicit path in provider', async () => {
@@ -1935,24 +2034,6 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_COMMAND_NOT_AVAILABLE');
       });
 
-      it('should fail when docker login fails', async () => {
-        await expect(
-          runServerless({
-            fixture: 'ecr',
-            cliArgs: ['package'],
-            awsRequestStubMap: baseAwsRequestStubMap,
-            modulesCacheStub: {
-              'child-process-ext/spawn': sinon
-                .stub()
-                .onFirstCall()
-                .resolves()
-                .onSecondCall()
-                .throws(),
-            },
-          })
-        ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_LOGIN_ERROR');
-      });
-
       it('should fail when docker build fails', async () => {
         await expect(
           runServerless({
@@ -1960,7 +2041,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
             cliArgs: ['package'],
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
-              'child-process-ext/spawn': sinon.stub().returns({}).onThirdCall().throws(),
+              'child-process-ext/spawn': sinon.stub().returns({}).onSecondCall().throws(),
             },
           })
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_BUILD_ERROR');
@@ -1973,7 +2054,7 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
             cliArgs: ['package'],
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
-              'child-process-ext/spawn': sinon.stub().returns({}).onCall(3).throws(),
+              'child-process-ext/spawn': sinon.stub().returns({}).onCall(2).throws(),
             },
           })
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_TAG_ERROR');
@@ -1986,10 +2067,29 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
             cliArgs: ['package'],
             awsRequestStubMap: baseAwsRequestStubMap,
             modulesCacheStub: {
-              'child-process-ext/spawn': sinon.stub().returns({}).onCall(4).throws(),
+              'child-process-ext/spawn': sinon.stub().returns({}).onCall(3).throws(),
             },
           })
         ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_PUSH_ERROR');
+      });
+
+      it('should fail when docker login fails', async () => {
+        await expect(
+          runServerless({
+            fixture: 'ecr',
+            cliArgs: ['package'],
+            awsRequestStubMap: baseAwsRequestStubMap,
+            modulesCacheStub: {
+              'child-process-ext/spawn': sinon
+                .stub()
+                .returns({})
+                .onCall(3)
+                .throws({ stdBuffer: 'no basic auth credentials' })
+                .onCall(4)
+                .throws(),
+            },
+          })
+        ).to.be.eventually.rejected.and.have.property('code', 'DOCKER_LOGIN_ERROR');
       });
     });
   });
