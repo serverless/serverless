@@ -170,7 +170,6 @@ describe('AwsDeploy', () => {
 
       beforeEach(() => {
         cleanupS3BucketStub = sinon.stub(awsDeploy, 'cleanupS3Bucket').resolves();
-        sinon.stub(awsDeploy, 'checkIfEcrRepositoryExists').resolves(false);
         spawnAwsCommonCleanupTempDirStub = spawnStub
           .withArgs('aws:common:cleanupTempDir')
           .resolves();
@@ -178,7 +177,6 @@ describe('AwsDeploy', () => {
 
       afterEach(() => {
         awsDeploy.cleanupS3Bucket.restore();
-        awsDeploy.checkIfEcrRepositoryExists.restore();
       });
 
       it('should do the default cleanup if no packaging config is used', () => {
@@ -484,122 +482,5 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     expect(createStackStub).to.not.be.called;
     expect(updateStackStub).to.not.be.called;
     expect(s3UploadStub).to.not.be.called;
-  });
-
-  it('should remove obsolete ecr images if needed', async () => {
-    const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
-    const repositoryUri = '999999999999.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker';
-    const authorizationToken = 'dGVzdC1kb2NrZXI=';
-    const proxyEndpoint = `https://${repositoryUri}`;
-    const createStackStub = sinon.stub().resolves({});
-    const s3UploadStub = sinon.stub().resolves();
-    const updateStackStub = sinon.stub().resolves({});
-    const batchDeleteImageStub = sinon.stub().resolves();
-
-    const awsRequestStubMap = {
-      ...baseAwsRequestStubMap,
-      ECR: {
-        describeRepositories: {
-          repositories: [{ repositoryUri }],
-        },
-        describeImages: sinon
-          .stub()
-          .onFirstCall()
-          .resolves({
-            imageDetails: [
-              {
-                imageDigest: 'digest-of-image-to-remove',
-              },
-              {
-                imageDigest: 'digest-of-image-to-keep',
-                imageTags: ['baseimage'],
-              },
-            ],
-            nextToken: 'fsfas',
-          })
-          .onSecondCall()
-          .resolves({
-            imageDetails: [
-              {
-                imageDigest: 'digest-of-image-to-remove-due-to-tag-missing-in-service-file',
-                imageTags: ['missing'],
-              },
-            ],
-          }),
-        batchDeleteImage: batchDeleteImageStub,
-        getAuthorizationToken: {
-          authorizationData: [
-            {
-              proxyEndpoint,
-              authorizationToken,
-            },
-          ],
-        },
-      },
-      S3: {
-        listObjectsV2: { Contents: [] },
-        upload: s3UploadStub,
-      },
-      CloudFormation: {
-        describeStacks: { Stacks: [{}] },
-        createStack: createStackStub,
-        describeStackEvents: {
-          StackEvents: [
-            {
-              EventId: '1e2f3g4h',
-              StackName: 'new-service-dev',
-              LogicalResourceId: 'new-service-dev',
-              ResourceType: 'AWS::CloudFormation::Stack',
-              Timestamp: new Date(),
-              ResourceStatus: 'UPDATE_COMPLETE',
-            },
-          ],
-        },
-        describeStackResource: {
-          StackResourceDetail: { PhysicalResourceId: 's3-bucket-resource' },
-        },
-        validateTemplate: {},
-        updateStack: updateStackStub,
-        listStackResources: {},
-      },
-    };
-    const spawnExtStub = sinon.stub().returns({
-      child: {
-        stdin: {
-          write: () => {},
-          end: () => {},
-        },
-      },
-      stdBuffer: `digest: sha256:${imageSha} size: 1787`,
-    });
-    const modulesCacheStub = {
-      'child-process-ext/spawn': spawnExtStub,
-    };
-
-    const { awsNaming } = await runServerless({
-      fixture: 'ecr',
-      cliArgs: ['deploy'],
-      awsRequestStubMap,
-      modulesCacheStub,
-    });
-
-    expect(createStackStub).to.not.be.called;
-    const wasCloudFormationTemplateUploadInitiated = s3UploadStub.args.some((call) =>
-      call[0].Key.endsWith('compiled-cloudformation-template.json')
-    );
-    expect(wasCloudFormationTemplateUploadInitiated).to.be.true;
-    expect(updateStackStub).to.be.calledOnce;
-    expect(batchDeleteImageStub).to.be.calledWithExactly({
-      repositoryName: awsNaming.getEcrRepositoryName(),
-      registryId: '999999999999',
-      imageIds: [
-        {
-          imageDigest: 'digest-of-image-to-remove',
-        },
-        {
-          imageDigest: 'digest-of-image-to-remove-due-to-tag-missing-in-service-file',
-        },
-      ],
-    });
   });
 });
