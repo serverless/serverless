@@ -170,7 +170,6 @@ describe('uploadArtifacts', () => {
 
       return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
         expect(uploadStub).to.have.been.calledOnce;
-        expect(readFileSyncStub).to.have.been.calledOnce;
         expect(uploadStub).to.have.been.calledWithExactly('S3', 'upload', {
           Bucket: awsDeploy.bucketName,
           Key: `${awsDeploy.serverless.service.package.artifactDirectoryName}/artifact.zip`,
