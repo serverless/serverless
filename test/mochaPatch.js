@@ -2,13 +2,13 @@
 
 const fs = require('fs');
 
-const patch = (name) => {
+const patchPromised = (name) => {
   const original = fs.promises[name];
   fs.promises[name] = Object.defineProperty(
     function patchFs(...args) {
       const stack = new Error().stack;
       return original.apply(this, args).catch((error) => {
-        error.message += ` (initiated at: ${stack})`;
+        error.message += ` (initiated at: ${stack}\n)`;
         throw error;
       });
     },
@@ -19,7 +19,27 @@ const patch = (name) => {
   );
 };
 
-patch('readFile');
+const patchSync = (name) => {
+  const original = fs[name];
+  fs[name] = Object.defineProperty(
+    function patchFs(...args) {
+      const stack = new Error().stack;
+      try {
+        return original.apply(this, args);
+      } catch (error) {
+        error.message += ` (initiated at: ${stack}\n)`;
+        throw error;
+      }
+    },
+    'length',
+    {
+      value: original.length,
+    }
+  );
+};
+
+patchPromised('readFile');
+patchSync('readFileSync');
 
 const path = require('path');
 const disableServerlessStatsRequests = require('@serverless/test/disable-serverless-stats-requests');
