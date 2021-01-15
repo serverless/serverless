@@ -9,7 +9,6 @@ const chai = require('chai');
 const sinon = require('sinon');
 const Package = require('../../../../../../lib/plugins/package/package');
 const Serverless = require('../../../../../../lib/Serverless');
-const serverlessConfigFileUtils = require('../../../../../../lib/utils/getServerlessConfigFile');
 const { createTmpDir, listZipFiles } = require('../../../../../utils/fs');
 const runServerless = require('../../../../../utils/run-serverless');
 const fixtures = require('../../../../../fixtures');
@@ -60,34 +59,28 @@ describe('#packageService()', () => {
   describe('#getExcludes()', () => {
     const serverlessConfigFileName = 'serverless.xyz';
 
-    before(() => {
-      sinon
-        .stub(serverlessConfigFileUtils, 'getServerlessConfigFilePath')
-        .returns(BbPromise.resolve(`/path/to/${serverlessConfigFileName}`));
+    beforeEach(() => {
+      serverless.configurationPath = `/path/to/${serverlessConfigFileName}`;
     });
 
-    after(() => {
-      serverlessConfigFileUtils.getServerlessConfigFilePath.restore();
-    });
-
-    it('should exclude plugins localPath defaults', async () => {
+    it('should exclude plugins localPath defaults', () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
 
-      const exclude = await packagePlugin.getExcludes();
+      const exclude = packagePlugin.getExcludes();
       expect(exclude).to.deep.equal(
         _.union(packagePlugin.defaultExcludes, [serverlessConfigFileName], [localPath])
       );
     });
 
-    it('should merge defaults with plugin localPath and excludes', async () => {
+    it('should merge defaults with plugin localPath and excludes', () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
 
       const packageExcludes = ['dir', 'file.js'];
       serverless.service.package.exclude = packageExcludes;
 
-      const exclude = await packagePlugin.getExcludes();
+      const exclude = packagePlugin.getExcludes();
       expect(exclude).to.deep.equal(
         _.union(
           packagePlugin.defaultExcludes,
@@ -98,7 +91,7 @@ describe('#packageService()', () => {
       );
     });
 
-    it('should merge defaults with plugin localPath package and func excludes', async () => {
+    it('should merge defaults with plugin localPath package and func excludes', () => {
       const localPath = './myplugins';
       serverless.service.plugins = { localPath };
 
@@ -107,7 +100,7 @@ describe('#packageService()', () => {
 
       const funcExcludes = ['lib', 'other.js'];
 
-      const exclude = await packagePlugin.getExcludes(funcExcludes);
+      const exclude = packagePlugin.getExcludes(funcExcludes);
       expect(exclude).to.deep.equal(
         _.union(
           packagePlugin.defaultExcludes,
@@ -241,9 +234,7 @@ describe('#packageService()', () => {
     let zipFilesStub;
 
     beforeEach(() => {
-      getExcludesStub = sinon
-        .stub(packagePlugin, 'getExcludes')
-        .returns(BbPromise.resolve(exclude));
+      getExcludesStub = sinon.stub(packagePlugin, 'getExcludes').returns(exclude);
       getIncludesStub = sinon.stub(packagePlugin, 'getIncludes').returns(include);
       resolveFilePathsFromPatternsStub = sinon
         .stub(packagePlugin, 'resolveFilePathsFromPatterns')
@@ -290,9 +281,7 @@ describe('#packageService()', () => {
     let zipFilesStub;
 
     beforeEach(() => {
-      getExcludesStub = sinon
-        .stub(packagePlugin, 'getExcludes')
-        .returns(BbPromise.resolve(exclude));
+      getExcludesStub = sinon.stub(packagePlugin, 'getExcludes').returns(exclude);
       getIncludesStub = sinon.stub(packagePlugin, 'getIncludes').returns(include);
       resolveFilePathsFromPatternsStub = sinon
         .stub(packagePlugin, 'resolveFilePathsFromPatterns')

@@ -3,15 +3,12 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
-const path = require('path');
-const fse = require('fs-extra');
 const proxyquire = require('proxyquire');
 const chalk = require('chalk');
 const PluginInstall = require('../../../../../../lib/plugins/plugin/install');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
 const { expect } = require('chai');
-const { getTmpDirPath } = require('../../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 
@@ -67,59 +64,8 @@ describe('PluginUtils', () => {
   });
 
   describe('#getServerlessFilePath()', () => {
-    let servicePath;
-
-    beforeEach(() => {
-      servicePath = getTmpDirPath();
-      pluginUtils.serverless.config.servicePath = servicePath;
-    });
-
-    it('should return the correct serverless file path for a .yml file', () => {
-      const serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
-      fse.ensureFileSync(serverlessYmlFilePath);
-
-      return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        (serverlessFilePath) => {
-          expect(serverlessFilePath).to.equal(serverlessYmlFilePath);
-        }
-      );
-    });
-
-    it('should return the correct serverless file path for a .yaml file', () => {
-      const serverlessYamlFilePath = path.join(servicePath, 'serverless.yaml');
-      fse.ensureFileSync(serverlessYamlFilePath);
-
-      return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        (serverlessFilePath) => {
-          expect(serverlessFilePath).to.equal(serverlessYamlFilePath);
-        }
-      );
-    });
-
-    it('should return the correct serverless file path for a .json file', () => {
-      const serverlessJsonFilePath = path.join(servicePath, 'serverless.json');
-      fse.ensureFileSync(serverlessJsonFilePath);
-
-      return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        (serverlessFilePath) => {
-          expect(serverlessFilePath).to.equal(serverlessJsonFilePath);
-        }
-      );
-    });
-
-    it('should return the correct serverless file path for a .js file', () => {
-      const serverlessJsFilePath = path.join(servicePath, 'serverless.js');
-      fse.ensureFileSync(serverlessJsFilePath);
-
-      return expect(pluginUtils.getServerlessFilePath()).to.be.fulfilled.then(
-        (serverlessFilePath) => {
-          expect(serverlessFilePath).to.equal(serverlessJsFilePath);
-        }
-      );
-    });
-
     it('should reject if no configuration file exists', () =>
-      expect(pluginUtils.getServerlessFilePath()).to.be.rejectedWith(
+      expect(pluginUtils.getServerlessFilePath.bind(pluginUtils)).to.throw(
         'Could not find any serverless service definition file.'
       ));
   });
