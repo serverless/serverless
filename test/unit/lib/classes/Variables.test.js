@@ -2776,6 +2776,27 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     expect(processedConfig.custom.importedFileWithKey).to.equal('bar');
   });
 
+  it('should support ${file(...)} syntax for Terraform state', () => {
+    expect(processedConfig.custom.importedTerraformState).to.deep.equal({
+      version: 4,
+      terraform_version: '0.14.4',
+      serial: 11,
+      lineage: '12ab3c45-abc1-0a1b-1a23-a12b34567c89',
+      outputs: {
+        listenerarn: {
+          value:
+            'arn:aws:elasticloadbalancing:us-west-2:123456789876:listener/app/myapp/1a2b3c4f1a23456b/a1b23c45de6789fa',
+          type: 'string',
+        },
+      },
+      resources: [],
+    });
+  });
+
+  it('should support ${file(...):key} syntax for Terraform state', () => {
+    expect(processedConfig.custom.importedTerraformStateWithKey).to.equal('string');
+  });
+
   it('should ignore native CloudFormation variables', () => {
     expect(processedConfig.custom.awsVariable).to.equal('${AWS::Region}');
   });

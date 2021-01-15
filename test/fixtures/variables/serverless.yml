@@ -7,6 +7,8 @@ provider:
 custom:
   importedFile: ${file(config.json)}
   importedFileWithKey: ${file(config.json):foo}
+  importedTerraformState: ${file(terraform.tfstate)}
+  importedTerraformStateWithKey: ${file(terraform.tfstate):outputs.listenerarn.type}
   awsVariable: ${AWS::Region}
   cloudFormationReference: ${AnotherResource}
   selfReference: ${self:custom.importedFileWithKey}
