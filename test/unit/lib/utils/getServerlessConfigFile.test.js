@@ -43,6 +43,7 @@ describe('#getServerlessConfigFile()', () => {
     writeFileSync(serverlessFilePath, '{}');
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
@@ -57,6 +58,7 @@ describe('#getServerlessConfigFile()', () => {
     writeFileSync(serverlessFilePath, 'service: my-yml-service');
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
@@ -71,6 +73,7 @@ describe('#getServerlessConfigFile()', () => {
     writeFileSync(serverlessFilePath, 'service: my-yaml-service');
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
@@ -85,6 +88,7 @@ describe('#getServerlessConfigFile()', () => {
     writeFileSync(serverlessFilePath, 'service: my-yaml-service');
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: { config: 'foobar.yaml' } },
         config: { servicePath: tmpDirPath },
       })
@@ -99,6 +103,7 @@ describe('#getServerlessConfigFile()', () => {
     writeFileSync(serverlessFilePath, '{ "service": "my-json-service" }');
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
@@ -113,6 +118,7 @@ describe('#getServerlessConfigFile()', () => {
 
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
@@ -130,6 +136,7 @@ describe('#getServerlessConfigFile()', () => {
 
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
@@ -144,6 +151,7 @@ describe('#getServerlessConfigFile()', () => {
 
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: { servicePath: tmpDirPath },
       })
@@ -158,6 +166,7 @@ describe('#getServerlessConfigFile()', () => {
     process.chdir(tmpDirPath);
     return expect(
       getServerlessConfigFile({
+        configurationPath: serverlessFilePath,
         processedInput: { options: {} },
         config: {},
       })

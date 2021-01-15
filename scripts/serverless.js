@@ -36,8 +36,9 @@ const processSpanPromise = (async () => {
 
     const uuid = require('uuid');
     const Serverless = require('../lib/Serverless');
+    const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
 
-    serverless = new Serverless();
+    serverless = new Serverless({ configurationPath: await resolveConfigurationPath() });
 
     try {
       serverless.onExitPromise = processSpanPromise;
