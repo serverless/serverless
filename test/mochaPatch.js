@@ -19,17 +19,34 @@ const patchPromised = (name) => {
   );
 };
 
-const patchSync = (name) => {
+// const patchSync = (name) => {
+//   const original = fs[name];
+//   fs[name] = Object.defineProperty(
+//     function patchFs(...args) {
+//       const stack = new Error().stack;
+//       try {
+//         return original.apply(this, args);
+//       } catch (error) {
+//         error.message += ` (initiated at: ${stack}\n)`;
+//         throw error;
+//       }
+//     },
+//     'length',
+//     {
+//       value: original.length,
+//     }
+//   );
+// };
+const patchCallback = (name) => {
   const original = fs[name];
   fs[name] = Object.defineProperty(
     function patchFs(...args) {
       const stack = new Error().stack;
-      try {
-        return original.apply(this, args);
-      } catch (error) {
-        error.message += ` (initiated at: ${stack}\n)`;
-        throw error;
-      }
+      const callback = args[args.length - 1];
+      original.call(this, ...args.slice(0, -1), (error, ...result) => {
+        if (error) error.message += ` (initiated at: ${stack}\n)`;
+        return callback.call(this, error, ...result);
+      });
     },
     'length',
     {
@@ -39,8 +56,9 @@ const patchSync = (name) => {
 };
 
 patchPromised('readFile');
-
-patchSync('readFileSync');
+// patchSync('readFileSync');
+patchCallback('readFile');
+patchCallback('open');
 
 const path = require('path');
 const disableServerlessStatsRequests = require('@serverless/test/disable-serverless-stats-requests');
