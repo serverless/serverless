@@ -39,6 +39,7 @@ const patchSync = (name) => {
 };
 
 patchPromised('readFile');
+
 patchSync('readFileSync');
 
 const path = require('path');
