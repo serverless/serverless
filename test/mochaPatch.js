@@ -56,6 +56,7 @@ const patchCallback = (name) => {
 };
 
 patchPromised('readFile');
+patchPromised('open');
 // patchSync('readFileSync');
 patchCallback('readFile');
 patchCallback('open');
