@@ -1803,6 +1803,36 @@ describe('lib/plugins/aws/package/compile/events/cloudFront/index.new.test.js', 
         'CACHE_POLICY_ID_AND_DEPRECATED_FIELDS_USED'
       );
     });
+
+    it('Should not throw if lambda config includes AllowedMethods or CachedMethods behavior values and cache policy reference', async () => {
+      const cachePolicyId = '08627262-05a9-4f76-9ded-b50ca2e3a84f';
+      await runServerless({
+        fixture: 'function',
+        cliArgs: ['package'],
+        configExt: {
+          functions: {
+            foo: {
+              handler: 'myLambdaAtEdge.handler',
+              events: [
+                {
+                  cloudFront: {
+                    origin: 's3://bucketname.s3.amazonaws.com/files',
+                    eventType: 'viewer-response',
+                    behavior: {
+                      AllowedMethods: ['GET', 'HEAD', 'OPTIONS'],
+                      CachedMethods: ['GET', 'HEAD', 'OPTIONS'],
+                    },
+                    cachePolicy: {
+                      id: cachePolicyId,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+    });
   });
 
   describe.skip('TODO: Alternative cases', () => {
