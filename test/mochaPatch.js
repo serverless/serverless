@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.LOG_DEBUG = 'mocha,serverless:test';
+
 const fs = require('fs');
 
 const patchPromised = (name) => {
