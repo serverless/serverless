@@ -142,10 +142,12 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
   describe('individually', () => {
     let fnIndividualZippedFiles;
+    let serverless;
 
     before(async () => {
       const {
         fixtureData: { servicePath },
+        serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
         cliArgs: ['package'],
@@ -169,6 +171,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         },
       });
+      serverless = serverlessInstance;
 
       fnIndividualZippedFiles = await listZipFiles(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
@@ -179,8 +182,8 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.not.include('.custom-plugins/index.js');
     });
 
-    it.skip('TODO: should ignore `package.artifact` if `package.individually`', () => {
-      expect(fnIndividualZippedFiles).to.not.include('artifact.zip');
+    it('TODO: should ignore `package.artifact` if `package.individually`', () => {
+      expect(serverless.service.getFunction('fnIndividual').package.artifact).to.exist;
       // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
     });
 
@@ -195,8 +198,6 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     it('should support `package.include`', () => {
       expect(fnIndividualZippedFiles).to.include('dir1/subdir2/index.js');
       expect(fnIndividualZippedFiles).to.not.include('dir1/subdir2/subsubdir1/index.js');
-
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L52-L60
     });
   });
 
