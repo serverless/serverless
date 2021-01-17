@@ -170,7 +170,7 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
     const layerOne = cfResources[layerResourceName];
 
     expect(layerOne.Type).to.equals('AWS::Lambda::LayerVersion');
-    expect(layerOne.Properties.CompatibleRuntimes).to.be.deep.equals(['nodejs12.x']);
+    expect(layerOne.Properties.CompatibleRuntimes).to.deep.equals(['nodejs12.x']);
   });
 
   it('should support `layers[].licenseInfo`', () => {
@@ -178,6 +178,6 @@ describe('lib/plugins/aws/package/compile/layers/index.test.js', () => {
     const layerOne = cfResources[layerResourceName];
 
     expect(layerOne.Type).to.equals('AWS::Lambda::LayerVersion');
-    expect(layerOne.Properties.LicenseInfo).to.be.deep.equals('GPL');
+    expect(layerOne.Properties.LicenseInfo).to.deep.equals('GPL');
   });
 });
