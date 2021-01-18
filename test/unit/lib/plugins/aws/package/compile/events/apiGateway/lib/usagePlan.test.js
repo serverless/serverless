@@ -364,7 +364,9 @@ describe('UsagePlan', () => {
   });
 
   it('Should have values for throttle and not quota', () => {
-    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle, quota: {limit: null, offset: null, period: null} } };
+    serverlessConfigurationExtension.provider.apiGateway = {
+      usagePlan: { throttle, quota: { limit: null, offset: null, period: null } },
+    };
     return runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
