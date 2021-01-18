@@ -7,7 +7,7 @@
     "noUnusedParameters": true,
     "removeComments": true,
     "sourceMap": true,
-    "target": "ESNext",
+    "target": "ES2019",
     "outDir": "lib"
   },
   "include": ["src/**/*.ts"],
