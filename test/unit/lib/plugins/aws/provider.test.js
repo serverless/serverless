@@ -1946,6 +1946,47 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         ]);
       });
 
+      it('should login and retry when docker push fails with token has expired error', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+        const innerSpawnExtStub = sinon
+          .stub()
+          .returns({
+            stdBuffer: `digest: sha256:${imageSha} size: 1787`,
+          })
+          .onCall(3)
+          .throws({ stdBuffer: 'authorization token has expired' });
+        await runServerless({
+          fixture: 'ecr',
+          cliArgs: ['package'],
+          awsRequestStubMap,
+          modulesCacheStub: {
+            'child-process-ext/spawn': innerSpawnExtStub,
+          },
+        });
+
+        expect(innerSpawnExtStub).to.be.calledWith('docker', [
+          'push',
+          `${repositoryUri}:baseimage`,
+        ]);
+        expect(innerSpawnExtStub).to.be.calledWith('docker', [
+          'login',
+          '--username',
+          'AWS',
+          '--password',
+          'dockerauthtoken',
+          proxyEndpoint,
+        ]);
+      });
+
       it('should emit warning if docker login stores unencrypted credentials', async () => {
         const awsRequestStubMap = {
           ...baseAwsRequestStubMap,
