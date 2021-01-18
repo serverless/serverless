@@ -62,6 +62,12 @@ provider:
   rolePermissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
   lambdaHashingVersion: 20201221 # optional, version of hashing algorithm that should be used by the framework
   cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
+  ecr:
+    images: # Definitions of images that later can be referenced by key in `function.image`
+      baseimage:
+        uri: 000000000000.dkr.ecr.us-east-1.amazonaws.com/test-image@sha256:6bb600b4d6e1d7cf521097177d111111ea373edb91984a505333be8ac9455d38 # Image uri of existing Docker image in ECR
+      anotherimage:
+        path: ./image/ # Path to Docker context that will be used when building that image locally
   cloudFront:
     myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
       DefaultTTL: 60
@@ -253,7 +259,8 @@ package: # Optional deployment packaging configuration
 
 functions:
   usersCreate: # A Function
-    handler: users.create # The file and module for this specific function.
+    handler: users.create # The file and module for this specific function. Cannot be used when `image` is defined.
+    image: baseimage # Image to be used by function, cannot be used when `handler` is defined. It can be configured as concrete uri of Docker image in ECR or as a reference to image defined in `provider.ecr.images`
     name: ${opt:stage, self:provider.stage, 'dev'}-lambdaName # optional, Deployed Lambda name
     description: My function # The description of your function.
     memorySize: 512 # memorySize for this specific function.
