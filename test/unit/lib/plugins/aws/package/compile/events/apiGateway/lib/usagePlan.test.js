@@ -363,6 +363,26 @@ describe('UsagePlan', () => {
     });
   });
 
+  it('Should have values for throttle and not quota', () => {
+    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle, quota: {limit: null, offset: null, period: null} } };
+    return runServerless({
+      fixture: 'apiGateway',
+      configExt: serverlessConfigurationExtension,
+      cliArgs: ['package'],
+    }).then(({ cfTemplate }) => {
+      const cfResources = cfTemplate.Resources;
+
+      expect(cfResources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
+        burstLimit
+      );
+      expect(cfResources.ApiGatewayUsagePlan.Properties.Throttle.RateLimit).to.be.equal(rateLimit);
+
+      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Limit).to.be.equal(null);
+      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Offset).to.be.equal(null);
+      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Period).to.be.equal(null);
+    });
+  });
+
   it('Should have values for quota and throttle', () => {
     serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle, quota } };
     return runServerless({
