@@ -7,6 +7,7 @@ const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
+const runServerless = require('../../../../../../utils/run-serverless');
 
 chai.use(require('sinon-chai'));
 
@@ -194,7 +195,7 @@ describe('extendedValidate', () => {
       });
     });
 
-    it("should not warn if function's timeout is greater than 30 and it's attached to APIGW, but it has async mode", () => {
+    it("should not warn if function's timeout is greater than 30 and it's attached to APIGW, but it has [async] mode", () => {
       stateFileMock.service.functions = {
         first: {
           timeout: 31,
@@ -214,9 +215,21 @@ describe('extendedValidate', () => {
       fileExistsSyncStub.returns(true);
       readFileSyncStub.returns(stateFileMock);
 
-      return awsDeploy.extendedValidate().then(() => {
-        expect(awsDeploy.serverless.cli.log.firstCall).to.be.equal(null);
-      });
+      return awsDeploy.extendedValidate().then(() => (
+        expect(awsDeploy.serverless.cli.log.firstCall).to.be.equal(null)
+      ));
+    });
+
+    it("should not warn during the package and deployment if function's timeout is greater than 30 and it's attached to APIGW, but it has [async] mode",  () => {
+      const msg = [
+        "WARNING: Function first has timeout of 31 seconds, however, it's",
+        "attached to API Gateway so it's automatically limited to 30 seconds.",
+      ].join(' ');
+
+      return runServerless({
+        fixture: 'apiGatewayAsync',
+        cliArgs: ['deploy', '--noDeploy'],
+      }).then(({ stdoutData }) => expect(stdoutData.includes(msg)).to.be.equal(false))
     });
   });
 });

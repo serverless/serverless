@@ -1,0 +1,17 @@
+service: service
+
+configValidationMode: error
+frameworkVersion: '*'
+
+provider:
+  name: aws
+
+functions:
+  first:
+    handler: index.handler
+    timeout: 31
+    events:
+      - http:
+          method: GET
+          path: /foo
+          async: true
