@@ -368,6 +368,34 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(imageWithSha);
   });
 
+  it('should support updating function with image config', async () => {
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap,
+      configExt: {
+        functions: {
+          foo: {
+            image: {
+              uri: imageWithSha,
+              workingDirectory: './workdir',
+              entryPoint: ['executable', 'param1'],
+              command: ['anotherexecutable'],
+            },
+          },
+        },
+      },
+    });
+    expect(updateFunctionCodeStub).to.be.calledOnce;
+    expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(imageWithSha);
+    expect(updateFunctionConfigurationStub).to.be.calledOnce;
+    expect(updateFunctionConfigurationStub.args[0][0].ImageConfig).to.deep.equal({
+      Command: ['anotherexecutable'],
+      EntryPoint: ['executable', 'param1'],
+      WorkingDirectory: './workdir',
+    });
+  });
+
   it('should skip deployment if image sha did not change', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
