@@ -7,6 +7,7 @@ const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
+const runServerless = require('../../../../../../utils/run-serverless');
 
 chai.use(require('sinon-chai'));
 
@@ -193,5 +194,37 @@ describe('extendedValidate', () => {
         expect(awsDeploy.serverless.cli.log.firstCall.calledWithExactly(msg)).to.be.equal(true);
       });
     });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => {
+  it("should not warn if function's timeout is greater than 30 and it's attached to APIGW, but it has [async] mode", async () => {
+    const msg = [
+      "WARNING: Function foo has timeout of 31 seconds, however, it's",
+      "attached to API Gateway so it's automatically limited to 30 seconds.",
+    ].join(' ');
+
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      configExt: {
+        functions: {
+          foo: {
+            timeout: 31,
+            events: [
+              {
+                http: {
+                  method: 'GET',
+                  path: '/foo',
+                  async: true,
+                },
+              },
+            ],
+          },
+        },
+      },
+      cliArgs: ['deploy', '--noDeploy'],
+    });
+
+    expect(stdoutData.includes(msg)).to.be.equal(false);
   });
 });
