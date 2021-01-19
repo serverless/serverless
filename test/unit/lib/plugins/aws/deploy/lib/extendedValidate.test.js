@@ -194,44 +194,37 @@ describe('extendedValidate', () => {
         expect(awsDeploy.serverless.cli.log.firstCall.calledWithExactly(msg)).to.be.equal(true);
       });
     });
-
-    it("should not warn if function's timeout is greater than 30 and it's attached to APIGW, but it has [async] mode", () => {
-      stateFileMock.service.functions = {
-        first: {
-          timeout: 31,
-          package: {
-            artifact: 'artifact.zip',
-          },
-          events: [
-            {
-              http: {
-                async: true,
-              },
-            },
-          ],
-        },
-      };
-      awsDeploy.serverless.service.package.individually = true;
-      fileExistsSyncStub.returns(true);
-      readFileSyncStub.returns(stateFileMock);
-
-      return awsDeploy.extendedValidate().then(() => {
-        expect(awsDeploy.serverless.cli.log.firstCall).to.be.equal(null);
-      });
-    });
-
-    it("should not warn during the deployment if function's timeout is greater than 30 and it's attached to APIGW, but it has [async] mode", () => {
-      const msg = [
-        "WARNING: Function first has timeout of 31 seconds, however, it's",
-        "attached to API Gateway so it's automatically limited to 30 seconds.",
-      ].join(' ');
-
-      return runServerless({
-        fixture: 'apiGatewayAsync',
-        cliArgs: ['deploy', '--noDeploy'],
-      }).then(({ stdoutData }) => {
-        expect(stdoutData.includes(msg)).to.be.equal(false);
-      });
-    });
   });
 });
+
+describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => {
+  it("should not warn if function's timeout is greater than 30 and it's attached to APIGW, but it has [async] mode", async () => {
+    const msg = [
+      "WARNING: Function foo has timeout of 31 seconds, however, it's",
+      "attached to API Gateway so it's automatically limited to 30 seconds.",
+    ].join(' ');
+
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      configExt: {
+        functions: {
+          foo: {
+            timeout: 31,
+            events: [
+              {
+                http: {
+                  method: 'GET',
+                  path: '/foo',
+                  async: true,
+                }
+              }
+            ],
+          }
+        }
+      },
+      cliArgs: ['deploy', '--noDeploy'],
+    });
+
+    expect(stdoutData.includes(msg)).to.be.equal(false);
+  });
+})
