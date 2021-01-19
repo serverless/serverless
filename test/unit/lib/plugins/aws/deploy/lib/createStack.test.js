@@ -123,15 +123,20 @@ describe('createStack', () => {
       });
     });
 
-    it('should throw error if invalid stack name', () => {
+    it('should throw error if invalid stack name', async () => {
       sandbox.stub(awsDeploy, 'create').resolves();
       sandbox.stub(awsDeploy.provider, 'request').resolves();
       awsDeploy.serverless.service.service = 'service-name'.repeat(100);
 
-      return expect(awsDeploy.createStack.bind(awsDeploy)).to.throw(
-        awsDeploy.serverless.classes.Error,
-        /not valid/
-      );
+      const errorMsgPattern = /not valid/;
+      const errorMock = new ServerlessError(errorMsgPattern);
+
+      try {
+        await awsDeploy.createStack();
+      } catch (e) {
+        expect(e.name).to.be.equal(errorMock.name);
+        expect(e.message).to.match(errorMsgPattern);
+      }
     });
 
     it('should set the createLater flag and resolve if deployment bucket is provided', () => {
@@ -139,7 +144,7 @@ describe('createStack', () => {
       sandbox.stub(awsDeploy.provider, 'request').rejects(new Error('does not exist'));
 
       return awsDeploy.createStack().then(() => {
-        expect(awsDeploy.createLater).to.equal(true);
+        expect(awsDeploy.createLater).to.be.true;
       });
     });
 
@@ -151,7 +156,7 @@ describe('createStack', () => {
       const createStub = sandbox.stub(awsDeploy, 'create').resolves();
 
       return awsDeploy.createStack().catch((e) => {
-        expect(createStub.called).to.be.equal(false);
+        expect(createStub.called).to.be.false;
         expect(e.name).to.be.equal('ServerlessError');
         expect(e.message).to.be.equal(errorMock.message);
       });
@@ -167,7 +172,7 @@ describe('createStack', () => {
       const createStub = sandbox.stub(awsDeploy, 'create').resolves();
 
       return awsDeploy.createStack().then(() => {
-        expect(createStub.calledOnce).to.be.equal(true);
+        expect(createStub.calledOnce).to.be.true;
       });
     });
 
@@ -188,7 +193,7 @@ describe('createStack', () => {
       awsDeploy.provider.options['aws-s3-accelerate'] = true;
 
       return awsDeploy.createStack().then(() => {
-        expect(disableTransferAccelerationStub.called).to.be.equal(true);
+        expect(disableTransferAccelerationStub.calledOnce).to.be.true;
       });
     });
 
@@ -210,7 +215,7 @@ describe('createStack', () => {
       awsDeploy.serverless.service.provider.deploymentBucket = 'my-custom-bucket';
 
       return awsDeploy.createStack().then(() => {
-        expect(disableTransferAccelerationStub.called).to.be.equal(false);
+        expect(disableTransferAccelerationStub.called).to.be.false;
       });
     });
   });

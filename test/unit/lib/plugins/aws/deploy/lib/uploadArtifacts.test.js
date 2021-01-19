@@ -158,7 +158,7 @@ describe('uploadArtifacts', () => {
     });
 
     it('should throw for null artifact paths', () => {
-      expect(() => awsDeploy.uploadZipFile(null)).to.throw(Error);
+      expect(async () => await awsDeploy.uploadZipFile(null).to.throw(Error));
     });
 
     it('should upload the .zip file to the S3 bucket', () => {
