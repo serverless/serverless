@@ -216,15 +216,15 @@ describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => 
                   method: 'GET',
                   path: '/foo',
                   async: true,
-                }
-              }
+                },
+              },
             ],
-          }
-        }
+          },
+        },
       },
       cliArgs: ['deploy', '--noDeploy'],
     });
 
     expect(stdoutData.includes(msg)).to.be.equal(false);
   });
-})
+});
