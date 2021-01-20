@@ -332,54 +332,70 @@ describe('UsagePlan', () => {
     },
   };
 
-  it('Should have values for throttle', () => {
+  it('Should have values for throttle', async () => {
     serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle } };
-    return runServerless({
+    const { cfTemplate } = await runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
       cliArgs: ['package'],
-    }).then(({ cfTemplate }) => {
-      const cfResources = cfTemplate.Resources;
-
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
-        burstLimit
-      );
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Throttle.RateLimit).to.be.equal(rateLimit);
     });
+
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
+      burstLimit
+    );
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.RateLimit).to.be.equal(
+      rateLimit
+    );
   });
 
-  it('Should have values for quota', () => {
+  it('Should have values for quota', async () => {
     serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { quota } };
-    return runServerless({
+    const { cfTemplate } = await runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
       cliArgs: ['package'],
-    }).then(({ cfTemplate }) => {
-      const cfResources = cfTemplate.Resources;
-
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Limit).to.be.equal(limit);
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Offset).to.be.equal(offset);
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Period).to.be.equal(period);
     });
+
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Quota.Limit).to.be.equal(limit);
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Quota.Offset).to.be.equal(offset);
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Quota.Period).to.be.equal(period);
   });
 
-  it('Should have values for quota and throttle', () => {
-    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle, quota } };
-    return runServerless({
+  it('Should have values for throttle and not quota', async () => {
+    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle } };
+    const { cfTemplate } = await runServerless({
       fixture: 'apiGateway',
       configExt: serverlessConfigurationExtension,
       cliArgs: ['package'],
-    }).then(({ cfTemplate }) => {
-      const cfResources = cfTemplate.Resources;
-
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
-        burstLimit
-      );
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Throttle.RateLimit).to.be.equal(rateLimit);
-
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Limit).to.be.equal(limit);
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Offset).to.be.equal(offset);
-      expect(cfResources.ApiGatewayUsagePlan.Properties.Quota.Period).to.be.equal(period);
     });
+
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
+      burstLimit
+    );
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.RateLimit).to.be.equal(
+      rateLimit
+    );
+
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties).to.not.have.property('quota');
+  });
+
+  it('Should have values for quota and throttle', async () => {
+    serverlessConfigurationExtension.provider.apiGateway = { usagePlan: { throttle, quota } };
+    const { cfTemplate } = await runServerless({
+      fixture: 'apiGateway',
+      configExt: serverlessConfigurationExtension,
+      cliArgs: ['package'],
+    });
+
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.BurstLimit).to.be.equal(
+      burstLimit
+    );
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Throttle.RateLimit).to.be.equal(
+      rateLimit
+    );
+
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Quota.Limit).to.be.equal(limit);
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Quota.Offset).to.be.equal(offset);
+    expect(cfTemplate.Resources.ApiGatewayUsagePlan.Properties.Quota.Period).to.be.equal(period);
   });
 });
