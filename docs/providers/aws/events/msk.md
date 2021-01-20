@@ -66,7 +66,7 @@ functions:
 
 The `msk` event also supports `enabled` parameter, which is used to control if the event source mapping is active. Setting it to `false` will pause polling for and processing new messages.
 
-In the following example, we specify that the `company` function's `msk` event should be disabled.
+In the following example, we specify that the `compute` function's `msk` event should be disabled.
 
 ```yml
 functions:
