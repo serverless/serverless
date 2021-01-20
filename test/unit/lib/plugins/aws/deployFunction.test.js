@@ -183,247 +183,6 @@ describe('AwsDeployFunction', () => {
     });
   });
 
-  describe('#updateFunctionConfiguration', () => {
-    let updateFunctionConfigurationStub;
-    let normalizeArnRoleStub;
-    const options = {
-      stage: 'dev',
-      region: 'us-east-1',
-      function: 'first',
-      functionObj: {
-        name: 'first',
-      },
-    };
-
-    beforeEach(() => {
-      updateFunctionConfigurationStub = sinon
-        .stub(awsDeployFunction.provider, 'request')
-        .resolves();
-
-      normalizeArnRoleStub = sinon
-        .stub(awsDeployFunction, 'normalizeArnRole')
-        .resolves('arn:aws:us-east-1:123456789012:role/role');
-    });
-
-    afterEach(() => {
-      awsDeployFunction.provider.request.restore();
-      awsDeployFunction.normalizeArnRole.restore();
-      awsDeployFunction.serverless.service.provider.timeout = undefined;
-      awsDeployFunction.serverless.service.provider.memorySize = undefined;
-      awsDeployFunction.serverless.service.provider.role = undefined;
-      awsDeployFunction.serverless.service.provider.vpc = undefined;
-    });
-
-    it("should update function's configuration", async () => {
-      options.functionObj = {
-        awsKmsKeyArn: 'arn:aws:kms:us-east-1:123456789012',
-        description: 'desc',
-        handler: 'my_handler',
-        environment: {
-          VARIABLE: 'value',
-        },
-        name: 'first',
-        memorySize: 128,
-        onError: 'arn:aws:sqs:us-east-1:123456789012:dlq',
-        role: 'arn:aws:iam::123456789012:role/Admin',
-        timeout: 3,
-        vpc: {
-          securityGroupIds: ['1'],
-          subnetIds: ['2'],
-        },
-        layers: ['arn:aws:lambda:us-east-1:123456789012:layer:layer:1'],
-      };
-
-      awsDeployFunction.options = options;
-
-      await awsDeployFunction.updateFunctionConfiguration();
-
-      expect(normalizeArnRoleStub.calledOnce).to.be.equal(true);
-      expect(normalizeArnRoleStub.calledWithExactly('arn:aws:iam::123456789012:role/Admin'));
-      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-      expect(
-        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
-          DeadLetterConfig: {
-            TargetArn: 'arn:aws:sqs:us-east-1:123456789012:dlq',
-          },
-          Handler: 'my_handler',
-          Description: 'desc',
-          Environment: {
-            Variables: {
-              VARIABLE: 'value',
-            },
-          },
-          FunctionName: 'first',
-          KMSKeyArn: 'arn:aws:kms:us-east-1:123456789012',
-          MemorySize: 128,
-          Role: 'arn:aws:us-east-1:123456789012:role/role',
-          Timeout: 3,
-          VpcConfig: {
-            SecurityGroupIds: ['1'],
-            SubnetIds: ['2'],
-          },
-          Layers: ['arn:aws:lambda:us-east-1:123456789012:layer:layer:1'],
-        })
-      ).to.be.equal(true);
-    });
-
-    it('should update only specified params', async () => {
-      options.functionObj = {
-        name: 'first',
-        description: 'change',
-        vpc: undefined,
-      };
-
-      awsDeployFunction.options = options;
-
-      await awsDeployFunction.updateFunctionConfiguration();
-      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-      expect(
-        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
-          FunctionName: 'first',
-          Description: 'change',
-        })
-      ).to.be.equal(true);
-    });
-
-    it('should skip elements that contain references', async () => {
-      options.functionObj = {
-        name: 'first',
-        description: 'change',
-        handler: 'my_handler',
-        vpc: {
-          securityGroupIds: [
-            'xxxxx',
-            {
-              ref: 'myVPCRef',
-            },
-          ],
-          subnetIds: [
-            'xxxxx',
-            {
-              ref: 'myVPCRef',
-            },
-          ],
-        },
-        environment: {
-          myvar: 'this is my var',
-          myref: {
-            ref: 'aCFReference',
-          },
-        },
-      };
-
-      awsDeployFunction.options = options;
-
-      await awsDeployFunction.updateFunctionConfiguration();
-      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-      expect(
-        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
-          FunctionName: 'first',
-          Handler: 'my_handler',
-          Description: 'change',
-        })
-      ).to.be.equal(true);
-    });
-
-    it('should do nothing if only references are in', async () => {
-      options.functionObj = {
-        name: 'first',
-        environment: {
-          myvar: 'this is my var',
-          myref: {
-            ref: 'aCFReference',
-          },
-        },
-      };
-
-      awsDeployFunction.options = options;
-      await expect(awsDeployFunction.updateFunctionConfiguration()).to.be.fulfilled;
-
-      expect(updateFunctionConfigurationStub).to.not.be.called;
-    });
-
-    it('should fail when using invalid characters in environment variable', () => {
-      options.functionObj = {
-        name: 'first',
-        description: 'change',
-        environment: {
-          '!llegal_v@riable': 1,
-        },
-      };
-
-      awsDeployFunction.options = options;
-
-      return expect(awsDeployFunction.updateFunctionConfiguration()).to.eventually.be.rejected;
-    });
-
-    it('should transform to string values when using non-string values as environment variables', async () => {
-      options.functionObj = {
-        name: 'first',
-        handler: 'my_handler',
-        description: 'change',
-        environment: {
-          COUNTER: 6,
-        },
-      };
-
-      awsDeployFunction.options = options;
-      await expect(awsDeployFunction.updateFunctionConfiguration()).to.be.fulfilled;
-
-      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-      expect(
-        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
-          FunctionName: 'first',
-          Handler: 'my_handler',
-          Description: 'change',
-          Environment: {
-            Variables: {
-              COUNTER: '6',
-            },
-          },
-        })
-      ).to.be.equal(true);
-    });
-
-    it('should inherit provider-level config', async () => {
-      options.functionObj = {
-        name: 'first',
-        handler: 'my_handler',
-        description: 'change',
-      };
-
-      awsDeployFunction.serverless.service.provider.timeout = 12;
-      awsDeployFunction.serverless.service.provider.memorySize = 512;
-      awsDeployFunction.serverless.service.provider.role = 'role';
-      awsDeployFunction.serverless.service.provider.vpc = {
-        securityGroupIds: [123, 12],
-        subnetIds: [1234, 12345],
-      };
-
-      awsDeployFunction.options = options;
-
-      await awsDeployFunction.updateFunctionConfiguration();
-
-      expect(normalizeArnRoleStub.calledOnce).to.be.equal(true);
-      expect(normalizeArnRoleStub.calledWithExactly('role'));
-      expect(updateFunctionConfigurationStub.calledOnce).to.be.equal(true);
-      expect(
-        updateFunctionConfigurationStub.calledWithExactly('Lambda', 'updateFunctionConfiguration', {
-          FunctionName: 'first',
-          Handler: 'my_handler',
-          Description: 'change',
-          VpcConfig: {
-            SubnetIds: [1234, 12345],
-            SecurityGroupIds: [123, 12],
-          },
-          Timeout: 12,
-          MemorySize: 512,
-          Role: 'arn:aws:us-east-1:123456789012:role/role',
-        })
-      ).to.be.equal(true);
-    });
-  });
-
   describe('#deployFunction()', () => {
     let artifactFilePath;
     let updateFunctionCodeStub;
@@ -551,31 +310,48 @@ describe('AwsDeployFunction', () => {
 });
 
 describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
+  const kmsKeyArn = 'arn:aws:kms:us-east-1:123456789012';
+  const description = 'func description';
+  const handler = 'funcHandler';
+  const functionName = 'funcName';
+  const memorySize = 255;
+  const onErrorHandler = 'arn:aws:sns:us-east-1:123456789012:onerror';
+  const timeout = 50;
+  const layerArn = 'arn:aws:lambda:us-east-1:123456789012:layer:layer:1';
+  const secondLayerArn = 'arn:aws:lambda:us-east-1:123456789012:layer:layer:2';
+  const role = 'arn:aws:iam::123456789012:role/Admin';
+  const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
+  const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
+  const updateFunctionCodeStub = sinon.stub();
+  const updateFunctionConfigurationStub = sinon.stub();
+  const awsRequestStubMap = {
+    Lambda: {
+      getFunction: {
+        Configuration: {
+          LastModified: '2020-05-20T15:34:16.494+0000',
+        },
+      },
+      updateFunctionCode: updateFunctionCodeStub,
+      updateFunctionConfiguration: updateFunctionConfigurationStub,
+    },
+    STS: {
+      getCallerIdentity: {
+        ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+        UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+        Account: '999999999999',
+        Arn: 'arn:aws:iam::999999999999:user/test',
+      },
+    },
+  };
+
+  beforeEach(() => {
+    updateFunctionCodeStub.resetHistory();
+    updateFunctionConfigurationStub.resetHistory();
+  });
+
   // This is just a happy-path test of images support. Due to sharing code from `provider.js`
   // all further configurations are tested as a part of `test/unit/lib/plugins/aws/provider.test.js`
   it('should support deploying function that has image defined with sha', async () => {
-    const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
-    const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
-    const updateFunctionCodeStub = sinon.stub();
-    const awsRequestStubMap = {
-      Lambda: {
-        getFunction: {
-          Configuration: {
-            LastModified: '2020-05-20T15:34:16.494+0000',
-          },
-        },
-        updateFunctionCode: updateFunctionCodeStub,
-        updateFunctionConfiguration: sinon.stub(),
-      },
-      STS: {
-        getCallerIdentity: {
-          ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
-          UserId: 'XXXXXXXXXXXXXXXXXXXXX',
-          Account: '999999999999',
-          Arn: 'arn:aws:iam::999999999999:user/test',
-        },
-      },
-    };
     await runServerless({
       fixture: 'function',
       cliArgs: ['deploy', 'function', '-f', 'foo'],
@@ -590,5 +366,371 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     });
     expect(updateFunctionCodeStub).to.be.calledOnce;
     expect(updateFunctionCodeStub.args[0][0].ImageUri).to.equal(imageWithSha);
+  });
+
+  it('should skip deployment if image sha did not change', async () => {
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              CodeSha256: imageSha,
+            },
+          },
+        },
+      },
+      configExt: {
+        functions: {
+          foo: {
+            image: imageWithSha,
+          },
+        },
+      },
+    });
+    expect(updateFunctionCodeStub).not.to.be.called;
+    expect(stdoutData).to.include('Image did not change. Skipping function deployment.');
+  });
+
+  it('should fail if function with image was previously defined with handler', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        cliArgs: ['deploy', 'function', '-f', 'foo'],
+        awsRequestStubMap: {
+          ...awsRequestStubMap,
+          Lambda: {
+            ...awsRequestStubMap.Lambda,
+            getFunction: {
+              Configuration: {
+                LastModified: '2020-05-20T15:34:16.494+0000',
+                PackageType: 'Zip',
+              },
+            },
+          },
+        },
+        configExt: {
+          functions: {
+            foo: {
+              image: imageWithSha,
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'DEPLOY_FUNCTION_CHANGE_BETWEEN_HANDLER_AND_IMAGE_ERROR'
+    );
+  });
+
+  it('should fail if function with image was previously defined with handler', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        cliArgs: ['deploy', 'function', '-f', 'foo'],
+        awsRequestStubMap: {
+          ...awsRequestStubMap,
+          Lambda: {
+            ...awsRequestStubMap.Lambda,
+            getFunction: {
+              Configuration: {
+                LastModified: '2020-05-20T15:34:16.494+0000',
+                PackageType: 'Image',
+              },
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property(
+      'code',
+      'DEPLOY_FUNCTION_CHANGE_BETWEEN_HANDLER_AND_IMAGE_ERROR'
+    );
+  });
+
+  it('should handle retry when `updateFunctionConfiguration` returns `ResourceConflictException` error', async () => {
+    const innerUpdateFunctionConfigurationStub = sinon
+      .stub()
+      .onFirstCall()
+      .throws({ providerError: { code: 'ResourceConflictException' } })
+      .onSecondCall()
+      .resolves({});
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          updateFunctionConfiguration: innerUpdateFunctionConfigurationStub,
+        },
+      },
+      modulesCacheStub: {
+        'timers-ext/promise/sleep': sinon.stub().returns({}),
+      },
+      configExt: {
+        functions: {
+          foo: {
+            timeout: 50,
+          },
+        },
+      },
+    });
+
+    expect(stdoutData).to.include('Retrying configuration update for function');
+    expect(innerUpdateFunctionConfigurationStub.callCount).to.equal(2);
+  });
+
+  it('should update function configuration if configuration changed', async () => {
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          foo: {
+            awsKmsKeyArn: kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [layerArn, secondLayerArn],
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      KMSKeyArn: kmsKeyArn,
+      Description: description,
+      Handler: handler,
+      Environment: {
+        Variables: {
+          ANOTHERVAR: 'anothervalue',
+          VARIABLE: 'value',
+        },
+      },
+      MemorySize: memorySize,
+      Timeout: timeout,
+      DeadLetterConfig: {
+        TargetArn: onErrorHandler,
+      },
+      Role: role,
+      VpcConfig: {
+        SecurityGroupIds: ['sg-111', 'sg-222'],
+        SubnetIds: ['subnet-111', 'subnet-222'],
+      },
+      Layers: [layerArn, secondLayerArn],
+    });
+    expect(stdoutData).to.include('Successfully updated function');
+  });
+
+  it('should skip updating properties that contain references', async () => {
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+            },
+          },
+        },
+      },
+      configExt: {
+        functions: {
+          foo: {
+            name: functionName,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', { Ref: 'mySGRef' }],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            environment: {
+              VARIABLE: {
+                Ref: 'SomeReference',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      Handler: 'index.handler',
+      Timeout: timeout,
+      VpcConfig: {
+        SubnetIds: ['subnet-111', 'subnet-222'],
+      },
+      Role: role,
+    });
+    expect(stdoutData).to.include('Successfully updated function');
+  });
+
+  it('should update function configuration with provider-level properties', async () => {
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+            VARIABLE: 'value',
+          },
+          memorySize,
+          role,
+          timeout,
+          vpc: {
+            securityGroupIds: ['sg-111', 'sg-222'],
+            subnetIds: ['subnet-111', 'subnet-222'],
+          },
+        },
+        functions: {
+          foo: {
+            name: functionName,
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
+      FunctionName: functionName,
+      Handler: 'index.handler',
+      Environment: {
+        Variables: {
+          ANOTHERVAR: 'anothervalue',
+          VARIABLE: 'value',
+        },
+      },
+      MemorySize: memorySize,
+      Timeout: timeout,
+      Role: role,
+      VpcConfig: {
+        SecurityGroupIds: ['sg-111', 'sg-222'],
+        SubnetIds: ['subnet-111', 'subnet-222'],
+      },
+    });
+    expect(stdoutData).to.include('Successfully updated function');
+  });
+
+  it('should not update function configuration if configuration did not change', async () => {
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              PackageType: 'Zip',
+              KMSKeyArn: kmsKeyArn,
+              Description: description,
+              Handler: handler,
+              Environment: {
+                Variables: {
+                  ANOTHERVAR: 'anothervalue',
+                  VARIABLE: 'value',
+                },
+              },
+              FunctionName: functionName,
+              MemorySize: memorySize,
+              DeadLetterConfig: {
+                TargetArn: onErrorHandler,
+              },
+              Timeout: timeout,
+              Layers: [{ Arn: secondLayerArn }, { Arn: layerArn }],
+              Role: role,
+              VpcConfig: {
+                VpcId: 'vpc-xxxx',
+                SecurityGroupIds: ['sg-111', 'sg-222'],
+                SubnetIds: ['subnet-111', 'subnet-222'],
+              },
+            },
+          },
+        },
+      },
+      configExt: {
+        provider: {
+          environment: {
+            ANOTHERVAR: 'anothervalue',
+          },
+        },
+        functions: {
+          foo: {
+            awsKmsKeyArn: kmsKeyArn,
+            description,
+            handler,
+            environment: {
+              VARIABLE: 'value',
+            },
+            name: functionName,
+            memorySize,
+            onError: onErrorHandler,
+            role,
+            timeout,
+            vpc: {
+              securityGroupIds: ['sg-111', 'sg-222'],
+              subnetIds: ['subnet-111', 'subnet-222'],
+            },
+            layers: [layerArn, secondLayerArn],
+          },
+        },
+      },
+    });
+
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+    expect(stdoutData).to.include(
+      'Configuration did not change. Skipping function configuration update.'
+    );
   });
 });
