@@ -14,7 +14,6 @@ const _ = require('lodash');
 const overrideEnv = require('process-utils/override-env');
 
 const AwsProvider = require('../../../../lib/plugins/aws/provider');
-const fs = require('fs');
 const fse = require('fs-extra');
 const Serverless = require('../../../../lib/Serverless');
 const slsError = require('../../../../lib/classes/Error');
@@ -1849,7 +1848,7 @@ module.exports = {
       const tmpDirPath = getTmpDirPath();
       serverless.config.update({ servicePath: tmpDirPath });
       const realpathSync = sinon.spy(fse, 'realpathSync');
-      const existsSync = sinon.spy(fs, 'existsSync');
+      const existsSync = sinon.spy(fse, 'existsSync');
       return serverless.variables
         .getValueFromFile('file(./non-existing.yml)')
         .should.be.fulfilled.then((valueToPopulate) => {
