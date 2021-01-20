@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const sandbox = require('sinon');
 const path = require('path');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
@@ -8,6 +8,10 @@ const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
 const { ServerlessError } = require('../../../../../../../lib/classes/Error');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
+
+chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
+const expect = require('chai').expect;
 
 describe('createStack', () => {
   let awsDeploy;
@@ -128,38 +132,27 @@ describe('createStack', () => {
       sandbox.stub(awsDeploy.provider, 'request').resolves();
       awsDeploy.serverless.service.service = 'service-name'.repeat(100);
 
-      const errorMsgPattern = /not valid/;
-      const errorMock = new ServerlessError(errorMsgPattern);
-
-      try {
-        await awsDeploy.createStack();
-      } catch (e) {
-        expect(e.name).to.be.equal(errorMock.name);
-        expect(e.message).to.match(errorMsgPattern);
-      }
+      await expect(awsDeploy.createStack()).to.eventually.be.rejected.and.have.property(
+        'code',
+        'INVALID_STACK_NAME_ERROR'
+      );
     });
 
-    it('should set the createLater flag and resolve if deployment bucket is provided', () => {
+    it('should set the createLater flag and resolve if deployment bucket is provided', async () => {
       awsDeploy.serverless.service.provider.deploymentBucket = 'serverless';
       sandbox.stub(awsDeploy.provider, 'request').rejects(new Error('does not exist'));
 
-      return awsDeploy.createStack().then(() => {
-        expect(awsDeploy.createLater).to.be.true;
-      });
+      await awsDeploy.createStack();
+      expect(awsDeploy.createLater).to.be.true;
     });
 
-    it('should throw error if describeStackResources fails for other reason than not found', () => {
+    it('should throw error if describeStackResources fails for other reason than not found', async () => {
       const errorMock = new ServerlessError('Something went wrong');
 
       sandbox.stub(awsDeploy.provider, 'request').rejects(errorMock);
+      sandbox.stub(awsDeploy, 'create').resolves();
 
-      const createStub = sandbox.stub(awsDeploy, 'create').resolves();
-
-      return awsDeploy.createStack().catch((e) => {
-        expect(createStub.called).to.be.false;
-        expect(e.name).to.be.equal('ServerlessError');
-        expect(e.message).to.be.equal(errorMock.message);
-      });
+      await expect(awsDeploy.createStack()).to.eventually.be.rejectedWith(errorMock);
     });
 
     it('should run promise chain in order', () => {
