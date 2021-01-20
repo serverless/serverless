@@ -603,48 +603,6 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     expect(stdoutData).to.include('Successfully updated function');
   });
 
-  it('should cast non-string env variables to strings during update', async () => {
-    const { stdoutData } = await runServerless({
-      fixture: 'function',
-      cliArgs: ['deploy', 'function', '-f', 'foo'],
-      awsRequestStubMap: {
-        ...awsRequestStubMap,
-        Lambda: {
-          ...awsRequestStubMap.Lambda,
-          getFunction: {
-            Configuration: {
-              LastModified: '2020-05-20T15:34:16.494+0000',
-              PackageType: 'Zip',
-            },
-          },
-        },
-      },
-      configExt: {
-        provider: {
-          environment: {
-            NUMERICVAL: 3,
-          },
-        },
-        functions: {
-          foo: {
-            name: functionName,
-          },
-        },
-      },
-    });
-
-    expect(updateFunctionConfigurationStub).to.be.calledWithExactly({
-      FunctionName: functionName,
-      Handler: 'index.handler',
-      Environment: {
-        Variables: {
-          NUMERICVAL: '3',
-        },
-      },
-    });
-    expect(stdoutData).to.include('Successfully updated function');
-  });
-
   it('should update function configuration with provider-level properties', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
