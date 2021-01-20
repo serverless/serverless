@@ -66,16 +66,12 @@ describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
       ])
     );
 
-    it('should reject absolute path', async () => {
+    it('should accept absolute path, pointing configuration in current working directory', async () => {
       await overrideArgv(
         {
           args: ['serverless', '--config', path.resolve('custom.yml')],
         },
-        () =>
-          expect(resolveServerlessConfigPath()).to.eventually.be.rejected.and.have.property(
-            'code',
-            'INVALID_SERVICE_CONFIG_PATH'
-          )
+        async () => expect(await resolveServerlessConfigPath()).to.equal(path.resolve('custom.yml'))
       );
     });
 
