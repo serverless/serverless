@@ -17,6 +17,17 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="NESTED_CUSTOM_CONFIGURATION_PATH'"><div>&nbsp;</div></a>
+
+## Service configurations should not be nested in service sub directories
+
+Deprecation code: `NESTED_CUSTOM_CONFIGURATION_PATH`
+
+Service configuration in all cases should be put at root folder of a service.
+All paths in this configuration are resolved against service directory, and it's also the case if configuration is nested in sub directory.
+
+To avoid confusing behavior starting with v3.0.0 Framework will no longer permit to rely on configurations placed in sub directories
+
 <a name="MISSING_SERVICE_CONFIGURATION_PATH'"><div>&nbsp;</div></a>
 
 ## `Serverless` constructor `config.configurationPath` requirement
