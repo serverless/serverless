@@ -182,9 +182,10 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.not.include('.custom-plugins/index.js');
     });
 
-    it('TODO: should ignore `package.artifact` if `package.individually`', () => {
-      expect(serverless.service.getFunction('fnIndividual').package.artifact).to.exist;
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
+    it('should ignore `package.artifact` if `package.individually`', () => {
+      expect(serverless.service.getFunction('fnIndividual').package.artifact).is.not.equal(
+        serverless.service.package.artifact
+      );
     });
 
     it('should support `package.individually`', () => {
