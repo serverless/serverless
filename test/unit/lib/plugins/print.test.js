@@ -3,9 +3,9 @@
 const os = require('os');
 const chai = require('chai');
 const sinon = require('sinon');
-const proxyquire = require('proxyquire');
 const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
+const PrintPlugin = require('../../../../lib/plugins/print.js');
 const yaml = require('js-yaml');
 
 chai.use(require('chai-as-promised'));
@@ -15,15 +15,8 @@ const expect = chai.expect;
 describe('Print', () => {
   let print;
   let serverless;
-  let getServerlessConfigFileStub;
 
   beforeEach(() => {
-    getServerlessConfigFileStub = sinon.stub();
-    const PrintPlugin = proxyquire('../../../../lib/plugins/print.js', {
-      '../utils/getServerlessConfigFile': {
-        getServerlessConfigFile: getServerlessConfigFileStub,
-      },
-    });
     serverless = new Serverless();
     serverless.variables.options = {
       stage: 'dev',
@@ -38,197 +31,178 @@ describe('Print', () => {
   });
 
   it('should print standard config', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(yaml.load(message)).to.eql(conf);
+      expect(yaml.load(message)).to.eql(serverless.configurationInput);
     });
   });
 
   it('should print standard config in JSON', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { format: 'json' };
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(JSON.parse(message)).to.eql(conf);
+      expect(JSON.parse(message)).to.eql(serverless.configurationInput);
     });
   });
 
   it('should apply paths to standard config in JSON', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { format: 'json', path: 'service' };
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(JSON.parse(message)).to.eql(conf.service);
+      expect(JSON.parse(message)).to.eql(serverless.configurationInput.service);
     });
   });
 
   it('should apply paths to standard config in text', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { path: 'provider.name', format: 'text' };
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(message).to.eql(conf.provider.name);
+      expect(message).to.eql(serverless.configurationInput.provider.name);
     });
   });
 
   it('should print arrays in text', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { transform: 'keys', format: 'text' };
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
       expect(message).to.eql(`service${os.EOL}provider`);
     });
   });
 
   it('should apply a keys-transform to standard config in JSON', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { format: 'json', transform: 'keys' };
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(JSON.parse(message)).to.eql(Object.keys(conf));
+      expect(JSON.parse(message)).to.eql(Object.keys(serverless.configurationInput));
     });
   });
 
   it('should not allow a non-existing path', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { path: 'provider.foobar' };
     return expect(print.print()).to.be.rejected;
   });
 
   it('should not allow an object as "text"', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { format: 'text' };
     return expect(print.print()).to.be.rejected;
   });
 
   it('should not allow an unknown transform', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { transform: 'foobar' };
     return expect(print.print()).to.be.rejected;
   });
 
   it('should not allow an unknown format', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     print.options = { format: 'foobar' };
     return expect(print.print()).to.be.rejected;
   });
 
   it('should print special service object and provider string configs', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: {
         name: 'my-service',
       },
       provider: 'aws',
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
-      expect(yaml.load(message)).to.eql(conf);
+      expect(yaml.load(message)).to.eql(serverless.configurationInput);
     });
   });
 
   it('should resolve command line variables', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
         stage: '${opt:stage}',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     serverless.processedInput = {
       commands: ['print'],
@@ -246,14 +220,13 @@ describe('Print', () => {
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
       expect(yaml.load(message)).to.eql(expected);
     });
   });
 
   it('should resolve using custom variable syntax', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       provider: {
         name: 'aws',
@@ -262,7 +235,6 @@ describe('Print', () => {
       },
     };
     serverless.service.provider.variableSyntax = '\\${{([ ~:a-zA-Z0-9._@\\\'",\\-\\/\\(\\)*?]+?)}}';
-    getServerlessConfigFileStub.resolves(conf);
 
     serverless.processedInput = {
       commands: ['print'],
@@ -281,14 +253,13 @@ describe('Print', () => {
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
       expect(yaml.load(message)).to.eql(expected);
     });
   });
 
   it('should resolve custom variables', () => {
-    const conf = {
+    serverless.configurationInput = {
       service: 'my-service',
       custom: { region: 'us-east-1' },
       provider: {
@@ -297,7 +268,6 @@ describe('Print', () => {
         region: '${self:custom.region}',
       },
     };
-    getServerlessConfigFileStub.resolves(conf);
 
     serverless.processedInput = {
       commands: ['print'],
@@ -320,7 +290,6 @@ describe('Print', () => {
     return print.print().then(() => {
       const message = print.serverless.cli.consoleLog.args.join();
 
-      expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
       expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
       expect(yaml.load(message)).to.eql(expected);
     });
@@ -332,13 +301,12 @@ describe('Print', () => {
       { value: '①⑴⒈⒜Ⓐⓐⓟ ..▉가Ὠ', description: 'unicode chars' },
     ].forEach((testCase) => {
       it(testCase.description, () => {
-        const conf = {
+        serverless.configurationInput = {
           custom: {
             me: `\${self:none, '${testCase.value}'}`,
           },
           provider: {},
         };
-        getServerlessConfigFileStub.resolves(conf);
 
         serverless.processedInput = {
           commands: ['print'],
@@ -355,7 +323,6 @@ describe('Print', () => {
         return print.print().then(() => {
           const message = print.serverless.cli.consoleLog.args.join();
 
-          expect(getServerlessConfigFileStub.calledOnce).to.equal(true);
           expect(print.serverless.cli.consoleLog.called).to.be.equal(true);
           expect(yaml.load(message)).to.eql(expected);
         });
