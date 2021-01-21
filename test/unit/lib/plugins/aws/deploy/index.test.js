@@ -246,6 +246,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     const deleteObjectsStub = sinon.stub().resolves({});
     const awsRequestStubMap = {
       ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
       S3: {
         deleteObjects: deleteObjectsStub,
         listObjectsV2: { Contents: [] },
@@ -319,6 +324,11 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
     const deleteObjectsStub = sinon.stub().resolves();
     const awsRequestStubMap = {
       ...baseAwsRequestStubMap,
+      ECR: {
+        describeRepositories: sinon.stub().throws({
+          providerError: { code: 'RepositoryNotFoundException' },
+        }),
+      },
       S3: {
         deleteObjects: deleteObjectsStub,
         listObjectsV2: listObjectsV2Stub,
@@ -428,6 +438,7 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
       });
 
     const awsRequestStubMap = {
+      ...baseAwsRequestStubMap,
       S3: {
         headObject: s3HeadObjectStub,
         listObjectsV2: listObjectsV2Stub,
@@ -454,14 +465,6 @@ describe('test/unit/lib/plugins/aws/deploy/index.test.js', () => {
         validateTemplate: {},
         updateStack: updateStackStub,
         listStackResources: {},
-      },
-      STS: {
-        getCallerIdentity: {
-          ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
-          UserId: 'XXXXXXXXXXXXXXXXXXXXX',
-          Account: '999999999999',
-          Arn: 'arn:aws:iam::999999999999:user/test',
-        },
       },
     };
 

@@ -36,11 +36,8 @@ describe('Serverless', () => {
     });
 
     it('should set an empty config object if no config object passed', () => {
-      // we're only expecting to have "serverless", "serverlessPath" and "servicePath"
-      expect(Object.keys(serverless.config).length).to.equal(3);
       expect(Object.keys(serverless.config)).to.include('serverless');
       expect(Object.keys(serverless.config)).to.include('serverlessPath');
-      expect(Object.keys(serverless.config)).to.include('servicePath');
     });
 
     it('should set an empty providers object', () => {
@@ -69,19 +66,6 @@ describe('Serverless', () => {
 
     it('should set the ConfigSchemaHandler class instance', () => {
       expect(serverless.configSchemaHandler).to.be.instanceof(ConfigSchemaHandler);
-    });
-
-    it('should set the servicePath property if it was set in the config object', () => {
-      const configObj = { servicePath: 'some/path' };
-      const serverlessWithConfig = new Serverless(configObj);
-
-      expect(serverlessWithConfig.config.servicePath).to.equal('some/path');
-    });
-
-    // note: we only test if the property is there
-    // the test if the correct servicePath is set is done in the Utils class test file
-    it('should set the servicePath property if no config object is given', () => {
-      expect(serverless.config.servicePath).to.not.equal(undefined);
     });
 
     it('should have a config object', () => {
@@ -185,6 +169,7 @@ describe('Serverless', () => {
 
       SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'), yaml.dump(serverlessYml));
 
+      serverless.configurationPath = path.join(tmpDirPath, 'serverless.yml');
       serverless.config.update({ servicePath: tmpDirPath });
       serverless.pluginManager.cliOptions = {
         stage: 'dev',

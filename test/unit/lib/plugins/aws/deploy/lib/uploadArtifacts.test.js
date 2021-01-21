@@ -157,8 +157,8 @@ describe('uploadArtifacts', () => {
       uploadStub.restore();
     });
 
-    it('should throw for null artifact paths', () => {
-      expect(() => awsDeploy.uploadZipFile(null)).to.throw(Error);
+    it('should throw for null artifact paths', async () => {
+      await expect(awsDeploy.uploadZipFile(null)).to.be.rejectedWith(Error);
     });
 
     it('should upload the .zip file to the S3 bucket', () => {
@@ -170,7 +170,6 @@ describe('uploadArtifacts', () => {
 
       return awsDeploy.uploadZipFile(artifactFilePath).then(() => {
         expect(uploadStub).to.have.been.calledOnce;
-        expect(readFileSyncStub).to.have.been.calledOnce;
         expect(uploadStub).to.have.been.calledWithExactly('S3', 'upload', {
           Bucket: awsDeploy.bucketName,
           Key: `${awsDeploy.serverless.service.package.artifactDirectoryName}/artifact.zip`,
