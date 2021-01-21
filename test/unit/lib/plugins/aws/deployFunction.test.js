@@ -396,6 +396,49 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     });
   });
 
+  it('should skip updating function configuration if image config did not change', async () => {
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '-f', 'foo'],
+      awsRequestStubMap: {
+        ...awsRequestStubMap,
+        Lambda: {
+          ...awsRequestStubMap.Lambda,
+          getFunction: {
+            Configuration: {
+              LastModified: '2020-05-20T15:34:16.494+0000',
+              CodeSha256: imageSha,
+              ImageConfigResponse: {
+                ImageConfig: {
+                  Command: ['anotherexecutable'],
+                  EntryPoint: ['executable', 'param1'],
+                  WorkingDirectory: './workdir',
+                },
+              },
+            },
+          },
+        },
+      },
+      configExt: {
+        functions: {
+          foo: {
+            handler: null,
+            image: {
+              uri: imageWithSha,
+              workingDirectory: './workdir',
+              entryPoint: ['executable', 'param1'],
+              command: ['anotherexecutable'],
+            },
+          },
+        },
+      },
+    });
+    expect(updateFunctionConfigurationStub).not.to.be.called;
+    expect(stdoutData).to.include(
+      'Configuration did not change. Skipping function configuration update.'
+    );
+  });
+
   it('should skip deployment if image sha did not change', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'function',
