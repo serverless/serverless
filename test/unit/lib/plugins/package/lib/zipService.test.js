@@ -282,7 +282,7 @@ describe('zipService', () => {
           path.join(servicePath, 'node_modules', 'module-2'),
           path.join(servicePath, '1st', '2nd', 'node_modules', 'module-1'),
           path.join(servicePath, '1st', '2nd', 'node_modules', 'module-2'),
-        ].join('\n');
+        ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths);
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
         readFileAsyncStub.onCall(2).resolves('{}');
@@ -359,7 +359,7 @@ describe('zipService', () => {
         const depPaths = [
           path.join(servicePath, 'node_modules', 'module-1'),
           path.join(servicePath, 'node_modules', 'module-2'),
-        ].join('\n');
+        ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths);
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
         readFileAsyncStub.onCall(2).resolves('{}');
@@ -424,7 +424,7 @@ describe('zipService', () => {
           path.join(servicePath, '1st', 'node_modules', 'module-2'),
           path.join(servicePath, '1st', '2nd', 'node_modules', 'module-1'),
           path.join(servicePath, '1st', '2nd', 'node_modules', 'module-2'),
-        ].join('\n');
+        ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths);
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
         readFileAsyncStub.onCall(2).resolves('{}');
@@ -494,7 +494,7 @@ describe('zipService', () => {
         const devDepPaths = [
           path.join(servicePath, 'node_modules', 'module-1'),
           path.join(servicePath, 'node_modules', 'module-2'),
-        ].join('\n');
+        ].join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(devDepPaths);
 
         const prodDepPaths = [path.join(servicePath, 'node_modules', 'module-2')];
@@ -551,10 +551,10 @@ describe('zipService', () => {
 
         const mapper = (depPath) => path.join(`${servicePath}`, depPath);
 
-        const devDepPaths = devPaths.map(mapper).join('\n');
+        const devDepPaths = devPaths.map(mapper).join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(devDepPaths);
 
-        const prodDepPaths = prodPaths.map(mapper).join('\n');
+        const prodDepPaths = prodPaths.map(mapper).join(os.EOL);
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves(prodDepPaths);
 
         readFileAsyncStub.onCall(2).resolves('{"name": "bro-module", "bin": "main.js"}');
@@ -619,7 +619,7 @@ describe('zipService', () => {
           '1st/2nd/node_modules/module-2',
         ];
         const depPaths = deps.map((depPath) => path.join(`${servicePath}`, depPath));
-        readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths.join('\n'));
+        readFileAsyncStub.withArgs(sinon.match(/dev$/)).resolves(depPaths.join(os.EOL));
         readFileAsyncStub.withArgs(sinon.match(/prod$/)).resolves([]);
 
         const module1PackageJson = JSON.stringify({
