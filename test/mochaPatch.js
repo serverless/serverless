@@ -3,49 +3,45 @@
 const path = require('path');
 const fs = require('fs');
 
-const nodeVersion = Number(process.version.split('.')[0].slice(1));
-
-if (nodeVersion === 10) {
-  // Temporary patch to help tackle peekaboo error, by revelaing fuller stack trace for "fs" errors
-  // https://github.com/serverless/serverless/runs/1740873363
-  const patchPromised = (name) => {
-    const original = fs.promises[name];
-    fs.promises[name] = Object.defineProperties(
-      function (...args) {
-        const stack = new Error().stack;
-        return original.apply(this, args).catch((error) => {
-          error.message += ` (initiated at: ${stack}\n)`;
-          throw error;
-        });
-      },
-      {
-        length: { value: original.length },
-        name: { value: original.name },
-      }
-    );
-  };
-  const patchCallback = (name) => {
-    const original = fs[name];
-    fs[name] = Object.defineProperties(
-      function (...args) {
-        const stack = new Error().stack;
-        const callback = args[args.length - 1];
-        original.call(this, ...args.slice(0, -1), (error, ...result) => {
-          if (error) error.message += ` (initiated at: ${stack}\n)`;
-          return callback.call(this, error, ...result);
-        });
-      },
-      {
-        length: { value: original.length },
-        name: { value: original.name },
-      }
-    );
-  };
-  patchPromised('readFile');
-  patchPromised('open');
-  patchCallback('readFile');
-  patchCallback('open');
-}
+// Temporary patch to help tackle peekaboo error, by revelaing fuller stack trace for "fs" errors
+// https://github.com/serverless/serverless/runs/1740873363
+const patchPromised = (name) => {
+  const original = fs.promises[name];
+  fs.promises[name] = Object.defineProperties(
+    function (...args) {
+      const stack = new Error().stack;
+      return original.apply(this, args).catch((error) => {
+        error.message += ` (initiated at: ${stack}\n)`;
+        throw error;
+      });
+    },
+    {
+      length: { value: original.length },
+      name: { value: original.name },
+    }
+  );
+};
+const patchCallback = (name) => {
+  const original = fs[name];
+  fs[name] = Object.defineProperties(
+    function (...args) {
+      const stack = new Error().stack;
+      const callback = args[args.length - 1];
+      original.call(this, ...args.slice(0, -1), (error, ...result) => {
+        if (error) error.message += ` (initiated at: ${stack}\n)`;
+        return callback.call(this, error, ...result);
+      });
+    },
+    {
+      length: { value: original.length },
+      name: { value: original.name },
+    }
+  );
+};
+patchPromised('readFile');
+patchPromised('open');
+patchCallback('readFile');
+patchCallback('open');
 
 const disableServerlessStatsRequests = require('@serverless/test/disable-serverless-stats-requests');
 const ensureArtifact = require('../lib/utils/ensureArtifact');
