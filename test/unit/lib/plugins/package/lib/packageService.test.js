@@ -203,8 +203,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
   });
 
   describe('pre-prepared artifact', () => {
+    let serverless;
     before(async () => {
-      await runServerless({
+      const { serverless: serverlessInstance } = await runServerless({
         fixture: 'packaging',
         cliArgs: ['package'],
         awsRequestStubMap: mockedDescribeStacksResponse,
@@ -226,23 +227,22 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         },
       });
+      serverless = serverlessInstance;
     });
-    it.skip('TODO: should support `package.artifact`', () => {
-      // Confirm that file pointed at `package.artifact` is configured as service level artifact
-      //
-      // Replace
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L227-L235
+    it('should support `package.artifact`', () => {
+      expect(serverless.service.package.artifact).is.equal('artifact.zip');
     });
 
-    it.skip('TODO: should ignore `package.artifact` if `functions[].package.individually', () => {
-      // Confirm that fnIndividual was packaged independently
-      //
-      // Replace
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L262-L287
+    it('should ignore `package.artifact` if `functions[].package.individually', () => {
+      expect(serverless.service.getFunction('fnIndividual').package.artifact).is.not.equal(
+        serverless.service.package.artifact
+      );
     });
 
-    it.skip('TODO: should support `functions[].package.artifact`', () => {
-      // Confirm that file pointed at `functions.fnArtifact.package.artifact` is configured as function level artifact
+    it('should support `functions[].package.artifact`', () => {
+      expect(serverless.service.getFunction('fnArtifact').package.artifact).is.equal(
+        'artifact-function.zip'
+      );
     });
   });
 
