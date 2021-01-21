@@ -1345,13 +1345,12 @@ describe('PluginManager', () => {
 
     beforeEach(() => {
       serverlessInstance = new Serverless();
+      serverlessInstance.configurationInput = null;
       serverlessInstance.config.servicePath = 'my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);
     });
 
     it('should continue loading if the configDependent property is absent', () => {
-      pluginManagerInstance.serverlessConfigFile = null;
-
       pluginManagerInstance.commands = {
         foo: {},
       };
@@ -1362,8 +1361,6 @@ describe('PluginManager', () => {
     });
 
     it('should load if the configDependent property is false and config is null', () => {
-      pluginManagerInstance.serverlessConfigFile = null;
-
       pluginManagerInstance.commands = {
         foo: {
           configDependent: false,
@@ -1376,8 +1373,6 @@ describe('PluginManager', () => {
     });
 
     it('should throw an error if configDependent is true and no config is found', () => {
-      pluginManagerInstance.serverlessConfigFile = null;
-
       pluginManagerInstance.commands = {
         foo: {
           configDependent: true,
@@ -1392,8 +1387,6 @@ describe('PluginManager', () => {
     });
 
     it('should throw an error if configDependent is true and config is an empty string', () => {
-      pluginManagerInstance.serverlessConfigFile = '';
-
       pluginManagerInstance.commands = {
         foo: {
           configDependent: true,
@@ -1408,7 +1401,7 @@ describe('PluginManager', () => {
     });
 
     it('should load if the configDependent property is true and config exists', () => {
-      pluginManagerInstance.serverlessConfigFile = {
+      pluginManagerInstance.serverless.configurationInput = {
         servicePath: 'foo',
       };
 
