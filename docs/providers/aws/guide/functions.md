@@ -236,7 +236,36 @@ functions:
     image: baseimage
 ```
 
-During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+It is also possible to provide additional image configuration via `workingDirectory`, `entryPoint` and `command` properties of to `functions[].image`. The `workingDirectory` accepts path in form of string, where both `entryPoint` and `command` needs to be defined as a list of strings, following "exec form" format. In order to provide additional image config properties, `functions[].image` has to be defined as an object, and needs to define either `uri` pointing to an existing AWS ECR image or `name` property, which references image already defined in `provider.ecr.images`.
+
+Example configuration:
+
+```yml
+service: service-name
+provider:
+  name: aws
+  ecr:
+    images:
+      baseimage:
+        path: ./path/to/context
+
+functions:
+  hello:
+    image:
+      uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
+      workingDirectory: /workdir
+      command:
+        - executable
+        - flag
+  world:
+    image:
+      name: baseimage
+      entryPoint:
+        - executable
+        - flag
+```
+
+During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
 ## VPC Configuration
 
