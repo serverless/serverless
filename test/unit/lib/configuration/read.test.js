@@ -167,4 +167,12 @@ describe('test/unit/lib/configuration/read.test.js', () => {
       'INVALID_CONFIGURATION_EXPORT'
     );
   });
+  it('should reject non JSON like structures', async () => {
+    configurationPath = 'serverless-custom.js';
+    await fs.writeFile(configurationPath, 'exports.foo = exports');
+    await expect(readConfiguration(configurationPath)).to.eventually.be.rejected.and.have.property(
+      'code',
+      'INVALID_CONFIGURATION_STRUCTURE'
+    );
+  });
 });
