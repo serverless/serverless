@@ -33,10 +33,12 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     let fnIndividualZippedFiles;
     let fnLayerFiles;
     let fnFileProperties;
+    let serverless;
 
     before(async () => {
       const {
         fixtureData: { servicePath },
+        serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
         cliArgs: ['package'],
@@ -58,6 +60,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         },
       });
+      serverless = serverlessInstance;
 
       fnIndividualZippedFiles = await listZipFiles(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
@@ -120,7 +123,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
 
     it('should support `functions[].package.individually`', () => {
-      expect(fnIndividualZippedFiles).to.include('artifact.zip');
+      expect(serverless.service.getFunction('fnIndividual').package.artifact).to.include(
+        'fnIndividual.zip'
+      );
     });
 
     it('should support `functions[].package.include`', () => {
