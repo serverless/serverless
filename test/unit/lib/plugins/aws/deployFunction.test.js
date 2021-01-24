@@ -7,8 +7,8 @@ const fs = require('fs');
 const proxyquire = require('proxyquire');
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../lib/Serverless');
-const { getTmpDirPath } = require('../../../../utils/fs');
 const runServerless = require('../../../../utils/run-serverless');
+const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -37,6 +37,7 @@ describe('AwsDeployFunction', () => {
         },
       },
     };
+    serverless.service.serviceObject = {};
     serverless.service.functions = {
       first: {
         handler: true,
@@ -803,5 +804,111 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
     expect(stdoutData).to.include(
       'Configuration did not change. Skipping function configuration update.'
     );
+  });
+
+  it('configuration uses the "kmsKeyArn" instead of functionObj.awsKmsKeyArn', async () => {
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      lastLifecycleHookName: 'deploy:function:deploy',
+      awsRequestStubMap,
+      configExt: {
+        functions: {
+          foo: {
+            handler: 'index.handler',
+            name: 'foobar',
+            awsKmsKeyArn: 'arn:aws:kms:us-east-1:oldKey',
+          },
+        },
+        provider: {
+          kmsKeyArn: 'arn:aws:kms:us-east-1:newKey',
+        },
+      },
+    });
+
+    sinon.assert.calledWith(updateFunctionConfigurationStub, {
+      Handler: 'index.handler',
+      FunctionName: 'foobar',
+      KMSKeyArn: 'arn:aws:kms:us-east-1:newKey',
+    });
+  });
+
+  it('configuration uses the "kmsKeyArn" instead of serviceObj.awsKmsKeyArn', async () => {
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      lastLifecycleHookName: 'deploy:function:deploy',
+      awsRequestStubMap,
+      configExt: {
+        functions: {
+          foo: {
+            handler: 'index.handler',
+            name: 'foobar',
+            kmsKeyArn: 'arn:aws:kms:us-east-1:newKey',
+          },
+        },
+        service: {
+          name: 'service',
+          awsKmsKeyArn: 'arn:aws:kms:us-east-1:oldKey',
+        },
+      },
+    });
+
+    sinon.assert.calledWith(updateFunctionConfigurationStub, {
+      Handler: 'index.handler',
+      FunctionName: 'foobar',
+      KMSKeyArn: 'arn:aws:kms:us-east-1:newKey',
+    });
+  });
+
+  it('configuration uses serviceObj.awsKmsKeyArn if no kmsKeyArn provided', async () => {
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      lastLifecycleHookName: 'deploy:function:deploy',
+      awsRequestStubMap,
+      configExt: {
+        functions: {
+          foo: {
+            handler: 'index.handler',
+            name: 'foobar',
+          },
+        },
+        service: {
+          name: 'service',
+          awsKmsKeyArn: 'arn:aws:kms:us-east-1:oldKey',
+        },
+      },
+    });
+
+    sinon.assert.calledWith(updateFunctionConfigurationStub, {
+      Handler: 'index.handler',
+      FunctionName: 'foobar',
+      KMSKeyArn: 'arn:aws:kms:us-east-1:oldKey',
+    });
+  });
+
+  it('configuration uses functionObj.awsKmsKeyArn and if kmsKeyArn not provided', async () => {
+    await runServerless({
+      fixture: 'function',
+      cliArgs: ['deploy', 'function', '--function', 'foo'],
+      lastLifecycleHookName: 'deploy:function:deploy',
+      awsRequestStubMap,
+      configExt: {
+        functions: {
+          foo: {
+            handler: 'index.handler',
+            name: 'foobar',
+            awsKmsKeyArn: 'arn:aws:kms:us-east-1:oldKey',
+          },
+        },
+      },
+    });
+
+    sinon.assert.calledWith(updateFunctionConfigurationStub, {
+      Handler: 'index.handler',
+      FunctionName: 'foobar',
+      KMSKeyArn: 'arn:aws:kms:us-east-1:oldKey',
+    });
   });
 });
