@@ -23,7 +23,12 @@ serverless deploy function -f functionName
 **Note:** This command **now** deploys both function configuration and code by
 default. Just as before, this puts your function in an inconsistent state that
 is out of sync with your CloudFormation stack. Use this for faster development
-cycles and not production deployments
+cycles and not production deployments. Some parts of serverless configuration
+that represent separate resources on Cloud Formation will NOT be updated. It
+will update functions that are triggered through alias, but not the alias itself
+ie. when you deploy a function using provisionedConcurrency this way, it will
+not update one associated through the alias in apiGateway. The scope of
+configuration updates is limited to properties that can be set on lambda.
 
 ## Options
 
