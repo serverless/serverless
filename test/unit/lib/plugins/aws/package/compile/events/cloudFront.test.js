@@ -2078,7 +2078,7 @@ describe('lib/plugins/aws/package/compile/events/cloudFront/index.new.test.js', 
       const cachePolicyConfigProperties =
         cfResources[cachePolicyLogicalId].Properties.CachePolicyConfig;
       expect(cachePolicyConfigProperties).to.deep.eq({
-        Name: cachePolicyName,
+        Name: `${serviceName}-${stage}-${cachePolicyName}`,
         ...cachePolicyConfig,
       });
     });
