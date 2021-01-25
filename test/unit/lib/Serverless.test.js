@@ -4,7 +4,6 @@ const expect = require('chai').expect;
 const Serverless = require('../../../lib/Serverless');
 const semverRegex = require('semver-regex');
 const path = require('path');
-const yaml = require('js-yaml');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
 
@@ -15,7 +14,6 @@ const Service = require('../../../lib/classes/Service');
 const ConfigSchemaHandler = require('../../../lib/classes/ConfigSchemaHandler');
 const CLI = require('../../../lib/classes/CLI');
 const { ServerlessError } = require('../../../lib/classes/Error');
-const { getTmpDirPath } = require('../../utils/fs');
 const runServerless = require('../../utils/run-serverless');
 const fixtures = require('../../fixtures');
 const fs = require('fs');
@@ -106,21 +104,6 @@ describe('Serverless', () => {
   });
 
   describe('#init()', () => {
-    let loadAllPluginsStub;
-    let updateAutocompleteCacheFileStub;
-
-    beforeEach(() => {
-      loadAllPluginsStub = sinon.stub(serverless.pluginManager, 'loadAllPlugins').returns();
-      updateAutocompleteCacheFileStub = sinon
-        .stub(serverless.pluginManager, 'updateAutocompleteCacheFile')
-        .resolves();
-    });
-
-    afterEach(() => {
-      serverless.pluginManager.loadAllPlugins.restore();
-      serverless.pluginManager.updateAutocompleteCacheFile.restore();
-    });
-
     it('should set an instanceId', () =>
       serverless.init().then(() => {
         expect(serverless.instanceId).to.match(/\d/);
@@ -147,39 +130,6 @@ describe('Serverless', () => {
       serverless.init().then(() => {
         expect(serverless.processedInput).to.not.deep.equal({});
       }));
-
-    it('should resolve after loading the service', () => {
-      const SUtils = new Utils();
-      const tmpDirPath = getTmpDirPath();
-      const serverlessYml = {
-        service: 'new-service',
-        provider: 'aws',
-        custom: {},
-        plugins: ['testPlugin'],
-        functions: {
-          functionA: {},
-        },
-        resources: {},
-        package: {
-          exclude: ['exclude-me'],
-          include: ['include-me'],
-          artifact: 'some/path/foo.zip',
-        },
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'), yaml.dump(serverlessYml));
-
-      serverless.configurationPath = path.join(tmpDirPath, 'serverless.yml');
-      serverless.config.update({ servicePath: tmpDirPath });
-      serverless.pluginManager.cliOptions = {
-        stage: 'dev',
-      };
-
-      return serverless.init().then(() => {
-        expect(loadAllPluginsStub.calledOnce).to.equal(true);
-        expect(updateAutocompleteCacheFileStub.calledOnce).to.equal(true);
-      });
-    });
   });
 
   describe('#run()', () => {

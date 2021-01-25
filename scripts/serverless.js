@@ -37,8 +37,28 @@ const processSpanPromise = (async () => {
     const uuid = require('uuid');
     const Serverless = require('../lib/Serverless');
     const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
+    const isHelpRequest = require('../lib/cli/is-help-request');
+    const readConfiguration = require('../lib/configuration/read');
 
-    serverless = new Serverless({ configurationPath: await resolveConfigurationPath() });
+    const configurationPath = await resolveConfigurationPath();
+    const configuration = configurationPath
+      ? await (async () => {
+          try {
+            return await readConfiguration(configurationPath);
+          } catch (error) {
+            // Configuration syntax error should not prevent help from being displayed
+            // (if possible configuration should be read for help request as registered
+            // plugins may introduce new commands to be listed in help output)
+            if (isHelpRequest()) return null;
+            throw error;
+          }
+        })()
+      : null;
+
+    serverless = new Serverless({
+      configuration,
+      configurationPath: configuration && configurationPath,
+    });
 
     try {
       serverless.onExitPromise = processSpanPromise;

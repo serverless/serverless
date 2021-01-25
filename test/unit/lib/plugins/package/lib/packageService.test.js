@@ -30,14 +30,18 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
   };
 
   describe('service wide', () => {
-    let fnIndividualZippedFiles;
-    let fnLayerFiles;
-    let fnFileProperties;
     let serverless;
+    let serviceZippedFiles;
+    let fnIndividualZippedFiles;
+    let fnFileProperties;
+    let fnLayerFiles;
 
     before(async () => {
       const {
-        fixtureData: { servicePath },
+        fixtureData: {
+          servicePath,
+          serviceConfig: { service: serviceName },
+        },
         serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
@@ -50,18 +54,16 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
           functions: {
             fnIndividual: {
-              handler: 'index.handler',
-              package: {
-                individually: true,
-                include: 'dir1/subdir4/**',
-                exclude: 'dir3/**',
-              },
+              package: { include: 'dir1/subdir4/**', exclude: 'dir3/**' },
             },
           },
         },
       });
       serverless = serverlessInstance;
 
+      serviceZippedFiles = await listZipFiles(
+        path.join(servicePath, '.serverless', `${serviceName}.zip`)
+      );
       fnIndividualZippedFiles = await listZipFiles(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
       );
@@ -72,60 +74,40 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
 
     it('should exclude defaults', () => {
-      expect(fnIndividualZippedFiles).to.not.include('.gitignore');
+      expect(serviceZippedFiles).to.not.include('.gitignore');
     });
 
     it('should exclude service config', () => {
-      expect(fnIndividualZippedFiles).to.not.include('serverless.yml');
-    });
-
-    describe('with useDotenv', () => {
-      it('should exclude .env files', async () => {
-        const {
-          fixtureData: { servicePath },
-        } = await runServerless({
-          fixture: 'packaging',
-          cliArgs: ['package'],
-          awsRequestStubMap: mockedDescribeStacksResponse,
-          configExt: {
-            useDotenv: true,
-            functions: {
-              fnIndividual: {
-                handler: 'index.handler',
-                package: { individually: true },
-              },
-            },
-          },
-        });
-
-        const zippedFiles = await listZipFiles(
-          path.join(servicePath, '.serverless', 'fnIndividual.zip')
-        );
-
-        expect(zippedFiles).to.not.include('.env');
-        expect(zippedFiles).to.not.include('.env.stage');
-      });
+      expect(serviceZippedFiles).to.not.include('serverless.yml');
     });
 
     it('should exclude default plugins localPath', () => {
-      expect(fnIndividualZippedFiles).to.not.include('.serverless-plugins/index.js');
+      expect(serviceZippedFiles).to.not.include('.serverless-plugins/index.js');
     });
 
     it('should support `package.exclude`', () => {
-      expect(fnIndividualZippedFiles).to.not.include('dir1/subdir1/index.js');
-      expect(fnIndividualZippedFiles).to.include('dir1/subdir3/index.js');
+      expect(serviceZippedFiles, fnIndividualZippedFiles).to.not.include('dir1/subdir1/index.js');
+      expect(serviceZippedFiles, fnIndividualZippedFiles).to.include('dir1/subdir3/index.js');
     });
 
     it('should support `package.include`', () => {
-      expect(fnIndividualZippedFiles).to.include('dir1/subdir2/index.js');
-      expect(fnIndividualZippedFiles).to.not.include('dir1/subdir2/subsubdir1/index.js');
-      expect(fnIndividualZippedFiles).to.include('dir1/subdir2/subsubdir2/index.js');
+      expect(serviceZippedFiles, fnIndividualZippedFiles).to.include('dir1/subdir2/index.js');
+      expect(serviceZippedFiles, fnIndividualZippedFiles).to.not.include(
+        'dir1/subdir2/subsubdir1/index.js'
+      );
+      expect(serviceZippedFiles, fnIndividualZippedFiles).to.include(
+        'dir1/subdir2/subsubdir2/index.js'
+      );
     });
 
     it('should support `functions[].package.individually`', () => {
       expect(serverless.service.getFunction('fnIndividual').package.artifact).to.include(
         'fnIndividual.zip'
       );
+    });
+
+    it('should support `functions[].package.exclude`', () => {
+      expect(fnIndividualZippedFiles).to.not.include('dir3/index.js');
     });
 
     it('should support `functions[].package.include`', () => {
@@ -145,14 +127,37 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
   });
 
+  describe('with useDotenv', () => {
+    it('should exclude .env files', async () => {
+      const {
+        fixtureData: {
+          servicePath,
+          serviceConfig: { service: serviceName },
+        },
+      } = await runServerless({
+        fixture: 'packaging',
+        cliArgs: ['package'],
+        awsRequestStubMap: mockedDescribeStacksResponse,
+        configExt: {
+          useDotenv: true,
+        },
+      });
+
+      const zippedFiles = await listZipFiles(
+        path.join(servicePath, '.serverless', `${serviceName}.zip`)
+      );
+
+      expect(zippedFiles).to.not.include('.env');
+      expect(zippedFiles).to.not.include('.env.stage');
+    });
+  });
+
   describe('individually', () => {
     let fnIndividualZippedFiles;
-    let serverless;
 
     before(async () => {
       const {
         fixtureData: { servicePath },
-        serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
         cliArgs: ['package'],
@@ -166,8 +171,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
           functions: {
             fnIndividual: {
-              handler: 'index.handler',
-              package: { individually: true, include: 'dir1/subdir3/**', exclude: 'dir1/subdir1' },
+              package: { include: 'dir1/subdir4/**', exclude: 'dir3/**' },
             },
           },
           plugins: {
@@ -176,7 +180,6 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         },
       });
-      serverless = serverlessInstance;
 
       fnIndividualZippedFiles = await listZipFiles(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
@@ -187,23 +190,30 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.not.include('.custom-plugins/index.js');
     });
 
-    it('should ignore `package.artifact` if `package.individually`', () => {
-      expect(serverless.service.getFunction('fnIndividual').package.artifact).is.not.equal(
-        serverless.service.package.artifact
-      );
-    });
-
     it('should support `package.individually`', () => {
+      // Confirm there's a "functions.fnService.package.artifact" and "functions.fnIndividual.package.artifact"
       expect(fnIndividualZippedFiles).to.include('dir1/subdir3/index.js');
+
+      //
+      // Replaces
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L181-L199
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
     });
 
     it('should support `package.exclude`', () => {
       expect(fnIndividualZippedFiles).to.not.include('dir1/subdir1/index.js');
+      expect(fnIndividualZippedFiles).to.not.include('dir1/subdir1/index.js');
+      expect(fnIndividualZippedFiles).to.include('dir1/subdir3/index.js');
     });
 
     it('should support `package.include`', () => {
-      expect(fnIndividualZippedFiles).to.include('dir1/subdir2/index.js');
-      expect(fnIndividualZippedFiles).to.not.include('dir1/subdir2/subsubdir1/index.js');
+      // in function (fnService) dedicated, confirm:
+      // - "dir1/subdir2/index.js" is packaged
+      // - "dir1/subdir2/subsubdir1/index.js" is not packaged
+      // - "dir1/subdir2/subsubdir2/index.js" is packaged
+      // - "dir1/subdir4/index.js" is packaged
+      // Replaces
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L52-L60
     });
   });
 

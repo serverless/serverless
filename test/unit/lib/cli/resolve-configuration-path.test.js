@@ -10,6 +10,7 @@ const fs = require('fs').promises;
 const fse = require('fs-extra');
 const overrideArgv = require('process-utils/override-argv');
 const resolveServerlessConfigPath = require('../../../../lib/cli/resolve-configuration-path');
+const { triggeredDeprecations } = require('../../../../lib/utils/logDeprecation');
 
 describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
   let configurationPath;
@@ -65,6 +66,8 @@ describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
         fse.ensureDir(path.resolve('custom-dir.yml')),
       ])
     );
+    beforeEach(() => triggeredDeprecations.clear());
+    after(() => triggeredDeprecations.clear());
 
     it('should accept absolute path, pointing configuration in current working directory', async () => {
       await overrideArgv(
@@ -75,16 +78,15 @@ describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
       );
     });
 
-    it('should reject nested path', async () => {
+    it('should temporarily support nested path', async () => {
       await overrideArgv(
         {
           args: ['serverless', '--config', 'nested/custom.yml'],
         },
-        () =>
-          expect(resolveServerlessConfigPath()).to.eventually.be.rejected.and.have.property(
-            'code',
-            'INVALID_SERVICE_CONFIG_PATH'
-          )
+        async () => {
+          expect(await resolveServerlessConfigPath()).to.equal(path.resolve('nested/custom.yml'));
+          expect(triggeredDeprecations.has('NESTED_CUSTOM_CONFIGURATION_PATH')).to.be.true;
+        }
       );
     });
     it('should reject unsupported extension', async () => {

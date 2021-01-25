@@ -603,14 +603,6 @@ describe('CLI', () => {
 });
 
 describe('CLI [new tests]', () => {
-  it('Should show help when requested and in context of errorneous service configuration', () =>
-    runServerless({
-      fixture: 'configSyntaxError',
-      cliArgs: ['--help'],
-    }).then(({ stdoutData }) => {
-      expect(stdoutData).to.include('Documentation: http://slss.io/docs');
-    }));
-
   it('Should show help when requested and in context of invalid service configuration', () =>
     runServerless({
       fixture: 'configInvalid',
