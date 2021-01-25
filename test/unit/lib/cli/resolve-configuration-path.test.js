@@ -133,5 +133,13 @@ describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
         async () => expect(await resolveServerlessConfigPath()).to.equal(path.resolve('custom.yml'))
       );
     });
+    it('should recognize "param=value" format', async () => {
+      await overrideArgv(
+        {
+          args: ['serverless', '--config=custom.yml'],
+        },
+        async () => expect(await resolveServerlessConfigPath()).to.equal(path.resolve('custom.yml'))
+      );
+    });
   });
 });
