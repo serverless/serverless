@@ -64,10 +64,13 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       serviceZippedFiles = await listZipFiles(
         path.join(servicePath, '.serverless', `${serviceName}.zip`)
       );
+
       fnIndividualZippedFiles = await listZipFiles(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
       );
+
       fnLayerFiles = await listZipFiles(path.join(servicePath, '.serverless', 'layer.zip'));
+
       fnFileProperties = await listFileProperties(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
       );
@@ -100,10 +103,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       );
     });
 
-    it.skip('TODO: should support `functions[].package.individually`', () => {
-      // Confirm there's "functions.fnIndividual.package.artifact"
-      // Replace
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L201-L225
+    it('should support `functions[].package.individually`', () => {
       expect(serverless.service.getFunction('fnIndividual').package.artifact).to.include(
         'fnIndividual.zip'
       );
@@ -177,6 +177,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           functions: {
             fnIndividual: {
               package: { include: 'dir1/subdir4/**', exclude: 'dir3/**' },
+            },
+            fnService: {
+              name: 'fnService',
             },
           },
           plugins: {
