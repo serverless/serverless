@@ -222,6 +222,8 @@ functions:
             name: myCachePolicy
 ```
 
+This configuration will create a Cache Policy named `servicename-stage-myCachePolicy`.
+
 You can reference [AWS Managed Policies](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policies-list) using an `id` property instead of `name`
 
 ```yml
