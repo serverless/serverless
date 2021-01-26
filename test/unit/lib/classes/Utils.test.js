@@ -3,10 +3,8 @@
 const path = require('path');
 const os = require('os');
 const chai = require('chai');
-const sinon = require('sinon');
 const fse = require('fs-extra');
 const Serverless = require('../../../../lib/Serverless');
-const configUtils = require('@serverless/utils/config');
 const Utils = require('../../../../lib/classes/Utils');
 const { expect } = require('chai');
 const { getTmpFilePath, getTmpDirPath } = require('../../../utils/fs');
@@ -252,90 +250,6 @@ describe('Utils', () => {
     it('should generate a shortId for the given length', () => {
       const id = serverless.utils.generateShortId(6);
       expect(id.length).to.be.equal(6);
-    });
-  });
-
-  describe('#getLocalAccessKey()', () => {
-    let getConfigStub;
-    let getGlobalConfigStub;
-
-    beforeEach(() => {
-      getConfigStub = sinon.stub(configUtils, 'getConfig');
-      getGlobalConfigStub = sinon.stub(configUtils, 'getGlobalConfig');
-    });
-
-    afterEach(() => {
-      configUtils.getConfig.restore();
-      configUtils.getGlobalConfig.restore();
-    });
-
-    it('should return false if a user could not be found globally', () => {
-      getConfigStub.returns({
-        userId: 123456,
-      });
-      getGlobalConfigStub.returns({});
-
-      const res = utils.getLocalAccessKey();
-
-      expect(res).to.equal(false);
-    });
-
-    it('should return false if a user could be found globally but no locally', () => {
-      getConfigStub.returns({});
-      getGlobalConfigStub.returns({
-        users: {
-          123456: {
-            dashboard: {
-              accessKey: 'd45hb04rd4cc3ssk3y',
-            },
-          },
-        },
-      });
-
-      const res = utils.getLocalAccessKey();
-      expect(res).to.equal(false);
-    });
-
-    it('should return false if a user could be found but the dashboard config is missing', () => {
-      getConfigStub.returns({ userId: 123456 });
-      getGlobalConfigStub.returns({
-        users: {
-          123456: {},
-        },
-      });
-
-      const res = utils.getLocalAccessKey();
-      expect(res).to.equal(false);
-    });
-
-    it('should return false if a user could be found but the accessKey config is missing', () => {
-      getConfigStub.returns({ userId: 123456 });
-      getGlobalConfigStub.returns({
-        users: {
-          123456: {
-            dashboard: {},
-          },
-        },
-      });
-
-      const res = utils.getLocalAccessKey();
-      expect(res).to.equal(false);
-    });
-
-    it('should return the users dasboard access key if config can be found', () => {
-      getConfigStub.returns({ userId: 123456 });
-      getGlobalConfigStub.returns({
-        users: {
-          123456: {
-            dashboard: {
-              accessKey: 'd45hb04rd4cc3ssk3y',
-            },
-          },
-        },
-      });
-
-      const res = utils.getLocalAccessKey();
-      expect(res).to.equal('d45hb04rd4cc3ssk3y');
     });
   });
 
