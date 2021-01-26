@@ -100,7 +100,10 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       );
     });
 
-    it('should support `functions[].package.individually`', () => {
+    it.skip('TODO: should support `functions[].package.individually`', () => {
+      // Confirm there's "functions.fnIndividual.package.artifact"
+      // Replace
+      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L201-L225
       expect(serverless.service.getFunction('fnIndividual').package.artifact).to.include(
         'fnIndividual.zip'
       );
@@ -154,10 +157,12 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
 
   describe('individually', () => {
     let fnIndividualZippedFiles;
+    let serverless;
 
     before(async () => {
       const {
         fixtureData: { servicePath },
+        serverless: serverlessInstance,
       } = await runServerless({
         fixture: 'packaging',
         cliArgs: ['package'],
@@ -180,6 +185,7 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
           },
         },
       });
+      serverless = serverlessInstance;
 
       fnIndividualZippedFiles = await listZipFiles(
         path.join(servicePath, '.serverless', 'fnIndividual.zip')
@@ -190,9 +196,11 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.not.include('.custom-plugins/index.js');
     });
 
-    it('should support `package.individually`', () => {
+    it('TODO: should support `package.individually`', () => {
       // Confirm there's a "functions.fnService.package.artifact" and "functions.fnIndividual.package.artifact"
-      expect(fnIndividualZippedFiles).to.include('dir1/subdir3/index.js');
+      expect(serverless.service.getFunction('fnIndividual').package.artifact).to.include(
+        'fnIndividual.zip'
+      );
 
       //
       // Replaces
@@ -207,13 +215,10 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
     });
 
     it('should support `package.include`', () => {
-      // in function (fnService) dedicated, confirm:
-      // - "dir1/subdir2/index.js" is packaged
-      // - "dir1/subdir2/subsubdir1/index.js" is not packaged
-      // - "dir1/subdir2/subsubdir2/index.js" is packaged
-      // - "dir1/subdir4/index.js" is packaged
-      // Replaces
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L52-L60
+      expect(fnIndividualZippedFiles).to.include('dir1/subdir2/index.js');
+      expect(fnIndividualZippedFiles).to.not.include('dir1/subdir2/subsubdir1/index.js');
+      expect(fnIndividualZippedFiles).to.include('dir1/subdir2/subsubdir2/index.js');
+      expect(fnIndividualZippedFiles).to.include('dir1/subdir4/index.js');
     });
   });
 
