@@ -1464,8 +1464,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               securityGroupIds: ['sg-0a0a0a0a'],
             },
             tags: {
-              providerTagA: 'providerTagAValue',
-              providerTagB: 'providerTagBValue',
+              'providerTagA': 'providerTagAValue',
+              'providerTagB': 'providerTagBValue',
+              'provider:tagC': 'providerTagCValue',
+              'provider:tag-D': 'providerTagDValue',
             },
             tracing: {
               lambda: 'Active',
