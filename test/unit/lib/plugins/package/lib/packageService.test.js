@@ -170,7 +170,6 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
         configExt: {
           package: {
             individually: true,
-            artifact: 'artifact.zip',
             exclude: ['dir1/**', '!dir1/subdir3/**'],
             include: ['dir1/subdir2/**', '!dir1/subdir2/subsubdir1'],
           },
@@ -199,16 +198,10 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(fnIndividualZippedFiles).to.not.include('.custom-plugins/index.js');
     });
 
-    it('TODO: should support `package.individually`', () => {
-      // Confirm there's a "functions.fnService.package.artifact" and "functions.fnIndividual.package.artifact"
+    it('should support `package.individually`', () => {
       expect(serverless.service.getFunction('fnIndividual').package.artifact).to.include(
         'fnIndividual.zip'
       );
-
-      //
-      // Replaces
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L181-L199
-      // https://github.com/serverless/serverless/blob/b12d565ea0ad588445fb120e049db157afc7bf37/test/unit/lib/plugins/package/lib/packageService.test.js#L237-L260
     });
 
     it('should support `package.exclude`', () => {
