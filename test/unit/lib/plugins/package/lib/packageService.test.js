@@ -202,6 +202,9 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
       expect(serverless.service.getFunction('fnIndividual').package.artifact).to.include(
         'fnIndividual.zip'
       );
+      expect(serverless.service.getFunction('fnService').package.artifact).to.include(
+        'fnService.zip'
+      );
     });
 
     it('should support `package.exclude`', () => {
