@@ -177,9 +177,6 @@ describe('lib/plugins/package/lib/packageService.test.js', () => {
             fnIndividual: {
               package: { include: 'dir1/subdir4/**', exclude: 'dir3/**' },
             },
-            fnService: {
-              name: 'fnService',
-            },
           },
           plugins: {
             localPath: './custom-plugins',
