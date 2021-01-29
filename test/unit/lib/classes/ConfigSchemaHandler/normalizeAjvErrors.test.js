@@ -76,6 +76,32 @@ describe('#normalizeAjvErrors', () => {
               handler: {
                 type: 'string',
               },
+              image: {
+                type: 'object',
+                properties: {
+                  workingDirectory: {
+                    type: 'string',
+                  },
+                  command: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                    },
+                  },
+                  entryPoint: {
+                    type: 'array',
+                    items: {
+                      type: 'string',
+                    },
+                  },
+                },
+                dependencies: {
+                  command: ['entryPoint'],
+                  entryPoint: ['command'],
+                  workingDirectory: ['entryPoint', 'command'],
+                },
+                additionalProperties: false,
+              },
               events: {
                 type: 'array',
                 items: {
@@ -145,6 +171,9 @@ describe('#normalizeAjvErrors', () => {
         'invalid name': {},
         'foo': {
           handler: 'foo',
+          image: {
+            workingDirectory: 'bar',
+          },
           events: [
             {
               bar: {},
@@ -307,6 +336,11 @@ describe('#normalizeAjvErrors', () => {
           })
         ).to.be.true
     );
+    it('should report the duplicated erorr message if more than one dependency is missing only once', () => {
+      const depsErrors = errors.filter((item) => item.keyword === 'dependencies');
+      expect(depsErrors).to.have.lengthOf(1);
+      depsErrors[0].isExpected = true;
+    });
     it('should not report side errors', () =>
       expect(errors.filter((error) => !error.isExpected)).to.deep.equal([]));
   });
