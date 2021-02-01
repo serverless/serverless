@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# Download and install standalone binary.
+# The binary version can be specified by setting a VERSION variable.
+# e.g. VERSION=2.21.1 bash install.sh
+# If VERSION is unspecified it will download the latest version.
 
 set -e
 
