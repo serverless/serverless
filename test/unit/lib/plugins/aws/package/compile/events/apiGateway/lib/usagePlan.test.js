@@ -29,40 +29,39 @@ describe('#compileUsagePlan()', () => {
 
   it('should compile default usage plan resource', () => {
     serverless.service.provider.apiGateway = { apiKeys: ['1234567890'] };
-    return awsCompileApigEvents.compileUsagePlan().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
-        ].Type
-      ).to.equal('AWS::ApiGateway::UsagePlan');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
-        ].DependsOn
-      ).to.equal('ApiGatewayDeploymentTest');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
-        ].Properties.ApiStages[0].ApiId.Ref
-      ).to.equal('ApiGatewayRestApi');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
-        ].Properties.ApiStages[0].Stage
-      ).to.equal('dev');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
-        ].Properties.Description
-      ).to.equal('Usage plan for first-service dev stage');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
-        ].Properties.UsagePlanName
-      ).to.equal('first-service-dev');
+    awsCompileApigEvents.compileUsagePlan();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].Type
+    ).to.equal('AWS::ApiGateway::UsagePlan');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].DependsOn
+    ).to.equal('ApiGatewayDeploymentTest');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].Properties.ApiStages[0].ApiId.Ref
+    ).to.equal('ApiGatewayRestApi');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].Properties.ApiStages[0].Stage
+    ).to.equal('dev');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].Properties.Description
+    ).to.equal('Usage plan for first-service dev stage');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].Properties.UsagePlanName
+    ).to.equal('first-service-dev');
 
-      expect(awsCompileApigEvents.apiGatewayUsagePlanNames).to.deep.equal(['default']);
-    });
+    expect(awsCompileApigEvents.apiGatewayUsagePlanNames).to.deep.equal(['default']);
   });
 
   it('should support custom usage plan resource via single object notation', () => {
@@ -80,59 +79,58 @@ describe('#compileUsagePlan()', () => {
       },
     };
 
-    return awsCompileApigEvents.compileUsagePlan().then(() => {
-      const logicalId = awsCompileApigEvents.provider.naming.getUsagePlanLogicalId();
+    awsCompileApigEvents.compileUsagePlan();
+    const logicalId = awsCompileApigEvents.provider.naming.getUsagePlanLogicalId();
 
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].Type
-      ).to.equal('AWS::ApiGateway::UsagePlan');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].DependsOn
-      ).to.equal('ApiGatewayDeploymentTest');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].Properties.ApiStages[0].ApiId.Ref
-      ).to.equal('ApiGatewayRestApi');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].Properties.ApiStages[0].Stage
-      ).to.equal('dev');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].Properties.Description
-      ).to.equal('Usage plan for first-service dev stage');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].Properties.Quota
-      ).to.deep.equal({
-        Limit: 500,
-        Offset: 10,
-        Period: 'MONTH',
-      });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].Properties.Throttle
-      ).to.deep.equal({
-        BurstLimit: 200,
-        RateLimit: 100,
-      });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalId
-        ].Properties.UsagePlanName
-      ).to.equal('first-service-dev');
-
-      expect(awsCompileApigEvents.apiGatewayUsagePlanNames).to.deep.equal(['default']);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].Type
+    ).to.equal('AWS::ApiGateway::UsagePlan');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].DependsOn
+    ).to.equal('ApiGatewayDeploymentTest');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].Properties.ApiStages[0].ApiId.Ref
+    ).to.equal('ApiGatewayRestApi');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].Properties.ApiStages[0].Stage
+    ).to.equal('dev');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].Properties.Description
+    ).to.equal('Usage plan for first-service dev stage');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].Properties.Quota
+    ).to.deep.equal({
+      Limit: 500,
+      Offset: 10,
+      Period: 'MONTH',
     });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].Properties.Throttle
+    ).to.deep.equal({
+      BurstLimit: 200,
+      RateLimit: 100,
+    });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalId
+      ].Properties.UsagePlanName
+    ).to.equal('first-service-dev');
+
+    expect(awsCompileApigEvents.apiGatewayUsagePlanNames).to.deep.equal(['default']);
   });
 
   it('should support custom usage plan resources via array notation', () => {
@@ -172,110 +170,109 @@ describe('#compileUsagePlan()', () => {
       ],
     };
 
-    return awsCompileApigEvents.compileUsagePlan().then(() => {
-      // resources for the "free" plan
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].Type
-      ).to.equal('AWS::ApiGateway::UsagePlan');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].DependsOn
-      ).to.equal('ApiGatewayDeploymentTest');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].Properties.ApiStages[0].ApiId.Ref
-      ).to.equal('ApiGatewayRestApi');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].Properties.ApiStages[0].Stage
-      ).to.equal('dev');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].Properties.Description
-      ).to.equal(`Usage plan "${freePlanName}" for first-service dev stage`);
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].Properties.Quota
-      ).to.deep.equal({
-        Limit: 1000,
-        Offset: 100,
-        Period: 'MONTH',
-      });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].Properties.Throttle
-      ).to.deep.equal({
-        BurstLimit: 1,
-        RateLimit: 1,
-      });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdFree
-        ].Properties.UsagePlanName
-      ).to.equal(`first-service-${freePlanName}-dev`);
-
-      // resources for the "paid" plan
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].Type
-      ).to.equal('AWS::ApiGateway::UsagePlan');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].DependsOn
-      ).to.equal('ApiGatewayDeploymentTest');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].Properties.ApiStages[0].ApiId.Ref
-      ).to.equal('ApiGatewayRestApi');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].Properties.ApiStages[0].Stage
-      ).to.equal('dev');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].Properties.Description
-      ).to.equal(`Usage plan "${paidPlanName}" for first-service dev stage`);
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].Properties.Quota
-      ).to.deep.equal({
-        Limit: 1000000,
-        Offset: 200,
-        Period: 'MONTH',
-      });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].Properties.Throttle
-      ).to.deep.equal({
-        BurstLimit: 1000,
-        RateLimit: 1000,
-      });
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          logicalIdPaid
-        ].Properties.UsagePlanName
-      ).to.equal(`first-service-${paidPlanName}-dev`);
-
-      expect(awsCompileApigEvents.apiGatewayUsagePlanNames).to.deep.equal([
-        freePlanName,
-        paidPlanName,
-      ]);
+    awsCompileApigEvents.compileUsagePlan();
+    // resources for the "free" plan
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].Type
+    ).to.equal('AWS::ApiGateway::UsagePlan');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].DependsOn
+    ).to.equal('ApiGatewayDeploymentTest');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].Properties.ApiStages[0].ApiId.Ref
+    ).to.equal('ApiGatewayRestApi');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].Properties.ApiStages[0].Stage
+    ).to.equal('dev');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].Properties.Description
+    ).to.equal(`Usage plan "${freePlanName}" for first-service dev stage`);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].Properties.Quota
+    ).to.deep.equal({
+      Limit: 1000,
+      Offset: 100,
+      Period: 'MONTH',
     });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].Properties.Throttle
+    ).to.deep.equal({
+      BurstLimit: 1,
+      RateLimit: 1,
+    });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdFree
+      ].Properties.UsagePlanName
+    ).to.equal(`first-service-${freePlanName}-dev`);
+
+    // resources for the "paid" plan
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].Type
+    ).to.equal('AWS::ApiGateway::UsagePlan');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].DependsOn
+    ).to.equal('ApiGatewayDeploymentTest');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].Properties.ApiStages[0].ApiId.Ref
+    ).to.equal('ApiGatewayRestApi');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].Properties.ApiStages[0].Stage
+    ).to.equal('dev');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].Properties.Description
+    ).to.equal(`Usage plan "${paidPlanName}" for first-service dev stage`);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].Properties.Quota
+    ).to.deep.equal({
+      Limit: 1000000,
+      Offset: 200,
+      Period: 'MONTH',
+    });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].Properties.Throttle
+    ).to.deep.equal({
+      BurstLimit: 1000,
+      RateLimit: 1000,
+    });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        logicalIdPaid
+      ].Properties.UsagePlanName
+    ).to.equal(`first-service-${paidPlanName}-dev`);
+
+    expect(awsCompileApigEvents.apiGatewayUsagePlanNames).to.deep.equal([
+      freePlanName,
+      paidPlanName,
+    ]);
   });
 
   it('should compile custom usage plan resource with restApiId provided', () => {
@@ -284,13 +281,12 @@ describe('#compileUsagePlan()', () => {
       restApiId: 'xxxxx',
     };
 
-    return awsCompileApigEvents.compileUsagePlan().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
-        ].Properties.ApiStages[0].ApiId
-      ).to.equal('xxxxx');
-    });
+    awsCompileApigEvents.compileUsagePlan();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanLogicalId()
+      ].Properties.ApiStages[0].ApiId
+    ).to.equal('xxxxx');
   });
 });
 

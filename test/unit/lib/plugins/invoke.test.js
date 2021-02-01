@@ -28,16 +28,15 @@ describe('Invoke', () => {
   });
 
   describe('#loadEnvVarsForLocal()', () => {
-    it('should set IS_LOCAL', () =>
-      expect(invoke.loadEnvVarsForLocal()).to.be.fulfilled.then(() => {
-        expect(process.env.IS_LOCAL).to.equal('true');
-        expect(serverless.service.provider.environment.IS_LOCAL).to.equal('true');
-      }));
+    it('should set IS_LOCAL', () => {
+      invoke.loadEnvVarsForLocal();
+      expect(process.env.IS_LOCAL).to.equal('true');
+      expect(serverless.service.provider.environment.IS_LOCAL).to.equal('true');
+    });
     it('should leave provider env variable untouched if already defined', () => {
       serverless.service.provider.environment = { IS_LOCAL: 'false' };
-      return expect(invoke.loadEnvVarsForLocal()).to.be.fulfilled.then(() => {
-        expect(serverless.service.provider.environment.IS_LOCAL).to.equal('false');
-      });
+      invoke.loadEnvVarsForLocal();
+      expect(serverless.service.provider.environment.IS_LOCAL).to.equal('false');
     });
   });
 

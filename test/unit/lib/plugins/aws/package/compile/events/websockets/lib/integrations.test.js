@@ -32,71 +32,70 @@ describe('#compileIntegrations()', () => {
       ],
     };
 
-    return awsCompileWebsocketsEvents.compileIntegrations().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compileIntegrations();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources).to.deep.equal({
-        FirstWebsocketsIntegration: {
-          Type: 'AWS::ApiGatewayV2::Integration',
-          Properties: {
-            ApiId: {
-              Ref: 'WebsocketsApi',
-            },
-            IntegrationType: 'AWS_PROXY',
-            IntegrationUri: {
-              'Fn::Join': [
-                '',
-                [
-                  'arn:',
-                  {
-                    Ref: 'AWS::Partition',
-                  },
-                  ':apigateway:',
-                  {
-                    Ref: 'AWS::Region',
-                  },
-                  ':lambda:path/2015-03-31/functions/',
-                  {
-                    'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
-                  },
-                  '/invocations',
-                ],
+    expect(resources).to.deep.equal({
+      FirstWebsocketsIntegration: {
+        Type: 'AWS::ApiGatewayV2::Integration',
+        Properties: {
+          ApiId: {
+            Ref: 'WebsocketsApi',
+          },
+          IntegrationType: 'AWS_PROXY',
+          IntegrationUri: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                {
+                  Ref: 'AWS::Partition',
+                },
+                ':apigateway:',
+                {
+                  Ref: 'AWS::Region',
+                },
+                ':lambda:path/2015-03-31/functions/',
+                {
+                  'Fn::GetAtt': ['FirstLambdaFunction', 'Arn'],
+                },
+                '/invocations',
               ],
-            },
+            ],
           },
         },
-        SecondWebsocketsIntegration: {
-          Type: 'AWS::ApiGatewayV2::Integration',
-          Properties: {
-            ApiId: {
-              Ref: 'WebsocketsApi',
-            },
-            IntegrationType: 'AWS_PROXY',
-            IntegrationUri: {
-              'Fn::Join': [
-                '',
-                [
-                  'arn:',
-                  {
-                    Ref: 'AWS::Partition',
-                  },
-                  ':apigateway:',
-                  {
-                    Ref: 'AWS::Region',
-                  },
-                  ':lambda:path/2015-03-31/functions/',
-                  {
-                    'Fn::GetAtt': ['SecondLambdaFunction', 'Arn'],
-                  },
-                  '/invocations',
-                ],
+      },
+      SecondWebsocketsIntegration: {
+        Type: 'AWS::ApiGatewayV2::Integration',
+        Properties: {
+          ApiId: {
+            Ref: 'WebsocketsApi',
+          },
+          IntegrationType: 'AWS_PROXY',
+          IntegrationUri: {
+            'Fn::Join': [
+              '',
+              [
+                'arn:',
+                {
+                  Ref: 'AWS::Partition',
+                },
+                ':apigateway:',
+                {
+                  Ref: 'AWS::Region',
+                },
+                ':lambda:path/2015-03-31/functions/',
+                {
+                  'Fn::GetAtt': ['SecondLambdaFunction', 'Arn'],
+                },
+                '/invocations',
               ],
-            },
+            ],
           },
         },
-      });
+      },
     });
   });
 });
