@@ -156,7 +156,8 @@ describe('AwsCompileFunctions', () => {
           functionName
         ].package.artifact
           .split(path.sep)
-          .pop();
+          .splice(-2)
+          .join(path.sep);
 
         expect(functionResource.Properties.Code.S3Key).to.deep.equal(`${s3Folder}/${s3FileName}`);
       });
@@ -344,7 +345,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -380,7 +382,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -427,7 +430,10 @@ describe('AwsCompileFunctions', () => {
 
       beforeEach(() => {
         s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
+        s3FileName = awsCompileFunctions.serverless.service.package.artifact
+          .split(path.sep)
+          .splice(-2)
+          .join(path.sep);
       });
 
       describe('when IamRoleLambdaExecution is used', () => {
@@ -670,7 +676,10 @@ describe('AwsCompileFunctions', () => {
 
       beforeEach(() => {
         s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
+        s3FileName = awsCompileFunctions.serverless.service.package.artifact
+          .split(path.sep)
+          .splice(-2)
+          .join(path.sep);
       });
 
       it('should allow if config is provided as a Fn::GetAtt', () => {
@@ -689,7 +698,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: `${s3FileName}`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -726,7 +735,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: `${awsCompileFunctions.serverless.service.package.artifact}/somedir/new-service.zip`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -855,7 +864,10 @@ describe('AwsCompileFunctions', () => {
 
       beforeEach(() => {
         s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
+        s3FileName = awsCompileFunctions.serverless.service.package.artifact
+          .split(path.sep)
+          .splice(-2)
+          .join(path.sep);
       });
 
       describe('when IamRoleLambdaExecution is used', () => {
@@ -929,7 +941,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -998,7 +1011,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
       awsCompileFunctions.serverless.service.functions = {
         func: {
           name: 'customized-func-function',
@@ -1036,7 +1050,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
       awsCompileFunctions.serverless.service.provider.runtime = null;
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -1169,7 +1184,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1225,7 +1241,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1331,7 +1348,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
 
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -1368,7 +1386,8 @@ describe('AwsCompileFunctions', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
       const s3FileName = awsCompileFunctions.serverless.service.package.artifact
         .split(path.sep)
-        .pop();
+        .splice(-2)
+        .join(path.sep);
 
       awsCompileFunctions.serverless.service.functions = {
         func: {
