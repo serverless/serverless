@@ -35,6 +35,7 @@ module.exports = {
         'AWS Stream',
         'AWS Websocket',
         'CLI',
+        'CLI Onboarding',
         'Components',
         'Config Schema',
         'Dashboard',

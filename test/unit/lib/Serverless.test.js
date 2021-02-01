@@ -4,7 +4,6 @@ const expect = require('chai').expect;
 const Serverless = require('../../../lib/Serverless');
 const semverRegex = require('semver-regex');
 const path = require('path');
-const yaml = require('js-yaml');
 const sinon = require('sinon');
 const BbPromise = require('bluebird');
 
@@ -15,7 +14,6 @@ const Service = require('../../../lib/classes/Service');
 const ConfigSchemaHandler = require('../../../lib/classes/ConfigSchemaHandler');
 const CLI = require('../../../lib/classes/CLI');
 const { ServerlessError } = require('../../../lib/classes/Error');
-const { getTmpDirPath } = require('../../utils/fs');
 const runServerless = require('../../utils/run-serverless');
 const fixtures = require('../../fixtures');
 const fs = require('fs');
@@ -36,11 +34,8 @@ describe('Serverless', () => {
     });
 
     it('should set an empty config object if no config object passed', () => {
-      // we're only expecting to have "serverless", "serverlessPath" and "servicePath"
-      expect(Object.keys(serverless.config).length).to.equal(3);
       expect(Object.keys(serverless.config)).to.include('serverless');
       expect(Object.keys(serverless.config)).to.include('serverlessPath');
-      expect(Object.keys(serverless.config)).to.include('servicePath');
     });
 
     it('should set an empty providers object', () => {
@@ -69,19 +64,6 @@ describe('Serverless', () => {
 
     it('should set the ConfigSchemaHandler class instance', () => {
       expect(serverless.configSchemaHandler).to.be.instanceof(ConfigSchemaHandler);
-    });
-
-    it('should set the servicePath property if it was set in the config object', () => {
-      const configObj = { servicePath: 'some/path' };
-      const serverlessWithConfig = new Serverless(configObj);
-
-      expect(serverlessWithConfig.config.servicePath).to.equal('some/path');
-    });
-
-    // note: we only test if the property is there
-    // the test if the correct servicePath is set is done in the Utils class test file
-    it('should set the servicePath property if no config object is given', () => {
-      expect(serverless.config.servicePath).to.not.equal(undefined);
     });
 
     it('should have a config object', () => {
@@ -122,21 +104,6 @@ describe('Serverless', () => {
   });
 
   describe('#init()', () => {
-    let loadAllPluginsStub;
-    let updateAutocompleteCacheFileStub;
-
-    beforeEach(() => {
-      loadAllPluginsStub = sinon.stub(serverless.pluginManager, 'loadAllPlugins').returns();
-      updateAutocompleteCacheFileStub = sinon
-        .stub(serverless.pluginManager, 'updateAutocompleteCacheFile')
-        .resolves();
-    });
-
-    afterEach(() => {
-      serverless.pluginManager.loadAllPlugins.restore();
-      serverless.pluginManager.updateAutocompleteCacheFile.restore();
-    });
-
     it('should set an instanceId', () =>
       serverless.init().then(() => {
         expect(serverless.instanceId).to.match(/\d/);
@@ -163,38 +130,6 @@ describe('Serverless', () => {
       serverless.init().then(() => {
         expect(serverless.processedInput).to.not.deep.equal({});
       }));
-
-    it('should resolve after loading the service', () => {
-      const SUtils = new Utils();
-      const tmpDirPath = getTmpDirPath();
-      const serverlessYml = {
-        service: 'new-service',
-        provider: 'aws',
-        custom: {},
-        plugins: ['testPlugin'],
-        functions: {
-          functionA: {},
-        },
-        resources: {},
-        package: {
-          exclude: ['exclude-me'],
-          include: ['include-me'],
-          artifact: 'some/path/foo.zip',
-        },
-      };
-
-      SUtils.writeFileSync(path.join(tmpDirPath, 'serverless.yml'), yaml.dump(serverlessYml));
-
-      serverless.config.update({ servicePath: tmpDirPath });
-      serverless.pluginManager.cliOptions = {
-        stage: 'dev',
-      };
-
-      return serverless.init().then(() => {
-        expect(loadAllPluginsStub.calledOnce).to.equal(true);
-        expect(updateAutocompleteCacheFileStub.calledOnce).to.equal(true);
-      });
-    });
   });
 
   describe('#run()', () => {
@@ -290,14 +225,16 @@ describe('Serverless [new tests]', () => {
   describe('When local version available', () => {
     describe('When running global version', () => {
       it('Should fallback to local version when it is found and "enableLocalInstallationFallback" is not set', () =>
-        runServerless({ fixture: 'locallyInstalledServerless', cliArgs: ['-v'] }).then(
-          ({ serverless }) => {
-            expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
-            expect(serverless.isInvokedByGlobalInstallation).to.be.true;
-            expect(serverless.isLocallyInstalled).to.be.true;
-            expect(serverless.isLocalStub).to.be.true;
-          }
-        ));
+        runServerless({
+          fixture: 'locallyInstalledServerless',
+          cliArgs: ['-v'],
+          modulesCacheStub: {},
+        }).then(({ serverless }) => {
+          expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
+          expect(serverless.isInvokedByGlobalInstallation).to.be.true;
+          expect(serverless.isLocallyInstalled).to.be.true;
+          expect(serverless.isLocalStub).to.be.true;
+        }));
 
       let serverlessWithDisabledLocalInstallationFallback;
       it('Should report deprecation notice when "enableLocalInstallationFallback" is set', () =>
@@ -305,6 +242,7 @@ describe('Serverless [new tests]', () => {
           fixture: 'locallyInstalledServerless',
           configExt: { enableLocalInstallationFallback: false },
           cliArgs: ['-v'],
+          modulesCacheStub: {},
         }).then(({ serverless }) => {
           serverlessWithDisabledLocalInstallationFallback = serverless;
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
@@ -323,6 +261,7 @@ describe('Serverless [new tests]', () => {
           fixture: 'locallyInstalledServerless',
           configExt: { enableLocalInstallationFallback: true },
           cliArgs: ['-v'],
+          modulesCacheStub: {},
         }).then(({ serverless }) => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
             'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
@@ -352,12 +291,14 @@ describe('Serverless [new tests]', () => {
 
   describe('When local version not available', () => {
     it('Should run without notice', () =>
-      runServerless({ fixture: 'aws', cliArgs: ['-v'] }).then(({ serverless }) => {
-        expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
-        expect(serverless.isInvokedByGlobalInstallation).to.be.false;
-        expect(serverless.isLocallyInstalled).to.be.false;
-        expect(serverless.isLocalStub).to.not.exist;
-      }));
+      runServerless({ fixture: 'aws', cliArgs: ['-v'], modulesCacheStub: {} }).then(
+        ({ serverless }) => {
+          expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
+          expect(serverless.isInvokedByGlobalInstallation).to.be.false;
+          expect(serverless.isLocallyInstalled).to.be.false;
+          expect(serverless.isLocalStub).to.not.exist;
+        }
+      ));
   });
 
   describe('When .env file is available', () => {

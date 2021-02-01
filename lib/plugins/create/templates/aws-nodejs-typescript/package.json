@@ -2,7 +2,7 @@
   "name": "aws-nodejs-typescript",
   "version": "1.0.0",
   "description": "Serverless aws-nodejs-typescript template",
-  "main": "servlerss.ts",
+  "main": "serverless.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

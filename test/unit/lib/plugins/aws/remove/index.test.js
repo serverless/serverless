@@ -1,57 +1,97 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const sinon = require('sinon');
-const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
-const AwsRemove = require('../../../../../../lib/plugins/aws/remove/index');
-const Serverless = require('../../../../../../lib/Serverless');
+const runServerless = require('../../../../../utils/run-serverless');
 
-describe('AwsRemove', () => {
-  const serverless = new Serverless();
-  const options = {
-    stage: 'dev',
-    region: 'us-east-1',
+chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
+const expect = require('chai').expect;
+
+describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
+  const deleteObjectsStub = sinon.stub().resolves();
+  const deleteStackStub = sinon.stub().resolves();
+  const describeStackEventsStub = sinon.stub().resolves({
+    StackEvents: [
+      {
+        EventId: '1e2f3g4h',
+        StackName: 'new-service-dev',
+        LogicalResourceId: 'new-service-dev',
+        ResourceType: 'AWS::CloudFormation::Stack',
+        Timestamp: new Date(),
+        ResourceStatus: 'DELETE_COMPLETE',
+      },
+    ],
+  });
+  const describeRepositoriesStub = sinon.stub();
+  const deleteRepositoryStub = sinon.stub().resolves();
+  const awsRequestStubMap = {
+    ECR: {
+      deleteRepository: deleteRepositoryStub,
+      describeRepositories: describeRepositoriesStub,
+    },
+    S3: {
+      deleteObjects: deleteObjectsStub,
+      listObjectsV2: { Contents: [{ Key: 'first' }, { Key: 'second' }] },
+    },
+    CloudFormation: {
+      describeStackEvents: describeStackEventsStub,
+      deleteStack: deleteStackStub,
+      describeStackResource: { StackResourceDetail: { PhysicalResourceId: 'resource-id' } },
+    },
+    STS: {
+      getCallerIdentity: {
+        ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+        UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+        Account: '999999999999',
+        Arn: 'arn:aws:iam::999999999999:user/test',
+      },
+    },
   };
-  serverless.setProvider('aws', new AwsProvider(serverless, options));
-  const awsRemove = new AwsRemove(serverless, options);
-  awsRemove.serverless.cli = new serverless.classes.CLI();
 
-  describe('#constructor()', () => {
-    let validateStub;
-    let emptyS3BucketStub;
-    let removeStackStub;
-    let monitorStackStub;
+  beforeEach(() => {
+    deleteObjectsStub.resetHistory();
+    deleteStackStub.resetHistory();
+    describeStackEventsStub.resetHistory();
+    describeRepositoriesStub.reset();
+  });
 
-    beforeEach(() => {
-      validateStub = sinon.stub(awsRemove, 'validate').resolves();
-      emptyS3BucketStub = sinon.stub(awsRemove, 'emptyS3Bucket').resolves();
-      removeStackStub = sinon.stub(awsRemove, 'removeStack').resolves();
-      monitorStackStub = sinon.stub(awsRemove, 'monitorStack').resolves();
+  it('executes expected operations during removal', async () => {
+    describeRepositoriesStub.throws({ providerError: { code: 'RepositoryNotFoundException' } });
+
+    const { awsNaming } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['remove'],
+      awsRequestStubMap,
     });
 
-    afterEach(() => {
-      awsRemove.validate.restore();
-      awsRemove.emptyS3Bucket.restore();
-      awsRemove.removeStack.restore();
-      awsRemove.monitorStack.restore();
+    expect(deleteObjectsStub).to.be.calledWithExactly({
+      Bucket: 'resource-id',
+      Delete: {
+        Objects: [{ Key: 'first' }, { Key: 'second' }],
+      },
+    });
+    expect(deleteStackStub).to.be.calledWithExactly({ StackName: awsNaming.getStackName() });
+    expect(describeStackEventsStub).to.be.calledWithExactly({
+      StackName: awsNaming.getStackName(),
+    });
+    expect(deleteStackStub.calledAfter(deleteObjectsStub)).to.be.true;
+    expect(describeStackEventsStub.calledAfter(deleteStackStub)).to.be.true;
+    expect(deleteRepositoryStub).not.to.be.called;
+  });
+
+  it('removes ECR repository if it exists', async () => {
+    describeRepositoriesStub.resolves();
+    const { awsNaming } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['remove'],
+      awsRequestStubMap,
     });
 
-    it('should have hooks', () => expect(awsRemove.hooks).to.be.not.empty);
-
-    it('should set the provider variable to an instance of AwsProvider', () =>
-      expect(awsRemove.provider).to.be.instanceof(AwsProvider));
-
-    it('should have access to the serverless instance', () => {
-      expect(awsRemove.serverless).to.deep.equal(serverless);
-    });
-
-    it('should run promise chain in order', () => {
-      return awsRemove.hooks['remove:remove']().then(() => {
-        expect(validateStub.calledOnce).to.be.equal(true);
-        expect(emptyS3BucketStub.calledAfter(validateStub)).to.be.equal(true);
-        expect(removeStackStub.calledAfter(emptyS3BucketStub)).to.be.equal(true);
-        expect(monitorStackStub.calledAfter(emptyS3BucketStub)).to.be.equal(true);
-      });
+    expect(deleteRepositoryStub).to.be.calledWithExactly({
+      repositoryName: awsNaming.getEcrRepositoryName(),
+      registryId: '999999999999',
+      force: true,
     });
   });
 });

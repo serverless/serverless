@@ -13,45 +13,63 @@ if (require('../lib/utils/tabCompletion/isSupported') && process.argv[2] === 'co
   return;
 }
 
-const BbPromise = require('bluebird');
-const logError = require('../lib/classes/Error').logError;
-const uuid = require('uuid');
-
-const invocationId = uuid.v4();
+const handleError = require('../lib/cli/handle-error');
 
 let serverless;
 
-process.on('uncaughtException', (error) => logError(error, { forceExit: true, serverless }));
-
-if (process.env.SLS_DEBUG) {
-  // For performance reasons enabled only in SLS_DEBUG mode
-  BbPromise.config({
-    longStackTraces: true,
-  });
-}
-
-const Serverless = require('../lib/Serverless');
-
-serverless = new Serverless();
-
-let resolveOnExitPromise;
-serverless.onExitPromise = new Promise((resolve) => (resolveOnExitPromise = resolve));
-serverless.invocationId = invocationId;
-
-require('../lib/utils/analytics').sendPending({
-  serverlessExecutionSpan: serverless.onExitPromise,
-});
-
-serverless
-  .init()
-  .then(() => {
-    if (serverless.invokedInstance) serverless = serverless.invokedInstance;
+process.once('uncaughtException', (error) =>
+  handleError(error, {
+    isUncaughtException: true,
+    isLocallyInstalled: serverless && serverless.isLocallyInstalled,
   })
-  .then(() => serverless.run())
-  .then(
-    () => resolveOnExitPromise(),
-    (err) => {
-      resolveOnExitPromise();
+);
+
+const processSpanPromise = (async () => {
+  try {
+    const wait = require('timers-ext/promise/sleep');
+    await wait(); // Ensure access to "processSpanPromise"
+    require('../lib/utils/analytics').sendPending({
+      serverlessExecutionSpan: processSpanPromise,
+    });
+
+    if (await require('../lib/cli/eventually-list-version')()) return;
+
+    const uuid = require('uuid');
+    const Serverless = require('../lib/Serverless');
+    const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
+    const isHelpRequest = require('../lib/cli/is-help-request');
+    const readConfiguration = require('../lib/configuration/read');
+
+    const configurationPath = await resolveConfigurationPath();
+    const configuration = configurationPath
+      ? await (async () => {
+          try {
+            return await readConfiguration(configurationPath);
+          } catch (error) {
+            // Configuration syntax error should not prevent help from being displayed
+            // (if possible configuration should be read for help request as registered
+            // plugins may introduce new commands to be listed in help output)
+            if (isHelpRequest()) return null;
+            throw error;
+          }
+        })()
+      : null;
+
+    serverless = new Serverless({
+      configuration,
+      configurationPath: configuration && configurationPath,
+    });
+
+    try {
+      serverless.onExitPromise = processSpanPromise;
+      serverless.invocationId = uuid.v4();
+      await serverless.init();
+      if (serverless.invokedInstance) {
+        serverless.invokedInstance.invocationId = serverless.invocationId;
+        serverless = serverless.invokedInstance;
+      }
+      await serverless.run();
+    } catch (error) {
       // If Enterprise Plugin, capture error
       let enterpriseErrorHandler = null;
       serverless.pluginManager.plugins.forEach((p) => {
@@ -59,16 +77,15 @@ serverless
           enterpriseErrorHandler = p.enterprise.errorHandler;
         }
       });
-      if (!enterpriseErrorHandler) {
-        logError(err, { serverless });
-        return null;
+      if (!enterpriseErrorHandler) throw error;
+      try {
+        await enterpriseErrorHandler(error, serverless.invocationId);
+      } catch (enterpriseErrorHandlerError) {
+        process.stdout.write(`${enterpriseErrorHandlerError.stack}\n`);
       }
-      return enterpriseErrorHandler(err, invocationId)
-        .catch((error) => {
-          process.stdout.write(`${error.stack}\n`);
-        })
-        .then(() => {
-          logError(err, { serverless });
-        });
+      throw error;
     }
-  );
+  } catch (error) {
+    handleError(error);
+  }
+})();

@@ -146,7 +146,7 @@ describe('ConfigSchemaHandler', () => {
       expect(existingEventDefinition.required).to.include('somePluginAdditionalEventProp');
     });
 
-    it('should extend schema with defineFunctionEventProperties method on complexe event schema', async () => {
+    it('should extend schema with defineFunctionEventProperties method on complex event schema', async () => {
       const serverless = await runServerless({
         fixture: 'configSchemaExtensions',
         cliArgs: ['info'],
@@ -165,9 +165,9 @@ describe('ConfigSchemaHandler', () => {
             type: 'object',
             properties: {
               existingPropForObjectEventDefinition: { type: 'string' },
-              somePluginAdditionalComplexeEventProp: { type: 'string' },
+              somePluginAdditionalComplexEventProp: { type: 'string' },
             },
-            required: ['somePluginAdditionalComplexeEventProp'],
+            required: ['somePluginAdditionalComplexEventProp'],
           },
         ],
       });

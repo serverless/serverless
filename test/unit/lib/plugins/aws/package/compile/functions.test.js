@@ -1464,8 +1464,10 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               securityGroupIds: ['sg-0a0a0a0a'],
             },
             tags: {
-              providerTagA: 'providerTagAValue',
-              providerTagB: 'providerTagBValue',
+              'providerTagA': 'providerTagAValue',
+              'providerTagB': 'providerTagBValue',
+              'provider:tagC': 'providerTagCValue',
+              'provider:tag-D': 'providerTagDValue',
             },
             tracing: {
               lambda: 'Active',
@@ -1829,13 +1831,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     let serverless;
     let serviceConfig;
     let iamRolePolicyStatements;
-    const imageDigestFromECR =
-      'sha256:2e6b10a4b1ca0f6d3563a8a1f034dde7c4d7c93b50aa91f24311765d0822186b';
-    const awsRequestStubMap = {
-      ECR: {
-        describeImages: { imageDetails: [{ imageDigest: imageDigestFromECR }] },
-      },
-    };
+    const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
+    const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
 
     before(async () => {
       const {
@@ -1875,15 +1872,18 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               },
             },
             fnImage: {
-              image:
-                '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38',
+              image: imageWithSha,
             },
-            fnImageWithTag: {
-              image: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker:stable',
+            fnImageWithConfig: {
+              image: {
+                uri: imageWithSha,
+                workingDirectory: './workdir',
+                entryPoint: ['executable', 'param1'],
+                command: ['anotherexecutable'],
+              },
             },
           },
         },
-        awsRequestStubMap,
       });
       cfResources = cfTemplate.Resources;
       naming = awsNaming;
@@ -1943,19 +1943,19 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1457-L1504
       //
-      // Confirm on TrancingConfig property
+      // Confirm on TracingConfig property
       // Confirm also on needed IAM policies
     });
 
     it.skip('TODO: should support `functions[].onError` as arn', () => {
-      // Replacment for
+      // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L774-L821
       //
       // Confirm on Function `DeadLetterConfig` property and on IAM policy statement being added
     });
 
     it.skip('TODO: should support `functions[].onError` as Ref', () => {
-      // Replacment for
+      // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L823-L863
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L951-L988
       //
@@ -2182,6 +2182,8 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       });
     });
 
+    // This is just a happy-path test of images support. Due to sharing code from `provider.js`
+    // all further configurations are tested as a part of `test/unit/lib/plugins/aws/provider.test.js`
     it('should support `functions[].image` with sha', () => {
       const functionServiceConfig = serviceConfig.functions.fnImage;
       const functionCfLogicalId = naming.getLambdaLogicalId('fnImage');
@@ -2204,23 +2206,15 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(versionCfConfig.CodeSha256).to.equal(imageDigestSha);
     });
 
-    it('should support `functions[].image` with tag', () => {
-      const functionServiceConfig = serviceConfig.functions.fnImageWithTag;
-      const functionCfLogicalId = naming.getLambdaLogicalId('fnImageWithTag');
+    it('should support `functions[].image` with image config properties', () => {
+      const functionCfLogicalId = naming.getLambdaLogicalId('fnImageWithConfig');
       const functionCfConfig = cfResources[functionCfLogicalId].Properties;
 
-      expect(functionCfConfig.Code).to.deep.equal({
-        ImageUri: `${functionServiceConfig.image.split(':')[0]}@${imageDigestFromECR}`,
+      expect(functionCfConfig.ImageConfig).to.deep.equal({
+        Command: ['anotherexecutable'],
+        EntryPoint: ['executable', 'param1'],
+        WorkingDirectory: './workdir',
       });
-      expect(functionCfConfig).to.not.have.property('Handler');
-      expect(functionCfConfig).to.not.have.property('Runtime');
-
-      const versionCfConfig = Object.values(cfResources).find(
-        (resource) =>
-          resource.Type === 'AWS::Lambda::Version' &&
-          resource.Properties.FunctionName.Ref === functionCfLogicalId
-      ).Properties;
-      expect(versionCfConfig.CodeSha256).to.equal(imageDigestFromECR.slice('sha256:'.length));
     });
   });
 

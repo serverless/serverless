@@ -45,21 +45,20 @@ describe('validateTemplate', () => {
   });
 
   describe('#validateTemplate()', () => {
-    it('should resolve if the CloudFormation template is valid', () => {
+    it('should resolve if the CloudFormation template is valid', async () => {
       validateTemplateStub.resolves();
 
-      return expect(awsDeploy.validateTemplate()).to.be.fulfilled.then(() => {
-        expect(awsDeploy.serverless.cli.log).to.have.been.called;
-        expect(validateTemplateStub).to.have.been.calledOnce;
-        expect(validateTemplateStub).to.have.been.calledWithExactly(
-          'CloudFormation',
-          'validateTemplate',
-          {
-            TemplateURL:
-              'https://s3.amazonaws.com/deployment-bucket/somedir/compiled-cloudformation-template.json',
-          }
-        );
-      });
+      await awsDeploy.validateTemplate();
+      expect(awsDeploy.serverless.cli.log).to.have.been.called;
+      expect(validateTemplateStub).to.have.been.calledOnce;
+      expect(validateTemplateStub).to.have.been.calledWithExactly(
+        'CloudFormation',
+        'validateTemplate',
+        {
+          TemplateURL:
+            'https://s3.amazonaws.com/deployment-bucket/somedir/compiled-cloudformation-template.json',
+        }
+      );
     });
 
     it('should throw an error if the CloudFormation template is invalid', () => {

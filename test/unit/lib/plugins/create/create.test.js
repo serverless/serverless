@@ -1107,7 +1107,7 @@ describe('Create', () => {
 
         expect(dirContent).to.include('serverless.yml');
         expect(dirContent).to.include('handler.js');
-        expect(dirContent).to.include('gitignore');
+        expect(dirContent).to.include('.gitignore');
 
         // check if the service was renamed
         const serverlessYmlfileContent = fse
@@ -1129,7 +1129,7 @@ describe('Create', () => {
 
         expect(dirContent).to.include('serverless.yml');
         expect(dirContent).to.include('handler.js');
-        expect(dirContent).to.include('gitignore');
+        expect(dirContent).to.include('.gitignore');
 
         // check if the service was renamed
         const serverlessYmlfileContent = fse

@@ -7,6 +7,7 @@ const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../../../utils/fs');
+const runServerless = require('../../../../../../utils/run-serverless');
 
 chai.use(require('sinon-chai'));
 
@@ -95,10 +96,9 @@ describe('extendedValidate', () => {
       fileExistsSyncStub.returns(true);
       readFileSyncStub.returns(stateFileMock);
 
-      return awsDeploy.extendedValidate().then(() => {
-        expect(fileExistsSyncStub.calledOnce).to.equal(true);
-        expect(readFileSyncStub.calledOnce).to.equal(true);
-      });
+      awsDeploy.extendedValidate();
+      expect(fileExistsSyncStub.calledOnce).to.equal(true);
+      expect(readFileSyncStub.calledOnce).to.equal(true);
     });
 
     it('should not throw error if service has no functions and no function packages', () => {
@@ -107,10 +107,9 @@ describe('extendedValidate', () => {
       fileExistsSyncStub.returns(true);
       readFileSyncStub.returns(stateFileMock);
 
-      return awsDeploy.extendedValidate().then(() => {
-        expect(fileExistsSyncStub.calledOnce).to.equal(true);
-        expect(readFileSyncStub.calledOnce).to.equal(true);
-      });
+      awsDeploy.extendedValidate();
+      expect(fileExistsSyncStub.calledOnce).to.equal(true);
+      expect(readFileSyncStub.calledOnce).to.equal(true);
     });
 
     it('should not throw error if individual packaging defined on a function level', () => {
@@ -139,11 +138,10 @@ describe('extendedValidate', () => {
       fileExistsSyncStub.returns(true);
       readFileSyncStub.returns(stateFileMock);
 
-      return awsDeploy.extendedValidate().then(() => {
-        expect(fileExistsSyncStub.calledTwice).to.equal(true);
-        expect(readFileSyncStub.calledOnce).to.equal(true);
-        expect(fileExistsSyncStub).to.have.been.calledWithExactly('artifact.zip');
-      });
+      awsDeploy.extendedValidate();
+      expect(fileExistsSyncStub.calledTwice).to.equal(true);
+      expect(readFileSyncStub.calledOnce).to.equal(true);
+      expect(fileExistsSyncStub).to.have.been.calledWithExactly('artifact.zip');
     });
 
     it('should throw error if specified package artifact does not exist', () => {
@@ -162,9 +160,8 @@ describe('extendedValidate', () => {
       fileExistsSyncStub.onCall(1).returns(true);
       readFileSyncStub.returns(stateFileMock);
       awsDeploy.serverless.service.package.artifact = 'some/file.zip';
-      return awsDeploy.extendedValidate().then(() => {
-        delete awsDeploy.serverless.service.package.artifact;
-      });
+      awsDeploy.extendedValidate();
+      delete awsDeploy.serverless.service.package.artifact;
     });
 
     it("should warn if function's timeout is greater than 30 and it's attached to APIGW", () => {
@@ -185,13 +182,44 @@ describe('extendedValidate', () => {
       fileExistsSyncStub.returns(true);
       readFileSyncStub.returns(stateFileMock);
 
-      return awsDeploy.extendedValidate().then(() => {
-        const msg = [
-          "WARNING: Function first has timeout of 31 seconds, however, it's ",
-          "attached to API Gateway so it's automatically limited to 30 seconds.",
-        ].join('');
-        expect(awsDeploy.serverless.cli.log.firstCall.calledWithExactly(msg)).to.be.equal(true);
-      });
+      awsDeploy.extendedValidate();
+      const msg = [
+        "WARNING: Function first has timeout of 31 seconds, however, it's ",
+        "attached to API Gateway so it's automatically limited to 30 seconds.",
+      ].join('');
+      expect(awsDeploy.serverless.cli.log.firstCall.calledWithExactly(msg)).to.be.equal(true);
     });
+  });
+});
+
+describe('test/unit/lib/plugins/aws/deploy/lib/extendedValidate.test.js', () => {
+  it("should not warn if function's timeout is greater than 30 and it's attached to APIGW, but it has [async] mode", async () => {
+    const msg = [
+      "WARNING: Function foo has timeout of 31 seconds, however, it's",
+      "attached to API Gateway so it's automatically limited to 30 seconds.",
+    ].join(' ');
+
+    const { stdoutData } = await runServerless({
+      fixture: 'function',
+      configExt: {
+        functions: {
+          foo: {
+            timeout: 31,
+            events: [
+              {
+                http: {
+                  method: 'GET',
+                  path: '/foo',
+                  async: true,
+                },
+              },
+            ],
+          },
+        },
+      },
+      cliArgs: ['deploy', '--noDeploy'],
+    });
+
+    expect(stdoutData.includes(msg)).to.be.equal(false);
   });
 });
