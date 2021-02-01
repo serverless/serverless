@@ -71,7 +71,7 @@ else
 	BINARY_URL=https://github.com/serverless/serverless/releases/download/$TAG/serverless-$PLATFORM-$ARCH
 fi
 
-# Dowload binary
+# Download binary
 BINARIES_DIR_PATH=$HOME/.serverless/bin
 BINARY_PATH=$BINARIES_DIR_PATH/serverless
 mkdir -p $BINARIES_DIR_PATH
