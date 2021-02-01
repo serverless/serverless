@@ -25,10 +25,16 @@ Getting started with Serverless Framework’s Open Source CLI and AWS takes only
 
 ### MacOS/Linux
 
-Run this command in your terminal:
+To install the latest version, run this command in your terminal:
 
 ```bash
 curl -o- -L https://slss.io/install | bash
+```
+
+To install an specific version you may set a VERSION variable, for example:
+
+```bash
+curl -o- -L https://slss.io/install | VERSION=2.21.1 bash
 ```
 
 Then open another terminal window to run `serverless` program.
