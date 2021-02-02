@@ -68,6 +68,7 @@ provider:
         uri: 000000000000.dkr.ecr.us-east-1.amazonaws.com/test-image@sha256:6bb600b4d6e1d7cf521097177d111111ea373edb91984a505333be8ac9455d38 # Image uri of existing Docker image in ECR
       anotherimage:
         path: ./image/ # Path to Docker context that will be used when building that image locally
+        file: Dockerfile.dev # Name of Dockerfile that should be used when building image locally. Equal to 'Dockerfile' by default
   cloudFront:
     myCachePolicy1: # used as a reference in function.events[].cloudfront.cachePolicy.name
       DefaultTTL: 60

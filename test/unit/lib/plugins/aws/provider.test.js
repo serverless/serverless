@@ -1864,7 +1864,11 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
             createRepository: createRepositoryStub,
           },
         };
-        const { awsNaming, cfTemplate } = await runServerless({
+        const {
+          awsNaming,
+          cfTemplate,
+          fixtureData: { servicePath },
+        } = await runServerless({
           fixture: 'ecr',
           cliArgs: ['package'],
           awsRequestStubMap,
@@ -1892,6 +1896,8 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           'build',
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '-f',
+          path.join(servicePath, 'Dockerfile'),
           './',
         ]);
         expect(spawnExtStub).to.be.calledWith('docker', [
@@ -1949,7 +1955,11 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           })
           .onCall(3)
           .throws({ stdBuffer: 'no basic auth credentials' });
-        const { awsNaming, cfTemplate } = await runServerless({
+        const {
+          awsNaming,
+          cfTemplate,
+          fixtureData: { servicePath },
+        } = await runServerless({
           fixture: 'ecr',
           cliArgs: ['package'],
           awsRequestStubMap,
@@ -1971,6 +1981,8 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
           'build',
           '-t',
           `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '-f',
+          path.join(servicePath, 'Dockerfile'),
           './',
         ]);
         expect(innerSpawnExtStub).to.be.calledWith('docker', [
@@ -2106,6 +2118,62 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
         expect(versionCfConfig.CodeSha256).to.equal(imageSha);
         expect(describeRepositoriesStub).to.be.calledOnce;
         expect(createRepositoryStub.notCalled).to.be.true;
+      });
+
+      it('should work correctly when image is defined with `file` set', async () => {
+        const awsRequestStubMap = {
+          ...baseAwsRequestStubMap,
+          ECR: {
+            ...baseAwsRequestStubMap.ECR,
+            describeRepositories: describeRepositoriesStub.resolves({
+              repositories: [{ repositoryUri }],
+            }),
+            createRepository: createRepositoryStub,
+          },
+        };
+        const {
+          awsNaming,
+          cfTemplate,
+          fixtureData: { servicePath },
+        } = await runServerless({
+          fixture: 'ecr',
+          cliArgs: ['package'],
+          awsRequestStubMap,
+          modulesCacheStub,
+          configExt: {
+            provider: {
+              ecr: {
+                images: {
+                  baseimage: {
+                    path: './',
+                    file: 'Dockerfile.dev',
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const functionCfLogicalId = awsNaming.getLambdaLogicalId('foo');
+        const functionCfConfig = cfTemplate.Resources[functionCfLogicalId].Properties;
+        const versionCfConfig = Object.values(cfTemplate.Resources).find(
+          (resource) =>
+            resource.Type === 'AWS::Lambda::Version' &&
+            resource.Properties.FunctionName.Ref === functionCfLogicalId
+        ).Properties;
+
+        expect(functionCfConfig.Code.ImageUri).to.deep.equal(`${repositoryUri}@sha256:${imageSha}`);
+        expect(versionCfConfig.CodeSha256).to.equal(imageSha);
+        expect(describeRepositoriesStub).to.be.calledOnce;
+        expect(createRepositoryStub.notCalled).to.be.true;
+        expect(spawnExtStub).to.be.calledWith('docker', [
+          'build',
+          '-t',
+          `${awsNaming.getEcrRepositoryName()}:baseimage`,
+          '-f',
+          path.join(servicePath, 'Dockerfile.dev'),
+          './',
+        ]);
       });
 
       it('should work correctly when `functions[].image` is defined with explicit name', async () => {
