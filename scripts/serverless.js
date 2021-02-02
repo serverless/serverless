@@ -46,10 +46,23 @@ const processSpanPromise = (async () => {
     const readConfiguration = require('../lib/configuration/read');
 
     const configurationPath = await resolveConfigurationPath();
+    const configurationOptions = {};
+
+    // For typescript (serverless.ts) templates, look for the existence of the tsconfig file to parse the template with
+    if (configurationPath.toString().endsWith('.ts')) {
+      for (const [index, value] of process.argv.entries()) {
+        if (value === '--ts-config-path') {
+          configurationOptions.tsConfigPath = process.argv[index + 1];
+        }
+        if (value.startsWith('--ts-config-path=')) {
+          configurationOptions.tsConfigPath = value.slice('--ts-config-path='.length);
+        }
+      }
+    }
     const configuration = configurationPath
       ? await (async () => {
           try {
-            return await readConfiguration(configurationPath);
+            return await readConfiguration(configurationPath, configurationOptions);
           } catch (error) {
             // Configuration syntax error should not prevent help from being displayed
             // (if possible configuration should be read for help request as registered
