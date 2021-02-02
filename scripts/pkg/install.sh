@@ -81,8 +81,9 @@ version_error_msg (){
   echo "Could not download binary. Is the version correct?"
 }
 trap version_error_msg ERR
-curl --fail -L -o $BINARY_PATH $BINARY_URL
+curl --fail -L -o $BINARY_PATH.tmp $BINARY_URL
 trap - ERR
+mv $BINARY_PATH.tmp $BINARY_PATH
 chmod +x $BINARY_PATH
 
 # Ensure aliases
