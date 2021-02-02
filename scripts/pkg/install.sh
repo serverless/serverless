@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Download and install standalone binary.
 # The binary version can be specified by setting a VERSION variable.
