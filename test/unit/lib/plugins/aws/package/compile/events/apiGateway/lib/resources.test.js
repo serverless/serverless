@@ -116,24 +116,23 @@ describe('#compileResources()', () => {
         },
       },
     ];
-    return awsCompileApigEvents.compileResources().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFoo.Properties.ParentId['Fn::GetAtt'][0]
-      ).to.equal('ApiGatewayRestApi');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFoo.Properties.ParentId['Fn::GetAtt'][1]
-      ).to.equal('RootResourceId');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFooBar.Properties.ParentId.Ref
-      ).to.equal('ApiGatewayResourceFoo');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceBarIdVar.Properties.ParentId.Ref
-      ).to.equal('ApiGatewayResourceBar');
-    });
+    awsCompileApigEvents.compileResources();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFoo.Properties.ParentId['Fn::GetAtt'][0]
+    ).to.equal('ApiGatewayRestApi');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFoo.Properties.ParentId['Fn::GetAtt'][1]
+    ).to.equal('RootResourceId');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFooBar.Properties.ParentId.Ref
+    ).to.equal('ApiGatewayResourceFoo');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceBarIdVar.Properties.ParentId.Ref
+    ).to.equal('ApiGatewayResourceBar');
   });
 
   it('should construct the correct resourceLogicalIds object', () => {
@@ -163,19 +162,18 @@ describe('#compileResources()', () => {
         },
       },
     ];
-    return awsCompileApigEvents.compileResources().then(() => {
-      const expectedResourceLogicalIds = {
-        'baz': 'ApiGatewayResourceBaz',
-        'baz/foo': 'ApiGatewayResourceBazFoo',
-        'foo': 'ApiGatewayResourceFoo',
-        'foo/{foo_id}': 'ApiGatewayResourceFooFooidVar',
-        'foo/{foo_id}/bar': 'ApiGatewayResourceFooFooidVarBar',
-      };
-      Object.keys(expectedResourceLogicalIds).forEach((path) => {
-        expect(awsCompileApigEvents.apiGatewayResources[path].resourceLogicalId).equal(
-          expectedResourceLogicalIds[path]
-        );
-      });
+    awsCompileApigEvents.compileResources();
+    const expectedResourceLogicalIds = {
+      'baz': 'ApiGatewayResourceBaz',
+      'baz/foo': 'ApiGatewayResourceBazFoo',
+      'foo': 'ApiGatewayResourceFoo',
+      'foo/{foo_id}': 'ApiGatewayResourceFooFooidVar',
+      'foo/{foo_id}/bar': 'ApiGatewayResourceFooFooidVarBar',
+    };
+    Object.keys(expectedResourceLogicalIds).forEach((path) => {
+      expect(awsCompileApigEvents.apiGatewayResources[path].resourceLogicalId).equal(
+        expectedResourceLogicalIds[path]
+      );
     });
   });
 
@@ -194,17 +192,16 @@ describe('#compileResources()', () => {
         },
       },
     ];
-    return awsCompileApigEvents.compileResources().then(() => {
-      const expectedResourceLogicalIds = {
-        'foo': 'ApiGatewayResourceFoo',
-        'foo/bar': 'ApiGatewayResourceFooBar',
-        'foo/{bar}': 'ApiGatewayResourceFooBarVar',
-      };
-      Object.keys(expectedResourceLogicalIds).forEach((path) => {
-        expect(awsCompileApigEvents.apiGatewayResources[path].resourceLogicalId).equal(
-          expectedResourceLogicalIds[path]
-        );
-      });
+    awsCompileApigEvents.compileResources();
+    const expectedResourceLogicalIds = {
+      'foo': 'ApiGatewayResourceFoo',
+      'foo/bar': 'ApiGatewayResourceFooBar',
+      'foo/{bar}': 'ApiGatewayResourceFooBarVar',
+    };
+    Object.keys(expectedResourceLogicalIds).forEach((path) => {
+      expect(awsCompileApigEvents.apiGatewayResources[path].resourceLogicalId).equal(
+        expectedResourceLogicalIds[path]
+      );
     });
   });
 
@@ -229,20 +226,19 @@ describe('#compileResources()', () => {
         },
       },
     ];
-    return awsCompileApigEvents.compileResources().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFooBar.Properties.PathPart
-      ).to.equal('bar');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFooBarVar.Properties.PathPart
-      ).to.equal('{bar}');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFooBarVarBaz.Properties.PathPart
-      ).to.equal('baz');
-    });
+    awsCompileApigEvents.compileResources();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFooBar.Properties.PathPart
+    ).to.equal('bar');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFooBarVar.Properties.PathPart
+    ).to.equal('{bar}');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFooBarVarBaz.Properties.PathPart
+    ).to.equal('baz');
   });
 
   it('should handle root resource references', () => {
@@ -254,11 +250,10 @@ describe('#compileResources()', () => {
         },
       },
     ];
-    return awsCompileApigEvents.compileResources().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-      ).to.deep.equal({});
-    });
+    awsCompileApigEvents.compileResources();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+    ).to.deep.equal({});
   });
 
   it('should create child resources only if there are predefined parent resources', () => {
@@ -335,43 +330,42 @@ describe('#compileResources()', () => {
         },
       },
     ];
-    return awsCompileApigEvents.compileResources().then(() => {
-      try {
-        awsCompileApigEvents.getResourceId('users/{userId}');
-        throw new Error('Expected API Gateway resource not found error, got success');
-      } catch (e) {
-        expect(e.message).to.equal('Can not find API Gateway resource from path users/{userId}');
-      }
+    awsCompileApigEvents.compileResources();
+    try {
+      awsCompileApigEvents.getResourceId('users/{userId}');
+      throw new Error('Expected API Gateway resource not found error, got success');
+    } catch (e) {
+      expect(e.message).to.equal('Can not find API Gateway resource from path users/{userId}');
+    }
 
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFoo
-      ).to.equal(undefined);
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceBar.Properties.RestApiId
-      ).to.equal('6fyzt1pfpk');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceBar.Properties.ParentId
-      ).to.equal('z5d4qh4oqi');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFooBar.Properties.ParentId
-      ).to.equal('axcybf2i39');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceBarIdVar.Properties.ParentId.Ref
-      ).to.equal('ApiGatewayResourceBar');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceUsersMePosts
-      ).not.equal(undefined);
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceUsersFriendsComments.Properties.ParentId
-      ).to.equal('fcasdoojp1');
-    });
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFoo
+    ).to.equal(undefined);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceBar.Properties.RestApiId
+    ).to.equal('6fyzt1pfpk');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceBar.Properties.ParentId
+    ).to.equal('z5d4qh4oqi');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFooBar.Properties.ParentId
+    ).to.equal('axcybf2i39');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceBarIdVar.Properties.ParentId.Ref
+    ).to.equal('ApiGatewayResourceBar');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceUsersMePosts
+    ).not.equal(undefined);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceUsersFriendsComments.Properties.ParentId
+    ).to.equal('fcasdoojp1');
   });
 
   it('should not create any child resources if all resources exists', () => {
@@ -413,24 +407,23 @@ describe('#compileResources()', () => {
       },
     ];
 
-    return awsCompileApigEvents.compileResources().then(() => {
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceFoo
-      ).to.equal(undefined);
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceUsers
-      ).to.equal(undefined);
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceUsersFriends
-      ).to.equal(undefined);
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-          .ApiGatewayResourceUsersIsThis
-      ).to.equal(undefined);
-    });
+    awsCompileApigEvents.compileResources();
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceFoo
+    ).to.equal(undefined);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceUsers
+    ).to.equal(undefined);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceUsersFriends
+    ).to.equal(undefined);
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+        .ApiGatewayResourceUsersIsThis
+    ).to.equal(undefined);
   });
 
   it('should throw error if parent of existing resources is required', () => {
@@ -506,14 +499,13 @@ describe('#compileResources()', () => {
       },
     ];
 
-    return awsCompileApigEvents.compileResources().then(() => {
-      expect(
-        Object.keys(
-          awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        ).every(
-          (k) => ['ApiGatewayMethodundefinedGet', 'ApiGatewayMethodundefinedPost'].indexOf(k) === -1
-        )
-      ).to.equal(true);
-    });
+    awsCompileApigEvents.compileResources();
+    expect(
+      Object.keys(
+        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      ).every(
+        (k) => ['ApiGatewayMethodundefinedGet', 'ApiGatewayMethodundefinedPost'].indexOf(k) === -1
+      )
+    ).to.equal(true);
   });
 });
