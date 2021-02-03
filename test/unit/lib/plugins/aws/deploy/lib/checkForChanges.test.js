@@ -84,19 +84,8 @@ describe('checkForChanges', () => {
       awsDeploy.getObjectMetadata.restore();
       awsDeploy.checkIfDeploymentIsNecessary.restore();
       awsDeploy.checkLogGroupSubscriptionFilterResourceLimitExceeded.restore();
+      checkLogGroupSubscriptionFilterResourceLimitExceededStub.restore();
     });
-
-    it('should run promise chain in order', () =>
-      expect(awsDeploy.checkForChanges()).to.be.fulfilled.then(() => {
-        expect(getMostRecentObjectsStub).to.have.been.calledOnce;
-        expect(getObjectMetadataStub).to.have.been.calledAfter(getMostRecentObjectsStub);
-        expect(checkIfDeploymentIsNecessaryStub).to.have.been.calledAfter(getObjectMetadataStub);
-        expect(checkLogGroupSubscriptionFilterResourceLimitExceededStub).to.have.been.calledAfter(
-          checkIfDeploymentIsNecessaryStub
-        );
-
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
-      }));
 
     it('should resolve if the "force" option is used', () => {
       awsDeploy.options.force = true;
@@ -628,40 +617,6 @@ describe('checkForChanges', () => {
       sandbox.restore();
     });
 
-    it('should not call checkLogGroup if deployment is not required', () => {
-      awsDeploy.checkIfDeploymentIsNecessary.restore();
-
-      sandbox.stub(awsDeploy, 'checkIfDeploymentIsNecessary').callsFake(
-        () =>
-          new Promise((resolve) => {
-            awsDeploy.serverless.service.provider.shouldNotDeploy = true;
-            resolve();
-          })
-      );
-
-      const spy = sandbox.spy(awsDeploy, 'checkLogGroupSubscriptionFilterResourceLimitExceeded');
-
-      return awsDeploy.checkForChanges().then(() => expect(spy).to.not.have.been.called);
-    });
-
-    it('should work normally when there are functions without events', () => {
-      awsDeploy.serverless.service.functions = {
-        first: {},
-      };
-
-      return expect(awsDeploy.checkForChanges()).to.be.fulfilled;
-    });
-
-    it('should work normally when there are functions events that are not cloudWwatchLog', () => {
-      awsDeploy.serverless.service.functions = {
-        first: {
-          events: [{ dummyEvent: 'test' }],
-        },
-      };
-
-      return expect(awsDeploy.checkForChanges()).to.be.fulfilled;
-    });
-
     describe('option to force update is set', () => {
       beforeEach(() => {
         awsDeploy.serverless.service.provider.cloudWatchLogs = {};
@@ -669,24 +624,6 @@ describe('checkForChanges', () => {
 
       afterEach(() => {
         awsDeploy.serverless.service.provider.cloudWatchLogs = undefined;
-      });
-
-      it('should not call delete if there are no subscriptionFilters', () => {
-        awsDeploy.serverless.service.functions = {
-          first: {
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.not.have.been.called);
       });
 
       it('should not call delete if there is a subFilter and the ARNs/logical IDs are the same', () => {
@@ -839,18 +776,6 @@ describe('checkForChanges', () => {
     });
 
     describe('#getFunctionsLatestLastModifiedDate', () => {
-      it('should return null when there are no functions', () => {
-        awsDeploy.serverless.service.functions = {};
-        awsDeploy.serverless.service.setFunctionNames();
-
-        return expect(awsDeploy.getFunctionsEarliestLastModifiedDate()).to.have.been.fulfilled.then(
-          (ans) => {
-            expect(getFunctionStub).to.have.not.been.called;
-            expect(ans).to.be.null;
-          }
-        );
-      });
-
       it('should treat rejections as epoch', () => {
         awsDeploy.provider.request.restore();
 
@@ -976,9 +901,377 @@ describe('checkForChanges #2', () => {
       expect(cfTemplate.Resources.FooLambdaFunction.Properties.Code.S3Key.endsWith('/artifact.zip'))
         .to.be.true;
     }));
+});
 
-  it('should skip a deployment with identical hashes and package.artifact targeting .serverless directory', () => {
-    return runServerless({
+const commonAwsSdkMock = {
+  CloudFormation: {
+    describeStacks: {},
+    describeStackResource: {
+      StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+    },
+  },
+  STS: {
+    getCallerIdentity: {
+      ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+      UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+      Account: '999999999999',
+      Arn: 'arn:aws:iam::999999999999:user/test',
+    },
+  },
+};
+
+const generateMatchingListObjectsResponse = async (serverless) => {
+  const packagePath = `${serverless.config.servicePath}/.serverless`;
+  const artifactNames = [packagePath /* TODO: Read packagePath and resolve all `.zip` files */];
+  artifactNames.push('compiled-cloudformation-template.json');
+  return {
+    Contents: artifactNames.map((artifactName) => ({
+      Key: `serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/${artifactName}`,
+      LastModified: new Date('2020-05-20T15:30:16.494+0000'),
+    })),
+  };
+};
+
+const generateMatchingHeadObjectResponse = async (serverless, { Key: key }) => {
+  // 1. If key points `'compiled-cloudformation-template.json' resolve hash for normalized CF template
+  // 2. Otherwise resolve hash for artifact in package path
+  return {
+    Metadata: { filesha256: [serverless, key /* TODO: Replace with hash */] },
+  };
+};
+
+describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
+  // Note: Deploy is skipped if:
+  // 1. Generated cloudFormation stack is same as one previously deployed (with normalization applied that clears random and time generated values)
+  // 2. Collection of generated artifacts (any in package folder) is exactly same (hashes are compared) as one uploaded to S3 bucket with last deployment
+  // 3. There's no "--force" CLI param used
+  // 4. All Deployed functions configuration modification dates are newer than S3 uploaded artifacts modification dates (if it's not the case, it may mean that previous deployment failed, and in such situation we should deploy unconditionally)
+
+  it.skip('TODO: should not deploy if artifacts in bucket are same as locally and modification dates for all functions are later than uploaded artifacts dates', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L223-L250
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L451-L550
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        // 1. Returns function configuration modification date.
+        //    Must be newer than artificats (in S3 folder) modification dates
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // 2. Lists all S3 bucket files with their modification dates
+          //    In S3 folder with latest date stamp:
+          //    - Collection need to match collection of artifacts in package folder
+          //    - LastModified date needs to be older than modification date of any function configuration
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          // 3. Lists hashes for all S3 buckets
+          //    Should match hashes fo artifacts in package folder
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
+  });
+
+  it.skip('TODO: should deploy with --force option', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L101-L111
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy', '--force'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy when deployment bucket is empty (first deployment)', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L125-L135
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L156-L170
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L208-L221
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L272-L289
+
+    const { serverless } = await runServerless({
+      fixture: 'packageFoldern',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          // TODO: Reflect function doesn't exist crash
+          getFunction: async () => {},
+        },
+        S3: {
+          // TODO: Reflect state after bucket creation, when bucket is empty
+          listObjectsV2: async () => {},
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should compare against latest deployment artifacts', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L172-L194
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // TODO: Enrich the result as generated by "generateMatchingListObjectsResponse" to
+          // additiona list same artifacts (but with different hashes) in older deployment folder
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
+  });
+
+  it.skip('TODO: should deploy if new function was introduced and otherwise there were no other changes', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L291-L314
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L854-L882
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          // TODO: Reject request for one function with function not found error
+          getFunction: () => {},
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if individually packaged function was removed', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L317-L350
+
+    const {
+      fixtureData: { updateConfig, servicePath },
+    } = await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['package'],
+    });
+
+    const listObjectsV2Response = await generateMatchingListObjectsResponse(serverless);
+    await updateConfig({ functions: { fnIndividually: null } });
+
+    let serverless;
+    await runServerless({
+      cwd: servicePath,
+      cliArgs: ['package'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          listObjectsV2: () => listObjectsV2Response,
+          // TODO: Ensure hash for no longer existing artificat
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if remote hashes are different', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L352-L380
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          // TODO: Tweak one artifact hash to be different
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if count of hashes (not their content) differs', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L382-L415
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      configExt: {
+        package: { individually: true },
+      },
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // TODO: Remove one result hash
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if uploaded artifacts are newer than function configuration modification date', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L417-L449
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L884-L924
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      configExt: {
+        package: { individually: true },
+      },
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: () => {
+            // TODO: For *one* function return date that is older than one of uploaded artifacts
+          },
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if custom package.artifact have changed', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L552-L585
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L929-L978
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      configExt: {
+        package: { artifact: 'artifact.zip' },
+      },
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // TODO: Ensure to list "artifact.js"
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          // TODO: Cover "artifact.js" with not matching hash
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it('should skip a deployment with identical hashes and package.artifact targeting .serverless directory', async () => {
+    // TODO: Reconfigure to rely on generateMatchingListObjectsResponse and generateMatchingHeadObjectResponse utils
+
+    const { serverless } = await runServerless({
       fixture: 'packageArtifactInServerlessDir',
       cliArgs: ['deploy'],
       configExt: {
@@ -992,12 +1285,7 @@ describe('checkForChanges #2', () => {
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       awsRequestStubMap: {
-        CloudFormation: {
-          describeStacks: {},
-          describeStackResource: {
-            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
-          },
-        },
+        ...commonAwsSdkMock,
         Lambda: {
           getFunction: {
             Configuration: {
@@ -1052,18 +1340,225 @@ describe('checkForChanges #2', () => {
             ],
           },
         },
-        STS: {
-          getCallerIdentity: {
-            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
-            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
-            Account: '999999999999',
-            Arn: 'arn:aws:iam::999999999999:user/test',
+      },
+    });
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
+  });
+
+  it.skip('TODO: should crash meaningfully if bucket does not exist', () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L137-L149
+
+    return expect(
+      runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          S3: {
+            // TODO: Reflect bucket does not exist crash
+            listObjectsV2: async () => {},
           },
         },
-      },
-    }).then(({ serverless, stdoutData }) => {
-      expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
-      expect(stdoutData).to.contain('Service files not changed. Skipping deployment...');
+      })
+    ).to.eventually.be.rejected.and.have.property(
+      'code'
+      // TODO: Fill with expected error code
+    );
+  });
+
+  it.skip('TODO: should handle gently other AWS SDK errors', () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L151-L154
+
+    return expect(
+      runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          S3: {
+            // TODO: Reflect bucket access error
+            listObjectsV2: async () => {},
+          },
+        },
+      })
+    ).to.eventually.be.rejected.and.have.property(
+      'code'
+      // TODO: Fill with expected error code
+    );
+  });
+
+  describe.skip('TODO: checkLogGroupSubscriptionFilterResourceLimitExceeded', () => {
+    it('should not attempt to delete and add filter for same destination', async () => {
+      // Replaces:
+      // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L692-L713
+      // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L761-L783
+
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            describeSubscriptionFilters: {
+              // TODO: Ensure same ARN as lambda on which it is configured
+            },
+            // TODO: Configure stub
+            deleteSubscriptionFilter: null,
+          },
+        },
+      });
+
+      // TODO: Confirm that stub was not called
+    });
+
+    it('should attempt to delete filter for old destination', async () => {
+      // Replaces:
+      // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L715-L736
+      // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L816-L838
+
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            describeSubscriptionFilters: {
+              // TODO: Ensure different ARN as lambda on which it is configured
+            },
+            // TODO: Configure stub
+            deleteSubscriptionFilter: null,
+          },
+        },
+      });
+    });
+
+    it('should attempt to delete filter if order of cloudwatch events changed', async () => {
+      // Replaces:
+      // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L738-L759
+
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: {
+            fn1: {
+              events: [
+                { cloudwatchLog: 'someLogGroupName1' },
+                { cloudwatchLog: 'someLogGroupName2' },
+              ],
+            },
+          },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            describeSubscriptionFilters: () => {
+              // TODO: Ensure same ARN as lambda on which it is configured, but tweak index for one of the filters
+            },
+            // TODO: Configure stub
+            deleteSubscriptionFilter: null,
+          },
+        },
+      });
+
+      // TODO: Confirm that stub (for filter in question) was called
+    });
+
+    it('should not attempt to delete and add filter in context of custom partition', async () => {
+      // Replaces:
+      // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L785-L814
+
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          STS: {
+            getCallerIdentity: {
+              ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+              UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+              Account: '999999999999',
+              Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+            },
+          },
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            describeSubscriptionFilters: {
+              // TODO: Ensure same ARN as lambda on which it is configured
+            },
+            // TODO: Configure stub
+            deleteSubscriptionFilter: null,
+          },
+        },
+      });
+
+      // TODO: Confirm that stub was not called
     });
   });
 });
