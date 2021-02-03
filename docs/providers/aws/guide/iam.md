@@ -91,6 +91,31 @@ provider:
         - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'some/path']] }
 ```
 
+### Naming for the Default IAM Role
+
+The name of the IAM Role provided will include the service name, stage, region, and 'lambdaRole' suffix, i.e.
+
+```yml
+  'Fn::Join': [
+    '-',
+    [
+      this.provider.serverless.service.service,
+      this.provider.getStage(),
+      { Ref: 'AWS::Region' },
+      'lambdaRole',
+    ],
+  ],
+```
+
+This can be altered and replaced entirely with `provider.iamRoleName`,
+
+```yml
+service: new-service
+
+provider:
+  iamRoleName: some-abbreviated-name-${self:provider.stage}-role
+```
+
 ## Custom IAM Roles
 
 **WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
