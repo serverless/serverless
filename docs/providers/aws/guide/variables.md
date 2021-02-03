@@ -675,6 +675,15 @@ Resources:
         - 'log-group:/aws/lambda/*:*:*'
 ```
 
+You can also directly use the [Sub] function:
+
+```yml
+Resources:
+  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*:*'
+```
+
+[sub]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-sub.html
+
 ## Read String Variable Values as Boolean Values
 
 In some cases, a parameter expect a `true` or `false` boolean value. If you are using a variable to define the value, it may return as a string (e.g. when using SSM variables) and thus return a `"true"` or `"false"` string value.
