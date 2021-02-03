@@ -86,6 +86,6 @@ const processSpanPromise = (async () => {
       throw error;
     }
   } catch (error) {
-    handleError(error);
+    handleError(error, { isLocallyInstalled: serverless && serverless.isLocallyInstalled });
   }
 })();
