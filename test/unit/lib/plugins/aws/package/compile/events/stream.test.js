@@ -1105,6 +1105,7 @@ describe('AwsCompileStreamEvents', () => {
                   startingPosition: 'STARTING_POSITION_ONE',
                   enabled: false,
                   parallelizationFactor: 10,
+                  tumblingWindowInSeconds: 30,
                 },
               },
               {
@@ -1191,6 +1192,13 @@ describe('AwsCompileStreamEvents', () => {
         );
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisFoo.Properties.tumblingWindowInSeconds
+        ).to.equal(
+          awsCompileStreamEvents.serverless.service.functions.first.events[0].stream
+            .tumblingWindowInSeconds
+        );
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisFoo.Properties.Enabled
         ).to.equal(false);
 
@@ -1214,6 +1222,10 @@ describe('AwsCompileStreamEvents', () => {
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisBar.Properties.ParallelizationFactor
+        ).to.equal(undefined);
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisBar.Properties.TumblingWindowInSeconds
         ).to.equal(undefined);
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
@@ -1286,6 +1298,10 @@ describe('AwsCompileStreamEvents', () => {
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisBuzz.Properties.ParallelizationFactor
+        ).to.equal(undefined);
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisBar.Properties.TumblingWindowInSeconds
         ).to.equal(undefined);
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
