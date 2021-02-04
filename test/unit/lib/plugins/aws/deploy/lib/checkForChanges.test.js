@@ -125,9 +125,7 @@ describe('checkForChanges', () => {
     });
 
     it('should translate error if rejected due to missing bucket', () => {
-      listObjectsV2Stub.rejects(
-        new ServerlessError('The specified bucket does not exist')
-      );
+      listObjectsV2Stub.rejects(new ServerlessError('The specified bucket does not exist'));
 
       return expect(awsDeploy.getMostRecentObjects()).to.be.rejectedWith(
         [

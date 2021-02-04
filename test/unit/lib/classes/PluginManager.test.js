@@ -716,9 +716,7 @@ describe('PluginManager', () => {
 
       pluginManager.setCliOptions({ help: true });
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(
-        ServerlessError
-      );
+      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError);
     });
 
     it('should pass through an error when trying to load a broken plugin', () => {
@@ -732,9 +730,7 @@ describe('PluginManager', () => {
       const cliCommandsMock = ['plugin'];
       pluginManager.setCliCommands(cliCommandsMock);
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(
-        ServerlessError
-      );
+      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError);
     });
 
     afterEach(() => {
