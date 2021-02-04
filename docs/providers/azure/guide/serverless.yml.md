@@ -136,8 +136,8 @@ package:
     - '!exclude-me-dir/**'
     - '!local.settings.json'
     - '!.vscode/**'
-    - !include-me.js
-    - !include-me-dir/**
+    - include-me.js
+    - include-me-dir/**
 
 functions:
   hello:
