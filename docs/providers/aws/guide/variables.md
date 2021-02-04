@@ -666,20 +666,27 @@ You can reference [AWS Pseudo Parameters](http://docs.aws.amazon.com/AWSCloudFor
 Here's an example:
 
 ```yml
-Resources:
-  - 'Fn::Join':
-      - ':'
-      - - 'arn:aws:logs'
-        - Ref: 'AWS::Region'
-        - Ref: 'AWS::AccountId'
-        - 'log-group:/aws/lambda/*:*:*'
+functions:
+  hello:
+    handler: my-function.handler
+    environment:
+      var:
+        Fn::Join:
+          - ':'
+          - - 'arn:aws:logs'
+            - Ref: 'AWS::Region'
+            - Ref: 'AWS::AccountId'
+            - 'log-group:/aws/lambda/*:*:*'
 ```
 
 You can also directly use the [Sub] function:
 
 ```yml
-Resources:
-  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*:*'
+functions:
+  hello:
+    handler: my-function.handler
+    environment:
+      var: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*:*'
 ```
 
 [sub]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-sub.html
