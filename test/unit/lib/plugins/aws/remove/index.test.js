@@ -54,10 +54,35 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
     deleteStackStub.resetHistory();
     describeStackEventsStub.resetHistory();
     describeRepositoriesStub.reset();
+    deleteRepositoryStub.resetHistory();
   });
 
-  it('executes expected operations during removal', async () => {
+  it('executes expected operations during removal when repository does not exist', async () => {
     describeRepositoriesStub.throws({ providerError: { code: 'RepositoryNotFoundException' } });
+
+    const { awsNaming } = await runServerless({
+      fixture: 'function',
+      cliArgs: ['remove'],
+      awsRequestStubMap,
+    });
+
+    expect(deleteObjectsStub).to.be.calledWithExactly({
+      Bucket: 'resource-id',
+      Delete: {
+        Objects: [{ Key: 'first' }, { Key: 'second' }],
+      },
+    });
+    expect(deleteStackStub).to.be.calledWithExactly({ StackName: awsNaming.getStackName() });
+    expect(describeStackEventsStub).to.be.calledWithExactly({
+      StackName: awsNaming.getStackName(),
+    });
+    expect(deleteStackStub.calledAfter(deleteObjectsStub)).to.be.true;
+    expect(describeStackEventsStub.calledAfter(deleteStackStub)).to.be.true;
+    expect(deleteRepositoryStub).not.to.be.called;
+  });
+
+  it('executes expected operations during removal when repository cannot be accessed due to denied access', async () => {
+    describeRepositoriesStub.throws({ providerError: { code: 'AccessDeniedException' } });
 
     const { awsNaming } = await runServerless({
       fixture: 'function',
@@ -93,5 +118,20 @@ describe('test/unit/lib/plugins/aws/remove/index.test.js', () => {
       registryId: '999999999999',
       force: true,
     });
+  });
+
+  it('emits warning when repository cannot be accessed due to denied access but there are images defined', async () => {
+    describeRepositoriesStub.throws({ providerError: { code: 'AccessDeniedException' } });
+
+    const { stdoutData } = await runServerless({
+      fixture: 'ecr',
+      cliArgs: ['remove'],
+      awsRequestStubMap,
+    });
+
+    expect(stdoutData).to.include('WARNING: Could not access ECR repository due to denied access');
+    expect(stdoutData).to.include('ECR repository removal will be skipped.');
+
+    expect(deleteRepositoryStub).not.to.be.called;
   });
 });
