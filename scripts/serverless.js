@@ -21,6 +21,7 @@ process.once('uncaughtException', (error) =>
   handleError(error, {
     isUncaughtException: true,
     isLocallyInstalled: serverless && serverless.isLocallyInstalled,
+    isInvokedByGlobalInstallation: serverless && serverless.isInvokedByGlobalInstallation,
   })
 );
 
@@ -86,6 +87,9 @@ const processSpanPromise = (async () => {
       throw error;
     }
   } catch (error) {
-    handleError(error);
+    handleError(error, {
+      isLocallyInstalled: serverless && serverless.isLocallyInstalled,
+      isInvokedByGlobalInstallation: serverless && serverless.isInvokedByGlobalInstallation,
+    });
   }
 })();
