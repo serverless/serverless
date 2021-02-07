@@ -169,10 +169,9 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
     describe('Provider properties - deprecated properties', () => {
       let cfResources;
       let naming;
-      let service;
 
       before(async () => {
-        const { cfTemplate, awsNaming, fixtureData } = await runServerless({
+        const { cfTemplate, awsNaming } = await runServerless({
           fixture: 'function',
           cliArgs: ['package'],
           configExt: {
@@ -201,7 +200,6 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
 
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
-        service = fixtureData.serviceConfig.service;
       });
 
       it('should support `provider.iamRoleStatements`', async () => {
@@ -237,22 +235,15 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           'arn:aws:iam::123456789012:policy/XCompanyBoundaries'
         );
       });
-
-      it('should support `provider.logRetentionInDays`', () => {
-        const normalizedName = naming.getLogGroupLogicalId('foo');
-        const iamResource = cfResources[normalizedName];
-        expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
-        expect(iamResource.Properties.RetentionInDays).to.be.equal(5);
-        expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-foo`);
-      });
     });
 
     describe('Provider properties', () => {
       let cfResources;
       let naming;
+      let service;
 
       before(async () => {
-        const { cfTemplate, awsNaming } = await runServerless({
+        const { cfTemplate, awsNaming, fixtureData } = await runServerless({
           fixture: 'function',
           cliArgs: ['package'],
           configExt: {
@@ -285,6 +276,7 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
 
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
+        service = fixtureData.serviceConfig.service;
       });
 
       it('should support `provider.iam.role.statements`', async () => {
@@ -336,6 +328,14 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
             ],
           ],
         });
+      });
+
+      it('should support `provider.logRetentionInDays`', () => {
+        const normalizedName = naming.getLogGroupLogicalId('foo');
+        const iamResource = cfResources[normalizedName];
+        expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
+        expect(iamResource.Properties.RetentionInDays).to.be.equal(5);
+        expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-foo`);
       });
     });
 

@@ -63,6 +63,7 @@ Deprecation code: `PROVIDER_IAM_SETTINGS`
 Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleStatements`, `iamManagedPolicies`, `role` and `cfnRole` will be grouped under `iam` property. Refer to the[IAM Guide](/framework/docs/providers/aws/guide/iam.md).
 
 - `provider.role` -> `provider.iam.role`
+- `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionBoundary`
 - `provider.iamRoleStatements` -> `provider.iam.role.statements`
 - `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
 - `provider.cfnRole` -> `provider.iam.role.deploymentRole`
