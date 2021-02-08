@@ -973,4 +973,14 @@ describe('#naming()', () => {
       ).to.equal('custom/FnJoinRefApiGatewayRestApiexecuteapi');
     });
   });
+
+  describe('#getEcrRepositoryName', () => {
+    it('should correctly trim trailing dash and ensure no consecutive dashes are present', () => {
+      serverless.service.serviceObject = { name: 'service--with-weird-dashes---' };
+      sdk.options.stage = 'stage--with-dash-';
+      expect(sdk.naming.getEcrRepositoryName()).to.equal(
+        'serverless-service-with-weird-dashes-stage-with-dash'
+      );
+    });
+  });
 });
