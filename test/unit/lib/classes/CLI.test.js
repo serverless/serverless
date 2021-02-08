@@ -611,7 +611,7 @@ describe('CLI [new tests]', () => {
       expect(stdoutData).to.include('Documentation: http://slss.io/docs');
     }));
 
-  it.only('Should handle incomplete command configurations', async () => {
+  it('Should handle incomplete command configurations', async () => {
     const { stdoutData } = await runServerless({
       fixture: 'plugin',
       cliArgs: ['customCommand', '--help'],

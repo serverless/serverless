@@ -399,10 +399,19 @@ describe('PluginManager', () => {
     }
   };
 
+  const moduleStub = {
+    createRequire: (source) => ({
+      resolve: (req) => {
+        return resolveStub(path.dirname(source), req).realPath;
+      },
+    }),
+  };
+
   let restoreEnv;
   let servicePath;
   let PluginManager = proxyquire('../../../../lib/classes/PluginManager', {
     'ncjsm/resolve/sync': resolveStub,
+    'module': moduleStub,
   });
 
   beforeEach(() => {
@@ -411,7 +420,7 @@ describe('PluginManager', () => {
     serverless.cli = new CLI();
     serverless.processedInput = { commands: [], options: {} };
     pluginManager = new PluginManager(serverless);
-    servicePath = pluginManager.serverless.config.servicePath = 'foo';
+    servicePath = pluginManager.serverless.config.servicePath = '/foo';
   });
 
   afterEach(() => restoreEnv());
@@ -466,9 +475,10 @@ describe('PluginManager', () => {
       PluginManager = proxyquire('../../../../lib/classes/PluginManager.js', {
         '../utils/fs/writeFile': writeFileStub,
         'ncjsm/resolve/sync': resolveStub,
+        'module': moduleStub,
       });
       pluginManager = new PluginManager(serverless);
-      pluginManager.serverless.config = { servicePath: 'somePath' };
+      pluginManager.serverless.config = { servicePath: '/somePath' };
       servicePath = pluginManager.serverless.config.servicePath;
       cacheFilePath = getCacheFilePath(servicePath);
       getCommandsStub = sinon.stub(pluginManager, 'getCommands');
@@ -1346,7 +1356,7 @@ describe('PluginManager', () => {
     beforeEach(() => {
       serverlessInstance = new Serverless();
       serverlessInstance.configurationInput = null;
-      serverlessInstance.config.servicePath = 'my-service';
+      serverlessInstance.config.servicePath = '/my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);
     });
 
@@ -1402,7 +1412,7 @@ describe('PluginManager', () => {
 
     it('should load if the configDependent property is true and config exists', () => {
       pluginManagerInstance.serverless.configurationInput = {
-        servicePath: 'foo',
+        servicePath: '/foo',
       };
 
       pluginManagerInstance.commands = {
