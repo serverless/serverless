@@ -1682,9 +1682,12 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
       const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
       const imageDigestFromECR =
         'sha256:2e6b10a4b1ca0f6d3563a8a1f034dde7c4d7c93b50aa91f24311765d0822186b';
+      const describeImagesStub = sinon
+        .stub()
+        .resolves({ imageDetails: [{ imageDigest: imageDigestFromECR }] });
       const awsRequestStubMap = {
         ECR: {
-          describeImages: { imageDetails: [{ imageDigest: imageDigestFromECR }] },
+          describeImages: describeImagesStub,
         },
       };
 
@@ -1709,6 +1712,10 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
               },
               fnImageWithTag: {
                 image: '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker:stable',
+              },
+              fnImageWithTagAndRepoWithSlashes: {
+                image:
+                  '000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda/repo-docker:stable',
               },
               fnImageWithExplicitUri: {
                 image: {
@@ -1779,6 +1786,31 @@ describe('test/unit/lib/plugins/aws/provider.test.js', () => {
 
         const versionCfConfig = findVersionCfConfig(cfResources, functionCfLogicalId);
         expect(versionCfConfig.CodeSha256).to.equal(imageDigestFromECR.slice('sha256:'.length));
+        expect(describeImagesStub).to.be.calledWith({
+          imageIds: [{ imageTag: 'stable' }],
+          registryId: '000000000000',
+          repositoryName: 'test-lambda-docker',
+        });
+      });
+
+      it('should support `functions[].image` with tag and repository name with slash', () => {
+        const functionServiceConfig = serviceConfig.functions.fnImageWithTagAndRepoWithSlashes;
+        const functionCfLogicalId = naming.getLambdaLogicalId('fnImageWithTagAndRepoWithSlashes');
+        const functionCfConfig = cfResources[functionCfLogicalId].Properties;
+
+        expect(functionCfConfig.Code).to.deep.equal({
+          ImageUri: `${functionServiceConfig.image.split(':')[0]}@${imageDigestFromECR}`,
+        });
+        expect(functionCfConfig).to.not.have.property('Handler');
+        expect(functionCfConfig).to.not.have.property('Runtime');
+
+        const versionCfConfig = findVersionCfConfig(cfResources, functionCfLogicalId);
+        expect(versionCfConfig.CodeSha256).to.equal(imageDigestFromECR.slice('sha256:'.length));
+        expect(describeImagesStub).to.be.calledWith({
+          imageIds: [{ imageTag: 'stable' }],
+          registryId: '000000000000',
+          repositoryName: 'test-lambda/repo-docker',
+        });
       });
 
       it('should support `functions[].image` that references provider.ecr.images defined with explicit uri', () => {
