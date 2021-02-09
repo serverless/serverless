@@ -96,7 +96,7 @@ describe('interactiveCli: autoUpdate', () => {
     expect(configUtils.get('autoUpdate.enabled')).to.be.undefined;
   });
 
-  it('Should setup tab completion on user request', async () => {
+  it('Should setup auto update on user request', async () => {
     configureInquirerStub(inquirer, {
       confirm: { shouldSetupAutoUpdate: true },
     });
