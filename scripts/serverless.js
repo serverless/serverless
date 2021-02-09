@@ -32,8 +32,12 @@ const processSpanPromise = (async () => {
     require('../lib/utils/analytics').sendPending({
       serverlessExecutionSpan: processSpanPromise,
     });
+    const { options } = require('../lib/cli/resolve-input')();
 
-    if (await require('../lib/cli/eventually-list-version')()) return;
+    if (options.version) {
+      await require('../lib/cli/list-version');
+      return;
+    }
 
     const uuid = require('uuid');
     const Serverless = require('../lib/Serverless');
