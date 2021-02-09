@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
+const ServerlessError = require('../../../../../../../../../../lib/serverless-error');
 
 describe('#validate()', () => {
   let serverless;
@@ -1529,7 +1530,7 @@ describe('#validate()', () => {
       },
     };
     expect(() => awsCompileApigEvents.validate()).to.throw(
-      serverless.classes.Error,
+      ServerlessError,
       [
         'Invalid stage name my@stage: it should contains only [-_a-zA-Z0-9]',
         'for AWS provider if http event are present',

@@ -8,7 +8,7 @@ const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../lib/Serverless');
 const { getTmpDirPath } = require('../../../../utils/fs');
 const runServerless = require('../../../../utils/run-serverless');
-const { ServerlessError } = require('../../../../../lib/classes/Error');
+const ServerlessError = require('../../../../../lib/serverless-error');
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));

@@ -10,6 +10,7 @@ const resolveAwsEnv = require('@serverless/test/resolve-env');
 const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
 const Create = require('../../../../lib/plugins/create/create');
+const ServerlessError = require('../../../../lib/serverless-error');
 
 const path = require('path');
 const fs = require('fs');
@@ -707,7 +708,7 @@ describe('PluginManager', () => {
     it('should throw an error when trying to load unknown plugin', () => {
       const servicePlugins = ['ServicePluginMock3', 'ServicePluginMock1'];
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.throw(serverless.classes.Error);
+      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.throw(ServerlessError);
     });
 
     it('should not throw error when trying to load unknown plugin with help flag', () => {
@@ -715,9 +716,7 @@ describe('PluginManager', () => {
 
       pluginManager.setCliOptions({ help: true });
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(
-        serverless.classes.Error
-      );
+      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError);
     });
 
     it('should pass through an error when trying to load a broken plugin', () => {
@@ -731,9 +730,7 @@ describe('PluginManager', () => {
       const cliCommandsMock = ['plugin'];
       pluginManager.setCliCommands(cliCommandsMock);
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(
-        serverless.classes.Error
-      );
+      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError);
     });
 
     afterEach(() => {
@@ -1251,7 +1248,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       expect(() => pluginManager.validateCommand(['mycmd', 'mysubcmd'])).to.not.throw(
-        serverless.classes.Error
+        ServerlessError
       );
     });
 
@@ -1259,7 +1256,7 @@ describe('PluginManager', () => {
       pluginManager.addPlugin(ContainerPluginMock);
 
       expect(() => pluginManager.validateCommand(['mycontainer', 'mysubcmd'])).to.not.throw(
-        serverless.classes.Error
+        ServerlessError
       );
     });
 

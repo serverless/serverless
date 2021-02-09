@@ -1,7 +1,7 @@
 'use strict';
 
 const runServerless = require('../../../../../../../../utils/run-serverless');
-const { ServerlessError } = require('../../../../../../../../../lib/classes/Error');
+const ServerlessError = require('../../../../../../../../../lib/serverless-error');
 const { use: chaiUse, expect } = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 

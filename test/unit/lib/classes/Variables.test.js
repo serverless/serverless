@@ -19,6 +19,7 @@ const Serverless = require('../../../../lib/Serverless');
 const slsError = require('../../../../lib/classes/Error');
 const Utils = require('../../../../lib/classes/Utils');
 const Variables = require('../../../../lib/classes/Variables');
+const ServerlessError = require('../../../../lib/serverless-error');
 const { getTmpDirPath } = require('../../../utils/fs');
 const skipOnDisabledSymlinksInWindows = require('@serverless/test/skip-on-disabled-symlinks-in-windows');
 const runServerless = require('../../../utils/run-serverless');
@@ -274,7 +275,7 @@ describe('Variables', () => {
         awsProvider = new AwsProvider(serverless, {});
         requestStub = sinon
           .stub(awsProvider, 'request')
-          .callsFake(() => BbPromise.reject(new serverless.classes.Error('Not found.', 400)));
+          .callsFake(() => BbPromise.reject(new ServerlessError('Not found.', 400)));
       });
       afterEach(() => {
         requestStub.restore();
@@ -1184,7 +1185,7 @@ module.exports = {
           return serverless.variables
             .populateObject(service.custom)
             .should.be.rejectedWith(
-              serverless.classes.Error,
+              ServerlessError,
               'Invalid variable syntax when referencing file'
             );
         });
@@ -1321,13 +1322,13 @@ module.exports = {
       const awsProvider = new AwsProvider(serverless, options);
       const param = '/some/path/to/invalidparam';
       const property = `\${ssm:${param}}`;
-      const error = new serverless.classes.Error('Some random failure.', 123);
+      const error = new ServerlessError('Some random failure.', 123);
       const requestStub = sinon
         .stub(awsProvider, 'request')
         .callsFake(() => BbPromise.reject(error));
       return serverless.variables
         .populateProperty(property)
-        .should.be.rejectedWith(serverless.classes.Error)
+        .should.be.rejectedWith(ServerlessError)
         .then(() => expect(requestStub.callCount).to.equal(1))
         .finally(() => requestStub.restore());
     });
@@ -1399,7 +1400,7 @@ module.exports = {
       const property = 'your account number is ${opt:object}';
       return expect(() =>
         serverless.variables.populateVariable(property, matchedString, valueToPopulate)
-      ).to.throw(serverless.classes.Error);
+      ).to.throw(ServerlessError);
     });
   });
 
@@ -1659,7 +1660,7 @@ module.exports = {
     it('should reject invalid sources', () =>
       serverless.variables
         .getValueFromSource('weird:source')
-        .should.be.rejectedWith(serverless.classes.Error));
+        .should.be.rejectedWith(ServerlessError));
 
     describe('caching', () => {
       const sources = [
@@ -2015,7 +2016,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./config.yml).testObj.sub')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
 
     it('should throw an error if resolved value is undefined', () => {
@@ -2026,7 +2027,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
 
     it('should throw an error if resolved value is a symbol', () => {
@@ -2037,7 +2038,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
 
     it('should throw an error if resolved value is a function', () => {
@@ -2048,7 +2049,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
   });
 
@@ -2155,7 +2156,7 @@ module.exports = {
       return serverless.variables
         .getValueFromCf('cf:some-stack.DoestNotExist')
         .should.be.rejectedWith(
-          serverless.classes.Error,
+          ServerlessError,
           /to request a non exported variable from CloudFormation/
         )
         .then(() => {
@@ -2214,7 +2215,7 @@ module.exports = {
         .callsFake(() => BbPromise.reject(error));
       return expect(serverless.variables.getValueFromS3('s3:some.bucket/path/to/key'))
         .to.be.rejectedWith(
-          serverless.classes.Error,
+          ServerlessError,
           'Error getting value for s3:some.bucket/path/to/key. The specified bucket is not valid'
         )
         .then()

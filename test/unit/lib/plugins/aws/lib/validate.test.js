@@ -4,6 +4,7 @@ const chai = require('chai');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const validate = require('../../../../../../lib/plugins/aws/lib/validate');
 const Serverless = require('../../../../../../lib/Serverless');
+const ServerlessError = require('../../../../../../lib/serverless-error');
 
 chai.use(require('chai-as-promised'));
 
@@ -40,7 +41,7 @@ describe('#validate', () => {
     it('should throw error if not inside service (servicePath not defined)', () => {
       awsPlugin.serverless.config.servicePath = false;
       return expect(() => awsPlugin.validate()).to.throw(
-        serverless.classes.Error,
+        ServerlessError,
         /can only be run inside a service directory/
       );
     });

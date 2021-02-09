@@ -13,6 +13,7 @@ const normalizeFiles = require('../../../../../../../lib/plugins/aws/lib/normali
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
+const ServerlessError = require('../../../../../../../lib/serverless-error');
 const runServerless = require('../../../../../../utils/run-serverless');
 
 // Configure chai
@@ -124,9 +125,7 @@ describe('checkForChanges', () => {
     });
 
     it('should translate error if rejected due to missing bucket', () => {
-      listObjectsV2Stub.rejects(
-        new serverless.classes.Error('The specified bucket does not exist')
-      );
+      listObjectsV2Stub.rejects(new ServerlessError('The specified bucket does not exist'));
 
       return expect(awsDeploy.getMostRecentObjects()).to.be.rejectedWith(
         [
@@ -138,7 +137,7 @@ describe('checkForChanges', () => {
     });
 
     it('should throw original error if rejected not due to missing bucket', () => {
-      listObjectsV2Stub.rejects(new serverless.classes.Error('Other reason'));
+      listObjectsV2Stub.rejects(new ServerlessError('Other reason'));
       return expect(awsDeploy.getMostRecentObjects()).to.be.rejectedWith('Other reason');
     });
 
