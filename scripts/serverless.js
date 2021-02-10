@@ -32,7 +32,7 @@ const processSpanPromise = (async () => {
     require('../lib/utils/analytics').sendPending({
       serverlessExecutionSpan: processSpanPromise,
     });
-    const { options } = require('../lib/cli/resolve-input')();
+    const { commands, options } = require('../lib/cli/resolve-input')();
 
     if (options.version) {
       await require('../lib/cli/list-version');
@@ -63,6 +63,8 @@ const processSpanPromise = (async () => {
     serverless = new Serverless({
       configuration,
       configurationPath: configuration && configurationPath,
+      commands,
+      options,
     });
 
     try {
