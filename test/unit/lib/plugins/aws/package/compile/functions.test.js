@@ -339,10 +339,8 @@ describe('AwsCompileFunctions', () => {
 
     it('should create a simple function resource', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
+
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -376,10 +374,8 @@ describe('AwsCompileFunctions', () => {
 
     it('should create a function resource with function level tags', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
+
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -926,10 +922,7 @@ describe('AwsCompileFunctions', () => {
 
     it('should create a function resource with function level environment config', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -996,10 +989,8 @@ describe('AwsCompileFunctions', () => {
 
     it('should consider function based config when creating a function resource', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
+
       awsCompileFunctions.serverless.service.functions = {
         func: {
           name: 'customized-func-function',
@@ -1035,10 +1026,8 @@ describe('AwsCompileFunctions', () => {
 
     it('should default to the nodejs12.x runtime when no provider runtime is given', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
+
       awsCompileFunctions.serverless.service.provider.runtime = null;
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -1169,10 +1158,8 @@ describe('AwsCompileFunctions', () => {
 
     it('should set function declared reserved concurrency limit', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
+
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1226,10 +1213,8 @@ describe('AwsCompileFunctions', () => {
 
     it('should set function declared reserved concurrency limit even if it is zero', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
+
       awsCompileFunctions.serverless.service.functions = {
         func: {
           handler: 'func.function.handler',
@@ -1333,10 +1318,7 @@ describe('AwsCompileFunctions', () => {
 
     it('should not set unset properties when not specified in yml (layers, vpc, etc)', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
 
       awsCompileFunctions.serverless.service.functions = {
         func: {
@@ -1371,10 +1353,7 @@ describe('AwsCompileFunctions', () => {
 
     it('should set Layers when specified', () => {
       const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .slice(0)
-        .join(path.sep);
+      const s3FileName = awsCompileFunctions.serverless.service.package.artifact;
 
       awsCompileFunctions.serverless.service.functions = {
         func: {
