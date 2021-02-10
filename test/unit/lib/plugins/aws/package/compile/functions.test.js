@@ -152,12 +152,8 @@ describe('AwsCompileFunctions', () => {
           ];
 
         const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        const s3FileName = awsCompileFunctions.serverless.service.functions[
-          functionName
-        ].package.artifact
-          .split(path.sep)
-          .slice(0)
-          .join(path.sep);
+        const s3FileName =
+          awsCompileFunctions.serverless.service.functions[functionName].package.artifact;
 
         expect(functionResource.Properties.Code.S3Key).to.deep.equal(`${s3Folder}/${s3FileName}`);
       });
@@ -430,10 +426,7 @@ describe('AwsCompileFunctions', () => {
 
       beforeEach(() => {
         s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        s3FileName = awsCompileFunctions.serverless.service.package.artifact
-          .split(path.sep)
-          .slice(0)
-          .join(path.sep);
+        s3FileName = awsCompileFunctions.serverless.service.package.artifact;
       });
 
       describe('when IamRoleLambdaExecution is used', () => {
@@ -676,10 +669,7 @@ describe('AwsCompileFunctions', () => {
 
       beforeEach(() => {
         s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        s3FileName = awsCompileFunctions.serverless.service.package.artifact
-          .split(path.sep)
-          .slice(0)
-          .join(path.sep);
+        s3FileName = awsCompileFunctions.serverless.service.package.artifact;
       });
 
       it('should allow if config is provided as a Fn::GetAtt', () => {
@@ -864,10 +854,7 @@ describe('AwsCompileFunctions', () => {
 
       beforeEach(() => {
         s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        s3FileName = awsCompileFunctions.serverless.service.package.artifact
-          .split(path.sep)
-          .slice(0)
-          .join(path.sep);
+        s3FileName = awsCompileFunctions.serverless.service.package.artifact;
       });
 
       describe('when IamRoleLambdaExecution is used', () => {
