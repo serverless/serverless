@@ -23,6 +23,8 @@ disabledDeprecations:
 
 Deprecation code: `MISSING_SERVICE_CONFIGURATION`
 
+_Note: Applies only to eventual programmatic usage of the Framework_
+
 `Serverless` constructor was refactored to depend on service configuration being resolved externally and passed to its constructor with `config.configuration`. Starting from v3.0.0 configuration will not be resolved internally.
 
 <a name="NESTED_CUSTOM_CONFIGURATION_PATH"><div>&nbsp;</div></a>
@@ -30,6 +32,8 @@ Deprecation code: `MISSING_SERVICE_CONFIGURATION`
 ## Service configurations should not be nested in service sub directories
 
 Deprecation code: `NESTED_CUSTOM_CONFIGURATION_PATH`
+
+_Note: Applies only to eventual programmatic usage of the Framework_
 
 Service configuration in all cases should be put at root folder of a service.
 All paths in this configuration are resolved against service directory, and it's also the case if configuration is nested in sub directory.
@@ -41,6 +45,8 @@ To avoid confusing behavior starting with v3.0.0 Framework will no longer permit
 ## `Serverless` constructor `config.configurationPath` requirement
 
 Deprecation code: `MISSING_SERVICE_CONFIGURATION_PATH`
+
+_Note: Applies only to eventual programmatic usage of the Framework_
 
 `Serverless` constructor was refactored to depend on service configuration path being resolved externally and passed to its constructor with `config.configurationPath`. Starting from v3.0.0 this path will not be resolved internally.
 
