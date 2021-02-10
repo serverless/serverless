@@ -70,8 +70,7 @@
     "type": "^2.1.0",
     "untildify": "^4.0.0",
     "uuid": "^8.3.2",
-    "yaml-ast-parser": "0.0.43",
-    "yargs-parser": "^20.2.4"
+    "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
