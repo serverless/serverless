@@ -17,6 +17,16 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="MISSING_COMMANDS_OR_OPTIONS_AT_CONSTRUCTION"><div>&nbsp;</div></a>
+
+## `Serverless` constructor `config.commands` and `config.options` requirement
+
+Deprecation code: `MISSING_COMMANDS_OR_OPTIONS_AT_CONSTRUCTION`
+
+_Note: Applies only to eventual programmatic usage of the Framework_
+
+`Serverless` constructor was refactored to depend on CLI commands and arguments, to be resolved externally and passed to its constructor with `config.commands` and `config.options`. Starting from v3.0.0 CLI arguments will not be resolved internally.
+
 <a name="MISSING_SERVICE_CONFIGURATION"><div>&nbsp;</div></a>
 
 ## `Serverless` constructor `config.configuration` requirement
