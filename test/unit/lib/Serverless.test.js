@@ -280,7 +280,9 @@ describe('Serverless [new tests]', () => {
             cwd: servicePath,
             cliArgs: ['-v'],
           }).then(({ serverless }) => {
-            expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
+            expect(Array.from(serverless.triggeredDeprecations)).to.not.include(
+              'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING'
+            );
             expect(serverless._isInvokedByGlobalInstallation).to.be.false;
             expect(serverless.isLocallyInstalled).to.be.true;
             expect(serverless.isLocalStub).to.be.true;
