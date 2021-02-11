@@ -49,7 +49,7 @@ const processSpanPromise = (async () => {
     const configurationOptions = {};
 
     // For typescript (serverless.ts) templates, look for the existence of the tsconfig file to parse the template with
-    if (configurationPath.toString().endsWith('.ts')) {
+    if (configurationPath && configurationPath.toString().endsWith('.ts')) {
       for (const [index, value] of process.argv.entries()) {
         if (value === '--ts-config-path') {
           configurationOptions.tsConfigPath = process.argv[index + 1];
