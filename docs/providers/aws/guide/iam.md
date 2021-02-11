@@ -16,55 +16,86 @@ layout: Doc
 
 Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role which the Serverless Framework automatically creates for each Serverless Service, and is shared by all of your Functions. The Framework allows you to modify this Role or create Function-specific Roles, easily.
 
+## At glance
+
+All IAM-related properties of provider are grouped under `iam` property:
+
+```yml
+provider:
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow',
+          Resource: '*',
+          NotAction: 'iam:DeleteUser',
+      managedPolicies:
+        - 'arn:aws:iam::123456789012:user/*',
+      permissionBoundary: arn:aws:iam::123456789012:policy/boundaries
+    deploymentRole: arn:aws:iam::123456789012:role/deploy-role
+```
+
+Note that `provider.iam.role` can be either an object like in example above, or custom role arn:
+
+```yml
+provider:
+  iam:
+    role: arn:aws:iam::123456789012:role/execution-role
+    deploymentRole: arn:aws:iam::123456789012:role/deploy-role
+```
+
 ## The Default IAM Role
 
 By default, one IAM Role is shared by all of the Lambda functions in your service. Also by default, your Lambda functions have permission to create and write to CloudWatch logs. When VPC configuration is provided the default AWS `AWSLambdaVPCAccessExecutionRole` will be associated in order to communicate with your VPC resources.
 
-To add specific rights to this service-wide Role, define statements in `provider.iamRoleStatements` which will be merged into the generated policy. As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
+To add specific rights to this service-wide Role, define statements in `provider.iam.role.statements` which will be merged into the generated policy. As those statements will be merged into the CloudFormation template, you can use `Join`, `Ref` or any other CloudFormation method or feature.
 
 ```yml
 service: new-service
 
 provider:
   name: aws
-  iamRoleStatements:
-    - Effect: 'Allow'
-      Action:
-        - 's3:ListBucket'
-      Resource:
-        Fn::Join:
-          - ''
-          - - 'arn:aws:s3:::'
-            - Ref: ServerlessDeploymentBucket
-    - Effect: 'Allow'
-      Action:
-        - 's3:PutObject'
-      Resource:
-        Fn::Join:
-          - ''
-          - - 'arn:aws:s3:::'
-            - Ref: ServerlessDeploymentBucket
-            - '/*'
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 's3:ListBucket'
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: ServerlessDeploymentBucket
+        - Effect: 'Allow'
+          Action:
+            - 's3:PutObject'
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: ServerlessDeploymentBucket
+                - '/*'
 ```
 
-Alongside `provider.iamRoleStatements` managed policies can also be added to this service-wide Role, define managed policies in `provider.iamManagedPolicies`. These will also be merged into the generated IAM Role so you can use `Join`, `Ref` or any other CloudFormation method or feature here too.
+Alongside `provider.iam.role.statements` managed policies can also be added to this service-wide Role, define managed policies in `provider.iam.role.managedPolicies`. These will also be merged into the generated IAM Role so you can use `Join`, `Ref` or any other CloudFormation method or feature here too.
 
 ```yml
 service: new-service
 
 provider:
   name: aws
-  iamManagedPolicies:
-    - 'some:aws:arn:xxx:*:*'
-    - 'someOther:aws:arn:xxx:*:*'
-    - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'some/path']] }
+  iam:
+    role:
+      managedPolicies:
+        - 'some:aws:arn:xxx:*:*'
+        - 'someOther:aws:arn:xxx:*:*'
+        - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'some/path']] }
 ```
 
 ## Custom IAM Roles
 
 **WARNING:** You need to take care of the overall role setup as soon as you define custom roles.
 
-That means that `iamRoleStatements` you've defined on the `provider` level won't be applied anymore. Furthermore, you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
+That means that `iam.statements` you've defined on the `provider` level won't be applied anymore. Furthermore, you need to provide the corresponding permissions for your Lambdas `logs` and [`stream`](../events/streams.md) events.
 
 Serverless empowers you to define custom roles and apply them to your functions on a provider or individual function basis. To do this, you must declare a `role` attribute at the level at which you would like the role to be applied.
 
@@ -82,12 +113,13 @@ service: new-service
 provider:
   name: aws
   # declare one of the following...
-  role: myDefaultRole                                                  # must validly reference a role defined in the service
-  role: arn:aws:iam::0123456789:role//my/default/path/roleInMyAccount  # must validly reference a role defined in your account
-  role:                                                                # must validly resolve to the ARN of a role you have the rights to use
-    Fn::GetAtt:
-      - myRole
-      - Arn
+  iam:
+    role: myDefaultRole                                                  # must validly reference a role defined in the service
+    role: arn:aws:iam::0123456789:role//my/default/path/roleInMyAccount  # must validly reference a role defined in your account
+    role:                                                                # must validly resolve to the ARN of a role you have the rights to use
+      Fn::GetAtt:
+        - myRole
+        - Arn
 
 functions:
   func0: # will assume 'myDefaultRole'
@@ -246,7 +278,8 @@ service: new-service
 
 provider:
   name: aws
-  role: myDefaultRole
+  iam:
+    role: myDefaultRole
 
 functions:
   func0:
