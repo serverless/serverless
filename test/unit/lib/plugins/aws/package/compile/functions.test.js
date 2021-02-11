@@ -103,7 +103,7 @@ describe('AwsCompileFunctions', () => {
         const artifactFileName = awsCompileFunctions.serverless.service.functions[
           functionName
         ].package.artifact
-          .split(path.sep)
+          .split('/')
           .pop();
 
         expect(requestStub.callCount).to.equal(1);
@@ -118,7 +118,7 @@ describe('AwsCompileFunctions', () => {
 
       return expect(awsCompileFunctions.downloadPackageArtifacts()).to.be.fulfilled.then(() => {
         const artifactFileName = awsCompileFunctions.serverless.service.package.artifact
-          .split(path.sep)
+          .split('/')
           .pop();
 
         expect(requestStub.callCount).to.equal(1);
