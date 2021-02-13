@@ -128,6 +128,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
     let cfIntegration;
     let cfLogGroup;
     let cfCors;
+    let serviceConfig;
 
     before(() =>
       runServerless({
@@ -150,6 +151,12 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
             logs: {
               httpApi: true,
             },
+            tags: {
+              'providerTagA': 'providerTagAValue',
+              'providerTagB': 'providerTagBValue',
+              'provider:tagC': 'providerTagCValue',
+              'provider:tag-D': 'providerTagDValue',
+            },
           },
           functions: {
             authorized: {
@@ -170,18 +177,28 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
           },
         },
         cliArgs: ['package'],
-      }).then(({ awsNaming, cfTemplate }) => {
+      }).then(({ awsNaming, cfTemplate, fixtureData }) => {
         const { Resources } = cfTemplate;
         cfApi = Resources[awsNaming.getHttpApiLogicalId()];
         cfIntegration = Resources[awsNaming.getHttpApiIntegrationLogicalId('foo')];
         cfStage = Resources[awsNaming.getHttpApiStageLogicalId()];
         cfLogGroup = Resources[awsNaming.getHttpApiLogGroupLogicalId()];
         cfCors = cfTemplate.Resources[awsNaming.getHttpApiLogicalId()].Properties.CorsConfiguration;
+        serviceConfig = fixtureData.serviceConfig;
       })
     );
 
     it('should support `provider.httpApi.name`', () => {
       expect(cfApi.Properties.Name).to.equal('TestHttpApi');
+    });
+
+    it('should support `provider.tags`', () => {
+      const providerConfig = serviceConfig.provider;
+
+      const expectedTags = providerConfig.tags;
+      const { Tags } = cfApi.Properties;
+      expect(Tags).to.be.a('object');
+      expect(Tags).to.deep.equal(expectedTags);
     });
 
     it('should set payload format version', () => {
