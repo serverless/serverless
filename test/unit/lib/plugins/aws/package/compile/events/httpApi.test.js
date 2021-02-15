@@ -120,6 +120,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       const stageResource = cfResources[naming.getHttpApiStageLogicalId()];
       expect(stageResource.Properties.DefaultRouteSettings.DetailedMetricsEnabled).to.equal(false);
     });
+
+    it('should not disable default execute-api endpoint', () => {
+      const apiResource = cfResources[naming.getHttpApiLogicalId()];
+      expect(apiResource.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
+    });
   });
 
   describe('Provider properties', () => {
@@ -139,6 +144,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
               payload: '1.0',
               cors: true,
               metrics: true,
+              disableDefaultEndpoint: true,
               authorizers: {
                 someAuthorizer: {
                   identitySource: '$request.header.Authorization',
@@ -204,50 +210,8 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       expect(cfStage.Properties.AccessLogSettings).to.have.property('Format');
     });
 
-    it('should not disable default execute-api endpoint', () => {
-      expect(cfApi.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
-    });
-
-    describe('Disable default execute-api endpoint', () => {
-      before(() =>
-        runServerless({
-          fixture: 'httpApi',
-          configExt: {
-            provider: {
-              httpApi: {
-                disableDefaultEndpoint: true,
-              },
-            },
-          },
-          cliArgs: ['package'],
-        }).then(({ awsNaming, cfTemplate }) => {
-          cfApi = cfTemplate.Resources[awsNaming.getHttpApiLogicalId()];
-        })
-      );
-      it('should disable default execute-api endpoint', () => {
-        expect(cfApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
-      });
-    });
-
-    describe('Enable default execute-api endpoint', () => {
-      before(() =>
-        runServerless({
-          fixture: 'httpApi',
-          configExt: {
-            provider: {
-              httpApi: {
-                disableDefaultEndpoint: false,
-              },
-            },
-          },
-          cliArgs: ['package'],
-        }).then(({ awsNaming, cfTemplate }) => {
-          cfApi = cfTemplate.Resources[awsNaming.getHttpApiLogicalId()];
-        })
-      );
-      it('should not disable default execute-api endpoint', () => {
-        expect(cfApi.Properties.DisableExecuteApiEndpoint).to.equal(false);
-      });
+    it('should support `provider.httpApi.disableDefaultEndpoint`', () => {
+      expect(cfApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
     });
 
     describe('Cors', () => {
