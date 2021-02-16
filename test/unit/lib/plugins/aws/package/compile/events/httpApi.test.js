@@ -120,6 +120,11 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
       const stageResource = cfResources[naming.getHttpApiStageLogicalId()];
       expect(stageResource.Properties.DefaultRouteSettings.DetailedMetricsEnabled).to.equal(false);
     });
+
+    it('should not disable default execute-api endpoint', () => {
+      const apiResource = cfResources[naming.getHttpApiLogicalId()];
+      expect(apiResource.Properties.DisableExecuteApiEndpoint).to.equal(undefined);
+    });
   });
 
   describe('Provider properties', () => {
@@ -139,6 +144,7 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
               payload: '1.0',
               cors: true,
               metrics: true,
+              disableDefaultEndpoint: true,
               authorizers: {
                 someAuthorizer: {
                   identitySource: '$request.header.Authorization',
@@ -202,6 +208,10 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
 
     it('should setup logs format on stage', () => {
       expect(cfStage.Properties.AccessLogSettings).to.have.property('Format');
+    });
+
+    it('should support `provider.httpApi.disableDefaultEndpoint`', () => {
+      expect(cfApi.Properties.DisableExecuteApiEndpoint).to.equal(true);
     });
 
     describe('Cors', () => {
