@@ -28,7 +28,7 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
         'other',
         '--boolean',
         'elo',
-        '--no-other-boolean',
+        '--no-other_boolean',
         'foo',
         '-bc',
         '--',
@@ -36,7 +36,7 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
         '--ignored2',
       ],
       {
-        boolean: new Set(['boolean', 'other-boolean']),
+        boolean: new Set(['boolean', 'other_boolean']),
         string: new Set(['string']),
         multiple: new Set(['multiple']),
         alias: new Map([['a', 'alias']]),
@@ -85,8 +85,8 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
   });
 
   it('should recognize negated boolean', async () => {
-    expect(parsedArgs['other-boolean']).to.equal(false);
-    delete parsedArgs['other-boolean'];
+    expect(parsedArgs.other_boolean).to.equal(false);
+    delete parsedArgs.other_boolean;
   });
 
   it('should recognize mutliple aliases shortcut', async () => {
