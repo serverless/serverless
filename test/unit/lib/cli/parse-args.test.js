@@ -28,15 +28,17 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
         'other',
         '--boolean',
         'elo',
-        '--no-other_boolean',
+        '--no-other-boolean',
         'foo',
         '-bc',
+        '--underscore_separator',
+        'underscored_value',
         '--',
         '--ignored1',
         '--ignored2',
       ],
       {
-        boolean: new Set(['boolean', 'other_boolean']),
+        boolean: new Set(['boolean', 'other-boolean']),
         string: new Set(['string']),
         multiple: new Set(['multiple']),
         alias: new Map([['a', 'alias']]),
@@ -85,8 +87,8 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
   });
 
   it('should recognize negated boolean', async () => {
-    expect(parsedArgs.other_boolean).to.equal(false);
-    delete parsedArgs.other_boolean;
+    expect(parsedArgs['other-boolean']).to.equal(false);
+    delete parsedArgs['other-boolean'];
   });
 
   it('should recognize mutliple aliases shortcut', async () => {
@@ -94,6 +96,11 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
     expect(parsedArgs.c).to.equal(true);
     delete parsedArgs.b;
     delete parsedArgs.c;
+  });
+
+  it('should recognize underscore chars in params', async () => {
+    expect(parsedArgs.underscore_separator).to.equal('underscored_value');
+    delete parsedArgs.underscore_separator;
   });
 
   it('should recognize positional arguments', async () => {
