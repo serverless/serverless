@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.25.1](https://github.com/serverless/serverless/compare/v2.25.0...v2.25.1) (2021-02-16)
+
+### Bug Fixes
+
+- **CLI:** Ensure support for upper case params ([b17c461](https://github.com/serverless/serverless/commit/b17c461a1291728cda8fe6fbfbc7a9f56ab59d33)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.25.0](https://github.com/serverless/serverless/compare/v2.24.0...v2.25.0) (2021-02-16)
 
 ### Features
