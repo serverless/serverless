@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.24.0](https://github.com/serverless/serverless/compare/v2.23.0...v2.24.0) (2021-02-16)
+
+### Features
+
+- **AWS IAM:** Group IAM-related settings under `provider.iam` ([#8701](https://github.com/serverless/serverless/issues/8701)) ([9ad4d07](https://github.com/serverless/serverless/commit/9ad4d07886d8bca29cb7c0802c3623defb6c8c3a)) ([Dmitry Shirokov](https://github.com/runk))
+
+### Bug Fixes
+
+- **AWS Deploy:** Ensure to handle artifact stream read errors ([#8948](https://github.com/serverless/serverless/pull/8948)) ([300e3a9](https://github.com/serverless/serverless/commit/300e3a92d5d5d54c4269dd05b6e5d9e2e96b380d)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Lambda:** Properly resolve SHA for repo with slashes ([#8918](https://github.com/serverless/serverless/pull/8918)) ([4c74792](https://github.com/serverless/serverless/commit/4c7479283cd2bfb20b2ddb9d21b824b4757234ed)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Reject non normative configuration structure ([#8927](https://github.com/serverless/serverless/pull/8927)) ([8bd4314](https://github.com/serverless/serverless/commit/8bd431473265d6bc2b536c0f5070f99e1639382d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI**:
+  - Rely on new CLI args parser ([#8927](https://github.com/serverless/serverless/pull/8927)) ([9e059d0](https://github.com/serverless/serverless/commit/9e059d0f45b083f887bc07f0cbf33a81f5b91ba2)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Remove internal CLI arguments parsing ([#8927](https://github.com/serverless/serverless/pull/8927)) ([16950d0](https://github.com/serverless/serverless/commit/16950d098b0b78e6ad5de35e908c7a1ee91f775b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Move deprecation report to `init` phase ([#8927](https://github.com/serverless/serverless/pull/8927)) ([1eaa626](https://github.com/serverless/serverless/commit/1eaa6260aa9f747d0aa01006ce54d3313e7b7e0f)) ([Mariusz Nowak](https://github.com/medikoo))
+- Use `async/await` in `events/apiGateway`. ([#8869](https://github.com/serverless/serverless/issues/8869)) ([c5ba682](https://github.com/serverless/serverless/commit/c5ba682a6bc4fc96151c75cdf50cff2468d6def5)) ([ifitzsimmons](https://github.com/ifitzsimmons))
+- Use `async/await` in `lib/plugins/aws/invokeLocal`. ([#8876](https://github.com/serverless/serverless/issues/8876)) ([134db21](https://github.com/serverless/serverless/commit/134db21ed27874ae64db1c8964523b5b5ae6c2bf)) ([ifitzsimmons](https://github.com/ifitzsimmons))
+- Remove unneeded `split` in `getHttp` ([#8939](https://github.com/serverless/serverless/issues/8939)) ([7213d1d](https://github.com/serverless/serverless/commit/7213d1d4f85c7d1583c0eba531e026d3f7a8e96c)) ([Gareth Jones](https://github.com/G-Rath))
+- Use standalone `ServerlessError`. ([#8897](https://github.com/serverless/serverless/issues/8897)) ([006557d](https://github.com/serverless/serverless/commit/006557d8471623af7f6b83c58a14e9e4fe244507)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+- Patch handling of `isInvokedByGlobalInstallation` flag ([#8927](https://github.com/serverless/serverless/pull/8927)) ([21c9f26](https://github.com/serverless/serverless/commit/21c9f26ea64a7dfc06a96c173c8268d8ad835870)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Add `package.json` to `plugin` template ([#8933](https://github.com/serverless/serverless/pull/8933)) ([410f0ec](https://github.com/serverless/serverless/commit/410f0ec3b5f09f9bef22d14fcaccbb8bd6e70460)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Update `aws-nodejs-typescript` for `nodejs14.x` ([#8914](https://github.com/serverless/serverless/pull/8914)) ([5fa51dc](https://github.com/serverless/serverless/commit/5fa51dc53d039814aef80dd2a8c8069015215696)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Fix types handling in `aws-nodejs-typescript` ([#8929](https://github.com/serverless/serverless/issues/8929)) ([5302b91](https://github.com/serverless/serverless/commit/5302b9176097faee4c73d585b63e6bf772b64e43)) ([g-awa](https://github.com/daisuke-awaji))
+- Fix statement in `.npmignore` to handle `.gitignore` ([#8947](https://github.com/serverless/serverless/pull/8947)) ([d0c0879](https://github.com/serverless/serverless/commit/d0c0879032aedca567fef807b7143b7325f43b4d)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.23.0](https://github.com/serverless/serverless/compare/v2.22.0...v2.23.0) (2021-02-08)
 
 ### Features
