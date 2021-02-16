@@ -5,4 +5,3 @@
 /node_modules
 npm-debug.log
 /package-lock.json
-!/lib/plugins/create/templates/**/.gitignore
