@@ -17,3 +17,5 @@ custom:
   nestedVal:
     prop: resolvedNested
   nestedReference: ${self:custom.${self:custom.nestedRef}.prop}
+  prototype:
+    nestedInPrototype: ${file(config.json):foo}-in-prototype
