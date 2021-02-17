@@ -31,6 +31,10 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
         '--no-other-boolean',
         'foo',
         '-bc',
+        '--underscore_separator',
+        'underscored_value',
+        '--UPPER_CASE_PARAM',
+        'UPPER_CASE_VALUE',
         '--',
         '--ignored1',
         '--ignored2',
@@ -94,6 +98,16 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
     expect(parsedArgs.c).to.equal(true);
     delete parsedArgs.b;
     delete parsedArgs.c;
+  });
+
+  it('should recognize underscore chars in params', async () => {
+    expect(parsedArgs.underscore_separator).to.equal('underscored_value');
+    delete parsedArgs.underscore_separator;
+  });
+
+  it('should recognize uppercased params', async () => {
+    expect(parsedArgs.UPPER_CASE_PARAM).to.equal('UPPER_CASE_VALUE');
+    delete parsedArgs.UPPER_CASE_PARAM;
   });
 
   it('should recognize positional arguments', async () => {
