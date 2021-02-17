@@ -2082,6 +2082,23 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2325-L2362
     });
 
+    it('should throw an error when nonexistent layer is referenced', async () => {
+      await expect(
+        runServerless({
+          fixture: 'functionDestinations',
+          cliArgs: ['package'],
+          configExt: {
+            functions: {
+              fnInvalidLayer: {
+                handler: 'target.handler',
+                layers: [{ Ref: 'NonexistentLambdaLayer' }],
+              },
+            },
+          },
+        })
+      ).to.be.eventually.rejected.and.have.property('code', 'LAMBDA_LAYER_REFERENCE_NOT_FOUND');
+    });
+
     it.skip('TODO: should support `functions[].conditions`', () => {
       // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2364-L2379
