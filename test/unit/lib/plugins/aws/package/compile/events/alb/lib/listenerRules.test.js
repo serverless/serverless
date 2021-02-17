@@ -106,7 +106,9 @@ describe('#compileListenerRules()', () => {
           },
           {
             Field: 'host-header',
-            Values: ['example.com'],
+            HostHeaderConfig: {
+              Values: ['example.com'],
+            },
           },
         ],
         ListenerArn:
