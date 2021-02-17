@@ -1,8 +1,5 @@
-👋🏾 **Please consider donating to these organizations to help fund an education in _technology_, _entrepreneurship_ and _leadership_ for POC. #BLM**
 
-- [Hidden Genius Project](https://www.hiddengeniusproject.org/donate/)
-- [Black Girls Who Code](https://www.blackgirlscode.com/)
-- [Code2040](https://code2040-2020.funraise.org/)
+⚡ **Serverless Inc. is hiring to build the next generation of serverless development tools, [join us!](https://www.serverless.com/company/jobs/)** 
 
 ---
 
@@ -27,14 +24,9 @@
 
 The Framework uses new event-driven compute services, like AWS Lambda, Google Cloud Functions, and more. It's a command-line tool, providing scaffolding, workflow automation and best practices for developing and deploying your serverless architecture. It's also completely extensible via plugins.
 
-Serverless is an MIT open-source project, actively maintained by a full-time, venture-backed team.
+Check out the [Serverless Framework Dashboard](https://app.serverless.com) for monitoring, troubleshooting, ci/cd and more features for serverless teams.
 
-<a href="https://www.youtube.com/watch?v=-Nf0ui3qP2E" target="_blank">Watch the video overview here.</a>
-
-In 2020, the Serverless Framework began introducing advanced functionality for specific serverless use-cases, known as Serverless Framework Components. Check out the Components featured below, [and more here](https://github.com/serverless-components).
-
-| [![serverless framework fullstack application](https://s3.amazonaws.com/assets.github.serverless/components/ad-components-fullstack.png)](https://github.com/serverless-components/fullstack-app) | [![serverless framework express.js](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-express.png)](https://github.com/serverless-components/express) | [![serverless framework website](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-website.png)](https://github.com/serverless-components/website) | [![serverless framework dynamodb](https://s3.amazonaws.com/public.assets.serverless.com/images/ads/ad-components-dynamodb.png)](https://github.com/serverless-components/aws-dynamodb) |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+Serverless is actively maintained by [Serverless Inc](https://www.serverless.com).
 
 ## Contents
 
