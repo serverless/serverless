@@ -2816,6 +2816,10 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     expect(processedConfig.custom.nestedReference).to.equal('resolvedNested');
   });
 
+  it('should handle resolving variables when `prototype` is part of the path', async () => {
+    expect(processedConfig.custom.prototype.nestedInPrototype).to.equal('bar-in-prototype');
+  });
+
   describe('variable resolving', () => {
     describe('when unresolvedVariablesNotificationMode is set to "error"', () => {
       it('should error for missing "environment variable" type variables', async () => {
