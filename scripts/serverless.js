@@ -35,7 +35,7 @@ const processSpanPromise = (async () => {
     const { commands, options } = require('../lib/cli/resolve-input')();
 
     if (options.version) {
-      await require('../lib/cli/list-version');
+      await require('../lib/cli/list-version')();
       return;
     }
 
