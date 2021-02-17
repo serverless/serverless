@@ -283,3 +283,15 @@ provider:
   httpApi:
     metrics: true
 ```
+
+### Tags
+
+With HTTP API we can tag gateway.
+
+Provider Tags can be applied to Http Api Gateway with:
+
+```yaml
+provider:
+  httpApi:
+    useProviderTags: true
+```
