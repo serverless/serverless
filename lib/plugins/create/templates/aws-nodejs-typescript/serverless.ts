@@ -1,6 +1,7 @@
 import type { AWS } from '@serverless/typescript';
 
-import { hello } from './src/functions';
+import hello from '@functions/hello';
+import { logger } from '@libs/logger';
 
 const serverlessConfiguration: AWS = {
   service: 'aws-nodejs-typescript',
@@ -8,8 +9,8 @@ const serverlessConfiguration: AWS = {
   custom: {
     webpack: {
       webpackConfig: './webpack.config.js',
-      includeModules: true
-    }
+      includeModules: true,
+    },
   },
   plugins: ['serverless-webpack'],
   provider: {
@@ -24,7 +25,11 @@ const serverlessConfiguration: AWS = {
     },
     lambdaHashingVersion: '20201221',
   },
-  functions: { hello }
-}
+  // import the function via paths
+  functions: { hello },
+};
+
+// use an import only available via tsconfig-paths
+logger(JSON.stringify(serverlessConfiguration, null, 2));
 
 module.exports = serverlessConfiguration;
