@@ -29,7 +29,7 @@
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.2.0",
-    "aws-sdk": "^2.845.0",
+    "aws-sdk": "^2.846.0",
     "bluebird": "^3.7.2",
     "boxen": "^5.0.0",
     "cachedir": "^2.3.0",
@@ -98,7 +98,7 @@
     "semver-regex": "^3.1.2",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.5.0",
-    "standard-version": "^9.1.0",
+    "standard-version": "^9.1.1",
     "strip-ansi": "^6.0.0",
     "ws": "^7.4.3",
     "xml2js": "^0.4.23"
