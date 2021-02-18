@@ -21,7 +21,6 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
             'h',
             '--config',
             'conf',
-            '-v',
             'elo',
             'other',
           ],
@@ -31,7 +30,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
     });
 
     it('should resolve commands', async () => {
-      expect(data.commands).to.deep.equal(['cmd1', 'cmd2', 'ver', 'h', 'other']);
+      expect(data.commands).to.deep.equal(['cmd1', 'cmd2', 'ver', 'h', 'elo', 'other']);
     });
 
     it('should recognize --version as boolean', async () => {
@@ -46,8 +45,22 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
       expect(data.options.config).to.equal('conf');
     });
 
-    it('should not recognize -v with command', async () => {
-      expect(data.options.v).to.equal('elo');
+    describe('"-v" handling', () => {
+      before(() => {
+        resolveInput.clear();
+        data = overrideArgv(
+          {
+            args: ['serverless', 'cmd1', 'cmd2', '-v', 'ver', 'other'],
+          },
+          () => resolveInput()
+        );
+      });
+      it('should not recognize as version alias', async () => {
+        expect(data.options).to.not.have.property('version');
+      });
+      it('should recognize as boolean', async () => {
+        expect(data.options.v).to.equal(true);
+      });
     });
   });
   describe('when no commands', () => {
@@ -66,7 +79,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
       expect(data.commands).to.deep.equal([]);
     });
 
-    it('should recognize -v alias', async () => {
+    it('should recognize -v as --version alias', async () => {
       expect(data.options.version).to.equal(true);
     });
 
