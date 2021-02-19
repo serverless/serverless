@@ -135,12 +135,11 @@
   "nyc": {
     "all": true,
     "exclude": [
-      "**/*.test.js",
       ".github",
-      "bin/**",
       "coverage/**",
       "dist/**",
-      "scripts/**",
+      "docs/**",
+      "scripts/test/**",
       "test/**",
       "tmp/**",
       "prettier.config.js"
