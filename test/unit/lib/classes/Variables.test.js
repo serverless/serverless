@@ -2626,7 +2626,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'subProperty', 'deep'], valueToPopulateMock)
-        .should.become('deepValue');
+        .should.equal('deepValue');
     });
     it('should not throw error if referencing invalid properties', () => {
       const valueToPopulateMock = {
@@ -2638,7 +2638,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'subProperty', 'deep', 'deeper'], valueToPopulateMock)
-        .should.eventually.deep.equal({});
+        .should.deep.equal({});
     });
     it('should return a simple deep variable when final deep value is variable', () => {
       serverless.variables.service = {
@@ -2654,7 +2654,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'subProperty', 'deep'], serverless.variables.service)
-        .should.become('${deep:0}');
+        .should.equal('${deep:0}');
     });
     it('should return a deep continuation when middle deep value is variable', () => {
       serverless.variables.service = {
@@ -2667,7 +2667,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'anotherVar', 'veryDeep'], serverless.variables.service)
-        .should.become('${deep:0.veryDeep}');
+        .should.equal('${deep:0.veryDeep}');
     });
   });
 
