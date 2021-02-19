@@ -6,13 +6,11 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
-<a name="AWS_HTTP_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
-
 ## Http Api provider tags
 
 Deprecation code: `AWS_HTTP_API_USE_PROVIDER_TAGS`
 
-Starting with v3.0.0, `provider.tags` will be applied to Http Api Gateway by default
+Starting with v3.0.0, provider tags will be applied to Http Api Gateway by default
 Set `provider.httpApi.useProviderTags` to `true` to adapt to the new behavior now.
 
 ## How to disable specific deprecation logs
