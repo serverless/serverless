@@ -278,20 +278,17 @@ With HTTP API we may configure detailed metrics that can be used setup monitorin
 
 Detailed Metrics can be turned on with:
 
-```yaml
-provider:
-  httpApi:
-    metrics: true
-```
-
 ### Tags
 
-With HTTP API we can tag gateway.
-
-Provider Tags can be applied to Http Api Gateway with:
+When using HTTP API, it is possible to tag the corresponding API Gateway. By setting `provider.httpApi.useProviderTags` to `true`, all tags defined on `provider.tags` will be applied to API Gateway.
 
 ```yaml
 provider:
+  tags:
+    project: myProject
   httpApi:
     useProviderTags: true
 ```
+In the above example, the tag project: myProject will be applied to API Gateway.
+
+_Note: If the API Gateway has any existing tags applied outside of Serverless Framework, they will be removed during deployment._
