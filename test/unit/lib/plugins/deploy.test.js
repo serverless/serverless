@@ -1,6 +1,5 @@
 'use strict';
 
-const BbPromise = require('bluebird');
 const chai = require('chai');
 const Deploy = require('../../../../lib/plugins/deploy');
 const Serverless = require('../../../../lib/Serverless');
@@ -71,7 +70,7 @@ describe('Deploy', () => {
       deploy.serverless.service.package.path = false;
 
       return expect(deploy.hooks['before:deploy:deploy']()).to.be.fulfilled.then(() =>
-        BbPromise.all([
+        Promise.all([
           expect(spawnDeployFunctionStub).to.not.be.called,
           expect(spawnPackageStub).to.be.calledOnce,
           expect(spawnPackageStub).to.be.calledWithExactly('package'),
@@ -85,7 +84,7 @@ describe('Deploy', () => {
       deploy.serverless.service.package.path = false;
 
       return expect(deploy.hooks['before:deploy:deploy']()).to.be.fulfilled.then(() =>
-        BbPromise.all([
+        Promise.all([
           expect(spawnPackageStub).to.not.be.called,
           expect(spawnDeployFunctionStub).to.be.calledOnce,
           expect(spawnDeployFunctionStub).to.be.calledWithExactly('deploy:function', {

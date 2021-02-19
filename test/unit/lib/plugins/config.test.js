@@ -1,16 +1,13 @@
 'use strict';
 
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
-const BbPromise = require('bluebird');
 const { expect } = require('chai');
 const config = require('@serverless/utils/config');
 const ServerlessError = require('../../../../lib/serverless-error');
 const runServerless = require('../../../utils/run-serverless');
 const isTabCompletionSupported = require('../../../../lib/utils/tabCompletion/isSupported');
-
-BbPromise.promisifyAll(fs);
 
 const unexpected = () => {
   throw new Error('Unexpected');
@@ -44,12 +41,12 @@ describe('Config', () => {
       }).then(() =>
         Promise.all([
           fs
-            .readFileAsync(path.resolve(os.homedir(), '.bashrc'), 'utf8')
+            .readFile(path.resolve(os.homedir(), '.bashrc'), 'utf8')
             .then((bashRcContent) =>
               expect(bashRcContent).to.include(' ~/.config/tabtab/__tabtab.bash')
             ),
-          fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),
-          fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/sls.bash'), 'utf8'),
+          fs.readFile(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),
+          fs.readFile(path.resolve(os.homedir(), '.config/tabtab/sls.bash'), 'utf8'),
         ])
       ));
 
@@ -66,10 +63,10 @@ describe('Config', () => {
         }).then(() =>
           Promise.all([
             fs
-              .readFileAsync(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'))
+              .readFile(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'))
               .then(unexpected, (error) => expect(error.code).to.equal('ENOENT')),
             fs
-              .readFileAsync(path.resolve(os.homedir(), '.config/tabtab/sls.bash'))
+              .readFile(path.resolve(os.homedir(), '.config/tabtab/sls.bash'))
               .then(unexpected, (error) => expect(error.code).to.equal('ENOENT')),
           ])
         )
