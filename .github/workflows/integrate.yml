@@ -179,6 +179,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       SLS_AWS_REQUEST_MAX_RETRIES: 21 #Increase number of retries, do to observed "Rate exceeded" fails
+      SERVERLESS_BINARY_PATH: ./dist/serverless-linux2
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -206,9 +207,12 @@ jobs:
       # Note: No need to install dependencies as we have retrieved cached `node_modules` for very
       #       same `package.json` as stored with previous job
 
-      - name: Basic integration tests
+      - name: Build standalone artifacts
+        run: npm run pkg:build
+
+      - name: Basic integration tests against standalone binary
         run: npm run integration-test-run-basic
-      - name: Full integration tests
+      - name: Full integration tests against standalone binary
         run: npm run integration-test-run-all
 
       - name: Resolve last validated commit hash (for `git diff` purposes)
