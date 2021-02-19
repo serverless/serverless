@@ -8,8 +8,49 @@ on:
       - v[0-9]+.[0-9]+.[0-9]+
 
 jobs:
+  prePublishPackageTest:
+    name: Prepublish package test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-v14-${{ runner.os }}-${{ github.ref }}-${{ hashFiles('package.json') }}
+
+      - name: Install Node.js and npm
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        if: steps.cacheNpm.outputs.cache-hit != 'true'
+        run: |
+          npm update --no-save
+          npm update --save-dev --no-save
+
+      - name: Build local package
+        run: npm pack
+
+      - name: Run tests against version packaged with npm pack
+        run: |
+          PACKAGE_VERSION=$(npm view . version)
+          mkdir "serverless-${PACKAGE_VERSION}"
+          tar zxf "serverless-${PACKAGE_VERSION}.tgz" -C "serverless-${PACKAGE_VERSION}"
+          cp -R test "serverless-${PACKAGE_VERSION}/package"
+          ln -s "$(pwd)"/node_modules "serverless-${PACKAGE_VERSION}/package/node_modules"
+          cd "serverless-${PACKAGE_VERSION}/package"
+          script -e -c "npm test -- -b"
+
   npmPublish:
     name: Publish to npm
+    needs: prePublishPackageTest
     runs-on: ubuntu-latest
     env:
       # It'll work with secrets.GITHUB_TOKEN (which is provided by GitHub unconditionally)
