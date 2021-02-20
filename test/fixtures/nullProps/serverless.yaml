@@ -1,0 +1,16 @@
+service: stripNullPropsFromTemplateResourcesTest
+
+provider:
+  name: aws
+
+resources:
+  Resources:
+    myBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: null
+
+    anotherBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        ObjectLockEnabled: false
