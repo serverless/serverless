@@ -63,25 +63,25 @@ The project code base is mainly located within the `src` folder. This folder is 
 ```
 .
 ├── src
-│   ├── functions            # Lambda configuration and source code folder
+│   ├── functions               # Lambda configuration and source code folder
 │   │   ├── hello
-│   │   │   ├── handler.ts   # `Hello` lambda source code
-│   │   │   ├── index.ts     # `Hello` lambda Serverless configuration
-│   │   │   ├── mock.json    # `Hello` lambda input parameter, if any, for local invocation
-│   │   │   └── schema.ts    # `Hello` lambda input event JSON-Schema
+│   │   │   ├── handler.ts      # `Hello` lambda source code
+│   │   │   ├── index.ts        # `Hello` lambda Serverless configuration
+│   │   │   ├── mock.json       # `Hello` lambda input parameter, if any, for local invocation
+│   │   │   └── schema.ts       # `Hello` lambda input event JSON-Schema
 │   │   │
-│   │   └── index.ts         # Import/export of all lambda configurations
+│   │   └── index.ts            # Import/export of all lambda configurations
 │   │
-│   └── libs                 # Lambda shared code
-│       └── apiGateway.ts    # API Gateway specific helpers
-│       └── lambda.ts        # Lambda middleware
-│       └── logger.ts        # Sample shareable library
+│   └── libs                    # Lambda shared code
+│       └── apiGateway.ts       # API Gateway specific helpers
+│       └── handlerResolver.ts  # Sharable library for resolving lambda handlers
+│       └── logger.ts           # Lambda middleware
 │
 ├── package.json
-├── serverless.ts            # Serverless service file
-├── tsconfig.json            # Typescript compiler configuration
-├── tsconfig.paths.json      # Typescript paths
-└── webpack.config.js        # Webpack configuration
+├── serverless.ts               # Serverless service file
+├── tsconfig.json               # Typescript compiler configuration
+├── tsconfig.paths.json         # Typescript paths
+└── webpack.config.js           # Webpack configuration
 ```
 
 ### 3rd party libraries
@@ -92,4 +92,4 @@ The project code base is mainly located within the `src` folder. This folder is 
 
 ### Advanced usage
 
-Any tsconfig.json can be used, but if you do, set the environment variable `TS_NODE_CONFIG` for building the application, eg `TS_NODE_CONFIG=./tsconfig.app.json serverless webpack`
+Any tsconfig.json can be used, but if you do, set the environment variable `TS_NODE_CONFIG` for building the application, eg `TS_NODE_CONFIG=./tsconfig.app.json npx serverless webpack`
