@@ -1,24 +1,22 @@
 'use strict';
 
-const BbPromise = require('bluebird');
 const awsRequest = require('@serverless/test/aws-request');
+const wait = require('timers-ext/promise/sleep');
 
-function waitForKinesisStream(streamName) {
+async function waitForKinesisStream(streamName) {
   const params = {
     StreamName: streamName,
   };
-  return new BbPromise((resolve) => {
-    const interval = setInterval(() => {
-      awsRequest('Kinesis', 'describeStream', params).then((data) => {
-        const status = data.StreamDescription.StreamStatus;
-        if (status === 'ACTIVE') {
-          clearInterval(interval);
-          return resolve(data);
-        }
-        return null;
-      });
-    }, 2000);
-  });
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const data = await awsRequest('Kinesis', 'describeStream', params);
+    const status = data.StreamDescription.StreamStatus;
+    if (status === 'ACTIVE') {
+      return data;
+    }
+    await wait(2000);
+  }
 }
 
 function createKinesisStream(streamName) {
