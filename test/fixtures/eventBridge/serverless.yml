@@ -28,12 +28,8 @@ functions:
               - serverless.test
   eventBusArn:
     handler: core.eventBusArn
-    # Event filled by integration test
-  eventBusCFFunctionArn:
-    handler: core.eventBusCFFunctionArn
     events:
       - eventBridge:
-          useNativeCloudFormation: true
           eventBus:
             Ref: EventBus
           pattern:

@@ -23,9 +23,9 @@ disabledDeprecations:
 
 Deprecation code: `AWS_EVENT_BRIDGE_CUSTOM_RESOURCE_DEPLOYMENT`
 
-Starting with v3.0.0 AWS EventBridge lambda event triggers and all associated EventBridge resources will be deployed using normal CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
+Starting with v3.0.0 AWS EventBridge lambda event triggers and all associated EventBridge resources will be deployed using native CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
 
-Adapt to this behavior now by adding `shouldUserCloudFormation: true` in EventBridge trigger definition. This is a per event trigger config property.
+Adapt to this behavior now by setting `provider.eventBridge.useCloudFormation: true`.
 
 <a name="NEW_VARIABLES_RESOLVER"><div>&nbsp;</div></a>
 
