@@ -263,3 +263,11 @@ Please use `onUnauthenticatedRequest` instead. `allowUnauthenticated` will be re
 Deprecation code: `BIN_SERVERLESS`
 
 Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2.0.0
+
+<a name="DEFAULT_RUNTIME_CHANGE"><div>&nbsp;</div></a>
+
+## Default Node.js version going to be change
+
+Deprecation code: `DEFAULT_RUNTIME_CHANGE`
+
+Default runtime will be switched to nodejs14.x with next major release
