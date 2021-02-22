@@ -2,6 +2,7 @@
 
 /* eslint-disable no-unused-expressions */
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const globby = require('globby');
@@ -644,7 +645,7 @@ const commonAwsSdkMock = {
 
 const generateMatchingListObjectsResponse = async (serverless) => {
   const packagePath = `${serverless.config.servicePath}/.serverless`;
-  const artifactNames = [packagePath /* TODO: Read packagePath and resolve all `.zip` files */];
+  const artifactNames = await globby(packagePath, { expandDirectories: { extensions: ['zip'] } });
   artifactNames.push('compiled-cloudformation-template.json');
   return {
     Contents: artifactNames.map((artifactName) => ({
@@ -655,10 +656,27 @@ const generateMatchingListObjectsResponse = async (serverless) => {
 };
 
 const generateMatchingHeadObjectResponse = async (serverless, { Key: key }) => {
-  // 1. If key points `'compiled-cloudformation-template.json' resolve hash for normalized CF template
-  // 2. Otherwise resolve hash for artifact in package path
+  if (path.basename(key) === 'compiled-cloudformation-template.json') {
+    const compiledCfTemplate = serverless.service.provider.compiledCloudFormationTemplate;
+    const normCfTemplate = normalizeFiles.normalizeCloudFormationTemplate(compiledCfTemplate);
+    const fileHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(normCfTemplate))
+      .digest('base64');
+    return {
+      Metadata: { filesha256: fileHash },
+    };
+  }
+  const fileHash = await (async (fileName) => {
+    return new Promise((resolve) => {
+      const hash = crypto.createHash('sha256');
+      const f = fs.createReadStream(`${serverless.config.servicePath}/.serverless/${fileName}`);
+      f.on('data', (d) => hash.update(d));
+      f.on('close', () => resolve(hash.digest('base64')));
+    });
+  })(key);
   return {
-    Metadata: { filesha256: [serverless, key /* TODO: Replace with hash */] },
+    Metadata: { filesha256: fileHash },
   };
 };
 
