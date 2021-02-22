@@ -2,7 +2,6 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
 const chalk = require('chalk');
 const PluginInstall = require('../../../../../../lib/plugins/plugin/install');
@@ -11,6 +10,7 @@ const CLI = require('../../../../../../lib/classes/CLI');
 const { expect } = require('chai');
 
 chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
 
 describe('PluginUtils', () => {
   let pluginUtils;
@@ -55,10 +55,10 @@ describe('PluginUtils', () => {
       }).to.throw(Error);
     });
 
-    it('should resolve if the cwd is a Serverless service', (done) => {
+    it('should resolve if the cwd is a Serverless service', () => {
       pluginUtils.serverless.config.servicePath = true;
 
-      pluginUtils.validate().then(() => done());
+      pluginUtils.validate();
     });
   });
 
@@ -74,11 +74,9 @@ describe('PluginUtils', () => {
     let pluginWithFetchStub;
 
     beforeEach(() => {
-      fetchStub = sinon.stub().returns(
-        BbPromise.resolve({
-          json: sinon.stub().returns(BbPromise.resolve(plugins)),
-        })
-      );
+      fetchStub = sinon.stub().resolves({
+        json: sinon.stub().resolves(plugins),
+      });
       pluginWithFetchStub = proxyquire('../../../../../../lib/plugins/plugin/lib/utils.js', {
         'node-fetch': fetchStub,
       });
@@ -122,19 +120,19 @@ describe('PluginUtils', () => {
       expectedMessage += `${chalk.yellow.underline('serverless-plugin-2')}`;
       expectedMessage += ' - Serverless Plugin 2\n';
       expectedMessage = expectedMessage.slice(0, -2);
-      return expect(pluginUtils.display(plugins)).to.be.fulfilled.then((message) => {
-        expect(consoleLogStub.calledTwice).to.equal(true);
-        expect(message).to.equal(expectedMessage);
-      });
+      pluginUtils.display(plugins);
+
+      expect(consoleLogStub.calledTwice).to.equal(true);
+      expect(consoleLogStub).to.have.been.calledWith(expectedMessage);
     });
 
     it('should print a message when no plugins are available to display', () => {
       const expectedMessage = 'There are no plugins available to display';
 
-      return pluginUtils.display([]).then((message) => {
-        expect(consoleLogStub.calledOnce).to.equal(true);
-        expect(message).to.equal(expectedMessage);
-      });
+      pluginUtils.display([]);
+
+      expect(consoleLogStub.calledOnce).to.equal(true);
+      expect(consoleLogStub).to.have.been.calledWith(expectedMessage);
     });
   });
 });

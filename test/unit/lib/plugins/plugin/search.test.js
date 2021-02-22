@@ -2,7 +2,6 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const PluginSearch = require('../../../../../lib/plugins/plugin/search');
 const Serverless = require('../../../../../lib/Serverless');
 const CLI = require('../../../../../lib/classes/CLI');
@@ -48,7 +47,7 @@ describe('PluginSearch', () => {
     let searchStub;
 
     beforeEach(() => {
-      searchStub = sinon.stub(pluginSearch, 'search').returns(BbPromise.resolve());
+      searchStub = sinon.stub(pluginSearch, 'search').resolves();
     });
 
     afterEach(() => {
@@ -85,8 +84,8 @@ describe('PluginSearch', () => {
     let displayStub;
 
     beforeEach(() => {
-      getPluginsStub = sinon.stub(pluginSearch, 'getPlugins').returns(BbPromise.resolve(plugins));
-      displayStub = sinon.stub(pluginSearch, 'display').returns(BbPromise.resolve());
+      getPluginsStub = sinon.stub(pluginSearch, 'getPlugins').resolves(plugins);
+      displayStub = sinon.stub(pluginSearch, 'display').resolves();
     });
 
     afterEach(() => {
