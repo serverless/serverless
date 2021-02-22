@@ -5,7 +5,10 @@
 const chai = require('chai');
 const runServerless = require('../../../../../../../../utils/run-serverless');
 
-const { expect } = chai;
+chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
+
+const expect = chai.expect;
 
 const NAME_OVER_64_CHARS = 'oneVeryLongAndVeryStrangeAndVeryComplicatedFunctionNameOver64Chars';
 
@@ -230,6 +233,32 @@ describe('EventBridgeEvents', () => {
       expect(firstStatement.Action[1]).to.be.eq('events:DeleteEventBus');
       expect(firstStatement.Effect).to.be.eq('Allow');
     });
+
+    it('should fail when trying to reference event bus via CF intrinsic function', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          configExt: {
+            functions: {
+              foo: {
+                events: [
+                  {
+                    eventBridge: {
+                      eventBus: { Ref: 'ImportedEventBus' },
+                      schedule: 'rate(10 minutes)',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          cliArgs: ['package'],
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'ERROR_INVALID_REFERENCE_TO_EVENT_BUS_CUSTOM_RESOURCE'
+      );
+    });
   });
 
   describe('using native CloudFormation', () => {
@@ -241,24 +270,24 @@ describe('EventBridgeEvents', () => {
       let ruleTarget;
       let inputPathRuleTarget;
       let inputTransformerRuleTarget;
-      const schedule = 'rate(10 minutes)'
+      const schedule = 'rate(10 minutes)';
       const eventBusName = 'nondefault';
       const pattern = {
-        'source': ['aws.cloudformation'],
-      }
-      const input =  {
+        source: ['aws.cloudformation'],
+      };
+      const input = {
         key1: 'value1',
         key2: {
           nested: 'value2',
         },
-      }
+      };
       const inputPath = '$.stageVariables';
       const inputTransformer = {
         inputTemplate: '{"time": <eventTime>, "key1": "value1"}',
         inputPathsMap: {
           eventTime: '$.time',
         },
-      }
+      };
 
       before(async () => {
         const { cfTemplate, awsNaming } = await runServerless({
@@ -305,101 +334,159 @@ describe('EventBridgeEvents', () => {
         cfResources = cfTemplate.Resources;
         naming = awsNaming;
         eventBusLogicalId = naming.getEventBridgeEventBusLogicalId(eventBusName);
-        ruleResource = Object.values(cfResources).find(resource => resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('1'))
+        ruleResource = Object.values(cfResources).find(
+          (resource) =>
+            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('1')
+        );
         ruleTarget = ruleResource.Properties.Targets[0];
-        const inputPathRuleResource = Object.values(cfResources).find(resource => resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('2'))
-        inputPathRuleTarget = inputPathRuleResource.Properties.Targets[0]
-        const inputTransformerRuleResource = Object.values(cfResources).find(resource => resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('3'))
-        inputTransformerRuleTarget = inputTransformerRuleResource.Properties.Targets[0]
+        const inputPathRuleResource = Object.values(cfResources).find(
+          (resource) =>
+            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('2')
+        );
+        inputPathRuleTarget = inputPathRuleResource.Properties.Targets[0];
+        const inputTransformerRuleResource = Object.values(cfResources).find(
+          (resource) =>
+            resource.Type === 'AWS::Events::Rule' && resource.Properties.Name.endsWith('3')
+        );
+        inputTransformerRuleTarget = inputTransformerRuleResource.Properties.Targets[0];
       });
 
       it('should create an EventBus resource', () => {
-        expect(cfResources[eventBusLogicalId].Properties).to.deep.equal({Name: eventBusName})
-      })
+        expect(cfResources[eventBusLogicalId].Properties).to.deep.equal({ Name: eventBusName });
+      });
 
       it('should correctly set ScheduleExpression on a created rule', () => {
-        expect(ruleResource.Properties.ScheduleExpression).to.equal('rate(10 minutes)')
-      })
+        expect(ruleResource.Properties.ScheduleExpression).to.equal('rate(10 minutes)');
+      });
 
       it('should correctly set EventPattern on a created rule', () => {
-        expect(ruleResource.Properties.EventPattern).to.deep.equal(JSON.stringify(pattern))
-      })
+        expect(ruleResource.Properties.EventPattern).to.deep.equal(JSON.stringify(pattern));
+      });
 
       it('should correctly set Input on the target for the created rule', () => {
-        expect(ruleTarget.Input).to.deep.equal(JSON.stringify(input))
-      })
+        expect(ruleTarget.Input).to.deep.equal(JSON.stringify(input));
+      });
 
       it('should correctly set InputPath on the target for the created rule', () => {
         expect(inputPathRuleTarget.InputPath).to.deep.equal(inputPath);
-      })
+      });
 
       it('should correctly set InputTransformer on the target for the created rule', () => {
-        expect(inputTransformerRuleTarget.InputTransformer.InputPathsMap).to.deep.equal(inputTransformer.inputPathsMap);
-        expect(inputTransformerRuleTarget.InputTransformer.InputTemplate).to.deep.equal(inputTransformer.inputTemplate);
-      })
+        expect(inputTransformerRuleTarget.InputTransformer.InputPathsMap).to.deep.equal(
+          inputTransformer.inputPathsMap
+        );
+        expect(inputTransformerRuleTarget.InputTransformer.InputTemplate).to.deep.equal(
+          inputTransformer.inputTemplate
+        );
+      });
 
       it('should create a rule that depends on created EventBus', () => {
         expect(ruleResource.DependsOn).to.equal(eventBusLogicalId);
-      })
+      });
 
       it('should create a rule that references correct function in target', () => {
-        expect(ruleTarget.Arn['Fn::GetAtt'][0]).to.equal(naming.getLambdaLogicalId('foo'))
-      })
+        expect(ruleTarget.Arn['Fn::GetAtt'][0]).to.equal(naming.getLambdaLogicalId('foo'));
+      });
 
       it('should create a lambda permission resource that correctly references event bus in SourceArn', () => {
-        const lambdaPermissionResource = cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 1)];
+        const lambdaPermissionResource =
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 1)];
 
-        expect(lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]).to.deep.equal(eventBusName);
+        expect(
+          lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
+        ).to.deep.equal(eventBusName);
       });
     });
 
     describe('when it references already existing EventBus or uses default one', () => {
-      it('should not create an EventBus if it is provided or default', async () => {
-      const { cfTemplate, awsNaming } = await runServerless({
-        fixture: 'function',
-        cliArgs: ['package'],
-        configExt: {
-          provider: {
-            eventBridge: {
-              useCloudFormation: true,
-            },
-          },
-          functions: {
-            foo: {
-              events: [
-                {
-                  eventBridge: {
-                    schedule: 'rate(10 minutes)',
-                    eventBus: 'arn:xxxxx',
-                  },
-                },
-                {
-                  eventBridge: {
-                    schedule: 'rate(10 minutes)',
-                    eventBus: { Ref: 'ImportedEventBus' },
-                  },
-                },
-                {
-                  eventBridge: {
-                    schedule: 'rate(10 minutes)',
-                    eventBus: 'default',
-                  },
-                },
-                {
-                  eventBridge: {
-                    schedule: 'rate(10 minutes)',
-                  },
-                },
-              ],
-            },
-          },
-        },
-      });
-      expect(
-        Object.values(cfTemplate.Resources).some((value) => value.Type === 'AWS::Events::EventBus')
-      ).to.be.false;
-    });
-    })
+      let cfResources;
+      let naming;
 
+      before(async () => {
+        const { cfTemplate, awsNaming } = await runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            provider: {
+              eventBridge: {
+                useCloudFormation: true,
+              },
+            },
+            functions: {
+              foo: {
+                events: [
+                  {
+                    eventBridge: {
+                      schedule: 'rate(10 minutes)',
+                      eventBus: 'arn:xxxxx',
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      schedule: 'rate(10 minutes)',
+                      eventBus: { Ref: 'ImportedEventBus' },
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      schedule: 'rate(10 minutes)',
+                      eventBus: 'default',
+                    },
+                  },
+                  {
+                    eventBridge: {
+                      schedule: 'rate(10 minutes)',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        });
+        cfResources = cfTemplate.Resources;
+        naming = awsNaming;
+      });
+
+      it('should not create an EventBus if it is provided or default', async () => {
+        expect(Object.values(cfResources).some((value) => value.Type === 'AWS::Events::EventBus'))
+          .to.be.false;
+      });
+
+      it('should create a lambda permission resource that correctly references arn event bus in SourceArn', () => {
+        const lambdaPermissionResource =
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 1)];
+
+        expect(
+          lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
+        ).to.deep.equal('arn:xxxxx');
+      });
+
+      it('should create a lambda permission resource that correctly references CF event bus in SourceArn', () => {
+        const lambdaPermissionResource =
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 2)];
+
+        expect(
+          lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
+        ).to.deep.equal({ Ref: 'ImportedEventBus' });
+      });
+
+      it('should create a lambda permission resource that correctly references explicit default event bus in SourceArn', () => {
+        const lambdaPermissionResource =
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 3)];
+
+        expect(
+          lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1][1]
+        ).to.equal('default');
+      });
+
+      it('should create a lambda permission resource that correctly references implicit default event bus in SourceArn', () => {
+        const lambdaPermissionResource =
+          cfResources[naming.getEventBridgeLambdaPermissionLogicalId('foo', 4)];
+
+        expect(
+          lambdaPermissionResource.Properties.SourceArn['Fn::Join'][1][5]['Fn::Join'][1]
+        ).not.to.include('default');
+      });
+    });
   });
 });

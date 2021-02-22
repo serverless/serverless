@@ -28,17 +28,4 @@ functions:
               - serverless.test
   eventBusArn:
     handler: core.eventBusArn
-    events:
-      - eventBridge:
-          eventBus:
-            Ref: EventBus
-          pattern:
-            source:
-              - serverless.test
-
-resources:
-  Resources:
-    EventBus:
-      Type: AWS::Events::EventBus
-      Properties:
-        Name: ${self:service.name}-custom-event-bus
+    # Event filled by integration test

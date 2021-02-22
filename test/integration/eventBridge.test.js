@@ -85,68 +85,65 @@ describe('AWS - Event Bridge Integration Test', () => {
     });
 
     describe('Default Event Bus', () => {
-      it('should invoke function when an event is sent to the event bus', () => {
+      it('should invoke function when an event is sent to the event bus', async () => {
         const functionName = 'eventBusDefault';
         const markers = getMarkers(functionName);
 
-        return confirmCloudWatchLogs(
+        const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents('default', putEventEntries),
           {
-            checkIsComplete: (events) =>
-              events.find((event) => event.message.includes(markers.start)) &&
-              events.find((event) => event.message.includes(markers.end)),
+            checkIsComplete: (data) =>
+              data.find((event) => event.message.includes(markers.start)) &&
+              data.find((event) => event.message.includes(markers.end)),
           }
-        ).then((events) => {
-          const logs = events.map((event) => event.message).join('\n');
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+        );
+        const logs = events.map((event) => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
       });
     });
 
     describe('Custom Event Bus', () => {
-      it('should invoke function when an event is sent to the event bus', () => {
+      it('should invoke function when an event is sent to the event bus', async () => {
         const functionName = 'eventBusCustom';
         const markers = getMarkers(functionName);
 
-        return confirmCloudWatchLogs(
+        const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(namedEventBusName, putEventEntries),
           {
-            checkIsComplete: (events) =>
-              events.find((event) => event.message.includes(markers.start)) &&
-              events.find((event) => event.message.includes(markers.end)),
+            checkIsComplete: (data) =>
+              data.find((event) => event.message.includes(markers.start)) &&
+              data.find((event) => event.message.includes(markers.end)),
           }
-        ).then((events) => {
-          const logs = events.map((event) => event.message).join('\n');
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+        );
+        const logs = events.map((event) => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
       });
     });
 
     describe('Arn Event Bus', () => {
-      it('should invoke function when an event is sent to the event bus', () => {
+      it('should invoke function when an event is sent to the event bus', async () => {
         const functionName = 'eventBusArn';
         const markers = getMarkers(functionName);
 
-        return confirmCloudWatchLogs(
+        const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(arnEventBusName, putEventEntries),
           {
-            checkIsComplete: (events) =>
-              events.find((event) => event.message.includes(markers.start)) &&
-              events.find((event) => event.message.includes(markers.end)),
+            checkIsComplete: (data) =>
+              data.find((event) => event.message.includes(markers.start)) &&
+              data.find((event) => event.message.includes(markers.end)),
           }
-        ).then((events) => {
-          const logs = events.map((event) => event.message).join('\n');
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+        );
+        const logs = events.map((event) => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
       });
     });
   });
@@ -159,7 +156,6 @@ describe('AWS - Event Bridge Integration Test', () => {
     let namedEventBusName;
     let arnEventBusName;
     let arnEventBusArn;
-    let cfFuncEventBusName;
     const eventSource = 'serverless.test';
     const stage = 'dev';
     const putEventEntries = [
@@ -177,7 +173,6 @@ describe('AWS - Event Bridge Integration Test', () => {
 
       namedEventBusName = `${serviceName}-named-event-bus`;
       arnEventBusName = `${serviceName}-arn-event-bus`;
-      cfFuncEventBusName = `${serviceName}-custom-event-bus`;
 
       // get default event bus ARN
       const defaultEventBusArn = (await describeEventBus('default')).Arn;
@@ -186,7 +181,6 @@ describe('AWS - Event Bridge Integration Test', () => {
       // create an external Event Bus
       // NOTE: deployment can only be done once the Event Bus is created
       arnEventBusArn = (await createEventBus(arnEventBusName)).EventBusArn;
-      // update the YAML file with the arn
       await serviceData.updateConfig({
         provider: {
           eventBridge: {
@@ -194,20 +188,6 @@ describe('AWS - Event Bridge Integration Test', () => {
           },
         },
         functions: {
-          eventBusDefault: {
-            events: [
-              {
-                eventBridge: {},
-              },
-            ],
-          },
-          eventBusCustom: {
-            events: [
-              {
-                eventBridge: {},
-              },
-            ],
-          },
           eventBusDefaultArn: {
             events: [
               {
@@ -241,68 +221,66 @@ describe('AWS - Event Bridge Integration Test', () => {
     });
 
     describe('Default Event Bus', () => {
-      it('should invoke function when an event is sent to the event bus', () => {
+      it('should invoke function when an event is sent to the event bus', async () => {
         const functionName = 'eventBusDefault';
         const markers = getMarkers(functionName);
 
-        return confirmCloudWatchLogs(
+        const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents('default', putEventEntries),
           {
-            checkIsComplete: (events) =>
-              events.find((event) => event.message.includes(markers.start)) &&
-              events.find((event) => event.message.includes(markers.end)),
+            checkIsComplete: (data) =>
+              data.find((event) => event.message.includes(markers.start)) &&
+              data.find((event) => event.message.includes(markers.end)),
           }
-        ).then((events) => {
-          const logs = events.map((event) => event.message).join('\n');
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+        );
+        const logs = events.map((event) => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
       });
     });
 
     describe('Custom Event Bus', () => {
-      it('should invoke function when an event is sent to the event bus', () => {
+      it('should invoke function when an event is sent to the event bus', async () => {
         const functionName = 'eventBusCustom';
         const markers = getMarkers(functionName);
 
-        return confirmCloudWatchLogs(
+        const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(namedEventBusName, putEventEntries),
           {
-            checkIsComplete: (events) =>
-              events.find((event) => event.message.includes(markers.start)) &&
-              events.find((event) => event.message.includes(markers.end)),
+            checkIsComplete: (data) =>
+              data.find((event) => event.message.includes(markers.start)) &&
+              data.find((event) => event.message.includes(markers.end)),
           }
-        ).then((events) => {
-          const logs = events.map((event) => event.message).join('\n');
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+        );
+        const logs = events.map((event) => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
       });
     });
 
     describe('Arn Event Bus', () => {
-      it('should invoke function when an event is sent to the event bus', () => {
+      it('should invoke function when an event is sent to the event bus', async () => {
         const functionName = 'eventBusArn';
         const markers = getMarkers(functionName);
 
-        return confirmCloudWatchLogs(
+        const events = await confirmCloudWatchLogs(
           `/aws/lambda/${stackName}-${functionName}`,
           () => putEvents(arnEventBusName, putEventEntries),
           {
-            checkIsComplete: (events) =>
-              events.find((event) => event.message.includes(markers.start)) &&
-              events.find((event) => event.message.includes(markers.end)),
+            checkIsComplete: (data) =>
+              data.find((event) => event.message.includes(markers.start)) &&
+              data.find((event) => event.message.includes(markers.end)),
           }
-        ).then((events) => {
-          const logs = events.map((event) => event.message).join('\n');
-          expect(logs).to.include(`"source":"${eventSource}"`);
-          expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
-          expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
-        });
+        );
+
+        const logs = events.map((event) => event.message).join('\n');
+        expect(logs).to.include(`"source":"${eventSource}"`);
+        expect(logs).to.include(`"detail-type":"${putEventEntries[0].DetailType}"`);
+        expect(logs).to.include(`"detail":${putEventEntries[0].Detail}`);
       });
     });
   });
