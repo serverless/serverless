@@ -15,21 +15,30 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
         '--unspecified-boolean',
         '--unspecified-multiple',
         'one',
+        '--unspecified-multiple=',
+        '--unspecified-multiple=',
         '--unspecified-multiple',
         'test',
         '--unspecified-multiple=another',
         '--unspecified-multiple',
         'another2',
+        '--unspecified-multiple2',
+        'one',
+        '--unspecified-multiple2',
+        'other',
         '--multiple',
         'single',
+        '--string-empty=',
         '-a',
         'value',
+        '--multiple=',
         '--multiple',
         'other',
         '--boolean',
         'elo',
         '--no-other-boolean',
         'foo',
+        '--empty=',
         '-bc',
         '--underscore_separator',
         'underscored_value',
@@ -41,7 +50,7 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
       ],
       {
         boolean: new Set(['boolean', 'other-boolean']),
-        string: new Set(['string']),
+        string: new Set(['string', 'string-empty']),
         multiple: new Set(['multiple']),
         alias: new Map([['a', 'alias']]),
       }
@@ -66,15 +75,19 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
   it('should recognize unspecified multiple param', async () => {
     expect(parsedArgs['unspecified-multiple']).to.deep.equal([
       'one',
+      null,
+      null,
       'test',
       'another',
       'another2',
     ]);
+    expect(parsedArgs['unspecified-multiple2']).to.deep.equal(['one', 'other']);
     delete parsedArgs['unspecified-multiple'];
+    delete parsedArgs['unspecified-multiple2'];
   });
 
   it('should recognize multiple param', async () => {
-    expect(parsedArgs.multiple).to.deep.equal(['single', 'other']);
+    expect(parsedArgs.multiple).to.deep.equal(['single', null, 'other']);
     delete parsedArgs.multiple;
   });
 
@@ -98,6 +111,13 @@ describe('test/unit/lib/cli/parse-args.test.js', () => {
     expect(parsedArgs.c).to.equal(true);
     delete parsedArgs.b;
     delete parsedArgs.c;
+  });
+
+  it('should recognize empty value', async () => {
+    expect(parsedArgs.empty).to.equal(null);
+    expect(parsedArgs['string-empty']).to.equal(null);
+    delete parsedArgs.empty;
+    delete parsedArgs['string-empty'];
   });
 
   it('should recognize underscore chars in params', async () => {
