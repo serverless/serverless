@@ -6,15 +6,6 @@ layout: Doc
 
 # Serverless Framework Deprecations
 
-<a name="AWS_HTTP_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
-
-## Http Api provider tags
-
-Deprecation code: `AWS_HTTP_API_USE_PROVIDER_TAGS`
-
-Starting with v3.0.0, `provider.tags` will be applied to Http Api Gateway by default
-Set `provider.httpApi.useProviderTags` to `true` to adapt to the new behavior now.
-
 ## How to disable specific deprecation logs
 
 To disable specific deprecations set `SLS_DEPRECATION_DISABLE` environment variable. Setting `SLS_DEPRECATION_DISABLE=*` will disable all deprecations. If you want to disable specific deprecations set `SLS_DEPRECATION_DISABLE=CODE1,CODE2`. Alternatively, you can also use `disabledDeprecations` in your `serverless.yml` in the following manner:
@@ -25,6 +16,15 @@ disabledDeprecations:
   - CODE_1 # To disable specific deprecation with code "CODE_1"
   - '*' # To disable all deprecation messages
 ```
+
+<a name="AWS_HTTP_API_USE_PROVIDER_TAGS"><div>&nbsp;</div></a>
+
+## Http Api provider tags
+
+Deprecation code: `AWS_HTTP_API_USE_PROVIDER_TAGS`
+
+Starting with v3.0.0, `provider.tags` will be applied to Http Api Gateway by default
+Set `provider.httpApi.useProviderTags` to `true` to adapt to the new behavior now.
 
 <a name="MISSING_COMMANDS_OR_OPTIONS_AT_CONSTRUCTION"><div>&nbsp;</div></a>
 
