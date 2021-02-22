@@ -4,7 +4,6 @@
   "description": "Serverless aws-nodejs-typescript template",
   "main": "serverless.ts",
   "scripts": {
-    "build": "serverless webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
