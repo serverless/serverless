@@ -75,7 +75,7 @@ The project code base is mainly located within the `src` folder. This folder is 
 │   └── libs                    # Lambda shared code
 │       └── apiGateway.ts       # API Gateway specific helpers
 │       └── handlerResolver.ts  # Sharable library for resolving lambda handlers
-│       └── logger.ts           # Lambda middleware
+│       └── lambda.ts           # Lambda middleware
 │
 ├── package.json
 ├── serverless.ts               # Serverless service file
