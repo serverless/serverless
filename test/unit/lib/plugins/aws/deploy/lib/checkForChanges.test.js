@@ -1161,12 +1161,16 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             deleteSubscriptionFilter: deleteStub,
             describeSubscriptionFilters: async () => {
               const functionName = serverless.service.getFunction('fn1').name;
+              const naming = serverless.getProvider('aws').naming;
               return {
                 subscriptionFilters: [
                   {
                     // destinationArn `arn:{partition}:lambda:{region}:{accountId}:function:{functionName}`
                     // filterName {stack name}-{logical id}-{random alphanumeric characters}
-                    filterName: 'teststack-Fn1LogsSubscriptionFilterCloudWatchLog1-xxxxx',
+                    filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                      'Fn1',
+                      1
+                    )}-xxxxx`,
                     destinationArn: `arn:aws:lambda:us-east-1:999999999999:function:${functionName}`,
                   },
                 ],
@@ -1203,16 +1207,22 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
           },
           CloudWatchLogs: {
             deleteSubscriptionFilter: deleteStub,
-            describeSubscriptionFilters: {
-              subscriptionFilters: [
-                {
-                  // destinationArn `arn:{partition}:lambda:{region}:{accountId}:function:{functionName}`
-                  // filterName {stack name}-{logical id}-{random alphanumeric characters}
-                  filterName: 'checkForChanges-Fn1LogsSubscriptionFilterCloudWatchLog1-xxxxx',
-                  destinationArn:
-                    'arn:aws:lambda:us-east-1:999999999999:function:test-checkForChanges-cdr3ogg-dev-fn1',
-                },
-              ],
+            describeSubscriptionFilters: async () => {
+              const naming = serverless.getProvider('aws').naming;
+              return {
+                subscriptionFilters: [
+                  {
+                    // destinationArn `arn:{partition}:lambda:{region}:{accountId}:function:{functionName}`
+                    // filterName {stack name}-{logical id}-{random alphanumeric characters}
+                    filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                      'Fn1',
+                      1
+                    )}-xxxxx`,
+                    destinationArn:
+                      'arn:aws:lambda:us-east-1:999999999999:function:test-checkForChanges-cdr3ogg-dev-fn1',
+                  },
+                ],
+              };
             },
           },
         },
@@ -1223,7 +1233,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
     it('should attempt to delete filter if order of cloudwatch events changed', async () => {
       const deleteStub = sandbox.stub();
       let serverless;
-      await runServerless({
+      const { awsNaming } = await runServerless({
         fixture: 'checkForChanges',
         cliArgs: ['deploy'],
         configExt: {
@@ -1255,38 +1265,49 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             describeSubscriptionFilters: sandbox
               .stub()
               .onFirstCall()
-              .callsFake(() =>
-                Promise.resolve({
+              .callsFake(async () => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
                   subscriptionFilters: [
                     {
-                      filterName: 'teststack-Fn1LogsSubscriptionFilterCloudWatchLog1-xxxxx',
+                      filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                        'Fn1',
+                        1
+                      )}-xxxxx`,
                       destinationArn: `arn:aws:lambda:us-east-1:999999999999:function:${
                         serverless.service.getFunction('fn1').name
                       }`,
                     },
                   ],
-                })
-              )
+                };
+              })
               .onSecondCall()
-              .callsFake(() =>
-                Promise.resolve({
+              .callsFake(async () => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
                   subscriptionFilters: [
                     {
                       // someLogGroupeName2 was previously the third event
-                      filterName: 'teststack-Fn1LogsSubscriptionFilterCloudWatchLog3-xxxxx',
+                      filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                        'Fn1',
+                        1
+                      )}-xxxxx`,
                       destinationArn: `arn:aws:lambda:us-east-1:999999999999:function:${
                         serverless.service.getFunction('fn1').name
                       }`,
                     },
                   ],
-                })
-              ),
+                };
+              }),
           },
         },
       });
       expect(deleteStub).to.have.been.calledOnceWith({
         logGroupName: 'someLogGroupName2',
-        filterName: 'teststack-Fn1LogsSubscriptionFilterCloudWatchLog3-xxxxx',
+        filterName: `${awsNaming.getStackName()}-${awsNaming.getCloudWatchLogLogicalId(
+          'Fn1',
+          1
+        )}-xxxxx`,
       });
     });
 
@@ -1322,18 +1343,22 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
             headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
           },
           CloudWatchLogs: {
-            describeSubscriptionFilters: sandbox.stub().callsFake(() =>
-              Promise.resolve({
+            describeSubscriptionFilters: sandbox.stub().callsFake(async () => {
+              const naming = serverless.getProvider('aws').naming;
+              return {
                 subscriptionFilters: [
                   {
-                    filterName: 'teststack-Fn1LogsSubscriptionFilterCloudWatchLog1-xxxxx',
+                    filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                      'Fn1',
+                      1
+                    )}-xxxxx`,
                     destinationArn: `arn:aws-us-gov:lambda:us-east-1:999999999999:function:${
                       serverless.service.getFunction('fn1').name
                     }`,
                   },
                 ],
-              })
-            ),
+              };
+            }),
             deleteSubscriptionFilter: deleteStub,
           },
         },
