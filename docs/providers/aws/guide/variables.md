@@ -441,21 +441,41 @@ functions:
 
 ## Reference Variables in Javascript Files
 
-You can reference JavaScript files to add dynamic data into your variables.
+You can reference JavaScript modules to add dynamic data into your variables.
 
-References can be either named or unnamed exports. To use the exported `someModule` in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`. For an unnamed export you'd write `${file(./myFile.js)}`. If you export a function, the first argument will be a reference to the Serverless object, containing your configuration.
+### Exporting an object
 
-Here are some examples:
+Module may export an object, then to rely on exported `someModule` property in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`)
+
+e.g.
 
 ```js
 // scheduleConfig.js
 module.exports.rate = 'rate(10 minutes)';
 ```
 
+```yml
+# serverless.yml
+service: new-service
+provider: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - schedule: ${file(./scheduleConfig.js):rate} # Reference a specific module
+```
+
+### Exporting a function
+
+Module may export a function, which as first argument receives a reference to the Serverless object containing your configuration.
+
+_**Notice:** Configuration is yet in unresolved state, so any properties configured with variables may still be presented with variables in it_
+
 ```js
 // config.js
 module.exports = (serverless) => {
-  serverless.cli.consoleLog('You can access Serverless config and methods as well!');
+  serverless.cli.consoleLog('You can access Serverless config at serverless.configrationInput');
 
   return {
     property1: 'some value',
@@ -470,12 +490,6 @@ service: new-service
 provider: aws
 
 custom: ${file(./config.js)}
-
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - schedule: ${file(./scheduleConfig.js):rate} # Reference a specific module
 ```
 
 You can also return an object and reference a specific property. Just make sure you are returning a valid object and referencing a valid property:
