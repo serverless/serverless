@@ -445,7 +445,7 @@ You can reference JavaScript modules to add dynamic data into your variables.
 
 ### Exporting an object
 
-Module may export an object, then to rely on exported `someModule` property in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`)
+To rely on exported `someModule` property in `myFile.js` you'd use the following code `${file(./myFile.js):someModule}`)
 
 e.g.
 
@@ -468,12 +468,31 @@ functions:
 
 ### Exporting a function
 
-Module may export a function, which as first argument receives a reference to the Serverless object containing your configuration.
+With a new variables resolver (_which will be the only used resolver in v3 of a Framework, and which can be turned on now by setting `variablesResolutionMode: 20210219` in service config_) functions receives an object, with two properties:
+
+- `options` - An object referencing resolved CLI params as passed to the command
+- `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuraton property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
+
+Example, of how to obtain a value of AWS region that will be used by Serverless Framework:
+
+```js
+// config.js (when relying on new variables resolver)
+module.exports = ({ options, resolveConfigurationProperty }) => {
+  let region = options.region;
+  if (!region) {
+    region = await resolveConfigurationProperty(['provider', 'region']);
+    if (!region) region = 'us-east-1'; // Framework default
+  }
+  ...
+}
+```
+
+In the old legacy resolver (which is deprecated, but stays as default in v2) function receives a reference to the Serverless object containing your configuration.
 
 _**Notice:** Configuration is yet in unresolved state, so any properties configured with variables may still be presented with variables in it_
 
 ```js
-// config.js
+// config.js (when relying on legacy resolver)
 module.exports = (serverless) => {
   serverless.cli.consoleLog('You can access Serverless config at serverless.configrationInput');
 
