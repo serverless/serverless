@@ -1,33 +1,26 @@
 'use strict';
 
 const chai = require('chai');
-const runServerless = require('../../../../../../../../tests/utils/run-serverless');
-const fixtures = require('../../../../../../../../tests/fixtures');
+const runServerless = require('../../../../../../../../../utils/run-serverless');
 
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
 
 describe('#compileRequestValidators()', () => {
-  let serverlessInstance;
+  let cfResources;
+  let naming;
 
-  before(() => {
-    return Promise.resolve(
-      runServerless({
-        cwd: fixtures.map.requestSchema,
-        cliArgs: ['package'],
-      })
-    ).then(serverless => (serverlessInstance = serverless));
-  });
-
-  after(() => {
-    fixtures.cleanup();
+  before(async () => {
+    const { cfTemplate, awsNaming } = await runServerless({
+      fixture: 'requestSchema',
+      cliArgs: ['package'],
+    });
+    cfResources = cfTemplate.Resources;
+    naming = awsNaming;
   });
 
   describe(' reusable schemas ', () => {
     it('Should process schema from apiGateway provider, full config', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
       const modelLogicalId = naming.getModelLogicalId('TestModel');
       const modelResource = cfResources[modelLogicalId];
       expect(modelResource).to.deep.equal({
@@ -58,9 +51,6 @@ describe('#compileRequestValidators()', () => {
     });
 
     it('Should process schema from apiGateway provider, missing name and description', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
       const modelLogicalId = naming.getModelLogicalId('TestModelSimple');
       const modelResource = cfResources[modelLogicalId];
 
@@ -90,9 +80,6 @@ describe('#compileRequestValidators()', () => {
     });
 
     it('Should not create a model that is never referenced in the events', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
       const modelLogicalId = naming.getModelLogicalId('UnusedModel');
       const modelResource = cfResources[modelLogicalId] || null;
 
@@ -106,12 +93,9 @@ describe('#compileRequestValidators()', () => {
      ** api provider models
      **/
     it('should reference model from provider:apiGateway:requestSchemas', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
       const modelLogicalId = naming.getModelLogicalId('test-model');
       const validatorLogicalId = naming.getValidatorLogicalId(modelLogicalId);
-      const methodLogicalId = naming.getMethodLogicalId('Test', 'get');
+      const methodLogicalId = naming.getMethodLogicalId('TestDashmodelDashfull', 'get');
       const methodResource = cfResources[methodLogicalId];
 
       expect(methodResource.Properties).to.have.property('RequestModels');
@@ -127,12 +111,15 @@ describe('#compileRequestValidators()', () => {
     });
 
     it('should create a new model from a schema only', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
-      const modelLogicalId = naming.getEndpointModelLogicalId('Test2', 'get', 'application/json');
-      const validatorLogicalId = naming.getValidatorLogicalId(naming.getModelLogicalId('Test2'));
-      const methodLogicalId = naming.getMethodLogicalId('Test2', 'get');
+      const modelLogicalId = naming.getEndpointModelLogicalId(
+        'TestDashdirectDashsimple',
+        'get',
+        'application/json'
+      );
+      const validatorLogicalId = naming.getValidatorLogicalId(
+        naming.getModelLogicalId('TestDashdirectDashsimple')
+      );
+      const methodLogicalId = naming.getMethodLogicalId('TestDashdirectDashsimple', 'get');
       const methodResource = cfResources[methodLogicalId];
 
       expect(methodResource.Properties).to.have.property('RequestModels');
@@ -173,13 +160,16 @@ describe('#compileRequestValidators()', () => {
       });
     });
 
-    it('should create a new model from a schma with name and description', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
-      const modelLogicalId = naming.getEndpointModelLogicalId('Test3', 'get', 'application/json');
-      const validatorLogicalId = naming.getValidatorLogicalId(naming.getModelLogicalId('Test3'));
-      const methodLogicalId = naming.getMethodLogicalId('Test3', 'get');
+    it('should create a new model from a schema with name and description', () => {
+      const modelLogicalId = naming.getEndpointModelLogicalId(
+        'TestDashdirectDashfull',
+        'get',
+        'application/json'
+      );
+      const validatorLogicalId = naming.getValidatorLogicalId(
+        naming.getModelLogicalId('TestDashdirectDashfull')
+      );
+      const methodLogicalId = naming.getMethodLogicalId('TestDashdirectDashfull', 'get');
       const methodResource = cfResources[methodLogicalId];
 
       expect(methodResource.Properties).to.have.property('RequestModels');
@@ -223,21 +213,20 @@ describe('#compileRequestValidators()', () => {
     });
 
     it('should allow multiple schemas to be defined', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
       const modelJsonLogicalId = naming.getEndpointModelLogicalId(
-        'Test5',
+        'TestDashmultiple',
         'get',
         'application/json'
       );
       const modelPlainTextLogicalId = naming.getEndpointModelLogicalId(
-        'Test5',
+        'TestDashmultiple',
         'get',
         'text/plain'
       );
-      const validatorLogicalId = naming.getValidatorLogicalId(naming.getModelLogicalId('Test5'));
-      const methodLogicalId = naming.getMethodLogicalId('Test5', 'get');
+      const validatorLogicalId = naming.getValidatorLogicalId(
+        naming.getModelLogicalId('TestDashmultiple')
+      );
+      const methodLogicalId = naming.getMethodLogicalId('TestDashmultiple', 'get');
       const methodResource = cfResources[methodLogicalId];
 
       expect(methodResource.Properties).to.have.property('RequestModels');
@@ -295,12 +284,15 @@ describe('#compileRequestValidators()', () => {
     });
 
     it('should support existing request:schema property for regression', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
-      const modelLogicalId = naming.getEndpointModelLogicalId('Test4', 'get', 'application/json');
-      const validatorLogicalId = naming.getValidatorLogicalId(naming.getModelLogicalId('Test4'));
-      const methodLogicalId = naming.getMethodLogicalId('Test4', 'get');
+      const modelLogicalId = naming.getEndpointModelLogicalId(
+        'TestDashdeprecatedDashsimple',
+        'get',
+        'application/json'
+      );
+      const validatorLogicalId = naming.getValidatorLogicalId(
+        naming.getModelLogicalId('TestDashdeprecatedDashsimple')
+      );
+      const methodLogicalId = naming.getMethodLogicalId('TestDashdeprecatedDashsimple', 'get');
       const methodResource = cfResources[methodLogicalId];
 
       expect(methodResource.Properties).to.have.property('RequestModels');
@@ -342,21 +334,20 @@ describe('#compileRequestValidators()', () => {
     });
 
     it('should support multiple request:schema property for regression', () => {
-      const cfResources =
-        serverlessInstance.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      const naming = serverlessInstance.serverless.getProvider('aws').naming;
       const modelJsonLogicalId = naming.getEndpointModelLogicalId(
-        'Test6',
+        'TestDashdeprecatedDashmultiple',
         'get',
         'application/json'
       );
       const modelPlainTextLogicalId = naming.getEndpointModelLogicalId(
-        'Test6',
+        'TestDashdeprecatedDashmultiple',
         'get',
         'text/plain'
       );
-      const validatorLogicalId = naming.getValidatorLogicalId(naming.getModelLogicalId('Test6'));
-      const methodLogicalId = naming.getMethodLogicalId('Test6', 'get');
+      const validatorLogicalId = naming.getValidatorLogicalId(
+        naming.getModelLogicalId('TestDashdeprecatedDashmultiple')
+      );
+      const methodLogicalId = naming.getMethodLogicalId('TestDashdeprecatedDashmultiple', 'get');
       const methodResource = cfResources[methodLogicalId];
 
       expect(methodResource.Properties).to.have.property('RequestModels');

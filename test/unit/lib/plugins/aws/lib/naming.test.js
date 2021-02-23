@@ -424,17 +424,6 @@ describe('#naming()', () => {
     });
   });
 
-  describe('#getEndpointValidatorLogicalId()', () => {
-    it('', () => {
-      expect(sdk.naming.getEndpointValidatorLogicalId('ResourceId', 'get')).to.equal(
-        'ApiGatewayMethodResourceIdGetValidator'
-      );
-      expect(
-        sdk.naming.getModelLogicalId('Example', 'post', 'application/x-www-form-urlencoded')
-      ).to.equal('ApiGatewayMethodExamplePostApplicationXWwwFormUrlencodedModel');
-    });
-  });
-
   describe('#getApiKeyLogicalId(keyIndex)', () => {
     it('should produce the given index with ApiGatewayApiKey as a prefix', () => {
       expect(sdk.naming.getApiKeyLogicalId(1)).to.equal('ApiGatewayApiKey1');
