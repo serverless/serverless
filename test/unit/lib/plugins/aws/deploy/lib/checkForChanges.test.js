@@ -1311,7 +1311,7 @@ describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
       });
     });
 
-    it('should not attempt to delete and add filter in context of custom partition', async () => {
+    it('should recognize custom partition', async () => {
       const deleteStub = sandbox.stub();
       let serverless;
       await runServerless({
