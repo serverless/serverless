@@ -5,14 +5,32 @@ const runServerless = require('../../../../../../utils/run-serverless');
 
 const expect = chai.expect;
 
-describe('stripNullPropsFromTemplateResources', () => {
+describe('test/unit/lib/plugins/aws/package/lib/stripNullPropsFromTemplateResources.test.js', () => {
   let finalTemplate;
 
   before(async () => {
     const result = await runServerless({
-      fixture: 'nullProps',
+      fixture: 'aws',
       cliArgs: ['deploy'],
       lastLifecycleHookName: 'package:finalize',
+      configExt: {
+        resources: {
+          Resources: {
+            myBucket: {
+              Type: 'AWS::S3::Bucket',
+              Properties: {
+                BucketName: null,
+              },
+            },
+            anotherBucket: {
+              Type: 'AWS::S3::Bucket',
+              Properties: {
+                ObjectLockEnabled: false,
+              },
+            },
+          },
+        },
+      },
     });
     finalTemplate = result.cfTemplate;
   });
