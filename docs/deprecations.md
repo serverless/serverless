@@ -82,7 +82,7 @@ Staring with v3.0.0, all IAM-related settings of _provider_ including `iamRoleSt
 - `provider.rolePermissionsBoundary` -> `provider.iam.role.permissionBoundary`
 - `provider.iamRoleStatements` -> `provider.iam.role.statements`
 - `provider.iamManagedPolicies` -> `provider.iam.role.managedPolicies`
-- `provider.cfnRole` -> `provider.iam.role.deploymentRole`
+- `provider.cfnRole` -> `provider.iam.deploymentRole`
 
 <a name="AWS_API_GATEWAY_SPECIFIC_KEYS"><div>&nbsp;</div></a>
 
