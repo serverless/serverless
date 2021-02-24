@@ -43,7 +43,7 @@ const processSpanPromise = (async () => {
     const _ = require('lodash');
     const Serverless = require('../lib/Serverless');
     const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
-    const isHelpRequest = require('../lib/cli/is-help-request');
+    const isHelpRequest = require('../lib/cli/is-help-request')();
     const readConfiguration = require('../lib/configuration/read');
     const logDeprecation = require('../lib/utils/logDeprecation');
 
@@ -56,7 +56,7 @@ const processSpanPromise = (async () => {
             // Configuration syntax error should not prevent help from being displayed
             // (if possible configuration should be read for help request as registered
             // plugins may introduce new commands to be listed in help output)
-            if (isHelpRequest()) return null;
+            if (isHelpRequest) return null;
             throw error;
           }
         })()
@@ -96,7 +96,7 @@ const processSpanPromise = (async () => {
           Boolean
         );
         if (resolutionErrors.length) {
-          if (isHelpRequest()) {
+          if (isHelpRequest) {
             const log = require('@serverless/utils/log');
             log(
               'Resolution of service configuration failed when resolving variables: ' +
@@ -118,6 +118,34 @@ const processSpanPromise = (async () => {
               'Variables resolver reports following resolution errors:' +
                 `${resolutionErrors.map((error) => `\n  - ${error.message}`)}\n` +
                 'From a next major it we will be communicated with a thrown error.\n' +
+                'Set "variablesResolutionMode: 20210219" in your service config, ' +
+                'to adapt to this behavior now',
+              { serviceConfig: configuration }
+            );
+            // Hack to not duplicate the warning with similar deprecation
+            logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
+          }
+        } else if (!isHelpRequest) {
+          if (variablesMeta.has('provider')) {
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(
+                configurationPath
+              )}: "provider" section is not accessible (configured behind variables which cannot be resolved at this stage)`
+            );
+          }
+          if (variablesMeta.has('provider\0stage')) {
+            if (configuration.variablesResolutionMode) {
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(
+                  configurationPath
+                )}: "provider.stage" is not accessible (configured behind variables which cannot be resolved at this stage)`
+              );
+            }
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              '"provider.stage" is not accessible ' +
+                '(configured behind variables which cannot be resolved at this stage).\n' +
+                'Starting with next major release, this will be communicated with a thrown error.\n' +
                 'Set "variablesResolutionMode: 20210219" in your service config, ' +
                 'to adapt to this behavior now',
               { serviceConfig: configuration }
