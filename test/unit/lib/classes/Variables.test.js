@@ -2763,6 +2763,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     const result = await runServerless({
       fixture: 'variables-legacy',
       cliArgs: ['print'],
+      shouldUseLegacyVariablesResolver: true,
     });
     processedConfig = result.serverless.service;
   });
@@ -2831,6 +2832,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${env:missingEnvVar}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2844,6 +2846,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${opt:missingOpt}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2857,6 +2860,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${self:missingAttribute}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2870,6 +2874,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${file(./missingFile)}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2889,6 +2894,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               myVariable4: '${file(./missingFile)}',
             },
           },
+          shouldUseLegacyVariablesResolver: true,
         });
 
         expect(Array.from(serverless.triggeredDeprecations)).not.to.contain(
@@ -2916,6 +2922,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               myVariable4: '${file(./missingFile)}',
             },
           },
+          shouldUseLegacyVariablesResolver: true,
         });
 
         expect(Array.from(serverless.triggeredDeprecations)).to.contain(
