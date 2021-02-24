@@ -33,72 +33,70 @@ describe('#compileApi()', () => {
     };
   });
 
-  it('should create a websocket api resource', () =>
-    awsCompileWebsocketsEvents.compileApi().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+  it('should create a websocket api resource', () => {
+    awsCompileWebsocketsEvents.compileApi();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources.WebsocketsApi).to.deep.equal({
-        Type: 'AWS::ApiGatewayV2::Api',
-        Properties: {
-          Name: 'dev-my-service-websockets',
-          RouteSelectionExpression: '$request.body.action',
-          Description: 'Serverless Websockets',
-          ProtocolType: 'WEBSOCKET',
-        },
-      });
-    }));
+    expect(resources.WebsocketsApi).to.deep.equal({
+      Type: 'AWS::ApiGatewayV2::Api',
+      Properties: {
+        Name: 'dev-my-service-websockets',
+        RouteSelectionExpression: '$request.body.action',
+        Description: 'Serverless Websockets',
+        ProtocolType: 'WEBSOCKET',
+      },
+    });
+  });
 
   it('should ignore API resource creation if there is predefined websocketApi config', () => {
     awsCompileWebsocketsEvents.serverless.service.provider.apiGateway = {
       websocketApiId: '5ezys3sght',
     };
-    return awsCompileWebsocketsEvents.compileApi().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compileApi();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources).to.not.have.property('WebsocketsApi');
-    });
+    expect(resources).to.not.have.property('WebsocketsApi');
   });
 
-  it('should add the websockets policy', () =>
-    awsCompileWebsocketsEvents.compileApi().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+  it('should add the websockets policy', () => {
+    awsCompileWebsocketsEvents.compileApi();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources[roleLogicalId]).to.deep.equal({
-        Properties: {
-          Policies: [
-            {
-              PolicyDocument: {
-                Statement: [
-                  {
-                    Action: ['execute-api:ManageConnections'],
-                    Effect: 'Allow',
-                    Resource: [
-                      { 'Fn::Sub': 'arn:${AWS::Partition}:execute-api:*:*:*/@connections/*' },
-                    ],
-                  },
-                ],
-              },
+    expect(resources[roleLogicalId]).to.deep.equal({
+      Properties: {
+        Policies: [
+          {
+            PolicyDocument: {
+              Statement: [
+                {
+                  Action: ['execute-api:ManageConnections'],
+                  Effect: 'Allow',
+                  Resource: [
+                    { 'Fn::Sub': 'arn:${AWS::Partition}:execute-api:*:*:*/@connections/*' },
+                  ],
+                },
+              ],
             },
-          ],
-        },
-      });
-    }));
+          },
+        ],
+      },
+    });
+  });
 
   it('should NOT add the websockets policy if role resource does not exist', () => {
     awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources = {};
 
-    return awsCompileWebsocketsEvents.compileApi().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compileApi();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources[roleLogicalId]).to.deep.equal(undefined);
-    });
+    expect(resources[roleLogicalId]).to.deep.equal(undefined);
   });
 });

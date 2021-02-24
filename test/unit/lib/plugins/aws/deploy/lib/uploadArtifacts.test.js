@@ -334,7 +334,7 @@ describe('uploadArtifacts', () => {
       // There were observed race conditions (mostly in Node.js v6) where this temporary home
       // folder was cleaned before stream initialized fully, hence throwing uncaught
       // ENOENT exception into the air.
-      sinon.stub(fs, 'createReadStream').returns({ path: customResourcesFilePath });
+      sinon.stub(fs, 'createReadStream').returns({ path: customResourcesFilePath, on: () => {} });
       serverless.config.servicePath = serviceDirPath;
     });
 

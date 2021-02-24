@@ -229,6 +229,23 @@ describe('AwsCompileFunctions', () => {
       });
     });
 
+    it('should honour provider.iam.role option when set', async () => {
+      const { cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          provider: {
+            role: 'arn:role-a',
+            iam: { role: 'arn:role-b' },
+          },
+        },
+        cliArgs: ['package'],
+      });
+
+      expect(cfTemplate.Resources.FooLambdaFunction.Properties.Role).to.eql({
+        'Fn::GetAtt': ['arn:role-b', 'Arn'],
+      });
+    });
+
     it('should add a logical role name function role', () => {
       awsCompileFunctions.serverless.service.provider.name = 'aws';
       awsCompileFunctions.serverless.service.functions = {
@@ -2048,6 +2065,23 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     it.skip('TODO: should support `functions[].layers`', () => {
       // Replacement for
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L2325-L2362
+    });
+
+    it('should throw an error when nonexistent layer is referenced', async () => {
+      await expect(
+        runServerless({
+          fixture: 'functionDestinations',
+          cliArgs: ['package'],
+          configExt: {
+            functions: {
+              fnInvalidLayer: {
+                handler: 'target.handler',
+                layers: [{ Ref: 'NonexistentLambdaLayer' }],
+              },
+            },
+          },
+        })
+      ).to.be.eventually.rejected.and.have.property('code', 'LAMBDA_LAYER_REFERENCE_NOT_FOUND');
     });
 
     it.skip('TODO: should support `functions[].conditions`', () => {

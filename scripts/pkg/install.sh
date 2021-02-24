@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env bash
+#
+# Download and install standalone binary.
+# The binary version can be specified by setting a VERSION variable.
+# e.g. VERSION=2.21.1 bash install.sh
+# If VERSION is unspecified it will download the latest version.
 
 set -e
 
@@ -44,23 +49,41 @@ else
   fi
 fi
 
+if [[ -z "${VERSION}" ]]
+then
+  # Get latest tag
+  if [[ $IS_IN_CHINA == "1" ]]
+  then
+    TAG=`curl -L --silent https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/latest-tag`
+  else
+    TAG=`curl -L --silent https://api.github.com/repos/serverless/serverless/releases/latest 2>&1 | grep 'tag_name' | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"`
+  fi
+  VERSION=${TAG:1}
+else
+  TAG=v$VERSION
+fi
+
 if [[ $IS_IN_CHINA == "1" ]]
 then
 	# In China download from location in China (Github API download is slow and times out)
-  LATEST_TAG=`curl -L --silent https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/latest-tag`
-	BINARY_URL=https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+	BINARY_URL=https://sls-standalone-sv-1300963013.cos.na-siliconvalley.myqcloud.com/$TAG/serverless-$PLATFORM-$ARCH
 else
-  LATEST_TAG=`curl -L --silent https://api.github.com/repos/serverless/serverless/releases/latest 2>&1 | grep 'tag_name' | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+"`
-	BINARY_URL=https://github.com/serverless/serverless/releases/download/$LATEST_TAG/serverless-$PLATFORM-$ARCH
+	BINARY_URL=https://github.com/serverless/serverless/releases/download/$TAG/serverless-$PLATFORM-$ARCH
 fi
 
-# Dowload binary
+# Download binary
 BINARIES_DIR_PATH=$HOME/.serverless/bin
 BINARY_PATH=$BINARIES_DIR_PATH/serverless
 mkdir -p $BINARIES_DIR_PATH
-printf "$yellow Downloading binary...$reset\n"
+printf "$yellow Downloading binary for version $VERSION...$reset\n"
 
-curl -L -o $BINARY_PATH $BINARY_URL
+version_error_msg (){
+  echo "Could not download binary. Is the version correct?"
+}
+trap version_error_msg ERR
+curl --fail -L -o $BINARY_PATH.tmp $BINARY_URL
+trap - ERR
+mv $BINARY_PATH.tmp $BINARY_PATH
 chmod +x $BINARY_PATH
 
 # Ensure aliases

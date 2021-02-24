@@ -6,9 +6,9 @@
 
 require('essentials');
 
-const argv = require('yargs-parser')(process.argv.slice(2), {
-  boolean: ['help'],
-  alias: { help: 'h' },
+const argv = require('../../lib/cli/parse-args')(process.argv.slice(2), {
+  boolean: new Set(['help']),
+  alias: new Map([['h', 'help']]),
 });
 
 const [versionTag] = argv._;

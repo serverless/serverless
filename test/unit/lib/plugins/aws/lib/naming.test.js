@@ -973,4 +973,38 @@ describe('#naming()', () => {
       ).to.equal('custom/FnJoinRefApiGatewayRestApiexecuteapi');
     });
   });
+
+  describe('#getEcrRepositoryName', () => {
+    it('should correctly trim trailing dash and ensure no consecutive dashes are present', () => {
+      serverless.service.serviceObject = { name: 'service--with-weird-dashes---' };
+      sdk.options.stage = 'stage--with-dash-';
+      expect(sdk.naming.getEcrRepositoryName()).to.equal(
+        'serverless-service-with-weird-dashes-stage-with-dash'
+      );
+    });
+  });
+
+  describe('#getEventBridgeEventBusLogicalId()', () => {
+    it('should normalize the event bus name and append correct suffix', () => {
+      expect(sdk.naming.getEventBridgeEventBusLogicalId('ExampleEventBusName')).to.equal(
+        'ExampleEventBusNameEventBridgeEventBus'
+      );
+    });
+  });
+
+  describe('#getEventBridgeRuleLogicalId()', () => {
+    it('should normalize the rule name and append correct suffix', () => {
+      expect(sdk.naming.getEventBridgeRuleLogicalId('exampleRuleName')).to.equal(
+        'ExampleRuleNameEventBridgeRule'
+      );
+    });
+  });
+
+  describe('#getEventBridgeLambdaPermissionLogicalId()', () => {
+    it('should normalize the name and append correct suffix with index', () => {
+      expect(sdk.naming.getEventBridgeLambdaPermissionLogicalId('exampleFunction', 1)).to.equal(
+        'ExampleFunctionEventBridgeLambdaPermission1'
+      );
+    });
+  });
 });

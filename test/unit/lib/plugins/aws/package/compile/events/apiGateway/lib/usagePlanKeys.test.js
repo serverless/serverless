@@ -34,51 +34,50 @@ describe('#compileUsagePlanKeys()', () => {
       apiKeys: ['1234567890', { name: 'abcdefghij', value: 'abcdefghijvalue' }],
     };
 
-    return awsCompileApigEvents.compileUsagePlanKeys().then(() => {
-      // key 1
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
-        ].Type
-      ).to.equal('AWS::ApiGateway::UsagePlanKey');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
-        ].Properties.KeyId.Ref
-      ).to.equal('ApiGatewayApiKey1');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
-        ].Properties.KeyType
-      ).to.equal('API_KEY');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
-        ].Properties.UsagePlanId.Ref
-      ).to.equal(defaultUsagePlanLogicalId);
+    awsCompileApigEvents.compileUsagePlanKeys();
+    // key 1
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
+      ].Type
+    ).to.equal('AWS::ApiGateway::UsagePlanKey');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
+      ].Properties.KeyId.Ref
+    ).to.equal('ApiGatewayApiKey1');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
+      ].Properties.KeyType
+    ).to.equal('API_KEY');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(1)
+      ].Properties.UsagePlanId.Ref
+    ).to.equal(defaultUsagePlanLogicalId);
 
-      // key 2
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
-        ].Type
-      ).to.equal('AWS::ApiGateway::UsagePlanKey');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
-        ].Properties.KeyId.Ref
-      ).to.equal('ApiGatewayApiKey2');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
-        ].Properties.KeyType
-      ).to.equal('API_KEY');
-      expect(
-        awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
-          awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
-        ].Properties.UsagePlanId.Ref
-      ).to.equal(defaultUsagePlanLogicalId);
-    });
+    // key 2
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
+      ].Type
+    ).to.equal('AWS::ApiGateway::UsagePlanKey');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
+      ].Properties.KeyId.Ref
+    ).to.equal('ApiGatewayApiKey2');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
+      ].Properties.KeyType
+    ).to.equal('API_KEY');
+    expect(
+      awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
+        awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(2)
+      ].Properties.UsagePlanId.Ref
+    ).to.equal(defaultUsagePlanLogicalId);
   });
 
   describe('when using usage plan notation', () => {
@@ -97,36 +96,35 @@ describe('#compileUsagePlanKeys()', () => {
         ],
       };
 
-      return awsCompileApigEvents.compileUsagePlanKeys().then(() => {
-        awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach((plan) => {
-          const planName = Object.keys(plan)[0]; // free || paid
-          const apiKeys = plan[planName];
-          apiKeys.forEach((apiKey, index) => {
-            expect(
-              awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-                .Resources[
-                awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
-              ].Type
-            ).to.equal('AWS::ApiGateway::UsagePlanKey');
-            expect(
-              awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-                .Resources[
-                awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
-              ].Properties.KeyId.Ref
-            ).to.equal(`ApiGatewayApiKey${_.capitalize(planName)}${index + 1}`);
-            expect(
-              awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-                .Resources[
-                awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
-              ].Properties.KeyType
-            ).to.equal('API_KEY');
-            expect(
-              awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
-                .Resources[
-                awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
-              ].Properties.UsagePlanId.Ref
-            ).to.equal(logicalIds[planName]);
-          });
+      awsCompileApigEvents.compileUsagePlanKeys();
+      awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach((plan) => {
+        const planName = Object.keys(plan)[0]; // free || paid
+        const apiKeys = plan[planName];
+        apiKeys.forEach((apiKey, index) => {
+          expect(
+            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources[
+              awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
+            ].Type
+          ).to.equal('AWS::ApiGateway::UsagePlanKey');
+          expect(
+            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources[
+              awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
+            ].Properties.KeyId.Ref
+          ).to.equal(`ApiGatewayApiKey${_.capitalize(planName)}${index + 1}`);
+          expect(
+            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources[
+              awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
+            ].Properties.KeyType
+          ).to.equal('API_KEY');
+          expect(
+            awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
+              .Resources[
+              awsCompileApigEvents.provider.naming.getUsagePlanKeyLogicalId(index + 1, planName)
+            ].Properties.UsagePlanId.Ref
+          ).to.equal(logicalIds[planName]);
         });
       });
     });

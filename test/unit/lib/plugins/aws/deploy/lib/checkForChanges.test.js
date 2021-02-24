@@ -2,17 +2,18 @@
 
 /* eslint-disable no-unused-expressions */
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const globby = require('globby');
 const sandbox = require('sinon');
 const chai = require('chai');
-const BbPromise = require('bluebird');
 const proxyquire = require('proxyquire');
 const normalizeFiles = require('../../../../../../../lib/plugins/aws/lib/normalizeFiles');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsDeploy = require('../../../../../../../lib/plugins/aws/deploy/index');
 const Serverless = require('../../../../../../../lib/Serverless');
+const ServerlessError = require('../../../../../../../lib/serverless-error');
 const runServerless = require('../../../../../../utils/run-serverless');
 
 // Configure chai
@@ -84,19 +85,8 @@ describe('checkForChanges', () => {
       awsDeploy.getObjectMetadata.restore();
       awsDeploy.checkIfDeploymentIsNecessary.restore();
       awsDeploy.checkLogGroupSubscriptionFilterResourceLimitExceeded.restore();
+      checkLogGroupSubscriptionFilterResourceLimitExceededStub.restore();
     });
-
-    it('should run promise chain in order', () =>
-      expect(awsDeploy.checkForChanges()).to.be.fulfilled.then(() => {
-        expect(getMostRecentObjectsStub).to.have.been.calledOnce;
-        expect(getObjectMetadataStub).to.have.been.calledAfter(getMostRecentObjectsStub);
-        expect(checkIfDeploymentIsNecessaryStub).to.have.been.calledAfter(getObjectMetadataStub);
-        expect(checkLogGroupSubscriptionFilterResourceLimitExceededStub).to.have.been.calledAfter(
-          checkIfDeploymentIsNecessaryStub
-        );
-
-        expect(awsDeploy.serverless.service.provider.shouldNotDeploy).to.equal(false);
-      }));
 
     it('should resolve if the "force" option is used', () => {
       awsDeploy.options.force = true;
@@ -135,9 +125,7 @@ describe('checkForChanges', () => {
     });
 
     it('should translate error if rejected due to missing bucket', () => {
-      listObjectsV2Stub.rejects(
-        new serverless.classes.Error('The specified bucket does not exist')
-      );
+      listObjectsV2Stub.rejects(new ServerlessError('The specified bucket does not exist'));
 
       return expect(awsDeploy.getMostRecentObjects()).to.be.rejectedWith(
         [
@@ -149,7 +137,7 @@ describe('checkForChanges', () => {
     });
 
     it('should throw original error if rejected not due to missing bucket', () => {
-      listObjectsV2Stub.rejects(new serverless.classes.Error('Other reason'));
+      listObjectsV2Stub.rejects(new ServerlessError('Other reason'));
       return expect(awsDeploy.getMostRecentObjects()).to.be.rejectedWith('Other reason');
     });
 
@@ -583,346 +571,6 @@ describe('checkForChanges', () => {
       });
     });
   });
-
-  describe('#checkLogGroupSubscriptionFilterResourceLimitExceeded', () => {
-    let CloudWatchLogsStub;
-    let deleteSubscriptionFilterStub;
-    const accountId = '123456789';
-    const serviceName = 'my-service';
-    const region = 'us-east-1';
-    let describeSubscriptionFiltersResponse = {};
-    let getFunctionStub;
-
-    beforeEach(() => {
-      CloudWatchLogsStub = class {
-        constructor() {
-          this.deleteSubscriptionFilter = deleteSubscriptionFilterStub = sandbox.spy(() => ({
-            promise: () => BbPromise.resolve(),
-          }));
-
-          this.describeSubscriptionFilters = sandbox.spy(() => ({
-            promise: () => BbPromise.resolve(describeSubscriptionFiltersResponse),
-          }));
-        }
-      };
-
-      provider.sdk.CloudWatchLogs = CloudWatchLogsStub;
-
-      sandbox.stub(provider, 'getAccountInfo').returns(
-        BbPromise.resolve({
-          accountId,
-          partition: 'aws',
-        })
-      );
-
-      sandbox.stub(awsDeploy.serverless.service, 'getServiceName').returns(serviceName);
-      getFunctionStub = sandbox.stub(awsDeploy.provider, 'request').rejects(new Error('Error'));
-
-      sandbox.stub(awsDeploy, 'getMostRecentObjects').resolves();
-      sandbox.stub(awsDeploy, 'getObjectMetadata').resolves();
-      sandbox.stub(awsDeploy, 'checkIfDeploymentIsNecessary').resolves();
-    });
-
-    afterEach(() => {
-      awsDeploy.provider.request.restore();
-      sandbox.restore();
-    });
-
-    it('should not call checkLogGroup if deployment is not required', () => {
-      awsDeploy.checkIfDeploymentIsNecessary.restore();
-
-      sandbox.stub(awsDeploy, 'checkIfDeploymentIsNecessary').callsFake(
-        () =>
-          new Promise((resolve) => {
-            awsDeploy.serverless.service.provider.shouldNotDeploy = true;
-            resolve();
-          })
-      );
-
-      const spy = sandbox.spy(awsDeploy, 'checkLogGroupSubscriptionFilterResourceLimitExceeded');
-
-      return awsDeploy.checkForChanges().then(() => expect(spy).to.not.have.been.called);
-    });
-
-    it('should work normally when there are functions without events', () => {
-      awsDeploy.serverless.service.functions = {
-        first: {},
-      };
-
-      return expect(awsDeploy.checkForChanges()).to.be.fulfilled;
-    });
-
-    it('should work normally when there are functions events that are not cloudWwatchLog', () => {
-      awsDeploy.serverless.service.functions = {
-        first: {
-          events: [{ dummyEvent: 'test' }],
-        },
-      };
-
-      return expect(awsDeploy.checkForChanges()).to.be.fulfilled;
-    });
-
-    describe('option to force update is set', () => {
-      beforeEach(() => {
-        awsDeploy.serverless.service.provider.cloudWatchLogs = {};
-      });
-
-      afterEach(() => {
-        awsDeploy.serverless.service.provider.cloudWatchLogs = undefined;
-      });
-
-      it('should not call delete if there are no subscriptionFilters', () => {
-        awsDeploy.serverless.service.functions = {
-          first: {
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.not.have.been.called);
-      });
-
-      it('should not call delete if there is a subFilter and the ARNs/logical IDs are the same', () => {
-        awsDeploy.serverless.service.functions = {
-          first: {
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [
-            {
-              destinationArn: `arn:aws:lambda:${region}:${accountId}:function:${serviceName}-dev-first`,
-              filterName: 'stack-name-FirstLogsSubscriptionFilterCloudWatchLog1-1KAK9SAG7Y9YN',
-            },
-          ],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.not.have.been.called);
-      });
-
-      it('should call delete if there is a subFilter but the ARNs are not the same', () => {
-        awsDeploy.serverless.service.functions = {
-          first: {
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [
-            {
-              destinationArn: `arn:aws:lambda:${region}:${accountId}:function:${serviceName}-dev-not-first`,
-              filterName: 'stack-name-FirstLogsSubscriptionFilterCloudWatchLog1-1KAK9SAG7Y9YN',
-            },
-          ],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.have.been.called);
-      });
-
-      it('should call delete if there is a subFilter but the logical IDs are not the same', () => {
-        awsDeploy.serverless.service.functions = {
-          first: {
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [
-            {
-              destinationArn: `arn:aws:lambda:${region}:${accountId}:function:${serviceName}-dev-first`,
-              filterName: 'stack-name-FirstLogsSubscriptionFilterCloudWatchLog2-1KAK9SAG7Y9YN',
-            },
-          ],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.have.been.called);
-      });
-
-      it('should not call delete if there is a subFilter and the ARNs/logical IDs are the same with custom function name', () => {
-        awsDeploy.serverless.service.functions = {
-          first: {
-            name: 'my-test-function',
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [
-            {
-              destinationArn: `arn:aws:lambda:${region}:${accountId}:function:my-test-function`,
-              filterName: 'stack-name-FirstLogsSubscriptionFilterCloudWatchLog1-1KAK9SAG7Y9YN',
-            },
-          ],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.not.have.been.called);
-      });
-
-      it('should not call delete when ARN/logical IDs are the same accounting for non-standard partitions', () => {
-        provider.getAccountInfo.restore();
-        sandbox.stub(provider, 'getAccountInfo').returns(
-          BbPromise.resolve({
-            accountId,
-            partition: 'aws-us-gov',
-          })
-        );
-        awsDeploy.serverless.service.functions = {
-          first: {
-            name: 'my-test-function',
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [
-            {
-              destinationArn: `arn:aws-us-gov:lambda:${region}:${accountId}:function:my-test-function`,
-              filterName: 'stack-name-FirstLogsSubscriptionFilterCloudWatchLog1-1KAK9SAG7Y9YN',
-            },
-          ],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.not.have.been.called);
-      });
-
-      it('should call delete if there is a subFilter but the ARNs are not the same with custom function name', () => {
-        awsDeploy.serverless.service.functions = {
-          first: {
-            name: 'my-test-function',
-            events: [{ cloudwatchLog: '/aws/lambda/hello1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        describeSubscriptionFiltersResponse = {
-          subscriptionFilters: [
-            {
-              destinationArn: `arn:aws:lambda:${region}:${accountId}:function:my-other-test-function`,
-              filterName: 'stack-name-FirstLogsSubscriptionFilterCloudWatchLog1-1KAK9SAG7Y9YN',
-            },
-          ],
-        };
-
-        return awsDeploy
-          .checkForChanges()
-          .then(() => expect(deleteSubscriptionFilterStub).to.have.been.called);
-      });
-    });
-
-    describe('#getFunctionsLatestLastModifiedDate', () => {
-      it('should return null when there are no functions', () => {
-        awsDeploy.serverless.service.functions = {};
-        awsDeploy.serverless.service.setFunctionNames();
-
-        return expect(awsDeploy.getFunctionsEarliestLastModifiedDate()).to.have.been.fulfilled.then(
-          (ans) => {
-            expect(getFunctionStub).to.have.not.been.called;
-            expect(ans).to.be.null;
-          }
-        );
-      });
-
-      it('should treat rejections as epoch', () => {
-        awsDeploy.provider.request.restore();
-
-        getFunctionStub = sandbox.stub(awsDeploy.provider, 'request');
-
-        const now = new Date();
-        getFunctionStub.onCall(0).returns(BbPromise.reject());
-        getFunctionStub
-          .onCall(1)
-          .returns(BbPromise.resolve({ Configuration: { LastModified: now } }));
-
-        awsDeploy.serverless.service.functions = {
-          first: {
-            events: [{ someevent: 'abc' }],
-          },
-          second: {
-            events: [{ anothaone: '1' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        return expect(awsDeploy.getFunctionsEarliestLastModifiedDate()).to.have.been.fulfilled.then(
-          (ans) => {
-            expect(ans.valueOf()).to.equal(new Date(0).valueOf());
-            expect(getFunctionStub).to.have.been.calledTwice;
-          }
-        );
-      });
-
-      it('should return the earliest last modified date', () => {
-        awsDeploy.provider.request.restore();
-
-        getFunctionStub = sandbox.stub(awsDeploy.provider, 'request');
-
-        const now = new Date();
-        const longAgo = new Date(new Date().getTime() - 100000);
-        const longerAgo = new Date(new Date().getTime() - 100001);
-
-        getFunctionStub
-          .onCall(0)
-          .returns(BbPromise.resolve({ Configuration: { LastModified: longAgo } }));
-        getFunctionStub
-          .onCall(1)
-          .returns(BbPromise.resolve({ Configuration: { LastModified: longerAgo } }));
-        getFunctionStub
-          .onCall(2)
-          .returns(BbPromise.resolve({ Configuration: { LastModified: now } }));
-
-        awsDeploy.serverless.service.functions = {
-          first: {
-            events: [{ someevent: 'abc' }],
-          },
-          second: {
-            events: [{ anothaone: '1' }],
-          },
-          third: {
-            events: [{ thebest: 'around' }],
-          },
-        };
-
-        awsDeploy.serverless.service.setFunctionNames();
-
-        return expect(awsDeploy.getFunctionsEarliestLastModifiedDate()).to.have.been.fulfilled.then(
-          (ans) => {
-            expect(ans.valueOf()).to.equal(longerAgo.valueOf());
-            expect(getFunctionStub).to.have.been.calledThrice;
-          }
-        );
-      });
-    });
-  });
 });
 
 describe('checkForChanges #2', () => {
@@ -976,9 +624,394 @@ describe('checkForChanges #2', () => {
       expect(cfTemplate.Resources.FooLambdaFunction.Properties.Code.S3Key.endsWith('/artifact.zip'))
         .to.be.true;
     }));
+});
 
-  it('should skip a deployment with identical hashes and package.artifact targeting .serverless directory', () => {
-    return runServerless({
+const commonAwsSdkMock = {
+  CloudFormation: {
+    describeStacks: {},
+    describeStackResource: {
+      StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
+    },
+  },
+  STS: {
+    getCallerIdentity: {
+      ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+      UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+      Account: '999999999999',
+      Arn: 'arn:aws:iam::999999999999:user/test',
+    },
+  },
+};
+
+const generateMatchingListObjectsResponse = async (serverless) => {
+  const packagePath = `${serverless.config.servicePath}/.serverless`;
+  const artifactNames = await globby(packagePath, { expandDirectories: { extensions: ['zip'] } });
+  artifactNames.push('compiled-cloudformation-template.json');
+  return {
+    Contents: artifactNames.map((artifactName) => ({
+      Key: `serverless/test-package-artifact/dev/1589988704359-2020-05-20T15:31:44.359Z/${artifactName}`,
+      LastModified: new Date('2020-05-20T15:30:16.494+0000'),
+    })),
+  };
+};
+
+const generateMatchingHeadObjectResponse = async (serverless, { Key: key }) => {
+  if (path.basename(key) === 'compiled-cloudformation-template.json') {
+    const compiledCfTemplate = serverless.service.provider.compiledCloudFormationTemplate;
+    const normCfTemplate = normalizeFiles.normalizeCloudFormationTemplate(compiledCfTemplate);
+    const fileHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(normCfTemplate))
+      .digest('base64');
+    return {
+      Metadata: { filesha256: fileHash },
+    };
+  }
+  const fileHash = await (async (fileName) => {
+    return new Promise((resolve) => {
+      const hash = crypto.createHash('sha256');
+      const f = fs.createReadStream(`${serverless.config.servicePath}/.serverless/${fileName}`);
+      f.on('data', (d) => hash.update(d));
+      f.on('close', () => resolve(hash.digest('base64')));
+    });
+  })(key);
+  return {
+    Metadata: { filesha256: fileHash },
+  };
+};
+
+describe('test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js', () => {
+  // Note: Deploy is skipped if:
+  // 1. Generated cloudFormation stack is same as one previously deployed (with normalization applied that clears random and time generated values)
+  // 2. Collection of generated artifacts (any in package folder) is exactly same (hashes are compared) as one uploaded to S3 bucket with last deployment
+  // 3. There's no "--force" CLI param used
+  // 4. All Deployed functions configuration modification dates are newer than S3 uploaded artifacts modification dates (if it's not the case, it may mean that previous deployment failed, and in such situation we should deploy unconditionally)
+
+  it.skip('TODO: should not deploy if artifacts in bucket are same as locally and modification dates for all functions are later than uploaded artifacts dates', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L223-L250
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L451-L550
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        // 1. Returns function configuration modification date.
+        //    Must be newer than artificats (in S3 folder) modification dates
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // 2. Lists all S3 bucket files with their modification dates
+          //    In S3 folder with latest date stamp:
+          //    - Collection need to match collection of artifacts in package folder
+          //    - LastModified date needs to be older than modification date of any function configuration
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          // 3. Lists hashes for all S3 buckets
+          //    Should match hashes fo artifacts in package folder
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
+  });
+
+  it.skip('TODO: should deploy with --force option', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L101-L111
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy', '--force'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy when deployment bucket is empty (first deployment)', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L125-L135
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L156-L170
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L208-L221
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L272-L289
+
+    const { serverless } = await runServerless({
+      fixture: 'packageFoldern',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          // TODO: Reflect function doesn't exist crash
+          getFunction: async () => {},
+        },
+        S3: {
+          // TODO: Reflect state after bucket creation, when bucket is empty
+          listObjectsV2: async () => {},
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should compare against latest deployment artifacts', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L172-L194
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // TODO: Enrich the result as generated by "generateMatchingListObjectsResponse" to
+          // additiona list same artifacts (but with different hashes) in older deployment folder
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
+  });
+
+  it.skip('TODO: should deploy if new function was introduced and otherwise there were no other changes', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L291-L314
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L854-L882
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          // TODO: Reject request for one function with function not found error
+          getFunction: () => {},
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if individually packaged function was removed', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L317-L350
+
+    const {
+      fixtureData: { updateConfig, servicePath },
+    } = await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['package'],
+    });
+
+    const listObjectsV2Response = await generateMatchingListObjectsResponse(serverless);
+    await updateConfig({ functions: { fnIndividually: null } });
+
+    let serverless;
+    await runServerless({
+      cwd: servicePath,
+      cliArgs: ['package'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          listObjectsV2: () => listObjectsV2Response,
+          // TODO: Ensure hash for no longer existing artificat
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if remote hashes are different', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L352-L380
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          // TODO: Tweak one artifact hash to be different
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if count of hashes (not their content) differs', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L382-L415
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      configExt: {
+        package: { individually: true },
+      },
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // TODO: Remove one result hash
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if uploaded artifacts are newer than function configuration modification date', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L417-L449
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L884-L924
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      configExt: {
+        package: { individually: true },
+      },
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: () => {
+            // TODO: For *one* function return date that is older than one of uploaded artifacts
+          },
+        },
+        S3: {
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it.skip('TODO: should deploy if custom package.artifact have changed', async () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L552-L585
+    // https://github.com/serverless/serverless/blob/61dd3bde8d17cdd995fdd27259a689d12bee1e42/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L929-L978
+
+    let serverless;
+    await runServerless({
+      fixture: 'checkForChanges',
+      cliArgs: ['deploy'],
+      configExt: {
+        package: { artifact: 'artifact.zip' },
+      },
+      lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+      env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+      hooks: {
+        beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+      },
+      awsRequestStubMap: {
+        ...commonAwsSdkMock,
+        Lambda: {
+          getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+        },
+        S3: {
+          // TODO: Ensure to list "artifact.js"
+          listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+          // TODO: Cover "artifact.js" with not matching hash
+          headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+        },
+      },
+    });
+
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(false);
+  });
+
+  it('should skip a deployment with identical hashes and package.artifact targeting .serverless directory', async () => {
+    // TODO: Reconfigure to rely on generateMatchingListObjectsResponse and generateMatchingHeadObjectResponse utils
+
+    const { serverless } = await runServerless({
       fixture: 'packageArtifactInServerlessDir',
       cliArgs: ['deploy'],
       configExt: {
@@ -992,12 +1025,7 @@ describe('checkForChanges #2', () => {
       env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
       lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
       awsRequestStubMap: {
-        CloudFormation: {
-          describeStacks: {},
-          describeStackResource: {
-            StackResourceDetail: { PhysicalResourceId: 'deployment-bucket' },
-          },
-        },
+        ...commonAwsSdkMock,
         Lambda: {
           getFunction: {
             Configuration: {
@@ -1052,18 +1080,290 @@ describe('checkForChanges #2', () => {
             ],
           },
         },
-        STS: {
-          getCallerIdentity: {
-            ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
-            UserId: 'XXXXXXXXXXXXXXXXXXXXX',
-            Account: '999999999999',
-            Arn: 'arn:aws:iam::999999999999:user/test',
+      },
+    });
+    expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
+  });
+
+  it.skip('TODO: should crash meaningfully if bucket does not exist', () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L137-L149
+
+    return expect(
+      runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          S3: {
+            // TODO: Reflect bucket does not exist crash
+            listObjectsV2: async () => {},
           },
         },
-      },
-    }).then(({ serverless, stdoutData }) => {
-      expect(serverless.service.provider.shouldNotDeploy).to.equal(true);
-      expect(stdoutData).to.contain('Service files not changed. Skipping deployment...');
+      })
+    ).to.eventually.be.rejected.and.have.property(
+      'code'
+      // TODO: Fill with expected error code
+    );
+  });
+
+  it.skip('TODO: should handle gently other AWS SDK errors', () => {
+    // Replaces:
+    // https://github.com/serverless/serverless/blob/11fb14115ea47d53a61fa666a94e60d585fb3a4d/test/unit/lib/plugins/aws/deploy/lib/checkForChanges.test.js#L151-L154
+
+    return expect(
+      runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          S3: {
+            // TODO: Reflect bucket access error
+            listObjectsV2: async () => {},
+          },
+        },
+      })
+    ).to.eventually.be.rejected.and.have.property(
+      'code'
+      // TODO: Fill with expected error code
+    );
+  });
+
+  describe('checkLogGroupSubscriptionFilterResourceLimitExceeded', () => {
+    it('should not attempt to delete and add filter for same destination', async () => {
+      const deleteStub = sandbox.stub();
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            deleteSubscriptionFilter: deleteStub,
+            describeSubscriptionFilters: async () => {
+              const functionName = serverless.service.getFunction('fn1').name;
+              const naming = serverless.getProvider('aws').naming;
+              return {
+                subscriptionFilters: [
+                  {
+                    // destinationArn `arn:{partition}:lambda:{region}:{accountId}:function:{functionName}`
+                    // filterName {stack name}-{logical id}-{random alphanumeric characters}
+                    filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                      'Fn1',
+                      1
+                    )}-xxxxx`,
+                    destinationArn: `arn:aws:lambda:us-east-1:999999999999:function:${functionName}`,
+                  },
+                ],
+              };
+            },
+          },
+        },
+      });
+      expect(deleteStub).to.not.have.been.called;
+    });
+
+    it('should attempt to delete filter for old destination', async () => {
+      const deleteStub = sandbox.stub();
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            deleteSubscriptionFilter: deleteStub,
+            describeSubscriptionFilters: async () => {
+              const naming = serverless.getProvider('aws').naming;
+              return {
+                subscriptionFilters: [
+                  {
+                    // destinationArn `arn:{partition}:lambda:{region}:{accountId}:function:{functionName}`
+                    // filterName {stack name}-{logical id}-{random alphanumeric characters}
+                    filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                      'Fn1',
+                      1
+                    )}-xxxxx`,
+                    destinationArn:
+                      'arn:aws:lambda:us-east-1:999999999999:function:test-checkForChanges-cdr3ogg-dev-fn1',
+                  },
+                ],
+              };
+            },
+          },
+        },
+      });
+      expect(deleteStub).to.have.been.calledOnce;
+    });
+
+    it('should attempt to delete filter if order of cloudwatch events changed', async () => {
+      const deleteStub = sandbox.stub();
+      let serverless;
+      const { awsNaming } = await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: {
+            fn1: {
+              events: [
+                { cloudwatchLog: 'someLogGroupName1' },
+                { cloudwatchLog: 'someLogGroupName2' },
+              ],
+            },
+          },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            deleteSubscriptionFilter: deleteStub,
+            describeSubscriptionFilters: sandbox
+              .stub()
+              .onFirstCall()
+              .callsFake(async () => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
+                  subscriptionFilters: [
+                    {
+                      filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                        'Fn1',
+                        1
+                      )}-xxxxx`,
+                      destinationArn: `arn:aws:lambda:us-east-1:999999999999:function:${
+                        serverless.service.getFunction('fn1').name
+                      }`,
+                    },
+                  ],
+                };
+              })
+              .onSecondCall()
+              .callsFake(async () => {
+                const naming = serverless.getProvider('aws').naming;
+                return {
+                  subscriptionFilters: [
+                    {
+                      // someLogGroupeName2 was previously the third event
+                      filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                        'Fn1',
+                        1
+                      )}-xxxxx`,
+                      destinationArn: `arn:aws:lambda:us-east-1:999999999999:function:${
+                        serverless.service.getFunction('fn1').name
+                      }`,
+                    },
+                  ],
+                };
+              }),
+          },
+        },
+      });
+      expect(deleteStub).to.have.been.calledOnceWith({
+        logGroupName: 'someLogGroupName2',
+        filterName: `${awsNaming.getStackName()}-${awsNaming.getCloudWatchLogLogicalId(
+          'Fn1',
+          1
+        )}-xxxxx`,
+      });
+    });
+
+    it('should recognize custom partition', async () => {
+      const deleteStub = sandbox.stub();
+      let serverless;
+      await runServerless({
+        fixture: 'checkForChanges',
+        cliArgs: ['deploy'],
+        configExt: {
+          functions: { fn1: { events: [{ cloudwatchLog: 'someLogGroupName' }] } },
+        },
+        lastLifecycleHookName: 'aws:deploy:deploy:checkForChanges',
+        env: { AWS_CONTAINER_CREDENTIALS_FULL_URI: 'ignore' },
+        hooks: {
+          beforeInstanceInit: (serverlessInstance) => (serverless = serverlessInstance),
+        },
+        awsRequestStubMap: {
+          ...commonAwsSdkMock,
+          STS: {
+            getCallerIdentity: {
+              ResponseMetadata: { RequestId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' },
+              UserId: 'XXXXXXXXXXXXXXXXXXXXX',
+              Account: '999999999999',
+              Arn: 'arn:aws-us-gov:iam::999999999999:user/test',
+            },
+          },
+          Lambda: {
+            getFunction: { Configuration: { LastModified: '2021-05-20T15:34:16.494+0000' } },
+          },
+          S3: {
+            listObjectsV2: async () => generateMatchingListObjectsResponse(serverless),
+            headObject: async (params) => generateMatchingHeadObjectResponse(serverless, params),
+          },
+          CloudWatchLogs: {
+            describeSubscriptionFilters: sandbox.stub().callsFake(async () => {
+              const naming = serverless.getProvider('aws').naming;
+              return {
+                subscriptionFilters: [
+                  {
+                    filterName: `${naming.getStackName()}-${naming.getCloudWatchLogLogicalId(
+                      'Fn1',
+                      1
+                    )}-xxxxx`,
+                    destinationArn: `arn:aws-us-gov:lambda:us-east-1:999999999999:function:${
+                      serverless.service.getFunction('fn1').name
+                    }`,
+                  },
+                ],
+              };
+            }),
+            deleteSubscriptionFilter: deleteStub,
+          },
+        },
+      });
+      expect(deleteStub).to.not.have.been.called;
     });
   });
 });

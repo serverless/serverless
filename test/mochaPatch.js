@@ -46,6 +46,7 @@ patchCallback('open');
 const disableServerlessStatsRequests = require('@serverless/test/disable-serverless-stats-requests');
 const ensureArtifact = require('../lib/utils/ensureArtifact');
 const resolveLocalServerless = require('../lib/cli/resolve-local-serverless-path');
+const resolveInput = require('../lib/cli/resolve-input');
 
 disableServerlessStatsRequests(path.resolve(__dirname, '..'));
 
@@ -61,6 +62,7 @@ runnerEmitter.on('runner', (runner) => {
   runner.on('suite end', (suite) => {
     if (!suite.parent || !suite.parent.root) return;
 
+    resolveInput.clear();
     // Ensure to reset cache for local serverless installation resolution
     // Leaking it across test files may introduce wrong assumptions when result is used for testing
     resolveLocalServerless.clear();

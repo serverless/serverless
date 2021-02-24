@@ -39,52 +39,50 @@ describe('#compileDeployment()', () => {
       ],
     };
 
-    return awsCompileWebsocketsEvents.compileDeployment().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
-      const outputs =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Outputs;
+    awsCompileWebsocketsEvents.compileDeployment();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
+    const outputs =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
 
-      const deploymentLogicalId = Object.keys(resources)[0];
+    const deploymentLogicalId = Object.keys(resources)[0];
 
-      expect(deploymentLogicalId).to.match(/WebsocketsDeployment/);
-      expect(resources[deploymentLogicalId]).to.deep.equal({
-        Type: 'AWS::ApiGatewayV2::Deployment',
-        DependsOn: ['SconnectWebsocketsRoute', 'SdisconnectWebsocketsRoute'],
-        Properties: {
-          ApiId: {
-            Ref: 'WebsocketsApi',
-          },
-          Description: 'Serverless Websockets',
+    expect(deploymentLogicalId).to.match(/WebsocketsDeployment/);
+    expect(resources[deploymentLogicalId]).to.deep.equal({
+      Type: 'AWS::ApiGatewayV2::Deployment',
+      DependsOn: ['SconnectWebsocketsRoute', 'SdisconnectWebsocketsRoute'],
+      Properties: {
+        ApiId: {
+          Ref: 'WebsocketsApi',
         },
-      });
-      expect(outputs).to.deep.equal({
-        ServiceEndpointWebsocket: {
-          Description: 'URL of the service endpoint',
-          Value: {
-            'Fn::Join': [
-              '',
-              [
-                'wss://',
-                {
-                  Ref: 'WebsocketsApi',
-                },
-                '.execute-api.',
-                {
-                  Ref: 'AWS::Region',
-                },
-                '.',
-                {
-                  Ref: 'AWS::URLSuffix',
-                },
-                '/dev',
-              ],
+        Description: 'Serverless Websockets',
+      },
+    });
+    expect(outputs).to.deep.equal({
+      ServiceEndpointWebsocket: {
+        Description: 'URL of the service endpoint',
+        Value: {
+          'Fn::Join': [
+            '',
+            [
+              'wss://',
+              {
+                Ref: 'WebsocketsApi',
+              },
+              '.execute-api.',
+              {
+                Ref: 'AWS::Region',
+              },
+              '.',
+              {
+                Ref: 'AWS::URLSuffix',
+              },
+              '/dev',
             ],
-          },
+          ],
         },
-      });
+      },
     });
   });
 
@@ -105,23 +103,22 @@ describe('#compileDeployment()', () => {
       websocketApiId: 'xyz123abc',
     };
 
-    return awsCompileWebsocketsEvents.compileDeployment().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compileDeployment();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      const deploymentLogicalId = Object.keys(resources)[0];
+    const deploymentLogicalId = Object.keys(resources)[0];
 
-      expect(deploymentLogicalId).to.match(/WebsocketsDeployment/);
-      expect(resources[deploymentLogicalId]).to.deep.equal({
-        Type: 'AWS::ApiGatewayV2::Deployment',
-        DependsOn: ['SconnectWebsocketsRoute', 'SdisconnectWebsocketsRoute'],
-        Properties: {
-          ApiId: 'xyz123abc',
-          StageName: awsCompileWebsocketsEvents.provider.getStage(),
-          Description: 'Serverless Websockets',
-        },
-      });
+    expect(deploymentLogicalId).to.match(/WebsocketsDeployment/);
+    expect(resources[deploymentLogicalId]).to.deep.equal({
+      Type: 'AWS::ApiGatewayV2::Deployment',
+      DependsOn: ['SconnectWebsocketsRoute', 'SdisconnectWebsocketsRoute'],
+      Properties: {
+        ApiId: 'xyz123abc',
+        StageName: awsCompileWebsocketsEvents.provider.getStage(),
+        Description: 'Serverless Websockets',
+      },
     });
   });
 
@@ -140,14 +137,13 @@ describe('#compileDeployment()', () => {
     };
 
     return awsCompileWebsocketsEvents.compileStage().then(() => {
-      return awsCompileWebsocketsEvents.compileDeployment().then(() => {
-        const resources =
-          awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources;
+      awsCompileWebsocketsEvents.compileDeployment();
+      const resources =
+        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+          .Resources;
 
-        expect(resources.WebsocketsDeploymentStage.Properties.DeploymentId).to.deep.equal({
-          Ref: awsCompileWebsocketsEvents.websocketsDeploymentLogicalId,
-        });
+      expect(resources.WebsocketsDeploymentStage.Properties.DeploymentId).to.deep.equal({
+        Ref: awsCompileWebsocketsEvents.websocketsDeploymentLogicalId,
       });
     });
   });

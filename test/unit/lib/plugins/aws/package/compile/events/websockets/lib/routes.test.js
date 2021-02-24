@@ -32,55 +32,54 @@ describe('#compileRoutes()', () => {
       ],
     };
 
-    return awsCompileWebsocketsEvents.compileRoutes().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compileRoutes();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources).to.deep.equal({
-        SconnectWebsocketsRoute: {
-          Type: 'AWS::ApiGatewayV2::Route',
-          Properties: {
-            ApiId: {
-              Ref: 'WebsocketsApi',
-            },
-            RouteKey: '$connect',
-            AuthorizationType: 'NONE',
-            Target: {
-              'Fn::Join': [
-                '/',
-                [
-                  'integrations',
-                  {
-                    Ref: 'FirstWebsocketsIntegration',
-                  },
-                ],
+    expect(resources).to.deep.equal({
+      SconnectWebsocketsRoute: {
+        Type: 'AWS::ApiGatewayV2::Route',
+        Properties: {
+          ApiId: {
+            Ref: 'WebsocketsApi',
+          },
+          RouteKey: '$connect',
+          AuthorizationType: 'NONE',
+          Target: {
+            'Fn::Join': [
+              '/',
+              [
+                'integrations',
+                {
+                  Ref: 'FirstWebsocketsIntegration',
+                },
               ],
-            },
+            ],
           },
         },
-        SdisconnectWebsocketsRoute: {
-          Type: 'AWS::ApiGatewayV2::Route',
-          Properties: {
-            ApiId: {
-              Ref: 'WebsocketsApi',
-            },
-            RouteKey: '$disconnect',
-            AuthorizationType: 'NONE',
-            Target: {
-              'Fn::Join': [
-                '/',
-                [
-                  'integrations',
-                  {
-                    Ref: 'SecondWebsocketsIntegration',
-                  },
-                ],
+      },
+      SdisconnectWebsocketsRoute: {
+        Type: 'AWS::ApiGatewayV2::Route',
+        Properties: {
+          ApiId: {
+            Ref: 'WebsocketsApi',
+          },
+          RouteKey: '$disconnect',
+          AuthorizationType: 'NONE',
+          Target: {
+            'Fn::Join': [
+              '/',
+              [
+                'integrations',
+                {
+                  Ref: 'SecondWebsocketsIntegration',
+                },
               ],
-            },
+            ],
           },
         },
-      });
+      },
     });
   });
 
@@ -95,35 +94,34 @@ describe('#compileRoutes()', () => {
       ],
     };
 
-    return awsCompileWebsocketsEvents.compileRoutes().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compileRoutes();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources).to.deep.equal({
-        SconnectWebsocketsRoute: {
-          Type: 'AWS::ApiGatewayV2::Route',
-          Properties: {
-            ApiId: {
-              Ref: 'WebsocketsApi',
-            },
-            RouteKey: '$connect',
-            AuthorizationType: 'NONE',
-            RouteResponseSelectionExpression: '$default',
-            Target: {
-              'Fn::Join': [
-                '/',
-                [
-                  'integrations',
-                  {
-                    Ref: 'FirstWebsocketsIntegration',
-                  },
-                ],
+    expect(resources).to.deep.equal({
+      SconnectWebsocketsRoute: {
+        Type: 'AWS::ApiGatewayV2::Route',
+        Properties: {
+          ApiId: {
+            Ref: 'WebsocketsApi',
+          },
+          RouteKey: '$connect',
+          AuthorizationType: 'NONE',
+          RouteResponseSelectionExpression: '$default',
+          Target: {
+            'Fn::Join': [
+              '/',
+              [
+                'integrations',
+                {
+                  Ref: 'FirstWebsocketsIntegration',
+                },
               ],
-            },
+            ],
           },
         },
-      });
+      },
     });
   });
 
@@ -140,39 +138,38 @@ describe('#compileRoutes()', () => {
       ],
     };
 
-    return awsCompileWebsocketsEvents.compileRoutes().then(() => {
-      const resources =
-        awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
-          .Resources;
+    awsCompileWebsocketsEvents.compileRoutes();
+    const resources =
+      awsCompileWebsocketsEvents.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
 
-      expect(resources).to.deep.equal({
-        SconnectWebsocketsRoute: {
-          Type: 'AWS::ApiGatewayV2::Route',
-          Properties: {
-            ApiId: {
-              Ref: 'WebsocketsApi',
-            },
-            RouteKey: '$connect',
-            AuthorizationType: 'CUSTOM',
-            AuthorizerId: {
-              Ref: awsCompileWebsocketsEvents.provider.naming.getWebsocketsAuthorizerLogicalId(
-                'auth'
-              ),
-            },
-            Target: {
-              'Fn::Join': [
-                '/',
-                [
-                  'integrations',
-                  {
-                    Ref: 'FirstWebsocketsIntegration',
-                  },
-                ],
+    expect(resources).to.deep.equal({
+      SconnectWebsocketsRoute: {
+        Type: 'AWS::ApiGatewayV2::Route',
+        Properties: {
+          ApiId: {
+            Ref: 'WebsocketsApi',
+          },
+          RouteKey: '$connect',
+          AuthorizationType: 'CUSTOM',
+          AuthorizerId: {
+            Ref: awsCompileWebsocketsEvents.provider.naming.getWebsocketsAuthorizerLogicalId(
+              'auth'
+            ),
+          },
+          Target: {
+            'Fn::Join': [
+              '/',
+              [
+                'integrations',
+                {
+                  Ref: 'FirstWebsocketsIntegration',
+                },
               ],
-            },
+            ],
           },
         },
-      });
+      },
     });
   });
 });

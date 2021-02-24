@@ -28,4 +28,9 @@ function eventBusArn(event, context, callback) {
   return callback(null, event);
 }
 
-module.exports = { eventBusDefault, eventBusDefaultArn, eventBusCustom, eventBusArn };
+module.exports = {
+  eventBusDefault,
+  eventBusDefaultArn,
+  eventBusCustom,
+  eventBusArn,
+};

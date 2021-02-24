@@ -1,7 +1,7 @@
 'use strict';
 
 const runServerless = require('../../../../../../../../utils/run-serverless');
-const { ServerlessError } = require('../../../../../../../../../lib/classes/Error');
+const ServerlessError = require('../../../../../../../../../lib/serverless-error');
 const { use: chaiUse, expect } = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 
@@ -70,6 +70,18 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
           fnConditionsPathOnly: {
             handler: 'index.handler',
             events: [{ alb: { ...baseEventConfig, priority: 5, conditions: { path: '/' } } }],
+          },
+          fnConditionsMultipleHostsOnly: {
+            handler: 'index.handler',
+            events: [
+              {
+                alb: {
+                  ...baseEventConfig,
+                  priority: 6,
+                  conditions: { host: ['example1.com', 'example2.com'] },
+                },
+              },
+            ],
           },
         },
       },
@@ -146,8 +158,8 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
       expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::ListenerRule');
       expect(rule.Properties.Conditions).to.have.length(1);
       expect(rule.Properties.Conditions[0].Field).to.equal('host-header');
-      expect(rule.Properties.Conditions[0].Values).to.have.length(1);
-      expect(rule.Properties.Conditions[0].Values[0]).to.equal('example.com');
+      expect(rule.Properties.Conditions[0].HostHeaderConfig.Values).to.have.length(1);
+      expect(rule.Properties.Conditions[0].HostHeaderConfig.Values[0]).to.equal('example.com');
     });
 
     it('should should support rule with path', () => {
@@ -162,6 +174,21 @@ describe('lib/plugins/aws/package/compile/eents/alb/index.test.js', () => {
       expect(rule.Properties.Conditions[0].Field).to.equal('path-pattern');
       expect(rule.Properties.Conditions[0].Values).to.have.length(1);
       expect(rule.Properties.Conditions[0].Values[0]).to.equal('/');
+    });
+
+    it('should support multiple host rules', () => {
+      const albListenerRuleLogicalId = naming.getAlbListenerRuleLogicalId(
+        'fnConditionsMultipleHostsOnly',
+        6
+      );
+      const rule = cfResources[albListenerRuleLogicalId];
+
+      expect(rule.Type).to.equal('AWS::ElasticLoadBalancingV2::ListenerRule');
+      expect(rule.Properties.Conditions).to.have.length(1);
+      expect(rule.Properties.Conditions[0].Field).to.equal('host-header');
+      expect(rule.Properties.Conditions[0].HostHeaderConfig.Values).to.have.length(2);
+      expect(rule.Properties.Conditions[0].HostHeaderConfig.Values[0]).to.equal('example1.com');
+      expect(rule.Properties.Conditions[0].HostHeaderConfig.Values[1]).to.equal('example2.com');
     });
 
     it('should fail validation if no conditions are set', async () => {

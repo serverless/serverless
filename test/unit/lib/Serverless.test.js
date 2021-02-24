@@ -13,7 +13,7 @@ const Utils = require('../../../lib/classes/Utils');
 const Service = require('../../../lib/classes/Service');
 const ConfigSchemaHandler = require('../../../lib/classes/ConfigSchemaHandler');
 const CLI = require('../../../lib/classes/CLI');
-const { ServerlessError } = require('../../../lib/classes/Error');
+const ServerlessError = require('../../../lib/serverless-error');
 const runServerless = require('../../utils/run-serverless');
 const fixtures = require('../../fixtures');
 const fs = require('fs');
@@ -231,7 +231,7 @@ describe('Serverless [new tests]', () => {
           modulesCacheStub: {},
         }).then(({ serverless }) => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
-          expect(serverless.isInvokedByGlobalInstallation).to.be.true;
+          expect(serverless._isInvokedByGlobalInstallation).to.be.true;
           expect(serverless.isLocallyInstalled).to.be.true;
           expect(serverless.isLocalStub).to.be.true;
         }));
@@ -248,7 +248,7 @@ describe('Serverless [new tests]', () => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
             'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
           ]);
-          expect(serverless.isInvokedByGlobalInstallation).to.be.false;
+          expect(serverless._isInvokedByGlobalInstallation).to.be.false;
           expect(serverless.isLocallyInstalled).to.be.false;
           expect(serverless.isLocalStub).to.not.exist;
         }));
@@ -266,7 +266,7 @@ describe('Serverless [new tests]', () => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([
             'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING',
           ]);
-          expect(serverless.isInvokedByGlobalInstallation).to.be.true;
+          expect(serverless._isInvokedByGlobalInstallation).to.be.true;
           expect(serverless.isLocallyInstalled).to.be.true;
           expect(serverless.isLocalStub).to.be.true;
         }));
@@ -280,8 +280,10 @@ describe('Serverless [new tests]', () => {
             cwd: servicePath,
             cliArgs: ['-v'],
           }).then(({ serverless }) => {
-            expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
-            expect(serverless.isInvokedByGlobalInstallation).to.be.false;
+            expect(Array.from(serverless.triggeredDeprecations)).to.not.include(
+              'DISABLE_LOCAL_INSTALLATION_FALLBACK_SETTING'
+            );
+            expect(serverless._isInvokedByGlobalInstallation).to.be.false;
             expect(serverless.isLocallyInstalled).to.be.true;
             expect(serverless.isLocalStub).to.be.true;
           })
@@ -294,7 +296,7 @@ describe('Serverless [new tests]', () => {
       runServerless({ fixture: 'aws', cliArgs: ['-v'], modulesCacheStub: {} }).then(
         ({ serverless }) => {
           expect(Array.from(serverless.triggeredDeprecations)).to.deep.equal([]);
-          expect(serverless.isInvokedByGlobalInstallation).to.be.false;
+          expect(serverless._isInvokedByGlobalInstallation).to.be.false;
           expect(serverless.isLocallyInstalled).to.be.false;
           expect(serverless.isLocalStub).to.not.exist;
         }

@@ -114,19 +114,26 @@ In this case `plugin1` is loaded before `plugin2`.
 
 ## Writing Plugins
 
+**Note:** In order to ensure that your plugin works correctly with Framework in `v2.x`, keep the following things in mind:
+
+- Do not depend on `Bluebird` API for Promises returned by Framework internals - we are actively migrating away from `Bluebird` at this point
+- If your plugin adds new properties, ensure to define corresponding schema definitions, please refer to: [Extending validation schema](#extending-validation-schema)
+- Avoid using `subcommands` as the support for them might become deprecated or removed in next major version of the Framework
+- Add `serverless` to `peerDependencies` in order to ensure officially supported Framework version(s)
+
 ### Concepts
 
 #### Plugin
 
 Code which defines _Commands_, any _Events_ within a _Command_, and any _Hooks_ assigned to a _Lifecycle Event_.
 
-- Command // CLI configuration, commands, subcommands, options
+- Command // CLI configuration, commands, options
   - LifecycleEvent(s) // Events that happen sequentially when the command is run
     - Hook(s) // Code that runs when a Lifecycle Event happens during a Command
 
 #### Command
 
-A CLI _Command_ that can be called by a user, e.g. `serverless deploy`. A Command has no logic, but simply defines the CLI configuration (e.g. command, subcommands, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
+A CLI _Command_ that can be called by a user, e.g. `serverless deploy`. A Command has no logic, but simply defines the CLI configuration (e.g. command, parameters) and the _Lifecycle Events_ for the command. Every command defines its own lifecycle events.
 
 ```javascript
 'use strict';
@@ -197,7 +204,7 @@ module.exports = Deploy;
 
 ### Custom Variable Types
 
-As of version 1.52.0 of the Serverless framework, plugins can officially implement their own
+As of version `1.52.0` of the Serverless Framework, plugins can officially implement their own
 variable types for use in serverless config files.
 
 Example:
@@ -252,34 +259,9 @@ If the value is an `Object`, it can have the following keys:
   if they try to use the variable type in one of the fields disabled for populating
   stage/region/credentials.
 
-### Nesting Commands
-
-You can also nest commands, e.g. if you want to provide a command `serverless deploy function`. Those nested commands have their own lifecycle events and do not inherit them from their parents.
-
-```javascript
-'use strict';
-
-class MyPlugin {
-  constructor() {
-    this.commands = {
-      deploy: {
-        lifecycleEvents: ['resources', 'functions'],
-        commands: {
-          function: {
-            lifecycleEvents: ['package', 'deploy'],
-          },
-        },
-      },
-    };
-  }
-}
-
-module.exports = MyPlugin;
-```
-
 ### Defining Options
 
-Each (sub)command can have multiple Options.
+Each command can have multiple Options.
 
 Options are passed in with a double dash (`--`) like this: `serverless function deploy --function functionName`.
 

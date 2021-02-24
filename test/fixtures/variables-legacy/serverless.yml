@@ -1,0 +1,21 @@
+service: service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+custom:
+  importedFile: ${file(config.json)}
+  importedFileWithKey: ${file(config.json):foo}
+  importedTerraformState: ${file(terraform.tfstate)}
+  importedTerraformStateWithKey: ${file(terraform.tfstate):outputs.listenerarn.type}
+  awsVariable: ${AWS::Region}
+  cloudFormationReference: ${AnotherResource}
+  selfReference: ${self:custom.importedFileWithKey}
+  serviceReference: ${self:}
+  nestedRef: nestedVal
+  nestedVal:
+    prop: resolvedNested
+  nestedReference: ${self:custom.${self:custom.nestedRef}.prop}
+  prototype:
+    nestedInPrototype: ${file(config.json):foo}-in-prototype

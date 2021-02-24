@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const sandbox = require('sinon');
-const logWarning = require('../../../../lib/classes/Error').logWarning;
+const { logWarning } = require('../../../../lib/classes/Error');
 
 describe('#logWarning()', () => {
   let consoleLogSpy;

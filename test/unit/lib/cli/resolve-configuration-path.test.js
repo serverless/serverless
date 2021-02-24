@@ -10,6 +10,7 @@ const fs = require('fs').promises;
 const fse = require('fs-extra');
 const overrideArgv = require('process-utils/override-argv');
 const resolveServerlessConfigPath = require('../../../../lib/cli/resolve-configuration-path');
+const resolveInput = require('../../../../lib/cli/resolve-input');
 const { triggeredDeprecations } = require('../../../../lib/utils/logDeprecation');
 
 describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
@@ -66,7 +67,10 @@ describe('test/unit/lib/cli/resolve-service-config-path.test.js', () => {
         fse.ensureDir(path.resolve('custom-dir.yml')),
       ])
     );
-    beforeEach(() => triggeredDeprecations.clear());
+    beforeEach(() => {
+      triggeredDeprecations.clear();
+      resolveInput.clear();
+    });
     after(() => triggeredDeprecations.clear());
 
     it('should accept absolute path, pointing configuration in current working directory', async () => {

@@ -74,25 +74,37 @@ describe('Install', () => {
       download.downloadTemplateFromRepo.restore();
     });
 
-    it('should throw an error if the passed URL option is not a valid URL', () => {
+    it('should throw an error if the passed URL option is not a valid URL', async () => {
       install.options = { url: 'invalidUrl' };
 
-      expect(() => install.install()).to.throw(Error);
+      try {
+        await install.install();
+      } catch (e) {
+        expect(e).to.be.instanceOf(Error);
+      }
     });
 
-    it('should throw an error if the passed URL is not a valid GitHub URL', () => {
+    it('should throw an error if the passed URL is not a valid GitHub URL', async () => {
       install.options = { url: 'http://no-github-url.com/foo/bar' };
 
-      expect(() => install.install()).to.throw(Error);
+      try {
+        await install.install();
+      } catch (e) {
+        expect(e).to.be.instanceOf(Error);
+      }
     });
 
-    it('should throw an error if a directory with the same service name is already present', () => {
+    it('should throw an error if a directory with the same service name is already present', async () => {
       install.options = { url: 'https://github.com/johndoe/existing-service' };
 
       const serviceDirName = path.join(servicePath, 'existing-service');
       fse.mkdirsSync(serviceDirName);
 
-      expect(() => install.install()).to.throw(Error);
+      try {
+        await install.install();
+      } catch (e) {
+        expect(e).to.be.instanceOf(Error);
+      }
     });
 
     it('should succeed if template can be downloaded and installed', () => {

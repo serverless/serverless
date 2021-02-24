@@ -14,3 +14,4 @@
 # Serverless directories
 .serverless
 
+!/gradle/wrapper/gradle-wrapper.jar

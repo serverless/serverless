@@ -47,7 +47,6 @@ describe('PluginInstall', () => {
   beforeEach(() => {
     serverless = new Serverless();
     serverless.cli = new CLI(serverless);
-    serverless.processedInput = serverless.cli.processInput();
     const options = {};
     pluginInstall = new PluginInstall(serverless, options);
     consoleLogStub = sinon.stub(serverless.cli, 'consoleLog').returns();

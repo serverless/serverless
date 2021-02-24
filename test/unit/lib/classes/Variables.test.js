@@ -19,6 +19,7 @@ const Serverless = require('../../../../lib/Serverless');
 const slsError = require('../../../../lib/classes/Error');
 const Utils = require('../../../../lib/classes/Utils');
 const Variables = require('../../../../lib/classes/Variables');
+const ServerlessError = require('../../../../lib/serverless-error');
 const { getTmpDirPath } = require('../../../utils/fs');
 const skipOnDisabledSymlinksInWindows = require('@serverless/test/skip-on-disabled-symlinks-in-windows');
 const runServerless = require('../../../utils/run-serverless');
@@ -274,7 +275,7 @@ describe('Variables', () => {
         awsProvider = new AwsProvider(serverless, {});
         requestStub = sinon
           .stub(awsProvider, 'request')
-          .callsFake(() => BbPromise.reject(new serverless.classes.Error('Not found.', 400)));
+          .callsFake(() => BbPromise.reject(new ServerlessError('Not found.', 400)));
       });
       afterEach(() => {
         requestStub.restore();
@@ -1184,7 +1185,7 @@ module.exports = {
           return serverless.variables
             .populateObject(service.custom)
             .should.be.rejectedWith(
-              serverless.classes.Error,
+              ServerlessError,
               'Invalid variable syntax when referencing file'
             );
         });
@@ -1321,13 +1322,13 @@ module.exports = {
       const awsProvider = new AwsProvider(serverless, options);
       const param = '/some/path/to/invalidparam';
       const property = `\${ssm:${param}}`;
-      const error = new serverless.classes.Error('Some random failure.', 123);
+      const error = new ServerlessError('Some random failure.', 123);
       const requestStub = sinon
         .stub(awsProvider, 'request')
         .callsFake(() => BbPromise.reject(error));
       return serverless.variables
         .populateProperty(property)
-        .should.be.rejectedWith(serverless.classes.Error)
+        .should.be.rejectedWith(ServerlessError)
         .then(() => expect(requestStub.callCount).to.equal(1))
         .finally(() => requestStub.restore());
     });
@@ -1399,7 +1400,7 @@ module.exports = {
       const property = 'your account number is ${opt:object}';
       return expect(() =>
         serverless.variables.populateVariable(property, matchedString, valueToPopulate)
-      ).to.throw(serverless.classes.Error);
+      ).to.throw(ServerlessError);
     });
   });
 
@@ -1659,7 +1660,7 @@ module.exports = {
     it('should reject invalid sources', () =>
       serverless.variables
         .getValueFromSource('weird:source')
-        .should.be.rejectedWith(serverless.classes.Error));
+        .should.be.rejectedWith(ServerlessError));
 
     describe('caching', () => {
       const sources = [
@@ -2015,7 +2016,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./config.yml).testObj.sub')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
 
     it('should throw an error if resolved value is undefined', () => {
@@ -2026,7 +2027,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
 
     it('should throw an error if resolved value is a symbol', () => {
@@ -2037,7 +2038,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
 
     it('should throw an error if resolved value is a function', () => {
@@ -2048,7 +2049,7 @@ module.exports = {
       serverless.config.update({ servicePath: tmpDirPath });
       return serverless.variables
         .getValueFromFile('file(./hello.js)')
-        .should.be.rejectedWith(serverless.classes.Error);
+        .should.be.rejectedWith(ServerlessError);
     });
   });
 
@@ -2155,7 +2156,7 @@ module.exports = {
       return serverless.variables
         .getValueFromCf('cf:some-stack.DoestNotExist')
         .should.be.rejectedWith(
-          serverless.classes.Error,
+          ServerlessError,
           /to request a non exported variable from CloudFormation/
         )
         .then(() => {
@@ -2214,7 +2215,7 @@ module.exports = {
         .callsFake(() => BbPromise.reject(error));
       return expect(serverless.variables.getValueFromS3('s3:some.bucket/path/to/key'))
         .to.be.rejectedWith(
-          serverless.classes.Error,
+          ServerlessError,
           'Error getting value for s3:some.bucket/path/to/key. The specified bucket is not valid'
         )
         .then()
@@ -2625,7 +2626,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'subProperty', 'deep'], valueToPopulateMock)
-        .should.become('deepValue');
+        .should.equal('deepValue');
     });
     it('should not throw error if referencing invalid properties', () => {
       const valueToPopulateMock = {
@@ -2637,7 +2638,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'subProperty', 'deep', 'deeper'], valueToPopulateMock)
-        .should.eventually.deep.equal({});
+        .should.deep.equal({});
     });
     it('should return a simple deep variable when final deep value is variable', () => {
       serverless.variables.service = {
@@ -2653,7 +2654,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'subProperty', 'deep'], serverless.variables.service)
-        .should.become('${deep:0}');
+        .should.equal('${deep:0}');
     });
     it('should return a deep continuation when middle deep value is variable', () => {
       serverless.variables.service = {
@@ -2666,7 +2667,7 @@ module.exports = {
       serverless.variables.loadVariableSyntax();
       return serverless.variables
         .getDeeperValue(['custom', 'anotherVar', 'veryDeep'], serverless.variables.service)
-        .should.become('${deep:0.veryDeep}');
+        .should.equal('${deep:0.veryDeep}');
     });
   });
 
@@ -2760,8 +2761,9 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
   let processedConfig = null;
   before(async () => {
     const result = await runServerless({
-      fixture: 'variables',
+      fixture: 'variables-legacy',
       cliArgs: ['print'],
+      shouldUseLegacyVariablesResolver: true,
     });
     processedConfig = result.serverless.service;
   });
@@ -2815,17 +2817,22 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     expect(processedConfig.custom.nestedReference).to.equal('resolvedNested');
   });
 
+  it('should handle resolving variables when `prototype` is part of the path', async () => {
+    expect(processedConfig.custom.prototype.nestedInPrototype).to.equal('bar-in-prototype');
+  });
+
   describe('variable resolving', () => {
     describe('when unresolvedVariablesNotificationMode is set to "error"', () => {
       it('should error for missing "environment variable" type variables', async () => {
         await expect(
           runServerless({
-            fixture: 'variables',
+            fixture: 'variables-legacy',
             cliArgs: ['print'],
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${env:missingEnvVar}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2833,12 +2840,13 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
       it('should error for missing "option" type variables', async () => {
         await expect(
           runServerless({
-            fixture: 'variables',
+            fixture: 'variables-legacy',
             cliArgs: ['print'],
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${opt:missingOpt}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2846,12 +2854,13 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
       it('should error for missing "service attribute" type variables', async () => {
         await expect(
           runServerless({
-            fixture: 'variables',
+            fixture: 'variables-legacy',
             cliArgs: ['print'],
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${self:missingAttribute}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2859,12 +2868,13 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
       it('should error for missing "file" type variables', async () => {
         await expect(
           runServerless({
-            fixture: 'variables',
+            fixture: 'variables-legacy',
             cliArgs: ['print'],
             configExt: {
               unresolvedVariablesNotificationMode: 'error',
               custom: { myVariable: '${file(./missingFile)}' },
             },
+            shouldUseLegacyVariablesResolver: true,
           })
         ).to.eventually.be.rejected.and.have.property('code', 'UNRESOLVED_CONFIG_VARIABLE');
       });
@@ -2873,7 +2883,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     describe('when unresolvedVariablesNotificationMode is set to "warn"', () => {
       it('prints warnings to the console but no deprecation message', async () => {
         const { serverless, stdoutData } = await runServerless({
-          fixture: 'variables',
+          fixture: 'variables-legacy',
           cliArgs: ['print'],
           configExt: {
             unresolvedVariablesNotificationMode: 'warn',
@@ -2884,6 +2894,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               myVariable4: '${file(./missingFile)}',
             },
           },
+          shouldUseLegacyVariablesResolver: true,
         });
 
         expect(Array.from(serverless.triggeredDeprecations)).not.to.contain(
@@ -2901,7 +2912,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
     describe('when unresolvedVariablesNotificationMode is not set', () => {
       it('should warn and print a deprecation message', async () => {
         const { serverless } = await runServerless({
-          fixture: 'variables',
+          fixture: 'variables-legacy',
           cliArgs: ['print'],
           configExt: {
             custom: {
@@ -2911,6 +2922,7 @@ describe('test/unit/lib/classes/Variables.test.js', () => {
               myVariable4: '${file(./missingFile)}',
             },
           },
+          shouldUseLegacyVariablesResolver: true,
         });
 
         expect(Array.from(serverless.triggeredDeprecations)).to.contain(

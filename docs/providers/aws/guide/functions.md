@@ -199,7 +199,7 @@ See the documentation about [IAM](./iam.md) for function level IAM roles.
 
 Alternatively lambda environment can be configured through docker images. Image published to AWS ECR registry can be referenced as lambda source (check [AWS Lambda – Container Image Support](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-container-image-support/)). In addition, you can also define your own images that will be built locally and uploaded to AWS ECR registry.
 
-In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
+In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format.
 
 Example configuration
 
@@ -211,6 +211,7 @@ provider:
     images:
       baseimage:
         path: ./path/to/context
+        file: Dockerfile.dev
       anotherimage:
         uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
 ```
@@ -236,7 +237,7 @@ functions:
     image: baseimage
 ```
 
-It is also possible to provide additional image configuration via `workingDirectory`, `entryPoint` and `command` properties of to `functions[].image`. The `workingDirectory` accepts path in form of string, where both `entryPoint` and `command` needs to be defined as a list of strings, following "exec form" format. In order to provide additional image config properties, `functions[].image` has to be defined as an object, and needs to define either `uri` pointing to an existing AWS ECR image or `name` property, which references image already defined in `provider.ecr.images`.
+It is also possible to provide additional image configuration via `workingDirectory`, `entryPoint` and `command` properties of to `functions[].image`. The `workingDirectory` accepts path in form of string, where both `entryPoint` and `command` needs to be defined as a list of strings, following "exec form" format. In order to provide additional image config properties, `functions[].image` has to be defined as an object, and needs to define either `uri` pointing to an existing AWS ECR image or `name` property, which references image already defined in `provider.ecr.images`. Due to current limitation of AWS CloudFormation, whenever one of the additional image configuration properties is defined, both `command` and `entryPoint` have to be defined. If you're using one of official AWS base images, the `entryPoint` will be equal to `/lambda-entrypoint.sh`.
 
 Example configuration:
 
@@ -257,9 +258,14 @@ functions:
       command:
         - executable
         - flag
+      entryPoint:
+        - executable
+        - flag
   world:
     image:
       name: baseimage
+      command:
+        - command
       entryPoint:
         - executable
         - flag

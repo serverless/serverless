@@ -8,6 +8,8 @@ const CLI = require('../../../../lib/classes/CLI');
 const PrintPlugin = require('../../../../lib/plugins/print.js');
 const yaml = require('js-yaml');
 
+const runServerless = require('../../../utils/run-serverless');
+
 chai.use(require('chai-as-promised'));
 
 const expect = chai.expect;
@@ -328,5 +330,16 @@ describe('Print', () => {
         });
       });
     });
+  });
+});
+
+describe('test/unit/lib/plugins/print.test.js', () => {
+  it('correctly prints config', async () => {
+    const { stdoutData } = await runServerless({
+      fixture: 'aws',
+      cliArgs: ['print'],
+    });
+
+    expect(stdoutData).to.include('name: aws');
   });
 });
