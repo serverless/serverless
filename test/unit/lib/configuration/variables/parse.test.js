@@ -337,6 +337,24 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
         { start: 0, end: 9, sources: [{ type: 'type1' }] },
         { start: 12, end: 21, sources: [{ type: 'type2' }] },
       ]));
+
+    // ${s:${s:}, 1}
+    // https://github.com/serverless/serverless/issues/8999
+    it("should recognize variables in address, if it's followed by source", () =>
+      expect(parse('${s:${s:}, 1}')).to.deep.equal([
+        {
+          sources: [
+            {
+              type: 's',
+              address: {
+                value: '${s:}',
+                variables: [{ sources: [{ type: 's' }] }],
+              },
+            },
+            { value: 1 },
+          ],
+        },
+      ]));
   });
 
   describe('Invalid', () => {
