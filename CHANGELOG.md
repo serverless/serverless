@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.27.0](https://github.com/serverless/serverless/compare/v2.26.0...v2.27.0) (2021-02-24)
+
+### Features
+
+- **AWS EventBridge:** Native CloudFormation based deployment (turn on via `provider.eventBridge.useCloudFormation: true`) ([#8437](https://github.com/serverless/serverless/issues/8437)) ([13444ca](https://github.com/serverless/serverless/commit/13444caa28a5fdb268599c8fa67f4bfef1dd5e36)) ([stuartforrest-infinity](https://github.com/stuartforrest-infinity) & [Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Deploy:** Support `null` values for properties in CF resources (those properties will be removed for final CF template version) ([#8975](https://github.com/serverless/serverless/issues/8975)) ([9b030ad](https://github.com/serverless/serverless/commit/9b030ad5f4797c31ea37e621c1a3f297a29dfa86)) ([yumei](https://github.com/yumeixox))
+
+### Bug Fixes
+
+- **CLI:** Recognize `-s` as `--stage` alias, when expected ([9ae6045](https://github.com/serverless/serverless/commit/9ae604591dbb7e82aff0668d2055ed9d69bb920a)) ([#8997](https://github.com/serverless/serverless/issues/8997)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Ensure vars are recognized in address followed by source ([#9000](https://github.com/serverless/serverless/issues/9000)) ([fb9ce24](https://github.com/serverless/serverless/commit/fb9ce246b37219b1e3077ea53777f753d0a9205d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Rely on `provider.request` for AWS SDK calls ([#8913](https://github.com/serverless/serverless/issues/8913)) ([4e05995](https://github.com/serverless/serverless/commit/4e0599571afe11d4bd11aee14fe07be2be48fca0)) ([AlinoeDoctari](https://github.com/AlinoeDoctari))
+- **CLI:**
+  - Recognize `app` and `org` params ([#8997](https://github.com/serverless/serverless/issues/8997)) ([6b1921f](https://github.com/serverless/serverless/commit/6b1921f59e1105499a329ab3aaf6134e7fb0ff6c)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Refactor `-v` handling ([#8997](https://github.com/serverless/serverless/issues/8997)) ([8db64a1](https://github.com/serverless/serverless/commit/8db64a1f319d2238e71960d57425d2b6e5c9c5d6)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.26.0](https://github.com/serverless/serverless/compare/v2.25.2...v2.26.0) (2021-02-24)
 
 ### Features
