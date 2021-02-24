@@ -84,4 +84,33 @@ describe('test/unit/scripts/serverless.test.js', () => {
       )
     ).to.include('nestedInPrototype: bar-in-prototype');
   });
+
+  it('Should rejected unresolved "provider" section', async () => {
+    try {
+      await spawn('node', [serverlessPath, 'print'], {
+        cwd: (await fixturesEngine.setup('aws', { configExt: { provider: '${foo:bar}' } }))
+          .servicePath,
+      });
+      throw new Error('Unexpected');
+    } catch (error) {
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('"provider" section is not accessible');
+    }
+  });
+
+  it('Should rejected unresolved "provider.stage" property', async () => {
+    try {
+      await spawn('node', [serverlessPath, 'print'], {
+        cwd: (
+          await fixturesEngine.setup('aws', {
+            configExt: { variablesResolutionMode: '20210219', provider: { stage: '${foo:bar}' } },
+          })
+        ).servicePath,
+      });
+      throw new Error('Unexpected');
+    } catch (error) {
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('"provider.stage" is not accessible');
+    }
+  });
 });
