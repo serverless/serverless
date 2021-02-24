@@ -17,6 +17,16 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="AWS_EVENT_BRIDGE_CUSTOM_RESOURCE"><div>&nbsp;</div></a>
+
+## AWS EventBridge lambda event triggers
+
+Deprecation code: `AWS_EVENT_BRIDGE_CUSTOM_RESOURCE`
+
+Starting with v3.0.0 AWS EventBridge lambda event triggers and all associated EventBridge resources will be deployed using native CloudFormation resources instead of a custom resource that used a lambda to deploy them via the AWS SDK/API.
+
+Adapt to this behavior now by setting `provider.eventBridge.useCloudFormation: true`.
+
 <a name="NEW_VARIABLES_RESOLVER"><div>&nbsp;</div></a>
 
 ## New variables resolver
