@@ -72,4 +72,16 @@ describe('test/unit/scripts/serverless.test.js', () => {
     );
     expect(output).to.include('Running "serverless" installed locally');
   });
+
+  it('Should resolve variables', async () => {
+    expect(
+      String(
+        (
+          await spawn('node', [serverlessPath, 'print'], {
+            cwd: path.resolve(fixturesPath, 'variables'),
+          })
+        ).stdoutBuffer
+      )
+    ).to.include('nestedInPrototype: bar-in-prototype');
+  });
 });

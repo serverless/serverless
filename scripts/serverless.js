@@ -40,10 +40,12 @@ const processSpanPromise = (async () => {
     }
 
     const uuid = require('uuid');
+    const _ = require('lodash');
     const Serverless = require('../lib/Serverless');
     const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
     const isHelpRequest = require('../lib/cli/is-help-request');
     const readConfiguration = require('../lib/configuration/read');
+    const logDeprecation = require('../lib/utils/logDeprecation');
 
     const configurationPath = await resolveConfigurationPath();
     const configuration = configurationPath
@@ -59,6 +61,73 @@ const processSpanPromise = (async () => {
           }
         })()
       : null;
+
+    if (configuration) {
+      if (_.get(configuration.provider, 'variableSyntax')) {
+        logDeprecation(
+          'NEW_VARIABLES_RESOLVER',
+          'Serverless Framework was enhanced with a new variables resolver ' +
+            'which doesn\'t recognize "provider.variableSyntax" setting.' +
+            "Starting with a new major it will be the only resolver that's used." +
+            '. Drop setting from a configuration to adapt to it',
+          { serviceConfig: configuration }
+        );
+      } else {
+        const path = require('path');
+        const ServerlessError = require('../lib/serverless-error');
+        const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
+        const resolveVariables = require('../lib/configuration/variables/resolve');
+        const variableSources = {
+          env: { ...require('../lib/configuration/variables/sources/env'), isIncomplete: true },
+          file: require('../lib/configuration/variables/sources/file'),
+          opt: require('../lib/configuration/variables/sources/opt'),
+          self: require('../lib/configuration/variables/sources/self'),
+          strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+        };
+        const variablesMeta = resolveVariablesMeta(configuration);
+        await resolveVariables({
+          servicePath: process.cwd(),
+          configuration,
+          variablesMeta,
+          sources: variableSources,
+          options,
+        });
+        const resolutionErrors = Array.from(variablesMeta.values(), ({ error }) => error).filter(
+          Boolean
+        );
+        if (resolutionErrors.length) {
+          if (isHelpRequest()) {
+            const log = require('@serverless/utils/log');
+            log(
+              'Resolution of service configuration failed when resolving variables: ' +
+                `${resolutionErrors.map((error) => `\n  - ${error.message}`)}\n`,
+              { color: 'orange' }
+            );
+          } else {
+            if (configuration.variablesResolutionMode) {
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(
+                  configurationPath
+                )}: Variables resolution errored with:${resolutionErrors.map(
+                  (error) => `\n  - ${error.message}`
+                )}\n`
+              );
+            }
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              'Variables resolver reports following resolution errors:' +
+                `${resolutionErrors.map((error) => `\n  - ${error.message}`)}\n` +
+                'From a next major it we will be communicated with a thrown error.\n' +
+                'Set "variablesResolutionMode: 20210219" in your service config, ' +
+                'to adapt to this behavior now',
+              { serviceConfig: configuration }
+            );
+            // Hack to not duplicate the warning with similar deprecation
+            logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
+          }
+        }
+      }
+    }
 
     serverless = new Serverless({
       configuration,
