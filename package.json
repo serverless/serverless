@@ -73,7 +73,7 @@
     "yaml-ast-parser": "0.0.43"
   },
   "devDependencies": {
-    "@commitlint/cli": "^11.0.0",
+    "@commitlint/cli": "^12.0.0",
     "@serverless/eslint-config": "^3.0.0",
     "@serverless/test": "^7.9.0",
     "chai": "^4.3.0",
