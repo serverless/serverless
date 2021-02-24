@@ -40,7 +40,9 @@ jobs:
 
       - name: Run tests against version packaged with npm pack
         run: |
-          PACKAGE_VERSION=$(npm view . version)
+          TEMP_ARRAY=($(echo $GITHUB_REF | tr "/" "\n"))
+          TAG=${TEMP_ARRAY[@]: -1}
+          PACKAGE_VERSION=${TAG:1}
           mkdir "serverless-${PACKAGE_VERSION}"
           tar zxf "serverless-${PACKAGE_VERSION}.tgz" -C "serverless-${PACKAGE_VERSION}"
           cp -R test "serverless-${PACKAGE_VERSION}/package"
