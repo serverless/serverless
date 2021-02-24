@@ -395,6 +395,7 @@ functions:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
+          maximumBatchingWindow: 10 # optional, minimum is 0 and the maximum is 300 (seconds)
           enabled: true
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
