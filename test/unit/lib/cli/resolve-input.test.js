@@ -63,6 +63,40 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
       });
     });
   });
+
+  describe('"-s" handling', () => {
+    describe('Normal command', () => {
+      let data;
+      before(() => {
+        resolveInput.clear();
+        data = overrideArgv(
+          {
+            args: ['serverless', 'cmd1', 'cmd2', '-s', 'stage'],
+          },
+          () => resolveInput()
+        );
+      });
+      it('should recognize stage alias', async () => {
+        expect(data.options.stage).to.equal('stage');
+      });
+    });
+    describe('Command with custom -s alias', () => {
+      let data;
+      before(() => {
+        resolveInput.clear();
+        data = overrideArgv(
+          {
+            args: ['serverless', 'config', 'credentials', '-s', 'stage'],
+          },
+          () => resolveInput()
+        );
+      });
+      it('should recognize stage alias', async () => {
+        expect(data.options).to.not.have.property('stage');
+      });
+    });
+  });
+
   describe('when no commands', () => {
     let data;
     before(() => {
