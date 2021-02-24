@@ -1,0 +1,21 @@
+service: service
+configValidationMode: error
+
+variablesResolutionMode: 20210219
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+custom:
+  importedFile: ${file(config.json)}
+  importedFileWithKey: ${file(config.json):foo}
+  awsVariable: ${AWS::Region}
+  cloudFormationReference: ${AnotherResource}
+  selfReference: ${self:custom.importedFileWithKey}
+  nestedRef: nestedVal
+  nestedVal:
+    prop: resolvedNested
+  nestedReference: ${self:custom.${self:custom.nestedRef}.prop}
+  prototype:
+    nestedInPrototype: ${file(config.json):foo}-in-prototype

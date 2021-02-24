@@ -661,7 +661,9 @@ You can have as many variable references as you want, from any source you want, 
 
 ## Using Custom Variable Syntax
 
-In some cases, the `${xxx}` variable syntax conflicts with some CloudFormation functionality. In that case you can provide a custom syntax to overwrite our default `${xxx}` syntax by setting the `provider.variableSyntax` property to the desired regex:
+_**Note:** This functionality is deprecated, and will no longer be provided with v3 release, which is backed by new variables resolver._
+
+You can provide a custom syntax to overwrite our default `${xxx}` syntax by setting the `provider.variableSyntax` property to the desired regex:
 
 ```yml
 service: new-service
