@@ -142,6 +142,8 @@ describe('#compileRequestValidators()', () => {
           RestApiId: {
             Ref: 'ApiGatewayRestApi',
           },
+          Description: undefined,
+          Name: undefined,
           Schema: {
             $schema: 'http://json-schema.org/draft-04/schema#',
             definitions: {},
@@ -254,6 +256,8 @@ describe('#compileRequestValidators()', () => {
           RestApiId: {
             Ref: 'ApiGatewayRestApi',
           },
+          Description: undefined,
+          Name: undefined,
           Schema: {
             $schema: 'http://json-schema.org/draft-04/schema#',
             definitions: {},
@@ -275,6 +279,8 @@ describe('#compileRequestValidators()', () => {
         Type: 'AWS::ApiGateway::Model',
         Properties: {
           ContentType: 'text/plain',
+          Description: undefined,
+          Name: undefined,
           RestApiId: {
             Ref: 'ApiGatewayRestApi',
           },

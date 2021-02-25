@@ -805,11 +805,11 @@ functions:
           path: posts/create
           method: post
           request:
-            schema:
+            schemas:
               application/json: ${file(create_request.json)}
 ```
 
-API Gateway models can be customized by inline properties
+In addition, you can also customize created model with `name` and `description` properties.
 
 ```yml
 functions:
@@ -827,8 +827,9 @@ functions:
                 description: 'Validation model for Creating Posts'
 ```
 
-API Gateway models can be references by global models in the provider. The same structure exist
-for models defined in the provider as inline functions. Provider models default to `application/json`
+To reuse the same model across different events, you can define global models on provider level.
+In order to define global model you need to add its configuration to `provider.apiGateway.request.schemas`.
+After defining a global model, you can use it in the event by referencing it by the key. Provider models are created for `application/json` content type.
 
 ```yml
 provider:
