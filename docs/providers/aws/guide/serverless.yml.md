@@ -22,6 +22,7 @@ Here is a list of all available properties in `serverless.yml` when the provider
 service: myService
 
 frameworkVersion: '2'
+configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 enableLocalInstallationFallback: false # If set to 'true', guarantees that it's a locally (for service, in its node_modules) installed framework which processes the command
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
 unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown
@@ -529,8 +530,6 @@ functions:
             OriginPath: /framework
             CustomOriginConfig:
               OriginProtocolPolicy: match-viewer
-
-configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 
 layers:
   hello: # A Lambda layer
