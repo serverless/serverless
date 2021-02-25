@@ -155,7 +155,8 @@ const processSpanPromise = (async () => {
             throw new ServerlessError(
               `Cannot resolve ${path.basename(
                 configurationPath
-              )}: "provider" section is not accessible (configured behind variables which cannot be resolved at this stage)`
+              )}: "provider" section is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
             );
           }
           if (variablesMeta.has('provider\0stage')) {
@@ -163,14 +164,16 @@ const processSpanPromise = (async () => {
               throw new ServerlessError(
                 `Cannot resolve ${path.basename(
                   configurationPath
-                )}: "provider.stage" is not accessible (configured behind variables which cannot be resolved at this stage)`
+                )}: "provider.stage" is not accessible ` +
+                  '(configured behind variables which cannot be resolved at this stage)'
               );
             }
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
               '"provider.stage" is not accessible ' +
                 '(configured behind variables which cannot be resolved at this stage).\n' +
-                'Starting with next major release, this will be communicated with a thrown error.\n' +
+                'Starting with next major release, ' +
+                'this will be communicated with a thrown error.\n' +
                 'Set "variablesResolutionMode: 20210219" in your service config, ' +
                 'to adapt to this behavior now',
               { serviceConfig: configuration }
@@ -181,9 +184,8 @@ const processSpanPromise = (async () => {
         }
         if (variablesMeta.has('useDotenv')) {
           throw new ServerlessError(
-            `Cannot resolve ${path.basename(
-              configurationPath
-            )}: "useDotenv" is not accessible (configured behind variables which cannot be resolved at this stage)`
+            `Cannot resolve ${path.basename(configurationPath)}: "useDotenv" is not accessible ` +
+              '(configured behind variables which cannot be resolved at this stage)'
           );
         }
       }
