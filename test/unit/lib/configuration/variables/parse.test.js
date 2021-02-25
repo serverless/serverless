@@ -355,6 +355,24 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
           ],
         },
       ]));
+
+    // ${s:, s:${s:}}
+    // https://github.com/serverless/serverless/issues/9010
+    it('should resolve nested sources, when at least one parent source was resolved', () =>
+      expect(parse('${s:, s:${s:}}')).to.deep.equal([
+        {
+          sources: [
+            { type: 's' },
+            {
+              type: 's',
+              address: {
+                value: '${s:}',
+                variables: [{ sources: [{ type: 's' }] }],
+              },
+            },
+          ],
+        },
+      ]));
   });
 
   describe('Invalid', () => {
