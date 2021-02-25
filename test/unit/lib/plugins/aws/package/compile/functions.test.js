@@ -71,9 +71,11 @@ describe('AwsCompileFunctions', () => {
       },
       handler: 'handler.hello',
     };
-    const artifactFilePathWithoutServerless = awsCompileFunctions.serverless.service.functions[
-      functionName
-    ].package.artifact
+
+    const artifactFilePath = awsCompileFunctions.serverless.service.package.individually
+      ? awsCompileFunctions.serverless.service.functions[functionName]
+      : awsCompileFunctions.serverless.service.service;
+    const artifactFilePathWithoutServerless = artifactFilePath.package.artifact
       .split('.serverless')
       .pop();
     const artifactFilePathWithoutPathRoot = artifactFilePathWithoutServerless.replace(
