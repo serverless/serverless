@@ -96,6 +96,16 @@ const processSpanPromise = (async () => {
           strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
         };
         const variablesMeta = resolveVariablesMeta(configuration);
+
+        if (variablesMeta.has('variablesResolutionMode')) {
+          throw new ServerlessError(
+            `Cannot resolve ${path.basename(
+              configurationPath
+            )}: "variablesResolutionMode" is not accessible ` +
+              '(configured behind variables which cannot be resolved at this stage)'
+          );
+        }
+
         await resolveVariables({
           servicePath: process.cwd(),
           configuration,
