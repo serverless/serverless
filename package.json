@@ -1,6 +1,6 @@
 {
   "name": "serverless",
-  "version": "2.27.0",
+  "version": "2.27.1",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
