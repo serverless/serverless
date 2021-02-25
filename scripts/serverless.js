@@ -113,17 +113,17 @@ const processSpanPromise = (async () => {
           sources: variableSources,
           options,
         });
-        const resolutionErrors = Array.from(variablesMeta.values(), ({ error }) => error).filter(
-          Boolean
+        const resolutionErrors = new Set(
+          Array.from(variablesMeta.values(), ({ error }) => error).filter(Boolean)
         );
 
         // If non-recoverable errors were approached in variable resolution, report them
-        if (resolutionErrors.length) {
+        if (resolutionErrors.size) {
           if (isHelpRequest) {
             const log = require('@serverless/utils/log');
             log(
               'Resolution of service configuration failed when resolving variables: ' +
-                `${resolutionErrors.map((error) => `\n  - ${error.message}`)}\n`,
+                `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n`,
               { color: 'orange' }
             );
           } else {
@@ -131,7 +131,8 @@ const processSpanPromise = (async () => {
               throw new ServerlessError(
                 `Cannot resolve ${path.basename(
                   configurationPath
-                )}: Variables resolution errored with:${resolutionErrors.map(
+                )}: Variables resolution errored with:${Array.from(
+                  resolutionErrors,
                   (error) => `\n  - ${error.message}`
                 )}\n`
               );
@@ -139,7 +140,7 @@ const processSpanPromise = (async () => {
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
               'Variables resolver reports following resolution errors:' +
-                `${resolutionErrors.map((error) => `\n  - ${error.message}`)}\n` +
+                `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n` +
                 'From a next major it we will be communicated with a thrown error.\n' +
                 'Set "variablesResolutionMode: 20210219" in your service config, ' +
                 'to adapt to this behavior now',
