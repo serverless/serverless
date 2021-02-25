@@ -48,7 +48,9 @@ describe('test/unit/lib/cli/load-dotenv.test.js', () => {
     const errorMessage = 'Unexpected error while loading env';
     const dotenvResult = sinon.stub(dotenv, 'config').returns({ error: new Error(errorMessage) });
 
-    expect(loadEnv('testing')).to.be.rejectedWith(ServerlessError, errorMessage);
+    expect(() => loadEnv('testing'))
+      .to.throw(ServerlessError)
+      .with.property('code', 'DOTENV_LOAD_ERROR');
     dotenvResult.restore();
   });
 });
