@@ -402,6 +402,12 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
       expect(() => parse('${type(foo)'))
         .to.throw(ServerlessError)
         .with.property('code', 'UNTERMINATED_VARIABLE');
+      expect(() => parse('${s:, s:${s:}'))
+        .to.throw(ServerlessError)
+        .with.property('code', 'UNTERMINATED_VARIABLE');
+      expect(() => parse('${s:, s:${s:'))
+        .to.throw(ServerlessError)
+        .with.property('code', 'UNTERMINATED_VARIABLE');
     });
 
     // ${type("\u")}
