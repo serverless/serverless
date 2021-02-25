@@ -5,14 +5,14 @@ const path = require('path');
 const sinon = require('sinon');
 const overrideEnv = require('process-utils/override-env');
 const fs = require('fs');
-const loadEnv = require('../../../lib/loadEnv');
+const loadEnv = require('../../../../lib/cli/load-dotenv');
 const dotenv = require('dotenv');
-const ServerlessError = require('../../../lib/serverless-error');
+const ServerlessError = require('../../../../lib/serverless-error');
 
 chai.use(require('chai-as-promised'));
 const expect = require('chai').expect;
 
-describe('loadEnv', () => {
+describe('test/unit/lib/cli/load-dotenv.test.js', () => {
   let restoreEnv;
 
   before(async () => {
