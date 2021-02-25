@@ -25,7 +25,8 @@ frameworkVersion: '2'
 configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 enableLocalInstallationFallback: false # If set to 'true', guarantees that it's a locally (for service, in its node_modules) installed framework which processes the command
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
-unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown
+variablesResolutionMode: null # To crash on variable resolution errors (as coming from new resolver), set this value to "20210219"
+unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown (applies to legacy resolver)
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
   - DEP_CODE_1 # Deprecation code to disable
