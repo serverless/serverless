@@ -154,7 +154,16 @@ const processSpanPromise = (async () => {
             logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
           }
         }
+        if (variablesMeta.has('useDotenv')) {
+          throw new ServerlessError(
+            `Cannot resolve ${path.basename(
+              configurationPath
+            )}: "useDotenv" is not accessible (configured behind variables which cannot be resolved at this stage)`
+          );
+        }
       }
+
+      await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
     }
 
     serverless = new Serverless({
