@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.27.1](https://github.com/serverless/serverless/compare/v2.27.0...v2.27.1) (2021-02-25)
+
+### Bug Fixes
+
+- **Variables:**
+  - Fix nested sources resolution ([#9011](https://github.com/serverless/serverless/issues/9011)) ([99fd907](https://github.com/serverless/serverless/commit/99fd907abbe3d83f8db7bf3a1924da770bc18be8)) ([Mariusz Nowak](https://github.com/medikoo)
+  - Report with `null` not existing `file` sources ([#9008](https://github.com/serverless/serverless/issues/9008)) ([3ab81e5](https://github.com/serverless/serverless/commit/3ab81e5be94c69b90dc8487e321fb4cf7efc2c11)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Fix unterminated variable resolution for some cases ([#9011](https://github.com/serverless/serverless/issues/9011)) ([cc5bfd5](https://github.com/serverless/serverless/commit/cc5bfd53ae2459e4d7ac1ec6314c030d39997958)) ([Mariusz Nowak](https://github.com/medikoo)
+  - Communicate with meaningful error not accessible `provider` properties ([#8992](https://github.com/serverless/serverless/issues/8992)) ([e5307b0](https://github.com/serverless/serverless/commit/e5307b05d31b7a80be80fc72e1829aead8762680)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve JS file resolution error handling ([#9008](https://github.com/serverless/serverless/issues/9008)) ([9ecc108](https://github.com/serverless/serverless/commit/9ecc1087653edfde9da400f496030dea0d6203ce)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Remove `bluebird` from `lib/plugins/plugin` ([#8984](https://github.com/serverless/serverless/issues/8984)) ([9e79602](https://github.com/serverless/serverless/commit/9e7960297227b39f05c2619a80e3cac7cb7be1a5)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+
 ## [2.27.0](https://github.com/serverless/serverless/compare/v2.26.0...v2.27.0) (2021-02-24)
 
 ### Features
