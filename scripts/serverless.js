@@ -29,11 +29,15 @@ const processSpanPromise = (async () => {
   try {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
+
+    // Propagate (in a background) eventual pending analytics requests
     require('../lib/utils/analytics').sendPending({
       serverlessExecutionSpan: processSpanPromise,
     });
+
     const { commands, options } = require('../lib/cli/resolve-input')();
 
+    // If version number request, show it and abort
     if (options.version) {
       await require('../lib/cli/list-version')();
       return;
@@ -47,7 +51,10 @@ const processSpanPromise = (async () => {
     const readConfiguration = require('../lib/configuration/read');
     const logDeprecation = require('../lib/utils/logDeprecation');
 
+    // Resolve eventual service configuration path
     const configurationPath = await resolveConfigurationPath();
+
+    // If service configuration file is found, load its content
     const configuration = configurationPath
       ? await (async () => {
           try {
@@ -73,6 +80,10 @@ const processSpanPromise = (async () => {
           { serviceConfig: configuration }
         );
       } else {
+        // Resolve eventual configuration variables (from provider agnostic sources)
+
+        // As we have not yet loaded .env files, we may have incomplete process.env state
+        // It is taken into account in below resolver configuration
         const path = require('path');
         const ServerlessError = require('../lib/serverless-error');
         const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
@@ -95,6 +106,8 @@ const processSpanPromise = (async () => {
         const resolutionErrors = Array.from(variablesMeta.values(), ({ error }) => error).filter(
           Boolean
         );
+
+        // If non-recoverable errors were approached in variable resolution, report them
         if (resolutionErrors.length) {
           if (isHelpRequest) {
             const log = require('@serverless/utils/log');
@@ -126,6 +139,8 @@ const processSpanPromise = (async () => {
             logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
           }
         } else if (!isHelpRequest) {
+          // There are few configuration properties, which have to be resolved at this point
+          // to move forward. Report errors if that's not the case
           if (variablesMeta.has('provider')) {
             throw new ServerlessError(
               `Cannot resolve ${path.basename(
@@ -163,6 +178,7 @@ const processSpanPromise = (async () => {
         }
       }
 
+      // Load eventual environment variables from .env files
       await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
     }
 
