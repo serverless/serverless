@@ -25,6 +25,13 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       nonExistingYaml: '${file(not-existing.yaml), null}',
       nonExistingJson: '${file(not-existing.json), null}',
       nonExistingJs: '${file(not-existing.js), null}',
+      jsFilePromiseRejected: '${file(file-promise-rejected.js)}',
+      jsFilePromiseRejectedNonError: '${file(file-promise-rejected-non-error.js)}',
+      jsFileFunctionErrored: '${file(file-function-errored.js)}',
+      jsFileFunctionErroredNonError: '${file(file-function-errored-non-error.js)}',
+      jsFilePropertyFunctionErrored: '${file(file-property-function-errored.js):property}',
+      jsFilePropertyFunctionErroredNonError:
+        '${file(file-property-function-errored-non-error.js):property}',
       notFile: '${file(dir.yaml)}',
       noParams: '${file:}',
       noParams2: '${file():}',
@@ -77,6 +84,36 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should report with null non existing JS files', () =>
     expect(configuration.nonExistingJs).to.equal(null));
+
+  it('should report with an error promise rejected with error', () =>
+    expect(variablesMeta.get('jsFilePromiseRejected').error.code).to.equal(
+      'VARIABLE_RESOLUTION_ERROR'
+    ));
+
+  it('should report with an error promise rejected with non error value', () =>
+    expect(variablesMeta.get('jsFilePromiseRejectedNonError').error.code).to.equal(
+      'VARIABLE_RESOLUTION_ERROR'
+    ));
+
+  it('should report with an error function resolver that crashes with error', () =>
+    expect(variablesMeta.get('jsFileFunctionErrored').error.code).to.equal(
+      'VARIABLE_RESOLUTION_ERROR'
+    ));
+
+  it('should report with an error function resolver that crashes not with error', () =>
+    expect(variablesMeta.get('jsFileFunctionErroredNonError').error.code).to.equal(
+      'VARIABLE_RESOLUTION_ERROR'
+    ));
+
+  it('should report with an error property function resolver that crashes with error', () =>
+    expect(variablesMeta.get('jsFilePropertyFunctionErrored').error.code).to.equal(
+      'VARIABLE_RESOLUTION_ERROR'
+    ));
+
+  it('should report with an error property function resolver that crashes not with error', () =>
+    expect(variablesMeta.get('jsFilePropertyFunctionErroredNonError').error.code).to.equal(
+      'VARIABLE_RESOLUTION_ERROR'
+    ));
 
   it('should report with an error non file paths', () =>
     expect(variablesMeta.get('notFile').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
