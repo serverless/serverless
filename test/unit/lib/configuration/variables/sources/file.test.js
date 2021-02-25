@@ -22,8 +22,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       jsFunction: '${file(file-function.js)}',
       jsPropertyFunction: '${file(file-property-function.js):property}',
       addressSupport: '${file(file.json):result}',
-      nonExistingYaml: '${file(not-existing.yaml)}',
-      nonExistingJs: '${file(not-existing.js)}',
+      nonExistingYaml: '${file(not-existing.yaml), null}',
+      nonExistingJson: '${file(not-existing.json), null}',
+      nonExistingJs: '${file(not-existing.js), null}',
       notFile: '${file(dir.yaml)}',
       noParams: '${file:}',
       noParams2: '${file():}',
@@ -68,11 +69,14 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
   it('should support "address" argument', () =>
     expect(configuration.addressSupport).to.equal('json'));
 
-  it('should report with an error non existing files', () =>
-    expect(variablesMeta.get('nonExistingYaml').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
+  it('should report with null non existing files', () =>
+    expect(configuration.nonExistingYaml).to.equal(null));
 
-  it('should report with an error non existing JS files', () =>
-    expect(variablesMeta.get('nonExistingJs').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
+  it('should report with null non existing JSON files', () =>
+    expect(configuration.nonExistingJson).to.equal(null));
+
+  it('should report with null non existing JS files', () =>
+    expect(configuration.nonExistingJs).to.equal(null));
 
   it('should report with an error non file paths', () =>
     expect(variablesMeta.get('notFile').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
