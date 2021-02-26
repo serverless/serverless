@@ -55,6 +55,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     invalidResultNonJson: '${sourceError(non-json)}',
     invalidResultNonJsonCircular: '|${sourceError(non-json-circular)}',
     infiniteResolutionRecursion: '${sourceInfinite:}',
+    sharedSourceResolution1: '${sourceShared:}',
+    sharedSourceResolution2: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
   };
   let variablesMeta;
   const sources = {
@@ -120,6 +122,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     },
     sourceInfinite: {
       resolve: () => ({ nest: '${sourceInfinite:}' }),
+    },
+    sourceShared: {
+      resolve: () => ({
+        sharedFinal: 'foo',
+        sharedInner: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
+      }),
     },
   };
   before(async () => {
@@ -189,6 +197,15 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
   it('should resolve variables in returned results', () => {
     expect(configuration.resolvesVariablesObject).to.deep.equal({ foo: 234 });
     expect(configuration.resolvesVariablesArray).to.deep.equal([1, 234]);
+  });
+
+  // https://github.com/serverless/serverless/issues/9016
+  it('should resolve same sources across realms without shared caching', () => {
+    expect(configuration.sharedSourceResolution1).to.deep.equal({
+      sharedFinal: 'foo',
+      sharedInner: 'foo',
+    });
+    expect(configuration.sharedSourceResolution2).to.equal('foo');
   });
 
   it('should not resolve variables for unrecognized sources', () => {
