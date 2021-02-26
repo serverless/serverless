@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.28.0](https://github.com/serverless/serverless/compare/v2.27.1...v2.28.0) (2021-02-26)
+
+### Features
+
+- **AWS API Gateway:** Allow reuse and customization of schema models ([#7619](https://github.com/serverless/serverless/pull/7619)) ([aeb64fd](https://github.com/serverless/serverless/commit/aeb64fd3cc6d27c495ce19efc3745a16a46b6534)) ([Jeffrey McGuffee](https://github.com/jmcguffee) & [Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **CLI:** Do not duplicate variables error information ([#9019](https://github.com/serverless/serverless/pull/9019)) ([2f62bdf](https://github.com/serverless/serverless/commit/2f62bdf2316a76a0dd4b855e178857ecff7c7402)) ([Mariusz Nowak](https://github.com/medikoo)
+- **Variables:** Ensure to not share source cache across resolutions ([#9019](https://github.com/serverless/serverless/pull/9019)) ([5ad1c19](https://github.com/serverless/serverless/commit/5ad1c19cc9a5601184883a916a29172eeb9c3789)) ([Mariusz Nowak](https://github.com/medikoo)
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Require `variablesResolutionMode` to be resolved upfront ([#9014](https://github.com/serverless/serverless/pull/9014)) ([a488000](https://github.com/serverless/serverless/commit/a488000dc67c10026d010744bb29fca25f72f42b)) ([Mariusz Nowak](https://github.com/medikoo)
+  - Resolve `.env` files before intializing `Serverless` instance ([#9014](https://github.com/serverless/serverless/pull/9014)) ([a9e3a66](https://github.com/serverless/serverless/commit/a9e3a667355e91af7fb558eb551ed7d59a865527)) ([Mariusz Nowak](https://github.com/medikoo)
+- Remove `bluebird` from `lib/plugins/create` ([#8996](https://github.com/serverless/serverless/issues/8996)) ([258543a](https://github.com/serverless/serverless/commit/258543ab6e1874ba41be3563346cd7b50993ac58)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+
 ## [2.27.1](https://github.com/serverless/serverless/compare/v2.27.0...v2.27.1) (2021-02-25)
 
 ### Bug Fixes
