@@ -477,7 +477,7 @@ Example, of how to obtain a value of AWS region that will be used by Serverless 
 
 ```js
 // config.js (when relying on new variables resolver)
-module.exports = ({ options, resolveConfigurationProperty }) => {
+module.exports = async ({ options, resolveConfigurationProperty }) => {
   let region = options.region;
   if (!region) {
     region = await resolveConfigurationProperty(['provider', 'region']);
