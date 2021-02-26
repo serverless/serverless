@@ -6,9 +6,8 @@ const runServerless = require('../../../../utils/run-serverless');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 
 const os = require('os');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
-const BbPromise = require('bluebird');
 const configUtils = require('@serverless/utils/config');
 const promptDisabledConfigPropertyName = require('../../../../../lib/utils/tabCompletion/promptDisabledConfigPropertyName');
 const isTabCompletionSupported = require('../../../../../lib/utils/tabCompletion/isSupported');
@@ -20,8 +19,6 @@ const lifecycleHookNamesBlacklist = [
   'interactiveCli:setupAws',
   'interactiveCli:autoUpdate',
 ];
-
-BbPromise.promisifyAll(fs);
 
 describe('interactiveCli: tabCompletion', () => {
   let backupIsTTY;
@@ -87,12 +84,12 @@ describe('interactiveCli: tabCompletion', () => {
     }).then(() =>
       Promise.all([
         fs
-          .readFileAsync(path.resolve(os.homedir(), '.bashrc'), 'utf8')
+          .readFile(path.resolve(os.homedir(), '.bashrc'), 'utf8')
           .then((bashRcContent) =>
             expect(bashRcContent).to.include(' ~/.config/tabtab/__tabtab.bash')
           ),
-        fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),
-        fs.readFileAsync(path.resolve(os.homedir(), '.config/tabtab/sls.bash'), 'utf8'),
+        fs.readFile(path.resolve(os.homedir(), '.config/tabtab/serverless.bash'), 'utf8'),
+        fs.readFile(path.resolve(os.homedir(), '.config/tabtab/sls.bash'), 'utf8'),
       ])
     );
   });
