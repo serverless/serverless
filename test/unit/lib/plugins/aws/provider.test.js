@@ -3,7 +3,6 @@
 /* eslint-disable no-unused-expressions */
 
 const _ = require('lodash');
-const BbPromise = require('bluebird');
 const chai = require('chai');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
@@ -297,7 +296,7 @@ describe('AwsProvider', () => {
 
         getRestApis() {
           return {
-            promise: () => BbPromise.resolve({ called: true }),
+            promise: async () => ({ called: true }),
           };
         }
       }
@@ -734,10 +733,10 @@ describe('AwsProvider', () => {
             }
           );
         const requests = [];
-        requests.push(BbPromise.try(() => executeRequestWithRegion('us-east-1')));
-        requests.push(BbPromise.try(() => executeRequestWithRegion('ap-northeast-1')));
+        requests.push(executeRequestWithRegion('us-east-1'));
+        requests.push(executeRequestWithRegion('ap-northeast-1'));
 
-        return BbPromise.all(requests)
+        return Promise.all(requests)
           .then((results) => {
             expect(Object.keys(results).length).to.equal(2);
             results.forEach((result) => {
@@ -786,19 +785,19 @@ describe('AwsProvider', () => {
           awsProvider.request('CloudFormation', 'describeStacks', {}, { useCache: true });
         const requests = [];
         for (let n = 0; n < numTests; n++) {
-          requests.push(BbPromise.try(() => executeRequest()));
+          requests.push(executeRequest());
         }
 
-        return BbPromise.all(requests)
+        return Promise.all(requests)
           .then((results) => {
             expect(Object.keys(results).length).to.equal(numTests);
             results.forEach((result) => {
               expect(result).to.deep.equal(expectedResult);
             });
-            return BbPromise.join(
+            return Promise.all([
               expect(sendStub).to.have.been.calledOnce,
-              expect(requestSpy).to.have.callCount(numTests)
-            );
+              expect(requestSpy).to.have.callCount(numTests),
+            ]);
           })
           .finally(() => {
             requestSpy.restore();
