@@ -25,6 +25,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       nonExistingYaml: '${file(not-existing.yaml), null}',
       nonExistingJson: '${file(not-existing.json), null}',
       nonExistingJs: '${file(not-existing.js), null}',
+      primitiveAddress: '${file(file-primitive.json):someProperty}',
       jsFilePromiseRejected: '${file(file-promise-rejected.js)}',
       jsFilePromiseRejectedNonError: '${file(file-promise-rejected-non-error.js)}',
       jsFileFunctionErrored: '${file(file-function-errored.js)}',
@@ -84,6 +85,9 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should report with null non existing JS files', () =>
     expect(configuration.nonExistingJs).to.equal(null));
+
+  it('should report with an error address argument on primitive content', () =>
+    expect(variablesMeta.get('primitiveAddress').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
 
   it('should report with an error promise rejected with error', () =>
     expect(variablesMeta.get('jsFilePromiseRejected').error.code).to.equal(
