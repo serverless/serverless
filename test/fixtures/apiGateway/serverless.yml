@@ -5,6 +5,9 @@ frameworkVersion: '*'
 
 provider:
   name: aws
+  lambdaHashingVersion: 20201221
+  apiGateway:
+    shouldStartNameWithService: true
 
 functions:
   foo:
