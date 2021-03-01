@@ -147,9 +147,11 @@ Org, app, service, stage, and region are required to resolve variables when logg
 
 Deprecation code: `LAMBDA_HASHING_VERSION_V2`
 
-Starting with v3.0.0, the default value of `lambdaHashingVersion` will be equal to `20201221`. You can adapt to this behavior now, by setting `provider.lambdaHashingVersion` to `20201221`.
+Resolution of lambda version hashes was improved with better (fixed deterministism issues) algorithm, which will be used starting with v3.0.0
 
-When trying to `sls deploy` for the first time after migration to new `lambdaHashingVersion`, you might encounter an error, similar to the one below:
+You can adapt your services to use it now, by setting `provider.lambdaHashingVersion` to `20201221`.
+
+**Notice:** If you apply this on already deployed service without any changes to lambda code, you might encounter an error similar to the one below:
 
 ```
   Serverless Error ---------------------------------------
@@ -157,7 +159,7 @@ When trying to `sls deploy` for the first time after migration to new `lambdaHas
   An error occurred: FooLambdaVersion3IV5NZ3sE5T2UFimCOai2Tc6eCaW7yIYOP786U0Oc - A version for this Lambda function exists ( 11 ). Modify the function to create a new version..
 ```
 
-It is an expected behavior, to avoid it, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions.
+It is an expected behavior. AWS complains here that received a different hash for very same lambda configuration. To workaround that, you need to modify your function(s) code and try to redeploy it again. One common approach is to modify an utility function that is used by all/most of your Lambda functions.
 
 <a name="LOAD_VARIABLES_FROM_ENV_FILES"><div>&nbsp;</div></a>
 
