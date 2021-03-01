@@ -25,6 +25,7 @@ describe('AwsCompileFunctions', () => {
   let awsProvider;
   let awsCompileFunctions;
   let posixArtifactFilePath;
+  let artifactFilePath;
   const functionName = 'test';
   const compiledFunctionName = 'TestLambdaFunction';
 
@@ -72,9 +73,16 @@ describe('AwsCompileFunctions', () => {
       handler: 'handler.hello',
     };
 
-    const artifactFilePath = awsCompileFunctions.serverless.service.package.individually
-      ? awsCompileFunctions.serverless.service.functions[functionName].package.artifact
-      : awsCompileFunctions.serverless.service.package.artifact;
+    if (awsCompileFunctions.serverless.service.package.individually) {
+      artifactFilePath =
+        awsCompileFunctions.serverless.service.functions[functionName].package.artifact;
+    }
+    if (!awsCompileFunctions.serverless.service.functions[functionName].package.artifact) {
+      artifactFilePath = awsCompileFunctions.serverless.service.package.artifact;
+    } else {
+      artifactFilePath = awsCompileFunctions.serverless.service.package.artifact;
+    }
+
     const artifactFilePathWithoutServerless = artifactFilePath.split('.serverless').pop();
     const artifactFilePathWithoutPathRoot = artifactFilePathWithoutServerless.replace(
       path.parse(artifactFilePathWithoutServerless).root,
