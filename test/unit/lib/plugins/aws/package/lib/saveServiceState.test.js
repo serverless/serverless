@@ -47,25 +47,24 @@ describe('#saveServiceState()', () => {
       'service-state.json'
     );
 
-    return awsPackage.saveServiceState().then(() => {
-      const expectedStateFileContent = {
-        service: {
-          provider: {
-            compiledCloudFormationTemplate: 'compiled content',
-          },
+    awsPackage.saveServiceState();
+    const expectedStateFileContent = {
+      service: {
+        provider: {
+          compiledCloudFormationTemplate: 'compiled content',
         },
-        package: {
-          individually: false,
-          artifactDirectoryName: 'artifact-directory',
-          artifact: 'service.zip',
-        },
-      };
+      },
+      package: {
+        individually: false,
+        artifactDirectoryName: 'artifact-directory',
+        artifact: 'service.zip',
+      },
+    };
 
-      expect(getServiceStateFileNameStub.calledOnce).to.equal(true);
-      expect(
-        writeFileSyncStub.calledWithExactly(filePath, expectedStateFileContent, true)
-      ).to.equal(true);
-    });
+    expect(getServiceStateFileNameStub.calledOnce).to.equal(true);
+    expect(writeFileSyncStub.calledWithExactly(filePath, expectedStateFileContent, true)).to.equal(
+      true
+    );
   });
 
   it('should remove self references correctly', () => {
@@ -79,27 +78,26 @@ describe('#saveServiceState()', () => {
       mySelfRef: serverless.service,
     };
 
-    return awsPackage.saveServiceState().then(() => {
-      const expectedStateFileContent = {
-        service: {
-          provider: {
-            compiledCloudFormationTemplate: 'compiled content',
-          },
-          custom: {
-            mySelfRef: '${self:}',
-          },
+    awsPackage.saveServiceState();
+    const expectedStateFileContent = {
+      service: {
+        provider: {
+          compiledCloudFormationTemplate: 'compiled content',
         },
-        package: {
-          individually: false,
-          artifactDirectoryName: 'artifact-directory',
-          artifact: 'service.zip',
+        custom: {
+          mySelfRef: '${self:}',
         },
-      };
+      },
+      package: {
+        individually: false,
+        artifactDirectoryName: 'artifact-directory',
+        artifact: 'service.zip',
+      },
+    };
 
-      expect(getServiceStateFileNameStub.calledOnce).to.equal(true);
-      expect(
-        writeFileSyncStub.calledWithExactly(filePath, expectedStateFileContent, true)
-      ).to.equal(true);
-    });
+    expect(getServiceStateFileNameStub.calledOnce).to.equal(true);
+    expect(writeFileSyncStub.calledWithExactly(filePath, expectedStateFileContent, true)).to.equal(
+      true
+    );
   });
 });
