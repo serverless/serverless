@@ -6,6 +6,7 @@ frameworkVersion: '*'
 provider:
   name: aws
   logRetentionInDays: 14
+  lambdaHashingVersion: 20201221
 
 functions:
   foo:

@@ -22,7 +22,7 @@ functions:
     handler: core.eventBusCustom
     events:
       - eventBridge:
-          eventBus: ${self:service.name}-named-event-bus
+          eventBus: ${self:service}-named-event-bus
           pattern:
             source:
               - serverless.test

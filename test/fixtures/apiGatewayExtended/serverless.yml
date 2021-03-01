@@ -8,9 +8,10 @@ provider:
   runtime: nodejs12.x
   versionFunctions: false
   apiGateway:
+    shouldStartNameWithService: true
     apiKeys:
-      - name: ${self:service.name}-api-key-1
-        value: ${self:service.name}-api-key-1
+      - name: ${self:service}-api-key-1
+        value: ${self:service}-api-key-1
 
 functions:
   # core functions
