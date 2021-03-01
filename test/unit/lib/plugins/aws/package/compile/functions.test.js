@@ -712,7 +712,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: `somedir/${s3FileName}`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -749,7 +749,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: `somedir/${s3FileName}`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
@@ -786,7 +786,7 @@ describe('AwsCompileFunctions', () => {
           Properties: {
             Code: {
               S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
+              S3Key: `somedir/${s3FileName}`,
             },
             FunctionName: 'new-service-dev-func',
             Handler: 'func.function.handler',
