@@ -5,8 +5,6 @@ const sinon = require('sinon');
 const runServerless = require('../../../../utils/run-serverless');
 const configureInquirerStub = require('@serverless/test/configure-inquirer-stub');
 
-const fs = require('fs');
-const BbPromise = require('bluebird');
 const configUtils = require('@serverless/utils/config');
 const inquirer = require('@serverless/utils/inquirer');
 
@@ -16,8 +14,6 @@ const lifecycleHookNamesBlacklist = [
   'interactiveCli:setupAws',
   'interactiveCli:tabCompletion',
 ];
-
-BbPromise.promisifyAll(fs);
 
 const modulesCacheStub = {
   './lib/utils/npmPackage/isGlobal.js': async () => true,
