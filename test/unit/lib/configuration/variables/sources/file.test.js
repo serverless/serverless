@@ -41,7 +41,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       invalidJson: '${file(invalid.json)}',
       invalidJs: '${file(invalid.js)}',
       invalidJs2: '${file(invalid2.js)}',
-      invalidExt: '${file(invalid.ext)}',
+      nonStandardExt: '${file(non-standard.ext)}',
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
@@ -85,6 +85,11 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
 
   it('should report with null non existing JS files', () =>
     expect(configuration.nonExistingJs).to.equal(null));
+
+  it('should resolve plain text content on unrecognized extension', () =>
+    // .trim() as depending on local .git settings and OS (Windows or other)
+    // checked out fixture may end with differen type of EOL (\n on linux, and \r\n on Windows)
+    expect(configuration.nonStandardExt.trim()).to.equal('result: non-standard'.trim()));
 
   it('should report with an error address argument on primitive content', () =>
     expect(variablesMeta.get('primitiveAddress').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
@@ -140,9 +145,6 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     expect(variablesMeta.get('invalidJs').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
     expect(variablesMeta.get('invalidJs2').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
   });
-
-  it('should report with an error an unrecognized extension', () =>
-    expect(variablesMeta.get('invalidExt').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
 
   it('should not support function resolvers in "js" file sources not confirmed to work with new resolver', async () => {
     configuration = {
