@@ -22,9 +22,11 @@ Here is a list of all available properties in `serverless.yml` when the provider
 service: myService
 
 frameworkVersion: '2'
+configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 enableLocalInstallationFallback: false # If set to 'true', guarantees that it's a locally (for service, in its node_modules) installed framework which processes the command
 useDotenv: false # If set to 'true', environment variables will be automatically loaded from .env files
-unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown
+variablesResolutionMode: null # To crash on variable resolution errors (as coming from new resolver), set this value to "20210219"
+unresolvedVariablesNotificationMode: warn # If set to 'error', references to variables that cannot be resolved will result in an error being thrown (applies to legacy resolver)
 
 disabledDeprecations: # Disable deprecation logs by their codes. Default is empty.
   - DEP_CODE_1 # Deprecation code to disable
@@ -134,6 +136,12 @@ provider:
       throttle:
         burstLimit: 200
         rateLimit: 100
+    request:
+      schemas: # Optional request schema validation models that can be reused in `http` events. It is always defined for `application/json` content type
+        global-model:
+          name: GlobalModel # Optional: Name of the API Gateway model
+          description: "A global model that can be referenced in functions" # Optional: Description of the API Gateway model
+          schema: ${file(schema.json)}  # Valid JSON Schema
   alb:
     targetGroupPrefix: xxxxxxxxxx # Optional prefix to prepend when generating names for target groups
     authorizers:
@@ -336,6 +344,11 @@ functions:
             template: # Optional custom request mapping templates that overwrite default templates
               application/json: '{ "httpMethod" : "$context.httpMethod" }'
             passThrough: NEVER # Optional define pass through behavior when content-type does not match any of the specified mapping templates
+            schemas: # Optional request schema validation, mappped by content type
+              application/json:
+                name: ModelName  # Optional: Name of the API Gateway model
+                description: "Some description" # Optional: Description of the API Gateway model
+                schema: ${file(model_schema.json)} # Schema for selected content type
       - httpApi: # HTTP API endpoint
           method: GET
           path: /some-get-path/{param}
@@ -395,6 +408,7 @@ functions:
       - sqs:
           arn: arn:aws:sqs:region:XXXXXX:myQueue
           batchSize: 10
+          maximumBatchingWindow: 10 # optional, minimum is 0 and the maximum is 300 (seconds)
           enabled: true
       - stream:
           arn: arn:aws:kinesis:region:XXXXXX:stream/foo
@@ -528,8 +542,6 @@ functions:
             OriginPath: /framework
             CustomOriginConfig:
               OriginProtocolPolicy: match-viewer
-
-configValidationMode: warn # Modes for config validation. `error` throws an exception, `warn` logs error to console, `off` disables validation at all. The default is warn.
 
 layers:
   hello: # A Lambda layer

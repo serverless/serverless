@@ -4,7 +4,6 @@ const { join } = require('path');
 const { homedir: getHomedir } = require('os');
 const { expect } = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const { remove: rmDir, lstat, outputFile: writeFile } = require('fs-extra');
 const { resolveFileProfiles } = require('../../../../../lib/plugins/aws/utils/credentials');
 const inquirer = require('@serverless/utils/inquirer');
@@ -21,10 +20,7 @@ const lifecycleHookNamesBlacklist = [
 
 const openBrowserUrls = [];
 const modulesCacheStub = {
-  './lib/utils/openBrowser': (url) =>
-    BbPromise.try(() => {
-      openBrowserUrls.push(url);
-    }),
+  './lib/utils/openBrowser': async (url) => openBrowserUrls.push(url),
   // Ensure to rely on same inquirer module that we mock in tests
   '@serverless/utils/inquirer': inquirer,
 };

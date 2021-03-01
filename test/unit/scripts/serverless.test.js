@@ -3,6 +3,7 @@
 const { expect } = require('chai');
 
 const path = require('path');
+const fs = require('fs').promises;
 const spawn = require('child-process-ext/spawn');
 const { version } = require('../../../package');
 const fixturesEngine = require('../../fixtures');
@@ -83,5 +84,49 @@ describe('test/unit/scripts/serverless.test.js', () => {
         ).stdoutBuffer
       )
     ).to.include('nestedInPrototype: bar-in-prototype');
+  });
+
+  it('Should rejected unresolved "provider" section', async () => {
+    try {
+      await spawn('node', [serverlessPath, 'print'], {
+        cwd: (await fixturesEngine.setup('aws', { configExt: { provider: '${foo:bar}' } }))
+          .servicePath,
+      });
+      throw new Error('Unexpected');
+    } catch (error) {
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('"provider" section is not accessible');
+    }
+  });
+
+  it('Should rejected unresolved "provider.stage" property', async () => {
+    try {
+      await spawn('node', [serverlessPath, 'print'], {
+        cwd: (
+          await fixturesEngine.setup('aws', {
+            configExt: { variablesResolutionMode: '20210219', provider: { stage: '${foo:bar}' } },
+          })
+        ).servicePath,
+      });
+      throw new Error('Unexpected');
+    } catch (error) {
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('"provider.stage" is not accessible');
+    }
+  });
+
+  it('Should load env variables from dotenv files', async () => {
+    const { servicePath } = await fixturesEngine.setup('aws', {
+      configExt: {
+        useDotenv: true,
+        custom: {
+          fromDefaultEnv: '${env:DEFAULT_ENV_VARIABLE}',
+        },
+      },
+    });
+    await fs.writeFile(path.resolve(servicePath, '.env'), 'DEFAULT_ENV_VARIABLE=valuefromdefault');
+    expect(
+      String((await spawn('node', [serverlessPath, 'print'], { cwd: servicePath })).stdoutBuffer)
+    ).to.include('fromDefaultEnv: valuefromdefault');
   });
 });

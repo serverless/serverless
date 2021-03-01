@@ -8,9 +8,8 @@ const path = require('path');
 const JsZip = require('jszip');
 const globby = require('globby');
 const _ = require('lodash');
-const BbPromise = require('bluebird');
-const fs = BbPromise.promisifyAll(require('fs'));
-const childProcess = BbPromise.promisifyAll(require('child_process'));
+const proxyquire = require('proxyquire');
+const fs = require('fs');
 const sinon = require('sinon');
 const Package = require('../../../../../../lib/plugins/package/package');
 const Serverless = require('../../../../../../lib/Serverless');
@@ -123,22 +122,35 @@ describe('zipService', () => {
     });
 
     describe('when dealing with Node.js runtimes', () => {
+      const readFileAsyncStub = sinon.stub();
+      const execAsyncStub = sinon.stub().callsFake((cmd, opts, cb) => cb());
+      const PackageProxied = proxyquire('../../../../../../lib/plugins/package/package', {
+        './lib/zipService': proxyquire('../../../../../../lib/plugins/package/lib/zipService', {
+          child_process: {
+            exec: execAsyncStub,
+          },
+          fs: {
+            promises: {
+              readFile: readFileAsyncStub.resolves(),
+              stat: sinon.stub().resolves(),
+            },
+          },
+        }),
+      });
       let globbySyncStub;
-      let execAsyncStub;
-      let readFileAsyncStub;
       let servicePath;
 
       beforeEach(() => {
+        packagePlugin = new PackageProxied(serverless, {});
+        packagePlugin.serverless.cli = new serverless.classes.CLI();
         servicePath = packagePlugin.serverless.config.servicePath;
         globbySyncStub = sinon.stub(globby, 'sync');
-        execAsyncStub = sinon.stub(childProcess, 'execAsync');
-        readFileAsyncStub = sinon.stub(fs, 'readFileAsync');
       });
 
       afterEach(() => {
         globby.sync.restore();
-        childProcess.execAsync.restore();
-        fs.readFileAsync.restore();
+        execAsyncStub.resetHistory();
+        readFileAsyncStub.resetHistory();
       });
 
       it('should do nothing if no packages are used', () => {
@@ -169,7 +181,6 @@ describe('zipService', () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.resolves();
         const depPaths = '';
         readFileAsyncStub.resolves(depPaths);
 
@@ -219,8 +230,8 @@ describe('zipService', () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.onCall(0).resolves();
-        execAsyncStub.onCall(1).rejects();
+        execAsyncStub.onCall(0).callsFake((cmd, opts, cb) => cb());
+        execAsyncStub.onCall(1).callsFake((cmd, opts, cb) => cb(new Error()));
         readFileAsyncStub.resolves();
 
         return expect(packagePlugin.excludeDevDependencies(params)).to.be.fulfilled.then(
@@ -239,7 +250,6 @@ describe('zipService', () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.resolves();
 
         readFileAsyncStub.onCall(0).resolves();
         readFileAsyncStub.onCall(1).rejects();
@@ -271,12 +281,12 @@ describe('zipService', () => {
         ];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.onCall(0).resolves();
-        execAsyncStub.onCall(1).resolves();
-        execAsyncStub.onCall(2).rejects();
-        execAsyncStub.onCall(3).rejects();
-        execAsyncStub.onCall(4).resolves();
-        execAsyncStub.onCall(5).resolves();
+        execAsyncStub.onCall(0).callsFake((cmd, opts, cb) => cb());
+        execAsyncStub.onCall(1).callsFake((cmd, opts, cb) => cb());
+        execAsyncStub.onCall(2).callsFake((cmd, opts, cb) => cb(new Error()));
+        execAsyncStub.onCall(3).callsFake((cmd, opts, cb) => cb(new Error()));
+        execAsyncStub.onCall(4).callsFake((cmd, opts, cb) => cb());
+        execAsyncStub.onCall(5).callsFake((cmd, opts, cb) => cb());
         const depPaths = [
           path.join(servicePath, 'node_modules', 'module-1'),
           path.join(servicePath, 'node_modules', 'module-2'),
@@ -319,7 +329,7 @@ describe('zipService', () => {
             );
             expect(execAsyncStub.args[0][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[1][0]).to.match(
-              /npm ls --prod=true --parseable=true --long=false --silent --all >> .+/
+              /npm ls --dev=true --parseable=true --long=false --silent --all >> .+/
             );
             expect(execAsyncStub.args[1][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[2][0]).to.match(
@@ -331,7 +341,7 @@ describe('zipService', () => {
             );
             expect(execAsyncStub.args[3][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[4][0]).to.match(
-              /npm ls --dev=true --parseable=true --long=false --silent --all >> .+/
+              /npm ls --prod=true --parseable=true --long=false --silent --all >> .+/
             );
             expect(execAsyncStub.args[4][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[5][0]).to.match(
@@ -355,7 +365,6 @@ describe('zipService', () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.resolves();
         const depPaths = [
           path.join(servicePath, 'node_modules', 'module-1'),
           path.join(servicePath, 'node_modules', 'module-2'),
@@ -416,7 +425,6 @@ describe('zipService', () => {
         ];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.resolves();
         const depPaths = [
           path.join(servicePath, 'node_modules', 'module-1'),
           path.join(servicePath, 'node_modules', 'module-2'),
@@ -451,7 +459,7 @@ describe('zipService', () => {
             );
             expect(execAsyncStub.args[0][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[1][0]).to.match(
-              /npm ls --prod=true --parseable=true --long=false --silent --all >> .+/
+              /npm ls --dev=true --parseable=true --long=false --silent --all >> .+/
             );
             expect(execAsyncStub.args[1][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[2][0]).to.match(
@@ -463,7 +471,7 @@ describe('zipService', () => {
             );
             expect(execAsyncStub.args[3][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[4][0]).to.match(
-              /npm ls --dev=true --parseable=true --long=false --silent --all >> .+/
+              /npm ls --prod=true --parseable=true --long=false --silent --all >> .+/
             );
             expect(execAsyncStub.args[4][1].cwd).to.match(/.+/);
             expect(execAsyncStub.args[5][0]).to.match(
@@ -489,7 +497,6 @@ describe('zipService', () => {
         const filePaths = ['package.json', 'node_modules'];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.resolves();
 
         const devDepPaths = [
           path.join(servicePath, 'node_modules', 'module-1'),
@@ -547,7 +554,6 @@ describe('zipService', () => {
         const filePaths = ['node_modules/', 'package.json'].concat(devPaths).concat(prodPaths);
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.resolves();
 
         const mapper = (depPath) => path.join(`${servicePath}`, depPath);
 
@@ -609,7 +615,6 @@ describe('zipService', () => {
         ];
 
         globbySyncStub.returns(filePaths);
-        execAsyncStub.resolves();
         const deps = [
           'node_modules/module-1',
           'node_modules/module-2',

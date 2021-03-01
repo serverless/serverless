@@ -17,6 +17,14 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="AWS_API_GATEWAY_SCHEMAS"><div>&nbsp;</div></a>
+
+## AWS API Gateway schemas
+
+Deprecation code: `AWS_API_GATEWAY_SCHEMAS`
+
+Starting with v3.0.0, `http.request.schema` property will be replaced by `http.request.schemas`. In addition to supporting functionalities such as model name definition and reuse of existing schemas, `http.request.schemas` also supports the same notation as `http.request.schema`, so you can safely migrate your existing configuration to the new property. For more details about the new configuration, please refer to the [API Gateway Event](/framework/docs/providers/aws/events/apigateway.md)
+
 <a name="AWS_EVENT_BRIDGE_CUSTOM_RESOURCE"><div>&nbsp;</div></a>
 
 ## AWS EventBridge lambda event triggers

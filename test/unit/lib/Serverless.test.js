@@ -14,6 +14,7 @@ const Service = require('../../../lib/classes/Service');
 const ConfigSchemaHandler = require('../../../lib/classes/ConfigSchemaHandler');
 const CLI = require('../../../lib/classes/CLI');
 const ServerlessError = require('../../../lib/serverless-error');
+const conditionallyLoadDotenv = require('../../../lib/cli/conditionally-load-dotenv');
 const runServerless = require('../../utils/run-serverless');
 const fixtures = require('../../fixtures');
 const fs = require('fs');
@@ -321,10 +322,7 @@ describe('Serverless [new tests]', () => {
 
       const defaultFileContent = 'DEFAULT_ENV_VARIABLE=valuefromdefault';
       await fs.promises.writeFile(path.join(servicePath, '.env'), defaultFileContent);
-
-      const stage = 'testing';
-      const stageFileContent = 'STAGE_ENV_VARIABLE=valuefromstage';
-      await fs.promises.writeFile(path.join(servicePath, `.env.${stage}`), stageFileContent);
+      conditionallyLoadDotenv.clear();
     });
 
     it('Should load environment variables from default .env file if no matching stage', async () => {
@@ -335,16 +333,6 @@ describe('Serverless [new tests]', () => {
 
       expect(result.serverless.service.custom.fromDefaultEnv).to.equal('valuefromdefault');
       expect(result.serverless.service.custom.fromStageEnv).to.be.undefined;
-    });
-
-    it('Should load environment variables from stage .env file if matching stage', async () => {
-      const result = await runServerless({
-        cwd: servicePath,
-        cliArgs: ['-s', 'testing', 'package'],
-      });
-
-      expect(result.serverless.service.custom.fromDefaultEnv).to.be.undefined;
-      expect(result.serverless.service.custom.fromStageEnv).to.equal('valuefromstage');
     });
   });
 });

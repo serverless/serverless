@@ -2,12 +2,10 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
+const proxyquire = require('proxyquire');
 const yaml = require('js-yaml');
 const path = require('path');
-const childProcess = BbPromise.promisifyAll(require('child_process'));
 const fse = require('fs-extra');
-const PluginUninstall = require('../../../../../lib/plugins/plugin/uninstall');
 const Serverless = require('../../../../../lib/Serverless');
 const CLI = require('../../../../../lib/classes/CLI');
 const { expect } = require('chai');
@@ -16,6 +14,13 @@ const { getTmpDirPath } = require('../../../../utils/fs');
 chai.use(require('chai-as-promised'));
 
 describe('PluginUninstall', () => {
+  const execStub = sinon.stub();
+  const PluginUninstall = proxyquire('../../../../../lib/plugins/plugin/uninstall', {
+    child_process: {
+      exec: execStub,
+    },
+  });
+
   let pluginUninstall;
   let serverless;
   let consoleLogStub;
@@ -57,7 +62,7 @@ describe('PluginUninstall', () => {
     let uninstallStub;
 
     beforeEach(() => {
-      uninstallStub = sinon.stub(pluginUninstall, 'uninstall').returns(BbPromise.resolve());
+      uninstallStub = sinon.stub(pluginUninstall, 'uninstall').resolves();
     });
 
     afterEach(() => {
@@ -104,19 +109,15 @@ describe('PluginUninstall', () => {
       pluginUninstall.serverless.config.servicePath = servicePath;
       fse.ensureDirSync(servicePath);
       serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
-      validateStub = sinon.stub(pluginUninstall, 'validate').returns(BbPromise.resolve());
-      pluginUninstallStub = sinon
-        .stub(pluginUninstall, 'pluginUninstall')
-        .returns(BbPromise.resolve());
+      validateStub = sinon.stub(pluginUninstall, 'validate').resolves();
+      pluginUninstallStub = sinon.stub(pluginUninstall, 'pluginUninstall').resolves();
       removePluginFromServerlessFileStub = sinon
         .stub(pluginUninstall, 'removePluginFromServerlessFile')
-        .returns(BbPromise.resolve());
+        .resolves();
       uninstallPeerDependenciesStub = sinon
         .stub(pluginUninstall, 'uninstallPeerDependencies')
-        .returns(BbPromise.resolve());
-      getPluginsStub = sinon
-        .stub(pluginUninstall, 'getPlugins')
-        .returns(BbPromise.resolve(plugins));
+        .resolves();
+      getPluginsStub = sinon.stub(pluginUninstall, 'getPlugins').resolves(plugins);
       // save the cwd so that we can restore it later
       savedCwd = process.cwd();
       process.chdir(servicePath);
@@ -189,7 +190,6 @@ describe('PluginUninstall', () => {
   describe('#pluginUninstall()', () => {
     let servicePath;
     let packageJsonFilePath;
-    let npmUninstallStub;
     let savedCwd;
 
     beforeEach(() => {
@@ -198,14 +198,14 @@ describe('PluginUninstall', () => {
       pluginUninstall.serverless.config.servicePath = servicePath;
       fse.ensureDirSync(servicePath);
       packageJsonFilePath = path.join(servicePath, 'package.json');
-      npmUninstallStub = sinon.stub(childProcess, 'execAsync').returns(BbPromise.resolve());
+      execStub.callsFake((cmd, opts, cb) => cb());
       // save the cwd so that we can restore it later
       savedCwd = process.cwd();
       process.chdir(servicePath);
     });
 
     afterEach(() => {
-      childProcess.execAsync.restore();
+      execStub.resetHistory();
       process.chdir(savedCwd);
     });
 
@@ -225,7 +225,7 @@ describe('PluginUninstall', () => {
       return expect(pluginUninstall.pluginUninstall()).to.be.fulfilled.then(() => {
         expect(consoleLogStub.called).to.equal(true);
         expect(
-          npmUninstallStub.calledWithExactly('npm uninstall --save-dev serverless-plugin-1', {
+          execStub.calledWith('npm uninstall --save-dev serverless-plugin-1', {
             stdio: 'ignore',
           })
         ).to.equal(true);
@@ -481,7 +481,6 @@ describe('PluginUninstall', () => {
     let pluginPath;
     let pluginPackageJsonFilePath;
     let pluginName;
-    let npmUninstallStub;
     let savedCwd;
 
     beforeEach(() => {
@@ -492,13 +491,13 @@ describe('PluginUninstall', () => {
       pluginPath = path.join(servicePath, 'node_modules', pluginName);
       fse.ensureDirSync(pluginPath);
       pluginPackageJsonFilePath = path.join(pluginPath, 'package.json');
-      npmUninstallStub = sinon.stub(childProcess, 'execAsync').returns(BbPromise.resolve());
+      execStub.callsFake((cmd, opts, cb) => cb());
       savedCwd = process.cwd();
       process.chdir(servicePath);
     });
 
     afterEach(() => {
-      childProcess.execAsync.restore();
+      execStub.resetHistory();
       process.chdir(savedCwd);
     });
 
@@ -510,7 +509,7 @@ describe('PluginUninstall', () => {
       });
       return expect(pluginUninstall.uninstallPeerDependencies()).to.be.fulfilled.then(() => {
         expect(
-          npmUninstallStub.calledWithExactly(`npm uninstall --save-dev ${pluginName}`, {
+          execStub.calledWith(`npm uninstall --save-dev ${pluginName}`, {
             stdio: 'ignore',
           })
         ).to.equal(true);
@@ -521,7 +520,7 @@ describe('PluginUninstall', () => {
       fse.writeJsonSync(pluginPackageJsonFilePath, {});
       return expect(pluginUninstall.uninstallPeerDependencies()).to.be.fulfilled.then(() => {
         expect(
-          npmUninstallStub.calledWithExactly(`npm uninstall --save-dev ${pluginName}`, {
+          execStub.calledWithExactly(`npm uninstall --save-dev ${pluginName}`, {
             stdio: 'ignore',
           })
         ).to.equal(false);
@@ -531,7 +530,7 @@ describe('PluginUninstall', () => {
     it('should do nothing if an uninstalled plugin does not have package.json', () =>
       expect(pluginUninstall.uninstallPeerDependencies()).to.be.fulfilled.then(() => {
         expect(
-          npmUninstallStub.calledWithExactly(`npm uninstall --save-dev ${pluginName}`, {
+          execStub.calledWithExactly(`npm uninstall --save-dev ${pluginName}`, {
             stdio: 'ignore',
           })
         ).to.equal(false);

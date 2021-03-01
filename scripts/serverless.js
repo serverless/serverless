@@ -29,11 +29,15 @@ const processSpanPromise = (async () => {
   try {
     const wait = require('timers-ext/promise/sleep');
     await wait(); // Ensure access to "processSpanPromise"
+
+    // Propagate (in a background) eventual pending analytics requests
     require('../lib/utils/analytics').sendPending({
       serverlessExecutionSpan: processSpanPromise,
     });
+
     const { commands, options } = require('../lib/cli/resolve-input')();
 
+    // If version number request, show it and abort
     if (options.version) {
       await require('../lib/cli/list-version')();
       return;
@@ -43,11 +47,14 @@ const processSpanPromise = (async () => {
     const _ = require('lodash');
     const Serverless = require('../lib/Serverless');
     const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
-    const isHelpRequest = require('../lib/cli/is-help-request');
+    const isHelpRequest = require('../lib/cli/is-help-request')();
     const readConfiguration = require('../lib/configuration/read');
     const logDeprecation = require('../lib/utils/logDeprecation');
 
+    // Resolve eventual service configuration path
     const configurationPath = await resolveConfigurationPath();
+
+    // If service configuration file is found, load its content
     const configuration = configurationPath
       ? await (async () => {
           try {
@@ -56,7 +63,7 @@ const processSpanPromise = (async () => {
             // Configuration syntax error should not prevent help from being displayed
             // (if possible configuration should be read for help request as registered
             // plugins may introduce new commands to be listed in help output)
-            if (isHelpRequest()) return null;
+            if (isHelpRequest) return null;
             throw error;
           }
         })()
@@ -73,6 +80,10 @@ const processSpanPromise = (async () => {
           { serviceConfig: configuration }
         );
       } else {
+        // Resolve eventual configuration variables (from provider agnostic sources)
+
+        // As we have not yet loaded .env files, we may have incomplete process.env state
+        // It is taken into account in below resolver configuration
         const path = require('path');
         const ServerlessError = require('../lib/serverless-error');
         const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
@@ -85,6 +96,16 @@ const processSpanPromise = (async () => {
           strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
         };
         const variablesMeta = resolveVariablesMeta(configuration);
+
+        if (variablesMeta.has('variablesResolutionMode')) {
+          throw new ServerlessError(
+            `Cannot resolve ${path.basename(
+              configurationPath
+            )}: "variablesResolutionMode" is not accessible ` +
+              '(configured behind variables which cannot be resolved at this stage)'
+          );
+        }
+
         await resolveVariables({
           servicePath: process.cwd(),
           configuration,
@@ -92,15 +113,17 @@ const processSpanPromise = (async () => {
           sources: variableSources,
           options,
         });
-        const resolutionErrors = Array.from(variablesMeta.values(), ({ error }) => error).filter(
-          Boolean
+        const resolutionErrors = new Set(
+          Array.from(variablesMeta.values(), ({ error }) => error).filter(Boolean)
         );
-        if (resolutionErrors.length) {
-          if (isHelpRequest()) {
+
+        // If non-recoverable errors were approached in variable resolution, report them
+        if (resolutionErrors.size) {
+          if (isHelpRequest) {
             const log = require('@serverless/utils/log');
             log(
               'Resolution of service configuration failed when resolving variables: ' +
-                `${resolutionErrors.map((error) => `\n  - ${error.message}`)}\n`,
+                `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n`,
               { color: 'orange' }
             );
           } else {
@@ -108,7 +131,8 @@ const processSpanPromise = (async () => {
               throw new ServerlessError(
                 `Cannot resolve ${path.basename(
                   configurationPath
-                )}: Variables resolution errored with:${resolutionErrors.map(
+                )}: Variables resolution errored with:${Array.from(
+                  resolutionErrors,
                   (error) => `\n  - ${error.message}`
                 )}\n`
               );
@@ -116,7 +140,7 @@ const processSpanPromise = (async () => {
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
               'Variables resolver reports following resolution errors:' +
-                `${resolutionErrors.map((error) => `\n  - ${error.message}`)}\n` +
+                `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n` +
                 'From a next major it we will be communicated with a thrown error.\n' +
                 'Set "variablesResolutionMode: 20210219" in your service config, ' +
                 'to adapt to this behavior now',
@@ -125,8 +149,50 @@ const processSpanPromise = (async () => {
             // Hack to not duplicate the warning with similar deprecation
             logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
           }
+        } else if (!isHelpRequest) {
+          // There are few configuration properties, which have to be resolved at this point
+          // to move forward. Report errors if that's not the case
+          if (variablesMeta.has('provider')) {
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(
+                configurationPath
+              )}: "provider" section is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
+            );
+          }
+          if (variablesMeta.has('provider\0stage')) {
+            if (configuration.variablesResolutionMode) {
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(
+                  configurationPath
+                )}: "provider.stage" is not accessible ` +
+                  '(configured behind variables which cannot be resolved at this stage)'
+              );
+            }
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              '"provider.stage" is not accessible ' +
+                '(configured behind variables which cannot be resolved at this stage).\n' +
+                'Starting with next major release, ' +
+                'this will be communicated with a thrown error.\n' +
+                'Set "variablesResolutionMode: 20210219" in your service config, ' +
+                'to adapt to this behavior now',
+              { serviceConfig: configuration }
+            );
+            // Hack to not duplicate the warning with similar deprecation
+            logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
+          }
+        }
+        if (variablesMeta.has('useDotenv')) {
+          throw new ServerlessError(
+            `Cannot resolve ${path.basename(configurationPath)}: "useDotenv" is not accessible ` +
+              '(configured behind variables which cannot be resolved at this stage)'
+          );
         }
       }
+
+      // Load eventual environment variables from .env files
+      await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
     }
 
     serverless = new Serverless({

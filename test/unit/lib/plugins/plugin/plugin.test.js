@@ -2,7 +2,6 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const Plugin = require('../../../../../lib/plugins/plugin/plugin');
 const Serverless = require('../../../../../lib/Serverless');
 const CLI = require('../../../../../lib/classes/CLI');
@@ -26,7 +25,7 @@ describe('Plugin', () => {
     beforeEach(() => {
       generateCommandsHelpStub = sinon
         .stub(plugin.serverless.cli, 'generateCommandsHelp')
-        .returns(BbPromise.resolve());
+        .resolves();
     });
 
     afterEach(() => {

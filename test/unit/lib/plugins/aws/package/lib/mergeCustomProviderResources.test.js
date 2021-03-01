@@ -29,22 +29,20 @@ describe('mergeCustomProviderResources', () => {
       awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources = {}; // reset the core CloudFormation template
       awsPackage.serverless.service.resources.Resources = null;
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        ).to.deep.equal({});
-      });
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      ).to.deep.equal({});
     });
 
     it('should set an empty resources.Outputs object if it is not present', () => {
       awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs = {}; // reset the core CloudFormation template
       awsPackage.serverless.service.resources.Outputs = null;
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs
-        ).to.deep.equal({});
-      });
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs
+      ).to.deep.equal({});
     });
 
     it('should be able to overwrite existing string properties', () => {
@@ -54,11 +52,10 @@ describe('mergeCustomProviderResources', () => {
 
       awsPackage.serverless.service.resources = customResourcesMock;
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Description
-        ).to.equal(customResourcesMock.Description);
-      });
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Description
+      ).to.equal(customResourcesMock.Description);
     });
 
     it('should be able to overwrite existing object properties', () => {
@@ -87,12 +84,11 @@ describe('mergeCustomProviderResources', () => {
 
       awsPackage.serverless.service.resources = customResourcesMock;
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .ServerlessDeploymentBucket
-        ).to.deep.equal(customResourcesMock.Resources.ServerlessDeploymentBucket);
-      });
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .ServerlessDeploymentBucket
+      ).to.deep.equal(customResourcesMock.Resources.ServerlessDeploymentBucket);
     });
 
     it('should be able to merge in new object property definitions', () => {
@@ -121,25 +117,24 @@ describe('mergeCustomProviderResources', () => {
 
       awsPackage.serverless.service.resources = customResourcesMock;
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FakeResource1
-        ).to.deep.equal(customResourcesMock.Resources.FakeResource1);
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FakeResource2
-        ).to.deep.equal(customResourcesMock.Resources.FakeResource2);
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs.FakeOutput1
-        ).to.deep.equal(customResourcesMock.Outputs.FakeOutput1);
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs.FakeOutput2
-        ).to.deep.equal(customResourcesMock.Outputs.FakeOutput2);
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.CustomDefinition
-        ).to.deep.equal(customResourcesMock.CustomDefinition);
-      });
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .FakeResource1
+      ).to.deep.equal(customResourcesMock.Resources.FakeResource1);
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .FakeResource2
+      ).to.deep.equal(customResourcesMock.Resources.FakeResource2);
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs.FakeOutput1
+      ).to.deep.equal(customResourcesMock.Outputs.FakeOutput1);
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs.FakeOutput2
+      ).to.deep.equal(customResourcesMock.Outputs.FakeOutput2);
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.CustomDefinition
+      ).to.deep.equal(customResourcesMock.CustomDefinition);
     });
 
     it('should keep the core template definitions when merging custom resources', () => {
@@ -152,26 +147,25 @@ describe('mergeCustomProviderResources', () => {
 
       awsPackage.serverless.service.resources = customResourcesMock;
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate
-            .AWSTemplateFormatVersion
-        ).to.equal(coreCloudFormationTemplate.AWSTemplateFormatVersion);
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate
+          .AWSTemplateFormatVersion
+      ).to.equal(coreCloudFormationTemplate.AWSTemplateFormatVersion);
 
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Description
-        ).to.equal(coreCloudFormationTemplate.Description);
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Description
+      ).to.equal(coreCloudFormationTemplate.Description);
 
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .ServerlessDeploymentBucket
-        ).to.deep.equal(coreCloudFormationTemplate.Resources.ServerlessDeploymentBucket);
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .ServerlessDeploymentBucket
+      ).to.deep.equal(coreCloudFormationTemplate.Resources.ServerlessDeploymentBucket);
 
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs
-            .ServerlessDeploymentBucketName
-        ).to.deep.equal(coreCloudFormationTemplate.Outputs.ServerlessDeploymentBucketName);
-      });
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Outputs
+          .ServerlessDeploymentBucketName
+      ).to.deep.equal(coreCloudFormationTemplate.Outputs.ServerlessDeploymentBucketName);
     });
 
     it('should create non-existent resource / attributes for resources.extensions.*', () => {
@@ -194,26 +188,25 @@ describe('mergeCustomProviderResources', () => {
         },
       };
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(awsPackage.serverless.service.provider.compiledCloudFormationTemplate.extensions).to
-          .not.exist;
+      awsPackage.mergeCustomProviderResources();
+      expect(awsPackage.serverless.service.provider.compiledCloudFormationTemplate.extensions).to
+        .not.exist;
 
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-        ).to.deep.equal({
-          SampleResource: {
-            Properties: {
-              PropertyA: 'new',
-            },
-            DependsOn: ['new'],
-            Metadata: {
-              key: 'value',
-              anotherKey: {
-                key2: 'value2',
-              },
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+      ).to.deep.equal({
+        SampleResource: {
+          Properties: {
+            PropertyA: 'new',
+          },
+          DependsOn: ['new'],
+          Metadata: {
+            key: 'value',
+            anotherKey: {
+              key2: 'value2',
             },
           },
-        });
+        },
       });
     });
 
@@ -260,22 +253,21 @@ describe('mergeCustomProviderResources', () => {
         },
       };
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .SampleResource
-        ).to.deep.equal({
-          Condition: 'New',
-          CreationPolicy: {
-            ResourceSignal: {
-              Count: 3,
-              Timeout: 'PT5M',
-            },
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .SampleResource
+      ).to.deep.equal({
+        Condition: 'New',
+        CreationPolicy: {
+          ResourceSignal: {
+            Count: 3,
+            Timeout: 'PT5M',
           },
-          DeletionPolicy: 'Snapshot',
-          UpdatePolicy: {},
-          UpdateReplacePolicy: 'Snapshot',
-        });
+        },
+        DeletionPolicy: 'Snapshot',
+        UpdatePolicy: {},
+        UpdateReplacePolicy: 'Snapshot',
       });
     });
 
@@ -302,15 +294,14 @@ describe('mergeCustomProviderResources', () => {
         },
       };
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .SampleResource.Properties
-        ).to.deep.equal({
-          PropertyA: { another: 'object' },
-          PropertyB: 'b',
-          PropertyC: 'new',
-        });
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .SampleResource.Properties
+      ).to.deep.equal({
+        PropertyA: { another: 'object' },
+        PropertyB: 'b',
+        PropertyC: 'new',
       });
     });
 
@@ -329,12 +320,11 @@ describe('mergeCustomProviderResources', () => {
         },
       };
 
-      return awsPackage.mergeCustomProviderResources().then(() => {
-        expect(
-          awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .SampleResource.DependsOn
-        ).to.deep.equal(['a', 'b']);
-      });
+      awsPackage.mergeCustomProviderResources();
+      expect(
+        awsPackage.serverless.service.provider.compiledCloudFormationTemplate.Resources
+          .SampleResource.DependsOn
+      ).to.deep.equal(['a', 'b']);
     });
 
     it('should throw error for unsupported resources.extensions.*.*', () => {

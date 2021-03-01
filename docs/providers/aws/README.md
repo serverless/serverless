@@ -94,6 +94,7 @@ layout: Doc
         <li><a href="./events/event-bridge.md">EventBridge</a></li>
         <li><a href="./events/cloudfront.md">CloudFront</a></li>
         <li><a href="./events/cognito-user-pool.md">Cognito User Pool</a></li>
+        <li><a href="./events/kafka.md">Self Managed Apache Kafka</a></li>
         <li><a href="./events/msk.md">MSK</a></li>
         <li><a href="./events/iot-fleet-provisioning.md">IoT Fleet Provisioning</a></li>
       </ul>

@@ -337,6 +337,42 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
         { start: 0, end: 9, sources: [{ type: 'type1' }] },
         { start: 12, end: 21, sources: [{ type: 'type2' }] },
       ]));
+
+    // ${s:${s:}, 1}
+    // https://github.com/serverless/serverless/issues/8999
+    it("should recognize variables in address, if it's followed by source", () =>
+      expect(parse('${s:${s:}, 1}')).to.deep.equal([
+        {
+          sources: [
+            {
+              type: 's',
+              address: {
+                value: '${s:}',
+                variables: [{ sources: [{ type: 's' }] }],
+              },
+            },
+            { value: 1 },
+          ],
+        },
+      ]));
+
+    // ${s:, s:${s:}}
+    // https://github.com/serverless/serverless/issues/9010
+    it('should resolve nested sources, when at least one parent source was resolved', () =>
+      expect(parse('${s:, s:${s:}}')).to.deep.equal([
+        {
+          sources: [
+            { type: 's' },
+            {
+              type: 's',
+              address: {
+                value: '${s:}',
+                variables: [{ sources: [{ type: 's' }] }],
+              },
+            },
+          ],
+        },
+      ]));
   });
 
   describe('Invalid', () => {
@@ -364,6 +400,12 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
         .to.throw(ServerlessError)
         .with.property('code', 'UNTERMINATED_VARIABLE');
       expect(() => parse('${type(foo)'))
+        .to.throw(ServerlessError)
+        .with.property('code', 'UNTERMINATED_VARIABLE');
+      expect(() => parse('${s:, s:${s:}'))
+        .to.throw(ServerlessError)
+        .with.property('code', 'UNTERMINATED_VARIABLE');
+      expect(() => parse('${s:, s:${s:'))
         .to.throw(ServerlessError)
         .with.property('code', 'UNTERMINATED_VARIABLE');
     });
