@@ -72,7 +72,9 @@ const processSpanPromise = (async () => {
     let variablesMeta;
     if (configuration) {
       const resolveVariables = require('../lib/configuration/variables/resolve');
+      const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
       let resolverConfiguration;
+      let hasVariableResolutionFailed;
 
       if (_.get(configuration.provider, 'variableSyntax')) {
         logDeprecation(
@@ -117,43 +119,13 @@ const processSpanPromise = (async () => {
           };
           await resolveVariables(resolverConfiguration);
 
-          const resolutionErrors = new Set(
-            Array.from(variablesMeta.values(), ({ error }) => error).filter(Boolean)
+          hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
+            configurationPath,
+            configuration,
+            variablesMeta
           );
 
-          // If non-recoverable errors were approached in variable resolution, report them
-          if (resolutionErrors.size) {
-            if (isHelpRequest) {
-              const log = require('@serverless/utils/log');
-              log(
-                'Resolution of service configuration failed when resolving variables: ' +
-                  `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n`,
-                { color: 'orange' }
-              );
-            } else {
-              if (configuration.variablesResolutionMode) {
-                throw new ServerlessError(
-                  `Cannot resolve ${path.basename(
-                    configurationPath
-                  )}: Variables resolution errored with:${Array.from(
-                    resolutionErrors,
-                    (error) => `\n  - ${error.message}`
-                  )}\n`
-                );
-              }
-              logDeprecation(
-                'NEW_VARIABLES_RESOLVER',
-                'Variables resolver reports following resolution errors:' +
-                  `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n` +
-                  'From a next major it we will be communicated with a thrown error.\n' +
-                  'Set "variablesResolutionMode: 20210219" in your service config, ' +
-                  'to adapt to this behavior now',
-                { serviceConfig: configuration }
-              );
-              // Hack to not duplicate the warning with similar deprecation
-              logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
-            }
-          } else if (!isHelpRequest) {
+          if (!isHelpRequest) {
             // There are few configuration properties, which have to be resolved at this point
             // to move forward. Report errors if that's not the case
             if (variablesMeta.has('provider')) {
@@ -164,7 +136,7 @@ const processSpanPromise = (async () => {
                   '(configured behind variables which cannot be resolved at this stage)'
               );
             }
-            if (variablesMeta.has('provider\0stage')) {
+            if (!hasVariableResolutionFailed && variablesMeta.has('provider\0stage')) {
               if (configuration.variablesResolutionMode) {
                 throw new ServerlessError(
                   `Cannot resolve ${path.basename(
