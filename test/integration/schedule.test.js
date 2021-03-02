@@ -26,12 +26,15 @@ describe('AWS - Schedule Integration Test', function () {
     it('should invoke every minute', () => {
       const functionName = 'scheduleMinimal';
 
-      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}).then(
-        (events) => {
-          const logs = events.reduce((data, event) => data + event.message, '');
-          expect(logs).to.include(functionName);
-        }
-      );
+      return confirmCloudWatchLogs(`/aws/lambda/${stackName}-${functionName}`, async () => {}, {
+        checkIsComplete: (soFarEvents) => {
+          const logs = soFarEvents.reduce((data, event) => data + event.message, '');
+          return logs.includes(functionName);
+        },
+      }).then((events) => {
+        const logs = events.reduce((data, event) => data + event.message, '');
+        expect(logs).to.include(functionName);
+      });
     });
   });
 
