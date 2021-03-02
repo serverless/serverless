@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.2](https://github.com/serverless/serverless/compare/v2.28.1...v2.28.2) (2021-03-02)
+
+### Bug Fixes
+
+- **Variables:** Ensure to resolve variables in resolved strings ([#9050](https://github.com/serverless/serverless/pull/9050)) ([480b612](https://github.com/serverless/serverless/commit/480b61270cfef8f1a4a5aa36cd235db2362c9cfd)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Credentials:** Fix unrecognized profile error reporting ([#9045](https://github.com/serverless/serverless/pull/9045)) ([6c4beb6](https://github.com/serverless/serverless/commit/6c4beb64ee6fe6722fbb7ca757611807d4025a26)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.28.1](https://github.com/serverless/serverless/compare/v2.28.0...v2.28.1) (2021-03-02)
 
 ### Bug Fixes
