@@ -34,6 +34,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     resolvesVariablesObject: '${sourceVariables(object)}',
     resolvesVariablesArray: '${sourceVariables(array)}',
     resolvesVariablesString: '${sourceVariables(string)}',
+    resolvesVariablesStringInvalid: '${sourceVariables(stringInvalid)}',
     incomplete: '${sourceDirect:}elo${sourceIncomplete:}',
     missing: '${sourceDirect:}elo${sourceMissing:}other${sourceMissing:}',
     missingFallback: '${sourceDirect:}elo${sourceMissing:, "foo"}',
@@ -85,6 +86,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
             return [1, '${sourceDirect:}'];
           case 'string':
             return '${sourceDirect:}';
+          case 'stringInvalid':
+            return '${sourceDirect:';
           case 'error':
             return [1, '${sourceUnrecognized:}', '${sourceError:}'];
           default:
@@ -299,6 +302,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     expect(valueMeta.error.code).to.equal('EXCESSIVE_RESOLVED_PROPERTIES_NEST_DEPTH');
   });
 
+  it('should error on invalid variable notation in returned result', () => {
+    const valueMeta = variablesMeta.get('resolvesVariablesStringInvalid');
+    expect(valueMeta).to.not.have.property('variables');
+    expect(valueMeta.error.code).to.equal('UNTERMINATED_VARIABLE');
+  });
+
   it('should allow to re-resolve fulfilled sources', async () => {
     await resolve({
       servicePath: process.cwd(),
@@ -322,6 +331,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       'propertyDeepCircularB',
       'propertyDeepCircularC',
       'propertyRoot',
+      'resolvesVariablesStringInvalid',
       'missing',
       'nonStringStringPart',
       'nestUnrecognized\0unrecognized',
