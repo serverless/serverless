@@ -71,6 +71,9 @@ const processSpanPromise = (async () => {
 
     let variablesMeta;
     if (configuration) {
+      const resolveVariables = require('../lib/configuration/variables/resolve');
+      let resolverConfiguration;
+
       if (_.get(configuration.provider, 'variableSyntax')) {
         logDeprecation(
           'NEW_VARIABLES_RESOLVER',
@@ -88,14 +91,6 @@ const processSpanPromise = (async () => {
         const path = require('path');
         const ServerlessError = require('../lib/serverless-error');
         const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
-        const resolveVariables = require('../lib/configuration/variables/resolve');
-        const variableSources = {
-          env: { ...require('../lib/configuration/variables/sources/env'), isIncomplete: true },
-          file: require('../lib/configuration/variables/sources/file'),
-          opt: require('../lib/configuration/variables/sources/opt'),
-          self: require('../lib/configuration/variables/sources/self'),
-          strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
-        };
         variablesMeta = resolveVariablesMeta(configuration);
 
         if (variablesMeta.size) {
@@ -107,14 +102,21 @@ const processSpanPromise = (async () => {
                 '(configured behind variables which cannot be resolved at this stage)'
             );
           }
-
-          await resolveVariables({
+          resolverConfiguration = {
             servicePath: process.cwd(),
             configuration,
             variablesMeta,
-            sources: variableSources,
+            sources: {
+              env: { ...require('../lib/configuration/variables/sources/env'), isIncomplete: true },
+              file: require('../lib/configuration/variables/sources/file'),
+              opt: require('../lib/configuration/variables/sources/opt'),
+              self: require('../lib/configuration/variables/sources/self'),
+              strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+            },
             options,
-          });
+          };
+          await resolveVariables(resolverConfiguration);
+
           const resolutionErrors = new Set(
             Array.from(variablesMeta.values(), ({ error }) => error).filter(Boolean)
           );
