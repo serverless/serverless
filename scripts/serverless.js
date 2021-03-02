@@ -69,6 +69,7 @@ const processSpanPromise = (async () => {
         })()
       : null;
 
+    let variablesMeta;
     if (configuration) {
       if (_.get(configuration.provider, 'variableSyntax')) {
         logDeprecation(
@@ -95,7 +96,7 @@ const processSpanPromise = (async () => {
           self: require('../lib/configuration/variables/sources/self'),
           strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
         };
-        const variablesMeta = resolveVariablesMeta(configuration);
+        variablesMeta = resolveVariablesMeta(configuration);
 
         if (variablesMeta.has('variablesResolutionMode')) {
           throw new ServerlessError(
@@ -198,6 +199,7 @@ const processSpanPromise = (async () => {
     serverless = new Serverless({
       configuration,
       configurationPath: configuration && configurationPath,
+      isConfigurationResolved: Boolean(variablesMeta && !variablesMeta.size),
       commands,
       options,
     });
