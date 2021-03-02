@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.3](https://github.com/serverless/serverless/compare/v2.28.2...v2.28.3) (2021-03-02)
+
+### Bug Fixes
+
+- **Variables:**
+  - Recognize hyphens in source types ([#9052](https://github.com/serverless/serverless/pull/9052)) ([21ac1be](https://github.com/serverless/serverless/commit/21ac1beb225946713665e9d8ad22d6e5c63819a9)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure proper error handling for resolved value parsing([#9052](https://github.com/serverless/serverless/pull/9052)) ([df62739](https://github.com/serverless/serverless/commit/df627394b36c16553a73328850ff722f1063254c)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.28.2](https://github.com/serverless/serverless/compare/v2.28.1...v2.28.2) (2021-03-02)
 
 ### Bug Fixes
