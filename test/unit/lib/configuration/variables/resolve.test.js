@@ -33,6 +33,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     withString: 'foo${sourceDirect:}',
     resolvesVariablesObject: '${sourceVariables(object)}',
     resolvesVariablesArray: '${sourceVariables(array)}',
+    resolvesVariablesString: '${sourceVariables(string)}',
     incomplete: '${sourceDirect:}elo${sourceIncomplete:}',
     missing: '${sourceDirect:}elo${sourceMissing:}other${sourceMissing:}',
     missingFallback: '${sourceDirect:}elo${sourceMissing:, "foo"}',
@@ -82,6 +83,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
             return { foo: '${sourceDirect:}' };
           case 'array':
             return [1, '${sourceDirect:}'];
+          case 'string':
+            return '${sourceDirect:}';
           case 'error':
             return [1, '${sourceUnrecognized:}', '${sourceError:}'];
           default:
@@ -197,6 +200,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
   it('should resolve variables in returned results', () => {
     expect(configuration.resolvesVariablesObject).to.deep.equal({ foo: 234 });
     expect(configuration.resolvesVariablesArray).to.deep.equal([1, 234]);
+    expect(configuration.resolvesVariablesString).to.equal(234);
   });
 
   // https://github.com/serverless/serverless/issues/9016
