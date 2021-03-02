@@ -170,6 +170,20 @@ const processSpanPromise = (async () => {
 
       // Load eventual environment variables from .env files
       await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
+
+      if (
+        !_.get(configuration.provider, 'variableSyntax') &&
+        variablesMeta.size &&
+        !hasVariableResolutionFailed
+      ) {
+        delete resolverConfiguration.sources.env.isIncomplete;
+        await resolveVariables(resolverConfiguration);
+        hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
+          configurationPath,
+          configuration,
+          variablesMeta
+        );
+      }
     }
 
     serverless = new Serverless({
