@@ -375,6 +375,7 @@ describe('AwsCompileStreamEvents', () => {
                   arn: 'arn:aws:dynamodb:region:account:table/bar/stream/2',
                   batchWindow: 15,
                   maximumRetryAttempts: 4,
+                  functionResponseType: ['ReportBatchItemFailures'],
                 },
               },
               {
@@ -394,12 +395,6 @@ describe('AwsCompileStreamEvents', () => {
                   destinations: {
                     onFailure: 'arn:aws:sns:region:account:snstopic',
                   },
-                },
-              },
-              {
-                stream: {
-                  arn: 'arn:aws:dynamodb:region:account:table/jazz/stream/6',
-                  functionResponseTypes: ['ReportBatchItemFailures'],
                 },
               },
             ],
@@ -472,6 +467,10 @@ describe('AwsCompileStreamEvents', () => {
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingDynamodbBar.Properties.MaximumRetryAttempts
         ).to.equal(4);
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingDynamodbBar.Properties.FunctionResponseTypes
+        ).to.include.members(['ReportBatchItemFailures']);
 
         // event 3
         expect(
@@ -578,40 +577,6 @@ describe('AwsCompileStreamEvents', () => {
           awsCompileStreamEvents.serverless.service.functions.first.events[4].stream.destinations
             .onFailure
         );
-
-        // event 6
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbFizz.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.DependsOn
-        ).to.include('IamRoleLambdaExecution');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[5].stream.arn);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.BatchSize
-        ).to.equal(10);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.Enabled
-        ).to.equal(true);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.Enabled
-        ).to.equal(true);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.FunctionResponseTypes
-        ).to.include.members(['ReportBatchItemFailures']);
       });
 
       it('should allow specifying DynamoDB and Kinesis streams as CFN reference types', () => {
@@ -1152,6 +1117,7 @@ describe('AwsCompileStreamEvents', () => {
                   arn: 'arn:aws:kinesis:region:account:stream/bar',
                   batchWindow: 15,
                   maximumRetryAttempts: 5,
+                  functionResponseType: ['ReportBatchItemFailures'],
                 },
               },
               {
@@ -1188,12 +1154,6 @@ describe('AwsCompileStreamEvents', () => {
                 stream: {
                   arn: 'arn:aws:kinesis:region:account:stream/def',
                   consumer: false,
-                },
-              },
-              {
-                stream: {
-                  arn: 'arn:aws:kinesis:region:account:stream/asd',
-                  functionResponseTypes: ['ReportBatchItemFailures'],
                 },
               },
             ],
@@ -1277,6 +1237,10 @@ describe('AwsCompileStreamEvents', () => {
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisBar.Properties.MaximumRetryAttempts
         ).to.equal(5);
+        expect(
+          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
+            .Resources.FirstEventSourceMappingKinesisBar.Properties.FunctionResponseTypes
+        ).to.include.members(['ReportBatchItemFailures']);
 
         // event 3
         expect(
@@ -1469,45 +1433,6 @@ describe('AwsCompileStreamEvents', () => {
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisDef.Properties.MaximumRecordAgeInSeconds
         ).to.equal(undefined);
-
-        // event 9
-
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Type
-        ).to.equal('AWS::Lambda::EventSourceMapping');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.DependsOn
-        ).to.include('IamRoleLambdaExecution');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.EventSourceArn
-        ).to.equal(awsCompileStreamEvents.serverless.service.functions.first.events[8].stream.arn);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.BatchSize
-        ).to.equal(10);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.StartingPosition
-        ).to.equal('TRIM_HORIZON');
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.Enabled
-        ).to.equal(true);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.BisectBatchOnFunctionError
-        ).to.equal(undefined);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.MaximumRecordAgeInSeconds
-        ).to.equal(undefined);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.FunctionResponseTypes
-        ).to.include.members(['ReportBatchItemFailures']);
       });
 
       it('should create stream consumer when a Kinesis stream with consumer "true" is given', () => {

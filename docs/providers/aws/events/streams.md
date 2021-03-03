@@ -282,8 +282,7 @@ functions:
     events:
       - stream:
           arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-          functionResponseTypes:
-            - ReportBatchItemFailures
+          functionResponseType: ReportBatchItemFailures
 ```
 
 ## Using a Kinesis Data Streams Enhanced Fan-out
