@@ -2,7 +2,7 @@
 
 /* eslint-disable no-unused-expressions */
 
-const BbPromise = require('bluebird');
+const wait = require('timers-ext/promise/sleep');
 const chai = require('chai');
 const jc = require('json-cycle');
 const os = require('os');
@@ -23,8 +23,6 @@ const ServerlessError = require('../../../../lib/serverless-error');
 const { getTmpDirPath } = require('../../../utils/fs');
 const skipOnDisabledSymlinksInWindows = require('@serverless/test/skip-on-disabled-symlinks-in-windows');
 const runServerless = require('../../../utils/run-serverless');
-
-BbPromise.longStackTraces(true);
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -69,14 +67,14 @@ describe('Variables', () => {
     it('should remove problematic attributes bofore calling populateObjectImpl with the service', () => {
       const prepopulateServiceStub = sinon
         .stub(serverless.variables, 'prepopulateService')
-        .returns(BbPromise.resolve());
+        .resolves();
       const populateObjectStub = sinon
         .stub(serverless.variables, 'populateObjectImpl')
         .callsFake((val) => {
           expect(val).to.equal(serverless.service);
           expect(val.provider.variableSyntax).to.be.undefined;
           expect(val.serverless).to.be.undefined;
-          return BbPromise.resolve();
+          return Promise.resolve();
         });
       return serverless.variables
         .populateService()
@@ -92,17 +90,17 @@ describe('Variables', () => {
         .callsFake((val) => {
           expect(serverless.variables.deep).to.eql([]);
           expect(serverless.variables.tracker.getAll()).to.eql([]);
-          return BbPromise.resolve(val);
+          return Promise.resolve(val);
         });
       const populateObjectStub = sinon
         .stub(serverless.variables, 'populateObjectImpl')
         .callsFake((val) => {
           expect(serverless.variables.deep).to.eql([]);
           expect(serverless.variables.tracker.getAll()).to.eql([]);
-          return BbPromise.resolve(val);
+          return Promise.resolve(val);
         });
       serverless.variables.deep.push('${foo:}');
-      const prms = BbPromise.resolve('foo');
+      const prms = Promise.resolve('foo');
       serverless.variables.tracker.add('foo:', prms, '${foo:}');
       prms.state = 'resolved';
       return serverless.variables
@@ -118,19 +116,19 @@ describe('Variables', () => {
         .stub(serverless.variables, 'prepopulateService')
         .callsFake((val) => {
           serverless.variables.deep.push('${foo:}');
-          const promise = BbPromise.resolve(val);
+          const promise = Promise.resolve(val);
           serverless.variables.tracker.add('foo:', promise, '${foo:}');
           promise.state = 'resolved';
-          return BbPromise.resolve();
+          return Promise.resolve();
         });
       const populateObjectStub = sinon
         .stub(serverless.variables, 'populateObjectImpl')
         .callsFake((val) => {
           serverless.variables.deep.push('${bar:}');
-          const promise = BbPromise.resolve(val);
+          const promise = Promise.resolve(val);
           serverless.variables.tracker.add('bar:', promise, '${bar:}');
           promise.state = 'resolved';
-          return BbPromise.resolve();
+          return Promise.resolve();
         });
       return serverless.variables
         .populateService()
@@ -275,7 +273,7 @@ describe('Variables', () => {
         awsProvider = new AwsProvider(serverless, {});
         requestStub = sinon
           .stub(awsProvider, 'request')
-          .callsFake(() => BbPromise.reject(new ServerlessError('Not found.', 400)));
+          .rejects(new ServerlessError('Not found.', 400));
       });
       afterEach(() => {
         requestStub.restore();
@@ -334,10 +332,8 @@ describe('Variables', () => {
     beforeEach(() => {
       awsProvider = new AwsProvider(serverless, {});
       populateObjectImplStub = sinon.stub(serverless.variables, 'populateObjectImpl');
-      populateObjectImplStub.withArgs(serverless.variables.service).returns(BbPromise.resolve());
-      requestStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.reject(new Error('unexpected')));
+      populateObjectImplStub.withArgs(serverless.variables.service).resolves();
+      requestStub = sinon.stub(awsProvider, 'request').rejects(new Error('unexpected'));
     });
     afterEach(() => {
       populateObjectImplStub.restore();
@@ -502,8 +498,8 @@ describe('Variables', () => {
       expectedPopulatedObject['some.nested.key'] = 'hello';
       const populateValueStub = sinon.stub(serverless.variables, 'populateValue').callsFake(
         // eslint-disable-next-line no-template-curly-in-string
-        (val) => {
-          return val === '${opt:stage}' ? BbPromise.resolve('prod') : BbPromise.resolve(val);
+        async (val) => {
+          return val === '${opt:stage}' ? 'prod' : val;
         }
       );
       return serverless.variables
@@ -1295,9 +1291,7 @@ module.exports = {
       const error = Object.assign(new Error(`Parameter ${param} not found.`), {
         providerError: { statusCode: 400 },
       });
-      const requestStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.reject(error));
+      const requestStub = sinon.stub(awsProvider, 'request').rejects(error);
       const handleUnresolvedSpy = sinon.spy(serverless.variables, 'handleUnresolved');
 
       return serverless.variables
@@ -1323,9 +1317,7 @@ module.exports = {
       const param = '/some/path/to/invalidparam';
       const property = `\${ssm:${param}}`;
       const error = new ServerlessError('Some random failure.', 123);
-      const requestStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.reject(error));
+      const requestStub = sinon.stub(awsProvider, 'request').rejects(error);
       return serverless.variables
         .populateProperty(property)
         .should.be.rejectedWith(ServerlessError)
@@ -1689,11 +1681,11 @@ module.exports = {
         it(`should only call ${source.function} once, returning the cached value otherwise`, () => {
           const getValueFunctionStub =
             serverless.variables.variableResolvers[source.functionIndex].resolver;
-          return BbPromise.all([
+          return Promise.all([
             serverless.variables
               .getValueFromSource(source.variableString)
               .should.become(variableValue),
-            BbPromise.delay(100).then(() =>
+            wait(100).then(() =>
               serverless.variables
                 .getValueFromSource(source.variableString)
                 .should.become(variableValue)
@@ -2074,9 +2066,7 @@ module.exports = {
           },
         ],
       };
-      const cfStub = sinon
-        .stub(serverless.getProvider('aws'), 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const cfStub = sinon.stub(serverless.getProvider('aws'), 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromCf('cf:some-stack.MockExport')
         .should.become('MockValue')
@@ -2112,9 +2102,7 @@ module.exports = {
           },
         ],
       };
-      const cfStub = sinon
-        .stub(serverless.getProvider('aws'), 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const cfStub = sinon.stub(serverless.getProvider('aws'), 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromCf('cf.us-east-1:some-stack.MockExport')
         .should.become('MockValue')
@@ -2150,9 +2138,7 @@ module.exports = {
           },
         ],
       };
-      const cfStub = sinon
-        .stub(serverless.getProvider('aws'), 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const cfStub = sinon.stub(serverless.getProvider('aws'), 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromCf('cf:some-stack.DoestNotExist')
         .should.be.rejectedWith(
@@ -2187,9 +2173,7 @@ module.exports = {
       const awsResponseMock = {
         Body: 'MockValue',
       };
-      const s3Stub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const s3Stub = sinon.stub(awsProvider, 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromS3('s3:some.bucket/path/to/key')
         .should.become('MockValue')
@@ -2210,9 +2194,7 @@ module.exports = {
 
     it('should throw error if error getting value from S3', () => {
       const error = new Error('The specified bucket is not valid');
-      const requestStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.reject(error));
+      const requestStub = sinon.stub(awsProvider, 'request').rejects(error);
       return expect(serverless.variables.getValueFromS3('s3:some.bucket/path/to/key'))
         .to.be.rejectedWith(
           ServerlessError,
@@ -2242,9 +2224,7 @@ module.exports = {
       serverless.variables.options = options;
     });
     it('should get variable from Ssm using regular-style param', () => {
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}`)
         .should.become(value)
@@ -2263,9 +2243,7 @@ module.exports = {
         .finally(() => ssmStub.restore());
     });
     it('should get variable from Ssm of different region', () => {
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm.us-east-1:${param}`)
         .should.become(value)
@@ -2284,9 +2262,7 @@ module.exports = {
         .finally(() => ssmStub.restore());
     });
     it('should get variable from Ssm using path-style param', () => {
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}`)
         .should.become(value)
@@ -2305,9 +2281,7 @@ module.exports = {
         .finally(() => ssmStub.restore());
     });
     it('should get encrypted variable from Ssm using extended syntax', () => {
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}~true`)
         .should.become(value)
@@ -2326,9 +2300,7 @@ module.exports = {
         .finally(() => ssmStub.restore());
     });
     it('should get unencrypted variable from Ssm using extended syntax', () => {
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}~false`)
         .should.become(value)
@@ -2347,9 +2319,7 @@ module.exports = {
         .finally(() => ssmStub.restore());
     });
     it('should ignore bad values for extended syntax', () => {
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(awsResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}~badvalue`)
         .should.become(value)
@@ -2376,9 +2346,7 @@ module.exports = {
           Type: 'StringList',
         },
       };
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(stringListResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(stringListResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}~split`)
         .should.become(parsedValue)
@@ -2404,9 +2372,7 @@ module.exports = {
           Type: 'StringList',
         },
       };
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(stringListResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(stringListResponseMock);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}`)
         .should.become(stringListValue)
@@ -2437,9 +2403,7 @@ module.exports = {
           Type: 'String',
         },
       };
-      const ssmStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.resolve(stringListResponseMock));
+      const ssmStub = sinon.stub(awsProvider, 'request').resolves(stringListResponseMock);
       return varProxy
         .getValueFromSsm(`ssm:${param}~split`)
         .should.become(value)
@@ -2473,9 +2437,7 @@ module.exports = {
             Value: jsonLikeText,
           },
         };
-        const ssmStub = sinon
-          .stub(awsProvider, 'request')
-          .callsFake(() => BbPromise.resolve(awsResponse));
+        const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponse);
         return serverless.variables
           .getValueFromSsm(`ssm:${secretParam}~true`)
           .should.become(jsonLikeText)
@@ -2494,9 +2456,7 @@ module.exports = {
             Value: jsonLikeText,
           },
         };
-        const ssmStub = sinon
-          .stub(awsProvider, 'request')
-          .callsFake(() => BbPromise.resolve(awsResponse));
+        const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponse);
         return serverless.variables
           .getValueFromSsm(`ssm:${secretParam}~true`)
           .should.become(json)
@@ -2511,9 +2471,7 @@ module.exports = {
             Value: plainText,
           },
         };
-        const ssmStub = sinon
-          .stub(awsProvider, 'request')
-          .callsFake(() => BbPromise.resolve(awsResponse));
+        const ssmStub = sinon.stub(awsProvider, 'request').resolves(awsResponse);
         return serverless.variables
           .getValueFromSsm(`ssm:${secretParam}~true`)
           .should.become(plainText)
@@ -2525,9 +2483,7 @@ module.exports = {
       const error = Object.assign(new Error(`Parameter ${param} not found.`), {
         providerError: { statusCode: 400 },
       });
-      const requestStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.reject(error));
+      const requestStub = sinon.stub(awsProvider, 'request').rejects(error);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}`)
         .should.become(undefined)
@@ -2539,9 +2495,7 @@ module.exports = {
       const error = new Error(
         'User: <arn> is not authorized to perform: ssm:GetParameter on resource: <arn>'
       );
-      const requestStub = sinon
-        .stub(awsProvider, 'request')
-        .callsFake(() => BbPromise.reject(error));
+      const requestStub = sinon.stub(awsProvider, 'request').rejects(error);
       return serverless.variables
         .getValueFromSsm(`ssm:${param}`)
         .should.be.rejected.then()

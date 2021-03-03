@@ -18,7 +18,6 @@ const fse = require('fs-extra');
 const mockRequire = require('mock-require');
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
-const BbPromise = require('bluebird');
 const getCacheFilePath = require('../../../../lib/utils/getCacheFilePath');
 const { installPlugin } = require('../../../utils/plugins');
 const { getTmpDirPath } = require('../../../utils/fs');
@@ -133,18 +132,12 @@ describe('PluginManager', () => {
       this.deployedResources = 0;
     }
 
-    functions() {
-      return new BbPromise((resolve) => {
-        this.deployedFunctions += 1;
-        return resolve();
-      });
+    async functions() {
+      this.deployedFunctions += 1;
     }
 
-    resources() {
-      return new BbPromise((resolve) => {
-        this.deployedResources += 1;
-        return resolve();
-      });
+    async resources() {
+      this.deployedResources += 1;
     }
   }
 
@@ -463,7 +456,7 @@ describe('PluginManager', () => {
     let getCommandsStub;
 
     beforeEach(() => {
-      writeFileStub = sinon.stub().returns(BbPromise.resolve());
+      writeFileStub = sinon.stub().returns(Promise.resolve());
       PluginManager = proxyquire('../../../../lib/classes/PluginManager.js', {
         '../utils/fs/writeFile': writeFileStub,
         'ncjsm/resolve/sync': resolveStub,
@@ -642,7 +635,7 @@ describe('PluginManager', () => {
   describe('#asyncPluginInit()', () => {
     it('should call async init on plugins that have it', () => {
       const plugin1 = new ServicePluginMock1();
-      plugin1.asyncInit = sinon.stub().returns(BbPromise.resolve());
+      plugin1.asyncInit = sinon.stub().returns(Promise.resolve());
       pluginManager.plugins = [plugin1];
       return pluginManager.asyncPluginInit().then(() => {
         expect(plugin1.asyncInit.calledOnce).to.equal(true);

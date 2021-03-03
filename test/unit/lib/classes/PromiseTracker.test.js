@@ -2,7 +2,7 @@
 
 /* eslint-disable no-unused-expressions */
 
-const BbPromise = require('bluebird');
+const wait = require('timers-ext/promise/sleep');
 const chai = require('chai');
 
 const PromiseTracker = require('../../../../lib/classes/PromiseTracker');
@@ -23,8 +23,8 @@ describe('PromiseTracker', () => {
     promiseTracker = new PromiseTracker();
   });
   it('logs a warning without throwing', () => {
-    promiseTracker.add('foo', BbPromise.resolve(), '${foo:}');
-    promiseTracker.add('foo', BbPromise.delay(10), '${foo:}');
+    promiseTracker.add('foo', Promise.resolve(), '${foo:}');
+    promiseTracker.add('foo', wait(10), '${foo:}');
     promiseTracker.report(); // shouldn't throw
     return Promise.all(promiseTracker.getAll());
   });
@@ -37,17 +37,17 @@ describe('PromiseTracker', () => {
   });
   it('reports the correct number of added promise statuses', () => {
     let resolve;
-    const pending = new BbPromise((rslv) => {
+    const pending = new Promise((rslv) => {
       resolve = rslv;
     });
-    const resolved = BbPromise.resolve();
-    const rejected = BbPromise.reject('reason');
+    const resolved = Promise.resolve();
+    const rejected = Promise.reject('reason');
     promiseTracker.add('pending', pending, '${pending:}');
     promiseTracker.add('resolved', resolved, '${resolved:}');
     promiseTracker.add('rejected', rejected, '${rejected:}');
     resolved.state = 'resolved';
     rejected.state = 'rejected';
-    return BbPromise.delay(1)
+    return wait(1)
       .then(() => {
         const pendings = promiseTracker.getPending();
         expect(pendings).to.be.an.instanceof(Array);
@@ -73,18 +73,18 @@ describe('PromiseTracker', () => {
   });
   it('reports and then clears tracked promises when stopped after reporting.', () => {
     let resolve;
-    const pending = new BbPromise((rslv) => {
+    const pending = new Promise((rslv) => {
       resolve = rslv;
     });
-    const resolved = BbPromise.resolve();
-    const rejected = BbPromise.reject('reason');
+    const resolved = Promise.resolve();
+    const rejected = Promise.reject('reason');
     promiseTracker.add('pending', pending, '${pending:}');
     promiseTracker.add('resolved', resolved, '${resolved:}');
     promiseTracker.add('rejected', rejected, '${rejected:}');
     resolved.state = 'resolved';
     rejected.state = 'rejected';
     promiseTracker.reported = true;
-    return BbPromise.delay(1).then(() => {
+    return wait(1).then(() => {
       const all = promiseTracker.getAll();
       expect(all).to.be.an.instanceof(Array);
       expect(all.length).to.equal(3);
