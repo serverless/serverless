@@ -610,8 +610,8 @@ describe('AwsCompileStreamEvents', () => {
         ).to.equal(true);
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.FunctionResponseTypes[0]
-        ).to.equal('ReportBatchItemFailures');
+            .Resources.FirstEventSourceMappingDynamodbJazz.Properties.FunctionResponseTypes
+        ).to.include.members(['ReportBatchItemFailures']);
       });
 
       it('should allow specifying DynamoDB and Kinesis streams as CFN reference types', () => {
@@ -1506,8 +1506,8 @@ describe('AwsCompileStreamEvents', () => {
         ).to.equal(undefined);
         expect(
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisAsd.Properties.FunctionResponseTypes[0]
-        ).to.equal('ReportBatchItemFailures');
+            .Resources.FirstEventSourceMappingKinesisAsd.Properties.FunctionResponseTypes
+        ).to.include.members(['ReportBatchItemFailures']);
       });
 
       it('should create stream consumer when a Kinesis stream with consumer "true" is given', () => {
