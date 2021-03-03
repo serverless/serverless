@@ -60,10 +60,7 @@ provider:
       key1: value1
       key2: value2
   deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
-  role: arn:aws:iam::XXXXXX:role/role # Overwrite the default IAM role which is used for all functions
-  rolePermissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
   lambdaHashingVersion: 20201221 # optional, version of hashing algorithm that should be used by the framework
-  cfnRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   ecr:
     images: # Definitions of images that later can be referenced by key in `function.image`
       baseimage:
@@ -177,7 +174,7 @@ provider:
     id: 'my-id' # If we want to attach to externally created HTTP API its id should be provided here
     name: 'dev-my-service' # Use custom name for the API Gateway API, default is ${opt:stage, self:provider.stage, 'dev'}-${self:service}
     payload: '1.0' # Specify payload format version for Lambda integration ('1.0' or '2.0'), default is '1.0'
-    cors: true # Implies default behavior, can be fine tuned with specficic options
+    cors: true # Implies default behavior, can be fine tuned with specific options
     authorizers:
       # JWT authorizers to back HTTP API endpoints
       someJwtAuthorizer:
@@ -188,17 +185,24 @@ provider:
           - xxxx
   stackTags: # Optional CF stack tags
     key: value
-  iamManagedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
-    - arn:aws:iam:*****:policy/some-managed-policy
-  iamRoleStatements: # IAM role statements so that services can be accessed in the AWS account
-    - Effect: 'Allow'
-      Action:
-        - 's3:ListBucket'
-      Resource:
-        Fn::Join:
-          - ''
-          - - 'arn:aws:s3:::'
-            - Ref: ServerlessDeploymentBucket
+  iam:
+    # Overwrite the default IAM role which is used for all functions
+    role: arn:aws:iam::XXXXXX:role/role
+    # .. OR configure logical role
+    role:
+      managedPolicies: # Optional IAM Managed Policies, which allows to include the policies into IAM Role
+        - arn:aws:iam:*****:policy/some-managed-policy
+      permissionsBoundary: arn:aws:iam::XXXXXX:policy/policy # ARN of an Permissions Boundary for the role.
+      statements: # IAM role statements so that services can be accessed in the AWS account
+        - Effect: 'Allow'
+          Action:
+            - 's3:ListBucket'
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: ServerlessDeploymentBucket
+    deploymentRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
       Principal: '*'
@@ -344,7 +348,7 @@ functions:
             template: # Optional custom request mapping templates that overwrite default templates
               application/json: '{ "httpMethod" : "$context.httpMethod" }'
             passThrough: NEVER # Optional define pass through behavior when content-type does not match any of the specified mapping templates
-            schemas: # Optional request schema validation, mappped by content type
+            schemas: # Optional request schema validation, mapped by content type
               application/json:
                 name: ModelName  # Optional: Name of the API Gateway model
                 description: "Some description" # Optional: Description of the API Gateway model
