@@ -111,7 +111,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('"provider.stage" is not accessible');
+      expect(String(error.stdoutBuffer)).to.include('"provider.stage" property is not accessible');
     }
   });
 
