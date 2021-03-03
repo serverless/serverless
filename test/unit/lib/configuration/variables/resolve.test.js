@@ -207,7 +207,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
   });
 
   // https://github.com/serverless/serverless/issues/9016
-  it('should resolve same sources across realms without shared caching', () => {
+  it('should resolve same sources across resolution batches without shared caching', () => {
     expect(configuration.sharedSourceResolution1).to.deep.equal({
       sharedFinal: 'foo',
       sharedInner: 'foo',
