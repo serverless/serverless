@@ -126,7 +126,7 @@ deleteFoo:
 
 ## Permissions
 
-Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role. You can set permission policy statements within this role via the `provider.iamRoleStatements` property.
+Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role. You can set permission policy statements within this role via the `provider.iam.role.statements` property.
 
 ```yml
 # serverless.yml
@@ -135,17 +135,19 @@ service: myService
 provider:
   name: aws
   runtime: nodejs12.x
-  iamRoleStatements: # permissions for all of your functions can be set here
-    - Effect: Allow
-      Action: # Gives permission to DynamoDB tables in a specific region
-        - dynamodb:DescribeTable
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource: 'arn:aws:dynamodb:us-east-1:*:*'
+  iam:
+    role:
+      statements: # permissions for all of your functions can be set here
+        - Effect: Allow
+          Action: # Gives permission to DynamoDB tables in a specific region
+            - dynamodb:DescribeTable
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 'arn:aws:dynamodb:us-east-1:*:*'
 
 functions:
   functionOne:
@@ -160,22 +162,24 @@ Another example:
 service: myService
 provider:
   name: aws
-  iamRoleStatements:
-    - Effect: 'Allow'
-      Action:
-        - 's3:ListBucket'
-      # You can put CloudFormation syntax in here.  No one will judge you.
-      # Remember, this all gets translated to CloudFormation.
-      Resource: { 'Fn::Join': ['', ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }]] }
-    - Effect: 'Allow'
-      Action:
-        - 's3:PutObject'
-      Resource:
-        Fn::Join:
-          - ''
-          - - 'arn:aws:s3:::'
-            - 'Ref': 'ServerlessDeploymentBucket'
-            - '/*'
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 's3:ListBucket'
+          # You can put CloudFormation syntax in here.  No one will judge you.
+          # Remember, this all gets translated to CloudFormation.
+          Resource: { 'Fn::Join': ['', ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }]] }
+        - Effect: 'Allow'
+          Action:
+            - 's3:PutObject'
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - 'Ref': 'ServerlessDeploymentBucket'
+                - '/*'
 
 functions:
   functionOne:
