@@ -71,7 +71,10 @@ const processSpanPromise = (async () => {
 
     let variablesMeta;
     if (configuration) {
+      const path = require('path');
+      const ServerlessError = require('../lib/serverless-error');
       const resolveVariables = require('../lib/configuration/variables/resolve');
+      const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
       const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
       let resolverConfiguration;
       let hasVariableResolutionFailed;
@@ -90,8 +93,6 @@ const processSpanPromise = (async () => {
 
         // As we have not yet loaded .env files, we may have incomplete process.env state
         // It is taken into account in below resolver configuration
-        const path = require('path');
-        const ServerlessError = require('../lib/serverless-error');
         const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
         variablesMeta = resolveVariablesMeta(configuration);
 
@@ -171,18 +172,34 @@ const processSpanPromise = (async () => {
       // Load eventual environment variables from .env files
       await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
 
-      if (
-        !_.get(configuration.provider, 'variableSyntax') &&
-        variablesMeta.size &&
-        !hasVariableResolutionFailed
-      ) {
-        delete resolverConfiguration.sources.env.isIncomplete;
-        await resolveVariables(resolverConfiguration);
-        hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
-          configurationPath,
-          configuration,
-          variablesMeta
-        );
+      if (!_.get(configuration.provider, 'variableSyntax') && variablesMeta.size) {
+        if (!hasVariableResolutionFailed) {
+          // Resolve eventually still not resolved configuration variables
+          // (now "env" source is assumed as complete)
+
+          delete resolverConfiguration.sources.env.isIncomplete;
+          await resolveVariables(resolverConfiguration);
+          hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
+            configurationPath,
+            configuration,
+            variablesMeta
+          );
+        }
+
+        if (variablesMeta.size) {
+          // At this point we expect "plugins" to be fully resolved to move forward.
+          // Report error if that's not the case
+          for (const propertyPath of variablesMeta.keys()) {
+            if (propertyPath === 'plugins' || propertyPath.startsWith('plugins\0')) {
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(configurationPath)}: "${humanizePropertyPathKeys(
+                  propertyPath.split('\0')
+                )}" property is not accessible ` +
+                  '(configured behind variables which cannot be resolved at this stage)'
+              );
+            }
+          }
+        }
       }
     }
 
