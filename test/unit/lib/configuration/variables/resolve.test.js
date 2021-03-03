@@ -33,6 +33,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     withString: 'foo${sourceDirect:}',
     resolvesVariablesObject: '${sourceVariables(object)}',
     resolvesVariablesArray: '${sourceVariables(array)}',
+    resolvesVariablesString: '${sourceVariables(string)}',
+    resolvesVariablesStringInvalid: '${sourceVariables(stringInvalid)}',
     incomplete: '${sourceDirect:}elo${sourceIncomplete:}',
     missing: '${sourceDirect:}elo${sourceMissing:}other${sourceMissing:}',
     missingFallback: '${sourceDirect:}elo${sourceMissing:, "foo"}',
@@ -57,6 +59,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     infiniteResolutionRecursion: '${sourceInfinite:}',
     sharedSourceResolution1: '${sourceShared:}',
     sharedSourceResolution2: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
+    sharedPropertyResolution1: '${sourceSharedProperty:}',
+    sharedPropertyResolution2: '${sourceProperty(sharedPropertyResolution1, sharedFinal)}',
   };
   let variablesMeta;
   const sources = {
@@ -82,6 +86,10 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
             return { foo: '${sourceDirect:}' };
           case 'array':
             return [1, '${sourceDirect:}'];
+          case 'string':
+            return '${sourceDirect:}';
+          case 'stringInvalid':
+            return '${sourceDirect:';
           case 'error':
             return [1, '${sourceUnrecognized:}', '${sourceError:}'];
           default:
@@ -127,6 +135,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       resolve: () => ({
         sharedFinal: 'foo',
         sharedInner: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
+      }),
+    },
+    sourceSharedProperty: {
+      resolve: () => ({
+        sharedFinal: 'foo',
+        sharedInner: '${sourceProperty(sharedPropertyResolution2)}',
       }),
     },
   };
@@ -197,11 +211,21 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
   it('should resolve variables in returned results', () => {
     expect(configuration.resolvesVariablesObject).to.deep.equal({ foo: 234 });
     expect(configuration.resolvesVariablesArray).to.deep.equal([1, 234]);
+    expect(configuration.resolvesVariablesString).to.equal(234);
   });
 
   // https://github.com/serverless/serverless/issues/9016
-  it('should resolve same sources across realms without shared caching', () => {
+  it('should resolve same sources across resolution batches without shared caching', () => {
     expect(configuration.sharedSourceResolution1).to.deep.equal({
+      sharedFinal: 'foo',
+      sharedInner: 'foo',
+    });
+    expect(configuration.sharedSourceResolution2).to.equal('foo');
+  });
+
+  // https://github.com/serverless/serverless/issues/9047
+  it('should resolve same properties across resolution batches without shared caching', () => {
+    expect(configuration.sharedPropertyResolution1).to.deep.equal({
       sharedFinal: 'foo',
       sharedInner: 'foo',
     });
@@ -295,6 +319,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     expect(valueMeta.error.code).to.equal('EXCESSIVE_RESOLVED_PROPERTIES_NEST_DEPTH');
   });
 
+  it('should error on invalid variable notation in returned result', () => {
+    const valueMeta = variablesMeta.get('resolvesVariablesStringInvalid');
+    expect(valueMeta).to.not.have.property('variables');
+    expect(valueMeta.error.code).to.equal('UNTERMINATED_VARIABLE');
+  });
+
   it('should allow to re-resolve fulfilled sources', async () => {
     await resolve({
       servicePath: process.cwd(),
@@ -318,6 +348,7 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
       'propertyDeepCircularB',
       'propertyDeepCircularC',
       'propertyRoot',
+      'resolvesVariablesStringInvalid',
       'missing',
       'nonStringStringPart',
       'nestUnrecognized\0unrecognized',

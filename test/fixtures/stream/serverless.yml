@@ -29,7 +29,7 @@ functions:
                 - kinesis
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
-                - stream/${self:service.name}-kinesis
+                - stream/${self:service}-kinesis
           batchSize: 100
           startingPosition: TRIM_HORIZON
           batchWindow: 1
@@ -48,4 +48,4 @@ resources:
             KeyType: HASH
         StreamSpecification:
           StreamViewType: KEYS_ONLY
-        TableName: ${self:service.name}-table
+        TableName: ${self:service}-table

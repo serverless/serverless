@@ -22,7 +22,7 @@ functions:
                 - kinesis
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
-                - stream/${self:service.name}-kinesis
+                - stream/${self:service}-kinesis
       - sqs:
           arn:
             Fn::Join:
@@ -32,4 +32,4 @@ functions:
                 - sqs
                 - Ref: AWS::Region
                 - Ref: AWS::AccountId
-                - ${self:service.name}-provisioned
+                - ${self:service}-provisioned

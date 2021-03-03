@@ -325,6 +325,12 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
         { sources: [{ type: 'type.dot', params: [{ value: 'param' }] }] },
       ]));
 
+    // ${type.us-east-1(param)}
+    it('should support hyphens in type notation', () =>
+      expect(parse('${type.us-east-1(param)}')).to.deep.equal([
+        { sources: [{ type: 'type.us-east-1', params: [{ value: 'param' }] }] },
+      ]));
+
     // ${AWS::${type:address}}
     it('should support variable nested in foreign variable', () =>
       expect(parse('${AWS::${type:address}}')).to.deep.equal([
@@ -439,9 +445,13 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
     // ${type:foo, 000()}
     // ${type:foo, aa--}
     it('should reject invalid following source', () => {
-      expect(() => parse('${type:foo, --}'))
+      expect(() => parse('${type:foo, ___}'))
         .to.throw(ServerlessError)
         .with.property('code', 'INVALID_VARIABLE_SOURCE');
+
+      expect(() => parse('${type:foo, --}'))
+        .to.throw(ServerlessError)
+        .with.property('code', 'INVALID_VARIABLE_LITERAL_SOURCE');
 
       expect(() => parse('${type:foo, 000:}'))
         .to.throw(ServerlessError)
@@ -452,6 +462,10 @@ describe('test/unit/lib/configuration/variables/parse.test.js', () => {
         .with.property('code', 'INVALID_VARIABLE_SOURCE');
 
       expect(() => parse('${type:foo, aa--}'))
+        .to.throw(ServerlessError)
+        .with.property('code', 'INVALID_VARIABLE_LITERAL_SOURCE');
+
+      expect(() => parse('${type:foo, aa__}'))
         .to.throw(ServerlessError)
         .with.property('code', 'INVALID_VARIABLE_SOURCE');
 

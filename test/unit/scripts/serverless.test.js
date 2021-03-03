@@ -111,7 +111,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
       throw new Error('Unexpected');
     } catch (error) {
       expect(error.code).to.equal(1);
-      expect(String(error.stdoutBuffer)).to.include('"provider.stage" is not accessible');
+      expect(String(error.stdoutBuffer)).to.include('"provider.stage" property is not accessible');
     }
   });
 
@@ -128,5 +128,21 @@ describe('test/unit/scripts/serverless.test.js', () => {
     expect(
       String((await spawn('node', [serverlessPath, 'print'], { cwd: servicePath })).stdoutBuffer)
     ).to.include('fromDefaultEnv: valuefromdefault');
+  });
+
+  it('Should reject unresolved "plugins" property', async () => {
+    try {
+      await spawn('node', [serverlessPath, 'print'], {
+        cwd: (
+          await fixturesEngine.setup('aws', {
+            configExt: { variablesResolutionMode: '20210219', plugins: '${foo:bar}' },
+          })
+        ).servicePath,
+      });
+      throw new Error('Unexpected');
+    } catch (error) {
+      expect(error.code).to.equal(1);
+      expect(String(error.stdoutBuffer)).to.include('"plugins" property is not accessible');
+    }
   });
 });

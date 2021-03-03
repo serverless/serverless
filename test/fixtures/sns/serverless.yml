@@ -11,14 +11,14 @@ functions:
   snsMinimal:
     handler: core.snsMinimal
     events:
-      - sns: ${self:service.name}-minimal
+      - sns: ${self:service}-minimal
 
   snsMultipleFilteredLeft:
     handler: core.snsMultipleFilteredLeft
     events:
       - sns:
-          topicName: ${self:service.name}-filtered
-          displayName: 'Integration Test: ${self:service.name}-filtered'
+          topicName: ${self:service}-filtered
+          displayName: 'Integration Test: ${self:service}-filtered'
           filterPolicy:
             side:
               - left
@@ -26,8 +26,8 @@ functions:
     handler: core.snsMultipleFilteredRight
     events:
       - sns:
-          topicName: ${self:service.name}-filtered
-          displayName: 'Integration Test: ${self:service.name}-filtered'
+          topicName: ${self:service}-filtered
+          displayName: 'Integration Test: ${self:service}-filtered'
           filterPolicy:
             side:
               - right
@@ -42,5 +42,5 @@ functions:
               - - 'arn:aws:sns'
                 - Ref: 'AWS::Region'
                 - Ref: 'AWS::AccountId'
-                - ${self:service.name}-existing
-          topicName: ${self:service.name}-existing
+                - ${self:service}-existing
+          topicName: ${self:service}-existing

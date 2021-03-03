@@ -69,7 +69,16 @@ const processSpanPromise = (async () => {
         })()
       : null;
 
+    let variablesMeta;
     if (configuration) {
+      const path = require('path');
+      const ServerlessError = require('../lib/serverless-error');
+      const resolveVariables = require('../lib/configuration/variables/resolve');
+      const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
+      const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
+      let resolverConfiguration;
+      let hasVariableResolutionFailed;
+
       if (_.get(configuration.provider, 'variableSyntax')) {
         logDeprecation(
           'NEW_VARIABLES_RESOLVER',
@@ -84,120 +93,120 @@ const processSpanPromise = (async () => {
 
         // As we have not yet loaded .env files, we may have incomplete process.env state
         // It is taken into account in below resolver configuration
-        const path = require('path');
-        const ServerlessError = require('../lib/serverless-error');
         const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
-        const resolveVariables = require('../lib/configuration/variables/resolve');
-        const variableSources = {
-          env: { ...require('../lib/configuration/variables/sources/env'), isIncomplete: true },
-          file: require('../lib/configuration/variables/sources/file'),
-          opt: require('../lib/configuration/variables/sources/opt'),
-          self: require('../lib/configuration/variables/sources/self'),
-          strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
-        };
-        const variablesMeta = resolveVariablesMeta(configuration);
+        variablesMeta = resolveVariablesMeta(configuration);
 
-        if (variablesMeta.has('variablesResolutionMode')) {
-          throw new ServerlessError(
-            `Cannot resolve ${path.basename(
-              configurationPath
-            )}: "variablesResolutionMode" is not accessible ` +
-              '(configured behind variables which cannot be resolved at this stage)'
-          );
-        }
-
-        await resolveVariables({
-          servicePath: process.cwd(),
-          configuration,
-          variablesMeta,
-          sources: variableSources,
-          options,
-        });
-        const resolutionErrors = new Set(
-          Array.from(variablesMeta.values(), ({ error }) => error).filter(Boolean)
-        );
-
-        // If non-recoverable errors were approached in variable resolution, report them
-        if (resolutionErrors.size) {
-          if (isHelpRequest) {
-            const log = require('@serverless/utils/log');
-            log(
-              'Resolution of service configuration failed when resolving variables: ' +
-                `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n`,
-              { color: 'orange' }
-            );
-          } else {
-            if (configuration.variablesResolutionMode) {
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: Variables resolution errored with:${Array.from(
-                  resolutionErrors,
-                  (error) => `\n  - ${error.message}`
-                )}\n`
-              );
-            }
-            logDeprecation(
-              'NEW_VARIABLES_RESOLVER',
-              'Variables resolver reports following resolution errors:' +
-                `${Array.from(resolutionErrors, (error) => `\n  - ${error.message}`)}\n` +
-                'From a next major it we will be communicated with a thrown error.\n' +
-                'Set "variablesResolutionMode: 20210219" in your service config, ' +
-                'to adapt to this behavior now',
-              { serviceConfig: configuration }
-            );
-            // Hack to not duplicate the warning with similar deprecation
-            logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
-          }
-        } else if (!isHelpRequest) {
-          // There are few configuration properties, which have to be resolved at this point
-          // to move forward. Report errors if that's not the case
-          if (variablesMeta.has('provider')) {
+        if (variablesMeta.size) {
+          if (variablesMeta.has('variablesResolutionMode')) {
             throw new ServerlessError(
               `Cannot resolve ${path.basename(
                 configurationPath
-              )}: "provider" section is not accessible ` +
+              )}: "variablesResolutionMode" is not accessible ` +
                 '(configured behind variables which cannot be resolved at this stage)'
             );
           }
-          if (variablesMeta.has('provider\0stage')) {
-            if (configuration.variablesResolutionMode) {
+          resolverConfiguration = {
+            servicePath: process.cwd(),
+            configuration,
+            variablesMeta,
+            sources: {
+              env: { ...require('../lib/configuration/variables/sources/env'), isIncomplete: true },
+              file: require('../lib/configuration/variables/sources/file'),
+              opt: require('../lib/configuration/variables/sources/opt'),
+              self: require('../lib/configuration/variables/sources/self'),
+              strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+            },
+            options,
+          };
+          await resolveVariables(resolverConfiguration);
+
+          hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
+            configurationPath,
+            configuration,
+            variablesMeta
+          );
+
+          if (!isHelpRequest) {
+            // There are few configuration properties, which have to be resolved at this point
+            // to move forward. Report errors if that's not the case
+            if (variablesMeta.has('provider')) {
               throw new ServerlessError(
                 `Cannot resolve ${path.basename(
                   configurationPath
-                )}: "provider.stage" is not accessible ` +
+                )}: "provider" section is not accessible ` +
                   '(configured behind variables which cannot be resolved at this stage)'
               );
             }
-            logDeprecation(
-              'NEW_VARIABLES_RESOLVER',
-              '"provider.stage" is not accessible ' +
-                '(configured behind variables which cannot be resolved at this stage).\n' +
-                'Starting with next major release, ' +
-                'this will be communicated with a thrown error.\n' +
-                'Set "variablesResolutionMode: 20210219" in your service config, ' +
-                'to adapt to this behavior now',
-              { serviceConfig: configuration }
-            );
-            // Hack to not duplicate the warning with similar deprecation
-            logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
+            if (!hasVariableResolutionFailed && variablesMeta.has('provider\0stage')) {
+              if (configuration.variablesResolutionMode) {
+                throw new ServerlessError(
+                  `Cannot resolve ${path.basename(
+                    configurationPath
+                  )}: "provider.stage" property is not accessible ` +
+                    '(configured behind variables which cannot be resolved at this stage)'
+                );
+              }
+              logDeprecation(
+                'NEW_VARIABLES_RESOLVER',
+                '"provider.stage" is not accessible ' +
+                  '(configured behind variables which cannot be resolved at this stage).\n' +
+                  'Starting with next major release, ' +
+                  'this will be communicated with a thrown error.\n' +
+                  'Set "variablesResolutionMode: 20210219" in your service config, ' +
+                  'to adapt to this behavior now',
+                { serviceConfig: configuration }
+              );
+              // Hack to not duplicate the warning with similar deprecation
+              logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
+            }
           }
-        }
-        if (variablesMeta.has('useDotenv')) {
-          throw new ServerlessError(
-            `Cannot resolve ${path.basename(configurationPath)}: "useDotenv" is not accessible ` +
-              '(configured behind variables which cannot be resolved at this stage)'
-          );
+          if (variablesMeta.has('useDotenv')) {
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(configurationPath)}: "useDotenv" is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
+            );
+          }
         }
       }
 
       // Load eventual environment variables from .env files
       await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
+
+      if (!_.get(configuration.provider, 'variableSyntax') && variablesMeta.size) {
+        if (!hasVariableResolutionFailed) {
+          // Resolve eventually still not resolved configuration variables
+          // (now "env" source is assumed as complete)
+
+          delete resolverConfiguration.sources.env.isIncomplete;
+          await resolveVariables(resolverConfiguration);
+          hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
+            configurationPath,
+            configuration,
+            variablesMeta
+          );
+        }
+
+        if (variablesMeta.size) {
+          // At this point we expect "plugins" to be fully resolved to move forward.
+          // Report error if that's not the case
+          for (const propertyPath of variablesMeta.keys()) {
+            if (propertyPath === 'plugins' || propertyPath.startsWith('plugins\0')) {
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(configurationPath)}: "${humanizePropertyPathKeys(
+                  propertyPath.split('\0')
+                )}" property is not accessible ` +
+                  '(configured behind variables which cannot be resolved at this stage)'
+              );
+            }
+          }
+        }
+      }
     }
 
     serverless = new Serverless({
       configuration,
       configurationPath: configuration && configurationPath,
+      isConfigurationResolved: Boolean(variablesMeta && !variablesMeta.size),
       commands,
       options,
     });

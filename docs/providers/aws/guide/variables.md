@@ -471,7 +471,7 @@ functions:
 With a new variables resolver (_which will be the only used resolver in v3 of a Framework, and which can be turned on now by setting `variablesResolutionMode: 20210219` in service config_) functions receives an object, with two properties:
 
 - `options` - An object referencing resolved CLI params as passed to the command
-- `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuraton property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
+- `resolveConfigurationProperty([key1, key2, ...keyN])` - Async function which resolves specific service configuration property. It returns a fully resolved value of configuration property. If circular reference is detected resolution will be rejected.
 
 Example, of how to obtain a value of AWS region that will be used by Serverless Framework:
 

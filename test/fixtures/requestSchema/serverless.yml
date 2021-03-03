@@ -2,6 +2,7 @@ service: service
 
 provider:
   name: aws
+  lambdaHashingVersion: 20201221
   apiGateway:
     request:
       schemas:

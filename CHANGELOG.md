@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.6](https://github.com/serverless/serverless/compare/v2.28.5...v2.28.6) (2021-03-03)
+
+### Bug Fixes
+
+- **Variables:** Ensure to apply intialization patch unconditionally ([#9063](https://github.com/serverless/serverless/issues/9063)) ([d6c7d97](https://github.com/serverless/serverless/commit/d6c7d97dc6bb6229dd80e443a09f5a741bf1380e)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.28.5](https://github.com/serverless/serverless/compare/v2.28.4...v2.28.5) (2021-03-03)
+
+### Bug Fixes
+
+- **Variables:**
+  - Fix variables setup for external plugins usage ([#9060](https://github.com/serverless/serverless/issues/9060)) ([25dd575](https://github.com/serverless/serverless/commit/25dd575a4d597c09078ac8a2c709d834ae85221e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report with meaningful error unresolved `plugins` property ([#9061](https://github.com/serverless/serverless/issues/9061)) ([5565047](https://github.com/serverless/serverless/commit/55650473828eb6df9563687ccf3996b6713da191)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.28.4](https://github.com/serverless/serverless/compare/v2.28.3...v2.28.4) (2021-03-03)
+
+### Bug Fixes
+
+- **Variables:** Ensure to not share property cache across resolutions ([#9057](https://github.com/serverless/serverless/issues/9057)) ([68f326e](https://github.com/serverless/serverless/commit/68f326e79f92f8a94ba73352cba40c85e08c10cf)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Variables:** Ensure to pass `isConfigurationResolved` to local instance ([#9057](https://github.com/serverless/serverless/issues/9057)) ([10e1dda](https://github.com/serverless/serverless/commit/10e1dda23b47cf439624c4602adce41a5c73fa51)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove `bluebird` from `lib/plugins/aws` ([#9054](https://github.com/serverless/serverless/issues/9054)) ([b11171c](https://github.com/serverless/serverless/commit/b11171c70c8f5597e2644f7ea8ec82a17a9eee29)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+
+### [2.28.3](https://github.com/serverless/serverless/compare/v2.28.2...v2.28.3) (2021-03-02)
+
+### Bug Fixes
+
+- **Variables:**
+  - Recognize hyphens in source types ([#9052](https://github.com/serverless/serverless/pull/9052)) ([21ac1be](https://github.com/serverless/serverless/commit/21ac1beb225946713665e9d8ad22d6e5c63819a9)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Ensure proper error handling for resolved value parsing([#9052](https://github.com/serverless/serverless/pull/9052)) ([df62739](https://github.com/serverless/serverless/commit/df627394b36c16553a73328850ff722f1063254c)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.28.2](https://github.com/serverless/serverless/compare/v2.28.1...v2.28.2) (2021-03-02)
+
+### Bug Fixes
+
+- **Variables:** Ensure to resolve variables in resolved strings ([#9050](https://github.com/serverless/serverless/pull/9050)) ([480b612](https://github.com/serverless/serverless/commit/480b61270cfef8f1a4a5aa36cd235db2362c9cfd)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Credentials:** Fix unrecognized profile error reporting ([#9045](https://github.com/serverless/serverless/pull/9045)) ([6c4beb6](https://github.com/serverless/serverless/commit/6c4beb64ee6fe6722fbb7ca757611807d4025a26)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.28.1](https://github.com/serverless/serverless/compare/v2.28.0...v2.28.1) (2021-03-02)
+
+### Bug Fixes
+
+- **Variables:**
+  - Error on property access attempt on primitive result ([#9032](https://github.com/serverless/serverless/pull/9032)) ([131516a](https://github.com/serverless/serverless/commit/131516a6d094ee9b75fbe9b1d975b96d9c358a82)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Resolve plain text for unrecognized extensions ([#9032](https://github.com/serverless/serverless/pull/9032)) ([d2e6a8a](https://github.com/serverless/serverless/commit/d2e6a8adef5632ddf63581cfacc7cb77bbc634af)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Improve deprecation message ([#9034](https://github.com/serverless/serverless/pull/9034)) ([8592bdb](https://github.com/serverless/serverless/commit/8592bdb1b2ecdbf4dd24700613cc664cbf3ec611)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove `bluebird` from `lib/plugins/interactiveCli` ([#9029](https://github.com/serverless/serverless/issues/9029)) ([7c0ceb5](https://github.com/serverless/serverless/commit/7c0ceb5c4a1171666e381ef9a00c6f133569732b)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+- Remove `bluebird` from `lib/plugins/package` ([#9028](https://github.com/serverless/serverless/issues/9028)) ([0fb0f43](https://github.com/serverless/serverless/commit/0fb0f43919bd3bd4a9c57b9f33bf96a822ce027c)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+- Use `async` in `lib/plugins/aws/package` ([#8870](https://github.com/serverless/serverless/issues/8870)) ([6e486b3](https://github.com/serverless/serverless/commit/6e486b3eb1cbd1755501f00de59b2347e243c100)) ([ifitzsimmons](https://github.com/ifitzsimmons))
+- **Variables:**
+  - Resolve all env variables with new resolver ([#9040](https://github.com/serverless/serverless/pull/9040)) ([c1d8b58](https://github.com/serverless/serverless/commit/c1d8b58ed8a5a7a91d9dfa28536a9c0d997b809b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Do not handle resolution when no vars to resolve ([#9040](https://github.com/serverless/serverless/pull/9040)) ([14ea1af](https://github.com/serverless/serverless/commit/14ea1af886496fac53d4aaffe009ae78873c81bb)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Do not run old resolver when no vars to resolve ([#9040](https://github.com/serverless/serverless/pull/9040)) ([7aac480](https://github.com/serverless/serverless/commit/7aac480fbb15d61a40320f98af4cee6f1b2475b3)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Make resolution error handler reusable ([#9040](https://github.com/serverless/serverless/pull/9040)) ([452fdc2](https://github.com/serverless/serverless/commit/452fdc2445e2c69a6c908f6b2b52c0659d87bbc0)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Make `resolverConfiguration` reusable ([#9040](https://github.com/serverless/serverless/pull/9040)) ([8e72247](https://github.com/serverless/serverless/commit/8e722472cc23eac7b342b3e67434977cc69698aa)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ## [2.28.0](https://github.com/serverless/serverless/compare/v2.27.1...v2.28.0) (2021-02-26)
 
 ### Features
@@ -10,14 +71,14 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug Fixes
 
-- **CLI:** Do not duplicate variables error information ([#9019](https://github.com/serverless/serverless/pull/9019)) ([2f62bdf](https://github.com/serverless/serverless/commit/2f62bdf2316a76a0dd4b855e178857ecff7c7402)) ([Mariusz Nowak](https://github.com/medikoo)
-- **Variables:** Ensure to not share source cache across resolutions ([#9019](https://github.com/serverless/serverless/pull/9019)) ([5ad1c19](https://github.com/serverless/serverless/commit/5ad1c19cc9a5601184883a916a29172eeb9c3789)) ([Mariusz Nowak](https://github.com/medikoo)
+- **CLI:** Do not duplicate variables error information ([#9019](https://github.com/serverless/serverless/pull/9019)) ([2f62bdf](https://github.com/serverless/serverless/commit/2f62bdf2316a76a0dd4b855e178857ecff7c7402)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Ensure to not share source cache across resolutions ([#9019](https://github.com/serverless/serverless/pull/9019)) ([5ad1c19](https://github.com/serverless/serverless/commit/5ad1c19cc9a5601184883a916a29172eeb9c3789)) ([Mariusz Nowak](https://github.com/medikoo))
 
 ### Maintenance Improvements
 
 - **CLI:**
-  - Require `variablesResolutionMode` to be resolved upfront ([#9014](https://github.com/serverless/serverless/pull/9014)) ([a488000](https://github.com/serverless/serverless/commit/a488000dc67c10026d010744bb29fca25f72f42b)) ([Mariusz Nowak](https://github.com/medikoo)
-  - Resolve `.env` files before intializing `Serverless` instance ([#9014](https://github.com/serverless/serverless/pull/9014)) ([a9e3a66](https://github.com/serverless/serverless/commit/a9e3a667355e91af7fb558eb551ed7d59a865527)) ([Mariusz Nowak](https://github.com/medikoo)
+  - Require `variablesResolutionMode` to be resolved upfront ([#9014](https://github.com/serverless/serverless/pull/9014)) ([a488000](https://github.com/serverless/serverless/commit/a488000dc67c10026d010744bb29fca25f72f42b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Resolve `.env` files before intializing `Serverless` instance ([#9014](https://github.com/serverless/serverless/pull/9014)) ([a9e3a66](https://github.com/serverless/serverless/commit/a9e3a667355e91af7fb558eb551ed7d59a865527)) ([Mariusz Nowak](https://github.com/medikoo))
 - Remove `bluebird` from `lib/plugins/create` ([#8996](https://github.com/serverless/serverless/issues/8996)) ([258543a](https://github.com/serverless/serverless/commit/258543ab6e1874ba41be3563346cd7b50993ac58)) ([Juanjo Diaz](https://github.com/juanjodiaz))
 
 ## [2.27.1](https://github.com/serverless/serverless/compare/v2.27.0...v2.27.1) (2021-02-25)
@@ -25,9 +86,9 @@ All notable changes to this project will be documented in this file. See [standa
 ### Bug Fixes
 
 - **Variables:**
-  - Fix nested sources resolution ([#9011](https://github.com/serverless/serverless/issues/9011)) ([99fd907](https://github.com/serverless/serverless/commit/99fd907abbe3d83f8db7bf3a1924da770bc18be8)) ([Mariusz Nowak](https://github.com/medikoo)
+  - Fix nested sources resolution ([#9011](https://github.com/serverless/serverless/issues/9011)) ([99fd907](https://github.com/serverless/serverless/commit/99fd907abbe3d83f8db7bf3a1924da770bc18be8)) ([Mariusz Nowak](https://github.com/medikoo))
   - Report with `null` not existing `file` sources ([#9008](https://github.com/serverless/serverless/issues/9008)) ([3ab81e5](https://github.com/serverless/serverless/commit/3ab81e5be94c69b90dc8487e321fb4cf7efc2c11)) ([Mariusz Nowak](https://github.com/medikoo))
-  - Fix unterminated variable resolution for some cases ([#9011](https://github.com/serverless/serverless/issues/9011)) ([cc5bfd5](https://github.com/serverless/serverless/commit/cc5bfd53ae2459e4d7ac1ec6314c030d39997958)) ([Mariusz Nowak](https://github.com/medikoo)
+  - Fix unterminated variable resolution for some cases ([#9011](https://github.com/serverless/serverless/issues/9011)) ([cc5bfd5](https://github.com/serverless/serverless/commit/cc5bfd53ae2459e4d7ac1ec6314c030d39997958)) ([Mariusz Nowak](https://github.com/medikoo))
   - Communicate with meaningful error not accessible `provider` properties ([#8992](https://github.com/serverless/serverless/issues/8992)) ([e5307b0](https://github.com/serverless/serverless/commit/e5307b05d31b7a80be80fc72e1829aead8762680)) ([Mariusz Nowak](https://github.com/medikoo))
   - Improve JS file resolution error handling ([#9008](https://github.com/serverless/serverless/issues/9008)) ([9ecc108](https://github.com/serverless/serverless/commit/9ecc1087653edfde9da400f496030dea0d6203ce)) ([Mariusz Nowak](https://github.com/medikoo))
 
