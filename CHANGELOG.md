@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.4](https://github.com/serverless/serverless/compare/v2.28.3...v2.28.4) (2021-03-03)
+
+### Bug Fixes
+
+- **Variables:** Ensure to not share property cache across resolutions ([#9057](https://github.com/serverless/serverless/issues/9057)) ([68f326e](https://github.com/serverless/serverless/commit/68f326e79f92f8a94ba73352cba40c85e08c10cf)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Variables:** Ensure to pass `isConfigurationResolved` to local instance ([#9057](https://github.com/serverless/serverless/issues/9057)) ([10e1dda](https://github.com/serverless/serverless/commit/10e1dda23b47cf439624c4602adce41a5c73fa51)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove `bluebird` from `lib/plugins/aws` ([#9054](https://github.com/serverless/serverless/issues/9054)) ([b11171c](https://github.com/serverless/serverless/commit/b11171c70c8f5597e2644f7ea8ec82a17a9eee29)) ([Juanjo Diaz](https://github.com/juanjodiaz))
+
 ### [2.28.3](https://github.com/serverless/serverless/compare/v2.28.2...v2.28.3) (2021-03-02)
 
 ### Bug Fixes
