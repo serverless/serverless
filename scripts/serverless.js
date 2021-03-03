@@ -141,7 +141,7 @@ const processSpanPromise = (async () => {
                 throw new ServerlessError(
                   `Cannot resolve ${path.basename(
                     configurationPath
-                  )}: "provider.stage" is not accessible ` +
+                  )}: "provider.stage" property is not accessible ` +
                     '(configured behind variables which cannot be resolved at this stage)'
                 );
               }
