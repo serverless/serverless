@@ -335,4 +335,19 @@ describe('Serverless [new tests]', () => {
       expect(result.serverless.service.custom.fromStageEnv).to.be.undefined;
     });
   });
+
+  describe('Old variables engine initialiation', () => {
+    let serverless;
+
+    before(async () => {
+      ({ serverless } = await runServerless({
+        fixture: 'aws',
+        cliArgs: ['package'],
+      }));
+    });
+
+    it('Ensure that instance is setup', async () => {
+      expect(serverless.variables).to.have.property('variableSyntax');
+    });
+  });
 });
