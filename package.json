@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@serverless/cli": "^1.5.2",
-    "@serverless/components": "^3.7.1",
+    "@serverless/components": "^3.7.2",
     "@serverless/enterprise-plugin": "^4.4.3",
     "@serverless/utils": "^3.1.0",
     "ajv": "^6.12.6",
