@@ -3,7 +3,6 @@
 /* eslint-disable no-unused-expressions */
 
 const chai = require('chai');
-const BbPromise = require('bluebird');
 const AwsProvider = require('../../../../../../lib/plugins/aws/provider');
 const Serverless = require('../../../../../../lib/Serverless');
 const CLI = require('../../../../../../lib/classes/CLI');
@@ -50,7 +49,7 @@ describe('#addCustomResourceToService()', () => {
   });
 
   it('should add one IAM role and the custom resources to the service', () =>
-    BbPromise.all([
+    Promise.all([
       // add the custom S3 resource
       addCustomResourceToService(provider, 's3', [
         ...iamRoleStatements,
@@ -241,7 +240,7 @@ describe('#addCustomResourceToService()', () => {
 
   it('should setup CloudWatch Logs when logs.frameworkLambda is true', () => {
     serverless.service.provider.logs = { frameworkLambda: true };
-    return BbPromise.all([
+    return Promise.all([
       // add the custom S3 resource
       addCustomResourceToService(provider, 's3', [
         ...iamRoleStatements,
@@ -336,7 +335,7 @@ describe('#addCustomResourceToService()', () => {
 
   it("should ensure function name doesn't extend maximum length", () => {
     serverless.service.service = 'some-unexpectedly-long-service-name';
-    return BbPromise.all([
+    return Promise.all([
       // add the custom S3 resource
       addCustomResourceToService(provider, 's3', [
         ...iamRoleStatements,
