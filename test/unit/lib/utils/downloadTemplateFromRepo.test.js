@@ -1,7 +1,6 @@
 'use strict';
 
 const sinon = require('sinon');
-const BbPromise = require('bluebird');
 const fse = require('fs-extra');
 const path = require('path');
 const os = require('os');
@@ -50,12 +49,12 @@ describe('downloadTemplateFromRepo', () => {
     const downloadTemplateFromRepoModule = proxyquire(
       '../../../../lib/utils/downloadTemplateFromRepo',
       {
-        'node-fetch': (url) => {
+        'node-fetch': async (url) => {
           if (url.indexOf('mybitbucket.server.ltd') > -1) {
             return fetchStub();
           }
 
-          return BbPromise.reject(Error('unknown server type'));
+          throw new Error('unknown server type');
         },
         'download': downloadStub,
         'child-process-ext/spawn': spawnStub,

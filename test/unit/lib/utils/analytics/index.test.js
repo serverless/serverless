@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const BbPromise = require('bluebird');
 const fse = require('fs-extra');
 const proxyquire = require('proxyquire');
 const { expect } = require('chai');
@@ -36,7 +35,7 @@ describe('analytics', () => {
         usedUrl = url;
         ++pendingRequests;
         if (pendingRequests > concurrentRequestsMax) concurrentRequestsMax = pendingRequests;
-        return new BbPromise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
           setTimeout(() => {
             switch (expectedState) {
               case 'success':
@@ -64,7 +63,7 @@ describe('analytics', () => {
 
   it('Should ignore missing cacheDirPath', () =>
     sendPending().then((sendPendingResult) => {
-      expect(sendPendingResult).to.be.null;
+      expect(sendPendingResult).to.be.undefined;
       return sendReport().then(() => {
         expect(usedUrl).to.equal(analyticsUrl);
         return fse.readdir(cacheDirPath).then((dirFilenames) => {
@@ -95,7 +94,7 @@ describe('analytics', () => {
     expectedState = 'networkError';
     expect(pendingRequests).to.equal(0);
     let resolveServerlessExecutionSpan;
-    const serverlessExecutionSpan = new BbPromise(
+    const serverlessExecutionSpan = new Promise(
       (resolve) => (resolveServerlessExecutionSpan = resolve)
     );
     return Promise.all([
@@ -156,7 +155,7 @@ describe('analytics', () => {
     expectedState = 'networkError';
     expect(pendingRequests).to.equal(0);
     let resolveServerlessExecutionSpan;
-    const serverlessExecutionSpan = new BbPromise(
+    const serverlessExecutionSpan = new Promise(
       (resolve) => (resolveServerlessExecutionSpan = resolve)
     );
     return Promise.all([
