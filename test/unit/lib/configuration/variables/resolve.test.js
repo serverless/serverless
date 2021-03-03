@@ -59,6 +59,8 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
     infiniteResolutionRecursion: '${sourceInfinite:}',
     sharedSourceResolution1: '${sourceShared:}',
     sharedSourceResolution2: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
+    sharedPropertyResolution1: '${sourceSharedProperty:}',
+    sharedPropertyResolution2: '${sourceProperty(sharedPropertyResolution1, sharedFinal)}',
   };
   let variablesMeta;
   const sources = {
@@ -135,6 +137,12 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
         sharedInner: '${sourceProperty(sharedSourceResolution1, sharedFinal)}',
       }),
     },
+    sourceSharedProperty: {
+      resolve: () => ({
+        sharedFinal: 'foo',
+        sharedInner: '${sourceProperty(sharedPropertyResolution2)}',
+      }),
+    },
   };
   before(async () => {
     variablesMeta = resolveMeta(configuration);
@@ -209,6 +217,15 @@ describe('test/unit/lib/configuration/variables/resolve.test.js', () => {
   // https://github.com/serverless/serverless/issues/9016
   it('should resolve same sources across resolution batches without shared caching', () => {
     expect(configuration.sharedSourceResolution1).to.deep.equal({
+      sharedFinal: 'foo',
+      sharedInner: 'foo',
+    });
+    expect(configuration.sharedSourceResolution2).to.equal('foo');
+  });
+
+  // https://github.com/serverless/serverless/issues/9047
+  it('should resolve same properties across resolution batches without shared caching', () => {
+    expect(configuration.sharedPropertyResolution1).to.deep.equal({
       sharedFinal: 'foo',
       sharedInner: 'foo',
     });
