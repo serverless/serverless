@@ -2,11 +2,13 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const proxyquire = require('proxyquire');
+const BbPromise = require('bluebird');
 const yaml = require('js-yaml');
 const path = require('path');
+const childProcess = BbPromise.promisifyAll(require('child_process'));
 const fs = require('fs');
 const fse = require('fs-extra');
+const PluginInstall = require('../../../../../lib/plugins/plugin/install');
 const Serverless = require('../../../../../lib/Serverless');
 const CLI = require('../../../../../lib/classes/CLI');
 const { expect } = require('chai');
@@ -15,12 +17,6 @@ const { getTmpDirPath } = require('../../../../utils/fs');
 chai.use(require('chai-as-promised'));
 
 describe('PluginInstall', () => {
-  const execStub = sinon.stub();
-  const PluginInstall = proxyquire('../../../../../lib/plugins/plugin/install', {
-    child_process: {
-      exec: execStub,
-    },
-  });
   let pluginInstall;
   let serverless;
   let consoleLogStub;
@@ -66,7 +62,7 @@ describe('PluginInstall', () => {
     let installStub;
 
     beforeEach(() => {
-      installStub = sinon.stub(pluginInstall, 'install').resolves();
+      installStub = sinon.stub(pluginInstall, 'install').returns(BbPromise.resolve());
     });
 
     afterEach(() => {
@@ -113,13 +109,15 @@ describe('PluginInstall', () => {
       pluginInstall.serverless.config.servicePath = servicePath;
       fse.ensureDirSync(servicePath);
       serverlessYmlFilePath = path.join(servicePath, 'serverless.yml');
-      validateStub = sinon.stub(pluginInstall, 'validate').resolves();
-      pluginInstallStub = sinon.stub(pluginInstall, 'pluginInstall').resolves();
+      validateStub = sinon.stub(pluginInstall, 'validate').returns(BbPromise.resolve());
+      pluginInstallStub = sinon.stub(pluginInstall, 'pluginInstall').returns(BbPromise.resolve());
       addPluginToServerlessFileStub = sinon
         .stub(pluginInstall, 'addPluginToServerlessFile')
-        .resolves();
-      installPeerDependenciesStub = sinon.stub(pluginInstall, 'installPeerDependencies').resolves();
-      getPluginsStub = sinon.stub(pluginInstall, 'getPlugins').resolves(plugins);
+        .returns(BbPromise.resolve());
+      installPeerDependenciesStub = sinon
+        .stub(pluginInstall, 'installPeerDependencies')
+        .returns(BbPromise.resolve());
+      getPluginsStub = sinon.stub(pluginInstall, 'getPlugins').returns(BbPromise.resolve(plugins));
       // save the cwd so that we can restore it later
       savedCwd = process.cwd();
       process.chdir(servicePath);
@@ -243,6 +241,7 @@ describe('PluginInstall', () => {
   describe('#pluginInstall()', () => {
     let servicePath;
     let packageJsonFilePath;
+    let npmInstallStub;
     let savedCwd;
 
     beforeEach(() => {
@@ -252,13 +251,13 @@ describe('PluginInstall', () => {
       pluginInstall.serverless.config.servicePath = servicePath;
       fse.ensureDirSync(servicePath);
       packageJsonFilePath = path.join(servicePath, 'package.json');
-      execStub.callsFake((cmd, opts, cb) => {
+      npmInstallStub = sinon.stub(childProcess, 'execAsync').callsFake(() => {
         const packageJson = serverless.utils.readFileSync(packageJsonFilePath, 'utf8');
         packageJson.devDependencies = {
           'serverless-plugin-1': 'latest',
         };
         serverless.utils.writeFileSync(packageJsonFilePath, packageJson);
-        cb();
+        return BbPromise.resolve();
       });
 
       // save the cwd so that we can restore it later
@@ -267,7 +266,7 @@ describe('PluginInstall', () => {
     });
 
     afterEach(() => {
-      execStub.resetHistory();
+      childProcess.execAsync.restore();
       process.chdir(savedCwd);
     });
 
@@ -282,22 +281,24 @@ describe('PluginInstall', () => {
 
       serverless.utils.writeFileSync(packageJsonFilePath, packageJson);
 
-      return expect(pluginInstall.pluginInstall()).to.be.fulfilled.then(() => {
-        expect(consoleLogStub.called).to.equal(true);
-        expect(
-          execStub.calledWith('npm install --save-dev serverless-plugin-1@latest', {
-            stdio: 'ignore',
-          })
-        ).to.equal(true);
-        expect(serverlessErrorStub.calledOnce).to.equal(false);
-      });
+      return expect(pluginInstall.pluginInstall()).to.be.fulfilled.then(() =>
+        Promise.all([
+          expect(consoleLogStub.called).to.equal(true),
+          expect(
+            npmInstallStub.calledWithExactly('npm install --save-dev serverless-plugin-1@latest', {
+              stdio: 'ignore',
+            })
+          ).to.equal(true),
+          expect(serverlessErrorStub.calledOnce).to.equal(false),
+        ])
+      );
     });
 
     it('should generate a package.json file in the service directory if not present', () =>
       expect(pluginInstall.pluginInstall()).to.be.fulfilled.then(() => {
         expect(consoleLogStub.called).to.equal(true);
         expect(
-          execStub.calledWith('npm install --save-dev serverless-plugin-1@latest', {
+          npmInstallStub.calledWithExactly('npm install --save-dev serverless-plugin-1@latest', {
             stdio: 'ignore',
           })
         ).to.equal(true);
@@ -525,6 +526,7 @@ describe('PluginInstall', () => {
     let pluginPath;
     let pluginPackageJsonFilePath;
     let pluginName;
+    let npmInstallStub;
     let savedCwd;
 
     beforeEach(() => {
@@ -540,13 +542,13 @@ describe('PluginInstall', () => {
       pluginPath = path.join(servicePath, 'node_modules', pluginName);
       fse.ensureDirSync(pluginPath);
       pluginPackageJsonFilePath = path.join(pluginPath, 'package.json');
-      execStub.callsFake((cmd, opts, cb) => cb());
+      npmInstallStub = sinon.stub(childProcess, 'execAsync').returns(BbPromise.resolve());
       savedCwd = process.cwd();
       process.chdir(servicePath);
     });
 
     afterEach(() => {
-      execStub.resetHistory();
+      childProcess.execAsync.restore();
       process.chdir(savedCwd);
     });
 
@@ -558,7 +560,7 @@ describe('PluginInstall', () => {
       });
       return expect(pluginInstall.installPeerDependencies()).to.be.fulfilled.then(() => {
         expect(
-          execStub.calledWith('npm install --save-dev some-package@"*"', {
+          npmInstallStub.calledWithExactly('npm install --save-dev some-package@"*"', {
             stdio: 'ignore',
           })
         ).to.equal(true);
@@ -571,7 +573,9 @@ describe('PluginInstall', () => {
         expect(fse.readJsonSync(servicePackageJsonFilePath)).to.be.deep.equal({
           devDependencies: {},
         });
-        expect(execStub.calledWithExactly('npm install', { stdio: 'ignore' })).to.equal(false);
+        expect(npmInstallStub.calledWithExactly('npm install', { stdio: 'ignore' })).to.equal(
+          false
+        );
       });
     });
   });
