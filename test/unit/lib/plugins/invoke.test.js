@@ -46,34 +46,32 @@ describe('Invoke', () => {
         expect(invoke.commands.invoke.commands.local.lifecycleEvents).to.contain('loadEnvVars');
       });
 
-      it('should set IS_LOCAL', () => {
-        invoke.hooks['invoke:local:loadEnvVars']();
-
-        expect(process.env.IS_LOCAL).to.equal('true');
-        expect(serverless.service.provider.environment.IS_LOCAL).to.equal('true');
-      });
+      it('should set IS_LOCAL', () =>
+        expect(invoke.hooks['invoke:local:loadEnvVars']()).to.be.fulfilled.then(() => {
+          expect(process.env.IS_LOCAL).to.equal('true');
+          expect(serverless.service.provider.environment.IS_LOCAL).to.equal('true');
+        }));
 
       it('should leave provider env variable untouched if already defined', () => {
         serverless.service.provider.environment = { IS_LOCAL: 'false' };
-        invoke.hooks['invoke:local:loadEnvVars']();
-
-        expect(serverless.service.provider.environment.IS_LOCAL).to.equal('false');
+        return expect(invoke.hooks['invoke:local:loadEnvVars']()).to.be.fulfilled.then(() => {
+          expect(serverless.service.provider.environment.IS_LOCAL).to.equal('false');
+        });
       });
 
       it('should accept a single env option', () => {
         invoke.options = { env: 'NAME=value' };
-        invoke.hooks['invoke:local:loadEnvVars']();
-
-        expect(process.env.NAME).to.equal('value');
+        return expect(invoke.hooks['invoke:local:loadEnvVars']()).to.be.fulfilled.then(() =>
+          expect(process.env.NAME).to.equal('value')
+        );
       });
 
       it('should accept multiple env options', () => {
         invoke.options = { env: ['NAME1=val1', 'NAME2=val2'] };
 
-        invoke.hooks['invoke:local:loadEnvVars']();
-
-        expect(process.env.NAME1).to.equal('val1');
-        expect(process.env.NAME2).to.equal('val2');
+        return expect(invoke.hooks['invoke:local:loadEnvVars']())
+          .to.be.fulfilled.then(() => expect(process.env.NAME1).to.equal('val1'))
+          .then(() => expect(process.env.NAME2).to.equal('val2'));
       });
     });
   });
