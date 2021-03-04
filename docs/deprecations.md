@@ -311,6 +311,6 @@ Please use `bin/serverless.js` instead. `bin/serverless` will be removed with v2
 
 Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT`
 
-Starting with v3.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, configValidationMode: warn
+Starting with v3.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, `configValidationMode: warn`
 
 Learn more about configuration validation here: http://slss.io/configuration-validation
