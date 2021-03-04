@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.7](https://github.com/serverless/serverless/compare/v2.28.6...v2.28.7) (2021-03-04)
+
+### Bug Fixes
+
+- **Packaging:** Fix packaging performance regression and increased number of observed `EMFILE` errors by reverting intensive `bluebird` related refactors as listed below
+  - Revert removal of `bluebird` from `lib/plugins/aws` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([55abaaf](https://github.com/serverless/serverless/commit/55abaaf6d5db17c4824c2d2d3dc3f540c682acea)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Revert removal of `bluebird` from `lib/plugins/create` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([ae2c92c](https://github.com/serverless/serverless/commit/ae2c92ced6f25cca6c6243daf90aa23bfe0d6278)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Revert removal of `bluebird` from `lib/plugins/interactiveCli` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([217b975](https://github.com/serverless/serverless/commit/217b9751ead901395467b7221f601f955329eb1b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Revert removal of `bluebird` from `lib/plugins/package` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([399d91b](https://github.com/serverless/serverless/commit/399d91b7e4508ae15c4beba1fec66c32c0367386)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Revert removal of `bluebird` from `lib/plugins/plugin` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([2a9f79f](https://github.com/serverless/serverless/commit/2a9f79f19e33c83ed4df46ecd305cc49ce1a8c15)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Revert removal of `bluebird` from `lib/classes` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([c41bd64](https://github.com/serverless/serverless/commit/c41bd64bb233b588dc615bc11c513f3e2c486084)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Revert removal of `bluebird` from `lib/utils` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([f62fc2e](https://github.com/serverless/serverless/commit/f62fc2ee9c39a15c2b3894c5fae185a530307506)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Revert removal of `bluebird` from `lib/plugins` ([#9074](https://github.com/serverless/serverless/pull/9074)) ([7a012d8](https://github.com/serverless/serverless/commit/7a012d83b975022e5ee60f5054229398a9424d13)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ### [2.28.6](https://github.com/serverless/serverless/compare/v2.28.5...v2.28.6) (2021-03-03)
 
 ### Bug Fixes
