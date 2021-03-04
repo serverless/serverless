@@ -248,6 +248,9 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
           cliArgs: ['package'],
           configExt: {
             provider: {
+              tags: {
+                snow: 'peas',
+              },
               iam: {
                 role: {
                   statements: [
@@ -344,7 +347,10 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
       it('should support `provider.iam.role.tags`', () => {
         const IamRoleLambdaExecution = naming.getRoleLogicalId();
         const iamResource = cfResources[IamRoleLambdaExecution];
-        expect(iamResource.Properties.Tags).to.eql([{ Key: 'sweet', Value: 'potato' }]);
+        expect(iamResource.Properties.Tags).to.eql([
+          { Key: 'snow', Value: 'peas' },
+          { Key: 'sweet', Value: 'potato' },
+        ]);
       });
     });
 
