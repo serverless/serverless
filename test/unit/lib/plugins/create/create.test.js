@@ -9,11 +9,9 @@ const Serverless = require('../../../../../lib/Serverless');
 const sinon = require('sinon');
 const walkDirSync = require('../../../../../lib/utils/fs/walkDirSync');
 const download = require('../../../../../lib/utils/downloadTemplateFromRepo');
-const { ServerlessError } = require('../../../../../lib/serverless-error');
 const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('sinon-chai'));
-chai.use(require('chai-as-promised'));
 const { expect } = require('chai');
 
 const templatesPath = path.resolve(__dirname, '../../../../../lib/plugins/create/templates');
@@ -114,7 +112,7 @@ describe('Create', () => {
 
     it('should throw error if user passed unsupported template', () => {
       create.options.template = 'invalid-template';
-      expect(create.create()).to.be.eventually.rejectedWith(ServerlessError);
+      expect(() => create.create()).to.throw(Error);
     });
 
     it('should overwrite the name for the service if user passed name', () => {
@@ -1083,7 +1081,7 @@ describe('Create', () => {
       const dirContent = fs.readdirSync(tmpDir);
 
       expect(dirContent).to.include('serverless.yml');
-      expect(create.create()).to.be.eventually.rejectedWith(ServerlessError);
+      expect(() => create.create()).to.throw(Error);
     });
 
     it('should throw error if the directory for the service already exists in cwd', () => {
@@ -1094,7 +1092,7 @@ describe('Create', () => {
       fse.mkdirsSync(path.join(tmpDir, create.options.path));
       process.chdir(tmpDir);
 
-      expect(create.create()).to.be.eventually.rejectedWith(ServerlessError);
+      expect(() => create.create()).to.throw(Error);
     });
 
     it('should copy "aws-nodejs" template from local path', () => {
