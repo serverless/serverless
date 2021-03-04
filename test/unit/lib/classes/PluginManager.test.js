@@ -1808,7 +1808,9 @@ describe('PluginManager', () => {
 
       const commandsArray = ['foo'];
 
-      expect(pluginManager.spawn(commandsArray)).to.be.rejectedWith(Error);
+      expect(() => {
+        pluginManager.spawn(commandsArray);
+      }).to.throw(Error);
     });
 
     it('should show warning in debug mode and when the given command has no hooks', () => {
@@ -1876,9 +1878,7 @@ describe('PluginManager', () => {
 
         const commandsArray = ['mycontainer'];
 
-        return expect(pluginManager.spawn(commandsArray)).to.be.rejectedWith(
-          /command ".*" not found/
-        );
+        return expect(() => pluginManager.spawn(commandsArray)).to.throw(/command ".*" not found/);
       });
 
       it('should spawn nested commands', () => {
