@@ -375,7 +375,6 @@ describe('AwsCompileStreamEvents', () => {
                   arn: 'arn:aws:dynamodb:region:account:table/bar/stream/2',
                   batchWindow: 15,
                   maximumRetryAttempts: 4,
-                  functionResponseType: ['ReportBatchItemFailures'],
                 },
               },
               {
@@ -467,10 +466,6 @@ describe('AwsCompileStreamEvents', () => {
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingDynamodbBar.Properties.MaximumRetryAttempts
         ).to.equal(4);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingDynamodbBar.Properties.FunctionResponseTypes
-        ).to.include.members(['ReportBatchItemFailures']);
 
         // event 3
         expect(
@@ -1117,7 +1112,6 @@ describe('AwsCompileStreamEvents', () => {
                   arn: 'arn:aws:kinesis:region:account:stream/bar',
                   batchWindow: 15,
                   maximumRetryAttempts: 5,
-                  functionResponseType: ['ReportBatchItemFailures'],
                 },
               },
               {
@@ -1237,10 +1231,6 @@ describe('AwsCompileStreamEvents', () => {
           awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
             .Resources.FirstEventSourceMappingKinesisBar.Properties.MaximumRetryAttempts
         ).to.equal(5);
-        expect(
-          awsCompileStreamEvents.serverless.service.provider.compiledCloudFormationTemplate
-            .Resources.FirstEventSourceMappingKinesisBar.Properties.FunctionResponseTypes
-        ).to.include.members(['ReportBatchItemFailures']);
 
         // event 3
         expect(
@@ -1632,6 +1622,38 @@ describe('AwsCompileStreamEvents #2', () => {
     it('should depend on provisioned alias', () => {
       const aliasLogicalId = naming.getLambdaProvisionedConcurrencyAliasLogicalId('foo');
       expect(eventSourceMappingResource.DependsOn).to.include(aliasLogicalId);
+    });
+  });
+  describe('with custom checkpoint enabled', () => {
+    let eventSourceMappingResource;
+
+    before(async () => {
+      const { awsNaming, cfTemplate } = await runServerless({
+        fixture: 'function',
+        configExt: {
+          functions: {
+            foo: {
+              events: [
+                {
+                  stream: {
+                    arn: 'arn:aws:kinesis:us-east-1:123456789012:stream/myStream',
+                    functionResponseType: 'ReportBatchItemFailures',
+                  },
+                },
+              ],
+            },
+          },
+        },
+        cliArgs: ['package'],
+      });
+      const streamLogicalId = awsNaming.getStreamLogicalId('foo', 'kinesis', 'myStream');
+      eventSourceMappingResource = cfTemplate.Resources[streamLogicalId];
+    });
+
+    it('should use functionResponseTypes', () => {
+      expect(eventSourceMappingResource.Properties.FunctionResponseTypes).to.include.members([
+        'ReportBatchItemFailures',
+      ]);
     });
   });
 });
