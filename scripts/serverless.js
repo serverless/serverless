@@ -232,7 +232,17 @@ const processSpanPromise = (async () => {
       try {
         await enterpriseErrorHandler(error, serverless.invocationId);
       } catch (enterpriseErrorHandlerError) {
-        process.stdout.write(`${enterpriseErrorHandlerError.stack}\n`);
+        const log = require('@serverless/utils/log');
+        const tokenizeException = require('../lib/utils/tokenize-exception');
+        const exceptionTokens = tokenizeException(enterpriseErrorHandlerError);
+        log(
+          `Publication to Serverless Dashboard errored with:\n${' '.repeat('Serverless: '.length)}${
+            exceptionTokens.isUserError || !exceptionTokens.stack
+              ? exceptionTokens.message
+              : exceptionTokens.stack
+          }`,
+          { color: 'orange' }
+        );
       }
       throw error;
     }
