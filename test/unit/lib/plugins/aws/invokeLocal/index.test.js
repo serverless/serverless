@@ -1540,9 +1540,23 @@ describe.skip('test/unit/lib/plugins/aws/invokeLocal/index.test.js', () => {
         // Replaces
         // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L365-L368
       });
-      it('TODO: should expose `--env` vars in environment variables', () => {
-        // Replaces
-        // https://github.com/serverless/serverless/blob/95c0bc09421b869ae1d8fc5dea42a2fce1c2023e/test/unit/lib/plugins/aws/invokeLocal/index.test.js#L1259-L1299
+      it('should expose `--env` vars in environment variables', async () => {
+        const response = await runServerless({
+          fixture: 'invocation',
+          cliArgs: [
+            'invoke',
+            'local',
+            '--function',
+            'async',
+            '-e',
+            'NAME=-Dname1=value1 -Dname2=value2',
+          ],
+        });
+        const stdoutAsJson = JSON.parse(response.stdoutData);
+        const stdoutBodyAsJson = JSON.parse(stdoutAsJson.body);
+        expect(stdoutBodyAsJson.env).to.include({
+          NAME: '-Dname1=value1 -Dname2=value2',
+        });
       });
       it('TODO: should expose default lambda environment variables', () => {
         // Replaces

@@ -66,13 +66,6 @@ describe('Invoke', () => {
         );
       });
 
-      it("should accept everything after the first '='", () => {
-        invoke.options = { env: 'NAME=-Dname1=value1 -Dname2=value2' };
-        return expect(invoke.hooks['invoke:local:loadEnvVars']()).to.be.fulfilled.then(() =>
-          expect(process.env.NAME).to.equal('-Dname1=value1 -Dname2=value2')
-        );
-      });
-
       it('should accept multiple env options', () => {
         invoke.options = { env: ['NAME1=val1', 'NAME2=val2'] };
 
