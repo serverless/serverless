@@ -6,9 +6,11 @@ const chai = require('chai');
 const overrideEnv = require('process-utils/override-env');
 const cjsResolve = require('ncjsm/resolve/sync');
 const spawn = require('child-process-ext/spawn');
+const overrideArgv = require('process-utils/override-argv');
 const resolveAwsEnv = require('@serverless/test/resolve-env');
 const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
+const resolveInput = require('../../../../lib/cli/resolve-input');
 const Create = require('../../../../lib/plugins/create/create');
 const ServerlessError = require('../../../../lib/serverless-error');
 
@@ -716,7 +718,10 @@ describe('PluginManager', () => {
 
       pluginManager.setCliOptions({ help: true });
 
-      expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError);
+      resolveInput.clear();
+      overrideArgv({ args: ['serverless', '--help'] }, () =>
+        expect(() => pluginManager.loadAllPlugins(servicePlugins)).to.not.throw(ServerlessError)
+      );
     });
 
     it('should pass through an error when trying to load a broken plugin', () => {

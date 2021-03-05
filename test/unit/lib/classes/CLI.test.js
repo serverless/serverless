@@ -6,8 +6,10 @@ const CLI = require('../../../../lib/classes/CLI');
 const fse = require('fs-extra');
 const spawn = require('child-process-ext/spawn');
 const resolveAwsEnv = require('@serverless/test/resolve-env');
+const overrideArgv = require('process-utils/override-argv');
 const stripAnsi = require('strip-ansi');
 const Serverless = require('../../../../lib/Serverless');
+const resolveInput = require('../../../../lib/cli/resolve-input');
 const { getTmpDirPath } = require('../../../utils/fs');
 const runServerless = require('../../../utils/run-serverless');
 
@@ -76,10 +78,14 @@ describe('CLI', () => {
       cli.log = logStub;
       cli.consoleLog = consoleLogStub;
 
-      cli.suppressLogIfPrintCommand({
-        commands: ['print'],
-        options: { help: true },
-      });
+      resolveInput.clear();
+      overrideArgv({ args: ['serverless', '--help'] }, () =>
+        cli.suppressLogIfPrintCommand({
+          commands: ['print'],
+          options: { help: true },
+        })
+      );
+      resolveInput.clear();
       cli.log('logged');
       cli.consoleLog('logged');
 
