@@ -267,6 +267,24 @@ functions:
           parallelizationFactor: 10
 ```
 
+## Setting the FunctionResponseTypes
+
+This configuration allows customers to automatically checkpoint records that have been successfully processed for Amazon Kinesis and Amazon DynamoDB Streams.
+
+For more information, read the [AWS release announcement](https://aws.amazon.com/about-aws/whats-new/2020/12/aws-lambda-launches-checkpointing-for-amazon-kinesis-and-amazon-dynamodb-streams/)
+
+Note: Serverless only sets this property if you explicitly add it to the stream configuration (see example below).
+
+```yml
+functions:
+  preprocess:
+    handler: handler.preprocess
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+          functionResponseType: ReportBatchItemFailures
+```
+
 ## Using a Kinesis Data Streams Enhanced Fan-out
 
 This configuration controls the optional usage of Kinesis data streams enhanced fan-out. It can only be used for Kinesis data stream events.
