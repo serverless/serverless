@@ -27,6 +27,7 @@ describe('test/unit/lib/configuration/variables/sources/self.test.js', () => {
       variablesMeta: resolveMeta(configuration),
       sources: { self: selfSource },
       options: {},
+      fulfilledSources: new Set(['self']),
     });
 
     expect(configuration).to.deep.equal({
@@ -57,6 +58,7 @@ describe('test/unit/lib/configuration/variables/sources/self.test.js', () => {
       variablesMeta,
       sources: { self: selfSource },
       options: {},
+      fulfilledSources: new Set(['self']),
     });
     expect(configuration).to.deep.equal({ foo: '${self:}' });
     expect(variablesMeta.get('foo').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');

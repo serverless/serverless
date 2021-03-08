@@ -23,6 +23,7 @@ describe('test/unit/lib/configuration/variables/sources/str-to-bool.test.js', ()
       variablesMeta,
       sources: { strToBool: strToBoolSource },
       options: {},
+      fulfilledSources: new Set(['strToBool']),
     });
   });
 

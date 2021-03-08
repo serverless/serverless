@@ -25,6 +25,7 @@ describe('test/unit/lib/configuration/variables/sources/opt.test.js', () => {
       variablesMeta,
       sources: { opt: optSource, self: selfSource },
       options: { foobar: 'elo' },
+      fulfilledSources: new Set(['opt']),
     });
   });
 

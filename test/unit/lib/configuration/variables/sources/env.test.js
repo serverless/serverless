@@ -26,6 +26,7 @@ describe('test/unit/lib/configuration/variables/sources/env.test.js', () => {
       variablesMeta,
       sources: { env: envSource, self: selfSource },
       options: {},
+      fulfilledSources: new Set(['env']),
     });
   });
 
