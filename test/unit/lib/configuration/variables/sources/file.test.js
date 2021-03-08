@@ -50,6 +50,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       variablesMeta,
       sources: { file: fileSource },
       options: {},
+      fulfilledSources: new Set(['file']),
     });
   });
 
@@ -158,6 +159,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       variablesMeta,
       sources: { file: fileSource },
       options: {},
+      fulfilledSources: new Set(['file']),
     });
     expect(variablesMeta.get('jsFunction').error.code).to.equal('VARIABLE_RESOLUTION_ERROR');
     expect(variablesMeta.get('jsPropertyFunction').error.code).to.equal(

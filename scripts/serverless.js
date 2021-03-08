@@ -110,13 +110,14 @@ const processSpanPromise = (async () => {
             configuration,
             variablesMeta,
             sources: {
-              env: { ...require('../lib/configuration/variables/sources/env'), isIncomplete: true },
+              env: require('../lib/configuration/variables/sources/env'),
               file: require('../lib/configuration/variables/sources/file'),
               opt: require('../lib/configuration/variables/sources/opt'),
               self: require('../lib/configuration/variables/sources/self'),
               strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
             },
             options,
+            fulfilledSources: new Set(['file', 'self', 'strToBool']),
           };
           await resolveVariables(resolverConfiguration);
 
@@ -177,7 +178,7 @@ const processSpanPromise = (async () => {
           // Resolve eventually still not resolved configuration variables
           // (now "env" source is assumed as complete)
 
-          delete resolverConfiguration.sources.env.isIncomplete;
+          resolverConfiguration.fulfilledSources.add('env');
           await resolveVariables(resolverConfiguration);
           hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
             configurationPath,
