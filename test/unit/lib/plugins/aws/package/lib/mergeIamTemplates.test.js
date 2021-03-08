@@ -263,6 +263,9 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
                     'arn:aws:iam::123456789012:u*',
                   ],
                   permissionBoundary: ['arn:aws:iam::123456789012:policy/XCompanyBoundaries'],
+                  tags: {
+                    sweet: 'potato',
+                  },
                 },
               },
               vpc: {
@@ -336,6 +339,12 @@ describe('lib/plugins/aws/package/lib/mergeIamTemplates.test.js', () => {
         expect(iamResource.Type).to.be.equal('AWS::Logs::LogGroup');
         expect(iamResource.Properties.RetentionInDays).to.be.equal(5);
         expect(iamResource.Properties.LogGroupName).to.be.equal(`/aws/lambda/${service}-dev-foo`);
+      });
+
+      it('should support `provider.iam.role.tags`', () => {
+        const IamRoleLambdaExecution = naming.getRoleLogicalId();
+        const iamResource = cfResources[IamRoleLambdaExecution];
+        expect(iamResource.Properties.Tags).to.eql([{ Key: 'sweet', Value: 'potato' }]);
       });
     });
 

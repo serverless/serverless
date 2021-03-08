@@ -202,6 +202,8 @@ provider:
               - ''
               - - 'arn:aws:s3:::'
                 - Ref: ServerlessDeploymentBucket
+      tags:
+        key: value
     deploymentRole: arn:aws:iam::XXXXXX:role/role # ARN of an IAM role for CloudFormation service. If specified, CloudFormation uses the role's credentials
   stackPolicy: # Optional CF stack policy. The example below allows updates to all resources except deleting/replacing EC2 instances (use with caution!)
     - Effect: Allow
