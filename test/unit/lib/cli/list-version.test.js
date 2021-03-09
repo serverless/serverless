@@ -12,5 +12,6 @@ describe('test/unit/lib/cli/list-version.test.js', () => {
       () => listVersion()
     );
     expect(stdoutData).to.have.string('Framework Core: ');
+    expect(stdoutData).to.have.string('SDK: ');
   });
 });
