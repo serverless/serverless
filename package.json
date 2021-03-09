@@ -28,8 +28,8 @@
     "@serverless/utils": "^3.1.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
-    "archiver": "^5.2.0",
-    "aws-sdk": "^2.856.0",
+    "archiver": "^5.3.0",
+    "aws-sdk": "^2.859.0",
     "bluebird": "^3.7.2",
     "boxen": "^5.0.0",
     "cachedir": "^2.3.0",
@@ -88,7 +88,7 @@
     "lint-staged": "^10.5.4",
     "log": "^6.0.0",
     "log-node": "^7.0.0",
-    "mocha": "^8.3.0",
+    "mocha": "^8.3.1",
     "mock-require": "^3.0.3",
     "nyc": "^15.1.0",
     "pkg": "^4.4.9",
@@ -100,7 +100,7 @@
     "sinon-chai": "^3.5.0",
     "standard-version": "^9.1.1",
     "strip-ansi": "^6.0.0",
-    "ws": "^7.4.3",
+    "ws": "^7.4.4",
     "xml2js": "^0.4.23"
   },
   "eslintConfig": {
