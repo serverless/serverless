@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.29.0](https://github.com/serverless/serverless/compare/v2.28.7...v2.29.0) (2021-03-09)
+
+### Features
+
+- **AWS IAM:**
+  - Allow `tags` parameter on lambda execution role ([#9039](https://github.com/serverless/serverless/issues/9039)) ([42a1cdb](https://github.com/serverless/serverless/commit/42a1cdb6f1b4ca90e9e7f43852672897cb9ec1f9)) ([Dmitry Shirokov](https://github.com/runk))
+  - Accept `accountId` as IAM policy principal ([#9082](https://github.com/serverless/serverless/pull/9082)) ([0f631f7](https://github.com/serverless/serverless/commit/0f631f7bd17285c89bf73aa7da788186cebb2d05)) ([Sam Lyon](https://github.com/blue-urban-sky))
+- **AWS Stream:** Add support for custom checkpoint ([#9056](https://github.com/serverless/serverless/issues/9056)) ([b2188a2](https://github.com/serverless/serverless/commit/b2188a20d935b2ae8fccf594c4bd39eddcb7ef8c)) ([Vishnu Prassad](https://github.com/imewish))
+
+### Bug Fixes
+
+- **AWS Deploy:** Warn when IAM policy does not allow to fetch lambda details ([#9041](https://github.com/serverless/serverless/issues/9041)) ([dea7b5a](https://github.com/serverless/serverless/commit/dea7b5a3c0b5b1208c44c0762566a0fdab298f83)) ([Tristan Rigaut](https://github.com/trigaut))
+- **CLI:** Fix dashboard error handler error reporting ([#9084](https://github.com/serverless/serverless/pull/9084)) ([aa9dc0a](https://github.com/serverless/serverless/commit/aa9dc0a8dc46c8dcb51a88c62d6337b8cc68f2b0)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS IAM:** Support CF functions for managed policies ([#9089](https://github.com/serverless/serverless/issues/9089)) ([5f5d2e5](https://github.com/serverless/serverless/commit/5f5d2e580e267ad8bbd34f29c4613ca751908992)) ([Dave Lowther](https://github.com/DaveLo))
+- **Variables:** Expose source resolution errors as non-user errors ([#9088](https://github.com/serverless/serverless/pull/9088)) ([5e2406b](https://github.com/serverless/serverless/commit/5e2406bea78b353fea10a45d657ae2a7789531bd)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Rely on `cli/is-help-request` util ([#9086](https://github.com/serverless/serverless/pull/9086)) ([c9087ec](https://github.com/serverless/serverless/commit/c9087ec4e659f2d1c894f814f6a0c54d0ddb6dcc)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Report Platform Client instead of SDK version ([#9092](https://github.com/serverless/serverless/issues/9092)) ([2b857c7](https://github.com/serverless/serverless/commit/2b857c7eb45e6543ca5afb5604542e8f76175910)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Variables:**
+  - Improve error message related to JS func resolver ([#9085](https://github.com/serverless/serverless/pull/9085)) ([b90538a](https://github.com/serverless/serverless/commit/b90538af08a51a5e2a3ec65d6d1bf8c51a54b9c3)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve source fulfillment handling ([#9088](https://github.com/serverless/serverless/pull/9088)) ([524c43d](https://github.com/serverless/serverless/commit/524c43df75606fdda0ec28c3370a0f743a9d1efa)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.28.7](https://github.com/serverless/serverless/compare/v2.28.6...v2.28.7) (2021-03-04)
 
 ### Bug Fixes
