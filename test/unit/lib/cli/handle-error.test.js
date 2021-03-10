@@ -23,6 +23,7 @@ describe('test/unit/lib/cli/handle-error.test.js', () => {
     expect(stdoutData).to.have.string('Node Version:');
     expect(stdoutData).to.have.string('Framework Version:');
     expect(stdoutData).to.have.string('Plugin Version:');
+    expect(stdoutData).to.have.string('SDK Version:');
     expect(stdoutData).to.have.string('Components Version:');
   });
 
