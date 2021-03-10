@@ -39,11 +39,6 @@ describe('PluginList', () => {
       expect(pluginList.commands.plugin.commands.list.lifecycleEvents).to.deep.equal(['list']);
     });
 
-    it('should have no option for the "list" sub-command', () => {
-      // eslint-disable-next-line no-unused-expressions
-      expect(pluginList.commands.plugin.commands.list.options).to.equal(undefined);
-    });
-
     it('should have a "plugin:list:list" hook', () => {
       expect(pluginList.hooks['plugin:list:list']).to.not.equal(undefined);
     });
