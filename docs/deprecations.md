@@ -17,6 +17,16 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="CONFIG_VALIDATION_MODE_DEFAULT"><div>&nbsp;</div></a>
+
+## `configValidationMode: error` will be new default`
+
+Deprecation code: `CONFIG_VALIDATION_MODE_DEFAULT`
+
+Starting with v3.0.0, Serverless will throw on configuration errors by default. This is changing from the previous default, `configValidationMode: warn`
+
+Learn more about configuration validation here: http://slss.io/configuration-validation
+
 <a name="AWS_API_GATEWAY_SCHEMAS"><div>&nbsp;</div></a>
 
 ## AWS API Gateway schemas
