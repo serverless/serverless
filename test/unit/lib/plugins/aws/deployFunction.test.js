@@ -911,4 +911,46 @@ describe('test/unit/lib/plugins/aws/deployFunction.test.js', () => {
       KMSKeyArn: 'arn:aws:kms:us-east-1:oldKey',
     });
   });
+
+  it("should surface request error if it's not about function not being found", async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        cliArgs: ['deploy', 'function', '--function', 'foo'],
+        lastLifecycleHookName: 'deploy:function:deploy',
+        awsRequestStubMap: {
+          ...awsRequestStubMap,
+          Lambda: {
+            ...awsRequestStubMap.Lambda,
+            getFunction: () => {
+              throw new Error('Some side error');
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejectedWith('Some side error');
+  });
+
+  it('should surface meaningful error if function is not yet deployed', async () => {
+    await expect(
+      runServerless({
+        fixture: 'function',
+        cliArgs: ['deploy', 'function', '--function', 'foo'],
+        lastLifecycleHookName: 'deploy:function:deploy',
+        awsRequestStubMap: {
+          ...awsRequestStubMap,
+          Lambda: {
+            ...awsRequestStubMap.Lambda,
+            getFunction: () => {
+              throw Object.assign(new Error('Function not found'), {
+                providerError: {
+                  code: 'ResourceNotFoundException',
+                },
+              });
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejectedWith('Please run "serverless deploy" to deploy your service');
+  });
 });
