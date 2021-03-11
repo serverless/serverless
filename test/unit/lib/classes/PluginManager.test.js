@@ -1808,14 +1808,12 @@ describe('PluginManager', () => {
   });
 
   describe('#spawn()', () => {
-    it('should throw an error when the given command is not available', () => {
+    it('should throw an error when the given command is not available', async () => {
       pluginManager.addPlugin(EntrypointPluginMock);
 
       const commandsArray = ['foo'];
 
-      expect(() => {
-        pluginManager.spawn(commandsArray);
-      }).to.throw(Error);
+      return expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(Error);
     });
 
     it('should show warning in debug mode and when the given command has no hooks', () => {
@@ -1878,12 +1876,14 @@ describe('PluginManager', () => {
     });
 
     describe('when invoking a container', () => {
-      it('should fail', () => {
+      it('should fail', async () => {
         pluginManager.addPlugin(ContainerPluginMock);
 
         const commandsArray = ['mycontainer'];
 
-        return expect(() => pluginManager.spawn(commandsArray)).to.throw(/command ".*" not found/);
+        return expect(pluginManager.spawn(commandsArray)).to.eventually.be.rejectedWith(
+          /command ".*" not found/
+        );
       });
 
       it('should spawn nested commands', () => {
