@@ -43,6 +43,16 @@ const processSpanPromise = (async () => {
       return;
     }
 
+    const ServerlessError = require('../lib/serverless-error');
+    const commandsSchema = require('../lib/cli/commands-schema');
+    const command = commands.join(' ');
+    const commandSchema = commandsSchema.get(command);
+    if (commandSchema && commandSchema.isHidden && commandSchema.noSupportNotice) {
+      throw new ServerlessError(
+        `Cannot run \`${command}\` command: ${commandSchema.noSupportNotice}`
+      );
+    }
+
     const uuid = require('uuid');
     const _ = require('lodash');
     const Serverless = require('../lib/Serverless');
@@ -72,7 +82,6 @@ const processSpanPromise = (async () => {
     let variablesMeta;
     if (configuration) {
       const path = require('path');
-      const ServerlessError = require('../lib/serverless-error');
       const resolveVariables = require('../lib/configuration/variables/resolve');
       const humanizePropertyPathKeys = require('../lib/configuration/variables/humanize-property-path-keys');
       const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
