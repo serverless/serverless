@@ -3,13 +3,10 @@
 /* eslint-disable no-unused-expressions */
 
 const _ = require('lodash');
-const BbPromise = require('bluebird');
 const chai = require('chai');
+const path = require('path');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
 const overrideEnv = require('process-utils/override-env');
 
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
@@ -51,37 +48,8 @@ describe('AwsProvider', () => {
       expect(typeof awsProvider.serverless).to.not.equal('undefined');
     });
 
-    it('should set AWS instance', () => {
-      expect(typeof awsProvider.sdk).to.not.equal('undefined');
-    });
-
     it('should set the provider property', () => {
       expect(awsProvider.provider).to.equal(awsProvider);
-    });
-
-    it('should have no AWS logger', () => {
-      expect(awsProvider.sdk.config.logger == null).to.be.true;
-    });
-
-    it('should set AWS logger', () => {
-      process.env.SLS_DEBUG = 'true';
-      const newAwsProvider = new AwsProvider(serverless, options);
-
-      expect(typeof newAwsProvider.sdk.config.logger).to.not.equal('undefined');
-    });
-
-    it('should set AWS proxy', () => {
-      process.env.proxy = 'http://a.b.c.d:n';
-      const newAwsProvider = new AwsProvider(serverless, options);
-
-      expect(typeof newAwsProvider.sdk.config.httpOptions.agent).to.not.equal('undefined');
-    });
-
-    it('should set AWS timeout', () => {
-      process.env.AWS_CLIENT_TIMEOUT = '120000';
-      const newAwsProvider = new AwsProvider(serverless, options);
-
-      expect(typeof newAwsProvider.sdk.config.httpOptions.timeout).to.not.equal('undefined');
     });
 
     describe('stage name validation', () => {
@@ -119,74 +87,6 @@ describe('AwsProvider', () => {
       });
     });
 
-    describe('certificate authority - environment variable', () => {
-      it('should set AWS ca single', () => {
-        process.env.ca = '-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----';
-        const newAwsProvider = new AwsProvider(serverless, options);
-
-        expect(typeof newAwsProvider.sdk.config.httpOptions.agent).to.not.equal('undefined');
-      });
-
-      it('should set AWS ca single and proxy', () => {
-        process.env.ca = '-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----';
-        process.env.proxy = 'http://a.b.c.d:n';
-
-        const newAwsProvider = new AwsProvider(serverless, options);
-
-        expect(typeof newAwsProvider.sdk.config.httpOptions.agent).to.not.equal('undefined');
-      });
-
-      it('should set AWS ca multiple', () => {
-        const certContents = '-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----';
-        process.env.ca = `${certContents},${certContents}`;
-        const newAwsProvider = new AwsProvider(serverless, options);
-
-        expect(typeof newAwsProvider.sdk.config.httpOptions.agent).to.not.equal('undefined');
-      });
-    });
-
-    describe('certificate authority - file', () => {
-      const certContents = '-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----';
-      const tmpdir = os.tmpdir();
-      let file1 = null;
-      let file2 = null;
-
-      beforeEach('Create CA Files and env vars', () => {
-        file1 = path.join(tmpdir, 'ca1.txt');
-        file2 = path.join(tmpdir, 'ca2.txt');
-        fs.writeFileSync(file1, certContents);
-        fs.writeFileSync(file2, certContents);
-      });
-
-      afterEach('CA File Cleanup', () => {
-        // delete files
-        fs.unlinkSync(file1);
-        fs.unlinkSync(file2);
-      });
-
-      it('should set AWS cafile single', () => {
-        process.env.cafile = file1;
-        const newAwsProvider = new AwsProvider(serverless, options);
-
-        expect(typeof newAwsProvider.sdk.config.httpOptions.agent).to.not.equal('undefined');
-      });
-
-      it('should set AWS cafile multiple', () => {
-        process.env.cafile = `${file1},${file2}`;
-        const newAwsProvider = new AwsProvider(serverless, options);
-
-        expect(typeof newAwsProvider.sdk.config.httpOptions.agent).to.not.equal('undefined');
-      });
-
-      it('should set AWS ca and cafile', () => {
-        process.env.ca = certContents;
-        process.env.cafile = file1;
-        const newAwsProvider = new AwsProvider(serverless, options);
-
-        expect(typeof newAwsProvider.sdk.config.httpOptions.agent).to.not.equal('undefined');
-      });
-    });
-
     describe('deploymentBucket configuration', () => {
       it('should do nothing if not defined', () => {
         serverless.service.provider.deploymentBucket = undefined;
@@ -204,674 +104,6 @@ describe('AwsProvider', () => {
         expect(newAwsProvider.serverless.service.provider.deploymentBucket).to.equal(
           'my.deployment.bucket'
         );
-      });
-    });
-  });
-
-  describe('#request()', () => {
-    beforeEach(() => {
-      const originalSetTimeout = setTimeout;
-      sinon
-        .stub(global, 'setTimeout')
-        .callsFake((cb, timeout) => originalSetTimeout(cb, Math.min(timeout || 0, 10)));
-    });
-
-    afterEach(() => {
-      global.setTimeout.restore();
-    });
-
-    it('should call correct aws method', () => {
-      // mocking S3 for testing
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        putObject() {
-          return {
-            send: (cb) => cb(null, { called: true }),
-          };
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider.serverless.service.environment = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {
-              profile: 'default',
-            },
-            regions: {},
-          },
-        },
-      };
-
-      return awsProvider.request('S3', 'putObject', {}).then((data) => {
-        expect(data.called).to.equal(true);
-      });
-    });
-
-    it('should handle subclasses', () => {
-      class DocumentClient {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        put() {
-          return {
-            send: (cb) => cb(null, { called: true }),
-          };
-        }
-      }
-
-      awsProvider.sdk = {
-        DynamoDB: {
-          DocumentClient,
-        },
-      };
-      awsProvider.serverless.service.environment = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {
-              profile: 'default',
-            },
-            regions: {},
-          },
-        },
-      };
-
-      return awsProvider.request('DynamoDB.DocumentClient', 'put', {}).then((data) => {
-        expect(data.called).to.equal(true);
-      });
-    });
-
-    it('should call correct aws method with a promise', () => {
-      // mocking API Gateway for testing
-      class FakeAPIGateway {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        getRestApis() {
-          return {
-            promise: () => BbPromise.resolve({ called: true }),
-          };
-        }
-      }
-      awsProvider.sdk = {
-        APIGateway: FakeAPIGateway,
-      };
-      awsProvider.serverless.service.environment = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {
-              profile: 'default',
-            },
-            regions: {},
-          },
-        },
-      };
-
-      return awsProvider.request('APIGateway', 'getRestApis', {}).then((data) => {
-        expect(data.called).to.equal(true);
-      });
-    });
-
-    it('should request to the specified region if region in options set', () => {
-      // mocking S3 for testing
-      class FakeCloudForamtion {
-        constructor(config) {
-          this.config = config;
-        }
-
-        describeStacks() {
-          return {
-            send: (cb) =>
-              cb(null, {
-                region: this.config.region,
-              }),
-          };
-        }
-      }
-      awsProvider.sdk = {
-        CloudFormation: FakeCloudForamtion,
-      };
-      awsProvider.serverless.service.environment = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {
-              profile: 'default',
-            },
-            regions: {},
-          },
-        },
-      };
-
-      return awsProvider
-        .request(
-          'CloudFormation',
-          'describeStacks',
-          { StackName: 'foo' },
-          { region: 'ap-northeast-1' }
-        )
-        .then((data) => {
-          expect(data).to.eql({ region: 'ap-northeast-1' });
-        });
-    });
-
-    it('should retry if error code is 429', (done) => {
-      const error = {
-        statusCode: 429,
-        retryable: true,
-        message: 'Testing retry',
-      };
-      const sendFake = {
-        send: sinon.stub(),
-      };
-      sendFake.send.onFirstCall().yields(error);
-      sendFake.send.yields(undefined, {});
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return sendFake;
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then((data) => {
-          expect(data).to.exist;
-          expect(sendFake.send).to.have.been.calledTwice;
-          done();
-        })
-        .catch(done);
-    });
-
-    it('should retry if error code is 429 and retryable is set to false', (done) => {
-      const error = {
-        statusCode: 429,
-        retryable: false,
-        message: 'Testing retry',
-      };
-      const sendFake = {
-        send: sinon.stub(),
-      };
-      sendFake.send.onFirstCall().yields(error);
-      sendFake.send.yields(undefined, {});
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return sendFake;
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then((data) => {
-          expect(data).to.exist;
-          expect(sendFake.send).to.have.been.calledTwice;
-          done();
-        })
-        .catch(done);
-    });
-
-    it('should not retry if error code is 403 and retryable is set to true', (done) => {
-      const error = {
-        statusCode: 403,
-        retryable: true,
-        message: 'Testing retry',
-      };
-      const sendFake = {
-        send: sinon.stub(),
-      };
-      sendFake.send.onFirstCall().yields(error);
-      sendFake.send.yields(undefined, {});
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return sendFake;
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then(() => done('Should not succeed'))
-        .catch(() => {
-          expect(sendFake.send).to.have.been.calledOnce;
-          done();
-        });
-    });
-
-    it('should reject errors', (done) => {
-      const error = {
-        statusCode: 500,
-        message: 'Some error message',
-      };
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return {
-            send(cb) {
-              cb(error);
-            },
-          };
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then(() => done('Should not succeed'))
-        .catch(() => done());
-    });
-
-    it('should use error message if it exists', (done) => {
-      const awsErrorResponse = {
-        message: 'Something went wrong...',
-        code: 'Forbidden',
-        region: null,
-        time: '2019-01-24T00:29:01.780Z',
-        requestId: 'DAF12C1111A62C6',
-        extendedRequestId: '1OnSExiLCOsKrsdjjyds31w=',
-        statusCode: 403,
-        retryable: false,
-        retryDelay: 13.433158364430508,
-      };
-
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return {
-            send(cb) {
-              cb(awsErrorResponse);
-            },
-          };
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then(() => done('Should not succeed'))
-        .catch((err) => {
-          expect(err.message).to.eql(awsErrorResponse.message);
-          done();
-        })
-        .catch(done);
-    });
-
-    it('should default to error code if error message is non-existent', (done) => {
-      const awsErrorResponse = {
-        message: null,
-        code: 'Forbidden',
-        region: null,
-        time: '2019-01-24T00:29:01.780Z',
-        requestId: 'DAF12C1111A62C6',
-        extendedRequestId: '1OnSExiLCOsKrsdjjyds31w=',
-        statusCode: 403,
-        retryable: false,
-        retryDelay: 13.433158364430508,
-      };
-
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return {
-            send(cb) {
-              cb(awsErrorResponse);
-            },
-          };
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then(() => done('Should not succeed'))
-        .catch((err) => {
-          expect(err.message).to.eql(awsErrorResponse.code);
-          done();
-        })
-        .catch(done);
-    });
-
-    it('should return ref to docs for missing credentials', (done) => {
-      const error = {
-        statusCode: 403,
-        message: 'Missing credentials in config',
-        originalError: { message: 'EC2 Metadata roleName request returned error' },
-      };
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return {
-            send(cb) {
-              cb(error);
-            },
-          };
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then(() => done('Should not succeed'))
-        .catch((err) => {
-          expect(err.message).to.contain('in our docs here:');
-          done();
-        })
-        .catch(done);
-    });
-
-    it('should not retry for missing credentials', (done) => {
-      const error = {
-        statusCode: 403,
-        message: 'Missing credentials in config',
-        originalError: { message: 'EC2 Metadata roleName request returned error' },
-      };
-      const sendFake = {
-        send: sinon.stub().yields(error),
-      };
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        error() {
-          return sendFake;
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider
-        .request('S3', 'error', {})
-        .then(() => done('Should not succeed'))
-        .catch((err) => {
-          expect(sendFake.send).to.have.been.calledOnce;
-          expect(err.message).to.contain('in our docs here:');
-          done();
-        })
-        .catch(done);
-    });
-
-    it('should enable S3 acceleration if CLI option is provided', () => {
-      // mocking S3 for testing
-      class FakeS3 {
-        constructor(credentials) {
-          this.credentials = credentials;
-        }
-
-        putObject() {
-          return {
-            send: (cb) => cb(null, { called: true }),
-          };
-        }
-      }
-      awsProvider.sdk = {
-        S3: FakeS3,
-      };
-      awsProvider.serverless.service.environment = {
-        vars: {},
-        stages: {
-          dev: {
-            vars: {
-              profile: 'default',
-            },
-            regions: {},
-          },
-        },
-      };
-
-      const enableS3TransferAccelerationStub = sinon
-        .stub(awsProvider, 'enableS3TransferAcceleration')
-        .resolves();
-
-      awsProvider.options['aws-s3-accelerate'] = true;
-      return awsProvider.request('S3', 'putObject', {}).then(() => {
-        expect(enableS3TransferAccelerationStub.calledOnce).to.equal(true);
-      });
-    });
-
-    describe('using the request cache', () => {
-      it('should call correct aws method', () => {
-        // mocking CF for testing
-        class FakeCF {
-          constructor(credentials) {
-            this.credentials = credentials;
-          }
-
-          describeStacks() {
-            return {
-              send: (cb) => cb(null, { called: true }),
-            };
-          }
-        }
-        awsProvider.sdk = {
-          CloudFormation: FakeCF,
-        };
-        awsProvider.serverless.service.environment = {
-          vars: {},
-          stages: {
-            dev: {
-              vars: {
-                profile: 'default',
-              },
-              regions: {},
-            },
-          },
-        };
-
-        return awsProvider
-          .request('CloudFormation', 'describeStacks', {}, { useCache: true })
-          .then((data) => {
-            expect(data.called).to.equal(true);
-          });
-      });
-
-      it('should request if same service, method and params but different region in option', () => {
-        const expectedResult = { called: true };
-        const sendStub = sinon.stub().yields(null, { called: true });
-        const requestSpy = sinon.spy(awsProvider, 'request');
-        class FakeCF {
-          constructor(credentials) {
-            this.credentials = credentials;
-          }
-
-          describeStacks() {
-            return {
-              send: sendStub,
-            };
-          }
-        }
-        awsProvider.sdk = {
-          CloudFormation: FakeCF,
-        };
-        const executeRequestWithRegion = (region) =>
-          awsProvider.request(
-            'CloudFormation',
-            'describeStacks',
-            { StackName: 'same-stack' },
-            {
-              useCache: true,
-              region,
-            }
-          );
-        const requests = [];
-        requests.push(BbPromise.try(() => executeRequestWithRegion('us-east-1')));
-        requests.push(BbPromise.try(() => executeRequestWithRegion('ap-northeast-1')));
-
-        return BbPromise.all(requests)
-          .then((results) => {
-            expect(Object.keys(results).length).to.equal(2);
-            results.forEach((result) => {
-              expect(result).to.deep.equal(expectedResult);
-            });
-            return expect(sendStub.callCount).to.equal(2);
-          })
-          .finally(() => {
-            requestSpy.restore();
-          });
-      });
-
-      it('should resolve to the same response with multiple parallel requests', () => {
-        const expectedResult = { called: true };
-        const sendStub = sinon.stub().yields(null, { called: true });
-        const requestSpy = sinon.spy(awsProvider, 'request');
-        class FakeCF {
-          constructor(credentials) {
-            this.credentials = credentials;
-          }
-
-          describeStacks() {
-            return {
-              send: sendStub,
-            };
-          }
-        }
-        awsProvider.sdk = {
-          CloudFormation: FakeCF,
-        };
-
-        awsProvider.serverless.service.environment = {
-          vars: {},
-          stages: {
-            dev: {
-              vars: {
-                profile: 'default',
-              },
-              regions: {},
-            },
-          },
-        };
-
-        const numTests = 1000;
-        const executeRequest = () =>
-          awsProvider.request('CloudFormation', 'describeStacks', {}, { useCache: true });
-        const requests = [];
-        for (let n = 0; n < numTests; n++) {
-          requests.push(BbPromise.try(() => executeRequest()));
-        }
-
-        return BbPromise.all(requests)
-          .then((results) => {
-            expect(Object.keys(results).length).to.equal(numTests);
-            results.forEach((result) => {
-              expect(result).to.deep.equal(expectedResult);
-            });
-            return BbPromise.join(
-              expect(sendStub).to.have.been.calledOnce,
-              expect(requestSpy).to.have.callCount(numTests)
-            );
-          })
-          .finally(() => {
-            requestSpy.restore();
-          });
-      });
-
-      describe('STS tokens', () => {
-        let newAwsProvider;
-        let originalProviderProfile;
-        let originalEnvironmentVariables;
-        const relevantEnvironment = {
-          AWS_SHARED_CREDENTIALS_FILE: getTmpFilePath('credentials'),
-        };
-
-        beforeEach(() => {
-          originalProviderProfile = serverless.service.provider.profile;
-          originalEnvironmentVariables = replaceEnv(relevantEnvironment);
-          serverless.utils.writeFileSync(
-            relevantEnvironment.AWS_SHARED_CREDENTIALS_FILE,
-            '[default]\n' +
-              'aws_access_key_id = 1111\n' +
-              'aws_secret_access_key = 22222\n' +
-              '\n' +
-              '[async]\n' +
-              'role_arn = arn:123\n' +
-              'source_profile = default'
-          );
-          newAwsProvider = new AwsProvider(serverless, options);
-        });
-
-        afterEach(() => {
-          replaceEnv(originalEnvironmentVariables);
-          serverless.service.provider.profile = originalProviderProfile;
-        });
-
-        it('should retain reference to STS tokens when updated via SDK', () => {
-          const expectedToken = '123';
-
-          serverless.service.provider.profile = 'async';
-          const startToken = newAwsProvider.getCredentials().credentials.sessionToken;
-          expect(startToken).to.not.equal(expectedToken);
-
-          class FakeCloudFormation {
-            constructor(credentials) {
-              // Not sure where the the SDK resolves the STS, so for the test it's here
-              this.credentials = credentials;
-              this.credentials.credentials.sessionToken = expectedToken;
-            }
-
-            describeStacks() {
-              return {
-                send: (cb) => cb(null, {}),
-              };
-            }
-          }
-
-          newAwsProvider.sdk = {
-            CloudFormation: FakeCloudFormation,
-          };
-
-          return newAwsProvider
-            .request(
-              'CloudFormation',
-              'describeStacks',
-              { StackName: 'foo' },
-              { region: 'ap-northeast-1' }
-            )
-            .then(() => {
-              // STS token is resolved after SDK call
-              const actualToken = newAwsProvider.getCredentials().credentials.sessionToken;
-              expect(expectedToken).to.eql(actualToken);
-            });
-        });
       });
     });
   });
@@ -1248,6 +480,56 @@ describe('AwsProvider', () => {
     });
   });
 
+  describe('#request()', () => {
+    let awsRequestStub;
+    let PAwsProvider;
+    let logStub;
+
+    beforeEach(() => {
+      logStub = sinon.stub();
+      awsRequestStub = sinon.stub().resolves();
+      awsRequestStub.memoized = sinon.stub().resolves();
+      const AwsProviderProxyquired = proxyquire
+        .noCallThru()
+        .load('../../../../../lib/plugins/aws/provider.js', {
+          '../../aws/request': awsRequestStub,
+          '@serverless/utils/log': logStub,
+        });
+      PAwsProvider = new AwsProviderProxyquired(serverless, options);
+    });
+
+    afterEach(() => {});
+
+    it('should trigger the expected AWS SDK invokation', () => {
+      return PAwsProvider.request('S3', 'getObject', {}).then(() => {
+        expect(awsRequestStub).to.have.been.calledOnce;
+      });
+    });
+
+    it('should use local cache when using {useCache: true}', () => {
+      return PAwsProvider.request('S3', 'getObject', {}, { useCache: true })
+        .then(() => PAwsProvider.request('S3', 'getObject', {}, { useCache: true }))
+        .then(() => {
+          expect(awsRequestStub).to.not.have.been.called;
+          expect(awsRequestStub.memoized).to.have.been.calledTwice;
+        });
+    });
+
+    it('should detect incompatible legacy use of aws request and print a debug warning', () => {
+      // Enable debug log
+      process.env.SLS_DEBUG = true;
+      return PAwsProvider.request('S3', 'getObject', {}, 'incompatible string option')
+        .then(() => {
+          expect(logStub).to.have.been.calledWith(
+            'WARNING: Inappropriate call of provider.request()'
+          );
+        })
+        .finally(() => {
+          process.env.SLS_DEBUG = false;
+        });
+    });
+  });
+
   describe('#getProfile()', () => {
     let newAwsProvider;
 
@@ -1474,45 +756,6 @@ describe('AwsProvider', () => {
     it('should return true when CLI option is provided', () => {
       awsProvider.options['aws-s3-accelerate'] = true;
       return expect(awsProvider.isS3TransferAccelerationEnabled()).to.equal(true);
-    });
-  });
-
-  describe('#canUseS3TransferAcceleration()', () => {
-    it('should return false by default with any input', () => {
-      awsProvider.options['aws-s3-accelerate'] = undefined;
-      return expect(
-        awsProvider.canUseS3TransferAcceleration('lambda', 'updateFunctionCode')
-      ).to.equal(false);
-    });
-    it('should return false by default with S3.upload too', () => {
-      awsProvider.options['aws-s3-accelerate'] = undefined;
-      return expect(awsProvider.canUseS3TransferAcceleration('S3', 'upload')).to.equal(false);
-    });
-    it('should return false by default with S3.putObject too', () => {
-      awsProvider.options['aws-s3-accelerate'] = undefined;
-      return expect(awsProvider.canUseS3TransferAcceleration('S3', 'putObject')).to.equal(false);
-    });
-    it('should return false when CLI option is provided but not an S3 upload', () => {
-      awsProvider.options['aws-s3-accelerate'] = true;
-      return expect(
-        awsProvider.canUseS3TransferAcceleration('lambda', 'updateFunctionCode')
-      ).to.equal(false);
-    });
-    it('should return true when CLI option is provided for S3.upload', () => {
-      awsProvider.options['aws-s3-accelerate'] = true;
-      return expect(awsProvider.canUseS3TransferAcceleration('S3', 'upload')).to.equal(true);
-    });
-    it('should return true when CLI option is provided for S3.putObject', () => {
-      awsProvider.options['aws-s3-accelerate'] = true;
-      return expect(awsProvider.canUseS3TransferAcceleration('S3', 'putObject')).to.equal(true);
-    });
-  });
-
-  describe('#enableS3TransferAcceleration()', () => {
-    it('should update the given credentials object to enable S3 acceleration', () => {
-      const credentials = {};
-      awsProvider.enableS3TransferAcceleration(credentials);
-      return expect(credentials.useAccelerateEndpoint).to.equal(true);
     });
   });
 
