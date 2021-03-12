@@ -71,7 +71,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         resolveInput.clear();
         data = overrideArgv(
           {
-            args: ['serverless', 'cmd1', 'cmd2', '-s', 'stage'],
+            args: ['serverless', 'package', '-s', 'stage'],
           },
           () => resolveInput()
         );
@@ -123,6 +123,45 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
 
     it('should recognize --c alias', async () => {
       expect(data.options.config).to.equal('conf');
+    });
+
+    it('should recognize --version', async () => {
+      resolveInput.clear();
+      data = overrideArgv(
+        {
+          args: ['serverless', '--version'],
+        },
+        () => resolveInput()
+      );
+      expect(data).to.deep.equal({ commands: [], options: { version: true } });
+    });
+
+    it('should recognize interactive setup', async () => {
+      resolveInput.clear();
+      data = overrideArgv(
+        {
+          args: ['serverless', '--app', 'foo'],
+        },
+        () => resolveInput()
+      );
+      expect(data).to.deep.equal({ commands: [], options: { app: 'foo' } });
+    });
+  });
+
+  describe('"help" command', () => {
+    let data;
+    before(() => {
+      resolveInput.clear();
+      data = overrideArgv(
+        {
+          args: ['serverless', 'help'],
+        },
+        () => resolveInput()
+      );
+    });
+
+    it('should recognize', async () => {
+      expect(data).to.deep.equal({ commands: ['help'], options: {} });
     });
   });
 });
