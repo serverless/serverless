@@ -261,7 +261,6 @@ describe('test/unit/lib/plugins/aws/invoke.test.js', () => {
           '--data',
           '{"inputKey":"inputValue"}',
           '--log',
-          'tail',
         ],
         awsRequestStubMap: {
           Lambda: {
