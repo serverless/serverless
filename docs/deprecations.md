@@ -17,6 +17,16 @@ disabledDeprecations:
   - '*' # To disable all deprecation messages
 ```
 
+<a name="CLI_OPTIONS_BEFORE_COMMAND"><div>&nbsp;</div></a>
+
+## CLI command options should follow command
+
+Deprecation code: `CLI_OPTIONS_BEFORE_COMMAND`
+
+Starting with v3.0.0, Serverless will not support putting options before command, e.g. `sls -v deploy` will no longer be recognized as `deploy` command.
+
+Ensure to always format CLI command as `sls [command..] [options...]`
+
 <a name="CONFIG_VALIDATION_MODE_DEFAULT"><div>&nbsp;</div></a>
 
 ## `configValidationMode: error` will be new default`
