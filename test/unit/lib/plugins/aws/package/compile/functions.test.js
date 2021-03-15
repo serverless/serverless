@@ -237,15 +237,15 @@ describe('AwsCompileFunctions', () => {
         fixture: 'function',
         configExt: {
           provider: {
-            role: 'arn:role-a',
-            iam: { role: 'arn:role-b' },
+            role: 'role-a',
+            iam: { role: 'role-b' },
           },
         },
         cliArgs: ['package'],
       });
 
       expect(cfTemplate.Resources.FooLambdaFunction.Properties.Role).to.eql({
-        'Fn::GetAtt': ['arn:role-b', 'Arn'],
+        'Fn::GetAtt': ['role-b', 'Arn'],
       });
     });
 
