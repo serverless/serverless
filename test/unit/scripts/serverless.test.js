@@ -12,12 +12,12 @@ const serverlessPath = path.resolve(__dirname, '../../../scripts/serverless.js')
 const fixturesPath = path.resolve(__dirname, '../../fixtures');
 
 describe('test/unit/scripts/serverless.test.js', () => {
-  it('Should display version when "--version" option', async () => {
+  it('should display version when "--version" option', async () => {
     const output = String((await spawn('node', [serverlessPath, '-v'])).stdoutBuffer);
     expect(output).to.include(`Framework Core: ${version}`);
   });
 
-  it('Invalid configuration should not prevent help output', async () => {
+  it('should not prevent help output with invalid service configuration', async () => {
     const output = String(
       (
         await spawn('node', [serverlessPath, '--help'], {
@@ -28,7 +28,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     expect(output).to.include('You can run commands with');
   });
 
-  it('Invalid configuration should be reported when no help output', async () => {
+  it('should report with an error invalid configuration', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: path.resolve(fixturesPath, 'configSyntaxError'),
@@ -40,7 +40,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     }
   });
 
-  it('Should handle exceptions', async () => {
+  it('should handle exceptions', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: path.resolve(fixturesPath, 'exception'),
@@ -51,7 +51,8 @@ describe('test/unit/scripts/serverless.test.js', () => {
       expect(String(error.stdoutBuffer)).to.include('Your Environment Information');
     }
   });
-  it('Should handle uncaught exceptions', async () => {
+
+  it('should handle uncaught exceptions', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: path.resolve(fixturesPath, 'uncaughtException'),
@@ -63,7 +64,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     }
   });
 
-  it('Should handle local serverless installation', async () => {
+  it('should handle local serverless installation', async () => {
     const output = String(
       (
         await spawn('node', [serverlessPath, '--help'], {
@@ -74,7 +75,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     expect(output).to.include('Running "serverless" installed locally');
   });
 
-  it('Should resolve variables', async () => {
+  it('should resolve variables', async () => {
     expect(
       String(
         (
@@ -86,7 +87,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     ).to.include('nestedInPrototype: bar-in-prototype');
   });
 
-  it('Should rejected unresolved "provider" section', async () => {
+  it('should rejected unresolved "provider" section', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (await fixturesEngine.setup('aws', { configExt: { provider: '${foo:bar}' } }))
@@ -99,7 +100,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     }
   });
 
-  it('Should rejected unresolved "provider.stage" property', async () => {
+  it('should rejected unresolved "provider.stage" property', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
@@ -115,7 +116,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     }
   });
 
-  it('Should load env variables from dotenv files', async () => {
+  it('should load env variables from dotenv files', async () => {
     const { servicePath } = await fixturesEngine.setup('aws', {
       configExt: {
         useDotenv: true,
@@ -130,7 +131,7 @@ describe('test/unit/scripts/serverless.test.js', () => {
     ).to.include('fromDefaultEnv: valuefromdefault');
   });
 
-  it('Should reject unresolved "plugins" property', async () => {
+  it('should reject unresolved "plugins" property', async () => {
     try {
       await spawn('node', [serverlessPath, 'print'], {
         cwd: (
