@@ -75,6 +75,17 @@ describe('test/unit/scripts/serverless.test.js', () => {
     expect(output).to.include('Running "serverless" installed locally');
   });
 
+  it('should handle no service related commands', async () => {
+    const output = String(
+      (
+        await spawn('node', [serverlessPath, 'plugin', 'list'], {
+          cwd: path.resolve(fixturesPath, 'configSyntaxError'),
+        })
+      ).stdoutBuffer
+    );
+    expect(output).to.include('To install a plugin run');
+  });
+
   it('should resolve variables', async () => {
     expect(
       String(
