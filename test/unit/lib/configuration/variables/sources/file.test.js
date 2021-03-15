@@ -29,10 +29,14 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       jsFilePromiseRejected: '${file(file-promise-rejected.js)}',
       jsFilePromiseRejectedNonError: '${file(file-promise-rejected-non-error.js)}',
       jsFileFunctionErrored: '${file(file-function-errored.js)}',
+      jsFileFunctionAccessUnresolvableProperty:
+        '${file(file-function-access-unresolvable-property.js)}',
       jsFileFunctionErroredNonError: '${file(file-function-errored-non-error.js)}',
       jsFilePropertyFunctionErrored: '${file(file-property-function-errored.js):property}',
       jsFilePropertyFunctionErroredNonError:
         '${file(file-property-function-errored-non-error.js):property}',
+      jsFilePropertyFunctionAccessUnresolvableProperty:
+        '${file(file-property-function-access-unresolvable-property.js):property}',
       notFile: '${file(dir.yaml)}',
       noParams: '${file:}',
       noParams2: '${file():}',
@@ -42,6 +46,7 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
       invalidJs: '${file(invalid.js)}',
       invalidJs2: '${file(invalid2.js)}',
       nonStandardExt: '${file(non-standard.ext)}',
+      unresolvable: '${unknown:}',
     };
     variablesMeta = resolveMeta(configuration);
     await resolve({
@@ -91,6 +96,17 @@ describe('test/unit/lib/configuration/variables/sources/file.test.js', () => {
     // .trim() as depending on local .git settings and OS (Windows or other)
     // checked out fixture may end with differen type of EOL (\n on linux, and \r\n on Windows)
     expect(configuration.nonStandardExt.trim()).to.equal('result: non-standard'.trim()));
+
+  it('should mark as unresolved if function crashes with misisng property dependency', () => {
+    const propertyMeta = variablesMeta.get('jsFileFunctionAccessUnresolvableProperty');
+    if (propertyMeta.error) throw propertyMeta.error;
+    expect(propertyMeta).to.have.property('variables');
+  });
+  it('should mark as unresolved if property function crashes with misisng property dependency', () => {
+    const propertyMeta = variablesMeta.get('jsFilePropertyFunctionAccessUnresolvableProperty');
+    if (propertyMeta.error) throw propertyMeta.error;
+    expect(propertyMeta).to.have.property('variables');
+  });
 
   it('should report with an error address argument on primitive content', () =>
     expect(variablesMeta.get('primitiveAddress').error.code).to.equal('VARIABLE_RESOLUTION_ERROR'));
