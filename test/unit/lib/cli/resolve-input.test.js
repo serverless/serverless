@@ -38,7 +38,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
     });
 
     it('should recognize --help as boolean', async () => {
-      expect(data.options.version).to.equal(true);
+      expect(data.options.help).to.equal(true);
     });
 
     it('should recognize --config', async () => {
@@ -162,6 +162,26 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
 
     it('should recognize', async () => {
       expect(data).to.deep.equal({ commands: ['help'], options: {} });
+    });
+  });
+
+  describe('multiple handling', () => {
+    let data;
+    before(() => {
+      resolveInput.clear();
+      data = overrideArgv(
+        {
+          args: ['serverless', 'invoke', 'local', '--env', 'foo=bar', '--env', 'bar=baz'],
+        },
+        () => resolveInput()
+      );
+    });
+
+    it('should recognize multiple env options', async () => {
+      expect(data).to.deep.equal({
+        commands: ['invoke', 'local'],
+        options: { env: ['foo=bar', 'bar=baz'] },
+      });
     });
   });
 });
