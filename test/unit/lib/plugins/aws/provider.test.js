@@ -482,7 +482,7 @@ describe('AwsProvider', () => {
 
   describe('#request()', () => {
     let awsRequestStub;
-    let PAwsProvider;
+    let awsProviderProxied;
     let logStub;
 
     beforeEach(() => {
@@ -495,20 +495,21 @@ describe('AwsProvider', () => {
           '../../aws/request': awsRequestStub,
           '@serverless/utils/log': logStub,
         });
-      PAwsProvider = new AwsProviderProxyquired(serverless, options);
+      awsProviderProxied = new AwsProviderProxyquired(serverless, options);
     });
 
     afterEach(() => {});
 
     it('should trigger the expected AWS SDK invokation', () => {
-      return PAwsProvider.request('S3', 'getObject', {}).then(() => {
+      return awsProviderProxied.request('S3', 'getObject', {}).then(() => {
         expect(awsRequestStub).to.have.been.calledOnce;
       });
     });
 
     it('should use local cache when using {useCache: true}', () => {
-      return PAwsProvider.request('S3', 'getObject', {}, { useCache: true })
-        .then(() => PAwsProvider.request('S3', 'getObject', {}, { useCache: true }))
+      return awsProviderProxied
+        .request('S3', 'getObject', {}, { useCache: true })
+        .then(() => awsProviderProxied.request('S3', 'getObject', {}, { useCache: true }))
         .then(() => {
           expect(awsRequestStub).to.not.have.been.called;
           expect(awsRequestStub.memoized).to.have.been.calledTwice;
@@ -518,7 +519,8 @@ describe('AwsProvider', () => {
     it('should detect incompatible legacy use of aws request and print a debug warning', () => {
       // Enable debug log
       process.env.SLS_DEBUG = true;
-      return PAwsProvider.request('S3', 'getObject', {}, 'incompatible string option')
+      return awsProviderProxied
+        .request('S3', 'getObject', {}, 'incompatible string option')
         .then(() => {
           expect(logStub).to.have.been.calledWith(
             'WARNING: Inappropriate call of provider.request()'
