@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.30.1](https://github.com/serverless/serverless/compare/v2.30.0...v2.30.1) (2021-03-16)
+
+### Bug Fixes
+
+- **AWS Credentials:** Fix credentials resolution ([#9121](https://github.com/serverless/serverless/pull/9121) & [#9124](https://github.com/serverless/serverless/pull/9141)) ([6f8b5b4](https://github.com/serverless/serverless/commit/6f8b5b41ebfd173d33e2ad9717f8727cc0592915) & [41df6fb](https://github.com/serverless/serverless/commit/41df6fbee2705307ad7b44f614d70b5d801e0114)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS EventBridge:** Clarify CF functions support for `eventBus` ([5183620](https://github.com/serverless/serverless/commit/5183620e9e4795c3ab07d30e7386d9360a2d7eb7)) ([#9118](https://github.com/serverless/serverless/pull/9118)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Lambda:** Ensure correct schema for `vpc` definition ([#9120](https://github.com/serverless/serverless/pull/9120)) ([4cd629a](https://github.com/serverless/serverless/commit/4cd629ac44f5a1a1442d7245878df6b361a94973)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
 ## [2.30.0](https://github.com/serverless/serverless/compare/v2.29.0...v2.30.0) (2021-03-16)
 
 ### Features
