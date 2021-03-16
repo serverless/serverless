@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.30.2](https://github.com/serverless/serverless/compare/v2.30.1...v2.30.2) (2021-03-16)
+
+### Bug Fixes
+
+- **Plugins:** Bring back `provider.sdk` property, to not break plugins ([#9127](https://github.com/serverless/serverless/pull/9127)) ([3e983f3](https://github.com/serverless/serverless/commit/3e983f347a10601e5dc5b1e6c19ae2822c94f682)) ([Mariusz Nowak](https://github.com/medikoo))
+
 ### [2.30.1](https://github.com/serverless/serverless/compare/v2.30.0...v2.30.1) (2021-03-16)
 
 ### Bug Fixes
