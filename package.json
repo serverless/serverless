@@ -35,7 +35,7 @@
     "cachedir": "^2.3.0",
     "chalk": "^4.1.0",
     "child-process-ext": "^2.1.1",
-    "ci-info": "^2.0.0",
+    "ci-info": "^3.1.1",
     "d": "^1.0.1",
     "dayjs": "^1.10.4",
     "decompress": "^4.2.1",
