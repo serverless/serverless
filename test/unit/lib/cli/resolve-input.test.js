@@ -152,7 +152,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ commands: [], options: { version: true } });
+      expect(data).to.deep.equal({ commands: [], options: { version: true }, isHelpRequest: true });
     });
 
     it('should recognize interactive setup', async () => {
@@ -167,20 +167,68 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
     });
   });
 
-  describe('"help" command', () => {
-    let data;
-    before(() => {
+  describe('isHelpRequest', () => {
+    it('should not mark regular command', async () => {
       resolveInput.clear();
-      data = overrideArgv(
+      const data = overrideArgv(
+        {
+          args: ['serverless', 'package'],
+        },
+        () => resolveInput()
+      );
+      expect(data).to.deep.equal({ commands: ['package'], options: {} });
+    });
+
+    it('should recognize "--help"', async () => {
+      resolveInput.clear();
+      const data = overrideArgv(
+        {
+          args: ['serverless', '--help'],
+        },
+        () => resolveInput()
+      );
+      expect(data).to.deep.equal({ commands: [], options: { help: true }, isHelpRequest: true });
+    });
+
+    it('should recognize command "--help"', async () => {
+      resolveInput.clear();
+      const data = overrideArgv(
+        {
+          args: ['serverless', 'package', '--help'],
+        },
+        () => resolveInput()
+      );
+      expect(data).to.deep.equal({
+        commands: ['package'],
+        options: { help: true },
+        isHelpRequest: true,
+      });
+    });
+
+    it('should recognize "--help-interactive"', async () => {
+      resolveInput.clear();
+      const data = overrideArgv(
+        {
+          args: ['serverless', '--help-interactive'],
+        },
+        () => resolveInput()
+      );
+      expect(data).to.deep.equal({
+        commands: [],
+        options: { 'help-interactive': true },
+        isHelpRequest: true,
+      });
+    });
+
+    it('should recognize "help" command', async () => {
+      resolveInput.clear();
+      const data = overrideArgv(
         {
           args: ['serverless', 'help'],
         },
         () => resolveInput()
       );
-    });
-
-    it('should recognize', async () => {
-      expect(data).to.deep.equal({ commands: ['help'], options: {} });
+      expect(data).to.deep.equal({ commands: ['help'], options: {}, isHelpRequest: true });
     });
   });
 
