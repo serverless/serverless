@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.30.0](https://github.com/serverless/serverless/compare/v2.29.0...v2.30.0) (2021-03-16)
+
+### Features
+
+- **Config Schema:** Announce that crashing on error will become default ([#9066](https://github.com/serverless/serverless/pull/9066)) ([6537a5e](https://github.com/serverless/serverless/commit/6537a5e48dd4f6846f4ba41bb6c4542ea0c0117d)) ([yumei](https://github.com/yumeixox))
+
+### Bug Fixes
+
+- **AWS Deploy:** Fix `deploy function` command error handling ([#9102](https://github.com/serverless/serverless/pull/9102)) ([aa7b66a](https://github.com/serverless/serverless/commit/aa7b66a66c199c236bedfbc3b3aab39acb0eb6ad)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS IAM:**
+  - Accept `arn:${AWS::Partition}` in function roles ([#9103](https://github.com/serverless/serverless/issues/9103)) ([e77a00d](https://github.com/serverless/serverless/commit/e77a00dfff734ccb74a7ca77ef92135c4f4dc06b)) ([coyoteecd](https://github.com/coyoteecd))
+  - Allow `iam.role` to use `awsLambdaRole` definition ([#9094](https://github.com/serverless/serverless/issues/9094)) ([82bf35c](https://github.com/serverless/serverless/commit/82bf35c1b9abd81fe52cdc7fd57b63cab4cecc6e)) ([Yahia Kerim](https://github.com/yahiakr))
+- **AWS Local Invocation:** Support `env` vars with `=` in value ([#9079](https://github.com/serverless/serverless/issues/9079)) ([ab8529c](https://github.com/serverless/serverless/commit/ab8529cb24d63edba798ea6fba3d783f256d3998)) ([terrybondy](https://github.com/terrybondy) & [lewgordon](https://github.com/lewgordon))
+- **Variables:** Retry JS function resolvers on unresolved dependencies ([#9110](https://github.com/serverless/serverless/pull/9110)) ([68de8bd](https://github.com/serverless/serverless/commit/68de8bdeed0545e6868c72806340e96f90f808cf)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:**
+  - Improve handling of container commands ([#9111](https://github.com/serverless/serverless/pull/9111)) ([6ec463c](https://github.com/serverless/serverless/commit/6ec463cbe7f0bc6a7827a504175f2c3aae9bb8d6)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Output "Plugin: " prefix only for external plugin comands ([#9111](https://github.com/serverless/serverless/pull/9111)) ([acf720c](https://github.com/serverless/serverless/commit/acf720cdefd65508fc0e5183271cff03009b7441)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Properly report SDK version when handling errors ([#9097](https://github.com/serverless/serverless/pull/9097)) ([a79473d](https://github.com/serverless/serverless/commit/a79473d8b1dac5c4da1473dec4b02ba192e696ca)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Recognize `--stage` & `--region` on every AWS service command ([#9111](https://github.com/serverless/serverless/pull/9111)) ([bfde219](https://github.com/serverless/serverless/commit/bfde21907be3508350bf2487d2ef8bc69be695ad)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Minimize try/catch wrap ([#9102](https://github.com/serverless/serverless/pull/9102)) ([a7d2cf0](https://github.com/serverless/serverless/commit/a7d2cf060514618d9caf48a55dfd56f371f19ca6)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:**
+  - Add Dashboard specific options to commands schema ([#9111](https://github.com/serverless/serverless/pull/9111)) ([ed553a7](https://github.com/serverless/serverless/commit/ed553a75267de5399809f2e9c848c60537e41fe2)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Generalize handling of not supported commands ([#9111](https://github.com/serverless/serverless/pull/9111)) ([8b301dc](https://github.com/serverless/serverless/commit/8b301dce9c06f9ef463f9f3572a02d0de8d3539d)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Recognize interactive setup command in commands schema ([#9111](https://github.com/serverless/serverless/pull/9111)) ([b9afc14](https://github.com/serverless/serverless/commit/b9afc144bf0aea4e20d7996df5d8c52430f39b23)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Resolve commands and options by schema ([#9111](https://github.com/serverless/serverless/pull/9111)) ([fe663ea](https://github.com/serverless/serverless/commit/fe663ead50ff6925fb09207492a188f5f5bbda7e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Seclude schema of core commands ([#9111](https://github.com/serverless/serverless/pull/9111)) ([14a2640](https://github.com/serverless/serverless/commit/14a2640bd9e65e357f606635a15ce0b07625b3aa)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Schema for `@serverless/enterprise-plugin` commands ([#9111](https://github.com/serverless/serverless/pull/9111)) ([116fe85](https://github.com/serverless/serverless/commit/116fe85fbeac0408be6c6f5761573d5af340e8f1)) ([Mariusz Nowak](https://github.com/medikoo))
+- Refactor `pluginManager.invoke` to async/await ([#9111](https://github.com/serverless/serverless/pull/9111)) ([15b5a11](https://github.com/serverless/serverless/commit/15b5a11ecd7cf4b83442ca0df161d74c9bdbc8e2)) ([Mariusz Nowak](https://github.com/medikoo))
+- Refactor `pluginManager.spawn` to async/await ([#9111](https://github.com/serverless/serverless/pull/9111)) ([87b8d01](https://github.com/serverless/serverless/commit/87b8d019c200caebbd0047e15b2e1e9f1faa988f)) ([Mariusz Nowak](https://github.com/medikoo))
+- Extend `generatePayload` ([#9078](https://github.com/serverless/serverless/pull/9078)) ([f6292b2](https://github.com/serverless/serverless/commit/f6292b2d4912e04ff79b2565fd0a57ced47ca0c1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Seclude AWS request util from internals ([#8850](https://github.com/serverless/serverless/issues/8850)) ([5fb85d3](https://github.com/serverless/serverless/commit/5fb85d36c8ee965df691b8f2dfddeaab8315c77d)) ([AlinoeDoctari](https://github.com/AlinoeDoctari))
+
+### Templates
+
+- **Templates:** Fix runtime for `azure-nodejs-typescript` ([#9106](https://github.com/serverless/serverless/issues/9106)) ([3597f45](https://github.com/serverless/serverless/commit/3597f4539dce1d7185879e7e00e67c64c022de02)) ([Tony Papousek](https://github.com/tonypapousek))
+
 ## [2.29.0](https://github.com/serverless/serverless/compare/v2.28.7...v2.29.0) (2021-03-09)
 
 ### Features
