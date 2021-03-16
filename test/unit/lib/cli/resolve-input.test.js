@@ -62,6 +62,25 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         expect(data.options.v).to.equal(true);
       });
     });
+
+    describe('Command with initially not recognized boolean', () => {
+      before(() => {
+        resolveInput.clear();
+        data = overrideArgv(
+          {
+            args: ['serverless', 'deploy', '--force', 'function', '-f', 'foo'],
+          },
+          () => resolveInput()
+        );
+      });
+
+      it('should recognize target command', async () => {
+        expect(data).to.deep.equal({
+          commands: ['deploy', 'function'],
+          options: { force: true, function: 'foo' },
+        });
+      });
+    });
   });
 
   describe('"-s" handling', () => {
