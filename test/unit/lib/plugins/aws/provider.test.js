@@ -500,6 +500,23 @@ describe('AwsProvider', () => {
 
     afterEach(() => {});
 
+    it('should pass resolved credentials as expected', async () => {
+      awsProviderProxied.cachedCredentials = {
+        accessKeyId: 'accessKeyId',
+        secretAccessKey: 'secretAccessKey',
+        sessionToken: 'sessionToken',
+      };
+      await awsProviderProxied.request('S3', 'getObject', {});
+      expect(awsRequestStub.args[0][0]).to.deep.equal({
+        name: 'S3',
+        params: {
+          credentials: awsProviderProxied.cachedCredentials,
+          region: 'us-east-1',
+          isS3TransferAccelerationEnabled: false,
+        },
+      });
+    });
+
     it('should trigger the expected AWS SDK invokation', () => {
       return awsProviderProxied.request('S3', 'getObject', {}).then(() => {
         expect(awsRequestStub).to.have.been.calledOnce;
