@@ -510,7 +510,7 @@ describe('AwsProvider', () => {
       expect(awsRequestStub.args[0][0]).to.deep.equal({
         name: 'S3',
         params: {
-          credentials: awsProviderProxied.cachedCredentials,
+          ...awsProviderProxied.cachedCredentials,
           region: 'us-east-1',
           isS3TransferAccelerationEnabled: false,
         },
