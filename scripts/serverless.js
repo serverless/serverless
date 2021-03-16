@@ -35,7 +35,7 @@ const processSpanPromise = (async () => {
       serverlessExecutionSpan: processSpanPromise,
     });
 
-    const { commands, options } = require('../lib/cli/resolve-input')();
+    const { commands, options, isHelpRequest } = require('../lib/cli/resolve-input')();
 
     // If version number request, show it and abort
     if (options.version) {
@@ -64,7 +64,6 @@ const processSpanPromise = (async () => {
     if (!commandSchema || commandSchema.serviceDependencyMode) {
       const resolveConfigurationPath = require('../lib/cli/resolve-configuration-path');
       const readConfiguration = require('../lib/configuration/read');
-      const isHelpRequest = require('../lib/cli/is-help-request')();
       const logDeprecation = require('../lib/utils/logDeprecation');
 
       // Resolve eventual service configuration path
