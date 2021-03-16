@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.30.3](https://github.com/serverless/serverless/compare/v2.30.2...v2.30.3) (2021-03-16)
+
+### Bug Fixes
+
+- **CLI:** Recognize `--env` option for `sls invoke local` as multiple ([#9131](https://github.com/serverless/serverless/issues/9131)) ([a941e87](https://github.com/serverless/serverless/commit/a941e87cbfbd272f27fc6360c7a733b337e83f2d)) ([lewgordon](https://github.com/lewgordon))
+
 ### [2.30.2](https://github.com/serverless/serverless/compare/v2.30.1...v2.30.2) (2021-03-16)
 
 ### Bug Fixes
