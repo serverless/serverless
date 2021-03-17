@@ -189,7 +189,7 @@ const processSpanPromise = (async () => {
         // Load eventual environment variables from .env files
         await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
 
-        if (!_.get(configuration.provider, 'variableSyntax') && variablesMeta.size) {
+        if (variablesMeta && variablesMeta.size) {
           if (!hasVariableResolutionFailed) {
             // Resolve eventually still not resolved configuration variables
             // (now "env" source is assumed as complete)
