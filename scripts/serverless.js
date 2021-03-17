@@ -251,6 +251,17 @@ const processSpanPromise = (async () => {
                 '(configured behind variables which cannot be resolved at this stage)'
             );
           }
+
+          if (variablesMeta.has('provider\0name')) {
+            variablesMeta = null;
+            if (isHelpRequest) return;
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(
+                configurationPath
+              )}: "provider.name" property is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
+            );
+          }
         })();
       }
     }
