@@ -114,6 +114,8 @@ const processSpanPromise = (async () => {
           if (!variablesMeta.size) return;
 
           if (variablesMeta.has('variablesResolutionMode')) {
+            variablesMeta = null;
+            if (isHelpRequest) return;
             throw new ServerlessError(
               `Cannot resolve ${path.basename(
                 configurationPath
@@ -144,40 +146,41 @@ const processSpanPromise = (async () => {
             variablesMeta
           );
 
-          if (!isHelpRequest) {
-            // There are few configuration properties, which have to be resolved at this point
-            // to move forward. Report errors if that's not the case
-            if (variablesMeta.has('provider')) {
+          if (isHelpRequest) return;
+
+          // There are few configuration properties, which have to be resolved at this point
+          // to move forward. Report errors if that's not the case
+          if (variablesMeta.has('provider')) {
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(
+                configurationPath
+              )}: "provider" section is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
+            );
+          }
+          if (!hasVariableResolutionFailed && variablesMeta.has('provider\0stage')) {
+            if (configuration.variablesResolutionMode) {
               throw new ServerlessError(
                 `Cannot resolve ${path.basename(
                   configurationPath
-                )}: "provider" section is not accessible ` +
+                )}: "provider.stage" property is not accessible ` +
                   '(configured behind variables which cannot be resolved at this stage)'
               );
             }
-            if (!hasVariableResolutionFailed && variablesMeta.has('provider\0stage')) {
-              if (configuration.variablesResolutionMode) {
-                throw new ServerlessError(
-                  `Cannot resolve ${path.basename(
-                    configurationPath
-                  )}: "provider.stage" property is not accessible ` +
-                    '(configured behind variables which cannot be resolved at this stage)'
-                );
-              }
-              logDeprecation(
-                'NEW_VARIABLES_RESOLVER',
-                '"provider.stage" is not accessible ' +
-                  '(configured behind variables which cannot be resolved at this stage).\n' +
-                  'Starting with next major release, ' +
-                  'this will be communicated with a thrown error.\n' +
-                  'Set "variablesResolutionMode: 20210219" in your service config, ' +
-                  'to adapt to this behavior now',
-                { serviceConfig: configuration }
-              );
-              // Hack to not duplicate the warning with similar deprecation
-              logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
-            }
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              '"provider.stage" is not accessible ' +
+                '(configured behind variables which cannot be resolved at this stage).\n' +
+                'Starting with next major release, ' +
+                'this will be communicated with a thrown error.\n' +
+                'Set "variablesResolutionMode: 20210219" in your service config, ' +
+                'to adapt to this behavior now',
+              { serviceConfig: configuration }
+            );
+            // Hack to not duplicate the warning with similar deprecation
+            logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
           }
+
           if (variablesMeta.has('useDotenv')) {
             throw new ServerlessError(
               `Cannot resolve ${path.basename(configurationPath)}: "useDotenv" is not accessible ` +
