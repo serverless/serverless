@@ -215,7 +215,16 @@ const processSpanPromise = (async () => {
 
           // Resolve all unresolved configuration properties
           resolverConfiguration.fulfilledSources.add('env');
-          delete resolverConfiguration.propertyPathsToResolve;
+
+          if (isHelpRequest) {
+            // We do not need full config resolved, we just need to know what
+            // provider is service setup with, and with what eventual plugins Framework is extended
+            // as that influences what CLI commands and options could be used,
+            resolverConfiguration.propertyPathsToResolve.add('plugins').add('provider\0name');
+          } else {
+            delete resolverConfiguration.propertyPathsToResolve;
+          }
+
           await resolveVariables(resolverConfiguration);
           if (
             eventuallyReportVariableResolutionErrors(
