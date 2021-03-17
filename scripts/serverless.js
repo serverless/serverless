@@ -141,6 +141,9 @@ const processSpanPromise = (async () => {
               },
               options,
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
+              // At first stage, ensure that just properties which are required for reliable ".env"
+              // resolution are resolved
+              propertyPathsToResolve: new Set(['provider\0stage', 'useDotenv']),
             };
             await resolveVariables(resolverConfiguration);
 
@@ -212,6 +215,7 @@ const processSpanPromise = (async () => {
 
           // Resolve all unresolved configuration properties
           resolverConfiguration.fulfilledSources.add('env');
+          delete resolverConfiguration.propertyPathsToResolve;
           await resolveVariables(resolverConfiguration);
           if (
             eventuallyReportVariableResolutionErrors(
