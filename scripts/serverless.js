@@ -95,6 +95,14 @@ const processSpanPromise = (async () => {
         await (async () => {
           if (_.get(configuration.provider, 'variableSyntax')) {
             if (isHelpRequest) return;
+            if (configuration.variablesResolutionMode) {
+              throw new ServerlessError(
+                `Cannot resolve ${path.basename(
+                  configurationPath
+                )}: "variableSyntax" is not supported with new variables resolver. ` +
+                  'Please drop this setting'
+              );
+            }
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
               'Serverless Framework was enhanced with a new variables resolver ' +
