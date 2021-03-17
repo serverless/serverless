@@ -94,6 +94,7 @@ const processSpanPromise = (async () => {
 
         await (async () => {
           if (_.get(configuration.provider, 'variableSyntax')) {
+            if (isHelpRequest) return;
             logDeprecation(
               'NEW_VARIABLES_RESOLVER',
               'Serverless Framework was enhanced with a new variables resolver ' +
