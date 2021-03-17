@@ -115,14 +115,31 @@ describe('Service', () => {
   });
 
   describe('#setFunctionNames()', () => {
-    it('should make sure function name contains the default stage', () =>
-      runServerless({
+    it('should make sure function name contains the default stage', async () => {
+      const { cfTemplate, awsNaming } = await runServerless({
         fixture: 'function',
         cliArgs: ['package'],
-      }).then(({ cfTemplate, awsNaming }) =>
-        expect(
-          cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.FunctionName
-        ).to.include('dev-foo')
-      ));
+      });
+      expect(
+        cfTemplate.Resources[awsNaming.getLambdaLogicalId('foo')].Properties.FunctionName
+      ).to.include('dev-foo');
+    });
+
+    it('should throw when receives function with non-object configuration', async () => {
+      await expect(
+        runServerless({
+          fixture: 'function',
+          cliArgs: ['package'],
+          configExt: {
+            functions: {
+              bar: null,
+            },
+          },
+        })
+      ).to.be.eventually.rejected.and.have.property(
+        'code',
+        'NON_OBJECT_FUNCTION_CONFIGURATION_ERROR'
+      );
+    });
   });
 });
