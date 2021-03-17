@@ -92,98 +92,99 @@ const processSpanPromise = (async () => {
         let resolverConfiguration;
         let hasVariableResolutionFailed;
 
-        if (_.get(configuration.provider, 'variableSyntax')) {
-          logDeprecation(
-            'NEW_VARIABLES_RESOLVER',
-            'Serverless Framework was enhanced with a new variables resolver ' +
-              'which doesn\'t recognize "provider.variableSyntax" setting.' +
-              "Starting with a new major it will be the only resolver that's used." +
-              '. Drop setting from a configuration to adapt to it',
-            { serviceConfig: configuration }
-          );
-        } else {
+        await (async () => {
+          if (_.get(configuration.provider, 'variableSyntax')) {
+            logDeprecation(
+              'NEW_VARIABLES_RESOLVER',
+              'Serverless Framework was enhanced with a new variables resolver ' +
+                'which doesn\'t recognize "provider.variableSyntax" setting.' +
+                "Starting with a new major it will be the only resolver that's used." +
+                '. Drop setting from a configuration to adapt to it',
+              { serviceConfig: configuration }
+            );
+            return;
+          }
+
           // Resolve eventual configuration variables (from provider agnostic sources)
 
           // As we have not yet loaded .env files, we may have incomplete process.env state
           // It is taken into account in below resolver configuration
           const resolveVariablesMeta = require('../lib/configuration/variables/resolve-meta');
           variablesMeta = resolveVariablesMeta(configuration);
+          if (!variablesMeta.size) return;
 
-          if (variablesMeta.size) {
-            if (variablesMeta.has('variablesResolutionMode')) {
+          if (variablesMeta.has('variablesResolutionMode')) {
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(
+                configurationPath
+              )}: "variablesResolutionMode" is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
+            );
+          }
+
+          resolverConfiguration = {
+            servicePath: process.cwd(),
+            configuration,
+            variablesMeta,
+            sources: {
+              env: require('../lib/configuration/variables/sources/env'),
+              file: require('../lib/configuration/variables/sources/file'),
+              opt: require('../lib/configuration/variables/sources/opt'),
+              self: require('../lib/configuration/variables/sources/self'),
+              strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
+            },
+            options,
+            fulfilledSources: new Set(['file', 'self', 'strToBool']),
+          };
+          await resolveVariables(resolverConfiguration);
+
+          hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
+            configurationPath,
+            configuration,
+            variablesMeta
+          );
+
+          if (!isHelpRequest) {
+            // There are few configuration properties, which have to be resolved at this point
+            // to move forward. Report errors if that's not the case
+            if (variablesMeta.has('provider')) {
               throw new ServerlessError(
                 `Cannot resolve ${path.basename(
                   configurationPath
-                )}: "variablesResolutionMode" is not accessible ` +
+                )}: "provider" section is not accessible ` +
                   '(configured behind variables which cannot be resolved at this stage)'
               );
             }
-            resolverConfiguration = {
-              servicePath: process.cwd(),
-              configuration,
-              variablesMeta,
-              sources: {
-                env: require('../lib/configuration/variables/sources/env'),
-                file: require('../lib/configuration/variables/sources/file'),
-                opt: require('../lib/configuration/variables/sources/opt'),
-                self: require('../lib/configuration/variables/sources/self'),
-                strToBool: require('../lib/configuration/variables/sources/str-to-bool'),
-              },
-              options,
-              fulfilledSources: new Set(['file', 'self', 'strToBool']),
-            };
-            await resolveVariables(resolverConfiguration);
-
-            hasVariableResolutionFailed = eventuallyReportVariableResolutionErrors(
-              configurationPath,
-              configuration,
-              variablesMeta
-            );
-
-            if (!isHelpRequest) {
-              // There are few configuration properties, which have to be resolved at this point
-              // to move forward. Report errors if that's not the case
-              if (variablesMeta.has('provider')) {
+            if (!hasVariableResolutionFailed && variablesMeta.has('provider\0stage')) {
+              if (configuration.variablesResolutionMode) {
                 throw new ServerlessError(
                   `Cannot resolve ${path.basename(
                     configurationPath
-                  )}: "provider" section is not accessible ` +
+                  )}: "provider.stage" property is not accessible ` +
                     '(configured behind variables which cannot be resolved at this stage)'
                 );
               }
-              if (!hasVariableResolutionFailed && variablesMeta.has('provider\0stage')) {
-                if (configuration.variablesResolutionMode) {
-                  throw new ServerlessError(
-                    `Cannot resolve ${path.basename(
-                      configurationPath
-                    )}: "provider.stage" property is not accessible ` +
-                      '(configured behind variables which cannot be resolved at this stage)'
-                  );
-                }
-                logDeprecation(
-                  'NEW_VARIABLES_RESOLVER',
-                  '"provider.stage" is not accessible ' +
-                    '(configured behind variables which cannot be resolved at this stage).\n' +
-                    'Starting with next major release, ' +
-                    'this will be communicated with a thrown error.\n' +
-                    'Set "variablesResolutionMode: 20210219" in your service config, ' +
-                    'to adapt to this behavior now',
-                  { serviceConfig: configuration }
-                );
-                // Hack to not duplicate the warning with similar deprecation
-                logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
-              }
-            }
-            if (variablesMeta.has('useDotenv')) {
-              throw new ServerlessError(
-                `Cannot resolve ${path.basename(
-                  configurationPath
-                )}: "useDotenv" is not accessible ` +
-                  '(configured behind variables which cannot be resolved at this stage)'
+              logDeprecation(
+                'NEW_VARIABLES_RESOLVER',
+                '"provider.stage" is not accessible ' +
+                  '(configured behind variables which cannot be resolved at this stage).\n' +
+                  'Starting with next major release, ' +
+                  'this will be communicated with a thrown error.\n' +
+                  'Set "variablesResolutionMode: 20210219" in your service config, ' +
+                  'to adapt to this behavior now',
+                { serviceConfig: configuration }
               );
+              // Hack to not duplicate the warning with similar deprecation
+              logDeprecation.triggeredDeprecations.add('VARIABLES_ERROR_ON_UNRESOLVED');
             }
           }
-        }
+          if (variablesMeta.has('useDotenv')) {
+            throw new ServerlessError(
+              `Cannot resolve ${path.basename(configurationPath)}: "useDotenv" is not accessible ` +
+                '(configured behind variables which cannot be resolved at this stage)'
+            );
+          }
+        })();
 
         // Load eventual environment variables from .env files
         await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
