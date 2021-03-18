@@ -38,6 +38,14 @@ describe('#compileApiKeys()', () => {
           value: 'valueForKey9876543211',
           customerId: 'customerid98765',
         },
+        {
+          name: '4567890123',
+          enabled: false,
+        },
+        {
+          name: '5678901234',
+          enabled: true,
+        },
       ],
       // Added purely to test https://github.com/serverless/serverless/issues/7844 regression
       usagePlan: {
@@ -52,30 +60,49 @@ describe('#compileApiKeys()', () => {
         value: undefined,
         description: undefined,
         customerId: undefined,
+        enabled: true,
       },
       {
         name: '2345678901',
         value: undefined,
         description: undefined,
         customerId: undefined,
+        enabled: true,
       },
       {
         name: undefined,
         value: 'valueForKeyWithoutName',
         description: 'Api key description',
         customerId: undefined,
+        enabled: true,
       },
       {
         name: '3456789012',
         value: 'valueForKey3456789012',
         description: undefined,
         customerId: undefined,
+        enabled: true,
       },
       {
         name: '9876543211',
         value: 'valueForKey9876543211',
         description: undefined,
         customerId: 'customerid98765',
+        enabled: true,
+      },
+      {
+        name: '4567890123',
+        value: undefined,
+        description: undefined,
+        customerId: undefined,
+        enabled: false,
+      },
+      {
+        name: '5678901234',
+        value: undefined,
+        description: undefined,
+        customerId: undefined,
+        enabled: true,
       },
     ];
 
@@ -90,7 +117,7 @@ describe('#compileApiKeys()', () => {
         awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
           awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1)
         ].Properties.Enabled
-      ).to.equal(true);
+      ).to.equal(apiKey.enabled);
 
       expect(
         awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate.Resources[
@@ -149,9 +176,12 @@ describe('#compileApiKeys()', () => {
                 description: 'Api key description',
               },
               { name: '3456789012', value: 'valueForKey3456789012' },
+              { name: '4567890123', enabled: false },
             ],
           },
-          { paid: ['0987654321', 'jihgfedcba'] },
+          {
+            paid: ['0987654321', 'jihgfedcba', { name: '5678901234', enabled: true }],
+          },
         ],
         usagePlan: [{ free: [] }, { paid: [] }],
       };
@@ -159,22 +189,31 @@ describe('#compileApiKeys()', () => {
       awsCompileApigEvents.compileApiKeys();
       const expectedApiKeys = {
         free: [
-          { name: '1234567890', value: undefined, description: undefined },
-          { name: '2345678901', value: undefined, description: undefined },
+          { name: '1234567890', value: undefined, description: undefined, enabled: true },
+          { name: '2345678901', value: undefined, description: undefined, enabled: true },
           {
             name: undefined,
             value: 'valueForKeyWithoutName',
             description: 'Api key description',
+            enabled: true,
           },
           {
             name: '3456789012',
             value: 'valueForKey3456789012',
             description: undefined,
+            enabled: true,
+          },
+          {
+            name: '4567890123',
+            value: undefined,
+            description: undefined,
+            enabled: false,
           },
         ],
         paid: [
-          { name: '0987654321', value: undefined, description: undefined },
-          { name: 'jihgfedcba', value: undefined, description: undefined },
+          { name: '0987654321', value: undefined, description: undefined, enabled: true },
+          { name: 'jihgfedcba', value: undefined, description: undefined, enabled: true },
+          { name: '5678901234', value: undefined, description: undefined, enabled: true },
         ],
       };
       awsCompileApigEvents.serverless.service.provider.apiGateway.apiKeys.forEach((plan) => {
@@ -192,7 +231,7 @@ describe('#compileApiKeys()', () => {
               .Resources[
               awsCompileApigEvents.provider.naming.getApiKeyLogicalId(index + 1, planName)
             ].Properties.Enabled
-          ).to.equal(true);
+          ).to.equal(apiKey.enabled);
           expect(
             awsCompileApigEvents.serverless.service.provider.compiledCloudFormationTemplate
               .Resources[
