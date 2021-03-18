@@ -121,6 +121,18 @@ const processSpanPromise = (async () => {
           if (variablesMeta.size) {
             // Some properties are configured with variables
 
+            if (
+              eventuallyReportVariableResolutionErrors(
+                configurationPath,
+                configuration,
+                variablesMeta
+              )
+            ) {
+              // Variable syntax errors, abort
+              variablesMeta = null;
+              return;
+            }
+
             if (variablesMeta.has('variablesResolutionMode')) {
               // "variablesResolutionMode" must not be configured with variables as it influences
               // variable resolution choices
