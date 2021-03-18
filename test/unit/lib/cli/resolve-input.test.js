@@ -3,6 +3,7 @@
 const { expect } = require('chai');
 const overrideArgv = require('process-utils/override-argv');
 const resolveInput = require('../../../../lib/cli/resolve-input');
+const commandsSchema = require('../../../../lib/cli/commands-schema');
 
 describe('test/unit/lib/cli/resolve-input.test.js', () => {
   describe('when commands', () => {
@@ -76,6 +77,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
 
       it('should recognize target command', async () => {
         expect(data).to.deep.equal({
+          commandSchema: commandsSchema.get('deploy function'),
           command: 'deploy function',
           commands: ['deploy', 'function'],
           options: { force: true, function: 'foo' },
@@ -154,6 +156,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         () => resolveInput()
       );
       expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get(''),
         command: '',
         commands: [],
         options: { version: true },
@@ -169,7 +172,12 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ command: '', commands: [], options: { app: 'foo' } });
+      expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get(''),
+        command: '',
+        commands: [],
+        options: { app: 'foo' },
+      });
     });
   });
 
@@ -182,7 +190,12 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ command: 'package', commands: ['package'], options: {} });
+      expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get('package'),
+        command: 'package',
+        commands: ['package'],
+        options: {},
+      });
     });
 
     it('should recognize "--help"', async () => {
@@ -194,6 +207,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         () => resolveInput()
       );
       expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get(''),
         command: '',
         commands: [],
         options: { help: true },
@@ -210,6 +224,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         () => resolveInput()
       );
       expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get('package'),
         command: 'package',
         commands: ['package'],
         options: { help: true },
@@ -226,6 +241,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         () => resolveInput()
       );
       expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get(''),
         command: '',
         commands: [],
         options: { 'help-interactive': true },
@@ -242,6 +258,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         () => resolveInput()
       );
       expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get('help'),
         command: 'help',
         commands: ['help'],
         options: {},
@@ -264,6 +281,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
 
     it('should recognize multiple env options', async () => {
       expect(data).to.deep.equal({
+        commandSchema: commandsSchema.get('invoke local'),
         command: 'invoke local',
         commands: ['invoke', 'local'],
         options: { env: ['foo=bar', 'bar=baz'] },
