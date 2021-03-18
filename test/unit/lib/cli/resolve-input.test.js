@@ -76,6 +76,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
 
       it('should recognize target command', async () => {
         expect(data).to.deep.equal({
+          command: 'deploy function',
           commands: ['deploy', 'function'],
           options: { force: true, function: 'foo' },
         });
@@ -152,7 +153,12 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ commands: [], options: { version: true }, isHelpRequest: true });
+      expect(data).to.deep.equal({
+        command: '',
+        commands: [],
+        options: { version: true },
+        isHelpRequest: true,
+      });
     });
 
     it('should recognize interactive setup', async () => {
@@ -163,7 +169,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ commands: [], options: { app: 'foo' } });
+      expect(data).to.deep.equal({ command: '', commands: [], options: { app: 'foo' } });
     });
   });
 
@@ -176,7 +182,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ commands: ['package'], options: {} });
+      expect(data).to.deep.equal({ command: 'package', commands: ['package'], options: {} });
     });
 
     it('should recognize "--help"', async () => {
@@ -187,7 +193,12 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ commands: [], options: { help: true }, isHelpRequest: true });
+      expect(data).to.deep.equal({
+        command: '',
+        commands: [],
+        options: { help: true },
+        isHelpRequest: true,
+      });
     });
 
     it('should recognize command "--help"', async () => {
@@ -199,6 +210,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         () => resolveInput()
       );
       expect(data).to.deep.equal({
+        command: 'package',
         commands: ['package'],
         options: { help: true },
         isHelpRequest: true,
@@ -214,6 +226,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         () => resolveInput()
       );
       expect(data).to.deep.equal({
+        command: '',
         commands: [],
         options: { 'help-interactive': true },
         isHelpRequest: true,
@@ -228,7 +241,12 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
         },
         () => resolveInput()
       );
-      expect(data).to.deep.equal({ commands: ['help'], options: {}, isHelpRequest: true });
+      expect(data).to.deep.equal({
+        command: 'help',
+        commands: ['help'],
+        options: {},
+        isHelpRequest: true,
+      });
     });
   });
 
@@ -246,6 +264,7 @@ describe('test/unit/lib/cli/resolve-input.test.js', () => {
 
     it('should recognize multiple env options', async () => {
       expect(data).to.deep.equal({
+        command: 'invoke local',
         commands: ['invoke', 'local'],
         options: { env: ['foo=bar', 'bar=baz'] },
       });
