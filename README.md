@@ -50,7 +50,7 @@ Serverless is actively maintained by [Serverless Inc](https://www.serverless.com
 npm install -g serverless
 ```
 
-2. **Set-up your [Provider Credentials](./docs/providers/aws/guide/credentials.md)**. [Watch the video on setting up credentials](https://www.youtube.com/watch?v=HSd9uYj2LJA)
+2. **Set-up your [Provider Credentials](./docs/providers/aws/guide/credentials.md)**. [Watch the video on setting up credentials](https://youtu.be/VUKDRoUdMek)
 
 3. **Create a Service:**
 
