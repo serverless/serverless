@@ -35,7 +35,13 @@ const processSpanPromise = (async () => {
       serverlessExecutionSpan: processSpanPromise,
     });
 
-    const { command, commands, options, isHelpRequest } = require('../lib/cli/resolve-input')();
+    const {
+      command,
+      commands,
+      options,
+      isHelpRequest,
+      commandSchema,
+    } = require('../lib/cli/resolve-input')();
 
     // If version number request, show it and abort
     if (options.version) {
@@ -44,8 +50,6 @@ const processSpanPromise = (async () => {
     }
 
     const ServerlessError = require('../lib/serverless-error');
-    const commandsSchema = require('../lib/cli/commands-schema');
-    const commandSchema = commandsSchema.get(command);
     if (commandSchema && commandSchema.isHidden && commandSchema.noSupportNotice) {
       throw new ServerlessError(
         `Cannot run \`${command}\` command: ${commandSchema.noSupportNotice}`
