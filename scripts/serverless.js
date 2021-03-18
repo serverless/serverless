@@ -91,8 +91,10 @@ const processSpanPromise = (async () => {
         const eventuallyReportVariableResolutionErrors = require('../lib/configuration/variables/eventually-report-resolution-errors');
         let resolverConfiguration;
 
+        // IIFE for maintanance convenience
         await (async () => {
           if (_.get(configuration.provider, 'variableSyntax')) {
+            // Request to rely on old variables resolver explictly, abort
             if (isHelpRequest) return;
             if (configuration.variablesResolutionMode) {
               throw new ServerlessError(
@@ -117,7 +119,11 @@ const processSpanPromise = (async () => {
           variablesMeta = resolveVariablesMeta(configuration);
 
           if (variablesMeta.size) {
+            // Some properties are configured with variables
+
             if (variablesMeta.has('variablesResolutionMode')) {
+              // "variablesResolutionMode" must not be configured with variables as it influences
+              // variable resolution choices
               variablesMeta = null;
               if (isHelpRequest) return;
               throw new ServerlessError(
@@ -128,6 +134,8 @@ const processSpanPromise = (async () => {
               );
             }
 
+            // Resolve eventual variables in `provider.stage` and `useDotEnv`
+            // (required for reliable .env resolution)
             resolverConfiguration = {
               servicePath: process.cwd(),
               configuration,
@@ -141,8 +149,6 @@ const processSpanPromise = (async () => {
               },
               options,
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
-              // At first stage, ensure that just properties which are required for reliable ".env"
-              // resolution are resolved
               propertyPathsToResolve: new Set(['provider\0stage', 'useDotenv']),
             };
             await resolveVariables(resolverConfiguration);
@@ -154,13 +160,14 @@ const processSpanPromise = (async () => {
                 variablesMeta
               )
             ) {
+              // Unrecoverable resolution errors, abort
               variablesMeta = null;
               return;
             }
 
-            // There are few configuration properties, which have to be resolved at this point
-            // to move forward. Report errors if that's not the case
             if (variablesMeta.has('provider')) {
+              // It is unexpected to have "provider" configured with variables,
+              // that cannot be resolved at this stage, abort
               variablesMeta = null;
               if (isHelpRequest) return;
               throw new ServerlessError(
@@ -171,6 +178,7 @@ const processSpanPromise = (async () => {
               );
             }
             if (variablesMeta.has('provider\0stage')) {
+              // "provider.stage" must be resolved at this point, otherwise abort
               variablesMeta = null;
               if (isHelpRequest) return;
               if (configuration.variablesResolutionMode) {
@@ -197,6 +205,7 @@ const processSpanPromise = (async () => {
             }
 
             if (variablesMeta.has('useDotenv')) {
+              // "useDotenv" must be resolved at this point, otherwise abort
               variablesMeta = null;
               if (isHelpRequest) return;
               throw new ServerlessError(
@@ -211,7 +220,7 @@ const processSpanPromise = (async () => {
           // Load eventual environment variables from .env files
           await require('../lib/cli/conditionally-load-dotenv')(options, configuration);
 
-          if (!variablesMeta.size) return;
+          if (!variablesMeta.size) return; // No properties configured with variables
 
           // Resolve all unresolved configuration properties
           resolverConfiguration.fulfilledSources.add('env');
@@ -237,7 +246,8 @@ const processSpanPromise = (async () => {
             return;
           }
 
-          if (!variablesMeta.size) return;
+          if (!variablesMeta.size) return; // All properties successuflly resolved
+
           // At this point we expect "plugins" to be fully resolved to move forward.
           // Report error if that's not the case
           for (const propertyPath of variablesMeta.keys()) {
@@ -253,6 +263,7 @@ const processSpanPromise = (async () => {
           }
 
           if (variablesMeta.has('provider\0name')) {
+            // "provider.name" must be resolved at this point, otherwise abort
             variablesMeta = null;
             if (isHelpRequest) return;
             throw new ServerlessError(
